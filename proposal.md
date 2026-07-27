@@ -1,13 +1,14 @@
 # Project Proposal - Linger: A Personal Reading Memory Companion
 
-**Graduate Certificate in Architecting AI Systems - Practice Module**
-**Team:** _Team X (TBD)_ · **Date:** 2026-07-26 · **Status:** Draft v0.1
+**Graduate Certificate in Architecting AI Systems - Practice Module**  
+**Team:** _Team 9_  
+**Date:** 2026-07-26
 
 ---
 
 ## 1. Project Title
 
-**Linger** - an academic prototype of a broader personal reflection and memory companion, scoped to reading. It helps a reader articulate why part of a book mattered, preserve that reflection with cited textual evidence, and later explore grounded, tentative connections to other books and media.
+**Linger** - an academic prototype of a broader personal reflection and memory companion, scoped to a small literary corpus. It helps a reader articulate why part of a book mattered, preserve that reflection with cited textual evidence, and later explore grounded, tentative connections to other books and media.
 
 ## 2. Project Sponsor
 
@@ -29,9 +30,17 @@ Shared platform work (memory/policy service, CI/CD, evaluation harness, UI) is d
 
 Readers often finish a book with more than a rating or highlight. A passage may raise a question, clarify a feeling, or become meaningful because of something happening in the reader's life. Existing tools can preserve what was highlighted or written, but do little to help readers articulate why it mattered or rediscover that meaning later.
 
-Linger is a personal reflection and memory companion. During or after reading, a reader tells Linger what stayed with them. Linger helps develop the thought, retrieves relevant passages where available, separates source text from personal reflection and generated interpretation, and prepares a structured reading memory for the reader to edit and confirm. When a book is unfinished, Linger establishes a spoiler boundary from what the reader says or from the passage under discussion, asking for clarification when uncertain. Retrieval and discussion stay within that boundary; Linger does not persistently track reading progress. Later, the reader may introduce another book, a song, or a photo, and Linger can suggest a tentative connection to an existing memory. Connections remain user-initiated, evidence-aware, and dismissible; no memory or raw stimulus is stored without explicit confirmation.
+| Need | Before Linger | With Linger |
+|---|---|---|
+| **Capture** | Highlights, notes, and reflections remain scattered across books and applications. | The reader develops a thought during or after reading and preserves it as a structured memory. |
+| **Context and grounding** | An insight may be recorded without enough context to explain why it mattered. | Relevant passages, personal reflection, and generated interpretation are clearly separated. |
+| **Rediscovery** | Even carefully curated notes become buried over time. | Memories remain available for the reader to revisit, edit, confirm, or delete. |
+| **New connections** | There is no simple way to relate an old insight to a later experience. | The reader can introduce another book, song, or photo and explore a tentative, evidence-aware connection. |
+| **Mid-book discussion** | Discussing an unfinished book with a general-purpose assistant risks spoilers. | Linger infers or clarifies a request-specific spoiler boundary before retrieving or discussing the text. |
 
-The broader concept is not limited to reading: memories could also originate from films, conversations, or other meaningful experiences. To keep this academic project focused and achievable, however, the prototype will capture memories originating only from reading. Source-grounded retrieval and evaluation will use 3–5 public-domain books selected from Project Gutenberg; this is a prototype constraint, not part of the intended user experience.
+These interactions remain user-initiated and dismissible, and no memory or raw stimulus is stored without explicit confirmation.
+
+The broader concept could eventually support memories originating from films or conversations, as well as insights from research papers and educational material. This would enable cross-domain connections, such as applying an idea from one paper or subject area to another. For a focused and achievable academic project, however, the prototype will capture memories originating only from reading a small literary corpus. Source-grounded retrieval and evaluation will use 3–5 public-domain books selected from Project Gutenberg; this is a prototype constraint, not part of the intended user experience.
 
 The workflow benefits from an agentic architecture because it combines distinct responsibilities: reflective dialogue, evidence retrieval, memory curation, connection-making, and independent verification. These responsibilities also provide concrete ways to demonstrate explainability, responsible data handling, AI security, multi-agent orchestration, and reproducible deployment.
 
@@ -112,7 +121,7 @@ The following boundaries define what the academic prototype will implement and e
 
 - **In scope:** 3–5 Gutenberg books ingested with metadata; cited retrieval with request-specific spoiler filtering; reading-memory conversation with confirmation; a common stimulus interface supporting song-to-memory (song metadata only - no audio or lyrics, for copyright reasons), photo-to-memory (user-uploaded or synthetic images), and cross-book/memory-to-memory connections; verification gate; deletion; adversarial security cases including image-borne injection; single-agent baseline comparison; simple web UI; CI/CD and test deployment.
 - **Stretch:** recommending a song from a reading memory (the reverse of the in-scope song-to-memory flow); comparing a revisited pairing with the earlier confirmed reflection.
-- **Out of scope:** persistent reading-progress tracking; memories originating from films, conversations, or other non-reading experiences; live music/photo/social integrations; full Gutenberg catalogue; copyrighted books or lyrics; production scale or compliance claims; mental-health profiling.
+- **Out of scope:** persistent reading-progress tracking; memories originating from films or conversations; research papers and educational materials; live music/photo/social integrations; full Gutenberg catalogue; copyrighted books or lyrics; production scale or compliance claims; mental-health profiling.
 
 ### 6.4 Stakeholders, trade-offs, and validation
 
