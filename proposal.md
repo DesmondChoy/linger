@@ -1,4 +1,4 @@
-# Project Proposal - Linger: A Personal Reading Memory Companion
+# Project Proposal - Linger: A Personal Reflection and Memory Companion
 
 **Graduate Certificate in Architecting AI Systems - Practice Module**  
 **Team:** _Team 9_  
@@ -8,7 +8,7 @@
 
 ## 1. Project Title
 
-**Linger** - an academic prototype of a broader personal reflection and memory companion, scoped to a small literary corpus. It helps a reader articulate why part of a book mattered, preserve that reflection with cited textual evidence, and later explore grounded, tentative connections to other books and media.
+**Linger** - an academic prototype of a personal reflection and memory companion, grounded initially in a small literary corpus. It helps a user articulate why an idea or experience mattered, preserve it as a structured memory, and later explore grounded, tentative connections across conversations, books, voice notes, photographs, and permitted web sources.
 
 ## 2. Project Sponsor
 
@@ -18,142 +18,141 @@ Not applicable (self-sourced project idea).
 
 | Member | Name | Agent / component owned |
 |---|---|---|
-| 1 | _Member 1 (placeholder)_ | **Muse** - reading-companion agent |
-| 2 | _Member 2 (placeholder)_ | **Librarian** - retrieval-and-citations agent |
-| 3 | _Member 3 (placeholder)_ | **Scribe** - memory-curator agent |
+| 1 | _Member 1 (placeholder)_ | **Muse** - reflection-companion agent |
+| 2 | _Member 2 (placeholder)_ | **Librarian** - retrieval-and-reranking agent |
+| 3 | _Member 3 (placeholder)_ | **Sculptor** - memory-organisation agent |
 | 4 | _Member 4 (placeholder)_ | **Serendipity** - connection agent |
 | 5 | _Member 5 (placeholder)_ | **Provenance** - verifier agent |
 
-Shared platform work (memory/policy service, CI/CD, evaluation harness, UI) is distributed across all members alongside their agent ownership.
+Each member's WBS is estimated in Section 7.
 
 ## 4. Overview
 
-Readers often finish a book with more than a rating or highlight. A passage may raise a question, clarify a feeling, or become meaningful because of something happening in the reader's life. Existing tools can preserve what was highlighted or written, but do little to help readers articulate why it mattered or rediscover that meaning later.
+People retain fragments from books and everyday life: a passage, question, photograph, voice note, or personal interpretation. Existing tools can store these fragments, but do little to help a user articulate why they mattered, organise them over time, or rediscover their meaning later.
 
-| Need | Before Linger | With Linger |
+The primary users are people who want to preserve the meaning behind an experience or idea, not merely the raw artefact.
+
+### 4.1 User journey
+
+Linger supports a continuous journey from reflection to rediscovery:
+
+| Stage | User experience | How Linger helps |
 |---|---|---|
-| **Capture** | Highlights, notes, and reflections remain scattered across books and applications. | The reader develops a thought during or after reading and preserves it as a structured memory. |
-| **Context and grounding** | An insight may be recorded without enough context to explain why it mattered. | Relevant passages, personal reflection, and generated interpretation are clearly separated. |
-| **Rediscovery** | Even carefully curated notes become buried over time. | Memories remain available for the reader to revisit, edit, confirm, or delete. |
-| **New connections** | There is no simple way to relate an old insight to a later experience. | The reader can introduce another book, song, or photo and explore a tentative, evidence-aware connection. |
-| **Mid-book discussion** | Discussing an unfinished book with a general-purpose assistant risks spoilers. | Linger infers or clarifies a request-specific spoiler boundary before retrieving or discussing the text. |
+| **1. Reflect** | The user talks with Muse or adds a voice note or photograph. | **Muse**, the reflection companion, maintains an ongoing conversation and asks useful follow-up questions. When books are discussed, it avoids introducing spoilers. |
+| **2. Ground** | The user explores why the fragment mattered and how it relates to existing memories or source material. | **Librarian** retrieves and reranks evidence across books and structured memories; Muse separates source evidence, the user's words, and generated interpretation. |
+| **3. Preserve** | A useful memory is retained without interrupting the conversation for approval. | **Sculptor** automatically creates, structures, and organises the memory; the user may later review, edit, or delete it. |
+| **4. Reconnect** | A conversation, voice note, or photograph suggests a potentially meaningful connection. | Muse may hand the cue to **Serendipity**, which searches internal evidence and, when useful, the web. **Provenance** checks the proposed connection before it reaches the user. |
 
-These interactions remain user-initiated and dismissible, and no memory or raw stimulus is stored without explicit confirmation.
+Automatic memory capture is enabled by default and does not require per-memory approval. Users can review, edit, or delete memories at any time. Raw voice notes and photographs remain transient unless the user chooses to save them.
 
-The broader concept could eventually support memories originating from films or conversations, as well as insights from research papers and educational material. This would enable cross-domain connections, such as applying an idea from one paper or subject area to another. For a focused and achievable academic project, however, the prototype will capture memories originating only from reading a small literary corpus. Source-grounded retrieval and evaluation will use 3–5 public-domain books selected from Project Gutenberg; this is a prototype constraint, not part of the intended user experience.
+### 4.2 Agent roles
 
-The workflow benefits from an agentic architecture because it combines distinct responsibilities: reflective dialogue, evidence retrieval, memory curation, connection-making, and independent verification. These responsibilities also provide concrete ways to demonstrate explainability, responsible data handling, AI security, multi-agent orchestration, and reproducible deployment.
+The prototype uses five agents with distinct reasoning responsibilities. The Memory & Policy Service performs storage, account isolation, and deletion under deterministic application controls.
+
+| Agent | Role in the journey | Key autonomous decisions | Tools Given |
+|---|---|---|---|
+| **Muse** | Maintains an ongoing reflection conversation across text, voice notes, and photographs while respecting spoiler boundaries when books are discussed. | Whether to ask a follow-up, request evidence, create a memory cue, invoke Serendipity, or report uncertainty. | Read, write, speech-to-text, image analysis, ask user, call Librarian, call Serendipity |
+| **Librarian** | Plans and executes retrieval across the book corpus and Sculptor-maintained memory store, returning reranked evidence with stable citations. | Which sources and retrieval strategy to use, how to formulate or expand the query, how to fuse and rerank candidates, and when evidence is sufficient. | Read, keyword search, vector search, rerank |
+| **Sculptor** | Automatically creates and maintains structured memories, preserving originals while improving their organisation for retrieval. | What to summarise, which memories are duplicates or related, how to group them, and when derived summaries should be refreshed. | Read, write, memory search, cluster |
+| **Serendipity** | Responds to cues from Muse, voice notes, or photographs and proposes useful connections across memories, books, and permitted web sources. | Whether to search internally or on the web, what evidence to request, whether a connection is supportable, and how to revise against critique. | Read, web search, image analysis, speech-to-text, call Librarian |
+| **Provenance** | Independently verifies Serendipity's proposed connections before they reach the user. | Whether to accept, request revision, or reject based on attribution, grounding, privacy scope, and prompt-injection checks. | Read, grep, policy check, injection scan |
 
 ## 5. General Flow
 
-```
-Reader ──────► Muse ──► Librarian ──► Gutenberg corpus (cited passages)
-                │
-                ▼
-             Scribe ──► drafts structured memory
-                │
-                │   reader edits / confirms / rejects
-                ▼
-         Memory & Policy Service (deterministic: confirmation, isolation, deletion)
-                │
-                │   reader supplies a stimulus
-                │   (song, photo, or another book)
-                ▼
-         Serendipity ──► searches authorised memories ──► proposes tentative
-                │      ▲                                  link (or declines)
-                │      │
-                │      │   inner loop: rejection returns to
-                │      │   Serendipity with a structured
-                │      │   critique (bounded retries)
-                ▼      │
-          Provenance ──┘
-                │
-                │   accepted or returned for revision
-                ▼
-         Result shown to reader (save, dismiss, or delete)
-                │
-                ▼
-         Opt-in scrubbed feedback telemetry
-         (non-content edit, save, dismissal, and rejection signals)
-                │
-                ▼
-         Outer loop: human-reviewed prompt / exemplar updates,
-         CI-gated, fed back into the agents above
+An *active memory* is an automatically captured memory owned by the requesting account and not deleted. The deterministic Memory & Policy Service enforces account isolation and deletion on every read; agents cannot widen their own access.
+
+```mermaid
+flowchart LR
+    subgraph Capture["Capture and preserve"]
+        U[User] <--> M[Muse conversation]
+        U --> I[Voice note or photograph]
+        I --> M
+        M <--> L[Librarian]
+        M --> SC[Sculptor]
+        SC <--> D[(Structured memory store)]
+        D <--> U
+    end
+
+    L <--> C[(Book corpus)]
+    L <--> D
+
+    subgraph Reconnect["Discover connections"]
+        M -- Connection cue --> SE[Serendipity]
+        SE <--> L
+        SE <--> W[(Permitted web sources)]
+        SE --> P2[Provenance]
+        P2 -- Revise --> SE
+        P2 -- Verified --> U
+        U -- Save connection --> SC
+    end
 ```
 
-1. During or after reading, the reader tells **Muse** what stayed with them. For an unfinished book, Muse asks where they are in the book or infers a provisional spoiler boundary from the conversation, asking for clarification if confidence is low.
-2. The **Librarian** plans and executes retrieval over the 3–5 ingested Gutenberg books, returning passages with stable citations or reporting that evidence is insufficient. It filters retrieval to the request's spoiler boundary; Muse must not discuss later events.
-3. **Scribe** (memory curator) drafts a structured memory, clearly separating quotations, the reader's own words, and generated interpretation. The reader may edit, confirm, or reject it. Only confirmed memories are stored through the **Memory & Policy Service**, which deterministically enforces user isolation, permissions, and deletion.
-4. Later, the reader supplies a new stimulus through a common interface: a song (title, artist, optional note - no audio or lyrics), an uploaded photo, another supported book, or a saved memory. **Serendipity** (connection agent) characterises the stimulus, searches only authorised memory summaries and passages, and proposes a grounded, explicitly tentative connection - or returns "no responsible connection found."
-5. **Provenance** (verifier) independently checks quotations against source text, evidence sufficiency, privacy scope, and interpretive overreach before any proposed connection is shown. A rejection loops back to Serendipity with a structured critique for revision (bounded retries). The reader may save or dismiss the connection and may separately delete it or any underlying memory.
-6. **Improvement loop:** if the reader opts in, non-content signals - whether a draft was edited, a connection was saved or dismissed, and Provenance's rejection category - are captured as scrubbed telemetry. The team reviews aggregate signals and updates versioned prompts; exemplars use only synthetic or separately consented, sanitised cases. Every change must pass the CI evaluation suite before deployment.
+Four safeguards govern the flow:
+
+- **Spoiler control:** Muse confirms a conservative boundary before Librarian retrieves unfinished text.
+- **Memory control:** Sculptor captures and organises memories automatically, but preserves the original record and provenance. It may link, group, or summarise memories but cannot delete them; the user retains review, correction, and deletion controls.
+- **Verification:** Provenance independently checks each proposed connection; rejection returns a structured critique to Serendipity for bounded revision.
+- **Media handling:** raw voice notes and photographs remain transient unless the user chooses to save them; derived memories may still be captured automatically.
 
 Orchestration follows a graph-based **plan → act → check → refine** pattern: agents coordinate through typed tool contracts and structured inputs/outputs, each agent can respond to incomplete evidence or decline, and the policy service is application code, not an agent, so security guarantees never depend on model instructions.
 
 ## 6. Scope of Work
 
-### 6.1 Agents
+### 6.1 Prototype boundaries
 
-| Agent | Responsibility and autonomy | Why an agent, not a single LLM call |
-|---|---|---|
-| **Muse** (reading companion) | Conducts the reflection dialogue; asks for or infers a request-specific spoiler boundary; chooses when to retrieve evidence, which follow-up questions to ask, and when to hand off to Scribe. It must not reveal events beyond that boundary. | Maintains conversation state across turns and plans each next action: clarify an uncertain boundary, retrieve permitted evidence, ask a follow-up, or hand off. Invokes the Librarian as a tool and adapts when retrieved passages contradict the reader's recollection. |
-| **Librarian** (retrieval & citations) | Plans multi-step retrieval over the ingested corpus (query reformulation, passage selection); applies the request's spoiler boundary; returns stable citations; and flags insufficient or conflicting evidence rather than guessing. | Runs an iterative search loop - query, assess relevance, reformulate, re-query - rather than one-shot vector lookup. Decides when permitted evidence suffices, when to reformulate within the boundary, and when to report failure instead of searching later content. |
-| **Scribe** (memory curator) | Converts conversation into a structured memory draft with clear source attribution (quotation vs. user statement vs. generated interpretation); manages the confirmation loop and memory summaries used downstream. | Executes a draft → present → incorporate-edits → re-draft cycle with the reader, tracking what changed between revisions. Calls verification tools to attribute each fragment to its source, and only invokes the policy service's storage tool after explicit confirmation. |
-| **Serendipity** (connection agent) | Given a user-supplied stimulus - a song (metadata only), an uploaded photo, another supported book, or a saved memory - selects relevant authorised memories, weighs evidence, and proposes an explicitly tentative link - or declines. Never accesses unconfirmed or deleted content. | Must first characterise an open-ended stimulus, then plan a different evidence-gathering strategy per type (song metadata and the reader's note; image content via multimodal understanding; cross-book thematic search): which memory summaries to request, which passages to re-fetch for grounding, whether the evidence clears the bar. Revises against Provenance's critiques (bounded retries) and can conclude that no responsible connection exists. |
-| **Provenance** (verifier) | Independent gate: verifies quotations against source, checks privacy boundaries, detects prompt injection carried in retrieved text, and rejects unsupported sensitive inferences. | Independently re-derives evidence using its own tool calls (quote lookup against source text, policy-scope checks) rather than trusting upstream claims. Chooses which checks a given proposal warrants, and decides between accept, revise-with-critique, and reject - a judgement loop, not a classifier. |
+The prototype accepts conversation, voice notes, and photographs as memory cues. Source-grounded book retrieval remains limited to 3–5 public-domain books from Project Gutenberg; Serendipity may also use permitted web sources when searching for a connection.
+
+- **In scope:** ongoing Muse conversations; voice-note transcription and photograph understanding; cited retrieval across the book corpus and structured memories using keyword, semantic, and hybrid strategies plus reranking; automatic memory capture; structured summaries, duplicate linking, topic grouping, and progressive disclosure through Sculptor; Serendipity connections triggered by conversations or new media, with permitted web search; request-specific spoiler filtering; citation validation and independent verification of connections; user-controlled review and deletion; adversarial tests; a single-agent baseline; simple web UI; CI/CD and test deployment.
+- **Stretch:** cross-book, memory-to-memory, and song-to-memory connections; comparing a revisited pairing with the earlier reflection; a synthetic exercise of an opt-in feedback pipeline.
+- **Out of scope:** persistent reading-progress tracking; live music, photo-library, messaging, or social integrations; the full Gutenberg catalogue; copyrighted books or lyrics; music or copyrighted-audio analysis; production-scale or compliance claims; mental-health profiling; any claim that telemetry measurably improved the system.
 
 ### 6.2 How the implementation demonstrates key considerations
 
 | Consideration | Implementation |
 |---|---|
 | **Explainability & trust** | Book quotations and factual source claims carry inspectable citations; quotations, user statements, and generated interpretations are visually and structurally separated; connections are presented as hypotheses with visible uncertainty; workflow tracing records why each step happened. |
-| **Responsible AI & governance** | Explicit confirmation before storing any memory or raw stimulus; opt-in scrubbed telemetry; explicit consent before any analysis of an uploaded photo; user-controlled correction and deletion; data minimisation (agents receive only task-relevant context); no inference of sensitive traits (health, religion, sexuality, ethnicity, politics) - a risk photos particularly invite; documented corpus limitations; alignment with IMDA Model AI Governance Framework in the final report. |
-| **Security** | Retrieved book text, uploaded images, and media notes treated as untrusted input; deterministic application code enforces isolation, permissions, deletion, and request-specific spoiler filters; AI security risk register covering prompt injection (including instructions embedded in uploaded photos), fabricated quotations, spoiler leakage, forbidden memory requests, log leakage, and deleted-data retrieval - each with automated adversarial test cases. |
-| **Agent autonomy & orchestration** | Graph-based orchestration implementing plan → act → check → refine: agents select tools, respond to incomplete evidence, decline unsafe actions, and coordinate through typed contracts. The same evaluation cases run against a single-agent baseline to justify (or remove) each agent boundary. |
-| **Self-improvement loop** | Inner loop: Provenance's rejections return structured critiques for bounded revision. Outer loop: opt-in, non-content telemetry informs human-reviewed prompt updates; exemplars are synthetic or separately consented and sanitised. Each version is gated by the CI evaluation suite - controlled improvement, never silent behaviour drift. |
+| **Responsible AI & governance** | Automatic memory capture is enabled by default and clearly disclosed; users can inspect, correct, or delete memories at any time. Sculptor preserves original records and provenance when creating summaries or groupings. Raw voice notes and photographs remain transient unless saved. Data minimisation, sensitive-trait restrictions, documented source limitations, and alignment with the IMDA Model AI Governance Framework remain in scope. |
+| **Security** | Retrieved book text, web content, voice notes, and photographs are treated as untrusted input; deterministic application code enforces access control, deletion, spoiler filters, and isolation **between user accounts**. The test deployment uses multiple accounts so cross-account retrieval is tested rather than merely asserted. Automated adversarial cases cover prompt injection, fabricated claims, spoiler leakage, forbidden memory requests, log leakage, and deleted-data retrieval. |
+| **Agent autonomy & orchestration** | Graph-based orchestration implementing plan → act → check → refine: agents select tools, respond to incomplete evidence, decline unsafe actions, and coordinate through typed contracts. The same evaluation cases run against a single-agent baseline to quantify any quality and traceability gains against added latency and cost. |
+| **Controlled improvement** | Provenance returns structured critiques for bounded revision. Prompt changes remain human-reviewed, versioned, and gated by the CI evaluation suite; no improvement claim relies on prototype user telemetry. |
 | **MLOps / LLMSecOps** | Versioned prompts, corpus builds, tool contracts, and policies; automated contract, retrieval, security, and end-to-end tests in CI/CD; cost and latency measurement; logs scrubbed of raw personal memories. The system is deployed to a reproducible test environment so user isolation, prompt-injection defences, forbidden memory requests, and deletion are exercised against a running system, not just unit tests. |
 
 **Proposed stack (subject to team confirmation):** Python, LangGraph for orchestration, a hosted LLM API, FastAPI backend, lightweight web UI, Docker, GitHub Actions CI/CD.
 
-### 6.3 In scope / stretch / out of scope
-
-The following boundaries define what the academic prototype will implement and evaluate; they are not limitations of the broader product concept.
-
-- **In scope:** 3–5 Gutenberg books ingested with metadata; cited retrieval with request-specific spoiler filtering; reading-memory conversation with confirmation; a common stimulus interface supporting song-to-memory (song metadata only - no audio or lyrics, for copyright reasons), photo-to-memory (user-uploaded or synthetic images), and cross-book/memory-to-memory connections; verification gate; deletion; adversarial security cases including image-borne injection; single-agent baseline comparison; simple web UI; CI/CD and test deployment.
-- **Stretch:** recommending a song from a reading memory (the reverse of the in-scope song-to-memory flow); comparing a revisited pairing with the earlier confirmed reflection.
-- **Out of scope:** persistent reading-progress tracking; memories originating from films or conversations; research papers and educational materials; live music/photo/social integrations; full Gutenberg catalogue; copyrighted books or lyrics; production scale or compliance claims; mental-health profiling.
-
-### 6.4 Stakeholders, trade-offs, and validation
+### 6.3 Trade-offs and validation
 
 | Question | Proposal |
 |---|---|
-| **Stakeholders and value** | Readers are the primary users. The project team operates the prototype and is accountable for its data handling; NUS-ISS lecturers evaluate the project outcomes. The intended value is to reduce the effort of creating evidence-backed reflections and make saved insights easier to rediscover. |
 | **Benefits and trade-offs** | Specialised agents improve separation of duties, traceability, and independent verification, but add latency, cost, orchestration complexity, and new failure paths. The single-agent baseline will test whether the added complexity is justified. |
-| **Scale** | The prototype targets up to five concurrent reader sessions, not production scale. A basic load test will report success rate, p95 latency, and per-session model cost. |
-| **Demo success criteria** | On a fixed evaluation set: all displayed quotations must exactly match their cited source; no unauthorised or deleted memory may be retrieved; all seeded prompt-injection cases must be blocked or safely ignored; and no test with a stated or implied spoiler boundary may retrieve or reveal later content, including when the reader explicitly asks for it. Ambiguous cases must trigger clarification rather than retrieval. A comparison with the single-agent baseline will measure evidence sufficiency, traceability, task completion, latency, and cost. |
-| **Lifecycle automation** | CI automatically runs contract, retrieval, security, and end-to-end tests for every versioned prompt, policy, or corpus change, reducing manual regression effort and preventing failed changes from deployment. |
+| **Scale** | The prototype targets up to five concurrent user sessions, not production scale. A basic load test will report success rate, p95 latency, and per-session model cost. |
+| **Retrieval evaluation** | A fixed set of citation-labelled book and memory queries compares keyword, semantic, hybrid, and reranked retrieval using Recall@5 and nDCG@5. The same set tests whether Librarian's strategy selection improves relevance or latency over the strongest fixed approach. |
+| **Memory-quality evaluation** | Seeded duplicate and noisy memories test Sculptor's linking and grouping precision and the resulting change in Recall@5 and nDCG@5. Every derived summary must remain traceable to its original memories, and Sculptor must never delete an original. |
+| **Demo success criteria - safety** | A fixed 60-case set is defined before implementation: 20 safety/adversarial cases, 30 expected-connection cases, and 10 weak-evidence cases. All quotations and web claims must match their cited source; no cross-account, deleted, or post-boundary content may be revealed; and every seeded text-, web-, image-, or audio-borne injection must be blocked or safely ignored. Ambiguous spoiler boundaries must trigger clarification. |
+| **Demo success criteria - quality** | On held-out connection cases spanning conversation handoffs, voice notes, and photographs, two independent human raters score grounding, relevance, tentativeness, and non-triviality on a four-point rubric. At least 80% of expected-connection cases must score 3 or 4 for both grounding and relevance; at least 80% of deliberately weak-evidence cases must be declined. Inter-rater agreement is reported, and the single-agent baseline uses the same cases and rubric. |
 
 ## 7. Effort Estimates
 
-The WBS below lists the top-level work packages and rough estimates in person-days. Each package will be broken into assignable tasks at kick-off, with actual effort tracked in the fortnightly progress reports.
+The WBS below lists the top-level work packages, an accountable owner for each, and rough estimates in person-days. Each package will be broken into assignable tasks at kick-off, with actual effort tracked in the fortnightly progress reports. Owners (M1–M5) correspond to the members in Section 3; the owner is accountable for the package, not its sole contributor.
 
-Guideline: 5 members × 15 person-days ≈ **75 person-days**.
+Guideline: 5 members × 15 person-days ≈ **75 person-days**. The core plan uses 70 person-days and reserves 5 for integration and evaluation risks; stretch items are excluded.
 
-| # | WBS work package | Est. (person-days) |
-|---|---|---|
-| 1 | Corpus ingestion, chunking, citation scheme (3–5 Gutenberg books) | 5 |
-| 2 | Memory & policy service (confirmation, isolation, deletion) + data model | 7 |
-| 3 | Muse - reading-companion agent (dialogue, follow-ups, retrieval decisions) | 7 |
-| 4 | Librarian - retrieval agent (search planning, citations, insufficiency handling) | 7 |
-| 5 | Scribe - memory-curator agent (structured drafts, source attribution, confirmation loop) | 7 |
-| 6 | Serendipity - connection agent (stimulus interface: song / photo / cross-book; decline behaviour; revision loop) | 7 |
-| 7 | Provenance - verifier agent (quote checking, privacy/injection/overreach gates, critiques) | 7 |
-| 8 | Feedback telemetry & improvement loop (scrubbed signals, prompt versioning) | 3 |
-| 9 | Security test suite & AI risk register (text and image-borne injection, fabrication, deletion) | 7 |
-| 10 | Evaluation harness incl. single-agent baseline comparison | 6 |
-| 11 | Web UI for end-to-end demo | 5 |
-| 12 | CI/CD, tracing, cost/latency measurement, test deployment | 5 |
-| 13 | Reports, architecture documentation, presentation | 2 |
-| | **Total** | **75** |
+| # | WBS work package | Owner | Est. (person-days) |
+|---|---|---|---|
+| 1 | Corpus ingestion, indexes, and citation scheme (3–5 Gutenberg books) | M2 | 4 |
+| 2 | Memory & policy service (automatic storage, isolation, review, deletion) + data model | M3 | 5 |
+| 3 | Muse - reflection-companion agent (multi-turn dialogue, multimodal input routing, follow-ups, agent hand-offs) | M1 | 5 |
+| 4 | Librarian - retrieval agent (book and memory retrieval, query planning, keyword/semantic/hybrid search, fusion, reranking) | M2 | 6 |
+| 5 | Sculptor - memory-organisation agent (structured summaries, duplicate linking, grouping, progressive disclosure) | M3 | 5 |
+| 6 | Serendipity - connection agent (conversation/voice/photo cues, internal and web search, decline behaviour, revision loop) | M4 | 6 |
+| 7 | Provenance - verifier agent (evidence, privacy, injection, and overreach checks; critiques) | M5 | 5 |
+| 8 | **Orchestration & integration** (LangGraph graph assembly, typed tool contracts, end-to-end flow, failure handling) | M1 | 6 |
+| 9 | Security test suite & AI risk register (text, web, image-, and audio-borne injection, fabrication, cross-account access, deletion) | M5 | 5 |
+| 10 | Evaluation harness: retrieval and memory-quality benchmarks, authored cases, quality rubric, single-agent baseline | M4 | 5 |
+| 11 | Web UI for conversation, voice-note, photograph, and memory-management flows | M3 | 4 |
+| 12 | CI/CD, tracing, cost/latency measurement, test deployment | M2 | 4 |
+| 13 | Group report, architecture and agent documentation, presentation | M5 (coordinator) | 4 |
+| 14 | Individual reports | Each member | 6 |
+| 15 | Contingency for integration and evaluation risks | M1 (coordinator) | 5 |
+| | **Total** | | **75** |
 
 Effort will be tracked and reported in fortnightly progress reports per the module schedule (proposal due 31 Jul 26; project conduct 10 Aug – 9 Oct 26; presentations from 12 Oct 26; final reports 30 Oct 26).
