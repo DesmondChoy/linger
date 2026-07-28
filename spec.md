@@ -45,8 +45,7 @@ Automatic capture does not require per-memory approval once enabled. Content abo
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
 - a separate context-restricted verification step and one bounded revision;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
-- adversarial, retrieval, memory-quality, connection-quality, cost, and latency evaluation; and
-- a single-agent baseline using the same model, evidence, tool access, cases, and token budget.
+- adversarial, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation.
 
 ### 3.2 Stretch
 
@@ -85,6 +84,8 @@ The Memory & Policy Service derives account identity from authenticated request 
 
 Agents are logical roles, not necessarily separate models or processes. They are invoked only when needed: Muse handles the main interaction, Librarian and Sculptor support grounding and capture, while Serendipity and Provenance run only on the higher-risk connection path.
 
+The five roles separate conversation, retrieval, memory curation, connection generation, and independent verification. Scoped hand-offs keep each invocation within a bounded task context; deterministic application code enforces access and writes.
+
 Each hand-off carries only the claims, evidence identifiers, confidence, and policy flags required by the next step. Full transcripts and unrestricted working context are not passed between agents.
 
 Provenance is a separate, context-isolated model invocation. It receives only the proposed connection, cited evidence, and applicable policy constraints; it receives neither Serendipity's working context nor write tools. This provides separation of duties, not model independence, because the same underlying model may be used.
@@ -104,6 +105,8 @@ Working context contains only:
 The complete memory archive is never injected into every prompt.
 
 ### 5.2 Memory record
+
+An active memory is owned by the requesting account and not deleted. It may have been captured automatically while memory capture was enabled or saved explicitly by the user.
 
 Each active memory contains:
 
@@ -149,11 +152,7 @@ At the start of each book-related session, the user states their position in the
 
 ### 6.2 Citations and attribution
 
-Application code normalises exact quotations, matches them against the indexed corpus, and validates source identifiers and locations. Muse visually and structurally separates:
-
-- exact source evidence;
-- the user's words; and
-- generated interpretation.
+Whenever an exact quotation is displayed or stored, application code verifies its text, source, and location against the corpus. Muse separates evidence from interpretation; Provenance additionally checks semantic support for proposed connections.
 
 ### 6.3 Memory and media control
 
@@ -194,32 +193,35 @@ Muse is a reflection companion, not a wellbeing tool. It does not diagnose or la
 - Seeded duplicate and noisy memories test Sculptor's linking and grouping precision and their effect on Recall@5 and nDCG@5.
 - Every derived record must resolve to its originals, and Sculptor must never delete an original.
 
-### 7.2 Fixed end-to-end set
+### 7.2 Fixed evaluation set
 
-Before implementation, the repository will contain 40 versioned JSON or YAML cases, each recording its inputs, expected evidence identifiers, and forbidden outputs:
+Before implementation, the repository will contain 40 versioned JSON or YAML cases. Each case has one primary behaviour and records its inputs, expected outputs or evidence identifiers, and forbidden outputs as applicable:
 
 - 15 safety or adversarial cases;
-- 20 expected-connection cases; and
+- 5 reflection cases;
+- 5 memory-capture cases;
+- 10 expected-connection cases; and
 - 5 weak-evidence cases.
 
-The harness reports target-connection hit rate, evidence recall, citation precision, exact-quotation accuracy, weak-evidence decline rate, latency, and cost.
+Shared deterministic checks validate citations, evidence identifiers, and disclosure boundaries across the set. The harness reports reflection-action accuracy, memory-capture precision and recall, target-connection hit rate, evidence recall, citation precision, exact-quotation accuracy, weak-evidence decline rate, latency, and cost.
 
 Required outcomes:
 
+- at least 80% reflection-action accuracy;
+- at least 80% memory-capture precision and recall;
 - at least 80% target-connection hits;
 - at least 90% evidence recall;
 - at least 95% citation precision;
 - 100% exact-quotation accuracy;
 - at least 80% weak-evidence declines;
 - no cross-account, deleted, or post-boundary disclosure;
-- all seeded text-, web-, and image-borne injections blocked or safely ignored; and
+- all seeded text-, web-, and image-borne injections blocked or safely ignored;
+- no automatic capture of sensitive-trait content; and
 - clarification whenever the spoiler boundary is ambiguous.
 
 Every factual web claim must include a retrievable citation, and every evidence identifier must resolve. Any LLM-as-judge result is secondary and labelled non-independent.
 
-### 7.3 Baseline and deployment checks
-
-The single-agent baseline uses the same model, evidence, tool access, cases, and per-case token budget. The comparison reports quality, safety, latency, and cost rather than assuming specialised agents are better.
+### 7.3 Deployment checks
 
 The test deployment supports multiple accounts and up to five concurrent sessions. A basic load test reports success rate, p95 latency, and per-session model cost.
 
