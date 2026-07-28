@@ -30,7 +30,7 @@ Package ownership and the planned per-member effort allocation are shown in Sect
 
 People retain fragments from books and everyday life: a passage, question, photograph, or personal interpretation. The pain points are concrete: highlights and notes accumulate in capture tools (Kindle, Readwise, Notion, photo rolls) but are rarely revisited; the *reason* a fragment mattered is lost because nothing prompts the user to articulate it at the moment of capture; and rediscovery depends on the user remembering to search for something they have, by definition, forgotten.
 
-General-purpose assistant memory primarily personalises future responses; it is not designed to preserve source-cited reflection artefacts or independently verify literary connections. Linger targets those specific needs through inspectable, user-owned memories; quotations validated against the source text; spoiler-safe discussion; and a separate verification step before proposed connections reach the user.
+General-purpose AI agents (ChatGPT, Claude, OpenClaw, Hermes) already offer memory, image understanding, web search, and delegated tasks. Linger is not trying to be another general personal agent. It is a purpose-built reflection and memory application: a **provenance-first reflection companion** that keeps the user's words, source evidence, and generated interpretation distinct. It also checks evidence, privacy, and spoiler boundaries before showing the user a proposed connection.
 
 The primary users are people who want to preserve the meaning behind an experience or idea, not merely the raw artefact.
 
@@ -51,7 +51,7 @@ Automatic memory capture is available only after explicit onboarding opt-in and 
 
 ### 4.2 Agent roles
 
-The prototype uses five agents with distinct reasoning responsibilities. The Memory & Policy Service performs storage, account isolation, and deletion under deterministic application controls.
+The prototype uses five agents with distinct reasoning responsibilities. Sculptor is the only agent permitted to request memory creation or updates; the Memory & Policy Service validates and commits those requests under deterministic application controls. User review, correction, and deletion actions go directly from the web interface to the service rather than through a model.
 
 | Agent | Role in the journey | Key autonomous decisions | Tools Given |
 |---|---|---|---|
@@ -63,54 +63,70 @@ The prototype uses five agents with distinct reasoning responsibilities. The Mem
 
 ## 5. General Flow
 
-An *active memory* is an automatically captured memory owned by the requesting account and not deleted. Each memory is a structured record with fields for the user's own words, source citations, a generated summary, provenance links to the originating conversation or photograph, and created/updated timestamps. The deterministic Memory & Policy Service exposes scoped read, create, update, review, and delete operations; it enforces account isolation and deletion on every request, and agents cannot widen their own access.
+Working context contains only session essentials: capture consent, spoiler boundary, active topic, and a compact conversation summary. Long-term structured memories are retrieved only when needed rather than placed in every prompt.
+
+An *active memory* is an automatically captured memory owned by the requesting account and not deleted. Each memory is a structured record with fields for the user's own words, source citations, a generated summary, provenance links to the originating conversation or photograph, version metadata, and created/updated timestamps. Every write carries an idempotency key derived from its account, source event, and capture type so retries cannot create duplicates. Original user records remain immutable; a correction creates a linked active version, while derived summaries are versioned and replaceable.
+
+The deterministic Memory & Policy Service obtains account identity from authenticated request context rather than agent or model output. It exposes scoped read, create, update, review, and delete operations and enforces account isolation and deletion on every request. Agents cannot choose or widen their access. Retrieved evidence carries its source type, owner or account scope, trust level, and verification state.
+
+The end-to-end design comprises three related flows. A normal turn uses the reflection flow; memory capture and connection discovery run only when their respective conditions are met.
+
+### 5.1 Reflection and grounding
+
+Muse keeps the conversation coherent and asks Librarian for evidence only when grounding is needed.
 
 ```mermaid
-flowchart TB
-    U1[User conversation or photograph]
-    M1[Muse reflects and routes]
-    L[Librarian retrieves cited evidence]
-    G[Muse presents a grounded reflection]
-    SC[Sculptor structures or organises a memory]
-    MP[Memory & Policy Service authorises scoped operations]
-    D[(Structured memory store)]
-    SE[Serendipity proposes a connection]
-    LE[Librarian retrieves supporting evidence]
-    WS[Optional general web search]
-    PV[Provenance verifies in a separate restricted invocation]
-    VR{Verification result}
-    RV[Serendipity performs one bounded revision]
-    PV2[Provenance performs a final check]
-    M2[Muse presents the verified connection]
-    U2[User reviews the response and memories]
-    C[(Public-domain book corpus)]
+flowchart LR
+    U1["User conversation<br/>or photograph"] --> M["Muse<br/>reflects and routes"]
+    S["Minimal session state<br/>consent, spoiler boundary,<br/>topic, summary"] --> M
+    M -->|Grounding needed| L["Librarian<br/>retrieves and reranks"]
+    B[("Public-domain<br/>book corpus")] --> L
+    P["Memory & Policy Service<br/>scoped memory reads"] --> L
+    M --> R["Muse presents a<br/>grounded reflection"]
+    L -->|Cited evidence| R
+    R --> U2["User"]
+```
 
-    U1 --> M1 --> L --> G
-    L <--> C
-    L <-->|Scoped memory query| MP
-    G --> SC -->|Create or update| MP
-    MP <--> D
+### 5.2 Opt-in memory capture and control
 
-    G -->|Optional connection cue| SE
-    SE --> LE --> PV
-    SE --> WS --> PV
-    PV --> VR
-    VR -->|Verified| M2
-    VR -->|Revision requested| RV --> PV2 --> M2
-    M2 --> U2
-    U2 -->|Review, edit, or delete| MP
+Sculptor may propose a memory change, but deterministic application code owns access control and every write. The same path is used by the bounded final capture check before compaction or close.
+
+```mermaid
+flowchart LR
+    T["Reflection cue or<br/>final capture check"] -->|Capture is opted in| S["Sculptor<br/>proposes a change"]
+    S --> P["Memory & Policy Service<br/>scopes, validates, commits"]
+    A["Authenticated<br/>account context"] --> P
+    U["User review, correction,<br/>or deletion"] --> P
+    P --> D[("Versioned<br/>memory store")]
+    P --> N["In-conversation<br/>save notice and undo"]
+```
+
+### 5.3 Connection discovery and verification
+
+Connection discovery is optional. A proposal reaches the user only after a separate restricted-context check, with at most one revision.
+
+```mermaid
+flowchart LR
+    C["Conversation or<br/>photograph cue"] --> S["Serendipity searches memories,<br/>books, and optionally the web"]
+    S -->|Proposal + evidence IDs| P["Provenance<br/>restricted-context check"]
+    P -->|Verified| Y["Muse presents a<br/>tentative connection"]
+    P -->|Rejected| N["Muse reports no<br/>supported connection"]
+    P -->|Revise once| R["Serendipity<br/>revises once"]
+    R --> F["Provenance<br/>final check"]
+    F -->|Verified| Y
+    F -->|Rejected| N
 ```
 
 Six safeguards govern the flow:
 
 - **Spoiler control:** the user states their position in the book at the start of each session; when unstated, Muse defaults to the most conservative boundary (no content beyond the opening), and pre-emptively asks which chapter the user has reached whenever it is unsure. Muse confirms this boundary before Librarian retrieves unfinished text.
 - **Citation validation:** on the capture path, deterministic application code normalises and matches quotations against the indexed corpus and validates their source identifiers and locations. It does not determine whether a paraphrase or interpretation is semantically supported; Provenance performs that judgement on the higher-risk connection path.
-- **Memory control:** Sculptor captures and organises memories automatically, but preserves the original record and provenance. It may link, group, or summarise memories but cannot delete them; the user retains review, correction, and deletion controls.
+- **Memory control:** Sculptor captures and organises memories automatically, but preserves the original record and provenance. It may link, group, or summarise memories but cannot delete them; the user retains review, correction, and deletion controls. Before a long opted-in conversation is compacted or closed, one bounded Sculptor pass checks for an important uncaptured reflection under the same notice, undo, and sensitive-content rules.
 - **Verification:** Provenance runs as a separate model invocation that receives only the proposed connection, cited evidence, and applicable policy constraints; it receives neither Serendipity's working context nor write tools. It may use the same underlying model. Rejection returns a structured critique for one bounded revision, and verified connections are presented through Muse.
 - **Media handling:** raw photographs remain transient unless the user chooses to save them; derived memories may be captured automatically only while the user's memory opt-in remains active.
 - **Emotional content:** Muse is a reflection companion, not a wellbeing tool. It never diagnoses or labels the user's mental state and stops reflective probing after a distressing disclosure. It uses a fixed boundary response encouraging appropriate human support; crisis assessment and resource routing are out of scope.
 
-Orchestration follows a graph-based **plan → act → check → refine** pattern: agents coordinate through typed tool contracts and structured inputs/outputs, each agent can respond to incomplete evidence or decline, and the policy service is application code, not an agent, so security guarantees never depend on model instructions.
+Orchestration follows a graph-based **plan → act → check → refine** pattern. Agents coordinate through typed contracts carrying only the claims, evidence identifiers, confidence, and policy flags needed by the next step; full transcripts and unrestricted working context are not passed between agents. Each agent can respond to incomplete evidence or decline, and the policy service is application code, not an agent, so security guarantees never depend on model instructions.
 
 ## 6. Scope of Work
 
@@ -128,10 +144,10 @@ The prototype accepts conversation and photographs as memory cues. Source-ground
 |---|---|
 | **Explainability & trust** | Exact book quotations and source locations carry inspectable citations; quotations, user statements, and generated interpretations are visually and structurally separated; connections are presented as hypotheses with visible uncertainty; workflow tracing records why each step happened. |
 | **Responsible AI & governance** | Automatic memory capture requires explicit onboarding opt-in and remains visibly controllable through save notices, undo, pause, review, correction, and cascading deletion. Content about sensitive traits is excluded from automatic capture. Sculptor preserves originals and provenance when creating derived records, and raw photographs remain transient unless saved. In this personal-use setting, the small, older public-domain corpus and its dated cultural perspectives are disclosed rather than presented as neutral. Muse uses a fixed boundary response for distressing disclosures rather than attempting diagnosis or crisis assessment. Data minimisation and alignment with the IMDA Model AI Governance Framework remain in scope. |
-| **Security** | Retrieved book text, general web-search results, and photographs are treated as untrusted input; private memory text is never copied verbatim into a web-search query. Deterministic application code enforces access control, cascading deletion, spoiler filters, and isolation **between user accounts**. The test deployment uses multiple accounts so cross-account retrieval is tested rather than merely asserted. Automated adversarial cases cover prompt injection, fabricated claims, spoiler leakage, forbidden memory requests, log leakage, and deleted-data retrieval. |
+| **Security** | Retrieved book text, general web-search results, and photographs are treated as untrusted input; each item carries source, ownership, trust, and verification metadata, and private memory text is never copied verbatim into a web-search query. Authenticated account identity is supplied by application code, never by an agent. Deterministic controls enforce access, cascading deletion, spoiler filters, and isolation **between user accounts**. The test deployment uses multiple accounts so cross-account retrieval is tested rather than merely asserted. Automated adversarial cases cover prompt injection, fabricated claims, spoiler leakage, forbidden memory requests, log leakage, and deleted-data retrieval. |
 | **Agent autonomy & orchestration** | Graph-based orchestration implementing plan → act → check → refine: agents select tools, respond to incomplete evidence, decline unsafe actions, and coordinate through typed contracts. The same predeclared evaluation cases run against a single-agent baseline using the same model, evidence, tool access, and per-case token budget to quantify gains against added latency and cost. |
 | **Controlled improvement** | Provenance returns structured critiques for bounded revision. Prompt changes remain human-reviewed, versioned, and gated by the CI evaluation suite; no improvement claim relies on prototype user telemetry. |
-| **MLOps / LLMSecOps** | Versioned prompts, corpus builds, tool contracts, and policies; automated contract, retrieval, security, and end-to-end tests in CI/CD; cost and latency measurement; logs scrubbed of raw personal memories. The system is deployed to a reproducible test environment so user isolation, prompt-injection defences, forbidden memory requests, and deletion are exercised against a running system, not just unit tests. |
+| **MLOps / LLMSecOps** | Versioned prompts, corpus builds, tool contracts, policies, and JSON/YAML evaluation cases; fast mocked contract tests in CI; separate live-model evaluation of quality, cost, and latency; and logs scrubbed of raw personal memories. The system is deployed to a reproducible test environment so user isolation, prompt-injection defences, forbidden memory requests, and deletion are exercised against a running system, not just unit tests. |
 
 **Proposed stack (subject to team confirmation):** Python, LangGraph for orchestration, a hosted LLM API, FastAPI backend, lightweight web UI, Docker, GitHub Actions CI/CD.
 
@@ -143,7 +159,7 @@ The prototype accepts conversation and photographs as memory cues. Source-ground
 | **Scale** | The prototype targets up to five concurrent user sessions, not production scale. A basic load test will report success rate, p95 latency, and per-session model cost. |
 | **Retrieval evaluation** | A fixed set of citation-labelled book and memory queries compares keyword, semantic, hybrid, and reranked retrieval using Recall@5 and nDCG@5. The same set tests whether Librarian's strategy selection improves relevance or latency over the strongest fixed approach. |
 | **Memory-quality evaluation** | Seeded duplicate and noisy memories test Sculptor's linking and grouping precision and the resulting change in Recall@5 and nDCG@5. Every derived summary must remain traceable to its original memories, and Sculptor must never delete an original. |
-| **Demo success criteria - safety** | A fixed 40-case set is defined before implementation: 15 safety/adversarial cases, 20 expected-connection cases, and 5 weak-evidence cases. All exact quotations must match their source, every factual web claim must include a retrievable citation, and every cited evidence identifier must resolve. No cross-account, deleted, or post-boundary content may be revealed; every seeded text-, web-, or image-borne injection must be blocked or safely ignored; and ambiguous spoiler boundaries must trigger clarification. |
+| **Demo success criteria - safety** | A fixed 40-case set is defined before implementation as versioned JSON or YAML containing inputs, expected evidence identifiers, and forbidden outputs: 15 safety/adversarial cases, 20 expected-connection cases, and 5 weak-evidence cases. All exact quotations must match their source, every factual web claim must include a retrievable citation, and every cited evidence identifier must resolve. No cross-account, deleted, or post-boundary content may be revealed; every seeded text-, web-, or image-borne injection must be blocked or safely ignored; and ambiguous spoiler boundaries must trigger clarification. |
 | **Demo success criteria - quality** | Before implementation, each held-out expected-connection case defines one or more acceptable target memory/source pairs and the required evidence identifiers. A programmatic harness reports target-connection hit rate, evidence recall, citation precision, exact-quotation accuracy, and weak-evidence decline rate. Success requires at least 80% target-connection hits, at least 90% evidence recall, at least 95% citation precision, 100% exact-quotation accuracy, and at least 80% weak-evidence declines. The single-agent baseline uses the same model, evidence, tool access, cases, and per-case token budget. Any LLM-as-judge score is secondary and explicitly labelled non-independent. |
 
 ## 7. Effort Estimates
