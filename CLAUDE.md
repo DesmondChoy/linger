@@ -2,6 +2,10 @@
 
 This file provides instructions and context for AI coding agents working on this project.
 
+## GitHub CLI
+
+- Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
+
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
 ## Beads Issue Tracker
 

@@ -13,6 +13,10 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 > source of truth; don't `bd import` during normal operation; don't
 > reach for third-party Dolt hosting before trying the default).
 
+## GitHub CLI
+
+- Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
+
 ## Quick Reference
 
 ```bash
