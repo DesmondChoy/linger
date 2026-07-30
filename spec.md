@@ -227,6 +227,6 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 ## 8. Operations and change control
 
-The proposed stack is Python, LangGraph, a hosted LLM API, FastAPI, a lightweight web UI, Docker, and GitHub Actions.
+The stack decision remains open between TypeScript with Pi Agent Core and Python with PydanticAI core and FastAPI. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
 Prompts, corpus builds, policies, tool contracts, schemas, and evaluation cases are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Tracing records decisions and evidence identifiers without logging raw personal memories. The running test deployment, not only unit tests, is used to exercise account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
