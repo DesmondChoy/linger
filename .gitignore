@@ -1,4 +1,7 @@
 .DS_Store
+.venv/
+data/gutenberg/pg*.txt
+data/gutenberg/pg*.metadata.json
 
 # Beads / Dolt files (added by bd init)
 .dolt/
