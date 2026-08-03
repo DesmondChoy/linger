@@ -760,6 +760,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "polars" },
     { name = "requests" },
+    { name = "urllib3" },
 ]
 
 [package.dev-dependencies]
@@ -772,6 +773,7 @@ dev = [
 requires-dist = [
     { name = "polars", specifier = ">=1.43.2" },
     { name = "requests", specifier = ">=2.34.2" },
+    { name = "urllib3", specifier = ">=2.7.0" },
 ]
 
 [package.metadata.requires-dev]
