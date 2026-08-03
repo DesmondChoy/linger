@@ -2,7 +2,7 @@
 
 Status: **Draft implementation specification**
 
-This specification is aligned with [proposal.md](proposal.md). The proposal defines project scope and commitments; this document translates them into implementation rules and acceptance criteria.
+This specification is aligned with [project-proposal.md](project-proposal.md). The proposal defines project scope and commitments; this document translates them into implementation rules and acceptance criteria.
 
 ## 1. Purpose and positioning
 
