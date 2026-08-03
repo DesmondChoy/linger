@@ -4,7 +4,7 @@ An academic prototype of a provenance-first reflection and memory companion.
 
 ## Project Gutenberg notebook
 
-[`notebooks/project_gutenberg_query_workflow.ipynb`](notebooks/project_gutenberg_query_workflow.ipynb) queries Gutenberg metadata through Gutendex, downloads and samples books, and uses Polars to screen candidate texts for Linger by length, structure, retrieval chunk balance, and possible OCR or encoding noise. Downloaded texts and provenance metadata are cached in `data/gutenberg/`.
+[`notebooks/project_gutenberg_query_workflow.ipynb`](notebooks/project_gutenberg_query_workflow.ipynb) guides a three-stage selection workflow for an exclusively English, public-domain Project Gutenberg corpus: search the catalogue, shortlist and profile candidates with configurable word-count limits, then record a final 3–5-book selection in a content-versioned manifest.
 
 From the repository root, install the locked dependencies and launch JupyterLab:
 
