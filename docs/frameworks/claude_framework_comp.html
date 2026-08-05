@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Side-by-side comparison of Linger's five agents implemented in Pydantic AI (Python) vs pi agent-core (TypeScript), with pros, cons, and a recommendation.">
+<title>Linger · Pydantic AI vs pi</title>
+<style>
+  :root {
+    --bg: #F6F7F4;
+    --surface: #FFFFFF;
+    --surface-2: #EFF1EC;
+    --ink: #21262C;
+    --muted: #5A6470;
+    --faint: #8A93A0;
+    --line: #DFE2DA;
+    --py: #C22B5F;
+    --py-soft: #C22B5F14;
+    --pi: #0E7490;
+    --pi-soft: #0E749014;
+    --code-bg: #171B21;
+    --code-ink: #D7DDE3;
+    --code-cm: #7C8794;
+    --code-st: #A3C99B;
+    --code-kw: #8FB8E8;
+    --code-ty: #E0B983;
+    --code-line: #262C34;
+    --good: #2F7D46;
+    --warn: #A05A19;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171B; --surface: #1B2026; --surface-2: #21272E; --ink: #E6E9ED;
+      --muted: #9AA4AF; --faint: #6E7883; --line: #2A313A;
+      --py: #EE6E9B; --py-soft: #EE6E9B1A; --pi: #45B8CE; --pi-soft: #45B8CE1A;
+      --code-bg: #11151A; --code-line: #232A32; --good: #6FBF87; --warn: #D69A5B;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F6F7F4; --surface: #FFFFFF; --surface-2: #EFF1EC; --ink: #21262C;
+    --muted: #5A6470; --faint: #8A93A0; --line: #DFE2DA;
+    --py: #C22B5F; --py-soft: #C22B5F14; --pi: #0E7490; --pi-soft: #0E749014;
+    --code-bg: #171B21; --code-line: #262C34; --good: #2F7D46; --warn: #A05A19;
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171B; --surface: #1B2026; --surface-2: #21272E; --ink: #E6E9ED;
+    --muted: #9AA4AF; --faint: #6E7883; --line: #2A313A;
+    --py: #EE6E9B; --py-soft: #EE6E9B1A; --pi: #45B8CE; --pi-soft: #45B8CE1A;
+    --code-bg: #11151A; --code-line: #232A32; --good: #6FBF87; --warn: #D69A5B;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 15px;
+    line-height: 1.62;
+    margin: 0;
+  }
+
+  h1, h2, h3 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    text-wrap: balance; font-weight: 600; line-height: 1.2;
+  }
+  h1 { font-size: 1.45rem; margin: 0; }
+  h2 { font-size: 1.45rem; margin: 0 0 12px; }
+  h3 { font-size: 1.12rem; margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  a { color: inherit; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--py); outline-offset: 2px; }
+  .prose { max-width: 76ch; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── app shell ─────────────────────────────────────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    max-width: 1400px; margin: 0 auto; min-height: 100vh;
+  }
+  .side {
+    border-right: 1px solid var(--line);
+    padding: 26px 18px 26px 24px;
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .side .eyebrow {
+    font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin-bottom: 4px;
+  }
+  .side h1 { margin-bottom: 4px; }
+  .side .sub { font-size: 0.78rem; color: var(--faint); margin-bottom: 18px; }
+  .side .sub b { color: var(--muted); font-weight: 600; }
+
+  .navbtn {
+    display: flex; align-items: baseline; gap: 10px;
+    width: 100%; text-align: left; border: none; background: none;
+    color: var(--muted); font: inherit; font-size: 0.88rem; font-weight: 500;
+    padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .navbtn .n {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem; color: var(--faint); min-width: 16px;
+  }
+  .navbtn:hover { background: var(--surface-2); color: var(--ink); }
+  .navbtn[aria-selected="true"] {
+    background: var(--surface); color: var(--ink); font-weight: 650;
+    box-shadow: inset 3px 0 0 var(--py);
+  }
+  .side .foot {
+    margin-top: auto; padding-top: 18px; font-size: 0.7rem; color: var(--faint); line-height: 1.5;
+  }
+
+  .main { padding: 30px 34px 60px; min-width: 0; }
+  .view { display: none; }
+  .view.active { display: block; animation: fade 0.18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .view.active { animation: none; }
+  }
+
+  .view-head { margin-bottom: 18px; }
+  .view-head .kicker {
+    font-size: 0.68rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--muted); font-weight: 650; display: block; margin-bottom: 4px;
+  }
+  .view-head p.lede { color: var(--muted); font-size: 0.95rem; max-width: 80ch; margin: 6px 0 0; }
+
+  /* ── small screens: sidebar becomes top tab row ────── */
+  @media (max-width: 920px) {
+    .shell { grid-template-columns: 1fr; }
+    .side {
+      position: sticky; top: 0; height: auto; overflow: visible;
+      border-right: none; border-bottom: 1px solid var(--line);
+      background: var(--bg); z-index: 20;
+      padding: 14px 16px 0;
+    }
+    .side .sub { margin-bottom: 10px; }
+    .navrow { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 10px; }
+    .navbtn { white-space: nowrap; padding: 6px 10px; }
+    .navbtn[aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--py); border-radius: 6px 6px 0 0; }
+    .side .foot { display: none; }
+    .main { padding: 22px 16px 48px; }
+  }
+  @media (min-width: 921px) { .navrow { display: contents; } }
+
+  /* ── chips, verdict ────────────────────────────────── */
+  .chip {
+    display: inline-block; font-size: 0.73rem; font-weight: 650;
+    letter-spacing: 0.05em; padding: 2px 9px; border-radius: 99px;
+  }
+  .chip.py { color: var(--py); background: var(--py-soft); }
+  .chip.pi { color: var(--pi); background: var(--pi-soft); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; padding: 22px 24px;
+  }
+  .split { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 16px; }
+  .split > div { flex: 1 1 300px; border-top: 3px solid var(--line); padding-top: 10px; }
+  .split > div.py { border-top-color: var(--py); }
+  .split > div.pi { border-top-color: var(--pi); }
+  .split p { font-size: 0.88rem; color: var(--muted); margin: 8px 0 0; }
+
+  /* ── tables ────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.87rem; }
+  th, td { text-align: left; padding: 9px 15px; vertical-align: top; border-top: 1px solid var(--line); }
+  thead th {
+    border-top: none; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); background: var(--surface-2);
+  }
+  th.cpy { color: var(--py); } th.cpi { color: var(--pi); }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td .sub { color: var(--muted); font-weight: 400; display: block; font-size: 0.8rem; }
+
+  /* ── requirement cards ─────────────────────────────── */
+  .reqs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .req { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
+  .req h3 { font-family: inherit; font-size: 0.92rem; font-weight: 650; margin-bottom: 6px; }
+  .req p { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+  /* ── agent tabs ────────────────────────────────────── */
+  .agenttabs {
+    display: flex; gap: 2px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); margin-bottom: 20px;
+  }
+  .atab {
+    border: none; background: none; font: inherit; cursor: pointer;
+    font-size: 0.87rem; font-weight: 550; color: var(--muted);
+    padding: 8px 14px 9px; border-radius: 6px 6px 0 0; position: relative;
+  }
+  .atab:hover { background: var(--surface-2); color: var(--ink); }
+  .atab[aria-selected="true"] { color: var(--ink); font-weight: 650; }
+  .atab[aria-selected="true"]::after {
+    content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px;
+    height: 3px; background: var(--py); border-radius: 2px;
+  }
+  .apanel { display: none; }
+  .apanel.active { display: block; animation: fade 0.18s ease; }
+  .agent-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+  .agent-head .role { color: var(--muted); font-size: 0.88rem; }
+  .agent-brief { color: var(--muted); font-size: 0.9rem; max-width: 84ch; margin: 4px 0 16px; }
+
+  /* ── code panes ────────────────────────────────────── */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1180px) { .cols { grid-template-columns: 1fr; } }
+  .pane { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--code-bg); display: flex; flex-direction: column; }
+  .pane-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; font-size: 0.76rem; font-weight: 650; letter-spacing: 0.04em;
+    background: var(--code-bg); border-bottom: 1px solid var(--code-line);
+  }
+  .pane-head .lang { color: var(--code-cm); font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; }
+  .pane.py .pane-head span:first-child { color: #F16D9C; }
+  .pane.pi .pane-head span:first-child { color: #4CC3D9; }
+  pre {
+    margin: 0; padding: 14px 16px 18px; overflow: auto; flex: 1;
+    max-height: 62vh;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.3px; line-height: 1.6; color: var(--code-ink);
+  }
+  .cm { color: var(--code-cm); font-style: italic; }
+  .st { color: var(--code-st); }
+  .kw { color: var(--code-kw); }
+  .ty { color: var(--code-ty); }
+  .pane-note {
+    border-top: 1px solid var(--code-line); padding: 10px 16px 12px;
+    font-size: 0.8rem; line-height: 1.55; color: #A7B0BA; background: var(--code-bg);
+  }
+  .pane-note b { color: #CBD3DB; font-weight: 600; }
+
+  /* ── pros / cons ───────────────────────────────────── */
+  .pc { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1100px) { .pc { grid-template-columns: 1fr; } }
+  .pc-card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px 22px; }
+  .pc-card.py { border-top: 3px solid var(--py); }
+  .pc-card.pi { border-top: 3px solid var(--pi); }
+  .pc-card h3 { font-family: inherit; font-size: 1rem; font-weight: 650; }
+  .pc-card h4 {
+    font-size: 0.7rem; letter-spacing: 0.11em; text-transform: uppercase;
+    margin: 14px 0 6px; font-weight: 650;
+  }
+  .pc-card h4.plus { color: var(--good); } .pc-card h4.minus { color: var(--warn); }
+  .pc-card ul { margin: 0; padding-left: 18px; font-size: 0.87rem; }
+  .pc-card li { margin-bottom: 6px; }
+  .pc-card li b { font-weight: 600; }
+
+  ul.plain { padding-left: 20px; margin: 0; }
+  ul.plain li { margin-bottom: 8px; }
+
+  .sources { font-size: 0.82rem; color: var(--muted); }
+  .sources ul { padding-left: 18px; margin: 8px 0 0; }
+  .sources li { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="side" aria-label="Sections">
+    <div class="eyebrow">Linger · Stack decision</div>
+    <h1>Pydantic&nbsp;AI vs&nbsp;pi</h1>
+    <div class="sub"><b>pydantic-ai</b> 2.23.0 · <b>pi-agent-core</b> 0.83.0<br>researched <span class="num">2026-08-05</span></div>
+    <div class="navrow" role="tablist" aria-label="Sections">
+      <button class="navbtn" role="tab" data-view="verdict" aria-selected="true"><span class="n">01</span>The short version</button>
+      <button class="navbtn" role="tab" data-view="needs" aria-selected="false"><span class="n">02</span>What our agents need</button>
+      <button class="navbtn" role="tab" data-view="glance" aria-selected="false"><span class="n">03</span>At a glance</button>
+      <button class="navbtn" role="tab" data-view="agents" aria-selected="false"><span class="n">04</span>Agent by agent</button>
+      <button class="navbtn" role="tab" data-view="weigh" aria-selected="false"><span class="n">05</span>Pros &amp; cons</button>
+      <button class="navbtn" role="tab" data-view="rec" aria-selected="false"><span class="n">06</span>Recommendation</button>
+    </div>
+    <div class="foot">Prepared for Team 9's framework debate. Code sketches are illustrative against current APIs, not tested implementations.</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ═══ 01 · Verdict ═══ -->
+    <section class="view active" id="view-verdict">
+      <div class="view-head">
+        <span class="kicker">01 · The short version</span>
+        <h2>Pydantic AI is the closer structural fit; pi is credible if we're TypeScript-native</h2>
+      </div>
+      <div class="card prose" style="max-width: none">
+        <p class="prose"><b>Our spec is built around typed hand-off contracts, a mandatory Provenance output gate with exactly one bounded revision, deterministic validation, usage limits, tracing, and a 40-case evaluation harness.</b> Pydantic AI has first-class primitives for every one of those: typed <code>output_type</code>, output validators with <code>ModelRetry</code>, <code>UsageLimits</code>, Logfire tracing, and pydantic-evals. With pi, each becomes ordinary code we write and test ourselves — pi deliberately ships only a unified LLM API and an agent loop.</p>
+        <p class="prose">pi remains a credible choice <em>if the team is TypeScript-native</em>: the code is small enough to read end-to-end, the loop is fully inspectable, and nothing it omits is hard to build at prototype scale. What we should <b>not</b> do is the proposal's "Pi for TS agents, Pydantic AI for Python agents" split — it doubles every contract (Pydantic model + TypeBox schema), splits the output gate across runtimes, and buys nothing.</p>
+        <div class="split">
+          <div class="py"><span class="chip py">Pydantic AI</span><p>Choose when: we want the framework to carry contracts, retries, limits, evals, and tracing — and at least 3 of 5 members are comfortable in Python.</p></div>
+          <div class="pi"><span class="chip pi">pi</span><p>Choose when: the team is strongest in TypeScript, wants a fully transparent loop with no framework magic, and accepts writing the check-and-refine scaffolding (plus evals) by hand.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 02 · Needs ═══ -->
+    <section class="view" id="view-needs">
+      <div class="view-head">
+        <span class="kicker">02 · What Linger's agents demand of a framework</span>
+        <h2>Six things the framework must make easy</h2>
+        <p class="lede">From the spec: agents are logical roles invoked with bounded, minimal context; hand-offs carry only claims, evidence identifiers, confidence, and policy flags; Provenance reviews every Muse draft in a context-isolated invocation with no write tools; the deterministic Memory &amp; Policy Service owns all writes and account scope.</p>
+      </div>
+      <div class="reqs">
+        <div class="req"><h3>Typed hand-off contracts</h3><p>Every agent returns a structured record (MuseCandidate, EvidenceBundle, Verdict…), validated before the next step consumes it.</p></div>
+        <div class="req"><h3>Tools with schemas</h3><p>Corpus search, memory APIs, web search, image analysis — declared with parameter schemas, validated on call.</p></div>
+        <div class="req"><h3>Scoped delegation</h3><p>Muse invokes Librarian / Sculptor / Serendipity with a fresh, minimal context — never a shared transcript.</p></div>
+        <div class="req"><h3>The output gate</h3><p>Plan → act → check → refine in reviewable application code: Provenance verdict, at most one revision, safe decline on rejection.</p></div>
+        <div class="req"><h3>Boundaries by construction</h3><p>No write tools outside Sculptor's request path; account scope injected by the service, never chosen by a model; injection-resistant evidence handling.</p></div>
+        <div class="req"><h3>Measurement</h3><p>Usage/cost limits per turn, tracing of decisions and evidence IDs, and a harness for the 40 fixed evaluation cases with hard thresholds.</p></div>
+      </div>
+    </section>
+
+    <!-- ═══ 03 · At a glance ═══ -->
+    <section class="view" id="view-glance">
+      <div class="view-head">
+        <span class="kicker">03 · The two candidates at a glance</span>
+        <h2>Capability comparison</h2>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th class="cpy">Pydantic AI</th><th class="cpi">pi (earendil-works)</th></tr></thead>
+          <tbody>
+            <tr><td>What it is</td><td>Full agent framework from the Pydantic team: "FastAPI feeling" for GenAI apps.</td><td>Minimal AI toolkit: unified LLM API (<code>pi-ai</code>) + agent loop (<code>pi-agent-core</code>). The famous CLI coding agent is built on top.</td></tr>
+            <tr><td>Language</td><td>Python 3</td><td>TypeScript</td></tr>
+            <tr><td>Maturity <span class="sub">as of Aug 2026</span></td><td class="num">v2.23.0 (stable major); ~19.1k stars; backed by Pydantic (company)</td><td class="num">v0.83.0 (pre-1.0, fast-moving); ~83.5k stars — mostly for the coding-agent CLI, not the library</td></tr>
+            <tr><td>Structured output</td><td>First-class: <code>output_type</code> with Pydantic models, unions, tool/native/prompted modes, auto-retry on validation failure.</td><td>Not built in. Convention: a <code>submit_*</code> tool with a TypeBox schema and <code>terminate: true</code>; orchestrator reads the validated args.</td></tr>
+            <tr><td>Tool definition</td><td><code>@agent.tool</code> decorator; signature + docstring become the schema; typed <code>RunContext[Deps]</code>.</td><td>Plain object: TypeBox <code>parameters</code> + <code>execute()</code>; args validated; streaming updates, abort signals, per-tool sequential/parallel modes.</td></tr>
+            <tr><td>Multi-agent</td><td>Documented patterns: delegation (agent-as-tool), programmatic hand-off, graph control flow; shared usage tracking across agents.</td><td>None. You compose loops yourself — each sub-agent is a function that constructs a fresh <code>Agent</code> and returns a validated result.</td></tr>
+            <tr><td>Self-correction</td><td><code>ModelRetry</code> from tools/validators; per-tool and per-output retry budgets.</td><td>Hand-rolled: catch bad output, re-prompt. <code>beforeToolCall</code>/<code>afterToolCall</code> hooks help.</td></tr>
+            <tr><td>Guardrails / limits</td><td><code>UsageLimits</code> (requests, tokens, tool calls); output validators; human-in-the-loop approval.</td><td>No permission system by design; <code>beforeToolCall</code> can block calls; token + cost tracking per response; sandboxing is your job.</td></tr>
+            <tr><td>Providers</td><td>Virtually all (OpenAI incl. Responses API, Anthropic, Google, Bedrock…); MCP client support.</td><td>30+ via unified API (OpenAI incl. Responses, Anthropic, Google…); serializable <code>Context</code> hands off mid-session across providers.</td></tr>
+            <tr><td>Observability / evals</td><td>Logfire (OpenTelemetry) integration; <b>pydantic-evals</b> for dataset-driven eval harnesses.</td><td>Nothing built in. Sessions are serializable JSON, so logging is easy — but the harness is ours to build.</td></tr>
+            <tr><td>Interactive strengths</td><td>Streaming text/structured output; event stream; graph iteration.</td><td>Excellent streaming event model; <b>steering</b> (interrupt mid-run) and follow-up queues; custom message types; <code>transformContext</code> for compaction.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ 04 · Agents ═══ -->
+    <section class="view" id="view-agents">
+      <div class="view-head">
+        <span class="kicker">04 · Agent by agent</span>
+        <h2>The same agent, in both libraries</h2>
+        <p class="lede">Start with the shared contracts — both stacks hang everything off them. Then each agent tab shows a side-by-side sketch with notes on what the framework carries vs. what we'd carry.</p>
+      </div>
+
+      <div class="agenttabs" role="tablist" aria-label="Agents">
+        <button class="atab" role="tab" data-agent="contracts" aria-selected="true">Contracts</button>
+        <button class="atab" role="tab" data-agent="muse" aria-selected="false">Muse</button>
+        <button class="atab" role="tab" data-agent="librarian" aria-selected="false">Librarian</button>
+        <button class="atab" role="tab" data-agent="provenance" aria-selected="false">Provenance</button>
+        <button class="atab" role="tab" data-agent="sculptor" aria-selected="false">Sculptor</button>
+        <button class="atab" role="tab" data-agent="serendipity" aria-selected="false">Serendipity</button>
+      </div>
+
+      <!-- Contracts -->
+      <div class="apanel active" id="agent-contracts">
+        <div class="agent-head"><h3>Shared contracts</h3><span class="role">the hand-off records from spec §5, as schemas</span></div>
+        <p class="agent-brief">In Python they are Pydantic models; in TypeScript they are TypeBox schemas (which serialize to plain JSON Schema). Everything downstream hangs off these.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">contracts.py</span></div>
+            <pre><span class="kw">class</span> <span class="ty">Claim</span>(BaseModel):
+    text: <span class="ty">str</span>
+    evidence_ids: <span class="ty">list</span>[<span class="ty">str</span>]
+
+<span class="kw">class</span> <span class="ty">MuseCandidate</span>(BaseModel):
+    <span class="st">"""Complete draft reply. Never user-facing until reviewed."""</span>
+    response_text: <span class="ty">str</span>
+    claims: <span class="ty">list</span>[<span class="ty">Claim</span>]
+    quotations: <span class="ty">list</span>[<span class="ty">QuotationRef</span>]
+    sensitive_inference: <span class="ty">bool</span>
+    confidence: <span class="ty">float</span>
+
+<span class="kw">class</span> <span class="ty">Verdict</span>(BaseModel):
+    decision: <span class="ty">Literal</span>[<span class="st">'pass'</span>, <span class="st">'revise'</span>, <span class="st">'reject'</span>]
+    critique: <span class="ty">Critique</span> | <span class="ty">None</span> = <span class="kw">None</span>
+    detected: <span class="ty">DetectedItems</span>   <span class="cm"># quotes/claims Provenance found itself</span></pre>
+            <div class="pane-note"><b>One schema, three jobs:</b> the same model is the LLM's output schema, the validation gate, and the type the orchestrator sees. Field descriptions flow into the prompt automatically.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">contracts.ts</span></div>
+            <pre><span class="kw">import</span> { Type, <span class="kw">type</span> <span class="ty">Static</span> } <span class="kw">from</span> <span class="st">"typebox"</span>;
+
+<span class="kw">const</span> <span class="ty">Claim</span> = Type.Object({
+  text: Type.String(),
+  evidenceIds: Type.Array(Type.String()),
+});
+
+<span class="kw">export const</span> <span class="ty">MuseCandidate</span> = Type.Object({
+  responseText: Type.String(),
+  claims: Type.Array(<span class="ty">Claim</span>),
+  quotations: Type.Array(<span class="ty">QuotationRef</span>),
+  sensitiveInference: Type.Boolean(),
+  confidence: Type.Number(),
+});
+<span class="kw">export type</span> <span class="ty">MuseCandidate</span> = <span class="ty">Static</span>&lt;<span class="kw">typeof</span> <span class="ty">MuseCandidate</span>&gt;;
+
+<span class="kw">export const</span> <span class="ty">Verdict</span> = Type.Object({
+  decision: <span class="ty">StringEnum</span>([<span class="st">"pass"</span>, <span class="st">"revise"</span>, <span class="st">"reject"</span>]),
+  critique: Type.Optional(<span class="ty">Critique</span>),
+  detected: <span class="ty">DetectedItems</span>,
+});</pre>
+            <div class="pane-note"><b>Equivalent power, more ceremony:</b> TypeBox gives compile-time types <i>and</i> runtime validation, but the schema is only enforced where we call <code>Value.Check</code> ourselves — nothing wires it to the model's final answer for us.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Muse -->
+      <div class="apanel" id="agent-muse">
+        <div class="agent-head"><h3>Muse</h3><span class="role">reflection companion · routes work · no write authority · never replies directly</span></div>
+        <p class="agent-brief">Muse needs: conversation state, image input, tools that delegate to Librarian/Sculptor/Serendipity, a typed <code>MuseCandidate</code> result, and an orchestrating turn function that enforces the Provenance gate with one bounded revision.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">muse.py</span></div>
+            <pre><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="ty">MuseDeps</span>:
+    session: <span class="ty">SessionState</span>      <span class="cm"># account_id, spoiler_boundary, capture opt-in</span>
+    corpus: <span class="ty">CorpusIndex</span>
+    memory_api: <span class="ty">ScopedMemoryApi</span>  <span class="cm"># pre-scoped by the service, read-only</span>
+
+muse = <span class="ty">Agent</span>(
+    <span class="st">'openai-responses:gpt-5.2'</span>,   <span class="cm"># Responses API, per spec §8</span>
+    deps_type=<span class="ty">MuseDeps</span>,
+    output_type=<span class="ty">MuseCandidate</span>,    <span class="cm"># typed draft — the contract IS the output</span>
+    instructions=MUSE_PROMPT,
+)
+
+<span class="kw">@muse.instructions</span>
+<span class="kw">def</span> session_context(ctx: <span class="ty">RunContext</span>[<span class="ty">MuseDeps</span>]) -&gt; <span class="ty">str</span>:
+    s = ctx.deps.session   <span class="cm"># bounded working context only — spec §5.1</span>
+    <span class="kw">return</span> <span class="st">f'Spoiler boundary: {s.spoiler_boundary}. Topic: {s.topic}.'</span>
+
+<span class="kw">@muse.tool</span>
+<span class="kw">async def</span> ground(ctx: <span class="ty">RunContext</span>[<span class="ty">MuseDeps</span>], query: <span class="ty">str</span>) -&gt; <span class="ty">EvidenceBundle</span>:
+    <span class="st">"""Ask Librarian for cited passages and memories."""</span>
+    r = <span class="kw">await</span> librarian.run(query,
+        deps=<span class="ty">LibrarianDeps</span>.from_session(ctx.deps.session),
+        usage=ctx.usage)                <span class="cm"># delegation: fresh context, shared budget</span>
+    <span class="kw">return</span> r.output
+
+<span class="kw">@muse.tool</span>
+<span class="kw">async def</span> explore_connection(ctx, cue: <span class="ty">str</span>) -&gt; <span class="ty">ConnectionProposal</span> | <span class="ty">Decline</span>:
+    <span class="st">"""Hand a cue to Serendipity."""</span>
+    <span class="kw">return</span> (<span class="kw">await</span> serendipity.run(cue, deps=..., usage=ctx.usage)).output
+
+<span class="cm"># ── the output gate lives in plain code ────────────────────</span>
+<span class="kw">async def</span> muse_turn(user_msg, history, deps) -&gt; <span class="ty">str</span>:
+    result = <span class="kw">await</span> muse.run(user_msg, deps=deps, message_history=history,
+        usage_limits=<span class="ty">UsageLimits</span>(request_limit=<span class="num">8</span>, tool_calls_limit=<span class="num">6</span>))
+    verdict = <span class="kw">await</span> review(result.output)          <span class="cm"># Provenance, isolated</span>
+    <span class="kw">if</span> verdict.decision == <span class="st">'revise'</span>:               <span class="cm"># exactly one revision</span>
+        result = <span class="kw">await</span> muse.run(revision_prompt(verdict.critique),
+            message_history=result.all_messages(), deps=deps)
+        verdict = <span class="kw">await</span> review(result.output)
+    <span class="kw">if</span> verdict.decision == <span class="st">'pass'</span> <span class="kw">and</span> quotes_verify(result.output, deps.corpus):
+        <span class="kw">return</span> result.output.response_text
+    <span class="kw">return</span> SAFE_DECLINE                             <span class="cm"># application-authored</span></pre>
+            <div class="pane-note"><b>What the framework carries:</b> the typed candidate, schema-validated delegation results, per-turn usage caps, and combined token accounting across Muse + delegates via <code>usage=ctx.usage</code>. The gate itself stays ordinary reviewable code — exactly what the proposal asks for.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">muse.ts</span></div>
+            <pre><span class="cm">// structured output by convention: a terminating submit tool</span>
+<span class="kw">const</span> submitCandidate: <span class="ty">AgentTool</span> = {
+  name: <span class="st">"submit_candidate"</span>,
+  description: <span class="st">"Submit your complete draft reply for review."</span>,
+  parameters: <span class="ty">MuseCandidate</span>,          <span class="cm">// TypeBox — validated on call</span>
+  execute: <span class="kw">async</span> (_id, params) =&gt; ({
+    content: [{ type: <span class="st">"text"</span>, text: <span class="st">"submitted"</span> }],
+    details: params,
+    terminate: <span class="kw">true</span>,                   <span class="cm">// stop loop; orchestrator reads details</span>
+  }),
+};
+
+<span class="kw">const</span> ground: <span class="ty">AgentTool</span> = {
+  name: <span class="st">"ground"</span>,
+  description: <span class="st">"Ask Librarian for cited passages and memories."</span>,
+  parameters: Type.Object({ query: Type.String() }),
+  execute: <span class="kw">async</span> (_id, { query }, signal) =&gt;
+    asToolResult(<span class="kw">await</span> runLibrarian(query, session, signal)),
+};                                       <span class="cm">// runLibrarian = our own sub-loop</span>
+
+<span class="kw">const</span> muse = <span class="kw">new</span> <span class="ty">Agent</span>({
+  initialState: {
+    systemPrompt: musePrompt(session),   <span class="cm">// bounded context, interpolated by us</span>
+    model: models.getModel(<span class="st">"openai"</span>, <span class="st">"gpt-5.2"</span>),
+    tools: [ground, exploreConnection, submitCandidate],
+    messages: history,
+  },
+  streamFn: models.streamSimple.bind(models),
+});
+
+<span class="cm">// ── the output gate: same shape, but we also own extraction,</span>
+<span class="cm">//    validation, and budget enforcement ─────────────────────</span>
+<span class="kw">async function</span> museTurn(userMsg: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">string</span>&gt; {
+  <span class="kw">await</span> muse.prompt(userMsg);
+  <span class="kw">const</span> candidate = readSubmitted(muse.state.messages, <span class="st">"submit_candidate"</span>);
+  <span class="kw">if</span> (!<span class="ty">Value</span>.Check(<span class="ty">MuseCandidate</span>, candidate))
+    <span class="kw">throw new</span> <span class="ty">ContractError</span>(<span class="st">"muse"</span>);   <span class="cm">// no auto-retry — ours to build</span>
+  <span class="kw">let</span> verdict = <span class="kw">await</span> review(candidate);
+  <span class="kw">if</span> (verdict.decision === <span class="st">"revise"</span>) {
+    <span class="kw">await</span> muse.prompt(revisionPrompt(verdict.critique));
+    verdict = <span class="kw">await</span> review(readSubmitted(muse.state.messages, <span class="st">"submit_candidate"</span>));
+  }
+  <span class="kw">return</span> verdict.decision === <span class="st">"pass"</span> ? candidate.responseText : SAFE_DECLINE;
+}</pre>
+            <div class="pane-note"><b>What we carry:</b> the submit-tool convention, contract validation, "what if the model never calls submit_candidate", retry-on-invalid, and request/token budgets (pi tracks usage per response; enforcement is our loop). None of it is hard — all of it is ours to test.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Librarian -->
+      <div class="apanel" id="agent-librarian">
+        <div class="agent-head"><h3>Librarian</h3><span class="role">retrieval planner · corpus + scoped memory search · returns cited EvidenceBundle</span></div>
+        <p class="agent-brief">Librarian picks a strategy (keyword / semantic / hybrid), fuses and reranks, and must respect the spoiler boundary — which is enforced in the tool, not trusted to the prompt.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">librarian.py</span></div>
+            <pre>librarian = <span class="ty">Agent</span>(
+    <span class="st">'openai-responses:gpt-5.2'</span>,
+    deps_type=<span class="ty">LibrarianDeps</span>,
+    output_type=<span class="ty">EvidenceBundle</span>,       <span class="cm"># ids, excerpts, trust labels</span>
+    instructions=LIBRARIAN_PROMPT,
+)
+
+<span class="kw">@librarian.tool</span>
+<span class="kw">async def</span> corpus_search(ctx: <span class="ty">RunContext</span>[<span class="ty">LibrarianDeps</span>],
+        query: <span class="ty">str</span>,
+        strategy: <span class="ty">Literal</span>[<span class="st">'keyword'</span>, <span class="st">'semantic'</span>, <span class="st">'hybrid'</span>]) -&gt; <span class="ty">list</span>[<span class="ty">Passage</span>]:
+    <span class="st">"""Search the book corpus with the chosen strategy."""</span>
+    <span class="kw">return await</span> ctx.deps.corpus.search(
+        query, strategy,
+        boundary=ctx.deps.spoiler_boundary)   <span class="cm"># enforced in code, not prompt</span>
+
+<span class="kw">@librarian.tool</span>
+<span class="kw">async def</span> memory_search(ctx, query: <span class="ty">str</span>) -&gt; <span class="ty">list</span>[<span class="ty">MemoryHit</span>]:
+    <span class="st">"""Search this account's memories."""</span>
+    <span class="kw">return await</span> ctx.deps.memory_api.search(query)
+    <span class="cm"># memory_api was constructed from the authenticated request —</span>
+    <span class="cm"># the agent cannot name or widen an account (spec §4)</span>
+
+<span class="kw">@librarian.tool</span>
+<span class="kw">def</span> rerank(ctx, candidate_ids: <span class="ty">list</span>[<span class="ty">str</span>], intent: <span class="ty">str</span>) -&gt; <span class="ty">list</span>[<span class="ty">Ranked</span>]:
+    <span class="st">"""Rerank fused candidates against the query intent."""</span>
+    <span class="kw">return</span> ctx.deps.reranker.rank(candidate_ids, intent)</pre>
+            <div class="pane-note"><b>Fit:</b> strategy choice is a typed enum parameter; the <code>EvidenceBundle</code> output feeds Recall@5 / nDCG@5 evals directly. Same eval set runs through <b>pydantic-evals</b> with no extra plumbing.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">librarian.ts</span></div>
+            <pre><span class="cm">// each invocation = a fresh Agent: bounded context by construction</span>
+<span class="kw">export async function</span> runLibrarian(
+  query: <span class="ty">string</span>, session: <span class="ty">Session</span>, signal?: <span class="ty">AbortSignal</span>
+): <span class="ty">Promise</span>&lt;<span class="ty">EvidenceBundle</span>&gt; {
+  <span class="kw">const</span> agent = <span class="kw">new</span> <span class="ty">Agent</span>({
+    initialState: {
+      systemPrompt: LIBRARIAN_PROMPT,
+      model,
+      tools: [
+        corpusSearch(session.spoilerBoundary),  <span class="cm">// boundary closed over,</span>
+        memorySearch(session.memoryApi),        <span class="cm">// scope baked into the tool</span>
+        rerank,
+        submitEvidence,                         <span class="cm">// terminate: true</span>
+      ],
+      messages: [],                             <span class="cm">// no shared transcript</span>
+    },
+    streamFn: models.streamSimple.bind(models),
+  });
+  <span class="kw">await</span> agent.prompt(query);
+  <span class="kw">const</span> bundle = readSubmitted(agent.state.messages, <span class="st">"submit_evidence"</span>);
+  <span class="kw">if</span> (!<span class="ty">Value</span>.Check(<span class="ty">EvidenceBundle</span>, bundle))
+    <span class="kw">throw new</span> <span class="ty">ContractError</span>(<span class="st">"librarian"</span>);
+  <span class="kw">return</span> bundle;
+}
+
+<span class="kw">const</span> corpusSearch = (boundary: <span class="ty">SpoilerBoundary</span>): <span class="ty">AgentTool</span> =&gt; ({
+  name: <span class="st">"corpus_search"</span>,
+  description: <span class="st">"Search the book corpus with a strategy."</span>,
+  parameters: Type.Object({
+    query: Type.String(),
+    strategy: <span class="ty">StringEnum</span>([<span class="st">"keyword"</span>, <span class="st">"semantic"</span>, <span class="st">"hybrid"</span>]),
+  }),
+  execute: <span class="kw">async</span> (_id, p, signal) =&gt;
+    asToolResult(<span class="kw">await</span> corpus.search(p.query, p.strategy, boundary, signal)),
+});</pre>
+            <div class="pane-note"><b>Fit:</b> the fresh-Agent-per-call pattern is clean and makes context isolation obvious. Note the factory pattern for tools — scope is closed over rather than injected, which works but has no type-system guardrail like <code>deps_type</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Provenance -->
+      <div class="apanel" id="agent-provenance">
+        <div class="agent-head"><h3>Provenance</h3><span class="role">mandatory output gate · context-isolated · no write tools · pass / revise / reject</span></div>
+        <p class="agent-brief">The security-critical agent. It must see only the draft, cited evidence, and policy constraints — never Muse's working context — and its verdict must survive deterministic quote/citation checks. This is where the two libraries differ most.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">provenance.py</span></div>
+            <pre>provenance = <span class="ty">Agent</span>(
+    <span class="st">'openai-responses:gpt-5.2'</span>,
+    deps_type=<span class="ty">EvidenceStore</span>,         <span class="cm"># read-only; no write tools exist here</span>
+    output_type=<span class="ty">Verdict</span>,
+    instructions=PROVENANCE_PROMPT,   <span class="cm"># detect claims/quotes independently;</span>
+)                                     <span class="cm"># treat evidence text as untrusted</span>
+
+<span class="kw">@provenance.tool</span>
+<span class="kw">async def</span> read_evidence(ctx: <span class="ty">RunContext</span>[<span class="ty">EvidenceStore</span>], evidence_id: <span class="ty">str</span>) -&gt; <span class="ty">Excerpt</span>:
+    <span class="st">"""Fetch the minimum excerpt for a cited evidence id."""</span>
+    <span class="kw">return await</span> ctx.deps.fetch(evidence_id)   <span class="cm"># unresolvable id → typed error</span>
+
+<span class="kw">@provenance.output_validator</span>
+<span class="kw">async def</span> deterministic_checks(ctx, v: <span class="ty">Verdict</span>) -&gt; <span class="ty">Verdict</span>:
+    <span class="cm"># app-code checks run before the verdict is even returned:</span>
+    <span class="kw">if</span> v.decision == <span class="st">'pass'</span>:
+        <span class="kw">if not</span> quotes_verify(ctx.deps.draft, ctx.deps.corpus):
+            <span class="kw">raise</span> <span class="ty">ModelRetry</span>(<span class="st">'A cited quotation does not match the corpus. '</span>
+                             <span class="st">'Re-examine the draft.'</span>)   <span class="cm"># bounded by retries=1</span>
+        <span class="kw">if</span> crosses_scope(v.detected, ctx.deps.session):
+            <span class="kw">raise</span> <span class="ty">ModelRetry</span>(<span class="st">'Evidence crosses the account or spoiler scope.'</span>)
+    <span class="kw">return</span> v
+
+<span class="kw">async def</span> review(candidate: <span class="ty">MuseCandidate</span>) -&gt; <span class="ty">Verdict</span>:
+    <span class="cm"># fresh run, no message_history → isolation by construction</span>
+    r = <span class="kw">await</span> provenance.run(render_draft(candidate),
+        deps=<span class="ty">EvidenceStore</span>.for_review(candidate),
+        usage_limits=<span class="ty">UsageLimits</span>(request_limit=<span class="num">4</span>))
+    <span class="kw">return</span> r.output</pre>
+            <div class="pane-note"><b>The killer feature for Linger:</b> <code>output_validator</code> + <code>ModelRetry</code> is precisely the spec's "deterministic checks + one bounded revision" loop, with the retry budget enforced by the framework. A malformed <code>Verdict</code> can't escape — it isn't a <code>Verdict</code>.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">provenance.ts</span></div>
+            <pre><span class="kw">export async function</span> review(candidate: <span class="ty">MuseCandidate</span>): <span class="ty">Promise</span>&lt;<span class="ty">Verdict</span>&gt; {
+  <span class="kw">const</span> store = <span class="ty">EvidenceStore</span>.forReview(candidate);
+  <span class="kw">const</span> agent = <span class="kw">new</span> <span class="ty">Agent</span>({
+    initialState: {
+      systemPrompt: PROVENANCE_PROMPT,
+      model,
+      tools: [readEvidence(store), submitVerdict],  <span class="cm">// nothing else exists</span>
+      messages: [],                                 <span class="cm">// isolation by construction</span>
+    },
+    streamFn: models.streamSimple.bind(models),
+    beforeToolCall: <span class="kw">async</span> ({ toolCall }) =&gt; {
+      <span class="kw">if</span> (toolCall.name !== <span class="st">"read_evidence"</span> &amp;&amp; toolCall.name !== <span class="st">"submit_verdict"</span>)
+        <span class="kw">return</span> { block: <span class="kw">true</span>, reason: <span class="st">"not permitted"</span> };  <span class="cm">// belt &amp; braces</span>
+    },
+  });
+
+  <span class="kw">await</span> agent.prompt(renderDraft(candidate));
+  <span class="kw">let</span> verdict = readSubmitted(agent.state.messages, <span class="st">"submit_verdict"</span>);
+
+  <span class="cm">// deterministic checks + ONE bounded re-ask — hand-rolled loop</span>
+  <span class="kw">if</span> (verdict?.decision === <span class="st">"pass"</span>) {
+    <span class="kw">const</span> problem = deterministicProblems(candidate, verdict, store);
+    <span class="kw">if</span> (problem) {
+      <span class="kw">await</span> agent.prompt(<span class="st">`Check failed: ${problem}. Re-examine the draft.`</span>);
+      verdict = readSubmitted(agent.state.messages, <span class="st">"submit_verdict"</span>);
+      <span class="kw">if</span> (deterministicProblems(candidate, verdict, store))
+        <span class="kw">return</span> { decision: <span class="st">"reject"</span>, detected: verdict.detected };
+    }
+  }
+  <span class="kw">if</span> (!verdict || !<span class="ty">Value</span>.Check(<span class="ty">Verdict</span>, verdict))
+    <span class="kw">return</span> { decision: <span class="st">"reject"</span>, detected: emptyDetected() };  <span class="cm">// fail closed</span>
+  <span class="kw">return</span> verdict;
+}</pre>
+            <div class="pane-note"><b>Equally isolatable</b> — a fresh <code>Agent</code> with two tools is a genuinely small trusted surface, and <code>beforeToolCall</code> is a nice hard stop. But the retry budget, fail-closed defaults, and "model never submitted" paths are all our own logic. For the gate our whole safety story rests on, every one of those branches needs its own test.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sculptor -->
+      <div class="apanel" id="agent-sculptor">
+        <div class="agent-head"><h3>Sculptor</h3><span class="role">memory curation · only agent that may request writes · service commits</span></div>
+        <p class="agent-brief">Sculptor proposes structured memories, duplicate links, and groups; the Memory &amp; Policy Service validates and commits with idempotency keys. Both versions keep write authority out of the model's hands the same way: the "write" tool only submits a <em>proposal</em>.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">sculptor.py</span></div>
+            <pre>sculptor = <span class="ty">Agent</span>(
+    <span class="st">'openai-responses:gpt-5.2-mini'</span>,
+    deps_type=<span class="ty">SculptorDeps</span>,
+    output_type=<span class="ty">list</span>[<span class="ty">MemoryProposal</span>] | <span class="ty">NoCapture</span>,   <span class="cm"># declining is typed too</span>
+    instructions=SCULPTOR_PROMPT,   <span class="cm"># never sensitive traits; preserve originals</span>
+)
+
+<span class="kw">@sculptor.tool</span>
+<span class="kw">async def</span> find_related(ctx, text: <span class="ty">str</span>) -&gt; <span class="ty">list</span>[<span class="ty">MemoryHit</span>]:
+    <span class="st">"""Find candidate duplicates / related memories."""</span>
+    <span class="kw">return await</span> ctx.deps.memory_api.search(text)
+
+<span class="kw">@sculptor.output_validator</span>
+<span class="kw">def</span> capture_policy(ctx, out):
+    <span class="kw">if</span> has_sensitive_trait(out):      <span class="cm"># excluded from auto-capture, spec §6.3</span>
+        <span class="kw">raise</span> <span class="ty">ModelRetry</span>(<span class="st">'Sensitive-trait content must not be captured.'</span>)
+    <span class="kw">return</span> out
+
+<span class="cm"># proposals → Memory &amp; Policy Service, which owns the actual write</span>
+result = <span class="kw">await</span> sculptor.run(turn_summary, deps=deps)
+<span class="kw">for</span> p <span class="kw">in</span> as_list(result.output):
+    <span class="kw">await</span> policy_service.request_write(p, idempotency_key=key_for(p))</pre>
+            <div class="pane-note"><b>Note the union output:</b> "no capture needed" is a first-class typed outcome, so eval cases for capture precision/recall fall out naturally.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">sculptor.ts</span></div>
+            <pre><span class="cm">// same submit-tool pattern; two terminating tools model the union</span>
+<span class="kw">const</span> tools = [
+  findRelated(session.memoryApi),
+  submitTool(<span class="st">"submit_proposals"</span>, Type.Array(<span class="ty">MemoryProposal</span>)),
+  submitTool(<span class="st">"submit_no_capture"</span>, <span class="ty">NoCapture</span>),
+];
+
+<span class="kw">export async function</span> runSculptor(summary: <span class="ty">string</span>, session: <span class="ty">Session</span>) {
+  <span class="kw">const</span> agent = freshAgent(SCULPTOR_PROMPT, tools);
+  <span class="kw">await</span> agent.prompt(summary);
+  <span class="kw">const</span> proposals = readSubmitted(agent.state.messages, <span class="st">"submit_proposals"</span>) ?? [];
+  <span class="kw">for</span> (<span class="kw">const</span> p <span class="kw">of</span> proposals) {
+    <span class="kw">if</span> (hasSensitiveTrait(p)) <span class="kw">continue</span>;      <span class="cm">// policy in code, silently drop?</span>
+    <span class="kw">await</span> policyService.requestWrite(p, keyFor(p));   <span class="cm">// service owns writes</span>
+  }
+}
+
+<span class="cm">// bonus: pi's hooks fit the "final capture pass before compaction"</span>
+<span class="cm">// requirement neatly in a long-lived Muse session:</span>
+<span class="kw">const</span> muse = <span class="kw">new</span> <span class="ty">Agent</span>({ ...,
+  shouldStopAfterTurn: <span class="kw">async</span> ({ context }) =&gt; needsCompaction(context.messages),
+  transformContext: <span class="kw">async</span> (msgs) =&gt; compact(msgs),   <span class="cm">// prune working context</span>
+});</pre>
+            <div class="pane-note"><b>Where pi genuinely shines:</b> <code>transformContext</code> / <code>shouldStopAfterTurn</code> give explicit, inspectable control of compaction — the trigger for Sculptor's bounded final-capture pass. But note the subtle policy question the code hides: dropping a sensitive proposal silently vs. re-asking the model is a decision Pydantic AI's <code>ModelRetry</code> forces you to make explicitly.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Serendipity -->
+      <div class="apanel" id="agent-serendipity">
+        <div class="agent-head"><h3>Serendipity</h3><span class="role">connection explorer · web search · must be able to decline</span></div>
+        <p class="agent-brief">Serendipity searches internal evidence and, when useful, the web — and "no good connection" is a required first-class outcome (≥80% weak-evidence declines). Private memory text must never be copied verbatim into a web query.</p>
+        <div class="cols">
+          <div class="pane py">
+            <div class="pane-head"><span>Pydantic AI</span><span class="lang">serendipity.py</span></div>
+            <pre>serendipity = <span class="ty">Agent</span>(
+    <span class="st">'openai-responses:gpt-5.2'</span>,
+    deps_type=<span class="ty">SerendipityDeps</span>,
+    output_type=<span class="ty">ConnectionProposal</span> | <span class="ty">Decline</span>,   <span class="cm"># declining is success</span>
+    instructions=SERENDIPITY_PROMPT,
+)
+
+<span class="kw">@serendipity.tool</span>
+<span class="kw">async def</span> web_search(ctx, query: <span class="ty">str</span>) -&gt; <span class="ty">list</span>[<span class="ty">WebResult</span>]:
+    <span class="st">"""General web search for supporting evidence."""</span>
+    <span class="kw">if</span> leaks_private_memory(query, ctx.deps.memories):   <span class="cm"># spec §6.4</span>
+        <span class="kw">raise</span> <span class="ty">ModelRetry</span>(<span class="st">'Rephrase without quoting private memory text.'</span>)
+    <span class="kw">return await</span> ctx.deps.search.run(query)
+
+<span class="kw">@serendipity.tool</span>
+<span class="kw">async def</span> internal_evidence(ctx, cue: <span class="ty">str</span>) -&gt; <span class="ty">EvidenceBundle</span>:
+    <span class="st">"""Delegate internal retrieval to Librarian."""</span>
+    <span class="kw">return</span> (<span class="kw">await</span> librarian.run(cue, deps=..., usage=ctx.usage)).output</pre>
+            <div class="pane-note"><b>Note:</b> the privacy guard is a <code>ModelRetry</code>, so the model gets one structured chance to reformulate its query — a nicer failure mode than a hard error, and it's logged in the trace.</div>
+          </div>
+          <div class="pane pi">
+            <div class="pane-head"><span>pi</span><span class="lang">serendipity.ts</span></div>
+            <pre><span class="kw">const</span> webSearch = (memories: <span class="ty">MemoryText</span>[]): <span class="ty">AgentTool</span> =&gt; ({
+  name: <span class="st">"web_search"</span>,
+  description: <span class="st">"General web search for supporting evidence."</span>,
+  parameters: Type.Object({ query: Type.String() }),
+  execute: <span class="kw">async</span> (_id, { query }) =&gt; {
+    <span class="kw">if</span> (leaksPrivateMemory(query, memories))
+      <span class="kw">throw new</span> <span class="ty">Error</span>(<span class="st">"Rephrase without quoting private memory text."</span>);
+    <span class="kw">return</span> asToolResult(<span class="kw">await</span> search.run(query));
+  },   <span class="cm">// thrown errors go back to the model as isError results — same loop</span>
+});
+
+<span class="kw">const</span> tools = [
+  webSearch(session.memories),
+  internalEvidence(session),               <span class="cm">// wraps runLibrarian()</span>
+  submitTool(<span class="st">"submit_connection"</span>, <span class="ty">ConnectionProposal</span>),
+  submitTool(<span class="st">"submit_decline"</span>, <span class="ty">Decline</span>),
+];
+<span class="cm">// orchestrator: whichever submit tool fired is the outcome;</span>
+<span class="cm">// neither fired → treat as decline (fail closed)</span></pre>
+            <div class="pane-note"><b>Functionally equivalent:</b> pi reports thrown tool errors to the model with <code>isError: true</code>, so self-correction happens — but with no retry budget, a stubborn model can loop; our orchestrator must cap it.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 05 · Pros & cons ═══ -->
+    <section class="view" id="view-weigh">
+      <div class="view-head">
+        <span class="kicker">05 · Weighing the two</span>
+        <h2>Pros and cons</h2>
+      </div>
+      <div class="pc">
+        <div class="pc-card py">
+          <h3><span class="chip py">Pydantic AI</span>&nbsp; Python · v2.23.0</h3>
+          <h4 class="plus">For</h4>
+          <ul>
+            <li><b>The spec's vocabulary is the framework's vocabulary.</b> Typed hand-off contracts → <code>output_type</code>; bounded revision → <code>ModelRetry</code> with retry budgets; per-turn caps → <code>UsageLimits</code>; delegation with shared accounting → <code>usage=ctx.usage</code>.</li>
+            <li><b>Validation is unavoidable, not optional.</b> A malformed Verdict or EvidenceBundle never reaches the orchestrator; the model is re-asked automatically within a budget.</li>
+            <li><b>Evaluation harness mostly exists.</b> pydantic-evals runs dataset-driven cases with custom deterministic evaluators — our 40 versioned cases and thresholds map onto it directly, and Logfire gives the required decision/evidence tracing.</li>
+            <li><b>Mature and stable</b>: v2, backed by the Pydantic company, supports the OpenAI Responses API named in spec §8, plus MCP and durable execution if we grow into them.</li>
+            <li><b>Ecosystem gravity</b>: FastAPI backend (already proposed) and eval/data tooling are Python-native; one language across API, agents, and harness.</li>
+          </ul>
+          <h4 class="minus">Against</h4>
+          <ul>
+            <li><b>More framework between us and the wire.</b> Retries, output tools, and message shaping happen inside the library; debugging means learning its internals (the graph/node model) when things get weird.</li>
+            <li><b>Python typing is advisory.</b> The generics (<code>Agent[Deps, Output]</code>) help, but nothing stops an untyped escape hatch the way <code>tsc</code> does.</li>
+            <li><b>Fast-evolving API surface</b>: large feature set (graphs, deep agents, durable exec) we must consciously <em>not</em> use to keep the prototype simple.</li>
+          </ul>
+        </div>
+        <div class="pc-card pi">
+          <h3><span class="chip pi">pi</span>&nbsp; TypeScript · agent-core v0.83.0</h3>
+          <h4 class="plus">For</h4>
+          <ul>
+            <li><b>Radical transparency.</b> The loop, events, and state are small enough to read in an afternoon; every safety-relevant branch of our gate is code we wrote and can point to in the report. No hidden prompt shaping.</li>
+            <li><b>Isolation is trivially auditable</b>: a fresh <code>Agent</code> per invocation with an explicit tool list <em>is</em> the bounded context; <code>beforeToolCall</code> gives a hard allow-list.</li>
+            <li><b>Best-in-class interactive loop</b>: streaming events, steering, follow-up queues, custom message types (save notices!), and explicit <code>transformContext</code> compaction — genuinely nice for the Muse UX and the pre-compaction Sculptor pass.</li>
+            <li><b>Serializable everything</b>: <code>Context</code> is plain JSON — session persistence, replay for evals, and cross-provider hand-off come almost free; token + cost tracking is built in.</li>
+            <li><b>Compile-time types end to end</b> if the web UI is TypeScript anyway.</li>
+          </ul>
+          <h4 class="minus">Against</h4>
+          <ul>
+            <li><b>We build the scaffolding ourselves</b>: structured output (submit-tool convention), contract validation, retry budgets, usage limits, fail-closed defaults, delegation plumbing, and the entire eval harness. Each is small; together they are real person-days from a 75-day budget — and each is safety-relevant code we must also test.</li>
+            <li><b>Pre-1.0 churn</b>: v0.83.0 with frequent releases and a <code>legacy-node20</code> tag; API breaks are likely inside our project window.</li>
+            <li><b>The 83k stars are for the coding-agent CLI</b>, not agent-core as a library; docs, examples, and community patterns for <em>our</em> use case (multi-agent product backends) are thin.</li>
+            <li><b>No observability or evals story</b> — tracing with evidence IDs and the threshold-gated CI harness are entirely bespoke.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 06 · Recommendation ═══ -->
+    <section class="view" id="view-rec">
+      <div class="view-head">
+        <span class="kicker">06 · Recommendation</span>
+        <h2>Default to Pydantic AI; let team skills be the only override</h2>
+      </div>
+      <div class="card" style="max-width: 90ch">
+        <p><b>Default to Pydantic AI for all five agents</b>, with FastAPI serving the web UI and the Memory &amp; Policy Service. The decisive requirements are the ones with hard acceptance numbers: 100% Provenance verdict coverage, 100% rejected-draft suppression, 95% citation precision, and a CI-gated eval harness. Pydantic AI turns most of that enforcement into framework-checked types and validators and gives us pydantic-evals + Logfire for the rest; with pi we'd spend scarce person-days rebuilding and testing that scaffolding instead of building Muse, Librarian, and the corpus.</p>
+        <p><b>Choose pi only on a team-skills override:</b> if most members would be materially slower in Python, pi's smaller surface is a fair trade — nothing about Linger <em>requires</em> Pydantic AI. In that case budget explicitly (≈3–5 person-days) for the shared scaffolding: <code>submitTool()</code>, <code>readSubmitted()</code>, contract checks, retry caps, fail-closed defaults, JSONL tracing, and an eval runner.</p>
+        <p><b>Either way, pick one stack.</b> The proposal's "Pi for TS agents, PydanticAI for Python agents" hybrid means every contract exists twice (Pydantic model and TypeBox schema, kept in sync by hand), the output gate spans a process boundary, and the eval harness must drive two runtimes. Separation of duties comes from bounded contexts and the deterministic service — not from splitting languages.</p>
+        <ul class="plain">
+          <li><b>Decide by:</b> a 1-day spike — implement Provenance's <code>review()</code> in both (it's the smallest agent and the highest-stakes one; the Provenance tab is a starting point) and run it against 5 of the adversarial eval cases.</li>
+          <li><b>Sensitive to:</b> team language split (5 members, one agent each); whether the UI team wants pi's steering/streaming events; appetite for pre-1.0 dependency churn during the Aug–Oct project window.</li>
+          <li><b>Not sensitive to:</b> model choice (both speak the OpenAI Responses API and every major provider), the Memory &amp; Policy Service design (plain app code in both), or corpus/index tooling.</li>
+        </ul>
+      </div>
+      <div class="sources" style="margin-top: 22px">
+        <b>Sources</b> · versions and stats checked <span class="num">2026-08-05</span>
+        <ul>
+          <li>Pydantic AI docs: pydantic.dev/docs/ai — overview, agents, output, multi-agent applications. PyPI: pydantic-ai 2.23.0; github.com/pydantic/pydantic-ai ≈19.1k stars.</li>
+          <li>pi: github.com/earendil-works/pi (≈83.5k stars, created Aug 2025) — root README, packages/agent (agent-core) README, packages/ai README. npm: @earendil-works/pi-agent-core 0.83.0 (dist-tags: latest, legacy-node20).</li>
+          <li>Linger docs: docs/specification.md §4–8, docs/project-proposal.md §3.2–5.1.</li>
+          <li>Code sketches are illustrative pseudocode against current APIs, not tested implementations.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  (function () {
+    var navBtns = Array.prototype.slice.call(document.querySelectorAll(".navbtn"));
+    var views = Array.prototype.slice.call(document.querySelectorAll(".view"));
+    var agentBtns = Array.prototype.slice.call(document.querySelectorAll(".atab"));
+    var agentPanels = Array.prototype.slice.call(document.querySelectorAll(".apanel"));
+
+    function showView(name) {
+      navBtns.forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.view === name)); });
+      views.forEach(function (v) { v.classList.toggle("active", v.id === "view-" + name); });
+      window.scrollTo(0, 0);
+    }
+    function showAgent(name) {
+      agentBtns.forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.agent === name)); });
+      agentPanels.forEach(function (p) { p.classList.toggle("active", p.id === "agent-" + name); });
+    }
+
+    navBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        showView(b.dataset.view);
+        history.replaceState(null, "", "#" + b.dataset.view);
+      });
+    });
+    agentBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        showAgent(b.dataset.agent);
+        history.replaceState(null, "", "#agents/" + b.dataset.agent);
+      });
+    });
+
+    // deep-link support: #verdict, #agents, #agents/provenance, …
+    var hash = location.hash.replace("#", "");
+    if (hash) {
+      var parts = hash.split("/");
+      var viewNames = navBtns.map(function (b) { return b.dataset.view; });
+      if (viewNames.indexOf(parts[0]) !== -1) {
+        showView(parts[0]);
+        if (parts[0] === "agents" && parts[1]) {
+          var agentNames = agentBtns.map(function (b) { return b.dataset.agent; });
+          if (agentNames.indexOf(parts[1]) !== -1) showAgent(parts[1]);
+        }
+      }
+    }
+  })();
+</script>
+</body>
+</html>

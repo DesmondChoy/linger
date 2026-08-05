@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A source-grounded comparison of Pydantic AI and Pi Agent Core for Linger's five-agent architecture.">
+  <title>Pydantic AI vs Pi for Linger</title>
+  <style>
+    :root {
+      --ink: #0b1831;
+      --muted: #4f6075;
+      --paper: #f7fafc;
+      --panel: #ffffff;
+      --line: #cdd8e4;
+      --blue: #1457d9;
+      --blue-soft: #dff1ff;
+      --coral: #c53d36;
+      --coral-soft: #ffe8e2;
+      --yellow: #ffd65a;
+      --green: #19744c;
+      --green-soft: #dff7e8;
+      --code: #101a2d;
+      --shadow: 0 14px 40px rgb(11 24 49 / 9%);
+      --radius: 14px;
+      --measure: 74ch;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgb(20 87 217 / 3%) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(rgb(20 87 217 / 3%) 1px, transparent 1px) 0 0 / 48px 48px,
+        var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      line-height: 1.62;
+    }
+
+    a { color: var(--blue); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code:not(pre code) { padding: .12em .32em; border: 1px solid var(--line); background: #fff; border-radius: 5px; font-size: .9em; }
+    img, svg { max-width: 100%; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 20;
+      left: 1rem;
+      top: -5rem;
+      padding: .65rem 1rem;
+      background: var(--ink);
+      color: #fff;
+    }
+    .skip-link:focus { top: 1rem; }
+
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 38px 0 22px; }
+    .eyebrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      align-items: center;
+      margin: 0 0 1.15rem;
+      color: var(--muted);
+      font: 700 .76rem/1.2 "SFMono-Regular", Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.12; letter-spacing: -.025em; }
+    h1 {
+      max-width: 950px;
+      font-family: "Arial Narrow", "Avenir Next Condensed", ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      font-stretch: condensed;
+      letter-spacing: -.065em;
+    }
+    h1 .pyd { color: var(--blue); }
+    h1 .pi { color: var(--coral); }
+    h2 { font-size: clamp(2rem, 4vw, 3.6rem); }
+    h3 { font-size: 1.35rem; }
+    h4 { font-size: 1rem; letter-spacing: 0; }
+    .dek { max-width: 840px; margin: .9rem 0 0; color: var(--muted); font-size: 1.08rem; }
+
+    .verdict {
+      position: relative;
+      margin: 24px 0 0;
+      padding: 18px 24px 18px 30px;
+      border: 2px solid var(--ink);
+      background: var(--panel);
+      box-shadow: 9px 9px 0 var(--yellow);
+    }
+    .verdict::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: -2px;
+      bottom: -2px;
+      width: 9px;
+      background: var(--blue);
+    }
+    .verdict strong { font-size: 1.12rem; }
+    .verdict p { max-width: 920px; margin: .45rem 0 0; }
+
+    .layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 34px; align-items: start; margin-top: 26px; }
+    .toc {
+      position: sticky;
+      top: 22px;
+      padding: 14px 0;
+      border-top: 3px solid var(--ink);
+      border-bottom: 1px solid var(--line);
+      font-size: .86rem;
+    }
+    .toc strong { display: block; margin-bottom: .6rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .toc button {
+      display: block;
+      width: 100%;
+      margin: 2px 0;
+      padding: .52rem .65rem;
+      border: 0;
+      border-left: 3px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: 680 .86rem/1.2 system-ui, sans-serif;
+      text-align: left;
+    }
+    .toc button:hover { color: var(--ink); background: #fff; }
+    .toc button[aria-selected="true"] { border-left-color: var(--blue); background: var(--blue-soft); color: var(--ink); }
+    main { min-width: 0; min-height: 710px; }
+    section { scroll-margin-top: 24px; padding: 0 0 36px; }
+    .workspace-panel { display: none; }
+    .workspace-panel.active { display: block; }
+    .section-intro { max-width: var(--measure); margin: .9rem 0 2rem; color: var(--muted); }
+    .section-kicker { margin-bottom: .55rem; color: var(--blue); font: 700 .75rem/1.2 monospace; letter-spacing: .1em; text-transform: uppercase; }
+
+    .snapshot {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .snapshot > div { padding: 16px 18px; border: 1px solid var(--line); background: rgb(255 255 255 / 84%); }
+    .snapshot dt { color: var(--muted); font: 700 .72rem/1.3 monospace; letter-spacing: .06em; text-transform: uppercase; }
+    .snapshot dd { margin: .35rem 0 0; font-weight: 750; }
+
+    .requirements { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid var(--ink); background: var(--panel); box-shadow: var(--shadow); }
+    .requirement { min-height: 180px; padding: 20px 18px; border-right: 1px solid var(--line); }
+    .requirement:last-child { border-right: 0; }
+    .requirement b { display: block; margin-bottom: .6rem; color: var(--blue); font: 700 .78rem/1 monospace; }
+    .requirement strong { display: block; line-height: 1.25; }
+    .requirement p { margin: .6rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+
+    .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .framework-card { overflow: hidden; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
+    .framework-card header { padding: 25px 26px 20px; border-top: 9px solid var(--blue); }
+    .framework-card.pi-card header { border-top-color: var(--coral); }
+    .framework-card .tagline { margin: .55rem 0 0; color: var(--muted); }
+    .framework-card .inside { padding: 0 26px 26px; }
+    .framework-card ul { margin: .7rem 0 0; padding-left: 1.15rem; }
+    .framework-card li + li { margin-top: .45rem; }
+    .framework-card .best { margin-top: 1.2rem; padding: 14px 16px; background: var(--blue-soft); border-left: 4px solid var(--blue); }
+    .pi-card .best { background: var(--coral-soft); border-left-color: var(--coral); }
+
+    .architecture {
+      margin-top: 22px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      background: #edf6fb;
+    }
+    .architecture-grid { display: grid; grid-template-columns: 1fr 58px 1fr 58px 1fr; align-items: center; gap: 8px; }
+    .arch-node { padding: 15px; border: 1px solid var(--ink); background: #fff; text-align: center; font-size: .9rem; font-weight: 720; }
+    .arch-node.gate { background: var(--yellow); }
+    .arrow { color: var(--muted); text-align: center; font-size: 1.5rem; }
+    .arch-note { margin: 1rem 0 0; color: var(--muted); font-size: .9rem; }
+
+    .matrix-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
+    .matrix-panel { display: none; }
+    .matrix-panel.active { display: table-row-group; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { padding: 14px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; background: var(--ink); color: #fff; font-size: .78rem; letter-spacing: .04em; }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { min-width: 155px; font-weight: 760; }
+    .edge { display: inline-block; padding: .16rem .48rem; border-radius: 99px; font: 700 .72rem/1.4 monospace; white-space: nowrap; }
+    .edge.pyd { color: #0c3f9e; background: var(--blue-soft); }
+    .edge.pi { color: #8e2b26; background: var(--coral-soft); }
+    .edge.tie { color: #31516f; background: #e8eef4; }
+
+    .subtabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 1.2rem 0 .9rem;
+    }
+    .subtabs button {
+      appearance: none;
+      padding: .56rem .8rem;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font: 730 .82rem/1 system-ui, sans-serif;
+    }
+    .subtabs button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+
+    .agent-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 1.6rem 0 1.2rem;
+    }
+    .agent-switcher button {
+      appearance: none;
+      border: 1px solid var(--line);
+      padding: .65rem .9rem;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font: 740 .9rem/1 system-ui, sans-serif;
+    }
+    .agent-switcher button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .agent-panel { display: none; }
+    .agent-panel.active { display: block; }
+    .agent-brief {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 1px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .agent-brief > div { padding: 16px 18px; background: #fff; }
+    .agent-brief span { display: block; margin-bottom: .3rem; color: var(--muted); font: 700 .7rem/1.2 monospace; text-transform: uppercase; letter-spacing: .07em; }
+    .agent-brief p { margin: 0; font-size: .9rem; line-height: 1.5; }
+    .code-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .code-card { min-width: 0; overflow: hidden; border: 1px solid #24334e; background: var(--code); color: #e9f1ff; }
+    .code-card header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px; border-bottom: 1px solid #34435f; background: #17233a; }
+    .code-card header strong { font-size: .82rem; }
+    .code-card header span { color: #9cabc1; font: .72rem/1 monospace; }
+    .code-card.pyd-code { border-top: 5px solid #56a2ff; }
+    .code-card.pi-code { border-top: 5px solid #ff7a6f; }
+    pre { margin: 0; padding: 18px; overflow: auto; font-size: .74rem; line-height: 1.57; tab-size: 2; }
+    .code-note { margin: 12px 0 0; color: var(--muted); font-size: .86rem; }
+
+    .handoff-rail {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 2rem 0;
+    }
+    .handoff-rail::before { content: ""; position: absolute; z-index: -1; top: 25px; left: 4%; right: 4%; height: 4px; background: var(--ink); }
+    .handoff-step { padding: 14px; border: 1px solid var(--ink); background: #fff; text-align: center; font-size: .8rem; font-weight: 760; }
+    .handoff-step.gate { background: var(--yellow); }
+
+    .split-callout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .framework-tradeoff-panel { display: none; }
+    .framework-tradeoff-panel.active { display: grid; }
+    .callout { padding: 22px 24px; border: 1px solid var(--line); background: #fff; }
+    .callout h3 { margin-bottom: .8rem; }
+    .callout p, .callout ul { margin-top: .65rem; }
+    .callout ul { padding-left: 1.15rem; }
+    .callout.good { border-top: 7px solid var(--green); }
+    .callout.watch { border-top: 7px solid var(--coral); }
+
+    .decision {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 28px;
+      padding: 28px;
+      border: 2px solid var(--ink);
+      background: #fff;
+      box-shadow: 10px 10px 0 var(--blue);
+    }
+    .decision .score { display: grid; place-items: center; align-content: center; min-height: 160px; background: var(--ink); color: #fff; text-align: center; }
+    .decision .score b { font-size: 3.5rem; line-height: 1; }
+    .decision .score span { font: .72rem/1.3 monospace; text-transform: uppercase; letter-spacing: .07em; }
+    .decision p { margin: .65rem 0 0; }
+    .decision ol { margin: 1rem 0 0; padding-left: 1.25rem; }
+    .decision li + li { margin-top: .45rem; }
+
+    .sources { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .source-panel { display: none; }
+    .source-panel.active { display: grid; }
+    .source { padding: 16px 17px; border: 1px solid var(--line); background: #fff; font-size: .88rem; }
+    .source b { display: block; margin-bottom: .2rem; }
+    .source p { margin: .35rem 0 0; color: var(--muted); font-size: .82rem; }
+    .method { margin-top: 18px; padding: 16px 18px; border-left: 5px solid var(--yellow); background: #fff; color: var(--muted); font-size: .86rem; }
+    footer { margin-top: 80px; padding: 28px 0 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc {
+        top: 0;
+        z-index: 10;
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        padding: 8px 0;
+        border-top: 1px solid var(--line);
+        background: rgb(247 250 252 / 96%);
+        backdrop-filter: blur(10px);
+      }
+      .toc strong { display: none; }
+      .toc button { flex: 0 0 auto; width: auto; border: 1px solid var(--line); padding: .55rem .72rem; white-space: nowrap; }
+      .toc button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+      .requirements { grid-template-columns: 1fr 1fr; }
+      .requirement { border-bottom: 1px solid var(--line); }
+      .requirement:last-child { grid-column: 1 / -1; min-height: auto; }
+      .agent-brief { grid-template-columns: 1fr; }
+      .code-grid, .split-callout, .framework-tradeoff-panel { grid-template-columns: 1fr; }
+      .handoff-rail { grid-template-columns: 1fr; }
+      .handoff-rail::before { top: 4%; bottom: 4%; left: 25px; right: auto; width: 4px; height: auto; }
+    }
+    @media (max-width: 700px) {
+      body { font-size: 16px; }
+      .shell { width: min(100% - 24px, 1180px); }
+      .hero { padding-top: 28px; }
+      .snapshot {
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(230px, 1fr);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+      }
+      .snapshot > div { scroll-snap-align: start; }
+      .tracks, .sources { grid-template-columns: 1fr; }
+      .requirements { grid-template-columns: 1fr; }
+      .requirement, .requirement:last-child { grid-column: auto; min-height: auto; border-right: 0; }
+      .architecture-grid { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .decision { grid-template-columns: 1fr; padding: 18px; }
+      .decision .score { min-height: 120px; }
+      .verdict { margin-right: 8px; padding: 20px 19px 20px 25px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .toc, .agent-switcher { display: none; }
+      .layout { display: block; }
+      .workspace-panel, .framework-tradeoff-panel, .source-panel { display: block !important; }
+      .agent-panel { display: block !important; break-before: page; }
+      .code-grid { grid-template-columns: 1fr; }
+      section { padding-top: 34px; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to comparison</a>
+
+  <header class="hero shell">
+    <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Linger architecture decision · research snapshot 5 August 2026</p>
+    <h1><span class="pyd">Pydantic AI</span> or <span class="pi">Pi</span>?</h1>
+    <p class="dek">How Linger’s five agents would be expressed in each library—and which foundation better protects typed handoffs, narrow tool authority, and the mandatory Provenance release gate.</p>
+
+    <div class="verdict" role="note" aria-label="Recommendation summary">
+      <strong>Recommendation: use Pydantic AI for all five Linger agents.</strong>
+      <p>It fits the Python/FastAPI direction and makes typed outputs, scoped dependencies, testing, and explicit orchestration first-class. Pi is stronger when a custom TypeScript agent loop is itself the product.</p>
+    </div>
+
+    <dl class="snapshot" aria-label="Research snapshot">
+      <div><dt>Pydantic AI checked</dt><dd>2.14.1 · stable package</dd></div>
+      <div><dt>Pi checked</dt><dd>0.83.0 on main · 0.x API</dd></div>
+      <div><dt>Comparison scope</dt><dd><code>pydantic-ai</code> vs <code>pi-agent-core</code></dd></div>
+    </dl>
+  </header>
+
+  <div class="shell layout">
+    <nav class="toc" aria-label="Decision workspace" role="tablist" data-tab-group="workspace">
+      <strong>Decision map</strong>
+      <button type="button" role="tab" id="workspace-tab-requirements" aria-selected="true" aria-controls="requirements">Needs</button>
+      <button type="button" role="tab" id="workspace-tab-shape" aria-selected="false" aria-controls="shape">Frameworks</button>
+      <button type="button" role="tab" id="workspace-tab-matrix" aria-selected="false" aria-controls="matrix">Scorecard</button>
+      <button type="button" role="tab" id="workspace-tab-agents" aria-selected="false" aria-controls="agents">Five agents</button>
+      <button type="button" role="tab" id="workspace-tab-handoffs" aria-selected="false" aria-controls="handoffs">Handoffs</button>
+      <button type="button" role="tab" id="workspace-tab-tradeoffs" aria-selected="false" aria-controls="tradeoffs">Trade-offs</button>
+      <button type="button" role="tab" id="workspace-tab-recommendation" aria-selected="false" aria-controls="recommendation">Recommendation</button>
+      <button type="button" role="tab" id="workspace-tab-sources" aria-selected="false" aria-controls="sources">Sources</button>
+    </nav>
+
+    <main id="content">
+      <section id="requirements" class="workspace-panel active" role="tabpanel" aria-labelledby="workspace-tab-requirements">
+        <p class="section-kicker">The non-negotiables</p>
+        <h2>What the framework must make hard to get wrong</h2>
+        <p class="section-intro">Linger is not a swarm. It is a small state machine with five reasoning roles and one deterministic authority boundary. The framework should support that shape without turning policy into prompt prose.</p>
+        <div class="requirements">
+          <article class="requirement"><b>01</b><strong>Narrow tools</strong><p>Each role sees only its approved capability surface; Provenance never gets write tools.</p></article>
+          <article class="requirement"><b>02</b><strong>Typed handoffs</strong><p>Pass claims, evidence IDs, confidence, and flags—not unrestricted transcripts.</p></article>
+          <article class="requirement"><b>03</b><strong>Release gate</strong><p>No Muse draft reaches the user without a Provenance verdict and deterministic checks.</p></article>
+          <article class="requirement"><b>04</b><strong>Server-owned scope</strong><p>Account identity and write authority come from application dependencies, never model output.</p></article>
+          <article class="requirement"><b>05</b><strong>Testable control</strong><p>Contract tests must exercise decline, revision limits, tool denial, citation checks, and isolation.</p></article>
+        </div>
+      </section>
+
+      <section id="shape" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-shape" hidden>
+        <p class="section-kicker">Center of gravity</p>
+        <h2>Same loop, different philosophy</h2>
+        <p class="section-intro">Both libraries can run a model, expose JSON-schema tools, stream events, and switch providers. The practical difference is how much application structure arrives with the loop.</p>
+
+        <div class="tracks">
+          <article class="framework-card">
+            <header><h3>Pydantic AI</h3><p class="tagline">A typed application-agent framework for Python.</p></header>
+            <div class="inside">
+              <ul>
+                <li><strong>Agent contract:</strong> generic dependency and output types; runtime validation with Pydantic.</li>
+                <li><strong>Tools:</strong> decorators, toolsets, MCP, preparation hooks, approval wrappers, retries, and validation feedback.</li>
+                <li><strong>Handoffs:</strong> documented delegation, programmatic handoff, graph control flow, and shared usage accounting.</li>
+                <li><strong>Operations:</strong> OpenTelemetry/Logfire, eval tooling, test models, UI adapters, and four durable-execution integrations.</li>
+              </ul>
+              <div class="best"><strong>Best when</strong><br>Agents are one layer inside a policy-heavy Python service.</div>
+            </div>
+          </article>
+
+          <article class="framework-card pi-card">
+            <header><h3>Pi Agent Core</h3><p class="tagline">A small, stateful TypeScript agent loop with excellent event control.</p></header>
+            <div class="inside">
+              <ul>
+                <li><strong>Agent contract:</strong> mutable state, messages, model, tools, transform/convert hooks, and a streaming event bus.</li>
+                <li><strong>Tools:</strong> TypeBox parameter schemas, parallel/sequential execution, progress updates, pre/post hooks, and abort signals.</li>
+                <li><strong>Handoffs:</strong> compose agents yourself or add extensions; subagents are intentionally absent from the default coding harness.</li>
+                <li><strong>Operations:</strong> strong provider layer, steering/follow-up queues, optional SQLite sessions, plus a rich coding harness and TUI.</li>
+              </ul>
+              <div class="best"><strong>Best when</strong><br>The agent loop, live UI, or extensible TypeScript harness is itself the product.</div>
+            </div>
+          </article>
+        </div>
+
+        <div class="architecture" aria-label="Recommended control flow">
+          <div class="architecture-grid">
+            <div class="arch-node">Application orchestrator<br><small>owns session + limits</small></div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="arch-node">Role agent<br><small>sees narrow tools</small></div>
+            <div class="arrow" aria-hidden="true">→</div>
+            <div class="arch-node gate">Provenance + checks<br><small>owns release decision</small></div>
+          </div>
+          <p class="arch-note"><strong>Design rule:</strong> use programmatic handoffs for safety-relevant transitions. Agent-as-tool delegation is fine for bounded retrieval, but the model should never decide whether its own output bypasses the gate.</p>
+        </div>
+      </section>
+
+      <section id="matrix" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-matrix" hidden>
+        <p class="section-kicker">Evidence-weighted comparison</p>
+        <h2>Decision matrix</h2>
+        <p class="section-intro">“Edge” means the capability is more directly supported in the compared core, not that the other library cannot be extended to do it.</p>
+        <div class="subtabs" role="tablist" aria-label="Scorecard categories" data-tab-group="matrix">
+          <button type="button" role="tab" id="matrix-tab-contracts" aria-selected="true" aria-controls="matrix-contracts">Contracts &amp; boundaries</button>
+          <button type="button" role="tab" id="matrix-tab-runtime" aria-selected="false" aria-controls="matrix-runtime">Runtime &amp; operations</button>
+          <button type="button" role="tab" id="matrix-tab-adoption" aria-selected="false" aria-controls="matrix-adoption">Adoption &amp; fit</button>
+        </div>
+        <div class="matrix-wrap">
+          <table>
+            <thead><tr><th>Criterion</th><th>Pydantic AI</th><th>Pi Agent Core</th><th>Edge for Linger</th></tr></thead>
+            <tbody id="matrix-contracts" class="matrix-panel active" role="tabpanel" aria-labelledby="matrix-tab-contracts">
+              <tr><td>Structured final output</td><td><code>output_type</code> is statically typed and runtime-validated; model gets retry feedback.</td><td>Tool arguments are schema-validated; a typed final response needs an output tool or application parser.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Dependency / account scope</td><td>Typed <code>RunContext[Deps]</code> flows through prompts, tools, and validators.</td><td>Close over services or attach custom state; <code>beforeToolCall</code> can enforce scope.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Tool boundaries</td><td>Per-agent toolsets, dynamic preparation, approval wrappers, deferred/external tools.</td><td>Per-agent tool arrays plus validated preflight hook; no built-in process/filesystem permission system.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Programmatic handoff</td><td>Documented message-history rules, usage sharing, graph option, and output functions.</td><td>Straightforward composition, but lifecycle, context minimisation, budgets, and contracts are yours.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+            </tbody>
+            <tbody id="matrix-runtime" class="matrix-panel" role="tabpanel" aria-labelledby="matrix-tab-runtime" hidden>
+              <tr><td>Live event control</td><td>Streaming events and UI adapters; sufficient for web chat.</td><td>Very clear event sequence, steering/follow-up queues, progress events, mutable live state.</td><td><span class="edge pi">Pi</span></td></tr>
+              <tr><td>Test doubles</td><td><code>TestModel</code>, <code>FunctionModel</code>, <code>Agent.override</code>, and a global real-request kill switch.</td><td>Tests are possible through injected <code>streamFn</code>; experimental session testing exists, but fewer application-level test conventions are documented.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Observability / evals</td><td>OTel spans, Logfire integration, usage limits, and first-party eval package.</td><td>Rich events and usage metadata are available; backend, trace schema, and eval harness are application choices.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Durability</td><td>Official Temporal, DBOS, Prefect, and Restate patterns.</td><td>Optional SQLite session persistence is not equivalent to crash-safe workflow execution.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+            </tbody>
+            <tbody id="matrix-adoption" class="matrix-panel" role="tabpanel" aria-labelledby="matrix-tab-adoption" hidden>
+              <tr><td>Provider portability</td><td>Broad provider/model registry with profiles and custom models.</td><td>Broad provider layer, auto-refreshed catalogs, subscription logins, and custom providers.</td><td><span class="edge tie">Tie</span></td></tr>
+              <tr><td>Stack fit</td><td>Matches Python 3.12, FastAPI, notebooks, Pydantic contracts, and current repo direction.</td><td>Adds Node 22+, TypeScript build/runtime, parallel contract definitions, and cross-language tracing.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>API maturity signal</td><td>PyPI marks 2.x production/stable.</td><td>Active and widely used, but package remains pre-1.0 and changes quickly.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Harness customisation</td><td>Composable capabilities and Python code; less opinionated about a terminal agent product.</td><td>Excellent extensions, skills, themes, TUI, RPC, and SDK modes in <code>pi-coding-agent</code>.</td><td><span class="edge pi">Pi</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="agents" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-agents" hidden>
+        <p class="section-kicker">Concrete translation</p>
+        <h2>How each Linger agent would look</h2>
+        <p class="section-intro">These are deliberately compact architecture sketches, not copy-paste implementations. Both versions preserve the same authority boundary; the visible difference is how much scaffolding the framework supplies.</p>
+
+        <div class="agent-switcher" role="tablist" aria-label="Choose an agent" data-tab-group="agents">
+          <button type="button" role="tab" aria-selected="true" aria-controls="agent-muse" id="tab-muse" data-agent="muse">Muse</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="agent-librarian" id="tab-librarian" data-agent="librarian">Librarian</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="agent-sculptor" id="tab-sculptor" data-agent="sculptor">Sculptor</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="agent-serendipity" id="tab-serendipity" data-agent="serendipity">Serendipity</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="agent-provenance" id="tab-provenance" data-agent="provenance">Provenance</button>
+        </div>
+
+        <article class="agent-panel active" id="agent-muse" role="tabpanel" aria-labelledby="tab-muse">
+          <div class="agent-brief">
+            <div><span>Job</span><p>Draft a reflective response and route bounded retrieval/capture/connection requests.</p></div>
+            <div><span>Tools</span><p>Librarian, Sculptor, Serendipity; no direct storage or release.</p></div>
+            <div><span>Output</span><p><code>MuseCandidate</code> with text, claims, quotes, evidence IDs, and flags.</p></div>
+          </div>
+          <div class="code-grid">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>agent.py</span></header><pre><code>class MuseDeps(BaseModel):
+    account_scope: AccountScope
+    session: SessionEssentials
+
+class MuseCandidate(BaseModel):
+    text: str
+    claims: list[Claim]
+    evidence_ids: list[str]
+    sensitive_inference: bool
+
+muse = Agent(
+    MODEL,
+    deps_type=MuseDeps,
+    output_type=MuseCandidate,
+    instructions=MUSE_PROMPT,
+    toolsets=[muse_delegates],
+    name="muse",
+)
+
+@muse.output_validator
+async def no_direct_release(
+    ctx: RunContext[MuseDeps], out: MuseCandidate
+) -&gt; MuseCandidate:
+    if contains_release_token(out):
+        raise ModelRetry("Return a candidate, not a release")
+    return out</code></pre></div>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>muse.ts</span></header><pre><code>const muse = new Agent({
+  initialState: {
+    systemPrompt: MUSE_PROMPT,
+    model,
+    tools: [callLibrarian, callSculptor,
+            callSerendipity, emitCandidate],
+  },
+  streamFn: models.streamSimple.bind(models),
+  beforeToolCall: ({ toolCall }) =&gt;
+    assertMuseTool(toolCall.name),
+});
+
+// emitCandidate is a terminating TypeBox tool.
+// The wrapper captures and validates its arguments.
+const candidate = await runForOutputTool(
+  muse, input, MuseCandidateSchema
+);
+assertNoReleaseToken(candidate);</code></pre></div>
+          </div>
+          <p class="code-note">Pydantic expresses the final contract directly. Pi expresses the same contract through an explicit “emit output” tool plus wrapper code—a valid pattern, but one the team must own.</p>
+        </article>
+
+        <article class="agent-panel" id="agent-librarian" role="tabpanel" aria-labelledby="tab-librarian" hidden>
+          <div class="agent-brief">
+            <div><span>Job</span><p>Plan, fuse, and rerank account-scoped book and memory retrieval.</p></div>
+            <div><span>Tools</span><p>Corpus search, scoped memory query, reranker; read-only.</p></div>
+            <div><span>Output</span><p><code>EvidenceBundle</code> with stable IDs, trust labels, locations, and scores.</p></div>
+          </div>
+          <div class="code-grid">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>librarian.py</span></header><pre><code>@dataclass
+class LibrarianDeps:
+    corpus: CorpusSearch
+    memories: ScopedMemoryReader
+    reranker: Reranker
+    scope: AccountScope
+
+librarian = Agent(
+    MODEL,
+    deps_type=LibrarianDeps,
+    output_type=EvidenceBundle,
+    instructions=LIBRARIAN_PROMPT,
+    name="librarian",
+)
+
+@librarian.tool
+async def search_memories(
+    ctx: RunContext[LibrarianDeps], query: str
+) -&gt; list[Evidence]:
+    return await ctx.deps.memories.search(
+        scope=ctx.deps.scope, query=query
+    )</code></pre></div>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>librarian.ts</span></header><pre><code>const librarianTools = [
+  tool("search_corpus", CorpusQuery, searchCorpus),
+  scopedTool("search_memories", MemoryQuery,
+    ({ query }) =&gt; memoryReader.search(scope, query)),
+  tool("rerank", RerankInput, rerank),
+  outputTool("emit_evidence", EvidenceBundleSchema),
+];
+
+const librarian = new Agent({
+  initialState: {
+    systemPrompt: LIBRARIAN_PROMPT,
+    model,
+    tools: librarianTools,
+  },
+  streamFn,
+  beforeToolCall: ({ toolCall }) =&gt;
+    allowOnly(librarianTools, toolCall.name),
+});</code></pre></div>
+          </div>
+          <p class="code-note">Both can keep account identity out of model arguments. Pydantic’s dependency injection makes that convention visible in types; Pi relies on closures or application-owned state.</p>
+        </article>
+
+        <article class="agent-panel" id="agent-sculptor" role="tabpanel" aria-labelledby="tab-sculptor" hidden>
+          <div class="agent-brief">
+            <div><span>Job</span><p>Propose structured captures, summaries, links, clusters, and versioned updates.</p></div>
+            <div><span>Tools</span><p>Scoped reads and proposal submission; deterministic service commits or rejects.</p></div>
+            <div><span>Output</span><p><code>MemoryChangeProposal</code>; never an authoritative account ID or direct delete.</p></div>
+          </div>
+          <div class="code-grid">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>sculptor.py</span></header><pre><code>sculptor = Agent(
+    MODEL,
+    deps_type=SculptorDeps,
+    output_type=MemoryChangeProposal,
+    instructions=SCULPTOR_PROMPT,
+    toolsets=[memory_reads],
+    name="sculptor",
+)
+
+async def capture(input: CaptureCue, deps: SculptorDeps):
+    proposal = (await sculptor.run(
+        input.model_dump_json(), deps=deps
+    )).output
+    # Account scope and idempotency are added here,
+    # outside model control.
+    command = WriteCommand.from_proposal(
+        proposal, scope=deps.scope,
+        idempotency_key=deps.event_key,
+    )
+    return await deps.policy.commit(command)</code></pre></div>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>sculptor.ts</span></header><pre><code>const sculptor = new Agent({
+  initialState: {
+    systemPrompt: SCULPTOR_PROMPT,
+    model,
+    tools: [searchMemories,
+      outputTool("propose_change", ProposalSchema)],
+  },
+  streamFn,
+});
+
+const proposal = await runForOutputTool(
+  sculptor, cue, ProposalSchema
+);
+const command = WriteCommand.fromProposal(proposal, {
+  scope,                 // server supplied
+  idempotencyKey: eventKey,
+});
+return policyService.commit(command);</code></pre></div>
+          </div>
+          <p class="code-note">Neither framework should receive a direct “write arbitrary memory for account X” tool. The safe boundary is the application command builder and policy service.</p>
+        </article>
+
+        <article class="agent-panel" id="agent-serendipity" role="tabpanel" aria-labelledby="tab-serendipity" hidden>
+          <div class="agent-brief">
+            <div><span>Job</span><p>Explore a cue across internal evidence and optional web search; propose or decline a connection.</p></div>
+            <div><span>Tools</span><p>Librarian and privacy-safe web search; no memory writes or user release.</p></div>
+            <div><span>Output</span><p><code>ConnectionProposal | Decline</code> with evidence IDs and uncertainty.</p></div>
+          </div>
+          <div class="code-grid">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>serendipity.py</span></header><pre><code>ConnectionResult = ConnectionProposal | Decline
+
+serendipity = Agent(
+    MODEL,
+    deps_type=SerendipityDeps,
+    output_type=ConnectionResult,
+    instructions=SERENDIPITY_PROMPT,
+    name="serendipity",
+)
+
+@serendipity.tool
+async def retrieve(
+    ctx: RunContext[SerendipityDeps], cue: SearchCue
+) -&gt; EvidenceBundle:
+    return (await librarian.run(
+        cue.model_dump_json(),
+        deps=ctx.deps.librarian_deps,
+        usage=ctx.usage,
+    )).output
+
+# web_search receives a redacted query only.</code></pre></div>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>serendipity.ts</span></header><pre><code>const callLibrarian = tool(
+  "retrieve", SearchCueSchema,
+  async cue =&gt; runIsolated(librarianFactory, cue, {
+    tools: librarianTools,
+    messages: [],
+  })
+);
+
+const serendipity = new Agent({
+  initialState: {
+    systemPrompt: SERENDIPITY_PROMPT,
+    model,
+    tools: [callLibrarian, redactedWebSearch,
+      outputTool("emit_connection", ResultSchema)],
+  },
+  streamFn,
+});</code></pre></div>
+          </div>
+          <p class="code-note">Pydantic documents shared usage accounting for nested agents. In Pi, build a run budget into the wrapper and isolate child message state explicitly.</p>
+        </article>
+
+        <article class="agent-panel" id="agent-provenance" role="tabpanel" aria-labelledby="tab-provenance" hidden>
+          <div class="agent-brief">
+            <div><span>Job</span><p>Review every complete Muse draft in a separate context and return pass, revise, or reject.</p></div>
+            <div><span>Tools</span><p>Read cited evidence, citation/policy/injection checks; no delegates, storage, or user output.</p></div>
+            <div><span>Output</span><p><code>Verdict</code> with structured critique; application owns the final release.</p></div>
+          </div>
+          <div class="code-grid">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>provenance.py</span></header><pre><code>class Verdict(BaseModel):
+    decision: Literal["pass", "revise", "reject"]
+    findings: list[Finding]
+    supported_evidence_ids: list[str]
+
+provenance = Agent(
+    REVIEW_MODEL,
+    deps_type=ReviewDeps,
+    output_type=Verdict,
+    instructions=PROVENANCE_PROMPT,
+    toolsets=[read_only_review_tools],
+    name="provenance",
+)
+
+async def review(req: ReviewRequest, deps: ReviewDeps):
+    # New run; only req + cited evidence are supplied.
+    return (await provenance.run(
+        req.model_dump_json(), deps=deps, message_history=[]
+    )).output</code></pre></div>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>provenance.ts</span></header><pre><code>function createProvenance(reviewDeps: ReviewDeps) {
+  const reviewTools = bindReadOnlyTools(reviewDeps);
+  return new Agent({
+    initialState: {
+      systemPrompt: PROVENANCE_PROMPT,
+      model: reviewModel,
+      messages: [],       // context isolation
+      tools: [...reviewTools,
+        outputTool("emit_verdict", VerdictSchema)],
+    },
+    streamFn,
+    beforeToolCall: ({ toolCall }) =&gt;
+      allowOnly(reviewTools, toolCall.name,
+                "emit_verdict"),
+  });
+}</code></pre></div>
+          </div>
+          <p class="code-note">Pi’s explicit mutable state makes isolation understandable, but also easier to accidentally reuse. Prefer a fresh agent factory per review, not <code>reset()</code> plus hope.</p>
+        </article>
+      </section>
+
+      <section id="handoffs" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-handoffs" hidden>
+        <p class="section-kicker">Authority is in the edges</p>
+        <h2>Handoffs, revision, and the release boundary</h2>
+        <p class="section-intro">The orchestration code matters more than any individual prompt. Keep the safety path explicit and boring—in this context, “boring” is a compliment.</p>
+
+        <div class="handoff-rail" aria-label="Reflection flow">
+          <div class="handoff-step">Muse<br>candidate</div>
+          <div class="handoff-step gate">Provenance<br>verdict</div>
+          <div class="handoff-step">≤ 1 revision<br>if requested</div>
+          <div class="handoff-step gate">Deterministic<br>checks</div>
+          <div class="handoff-step">Release or<br>safe decline</div>
+        </div>
+
+        <div class="code-grid">
+          <div class="code-card pyd-code"><header><strong>Pydantic AI orchestration</strong><span>ordinary typed Python</span></header><pre><code>async def reflection_turn(req: Turn, deps: AppDeps) -&gt; Reply:
+    candidate = (await muse.run(
+        req.to_muse_input(), deps=deps.muse,
+        usage_limits=TURN_LIMITS,
+    )).output
+
+    for attempt in range(2):
+        verdict = await review(
+            ReviewRequest.from_candidate(candidate),
+            deps.review,
+        )
+        if verdict.decision == "pass":
+            checks.verify(candidate, verdict, deps.scope)
+            return Reply.release(candidate.text)
+        if verdict.decision != "revise" or attempt == 1:
+            break
+        candidate = (await muse.run(
+            RevisionInput(candidate, verdict.findings).model_dump_json(),
+            deps=deps.muse,
+        )).output
+
+    return Reply.safe_decline()</code></pre></div>
+          <div class="code-card pi-code"><header><strong>Pi orchestration</strong><span>same policy, more wrapper</span></header><pre><code>async function reflectionTurn(
+  req: Turn, deps: AppDeps
+): Promise&lt;Reply&gt; {
+  let candidate = await runTyped(
+    createMuse(deps.muse), req.toMuseInput(),
+    MuseCandidateSchema, TURN_BUDGET
+  );
+
+  for (let attempt = 0; attempt &lt; 2; attempt++) {
+    const verdict = await runTyped(
+      createProvenance(deps.review),
+      reviewRequest(candidate), VerdictSchema, REVIEW_BUDGET
+    );
+    if (verdict.decision === "pass") {
+      checks.verify(candidate, verdict, deps.scope);
+      return Reply.release(candidate.text);
+    }
+    if (verdict.decision !== "revise" || attempt === 1) break;
+    candidate = await runTyped(
+      createMuse(deps.muse), revision(candidate, verdict),
+      MuseCandidateSchema, REVISION_BUDGET
+    );
+  }
+  return Reply.safeDecline();
+}</code></pre></div>
+        </div>
+        <p class="code-note">In both versions, the application—not Muse, not Provenance, and not a “handoff tool”—decides what reaches the browser.</p>
+      </section>
+
+      <section id="tradeoffs" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-tradeoffs" hidden>
+        <p class="section-kicker">Pros, cons, and traps</p>
+        <h2>Where each choice earns its keep</h2>
+        <div class="subtabs" role="tablist" aria-label="Framework trade-offs" data-tab-group="tradeoffs">
+          <button type="button" role="tab" id="tradeoffs-tab-pydantic" aria-selected="true" aria-controls="tradeoffs-pydantic">Pydantic AI</button>
+          <button type="button" role="tab" id="tradeoffs-tab-pi" aria-selected="false" aria-controls="tradeoffs-pi">Pi Agent Core</button>
+        </div>
+        <div id="tradeoffs-pydantic" class="split-callout framework-tradeoff-panel active" role="tabpanel" aria-labelledby="tradeoffs-tab-pydantic">
+          <article class="callout good">
+            <h3>Pydantic AI: compelling advantages</h3>
+            <ul>
+              <li>Strongest direct fit for Linger’s typed candidate/verdict/evidence contracts.</li>
+              <li>Dependency injection maps neatly to authenticated scope and service clients.</li>
+              <li>Programmatic handoff and graph options support the plan → act → check → refine flow.</li>
+              <li>Testing, usage limits, observability, MCP, approval, and durability reduce bespoke infrastructure.</li>
+              <li>One Python stack simplifies ownership, CI, deployment, and contract reuse with FastAPI.</li>
+            </ul>
+          </article>
+          <article class="callout watch">
+            <h3>Pydantic AI: costs to accept</h3>
+            <ul>
+              <li>Broader API surface and rapid evolution; pin versions and follow the upgrade guide.</li>
+              <li>Capabilities, graphs, and durable integrations can invite over-engineering. Start with plain async orchestration.</li>
+              <li>Logfire is convenient but optional; keep telemetry portable through OpenTelemetry.</li>
+              <li>Types validate shape, not truth. Provenance and deterministic citation/scope checks remain essential.</li>
+            </ul>
+          </article>
+        </div>
+        <div id="tradeoffs-pi" class="split-callout framework-tradeoff-panel" role="tabpanel" aria-labelledby="tradeoffs-tab-pi" hidden>
+          <article class="callout good">
+            <h3>Pi: compelling advantages</h3>
+            <ul>
+              <li>Small, readable loop with unusually clear event sequencing and control.</li>
+              <li>First-rate steering, follow-up queues, tool progress, cancellation, and browser/Node friendliness.</li>
+              <li>The larger coding harness offers TUI, SDK/RPC modes, skills, extensions, sessions, and deep customisation.</li>
+              <li>Good choice if the team standardises on TypeScript and wants to own the policy layer explicitly.</li>
+            </ul>
+          </article>
+          <article class="callout watch">
+            <h3>Pi: costs to accept</h3>
+            <ul>
+              <li>Core deliberately omits first-class subagents, typed final outputs, graph orchestration, and built-in permissions.</li>
+              <li>Preflight hooks can block tools, but OS/process/network isolation still needs a sandbox or container.</li>
+              <li>Session persistence and compaction are useful conversation features, not durable workflow semantics.</li>
+              <li>Using the coding harness for an end-user reflection service may import a coding-agent-shaped abstraction.</li>
+              <li>Adding TypeScript per-agent implementations to a Python backend doubles contracts and operational seams.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="recommendation" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-recommendation" hidden>
+        <p class="section-kicker">Call</p>
+        <h2>Choose one framework; do not mix by agent</h2>
+        <p class="section-intro">The proposal’s “Pi for TypeScript agents; Pydantic AI for Python agents” sounds flexible, but language-per-role is the wrong boundary. These agents exchange small, safety-relevant contracts on nearly every turn. A mixed runtime adds more failure modes than useful autonomy.</p>
+        <div class="decision">
+          <div class="score"><b>9–3</b><span>matrix edges<br>Pydantic · Pi</span></div>
+          <div>
+            <h3>Adopt Pydantic AI, with a deliberately small subset</h3>
+            <p>The recommendation is architectural, not a popularity contest: Linger’s hardest problem is controlled composition around personal data and a mandatory output gate. Pydantic makes that composition more visible in contracts and easier to test in the project’s existing stack.</p>
+            <ol>
+              <li>Build the five roles as global <code>Agent</code> definitions with distinct dependency and output types.</li>
+              <li>Use plain application-controlled async orchestration first; introduce <code>pydantic-graph</code> only if flow branching becomes genuinely hard to follow.</li>
+              <li>Use agent-as-tool delegation only for bounded read-only work such as Librarian retrieval.</li>
+              <li>Keep Provenance as a fresh, restricted run and keep final release in deterministic application code.</li>
+              <li>Pilot Muse → Provenance plus one Librarian tool; verify contract tests, traces, cost, latency, and cross-account denial before adding the remaining roles.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="method"><strong>When would Pi win?</strong> If the team commits to an end-to-end TypeScript service and values custom live interaction, event-level loop control, or a reusable agent harness more than first-party typed outputs, testing, and workflow infrastructure. In that case, use <code>pi-agent-core</code>, not the coding CLI, and budget explicitly for output-tool wrappers, schema validation, tracing, evals, budgets, persistence, and sandbox policy.</div>
+      </section>
+
+      <section id="sources" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-sources" hidden>
+        <p class="section-kicker">Primary-source research</p>
+        <h2>Sources and scope notes</h2>
+        <p class="section-intro">The analysis prioritises official documentation, repositories, and package registries. Links point to the material supporting the claims above.</p>
+        <div class="subtabs" role="tablist" aria-label="Source collections" data-tab-group="sources">
+          <button type="button" role="tab" id="sources-tab-pydantic" aria-selected="true" aria-controls="sources-pydantic">Pydantic AI sources</button>
+          <button type="button" role="tab" id="sources-tab-pi" aria-selected="false" aria-controls="sources-pi">Pi sources</button>
+        </div>
+        <div id="sources-pydantic" class="sources source-panel active" role="tabpanel" aria-labelledby="sources-tab-pydantic">
+          <article class="source"><b><a href="https://pydantic.dev/docs/ai/overview/">Pydantic AI overview</a></b><p>Core agent loop, capabilities, providers, typing, observability, approval, durability, streams, and graphs.</p></article>
+          <article class="source"><b><a href="https://pydantic.dev/docs/ai/guides/multi-agent-applications/">Pydantic multi-agent patterns</a></b><p>Delegation, programmatic handoff, graph control flow, context sharing, and usage accounting.</p></article>
+          <article class="source"><b><a href="https://pydantic.dev/docs/ai/tools-toolsets/deferred-tools">Pydantic deferred tools</a></b><p>Human approval, externally executed tools, stop-and-resume, and inline handlers.</p></article>
+          <article class="source"><b><a href="https://pydantic.dev/docs/ai/guides/testing/">Pydantic testing guide</a></b><p><code>TestModel</code>, <code>FunctionModel</code>, overrides, and blocking accidental real requests.</p></article>
+          <article class="source"><b><a href="https://pydantic.dev/docs/ai/capabilities/durable_execution/overview/">Pydantic durable execution</a></b><p>Official Temporal, DBOS, Prefect, and Restate integrations.</p></article>
+          <article class="source"><b><a href="https://pypi.org/project/pydantic-ai/">Pydantic AI on PyPI</a></b><p>Release, Python requirement, extras, MIT license, and production/stable classifier.</p></article>
+        </div>
+        <div id="sources-pi" class="sources source-panel" role="tabpanel" aria-labelledby="sources-tab-pi" hidden>
+          <article class="source"><b><a href="https://github.com/earendil-works/pi">Pi repository overview</a></b><p>Package layers, permission warning, container patterns, supply-chain practices, and MIT license.</p></article>
+          <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/agent/README.md">Pi Agent Core README</a></b><p>State, messages, event order, tool execution, hooks, steering/follow-up, errors, and proxying.</p></article>
+          <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/README.md">Pi coding-agent README</a></b><p>What belongs to the larger harness: modes, providers, skills, extensions, TUI, and explicit omission of subagents.</p></article>
+          <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/containerization.md">Pi containerisation guide</a></b><p>Default process authority and isolation patterns.</p></article>
+          <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/compaction.md">Pi compaction guide</a></b><p>Session summarisation, branch summaries, token thresholds, and persistence shape.</p></article>
+          <article class="source"><b><a href="https://www.npmjs.com/package/@earendil-works/pi-agent-core">Pi Agent Core on npm</a></b><p>Published package, versions, dependencies, downloads, and MIT license.</p></article>
+        </div>
+        <div class="method"><strong>Method note.</strong> This is an architecture comparison, not a latency or quality benchmark. Version numbers are a 5 August 2026 snapshot; both projects move quickly. The Pi comparison uses <code>@earendil-works/pi-agent-core</code> as the fair counterpart. Coding-harness features are labelled separately rather than credited to core. Absence claims mean “not a documented first-class core feature,” not “impossible to implement.”</div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="shell">Prepared for the Linger team · evidence-grounded architecture brief · 5 August 2026</footer>
+
+  <script>
+    const tabGroups = [...document.querySelectorAll('[data-tab-group]')];
+
+    tabGroups.forEach((tablist) => {
+      const tabs = [...tablist.querySelectorAll(':scope > [role="tab"]')];
+      const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls')));
+
+      function activate(tab, moveFocus = true) {
+        tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+        panels.forEach((panel) => {
+          const active = panel.id === tab.getAttribute('aria-controls');
+          panel.classList.toggle('active', active);
+          panel.hidden = !active;
+        });
+        if (tablist.dataset.tabGroup === 'workspace') {
+          history.replaceState(null, '', `#${tab.getAttribute('aria-controls')}`);
+        }
+        if (moveFocus) tab.focus();
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activate(tab));
+        tab.addEventListener('keydown', (event) => {
+          const previous = ['ArrowLeft', 'ArrowUp'].includes(event.key);
+          const next = ['ArrowRight', 'ArrowDown'].includes(event.key);
+          if (!previous && !next && !['Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          let target = index;
+          if (previous) target = (index - 1 + tabs.length) % tabs.length;
+          if (next) target = (index + 1) % tabs.length;
+          if (event.key === 'Home') target = 0;
+          if (event.key === 'End') target = tabs.length - 1;
+          activate(tabs[target]);
+        });
+      });
+
+    });
+
+    function syncWorkspaceFromHash() {
+      const workspaceTabs = [...document.querySelectorAll('[data-tab-group="workspace"] > [role="tab"]')];
+      const requested = workspaceTabs.find((tab) => `#${tab.getAttribute('aria-controls')}` === location.hash);
+      if (requested && requested.getAttribute('aria-selected') !== 'true') requested.click();
+    }
+
+    window.addEventListener('load', syncWorkspaceFromHash);
+    window.addEventListener('hashchange', syncWorkspaceFromHash);
+  </script>
+</body>
+</html>
