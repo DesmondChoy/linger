@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A source-grounded comparison of Pydantic AI and Pi Agent Core for Linger's five-agent architecture.">
-  <title>Pydantic AI vs Pi for Linger</title>
+  <meta name="description" content="A source-grounded comparison of Pydantic AI, LangGraph, and Pi Agent Core for Linger's five-agent architecture.">
+  <title>Pydantic AI vs LangGraph vs Pi for Linger</title>
   <style>
     :root {
       --ink: #0b1831;
@@ -16,6 +16,8 @@
       --blue-soft: #dff1ff;
       --coral: #c53d36;
       --coral-soft: #ffe8e2;
+      --purple: #7047b8;
+      --purple-soft: #eee6ff;
       --yellow: #ffd65a;
       --green: #19744c;
       --green-soft: #dff7e8;
@@ -80,6 +82,7 @@
       letter-spacing: -.065em;
     }
     h1 .pyd { color: var(--blue); }
+    h1 .lg { color: var(--purple); }
     h1 .pi { color: var(--coral); }
     h2 { font-size: clamp(2rem, 4vw, 3.6rem); }
     h3 { font-size: 1.35rem; }
@@ -140,7 +143,7 @@
 
     .snapshot {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-top: 14px;
     }
@@ -155,20 +158,22 @@
     .requirement strong { display: block; line-height: 1.25; }
     .requirement p { margin: .6rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
 
-    .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .tracks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
     .framework-card { overflow: hidden; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
-    .framework-card header { padding: 25px 26px 20px; border-top: 9px solid var(--blue); }
+    .framework-card header { padding: 19px 20px 15px; border-top: 8px solid var(--blue); }
     .framework-card.pi-card header { border-top-color: var(--coral); }
+    .framework-card.lang-card header { border-top-color: var(--purple); }
     .framework-card .tagline { margin: .55rem 0 0; color: var(--muted); }
-    .framework-card .inside { padding: 0 26px 26px; }
-    .framework-card ul { margin: .7rem 0 0; padding-left: 1.15rem; }
-    .framework-card li + li { margin-top: .45rem; }
-    .framework-card .best { margin-top: 1.2rem; padding: 14px 16px; background: var(--blue-soft); border-left: 4px solid var(--blue); }
+    .framework-card .inside { padding: 0 20px 20px; }
+    .framework-card ul { margin: .55rem 0 0; padding-left: 1.05rem; font-size: .88rem; line-height: 1.44; }
+    .framework-card li + li { margin-top: .35rem; }
+    .framework-card .best { margin-top: .9rem; padding: 11px 13px; background: var(--blue-soft); border-left: 4px solid var(--blue); font-size: .88rem; line-height: 1.45; }
     .pi-card .best { background: var(--coral-soft); border-left-color: var(--coral); }
+    .lang-card .best { background: var(--purple-soft); border-left-color: var(--purple); }
 
     .architecture {
-      margin-top: 22px;
-      padding: 28px;
+      margin-top: 16px;
+      padding: 20px;
       border: 1px solid var(--line);
       background: #edf6fb;
     }
@@ -181,7 +186,7 @@
     .matrix-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--panel); }
     .matrix-panel { display: none; }
     .matrix-panel.active { display: table-row-group; }
-    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    table { width: 100%; min-width: 1060px; border-collapse: collapse; font-size: .88rem; }
     th, td { padding: 14px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { position: sticky; top: 0; background: var(--ink); color: #fff; font-size: .78rem; letter-spacing: .04em; }
     tr:last-child td { border-bottom: 0; }
@@ -189,6 +194,7 @@
     .edge { display: inline-block; padding: .16rem .48rem; border-radius: 99px; font: 700 .72rem/1.4 monospace; white-space: nowrap; }
     .edge.pyd { color: #0c3f9e; background: var(--blue-soft); }
     .edge.pi { color: #8e2b26; background: var(--coral-soft); }
+    .edge.lang { color: #4c2986; background: var(--purple-soft); }
     .edge.tie { color: #31516f; background: #e8eef4; }
 
     .subtabs {
@@ -226,6 +232,8 @@
     .agent-switcher button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
     .agent-panel { display: none; }
     .agent-panel.active { display: block; }
+    .framework-code-panel { display: none; }
+    .framework-code-panel.active { display: block; }
     .agent-brief {
       display: grid;
       grid-template-columns: 1.4fr 1fr 1fr;
@@ -243,6 +251,7 @@
     .code-card header strong { font-size: .82rem; }
     .code-card header span { color: #9cabc1; font: .72rem/1 monospace; }
     .code-card.pyd-code { border-top: 5px solid #56a2ff; }
+    .code-card.lang-code { border-top: 5px solid #a982ed; }
     .code-card.pi-code { border-top: 5px solid #ff7a6f; }
     pre { margin: 0; padding: 18px; overflow: auto; font-size: .74rem; line-height: 1.57; tab-size: 2; }
     .code-note { margin: 12px 0 0; color: var(--muted); font-size: .86rem; }
@@ -310,6 +319,7 @@
       .toc button { flex: 0 0 auto; width: auto; border: 1px solid var(--line); padding: .55rem .72rem; white-space: nowrap; }
       .toc button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
       .requirements { grid-template-columns: 1fr 1fr; }
+      .tracks { grid-template-columns: 1fr; }
       .requirement { border-bottom: 1px solid var(--line); }
       .requirement:last-child { grid-column: 1 / -1; min-height: auto; }
       .agent-brief { grid-template-columns: 1fr; }
@@ -343,7 +353,7 @@
       body { background: #fff; font-size: 11pt; }
       .toc, .agent-switcher { display: none; }
       .layout { display: block; }
-      .workspace-panel, .framework-tradeoff-panel, .source-panel { display: block !important; }
+      .workspace-panel, .framework-tradeoff-panel, .source-panel, .framework-code-panel { display: block !important; }
       .agent-panel { display: block !important; break-before: page; }
       .code-grid { grid-template-columns: 1fr; }
       section { padding-top: 34px; }
@@ -356,18 +366,19 @@
 
   <header class="hero shell">
     <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Linger architecture decision · research snapshot 5 August 2026</p>
-    <h1><span class="pyd">Pydantic AI</span> or <span class="pi">Pi</span>?</h1>
-    <p class="dek">How Linger’s five agents would be expressed in each library—and which foundation better protects typed handoffs, narrow tool authority, and the mandatory Provenance release gate.</p>
+    <h1><span class="pyd">Pydantic AI</span>, <span class="lg">LangGraph</span>, or <span class="pi">Pi</span>?</h1>
+    <p class="dek">How Linger’s five agents would be expressed in each library—and which foundation best protects typed handoffs, narrow tool authority, and the mandatory Provenance release gate.</p>
 
     <div class="verdict" role="note" aria-label="Recommendation summary">
-      <strong>Recommendation: use Pydantic AI for all five Linger agents.</strong>
-      <p>It fits the Python/FastAPI direction and makes typed outputs, scoped dependencies, testing, and explicit orchestration first-class. Pi is stronger when a custom TypeScript agent loop is itself the product.</p>
+      <strong>Recommendation: Pydantic AI for the agents now; keep LangGraph as the orchestration upgrade path.</strong>
+      <p>Pydantic AI is the cleanest fit for typed individual agents in Linger’s Python service. LangGraph is the strongest option once resumable workflows, interrupts, or graph-level state justify its extra machinery. Pi wins when a custom TypeScript loop or live harness is itself the product.</p>
     </div>
 
     <dl class="snapshot" aria-label="Research snapshot">
       <div><dt>Pydantic AI checked</dt><dd>2.14.1 · stable package</dd></div>
+      <div><dt>LangGraph checked</dt><dd>1.2.10 · stable package</dd></div>
       <div><dt>Pi checked</dt><dd>0.83.0 on main · 0.x API</dd></div>
-      <div><dt>Comparison scope</dt><dd><code>pydantic-ai</code> vs <code>pi-agent-core</code></dd></div>
+      <div><dt>Scope</dt><dd>Agent definitions + orchestration</dd></div>
     </dl>
   </header>
 
@@ -400,8 +411,8 @@
 
       <section id="shape" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-shape" hidden>
         <p class="section-kicker">Center of gravity</p>
-        <h2>Same loop, different philosophy</h2>
-        <p class="section-intro">Both libraries can run a model, expose JSON-schema tools, stream events, and switch providers. The practical difference is how much application structure arrives with the loop.</p>
+        <h2>Three different centers of gravity</h2>
+        <p class="section-intro">All three can run tool-using models and stream work. Pydantic AI centers the typed agent, LangGraph centers durable state transitions, and Pi centers a small event-driven loop. That distinction matters more than feature-counting.</p>
 
         <div class="tracks">
           <article class="framework-card">
@@ -414,6 +425,19 @@
                 <li><strong>Operations:</strong> OpenTelemetry/Logfire, eval tooling, test models, UI adapters, and four durable-execution integrations.</li>
               </ul>
               <div class="best"><strong>Best when</strong><br>Agents are one layer inside a policy-heavy Python service.</div>
+            </div>
+          </article>
+
+          <article class="framework-card lang-card">
+            <header><h3>LangGraph</h3><p class="tagline">A low-level Python runtime for stateful, durable agent workflows.</p></header>
+            <div class="inside">
+              <ul>
+                <li><strong>Graph contract:</strong> typed state, nodes, normal or conditional edges, subgraphs, and explicit runtime context.</li>
+                <li><strong>Tools and outputs:</strong> use raw model calls, or add LangChain’s <code>create_agent</code>, tools, and structured-output layer.</li>
+                <li><strong>Handoffs:</strong> first-class routing with <code>Command</code>, parent/subgraph transitions, checkpoints, and bounded cycles.</li>
+                <li><strong>Operations:</strong> persistence, interrupts, replay/time travel, streaming, retries, caches, and optional LangSmith tooling.</li>
+              </ul>
+              <div class="best"><strong>Best when</strong><br>The workflow itself must be explicit, inspectable, resumable, or human-steerable.</div>
             </div>
           </article>
 
@@ -439,14 +463,14 @@
             <div class="arrow" aria-hidden="true">→</div>
             <div class="arch-node gate">Provenance + checks<br><small>owns release decision</small></div>
           </div>
-          <p class="arch-note"><strong>Design rule:</strong> use programmatic handoffs for safety-relevant transitions. Agent-as-tool delegation is fine for bounded retrieval, but the model should never decide whether its own output bypasses the gate.</p>
+          <p class="arch-note"><strong>Design rule:</strong> use programmatic handoffs for safety-relevant transitions. Agent-as-tool delegation is fine for bounded retrieval, but the model should never decide whether its own output bypasses the gate. LangGraph makes these edges visible; Pydantic AI keeps the individual node contracts lean.</p>
         </div>
       </section>
 
       <section id="matrix" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-matrix" hidden>
         <p class="section-kicker">Evidence-weighted comparison</p>
         <h2>Decision matrix</h2>
-        <p class="section-intro">“Edge” means the capability is more directly supported in the compared core, not that the other library cannot be extended to do it.</p>
+        <p class="section-intro">“Edge” means the capability is more directly supported for this architecture. LangGraph rows distinguish its low-level core from higher-level LangChain agent APIs rather than quietly crediting one package for another package’s work.</p>
         <div class="subtabs" role="tablist" aria-label="Scorecard categories" data-tab-group="matrix">
           <button type="button" role="tab" id="matrix-tab-contracts" aria-selected="true" aria-controls="matrix-contracts">Contracts &amp; boundaries</button>
           <button type="button" role="tab" id="matrix-tab-runtime" aria-selected="false" aria-controls="matrix-runtime">Runtime &amp; operations</button>
@@ -454,24 +478,24 @@
         </div>
         <div class="matrix-wrap">
           <table>
-            <thead><tr><th>Criterion</th><th>Pydantic AI</th><th>Pi Agent Core</th><th>Edge for Linger</th></tr></thead>
+            <thead><tr><th>Criterion</th><th>Pydantic AI</th><th>LangGraph</th><th>Pi Agent Core</th><th>Edge for Linger</th></tr></thead>
             <tbody id="matrix-contracts" class="matrix-panel active" role="tabpanel" aria-labelledby="matrix-tab-contracts">
-              <tr><td>Structured final output</td><td><code>output_type</code> is statically typed and runtime-validated; model gets retry feedback.</td><td>Tool arguments are schema-validated; a typed final response needs an output tool or application parser.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Dependency / account scope</td><td>Typed <code>RunContext[Deps]</code> flows through prompts, tools, and validators.</td><td>Close over services or attach custom state; <code>beforeToolCall</code> can enforce scope.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Tool boundaries</td><td>Per-agent toolsets, dynamic preparation, approval wrappers, deferred/external tools.</td><td>Per-agent tool arrays plus validated preflight hook; no built-in process/filesystem permission system.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Programmatic handoff</td><td>Documented message-history rules, usage sharing, graph option, and output functions.</td><td>Straightforward composition, but lifecycle, context minimisation, budgets, and contracts are yours.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Structured final output</td><td><code>output_type</code> is statically typed and runtime-validated; model gets retry feedback.</td><td>Graph state can be typed. Model output validation belongs to raw model code or LangChain <code>create_agent(response_format=…)</code>.</td><td>Tool arguments are schema-validated; a typed final response needs an output tool or application parser.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Dependency / account scope</td><td>Typed <code>RunContext[Deps]</code> flows through prompts, tools, and validators.</td><td><code>context_schema</code> and <code>Runtime[Context]</code> inject static scope separately from mutable graph state.</td><td>Close over services or attach custom state; <code>beforeToolCall</code> can enforce scope.</td><td><span class="edge tie">Pydantic / LangGraph</span></td></tr>
+              <tr><td>Tool boundaries</td><td>Per-agent toolsets, dynamic preparation, approval wrappers, deferred/external tools.</td><td>Nodes expose only what they call; LangChain adds <code>@tool</code>, <code>ToolNode</code>, middleware, and approval interrupts.</td><td>Per-agent tool arrays plus validated preflight hook; no built-in process/filesystem permission system.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Programmatic handoff</td><td>Documented message-history rules, usage sharing, graph option, and output functions.</td><td>Typed state, conditional edges, <code>Command</code>, and schema-mapped subgraphs make transitions explicit.</td><td>Straightforward composition, but lifecycle, context minimisation, budgets, and contracts are yours.</td><td><span class="edge lang">LangGraph</span></td></tr>
             </tbody>
             <tbody id="matrix-runtime" class="matrix-panel" role="tabpanel" aria-labelledby="matrix-tab-runtime" hidden>
-              <tr><td>Live event control</td><td>Streaming events and UI adapters; sufficient for web chat.</td><td>Very clear event sequence, steering/follow-up queues, progress events, mutable live state.</td><td><span class="edge pi">Pi</span></td></tr>
-              <tr><td>Test doubles</td><td><code>TestModel</code>, <code>FunctionModel</code>, <code>Agent.override</code>, and a global real-request kill switch.</td><td>Tests are possible through injected <code>streamFn</code>; experimental session testing exists, but fewer application-level test conventions are documented.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Observability / evals</td><td>OTel spans, Logfire integration, usage limits, and first-party eval package.</td><td>Rich events and usage metadata are available; backend, trace schema, and eval harness are application choices.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Durability</td><td>Official Temporal, DBOS, Prefect, and Restate patterns.</td><td>Optional SQLite session persistence is not equivalent to crash-safe workflow execution.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Live event control</td><td>Streaming events and UI adapters; sufficient for web chat.</td><td>Typed streams cover tokens, node/state updates, subgraphs, checkpoints, tasks, interrupts, and custom events.</td><td>Very clear event sequence, steering/follow-up queues, progress events, and mutable live state.</td><td><span class="edge pi">Pi</span></td></tr>
+              <tr><td>Test doubles</td><td><code>TestModel</code>, <code>FunctionModel</code>, <code>Agent.override</code>, and a real-request kill switch.</td><td>Nodes are ordinary functions; LangChain supplies fake chat models and <code>InMemorySaver</code> for state tests.</td><td>Inject <code>streamFn</code>; fewer application-level test conventions are documented.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>Observability / evals</td><td>OTel spans, Logfire integration, usage limits, and first-party eval package.</td><td>Native execution traces and debug streams; visualisation, datasets, and evals are strongest with separate LangSmith.</td><td>Rich events and usage metadata; trace backend and eval harness remain application choices.</td><td><span class="edge tie">Pydantic / LangGraph</span></td></tr>
+              <tr><td>Durability</td><td>Official Temporal, DBOS, Prefect, and Restate patterns.</td><td>Checkpointed state, pending writes, interrupts, replay/time travel, and fault-tolerant resume are core concerns.</td><td>SQLite sessions are useful, but not crash-safe workflow execution.</td><td><span class="edge lang">LangGraph</span></td></tr>
             </tbody>
             <tbody id="matrix-adoption" class="matrix-panel" role="tabpanel" aria-labelledby="matrix-tab-adoption" hidden>
-              <tr><td>Provider portability</td><td>Broad provider/model registry with profiles and custom models.</td><td>Broad provider layer, auto-refreshed catalogs, subscription logins, and custom providers.</td><td><span class="edge tie">Tie</span></td></tr>
-              <tr><td>Stack fit</td><td>Matches Python 3.12, FastAPI, notebooks, Pydantic contracts, and current repo direction.</td><td>Adds Node 22+, TypeScript build/runtime, parallel contract definitions, and cross-language tracing.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>API maturity signal</td><td>PyPI marks 2.x production/stable.</td><td>Active and widely used, but package remains pre-1.0 and changes quickly.</td><td><span class="edge pyd">Pydantic</span></td></tr>
-              <tr><td>Harness customisation</td><td>Composable capabilities and Python code; less opinionated about a terminal agent product.</td><td>Excellent extensions, skills, themes, TUI, RPC, and SDK modes in <code>pi-coding-agent</code>.</td><td><span class="edge pi">Pi</span></td></tr>
+              <tr><td>Provider portability</td><td>Broad provider/model registry with profiles and custom models.</td><td>Core can call any model; LangChain adds a broad integration registry.</td><td>Broad provider layer, catalogs, subscription logins, and custom providers.</td><td><span class="edge tie">Tie</span></td></tr>
+              <tr><td>Stack fit</td><td>Matches Python, FastAPI, notebooks, Pydantic contracts, and current repo direction.</td><td>Also Python-native, but a useful agent setup usually adds LangChain APIs and state/checkpoint design.</td><td>Adds Node, TypeScript, duplicate contracts, and cross-language tracing.</td><td><span class="edge pyd">Pydantic</span></td></tr>
+              <tr><td>API maturity signal</td><td>PyPI marks 2.x production/stable.</td><td>PyPI marks 1.2.x production/stable; maintained by LangChain Inc.</td><td>Active, but the package remains pre-1.0 and changes quickly.</td><td><span class="edge tie">Pydantic / LangGraph</span></td></tr>
+              <tr><td>Harness customisation</td><td>Composable capabilities; less opinionated about a terminal agent product.</td><td>Low-level graph control is highly customisable, but not a ready-made interactive harness.</td><td>Excellent extensions, skills, themes, TUI, RPC, and SDK modes in <code>pi-coding-agent</code>.</td><td><span class="edge pi">Pi</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -480,7 +504,7 @@
       <section id="agents" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-agents" hidden>
         <p class="section-kicker">Concrete translation</p>
         <h2>How each Linger agent would look</h2>
-        <p class="section-intro">These are deliberately compact architecture sketches, not copy-paste implementations. Both versions preserve the same authority boundary; the visible difference is how much scaffolding the framework supplies.</p>
+        <p class="section-intro">Choose an agent, then a framework. These compact sketches preserve the same authority boundary; LangGraph examples use LangChain’s agent layer where a model-facing tool loop or structured response is needed.</p>
 
         <div class="agent-switcher" role="tablist" aria-label="Choose an agent" data-tab-group="agents">
           <button type="button" role="tab" aria-selected="true" aria-controls="agent-muse" id="tab-muse" data-agent="muse">Muse</button>
@@ -496,53 +520,69 @@
             <div><span>Tools</span><p>Librarian, Sculptor, Serendipity; no direct storage or release.</p></div>
             <div><span>Output</span><p><code>MuseCandidate</code> with text, claims, quotes, evidence IDs, and flags.</p></div>
           </div>
-          <div class="code-grid">
-            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>agent.py</span></header><pre><code>class MuseDeps(BaseModel):
-    account_scope: AccountScope
-    session: SessionEssentials
-
-class MuseCandidate(BaseModel):
+          <div class="subtabs" role="tablist" aria-label="Muse framework" data-tab-group="muse-framework">
+            <button type="button" role="tab" id="muse-tab-pyd" aria-selected="true" aria-controls="muse-pyd">Pydantic AI</button>
+            <button type="button" role="tab" id="muse-tab-lang" aria-selected="false" aria-controls="muse-lang">LangGraph</button>
+            <button type="button" role="tab" id="muse-tab-pi" aria-selected="false" aria-controls="muse-pi">Pi</button>
+          </div>
+          <div id="muse-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="muse-tab-pyd">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>muse.py</span></header><pre><code>class MuseCandidate(BaseModel):
     text: str
     claims: list[Claim]
     evidence_ids: list[str]
-    sensitive_inference: bool
 
 muse = Agent(
-    MODEL,
-    deps_type=MuseDeps,
+    MODEL, deps_type=MuseDeps,
     output_type=MuseCandidate,
     instructions=MUSE_PROMPT,
     toolsets=[muse_delegates],
-    name="muse",
 )
 
 @muse.output_validator
-async def no_direct_release(
-    ctx: RunContext[MuseDeps], out: MuseCandidate
-) -&gt; MuseCandidate:
+async def candidate_only(ctx, out):
     if contains_release_token(out):
-        raise ModelRetry("Return a candidate, not a release")
+        raise ModelRetry("Return a candidate")
     return out</code></pre></div>
+          </div>
+          <div id="muse-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="muse-tab-lang" hidden>
+            <div class="code-card lang-code"><header><strong>LangGraph + LangChain agent</strong><span>muse_graph.py</span></header><pre><code>muse_node = create_agent(
+    model=MODEL,
+    tools=[call_librarian, call_sculptor, call_serendipity],
+    response_format=MuseCandidate,
+    context_schema=AppContext,
+    system_prompt=MUSE_PROMPT,
+)
+
+def draft(state: MuseState, runtime: Runtime[AppContext]):
+    result = muse_node.invoke(
+        {"messages": [("user", state["request"].model_dump_json())]},
+        context=runtime.context,
+    )
+    return {"candidate": result["structured_response"]}
+
+muse_graph = (StateGraph(MuseState, context_schema=AppContext)
+    .add_node("draft", draft).add_edge(START, "draft")
+    .add_edge("draft", END).compile())</code></pre></div>
+          </div>
+          <div id="muse-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="muse-tab-pi" hidden>
             <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>muse.ts</span></header><pre><code>const muse = new Agent({
   initialState: {
-    systemPrompt: MUSE_PROMPT,
-    model,
+    systemPrompt: MUSE_PROMPT, model,
     tools: [callLibrarian, callSculptor,
-            callSerendipity, emitCandidate],
+      callSerendipity, emitCandidate],
   },
-  streamFn: models.streamSimple.bind(models),
+  streamFn,
   beforeToolCall: ({ toolCall }) =&gt;
     assertMuseTool(toolCall.name),
 });
 
-// emitCandidate is a terminating TypeBox tool.
-// The wrapper captures and validates its arguments.
+// A terminating TypeBox tool supplies final structure.
 const candidate = await runForOutputTool(
   muse, input, MuseCandidateSchema
 );
 assertNoReleaseToken(candidate);</code></pre></div>
           </div>
-          <p class="code-note">Pydantic expresses the final contract directly. Pi expresses the same contract through an explicit “emit output” tool plus wrapper code—a valid pattern, but one the team must own.</p>
+          <p class="code-note">Pydantic owns the typed agent contract directly. LangGraph makes Muse a node and borrows structured output from LangChain. Pi uses an application-owned terminating output tool.</p>
         </article>
 
         <article class="agent-panel" id="agent-librarian" role="tabpanel" aria-labelledby="tab-librarian" hidden>
@@ -551,20 +591,16 @@ assertNoReleaseToken(candidate);</code></pre></div>
             <div><span>Tools</span><p>Corpus search, scoped memory query, reranker; read-only.</p></div>
             <div><span>Output</span><p><code>EvidenceBundle</code> with stable IDs, trust labels, locations, and scores.</p></div>
           </div>
-          <div class="code-grid">
-            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>librarian.py</span></header><pre><code>@dataclass
-class LibrarianDeps:
-    corpus: CorpusSearch
-    memories: ScopedMemoryReader
-    reranker: Reranker
-    scope: AccountScope
-
-librarian = Agent(
-    MODEL,
-    deps_type=LibrarianDeps,
+          <div class="subtabs" role="tablist" aria-label="Librarian framework" data-tab-group="librarian-framework">
+            <button type="button" role="tab" id="librarian-tab-pyd" aria-selected="true" aria-controls="librarian-pyd">Pydantic AI</button>
+            <button type="button" role="tab" id="librarian-tab-lang" aria-selected="false" aria-controls="librarian-lang">LangGraph</button>
+            <button type="button" role="tab" id="librarian-tab-pi" aria-selected="false" aria-controls="librarian-pi">Pi</button>
+          </div>
+          <div id="librarian-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="librarian-tab-pyd">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>librarian.py</span></header><pre><code>librarian = Agent(
+    MODEL, deps_type=LibrarianDeps,
     output_type=EvidenceBundle,
     instructions=LIBRARIAN_PROMPT,
-    name="librarian",
 )
 
 @librarian.tool
@@ -574,6 +610,25 @@ async def search_memories(
     return await ctx.deps.memories.search(
         scope=ctx.deps.scope, query=query
     )</code></pre></div>
+          </div>
+          <div id="librarian-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="librarian-tab-lang" hidden>
+            <div class="code-card lang-code"><header><strong>LangGraph</strong><span>librarian_graph.py</span></header><pre><code>def plan(state, runtime):
+    return {"plan": planner.with_structured_output(
+        RetrievalPlan).invoke(state["query"])}
+
+async def search(state, runtime: Runtime[AppContext]):
+    hits = await runtime.context.memories.search(
+        scope=runtime.context.scope, query=state["plan"].query)
+    return {"hits": hits}
+
+def rerank(state, runtime):
+    return {"evidence": runtime.context.reranker.fuse(state["hits"])}
+
+librarian_graph = (StateGraph(LibrarianState, context_schema=AppContext)
+    .add_sequence([plan, search, rerank])
+    .add_edge(START, "plan").add_edge("rerank", END).compile())</code></pre></div>
+          </div>
+          <div id="librarian-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="librarian-tab-pi" hidden>
             <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>librarian.ts</span></header><pre><code>const librarianTools = [
   tool("search_corpus", CorpusQuery, searchCorpus),
   scopedTool("search_memories", MemoryQuery,
@@ -583,17 +638,14 @@ async def search_memories(
 ];
 
 const librarian = new Agent({
-  initialState: {
-    systemPrompt: LIBRARIAN_PROMPT,
-    model,
-    tools: librarianTools,
-  },
+  initialState: { systemPrompt: LIBRARIAN_PROMPT,
+    model, tools: librarianTools },
   streamFn,
   beforeToolCall: ({ toolCall }) =&gt;
     allowOnly(librarianTools, toolCall.name),
 });</code></pre></div>
           </div>
-          <p class="code-note">Both can keep account identity out of model arguments. Pydantic’s dependency injection makes that convention visible in types; Pi relies on closures or application-owned state.</p>
+          <p class="code-note">Pydantic and LangGraph both separate server-owned scope from model input. LangGraph’s explicit plan → search → rerank state is especially legible when retrieval becomes a real pipeline.</p>
         </article>
 
         <article class="agent-panel" id="agent-sculptor" role="tabpanel" aria-labelledby="tab-sculptor" hidden>
@@ -602,34 +654,51 @@ const librarian = new Agent({
             <div><span>Tools</span><p>Scoped reads and proposal submission; deterministic service commits or rejects.</p></div>
             <div><span>Output</span><p><code>MemoryChangeProposal</code>; never an authoritative account ID or direct delete.</p></div>
           </div>
-          <div class="code-grid">
+          <div class="subtabs" role="tablist" aria-label="Sculptor framework" data-tab-group="sculptor-framework">
+            <button type="button" role="tab" id="sculptor-tab-pyd" aria-selected="true" aria-controls="sculptor-pyd">Pydantic AI</button>
+            <button type="button" role="tab" id="sculptor-tab-lang" aria-selected="false" aria-controls="sculptor-lang">LangGraph</button>
+            <button type="button" role="tab" id="sculptor-tab-pi" aria-selected="false" aria-controls="sculptor-pi">Pi</button>
+          </div>
+          <div id="sculptor-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="sculptor-tab-pyd">
             <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>sculptor.py</span></header><pre><code>sculptor = Agent(
-    MODEL,
-    deps_type=SculptorDeps,
+    MODEL, deps_type=SculptorDeps,
     output_type=MemoryChangeProposal,
     instructions=SCULPTOR_PROMPT,
     toolsets=[memory_reads],
-    name="sculptor",
 )
 
-async def capture(input: CaptureCue, deps: SculptorDeps):
-    proposal = (await sculptor.run(
-        input.model_dump_json(), deps=deps
-    )).output
-    # Account scope and idempotency are added here,
-    # outside model control.
-    command = WriteCommand.from_proposal(
-        proposal, scope=deps.scope,
-        idempotency_key=deps.event_key,
-    )
-    return await deps.policy.commit(command)</code></pre></div>
+proposal = (await sculptor.run(cue, deps=deps)).output
+command = WriteCommand.from_proposal(
+    proposal,
+    scope=deps.scope,              # server-owned
+    idempotency_key=deps.event_key,
+)
+return await deps.policy.commit(command)</code></pre></div>
+          </div>
+          <div id="sculptor-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="sculptor-tab-lang" hidden>
+            <div class="code-card lang-code"><header><strong>LangGraph + LangChain agent</strong><span>sculptor_graph.py</span></header><pre><code>proposer = create_agent(
+    MODEL, tools=[search_memories],
+    response_format=MemoryChangeProposal,
+    context_schema=AppContext,
+)
+
+def build_command(state, runtime: Runtime[AppContext]):
+    return {"command": WriteCommand.from_proposal(
+        state["proposal"], scope=runtime.context.scope,
+        idempotency_key=runtime.context.event_key)}
+
+async def commit(state, runtime):
+    return {"result": await runtime.context.policy.commit(state["command"])}
+
+sculptor_graph = (StateGraph(ChangeState, context_schema=AppContext)
+    .add_sequence([propose, build_command, commit])
+    .add_edge(START, "propose").add_edge("commit", END).compile())</code></pre></div>
+          </div>
+          <div id="sculptor-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="sculptor-tab-pi" hidden>
             <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>sculptor.ts</span></header><pre><code>const sculptor = new Agent({
-  initialState: {
-    systemPrompt: SCULPTOR_PROMPT,
-    model,
+  initialState: { systemPrompt: SCULPTOR_PROMPT, model,
     tools: [searchMemories,
-      outputTool("propose_change", ProposalSchema)],
-  },
+      outputTool("propose_change", ProposalSchema)] },
   streamFn,
 });
 
@@ -637,8 +706,7 @@ const proposal = await runForOutputTool(
   sculptor, cue, ProposalSchema
 );
 const command = WriteCommand.fromProposal(proposal, {
-  scope,                 // server supplied
-  idempotencyKey: eventKey,
+  scope, idempotencyKey: eventKey,
 });
 return policyService.commit(command);</code></pre></div>
           </div>
@@ -651,21 +719,20 @@ return policyService.commit(command);</code></pre></div>
             <div><span>Tools</span><p>Librarian and privacy-safe web search; no memory writes or user release.</p></div>
             <div><span>Output</span><p><code>ConnectionProposal | Decline</code> with evidence IDs and uncertainty.</p></div>
           </div>
-          <div class="code-grid">
-            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>serendipity.py</span></header><pre><code>ConnectionResult = ConnectionProposal | Decline
-
-serendipity = Agent(
-    MODEL,
-    deps_type=SerendipityDeps,
-    output_type=ConnectionResult,
+          <div class="subtabs" role="tablist" aria-label="Serendipity framework" data-tab-group="serendipity-framework">
+            <button type="button" role="tab" id="serendipity-tab-pyd" aria-selected="true" aria-controls="serendipity-pyd">Pydantic AI</button>
+            <button type="button" role="tab" id="serendipity-tab-lang" aria-selected="false" aria-controls="serendipity-lang">LangGraph</button>
+            <button type="button" role="tab" id="serendipity-tab-pi" aria-selected="false" aria-controls="serendipity-pi">Pi</button>
+          </div>
+          <div id="serendipity-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="serendipity-tab-pyd">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>serendipity.py</span></header><pre><code>serendipity = Agent(
+    MODEL, deps_type=SerendipityDeps,
+    output_type=ConnectionProposal | Decline,
     instructions=SERENDIPITY_PROMPT,
-    name="serendipity",
 )
 
 @serendipity.tool
-async def retrieve(
-    ctx: RunContext[SerendipityDeps], cue: SearchCue
-) -&gt; EvidenceBundle:
+async def retrieve(ctx, cue: SearchCue) -&gt; EvidenceBundle:
     return (await librarian.run(
         cue.model_dump_json(),
         deps=ctx.deps.librarian_deps,
@@ -673,25 +740,39 @@ async def retrieve(
     )).output
 
 # web_search receives a redacted query only.</code></pre></div>
+          </div>
+          <div id="serendipity-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="serendipity-tab-lang" hidden>
+            <div class="code-card lang-code"><header><strong>LangGraph</strong><span>serendipity_graph.py</span></header><pre><code>def need_web(state) -&gt; Literal["web", "synth"]:
+    return "web" if state["internal"].coverage &lt; .7 else "synth"
+
+graph = StateGraph(ConnectionState, context_schema=AppContext)
+graph.add_node("retrieve", librarian_subgraph)
+graph.add_node("web", privacy_safe_web_node)
+graph.add_node("synth", connection_agent)
+graph.add_edge(START, "retrieve")
+graph.add_conditional_edges("retrieve", need_web)
+graph.add_edge("web", "synth")
+graph.add_edge("synth", END)
+
+serendipity_graph = graph.compile()
+# Parent/subgraph state schemas pass evidence, not transcripts.</code></pre></div>
+          </div>
+          <div id="serendipity-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="serendipity-tab-pi" hidden>
             <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>serendipity.ts</span></header><pre><code>const callLibrarian = tool(
   "retrieve", SearchCueSchema,
-  async cue =&gt; runIsolated(librarianFactory, cue, {
-    tools: librarianTools,
-    messages: [],
+  cue =&gt; runIsolated(librarianFactory, cue, {
+    tools: librarianTools, messages: [],
   })
 );
 
 const serendipity = new Agent({
-  initialState: {
-    systemPrompt: SERENDIPITY_PROMPT,
-    model,
+  initialState: { systemPrompt: SERENDIPITY_PROMPT, model,
     tools: [callLibrarian, redactedWebSearch,
-      outputTool("emit_connection", ResultSchema)],
-  },
+      outputTool("emit_connection", ResultSchema)] },
   streamFn,
 });</code></pre></div>
           </div>
-          <p class="code-note">Pydantic documents shared usage accounting for nested agents. In Pi, build a run budget into the wrapper and isolate child message state explicitly.</p>
+          <p class="code-note">LangGraph gives conditional retrieval and subgraph boundaries a visible shape. Pydantic shares usage accounting for nested agents; Pi needs an explicit run budget and fresh child state.</p>
         </article>
 
         <article class="agent-panel" id="agent-provenance" role="tabpanel" aria-labelledby="tab-provenance" hidden>
@@ -700,44 +781,63 @@ const serendipity = new Agent({
             <div><span>Tools</span><p>Read cited evidence, citation/policy/injection checks; no delegates, storage, or user output.</p></div>
             <div><span>Output</span><p><code>Verdict</code> with structured critique; application owns the final release.</p></div>
           </div>
-          <div class="code-grid">
-            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>provenance.py</span></header><pre><code>class Verdict(BaseModel):
-    decision: Literal["pass", "revise", "reject"]
-    findings: list[Finding]
-    supported_evidence_ids: list[str]
-
-provenance = Agent(
-    REVIEW_MODEL,
-    deps_type=ReviewDeps,
+          <div class="subtabs" role="tablist" aria-label="Provenance framework" data-tab-group="provenance-framework">
+            <button type="button" role="tab" id="provenance-tab-pyd" aria-selected="true" aria-controls="provenance-pyd">Pydantic AI</button>
+            <button type="button" role="tab" id="provenance-tab-lang" aria-selected="false" aria-controls="provenance-lang">LangGraph</button>
+            <button type="button" role="tab" id="provenance-tab-pi" aria-selected="false" aria-controls="provenance-pi">Pi</button>
+          </div>
+          <div id="provenance-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="provenance-tab-pyd">
+            <div class="code-card pyd-code"><header><strong>Pydantic AI</strong><span>provenance.py</span></header><pre><code>provenance = Agent(
+    REVIEW_MODEL, deps_type=ReviewDeps,
     output_type=Verdict,
     instructions=PROVENANCE_PROMPT,
     toolsets=[read_only_review_tools],
-    name="provenance",
 )
 
-async def review(req: ReviewRequest, deps: ReviewDeps):
-    # New run; only req + cited evidence are supplied.
+async def review(req, deps) -&gt; Verdict:
+    # Fresh run; only candidate + cited evidence.
     return (await provenance.run(
-        req.model_dump_json(), deps=deps, message_history=[]
+        req.model_dump_json(),
+        deps=deps,
+        message_history=[],
     )).output</code></pre></div>
-            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>provenance.ts</span></header><pre><code>function createProvenance(reviewDeps: ReviewDeps) {
-  const reviewTools = bindReadOnlyTools(reviewDeps);
+          </div>
+          <div id="provenance-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="provenance-tab-lang" hidden>
+            <div class="code-card lang-code"><header><strong>LangGraph + LangChain agent</strong><span>provenance_graph.py</span></header><pre><code>review_agent = create_agent(
+    REVIEW_MODEL,
+    tools=read_only_review_tools,
+    response_format=Verdict,
+    context_schema=ReviewContext,
+    system_prompt=PROVENANCE_PROMPT,
+)
+
+review_graph = (StateGraph(ReviewState, context_schema=ReviewContext)
+    .add_node("review", run_isolated_review)
+    .add_edge(START, "review").add_edge("review", END)
+    .compile())  # no conversation checkpointer
+
+verdict = review_graph.invoke(
+    {"request": minimal_review_request(candidate)},
+    context=review_context,
+)["verdict"]</code></pre></div>
+          </div>
+          <div id="provenance-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="provenance-tab-pi" hidden>
+            <div class="code-card pi-code"><header><strong>Pi Agent Core</strong><span>provenance.ts</span></header><pre><code>function createProvenance(deps: ReviewDeps) {
+  const tools = bindReadOnlyTools(deps);
   return new Agent({
     initialState: {
       systemPrompt: PROVENANCE_PROMPT,
-      model: reviewModel,
-      messages: [],       // context isolation
-      tools: [...reviewTools,
+      model: reviewModel, messages: [],
+      tools: [...tools,
         outputTool("emit_verdict", VerdictSchema)],
     },
     streamFn,
     beforeToolCall: ({ toolCall }) =&gt;
-      allowOnly(reviewTools, toolCall.name,
-                "emit_verdict"),
+      allowOnly(tools, toolCall.name, "emit_verdict"),
   });
 }</code></pre></div>
           </div>
-          <p class="code-note">Pi’s explicit mutable state makes isolation understandable, but also easier to accidentally reuse. Prefer a fresh agent factory per review, not <code>reset()</code> plus hope.</p>
+          <p class="code-note">Isolation is a design choice in all three. Use a fresh Pydantic run, a minimal stateless review graph, or a new Pi instance—never inherited working memory.</p>
         </article>
       </section>
 
@@ -754,7 +854,12 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
           <div class="handoff-step">Release or<br>safe decline</div>
         </div>
 
-        <div class="code-grid">
+        <div class="subtabs" role="tablist" aria-label="Handoff implementation" data-tab-group="handoff-framework">
+          <button type="button" role="tab" id="handoff-tab-pyd" aria-selected="true" aria-controls="handoff-pyd">Pydantic AI</button>
+          <button type="button" role="tab" id="handoff-tab-lang" aria-selected="false" aria-controls="handoff-lang">LangGraph</button>
+          <button type="button" role="tab" id="handoff-tab-pi" aria-selected="false" aria-controls="handoff-pi">Pi</button>
+        </div>
+        <div id="handoff-pyd" class="framework-code-panel active" role="tabpanel" aria-labelledby="handoff-tab-pyd">
           <div class="code-card pyd-code"><header><strong>Pydantic AI orchestration</strong><span>ordinary typed Python</span></header><pre><code>async def reflection_turn(req: Turn, deps: AppDeps) -&gt; Reply:
     candidate = (await muse.run(
         req.to_muse_input(), deps=deps.muse,
@@ -777,6 +882,34 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
         )).output
 
     return Reply.safe_decline()</code></pre></div>
+        </div>
+        <div id="handoff-lang" class="framework-code-panel" role="tabpanel" aria-labelledby="handoff-tab-lang" hidden>
+          <div class="code-card lang-code"><header><strong>LangGraph orchestration</strong><span>explicit state machine</span></header><pre><code>class TurnState(TypedDict):
+    request: Turn
+    candidate: MuseCandidate | None
+    verdict: Verdict | None
+    revisions: int
+    reply: Reply | None
+
+def after_review(state) -&gt; Literal["release", "revise", "decline"]:
+    if state["verdict"].decision == "pass": return "release"
+    if state["verdict"].decision == "revise" and state["revisions"] &lt; 1:
+        return "revise"
+    return "decline"
+
+flow = StateGraph(TurnState, context_schema=AppContext)
+flow.add_node("draft", muse_graph)
+flow.add_node("review", provenance_graph)
+flow.add_node("revise", revise_candidate)
+flow.add_node("release", deterministic_release_checks)
+flow.add_node("decline", safe_decline)
+flow.add_edge(START, "draft"); flow.add_edge("draft", "review")
+flow.add_conditional_edges("review", after_review)
+flow.add_edge("revise", "review")
+flow.add_edge("release", END); flow.add_edge("decline", END)
+reflection_graph = flow.compile(checkpointer=checkpointer)</code></pre></div>
+        </div>
+        <div id="handoff-pi" class="framework-code-panel" role="tabpanel" aria-labelledby="handoff-tab-pi" hidden>
           <div class="code-card pi-code"><header><strong>Pi orchestration</strong><span>same policy, more wrapper</span></header><pre><code>async function reflectionTurn(
   req: Turn, deps: AppDeps
 ): Promise&lt;Reply&gt; {
@@ -803,7 +936,7 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
   return Reply.safeDecline();
 }</code></pre></div>
         </div>
-        <p class="code-note">In both versions, the application—not Muse, not Provenance, and not a “handoff tool”—decides what reaches the browser.</p>
+        <p class="code-note">LangGraph earns its keep here: the revision cap, checkpoint, and release path are explicit graph state. In every version, deterministic application code—not Muse or a “handoff tool”—decides what reaches the browser.</p>
       </section>
 
       <section id="tradeoffs" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-tradeoffs" hidden>
@@ -811,6 +944,7 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
         <h2>Where each choice earns its keep</h2>
         <div class="subtabs" role="tablist" aria-label="Framework trade-offs" data-tab-group="tradeoffs">
           <button type="button" role="tab" id="tradeoffs-tab-pydantic" aria-selected="true" aria-controls="tradeoffs-pydantic">Pydantic AI</button>
+          <button type="button" role="tab" id="tradeoffs-tab-langgraph" aria-selected="false" aria-controls="tradeoffs-langgraph">LangGraph</button>
           <button type="button" role="tab" id="tradeoffs-tab-pi" aria-selected="false" aria-controls="tradeoffs-pi">Pi Agent Core</button>
         </div>
         <div id="tradeoffs-pydantic" class="split-callout framework-tradeoff-panel active" role="tabpanel" aria-labelledby="tradeoffs-tab-pydantic">
@@ -831,6 +965,28 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
               <li>Capabilities, graphs, and durable integrations can invite over-engineering. Start with plain async orchestration.</li>
               <li>Logfire is convenient but optional; keep telemetry portable through OpenTelemetry.</li>
               <li>Types validate shape, not truth. Provenance and deterministic citation/scope checks remain essential.</li>
+            </ul>
+          </article>
+        </div>
+        <div id="tradeoffs-langgraph" class="split-callout framework-tradeoff-panel" role="tabpanel" aria-labelledby="tradeoffs-tab-langgraph" hidden>
+          <article class="callout good">
+            <h3>LangGraph: compelling advantages</h3>
+            <ul>
+              <li>Best fit for Linger’s explicit draft → review → bounded revision → release state machine.</li>
+              <li>Typed state, conditional edges, <code>Command</code>, and subgraph schemas make handoffs inspectable.</li>
+              <li>Checkpointing, interrupts, replay/time travel, and fault-tolerant resume are native concerns.</li>
+              <li>Runtime context keeps authenticated scope and service clients outside model-visible state.</li>
+              <li>Fine-grained streams expose tokens, state changes, subgraphs, tasks, and checkpoints.</li>
+            </ul>
+          </article>
+          <article class="callout watch">
+            <h3>LangGraph: costs to accept</h3>
+            <ul>
+              <li>It is a low-level orchestration runtime, not a complete individual-agent abstraction.</li>
+              <li>Tools, model integrations, and structured responses usually add LangChain or bespoke node code.</li>
+              <li>State schemas, reducers, checkpointers, thread IDs, idempotency, and graph migrations need deliberate ownership.</li>
+              <li>Persisting a giant transcript defeats Linger’s narrow-handoff boundary; map minimal subgraph schemas instead.</li>
+              <li>Subgraph handoffs need careful message pairing and context engineering; LangSmith is a separate platform.</li>
             </ul>
           </article>
         </div>
@@ -859,23 +1015,23 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
 
       <section id="recommendation" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-recommendation" hidden>
         <p class="section-kicker">Call</p>
-        <h2>Choose one framework; do not mix by agent</h2>
-        <p class="section-intro">The proposal’s “Pi for TypeScript agents; Pydantic AI for Python agents” sounds flexible, but language-per-role is the wrong boundary. These agents exchange small, safety-relevant contracts on nearly every turn. A mixed runtime adds more failure modes than useful autonomy.</p>
+        <h2>Choose by layer, not by agent</h2>
+        <p class="section-intro">Do not assign frameworks role-by-role. The five agents exchange safety-relevant contracts on nearly every turn. One agent layer and one orchestration layer keep those contracts testable; splitting Python and TypeScript by persona does not.</p>
         <div class="decision">
-          <div class="score"><b>9–3</b><span>matrix edges<br>Pydantic · Pi</span></div>
+          <div class="score"><b>NOW</b><span>Pydantic agents<br>plain orchestration</span></div>
           <div>
-            <h3>Adopt Pydantic AI, with a deliberately small subset</h3>
-            <p>The recommendation is architectural, not a popularity contest: Linger’s hardest problem is controlled composition around personal data and a mandatory output gate. Pydantic makes that composition more visible in contracts and easier to test in the project’s existing stack.</p>
+            <h3>Adopt Pydantic AI now; graduate orchestration to LangGraph on evidence</h3>
+            <p>Linger’s immediate risk is incorrect contracts and excessive authority, not recovering a week-long workflow. Pydantic AI gives each role the clearest typed boundary with the least new machinery in the existing Python stack.</p>
             <ol>
               <li>Build the five roles as global <code>Agent</code> definitions with distinct dependency and output types.</li>
-              <li>Use plain application-controlled async orchestration first; introduce <code>pydantic-graph</code> only if flow branching becomes genuinely hard to follow.</li>
+              <li>Use application-controlled async orchestration for the first Muse → Provenance pilot.</li>
               <li>Use agent-as-tool delegation only for bounded read-only work such as Librarian retrieval.</li>
               <li>Keep Provenance as a fresh, restricted run and keep final release in deterministic application code.</li>
-              <li>Pilot Muse → Provenance plus one Librarian tool; verify contract tests, traces, cost, latency, and cross-account denial before adding the remaining roles.</li>
+              <li>Introduce LangGraph around the existing agents when crash resume, human interrupts, replay, parallel branches, or growing transition logic becomes a measured requirement.</li>
             </ol>
           </div>
         </div>
-        <div class="method"><strong>When would Pi win?</strong> If the team commits to an end-to-end TypeScript service and values custom live interaction, event-level loop control, or a reusable agent harness more than first-party typed outputs, testing, and workflow infrastructure. In that case, use <code>pi-agent-core</code>, not the coding CLI, and budget explicitly for output-tool wrappers, schema validation, tracing, evals, budgets, persistence, and sandbox policy.</div>
+        <div class="method"><strong>When would LangGraph win outright?</strong> If resumability, human approval, replay, parallel branches, or long-lived state are day-one requirements, use LangGraph as the outer runtime and choose one consistent model-facing agent layer inside it. <strong>When would Pi win?</strong> If the service is end-to-end TypeScript and live loop control or a reusable interactive harness matters more than built-in application contracts. Use <code>pi-agent-core</code>, not the coding CLI, and budget for output wrappers, validation, traces, evals, persistence, and sandbox policy.</div>
       </section>
 
       <section id="sources" class="workspace-panel" role="tabpanel" aria-labelledby="workspace-tab-sources" hidden>
@@ -884,6 +1040,7 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
         <p class="section-intro">The analysis prioritises official documentation, repositories, and package registries. Links point to the material supporting the claims above.</p>
         <div class="subtabs" role="tablist" aria-label="Source collections" data-tab-group="sources">
           <button type="button" role="tab" id="sources-tab-pydantic" aria-selected="true" aria-controls="sources-pydantic">Pydantic AI sources</button>
+          <button type="button" role="tab" id="sources-tab-langgraph" aria-selected="false" aria-controls="sources-langgraph">LangGraph sources</button>
           <button type="button" role="tab" id="sources-tab-pi" aria-selected="false" aria-controls="sources-pi">Pi sources</button>
         </div>
         <div id="sources-pydantic" class="sources source-panel active" role="tabpanel" aria-labelledby="sources-tab-pydantic">
@@ -894,6 +1051,17 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
           <article class="source"><b><a href="https://pydantic.dev/docs/ai/capabilities/durable_execution/overview/">Pydantic durable execution</a></b><p>Official Temporal, DBOS, Prefect, and Restate integrations.</p></article>
           <article class="source"><b><a href="https://pypi.org/project/pydantic-ai/">Pydantic AI on PyPI</a></b><p>Release, Python requirement, extras, MIT license, and production/stable classifier.</p></article>
         </div>
+        <div id="sources-langgraph" class="sources source-panel" role="tabpanel" aria-labelledby="sources-tab-langgraph" hidden>
+          <article class="source"><b><a href="https://github.com/langchain-ai/langgraph">LangGraph repository</a></b><p>Low-level scope; durable execution, human-in-the-loop, memory, LangSmith relationship, and MIT license.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langgraph/graph-api">LangGraph Graph API</a></b><p>Typed state, nodes, edges, <code>Command</code>, runtime context, retries, idempotency, limits, and migrations.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langgraph/persistence">LangGraph persistence</a></b><p>Threads, checkpoints, pending writes, memory, time travel, fault tolerance, and encryption.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langgraph/use-subgraphs">LangGraph subgraphs</a></b><p>Multi-agent composition, schema mapping, per-invocation/per-thread persistence, and state inspection.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs">LangChain handoffs</a></b><p>State-driven transitions, <code>Command</code>, subgraph handoffs, message pairing, and context engineering cautions.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langchain/structured-output">LangChain structured output</a></b><p><code>create_agent</code> response formats, provider/tool strategies, validation, and structured response state.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langgraph/streaming">LangGraph streaming</a></b><p>Typed token, state, subgraph, checkpoint, task, debug, and custom event streams.</p></article>
+          <article class="source"><b><a href="https://docs.langchain.com/oss/python/langchain/test/unit-testing">LangChain unit testing</a></b><p>Fake chat models and in-memory checkpointing for repeatable state tests.</p></article>
+          <article class="source"><b><a href="https://pypi.org/project/langgraph/">LangGraph on PyPI</a></b><p>1.2.10 release, Python ≥3.10, MIT license, and production/stable classifier.</p></article>
+        </div>
         <div id="sources-pi" class="sources source-panel" role="tabpanel" aria-labelledby="sources-tab-pi" hidden>
           <article class="source"><b><a href="https://github.com/earendil-works/pi">Pi repository overview</a></b><p>Package layers, permission warning, container patterns, supply-chain practices, and MIT license.</p></article>
           <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/agent/README.md">Pi Agent Core README</a></b><p>State, messages, event order, tool execution, hooks, steering/follow-up, errors, and proxying.</p></article>
@@ -902,7 +1070,7 @@ async def review(req: ReviewRequest, deps: ReviewDeps):
           <article class="source"><b><a href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/compaction.md">Pi compaction guide</a></b><p>Session summarisation, branch summaries, token thresholds, and persistence shape.</p></article>
           <article class="source"><b><a href="https://www.npmjs.com/package/@earendil-works/pi-agent-core">Pi Agent Core on npm</a></b><p>Published package, versions, dependencies, downloads, and MIT license.</p></article>
         </div>
-        <div class="method"><strong>Method note.</strong> This is an architecture comparison, not a latency or quality benchmark. Version numbers are a 5 August 2026 snapshot; both projects move quickly. The Pi comparison uses <code>@earendil-works/pi-agent-core</code> as the fair counterpart. Coding-harness features are labelled separately rather than credited to core. Absence claims mean “not a documented first-class core feature,” not “impossible to implement.”</div>
+        <div class="method"><strong>Method note.</strong> This is an architecture comparison, not a latency or quality benchmark. Versions are a 5 August 2026 snapshot. LangGraph core is assessed as orchestration; LangChain <code>create_agent</code>, tools, and structured output are labelled when used. Pi is assessed through <code>@earendil-works/pi-agent-core</code>; coding-harness features are likewise labelled separately. “Absent” means “not a documented first-class core feature,” not “impossible.”</div>
       </section>
     </main>
   </div>
