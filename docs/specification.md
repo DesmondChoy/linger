@@ -8,7 +8,7 @@ This document is the canonical source for product scope, architecture, implement
 
 Linger is an academic prototype of a personal reflection and memory companion, grounded initially in a small literary corpus. It helps a user articulate why an idea or experience mattered, preserve it as a structured memory, and later explore grounded, tentative connections across conversations, books, photographs, and evidence found through general web search.
 
-General-purpose AI agents already offer memory, image understanding, web search, and delegated tasks. Linger is not trying to be another general personal agent. It is a purpose-built reflection and memory application: a **provenance-first reflection companion** that keeps the user's words, source evidence, and generated interpretation distinct. Before any Muse-generated response reaches the user, a separate Provenance invocation semantically reviews the complete draft for quotations, factual claims, sensitive inferences, attribution, privacy, spoiler, and prompt-injection risks. Application code then performs deterministic checks where applicable. A non-factual reflection may pass without retrieval, but never without review.
+General-purpose AI agents already offer memory, image understanding, web search, and delegated tasks. Linger is not trying to be another general personal agent. It is a purpose-built reflection and memory application: a **provenance-first reflection companion** that keeps the user's words, source evidence, and generated interpretation distinct. Before any Muse-generated response reaches the user, Provenance — a separate model call — reviews the complete draft for quotations, factual claims, sensitive inferences, attribution, privacy, spoiler, and prompt-injection risks. Application code then performs deterministic checks where applicable. A non-factual reflection may pass without retrieval, but never without review.
 
 [Project Gutenberg](https://www.gutenberg.org/) supplies the initial corpus of 3–5 deliberately selected public-domain books. The prototype records source metadata and discloses that this small, older corpus may contain dated cultural perspectives.
 
@@ -43,9 +43,10 @@ Automatic capture does not require per-memory approval once enabled. Content abo
 - opt-in automatic memory capture with notice, undo, pause, review, correction, and cascading deletion;
 - original memories, generated summaries, duplicate links, topic groups, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
-- a mandatory, context-restricted output gate, deterministic post-checks, one bounded revision, and an application-authored safe decline;
+- a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
-- adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation.
+- adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation;
+- two bounded recursive self-improvement loops — failure-to-eval promotion and a Sculptor-curated system playbook (Section 9).
 
 ### 3.2 Stretch
 
@@ -63,7 +64,7 @@ Automatic capture does not require per-memory approval once enabled. Content abo
 - general shell, browser-control, or external-action capabilities;
 - continuous monitoring or unsolicited resurfacing;
 - mental-health profiling, diagnosis, or crisis-resource routing;
-- autonomous prompt or skill self-modification;
+- autonomous prompt or skill self-modification — the self-improvement loops in Section 9 produce human-reviewed proposals only and never apply changes themselves;
 - production scale, availability, compliance, or regulatory claims; and
 - any claim that prototype telemetry measurably improved the system.
 
@@ -75,7 +76,7 @@ The system contains five reasoning agents and one deterministic service:
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler uncertainty, routes work, and produces candidate responses that cannot be sent directly to the user. | None |
 | **Librarian** | Plans, executes, fuses, and reranks retrieval across the corpus and authorised memories. | None |
-| **Sculptor** | Proposes structured memories, summaries, duplicate links, groups, and derived-record updates while preserving originals. | May request memory writes |
+| **Sculptor** | Proposes structured memories, summaries, duplicate links, groups, and derived-record updates while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May request memory writes; may propose playbook pull requests |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. | None |
 | **Memory & Policy Service** | Authenticates account scope and deterministically enforces access, storage, versioning, review, and cascading deletion. | Commits validated writes |
@@ -84,17 +85,17 @@ The Memory & Policy Service derives account identity from authenticated request 
 
 Agents are logical roles, not necessarily separate models or processes. Muse handles the main interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed; Provenance runs for every Muse candidate response.
 
-The five roles separate conversation, retrieval, memory curation, connection generation, and independent verification. Scoped hand-offs keep each invocation within a bounded task context; deterministic application code enforces access, writes, and output release.
+The five roles separate conversation, retrieval, memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, writes, and output release.
 
 Each hand-off carries only the candidate response, claims, evidence identifiers, confidence, and policy flags required by the next step. Full transcripts and unrestricted working context are not passed between agents.
 
-Provenance is a separate, context-isolated model invocation. It receives the complete candidate response, cited evidence, and applicable policy constraints, but neither unrestricted agent working context nor write tools. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
+Provenance is a separate model call that shares no working context with the other agents. It receives the complete candidate response, the cited evidence, and the applicable policy constraints — nothing else, and no write tools. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
 
 ### 4.1 Output release contract
 
 Every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, and sensitive-inference flags. Those fields assist review but do not authorise release: Provenance examines the entire draft and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
-Provenance returns `pass`, `revise`, or `reject`. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one bounded revision that returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
+Provenance returns `pass`, `revise`, or `reject`. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision, which returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
 ### 4.2 End-to-end flows
 
@@ -132,7 +133,7 @@ The complete memory archive is never injected into every prompt.
 
 ### 5.2 Memory record
 
-An active memory is owned by the requesting account and not deleted. It may have been captured automatically while memory capture was enabled or saved explicitly by the user.
+An active memory belongs to the requesting account and has not been deleted. It may have been captured automatically while memory capture was enabled or saved explicitly by the user.
 
 Each active memory contains:
 
@@ -196,7 +197,7 @@ Whenever an exact quotation is displayed or stored, application code verifies it
 
 - Automatic capture requires explicit onboarding opt-in.
 - Every capture produces a visible notice and immediate undo.
-- Before a long opted-in conversation is compacted or closed, one bounded Sculptor pass checks for an important uncaptured reflection under the same notice, undo, and sensitive-content rules.
+- Before a long opted-in conversation is compacted or closed, Sculptor makes one final check for an important uncaptured reflection, under the same notice, undo, and sensitive-content rules.
 - Raw photographs remain transient unless the user explicitly saves them.
 - Derived memories from photographs may be captured only while opt-in remains active.
 - Sensitive-trait content is never captured automatically.
@@ -264,6 +265,8 @@ Required outcomes:
 
 Every factual web claim must include a retrievable citation, and every evidence identifier must resolve. Any LLM-as-judge result is secondary and labelled non-independent.
 
+The 40 authored cases are the frozen baseline. Failure-to-eval promotion (Section 9.1) may extend the set with additional human-approved cases; promoted cases follow the same format and versioning and never replace, relax, or retire a baseline case.
+
 ### 7.3 Deployment checks
 
 The test deployment supports multiple accounts and up to five concurrent sessions. A basic load test reports success rate, p95 latency, and per-session model cost.
@@ -272,12 +275,58 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 The stack decision remains open between TypeScript with Pi Agent Core and Python with PydanticAI core and FastAPI. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Prompts, corpus builds, policies, tool contracts, schemas, and evaluation cases are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Tracing records Provenance verdicts, decisions, and evidence identifiers without logging raw personal memories. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Prompts, corpus builds, policies, tool contracts, schemas, evaluation cases, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Tracing records Provenance verdicts, decisions, and evidence identifiers without logging raw personal memories. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 ### 8.1 Agent telemetry and debugging
 
 For the Python/Pydantic AI implementation, Pydantic Logfire is the OpenTelemetry backend for agent telemetry. Each incoming request starts a correlated trace spanning the relevant Muse, Librarian, Sculptor, Serendipity, and Provenance invocations, including model calls, tool calls, hand-offs, deterministic post-checks, and the final release or safe-decline decision. Spans record only operational metadata needed to debug and evaluate the system: agent role, deployment environment, duration, status, retries, failures, token or cost metadata when available, validation outcomes, Provenance verdicts, revision count, and non-content trace identifiers.
 
-Telemetry is diagnostic and evaluative: it helps verify bounded hand-offs, account isolation, mandatory Provenance review, deterministic validation, rejected-draft suppression, safe declines, latency, cost, and failure behaviour. It must never authorise output release, choose account scope, or commit memory writes; the Memory & Policy Service remains the source of truth for access control and durable state. Logs and spans must exclude raw personal memories, full user or assistant messages, photographs, raw book or web excerpts, credentials, API keys, and sensitive-inference content. This satisfies the specification's observability, debugging, privacy, and acceptance-testing requirements without making telemetry part of the product's reasoning or memory model.
+Telemetry exists to debug and evaluate the system: it helps verify bounded hand-offs, account isolation, mandatory Provenance review, deterministic validation, rejected-draft suppression, safe declines, latency, cost, and failure behaviour. It must never authorise output release, choose account scope, or commit memory writes; the Memory & Policy Service remains the source of truth for access control and durable state. Logs and spans must exclude raw personal memories, full user or assistant messages, photographs, raw book or web excerpts, credentials, API keys, and sensitive-inference content. This satisfies the specification's observability, debugging, privacy, and acceptance-testing requirements without making telemetry part of the product's reasoning or memory model.
 
 Telemetry must remain behind an OpenTelemetry-compatible exporter so the backend can be replaced without changing agent contracts or application authority. If the TypeScript/Pi implementation is selected, it must emit the same trace and event semantics through an equivalent OpenTelemetry backend.
+
+## 9. Recursive self-improvement
+
+Linger includes a deliberately bounded form of **recursive self-improvement (RSI)**: the system helps improve its own harness — its regression tests and its operational guidance — while humans retain approval authority over every change. This follows current frontier practice, which frames near-term RSI not as a model modifying its own weights or prompts autonomously, but as agents improving the scaffolding around the model through feedback loops that end in reviewed, gated changes. Linger adopts exactly that shape: each loop turns an observed failure into a versioned, human-approved file in the repository, and no loop grants any agent new runtime authority.
+
+Two loops are in scope.
+
+### 9.1 Failure-to-eval promotion
+
+**Pain point.** A hand-authored evaluation set goes stale the moment the system meets real inputs. Observed failures — blocked prompt-injection attempts, Provenance rejections, failed deterministic post-checks — are the best possible regression tests, but converting them by hand is toil that reliably does not happen.
+
+**Mechanism.** When the running system blocks a seeded or live failure, the harness drafts a candidate evaluation case in the versioned case format of Section 7.2, recording the input, the expected verdict or behaviour, and forbidden outputs. The drafting step writes the candidate file and has no other authority; candidates are queued for human approval and merged as ordinary pull requests, after which CI runs them permanently. A detected injection attempt therefore becomes, within one review cycle, a frozen test the system can never silently regress against.
+
+**Agents involved.** Provenance and the deterministic post-check layer act as detectors; a small drafting step formats candidates; humans and CI are the release gate. No detector gains new authority — detection already happens as part of Section 6.5.
+
+**Success measures.** End-to-end demonstration that a blocked adversarial input becomes a merged CI case; a deliberately reintroduced regression is caught by a promoted case; 100% of promoted cases are human-approved and versioned before entering the set.
+
+### 9.2 Sculptor-curated system playbook
+
+**Pain point.** Every agent system accumulates operational lessons — recurring Provenance critique patterns, evaluation-failure clusters, retrieval quirks, prompt gotchas — and they evaporate because nothing owns them. Current harness-engineering practice keeps these lessons in a versioned playbook that developers — and, where useful, prompts — draw on at the moment they are relevant. Maintaining such a playbook is curation work: deduplicate, summarise, link, and prune — which is precisely Sculptor's existing skill set, pointed at a second corpus.
+
+**Mechanism.** A scheduled Sculptor task, run outside user conversations, reads operational records only — Provenance verdict metadata, evaluation results, developer notes — and proposes playbook edits: merge duplicate lessons, summarise clusters, retire stale entries, link related ones. The playbook is a versioned repository file, not a record in the user memory store; the Memory & Policy Service is not involved. Sculptor's output is a proposed pull request; humans review and CI gates the merge, identical to any other change under Section 8.
+
+**Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
+
+**Relationship to failure-to-eval promotion.** The two loops are complementary halves of one flywheel and overlap minimally: Section 9.1 promotes failures into frozen *tests* so regressions are caught; Section 9.2 curates failures into *guidance* so repeats are prevented.
+
+**Success measures.** Playbook deduplication precision on seeded duplicate lessons; human acceptance rate of proposed edits; recurrence of repeated Provenance rejection classes tracked across releases. These are reported as evidence that the loop operates as designed; consistent with Section 3.3, the prototype makes no claim that telemetry measurably improved the system.
+
+### 9.3 Boundaries
+
+- Every RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
+- Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
+- No agent gains write authority: playbook and evaluation-case writes happen through repository review, not through the Memory & Policy Service, and Sculptor's product-side write path is unchanged.
+- Loops consume only the operational metadata permitted by Section 8.1 — never raw personal memories, full messages, or sensitive-inference content.
+- Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
+
+### 9.4 Practice-module alignment
+
+These loops are the specification's explicit answer to the practice-module briefing (`docs/submissions/aas-practice-module-briefing.pdf`), which asks which parts of the AI system lifecycle can be automated to reduce development effort and improve system quality attributes, and which grades the project on concrete artifacts:
+
+- **MLSecOps/LLMSecOps pipeline design.** Failure-to-eval promotion is the automated-testing, versioning, and monitoring portion of the CI/CD pipeline made self-extending: security detections feed the test suite through a reviewed path.
+- **AI security risk register.** Each identified risk (prompt injection, unsupported claims, sensitive-inference leakage) gains a living mitigation — *detected once, converted to a permanent test* — rather than a static bullet point.
+- **Testing artifacts.** Promoted cases, the seeded adversarial corpus, and the evaluation harness of Section 7.2 constitute the required AI security tests and end-to-end verification.
+- **Agent design documentation.** The system playbook demonstrates Sculptor's curation contract generalising across two memory stores under identical safeguards — an agent-design argument, not an added subsystem.
+- **Responsible-AI governance.** Both loops are bounded, human-in-the-loop, and auditable: every change they produce is versioned, reviewed, and traceable, aligning the self-improvement story with the module's governance and accountability requirements.
