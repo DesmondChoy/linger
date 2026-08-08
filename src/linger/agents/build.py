@@ -1,7 +1,10 @@
-"""Sample chat agent.
+"""Shared PydanticAI agent construction.
 
-A single PydanticAI agent build function with no tools and a plain-text reply. 
-This is the seam where Linger's real agents (Muse, Provenance, ...) drop in later without the HTTP surface changing.
+Every Linger agent (Muse, Provenance, ...) is built here, so model and provider
+selection lives in one place and each agent module supplies only its
+instructions. Agents are built at import time and reused for the process, which
+means an unsupported `LINGER_MODEL` fails at startup rather than on the first
+request.
 """
 
 

@@ -1,6 +1,6 @@
-"""Sample chat agent.
+"""Muse, the conversational agent behind the chat endpoint.
 
-Calls the internal build function to create a PydanticAI agent with no tools and a plain-text reply. 
+Currently instructions only: no tools and a plain-text reply.
 """
 
 from src.linger.agents.build import build_agent
