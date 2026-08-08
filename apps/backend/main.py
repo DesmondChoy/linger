@@ -3,6 +3,7 @@
 import json
 import logging
 from collections.abc import AsyncIterator
+from time import perf_counter
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,9 +12,11 @@ from fastapi.responses import StreamingResponse
 from . import sessions
 from src.linger.agents.muse.agent import muse_chat_agent
 from .config import get_settings
+from .logger import ROOT_NAME, configure_logging
 from .schemas import ChatRequest
 
-logger = logging.getLogger(__name__)
+configure_logging()
+logger = logging.getLogger(f"{ROOT_NAME}.backend")
 
 settings = get_settings()
 app = FastAPI(title="Linger Chat API")
@@ -45,6 +48,7 @@ async def _stream_reply(request: ChatRequest) -> AsyncIterator[str]:
     stream is exhausted, because `new_messages()` is only complete there. A
     failed run appends nothing, leaving the session as it was before.
     """
+    started = perf_counter()
     try:
         async with muse_chat_agent.run_stream(
             request.message,
@@ -54,8 +58,20 @@ async def _stream_reply(request: ChatRequest) -> AsyncIterator[str]:
                 yield _event("delta", delta)
             sessions.append(request.session_id, result.new_messages())
     except Exception:
-        logger.exception("Agent run failed")
+        # Metadata only: message text stays out of the log (specification §8.1).
+        logger.exception(
+            "Agent run failed session=%s elapsed=%.2fs",
+            request.session_id,
+            perf_counter() - started,
+        )
         yield _event("error", "The model call failed. Try again.")
+    else:
+        logger.info(
+            "Agent run completed session=%s elapsed=%.2fs turns=%d",
+            request.session_id,
+            perf_counter() - started,
+            len(sessions.history(request.session_id)),
+        )
 
 
 @app.post("/api/chat")

@@ -14,7 +14,7 @@ from pydantic_ai.providers.google import GoogleProvider
 
 from apps.backend.config import get_settings
 
-SUPPORTED_PROVIDERS = ["google"]
+SUPPORTED_PROVIDERS = ["google", "openai", "anthropic"]
 
 def build_agent(instructions: str) -> Agent[None, str]:
     # .env settings are read here
@@ -32,6 +32,12 @@ def build_agent(instructions: str) -> Agent[None, str]:
                 model_name,
                 provider=GoogleProvider(api_key=settings.api_key),
             )
+        case "openai":
+            # Implementation for OpenAI provider
+            pass
+        case "anthropic":
+            # Implementation for Anthropic provider
+            pass
         case _:
             raise RuntimeError(f"Unsupported provider: {provider_name}")
 
