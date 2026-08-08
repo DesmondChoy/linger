@@ -19,13 +19,19 @@ export function MessageList({ messages, pending }: Props) {
         <p className="empty">Start the conversation below.</p>
       )}
 
-      {messages.map((message, index) => (
-        <div key={index} className={`bubble ${message.role}`}>
-          {message.content}
-        </div>
-      ))}
-
-      {pending && <div className="bubble assistant thinking">Thinking…</div>}
+      {messages.map((message, index) =>
+        // The assistant bubble is created empty and fills in as deltas arrive,
+        // so until the first token it stands in as the pending indicator.
+        message.content === '' ? (
+          <div key={index} className="bubble assistant thinking">
+            Thinking…
+          </div>
+        ) : (
+          <div key={index} className={`bubble ${message.role}`}>
+            {message.content}
+          </div>
+        ),
+      )}
 
       <div ref={bottomRef} />
     </div>
