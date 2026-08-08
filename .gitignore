@@ -1,5 +1,9 @@
 .DS_Store
 .venv/
+
+# Secrets — `.env.example` stays tracked
+.env
+.env.local
 data/gutenberg/pg*.txt
 data/gutenberg/pg*.metadata.json
 
