@@ -13,6 +13,8 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 - Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
 - Study how established products solve the problem before designing a solution. Adopt their proven patterns and conventions rather than inventing an approach from scratch.
 
+Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
+
 > **Architecture in one line:** Issues live in a local Dolt database
 > (`.beads/dolt/`); cross-machine sync uses `bd dolt push/pull` (a
 > git-compatible protocol), stored under `refs/dolt/data` on your git

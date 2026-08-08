@@ -13,6 +13,8 @@ This file provides instructions and context for AI coding agents working on this
 - Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
 - Study how established products solve the problem before designing a solution. Adopt their proven patterns and conventions rather than inventing an approach from scratch.
 
+Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
+
 ## GitHub CLI
 
 - Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
