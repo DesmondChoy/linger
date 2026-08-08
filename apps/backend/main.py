@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import sessions
-from .agent import chat_agent
+from src.linger.agents.agent import chat_agent
 from .config import get_settings
 from .schemas import ChatRequest, ChatResponse
 

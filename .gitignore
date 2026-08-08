@@ -12,3 +12,7 @@ data/gutenberg/pg*.metadata.json
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Miscellaneous
+tmp/
+/pycache/*

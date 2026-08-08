@@ -9,7 +9,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
 
-from .config import get_settings
+from ....apps.backend.config import get_settings
 
 INSTRUCTIONS = """You are Linger, a thoughtful reading and reflection companion.
 Be warm, concise, and concrete. Ask a follow-up question when it would genuinely

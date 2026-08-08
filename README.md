@@ -22,8 +22,8 @@ Each agent owns its prompts and reasoning logic, while orchestration, typed hand
 ```text
 linger/
 ├── apps/
-│   ├── api/                    # Backend entry point
-│   └── web/                    # User interface
+│   ├── backend/                    # Backend entry point
+│   └── frontend/                   # User interface
 ├── src/linger/
 │   ├── agents/
 │   │   ├── muse/
