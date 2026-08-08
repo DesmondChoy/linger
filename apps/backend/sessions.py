@@ -1,7 +1,9 @@
 """In-process conversation history.
 
 Sessions live only in this process: restarting the server clears every
-conversation. That is deliberate for the prototype. Swapping in Redis or a
+conversation. 
+
+NOTE(kay): That is deliberate for the prototype. Swapping in Redis or a
 database means changing this module and nothing else.
 """
 

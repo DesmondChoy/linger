@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    google_api_key: str
+    api_key: str
     linger_model: str = "google:gemini-2.5-flash"
     linger_allowed_origins: str = "http://localhost:5173"
 

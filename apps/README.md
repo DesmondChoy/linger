@@ -9,12 +9,17 @@ lost on restart.
 From the repository root:
 
 ```bash
-cp .env.example .env       # then paste your key into GOOGLE_API_KEY
+# Update the .env with your model provider + API key accordingly. 
+# Check `src/linger/agents/build.py` to update providers supported.
+
+cp .env.example .env       
 uv sync
 pnpm install --dir apps/frontend
 ```
 
-Get a Gemini key at <https://aistudio.google.com/apikey>.
+### Providers
+
+- Gemini: Get a Gemini key at <https://aistudio.google.com/apikey>.
 
 ## Running
 
@@ -47,7 +52,6 @@ Interactive API docs: <http://127.0.0.1:8000/docs>.
 apps/
 ├── backend/
 │   ├── main.py       # FastAPI app, CORS, routes
-│   ├── agent.py      # PydanticAI agent + system prompt
 │   ├── config.py     # settings from the root .env
 │   ├── schemas.py    # request/response bodies
 │   └── sessions.py   # in-memory conversation history
@@ -65,7 +69,5 @@ apps/
 - Replies are returned whole rather than streamed. Streaming is a contained
   change: `agent.run_stream()` behind an SSE endpoint, plus one frontend
   function.
-- Only the Google provider is wired up. `agent.py` rejects a `LINGER_MODEL`
-  without the `google:` prefix rather than failing later at request time.
 - Vite 8 wants Node 20.19+ or 22.12+. It runs on 20.18 but prints a warning;
   `nvm install 22` clears it.

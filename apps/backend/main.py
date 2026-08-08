@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import sessions
-from src.linger.agents.agent import chat_agent
+from src.linger.agents.muse.agent import muse_chat_agent
 from .config import get_settings
 from .schemas import ChatRequest, ChatResponse
 
@@ -31,7 +31,7 @@ async def health() -> dict[str, str]:
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     try:
-        result = await chat_agent.run(
+        result = await muse_chat_agent.run(
             request.message,
             message_history=sessions.history(request.session_id),
         )
