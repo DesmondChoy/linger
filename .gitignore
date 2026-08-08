@@ -15,4 +15,4 @@ data/gutenberg/pg*.metadata.json
 
 # Miscellaneous
 tmp/
-/pycache/*
+/__pycache__/*
