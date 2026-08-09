@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "corpus_id": "76bc215970bb",
+  "books": [
+    {
+      "gutenberg_id": 11,
+      "title": "Alice's Adventures in Wonderland",
+      "authors": "Carroll, Lewis",
+      "requested_url": "https://www.gutenberg.org/ebooks/11.txt.utf-8",
+      "resolved_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+      "downloaded_at_utc": "2026-08-03T14:22:56.797551+00:00",
+      "source_path": "data/gutenberg/alice-in-wonderland.txt",
+      "raw_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "normalized_body_sha256": "4e04ea77acf3b0215cae2089c977bc07526fc834597a1d463598d895354ba41d",
+      "words": 26525,
+      "reason": "First vertical slice for ingestion, spoiler filtering, citation validation, and evaluation."
+    }
+  ]
+}

@@ -10,7 +10,7 @@ Linger is an academic prototype of a personal reflection and memory companion, g
 
 General-purpose AI agents already offer memory, image understanding, web search, and delegated tasks. Linger is not trying to be another general personal agent. It is a purpose-built reflection and memory application: a **provenance-first reflection companion** that keeps the user's words, source evidence, and generated interpretation distinct. Before any Muse-generated response reaches the user, Provenance — a separate model call — reviews the complete draft for quotations, factual claims, sensitive inferences, attribution, privacy, spoiler, and prompt-injection risks. Application code then performs deterministic checks where applicable. A non-factual reflection may pass without retrieval, but never without review.
 
-[Project Gutenberg](https://www.gutenberg.org/) supplies the initial corpus of 3–5 deliberately selected public-domain books. The prototype records source metadata and discloses that this small, older corpus may contain dated cultural perspectives.
+[Project Gutenberg](https://www.gutenberg.org/) supplies the literary corpus. Implementation begins with a one-book corpus containing Lewis Carroll's *Alice's Adventures in Wonderland* (Project Gutenberg ebook 11). Once ingestion, retrieval, spoiler filtering, citation validation, and evaluation work end to end for that book, the corpus expands to the planned total of 3–5 deliberately selected public-domain books. The prototype records source metadata and discloses that this small, older corpus may contain dated cultural perspectives.
 
 ## 2. Product hypothesis and journey
 
@@ -37,7 +37,7 @@ Automatic capture does not require per-memory approval once enabled. Content abo
 ### 3.1 In scope
 
 - ongoing Muse conversations using text and user-supplied photographs, with semantic Provenance review of every candidate response;
-- cited retrieval across 3–5 Project Gutenberg books and structured memories;
+- cited retrieval across the initial *Alice's Adventures in Wonderland* corpus and structured memories, followed by expansion to a total of 3–5 Project Gutenberg books;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
 - opt-in automatic memory capture with notice, undo, pause, review, correction, and cascading deletion;
@@ -273,13 +273,13 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 ## 8. Operations and change control
 
-The stack decision remains open between TypeScript with Pi Agent Core and Python with PydanticAI core and FastAPI. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
+The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend. The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
 Prompts, corpus builds, policies, tool contracts, schemas, evaluation cases, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Tracing records Provenance verdicts, decisions, and evidence identifiers without logging raw personal memories. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 ### 8.1 Agent telemetry and debugging
 
-For the Python/Pydantic AI implementation, Pydantic Logfire is the OpenTelemetry backend for agent telemetry. Each incoming request starts a correlated trace spanning the relevant Muse, Librarian, Sculptor, Serendipity, and Provenance invocations, including model calls, tool calls, hand-offs, deterministic post-checks, and the final release or safe-decline decision. Spans record only operational metadata needed to debug and evaluate the system: agent role, deployment environment, duration, status, retries, failures, token or cost metadata when available, validation outcomes, Provenance verdicts, revision count, and non-content trace identifiers.
+Pydantic Logfire is the OpenTelemetry backend for agent telemetry. Each incoming request starts a correlated trace spanning the relevant Muse, Librarian, Sculptor, Serendipity, and Provenance invocations, including model calls, tool calls, hand-offs, deterministic post-checks, and the final release or safe-decline decision. Spans record only operational metadata needed to debug and evaluate the system: agent role, deployment environment, duration, status, retries, failures, token or cost metadata when available, validation outcomes, Provenance verdicts, revision count, and non-content trace identifiers.
 
 Telemetry exists to debug and evaluate the system: it helps verify bounded hand-offs, account isolation, mandatory Provenance review, deterministic validation, rejected-draft suppression, safe declines, latency, cost, and failure behaviour. It must never authorise output release, choose account scope, or commit memory writes; the Memory & Policy Service remains the source of truth for access control and durable state. Logs and spans must exclude raw personal memories, full user or assistant messages, photographs, raw book or web excerpts, credentials, API keys, and sensitive-inference content. This satisfies the specification's observability, debugging, privacy, and acceptance-testing requirements without making telemetry part of the product's reasoning or memory model.
 

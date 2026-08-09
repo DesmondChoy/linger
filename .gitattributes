@@ -1,0 +1,2 @@
+# Preserve downloaded corpus bytes so content-versioned hashes remain stable.
+data/gutenberg/*.txt -text
