@@ -68,8 +68,8 @@ apps/
 
 - The frontend mints a `session_id` with `crypto.randomUUID()` per page load.
   Reloading, or pressing "New chat", starts a fresh conversation.
-- Replies are returned whole rather than streamed. Streaming is a contained
-  change: `agent.run_stream()` behind an SSE endpoint, plus one frontend
-  function.
+- Replies are returned whole only after an isolated Provenance call approves
+  the complete Muse candidate. Rejected or failed reviews return an
+  application-authored safe decline instead.
 - Vite 8 wants Node 20.19+ or 22.12+. It runs on 20.18 but prints a warning;
   `nvm install 22` clears it.

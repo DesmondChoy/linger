@@ -9,6 +9,7 @@ request.
 
 
 from pydantic_ai import Agent
+from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIResponsesModel
@@ -21,7 +22,8 @@ from apps.backend.config import get_settings
 SUPPORTED_PROVIDERS = ("google", "openai", "anthropic")
 
 
-def build_agent(instructions: str) -> Agent[None, str]:
+def build_model() -> Model:
+    """Build the configured provider model."""
     settings = get_settings()
     provider_name, _, model_name = settings.linger_model.partition(":")
     if provider_name not in SUPPORTED_PROVIDERS or not model_name:
@@ -50,4 +52,9 @@ def build_agent(instructions: str) -> Agent[None, str]:
         case _:  # pragma: no cover - guarded by SUPPORTED_PROVIDERS
             raise AssertionError(f"Unhandled provider: {provider_name}")
 
-    return Agent(model, instructions=instructions)
+    return model
+
+
+def build_agent(instructions: str) -> Agent[None, str]:
+    """Build a plain-text agent on the configured model."""
+    return Agent(build_model(), instructions=instructions)

@@ -12,8 +12,6 @@ export function Chat() {
   const [error, setError] = useState<string | null>(null)
 
   async function handleSend(text: string) {
-    // The empty assistant bubble is added up front so every delta is simply an
-    // append to the last message — no flag tracking whether it exists yet.
     setMessages((current) => [
       ...current,
       { role: 'user', content: text },
@@ -23,18 +21,16 @@ export function Chat() {
     setError(null)
 
     try {
-      await sendMessage(sessionId, text, (delta) => {
-        setMessages((current) => {
-          const last = current[current.length - 1]
-          return [...current.slice(0, -1), { ...last, content: last.content + delta }]
-        })
-      })
+      const reply = await sendMessage(sessionId, text)
+      setMessages((current) => [
+        ...current.slice(0, -1),
+        { role: 'assistant', content: reply },
+      ])
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Something went wrong.')
-      // Drop the placeholder so a failed turn leaves no empty bubble behind.
-      setMessages((current) =>
-        current[current.length - 1]?.content === '' ? current.slice(0, -1) : current,
-      )
+      // The server stores nothing on a failed request, so roll back both local
+      // messages and keep the two histories aligned.
+      setMessages((current) => current.slice(0, -2))
     } finally {
       setPending(false)
     }
