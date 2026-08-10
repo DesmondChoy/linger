@@ -3,6 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -15,7 +16,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    api_key: str
+    google_api_key: SecretStr | None = None
+    openai_api_key: SecretStr | None = None
+    anthropic_api_key: SecretStr | None = None
     linger_model: str = "google:gemini-2.5-flash"
     linger_allowed_origins: str = "http://localhost:5173"
 
@@ -23,14 +26,22 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.linger_allowed_origins.split(",") if o.strip()]
 
+    def api_key_for(self, provider_name: str) -> str:
+        """Return the selected provider's key or fail with a useful message."""
+        keys = {
+            "google": self.google_api_key,
+            "openai": self.openai_api_key,
+            "anthropic": self.anthropic_api_key,
+        }
+        key = keys.get(provider_name)
+        value = key.get_secret_value().strip() if key is not None else ""
+        if not value:
+            variable = f"{provider_name.upper()}_API_KEY"
+            raise RuntimeError(f"{variable} is required for {provider_name!r} models.")
+        return value
+
 
 @lru_cache
 def get_settings() -> Settings:
-    """Read settings once per process, failing loudly if the key is absent."""
-    try:
-        return Settings()  # type: ignore[call-arg]
-    except Exception as exc:  # pragma: no cover - startup guard
-        raise RuntimeError(
-            "Configuration error. Copy `.env.example` to `.env` and set GOOGLE_API_KEY "
-            "(get one at https://aistudio.google.com/apikey)."
-        ) from exc
+    """Read settings once per process."""
+    return Settings()

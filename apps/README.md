@@ -1,25 +1,27 @@
 # Linger chat prototype
 
-A minimal chat app: React frontend, FastAPI backend, PydanticAI agent on Gemini.
-No authentication, no database — sessions live in the backend process and are
-lost on restart.
+A minimal chat app: React frontend, FastAPI backend, and a PydanticAI agent on
+Google, OpenAI, or Anthropic. No authentication, no database — sessions live in
+the backend process and are lost on restart.
 
 ## Setup
 
 From the repository root:
 
 ```bash
-# Update the .env with your model provider + API key accordingly. 
-# Check `src/linger/agents/build.py` to update providers supported.
-
-cp .env.example .env       
+cp .env.example .env
+# In .env, choose LINGER_MODEL and set its provider-specific API key.
 uv sync
 pnpm install --dir apps/frontend
 ```
 
 ### Providers
 
-- Gemini: Get a Gemini key at <https://aistudio.google.com/apikey>.
+- Google: `google:gemini-2.5-flash` with `GOOGLE_API_KEY`.
+- OpenAI: `openai:gpt-5` with `OPENAI_API_KEY`.
+- Anthropic: `anthropic:claude-sonnet-4-5` with `ANTHROPIC_API_KEY`.
+
+Only the key for the selected provider is required.
 
 ## Running
 
