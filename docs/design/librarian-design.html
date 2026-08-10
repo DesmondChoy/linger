@@ -1,0 +1,1488 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive design for Linger's Librarian subsystem, covering offline book preprocessing and online evidence retrieval.">
+  <title>Linger · Librarian Subsystem Design</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f5f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fd;
+      --ink: #16181d;
+      --muted: #5e6675;
+      --line: #cfd6e2;
+      --line-strong: #17191e;
+      --blue: #3f67d8;
+      --blue-dark: #2749a7;
+      --blue-soft: #eaf0ff;
+      --green: #167b59;
+      --green-soft: #e4f6ee;
+      --amber: #9a6500;
+      --amber-soft: #fff2cc;
+      --red: #b93838;
+      --red-soft: #ffebeb;
+      --purple: #7554bd;
+      --purple-soft: #f0eaff;
+      --shadow: 0 14px 38px rgba(27, 39, 70, 0.09);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 11px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --page: #10131a;
+        --surface: #181c25;
+        --surface-soft: #202632;
+        --ink: #f2f5fb;
+        --muted: #aeb7c7;
+        --line: #394354;
+        --line-strong: #edf2fb;
+        --blue: #87a5ff;
+        --blue-dark: #b6c6ff;
+        --blue-soft: #243255;
+        --green: #68d3a8;
+        --green-soft: #193b31;
+        --amber: #f1c66d;
+        --amber-soft: #42351b;
+        --red: #ff9191;
+        --red-soft: #492727;
+        --purple: #c2a8ff;
+        --purple-soft: #362d52;
+        --shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--page);
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--blue) 9%, transparent) 0, transparent 28rem),
+        radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--purple) 7%, transparent) 0, transparent 24rem),
+        var(--page);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.6;
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--blue-dark); }
+    code, pre { font-family: var(--mono); }
+
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -60px;
+      z-index: 20;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--surface);
+    }
+
+    .skip-link:focus { top: 12px; }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 72px 0 42px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 15px;
+      color: var(--blue-dark);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 22px;
+      height: 2px;
+      background: currentColor;
+      content: "";
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 850px;
+      margin-bottom: 18px;
+      font-size: clamp(2.45rem, 7vw, 5.7rem);
+      font-weight: 650;
+      letter-spacing: -0.058em;
+      line-height: 0.97;
+    }
+
+    h1 span { color: var(--blue); }
+
+    .hero-copy {
+      max-width: 760px;
+      margin-bottom: 30px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+    }
+
+    .hero-rule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    .hero-rule b { color: var(--ink); }
+
+    .flow-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 0 0 48px;
+    }
+
+    .summary-card {
+      position: relative;
+      min-height: 180px;
+      padding: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card::after {
+      position: absolute;
+      right: -46px;
+      bottom: -62px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--card-color) 11%, transparent);
+      content: "";
+    }
+
+    .summary-card.offline { --card-color: var(--purple); }
+    .summary-card.online { --card-color: var(--blue); }
+
+    .summary-kicker {
+      color: var(--card-color);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .summary-card h2 {
+      margin: 7px 0 8px;
+      font-size: clamp(1.25rem, 3vw, 1.7rem);
+      line-height: 1.2;
+    }
+
+    .summary-card p {
+      max-width: 80%;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    main { padding-bottom: 84px; }
+
+    .explorer {
+      margin-bottom: 76px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      box-shadow: var(--shadow);
+    }
+
+    .explorer-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .explorer-head h2 {
+      margin-bottom: 4px;
+      font-size: clamp(1.55rem, 4vw, 2.4rem);
+      line-height: 1.1;
+    }
+
+    .explorer-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .flow-toggle {
+      display: inline-flex;
+      gap: 5px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+    }
+
+    .flow-toggle button,
+    .control-button,
+    .step-node {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .flow-toggle button {
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .flow-toggle button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--surface);
+    }
+
+    .flow-map {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 9px;
+      margin: 0 0 22px;
+    }
+
+    .step-node {
+      position: relative;
+      min-height: 96px;
+      padding: 12px 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      text-align: left;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .step-node:hover { transform: translateY(-2px); }
+
+    .step-node:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    a:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--blue) 55%, transparent);
+      outline-offset: 3px;
+    }
+
+    .step-node .node-number {
+      display: block;
+      margin-bottom: 12px;
+      color: inherit;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .step-node .node-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .step-node.is-complete {
+      border-color: color-mix(in srgb, var(--green) 50%, var(--line));
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .step-node.is-active {
+      z-index: 2;
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px color-mix(in srgb, var(--blue) 18%, transparent);
+    }
+
+    .step-node.is-active::after {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 35%, transparent);
+      content: "";
+      animation: pulse 1.7s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 40%, transparent); }
+      70% { box-shadow: 0 0 0 10px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .stage-main,
+    .contract-panel {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    .stage-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .stage-count {
+      color: var(--blue-dark);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .stage-owner {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--purple-soft);
+      color: var(--purple);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .stage-main h3 {
+      margin-bottom: 9px;
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      line-height: 1.16;
+    }
+
+    .stage-main p { color: var(--muted); }
+
+    .stage-points {
+      display: grid;
+      gap: 8px;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stage-points li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--ink);
+    }
+
+    .stage-points li::before {
+      flex: 0 0 auto;
+      width: 7px;
+      height: 7px;
+      margin-top: 9px;
+      border-radius: 50%;
+      background: var(--blue);
+      content: "";
+    }
+
+    .contract-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-soft);
+    }
+
+    .contract-label {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .contract-panel pre,
+    .code-card pre {
+      margin: 0;
+      padding: 16px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+
+    .explorer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .control-group { display: flex; gap: 8px; }
+
+    .control-button {
+      min-height: 42px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      font-weight: 700;
+    }
+
+    .control-button.primary {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--surface);
+    }
+
+    .control-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    .progress-track {
+      flex: 1;
+      max-width: 300px;
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--line);
+    }
+
+    .progress-bar {
+      width: 12.5%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+      transition: width 300ms ease;
+    }
+
+    .section-block {
+      margin: 0 0 76px;
+      scroll-margin-top: 24px;
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 0.68fr) minmax(260px, 0.32fr);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-heading h2 {
+      margin-bottom: 7px;
+      font-size: clamp(1.9rem, 5vw, 3.35rem);
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .flow-io {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .io-card,
+    .detail-card,
+    .decision-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    .io-card { padding: 20px; }
+
+    .io-label {
+      display: block;
+      margin-bottom: 11px;
+      color: var(--blue-dark);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .io-card h3 { margin-bottom: 8px; }
+    .io-card p { color: var(--muted); }
+
+    .io-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: 2rem;
+      font-weight: 300;
+    }
+
+    .code-card {
+      min-width: 0;
+      margin-top: 14px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .detail-card {
+      padding: 22px;
+    }
+
+    .detail-card.span-2 { grid-column: 1 / -1; }
+
+    .detail-number {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      margin-bottom: 14px;
+      border-radius: 9px;
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-family: var(--mono);
+      font-size: 0.77rem;
+      font-weight: 700;
+    }
+
+    .detail-card h3 {
+      margin-bottom: 7px;
+      font-size: 1.15rem;
+    }
+
+    .detail-card > p {
+      margin-bottom: 13px;
+      color: var(--muted);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+
+    .boundary-demo {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(28px, 1fr));
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .chapter {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .chapter.allowed {
+      border-color: color-mix(in srgb, var(--green) 52%, var(--line));
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .chapter.blocked {
+      border-color: color-mix(in srgb, var(--red) 46%, var(--line));
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .callout {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--amber);
+      border-radius: 0 10px 10px 0;
+      background: var(--amber-soft);
+      color: var(--ink);
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .comparison > div {
+      padding: 17px;
+      border-radius: 13px;
+    }
+
+    .comparison .rank-box {
+      border: 1px solid color-mix(in srgb, var(--blue) 38%, var(--line));
+      background: var(--blue-soft);
+    }
+
+    .comparison .strength-box {
+      border: 1px solid color-mix(in srgb, var(--purple) 40%, var(--line));
+      background: var(--purple-soft);
+    }
+
+    .comparison h3 { margin-bottom: 6px; }
+    .comparison p { margin: 0; color: var(--muted); }
+
+    .strength-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .strength-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--surface-soft);
+    }
+
+    .strength-card b {
+      display: block;
+      margin-bottom: 5px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .strength-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .strength-card.sufficient b { color: var(--green); }
+    .strength-card.weak b { color: var(--amber); }
+    .strength-card.none b { color: var(--red); }
+
+    details {
+      border-top: 1px solid var(--line);
+    }
+
+    details:last-child { border-bottom: 1px solid var(--line); }
+
+    summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 2px;
+      cursor: pointer;
+      font-weight: 750;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { color: var(--blue); content: "+"; font-size: 1.35rem; }
+    details[open] summary::after { content: "−"; }
+    details > div { padding: 0 0 18px; color: var(--muted); }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .decision-card { padding: 22px; }
+
+    .decision-list {
+      display: grid;
+      gap: 0;
+      margin: 0;
+    }
+
+    .decision-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .decision-list div:last-child { border-bottom: 0; }
+    .decision-list dt { color: var(--muted); }
+    .decision-list dd { margin: 0; font-weight: 750; text-align: right; }
+
+    .status-tbd {
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    footer {
+      padding: 28px 0 48px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 500ms ease, transform 500ms ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (max-width: 980px) {
+      .flow-map { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .stage { grid-template-columns: 1fr; }
+      .section-heading { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 22px, 1180px); }
+      .hero { padding: 48px 0 28px; }
+      .hero-rule { align-items: flex-start; border-radius: 14px; }
+      .flow-summary,
+      .detail-grid,
+      .config-grid,
+      .comparison,
+      .strength-grid { grid-template-columns: 1fr; }
+      .detail-card.span-2 { grid-column: auto; }
+      .summary-card p { max-width: 95%; }
+      .explorer { padding: 17px; }
+      .explorer-head { align-items: stretch; flex-direction: column; }
+      .flow-toggle { width: 100%; }
+      .flow-toggle button { flex: 1; }
+      .flow-map { grid-template-columns: 1fr; gap: 8px; }
+      .step-node {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        align-items: center;
+        min-height: 58px;
+        padding: 10px 13px;
+      }
+      .step-node .node-number { margin: 0; }
+      .step-node.is-active { transform: translateX(4px); }
+      .stage-main, .contract-panel { padding: 18px; }
+      .explorer-controls { align-items: stretch; flex-direction: column-reverse; }
+      .progress-track { width: 100%; max-width: none; }
+      .control-group { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .flow-io { grid-template-columns: 1fr; }
+      .io-arrow { transform: rotate(90deg); }
+      .boundary-demo { grid-template-columns: repeat(6, 1fr); }
+      .decision-list div { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .decision-list dd { text-align: left; }
+    }
+
+    @media (max-width: 390px) {
+      h1 { font-size: 2.35rem; }
+      .explorer { padding: 13px; }
+      .control-button { padding: 8px 9px; font-size: 0.86rem; }
+      .stage-main, .contract-panel, .detail-card, .decision-card, .io-card { padding: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="hero shell">
+    <p class="eyebrow">Linger system design</p>
+    <h1>The <span>Librarian</span> has two flows.</h1>
+    <p class="hero-copy">Books are prepared offline, then searched online within strict spoiler boundaries. The Librarian returns exact, traceable evidence to Muse—never a user-facing answer.</p>
+    <div class="hero-rule"><b>Authority rule</b><span>The agent chooses how to search. Application code decides what it may search.</span></div>
+  </header>
+
+  <main id="main" class="shell">
+    <section class="flow-summary reveal" aria-label="Flow summary">
+      <article class="summary-card offline">
+        <span class="summary-kicker">Flow 01 · Offline</span>
+        <h2>Book preprocessing</h2>
+        <p>Turn a verified source book into chapter-aware chunks, stable evidence IDs, and searchable indexes.</p>
+      </article>
+      <article class="summary-card online">
+        <span class="summary-kicker">Flow 02 · Online</span>
+        <h2>Evidence retrieval</h2>
+        <p>Search only permitted chapters, rank useful passages, and return an evidence bundle to Muse.</p>
+      </article>
+    </section>
+
+    <section class="explorer reveal" aria-labelledby="explorer-title">
+      <div class="explorer-head">
+        <div>
+          <p class="eyebrow">Guided walkthrough</p>
+          <h2 id="explorer-title">Follow each flow step by step</h2>
+          <p>Select any step, use the controls, or play the walkthrough.</p>
+        </div>
+        <div class="flow-toggle" aria-label="Select a flow">
+          <button type="button" id="offline-toggle" aria-pressed="true">Offline</button>
+          <button type="button" id="online-toggle" aria-pressed="false">Online</button>
+        </div>
+      </div>
+
+      <div id="flow-map" class="flow-map" aria-label="Flow steps"></div>
+
+      <div class="stage" aria-live="polite">
+        <article class="stage-main">
+          <div class="stage-meta">
+            <span id="stage-count" class="stage-count">Step 1 of 8</span>
+            <span id="stage-owner" class="stage-owner">Application code</span>
+          </div>
+          <h3 id="stage-title">Receive book source</h3>
+          <p id="stage-description"></p>
+          <ul id="stage-points" class="stage-points"></ul>
+        </article>
+        <aside class="contract-panel" aria-label="Current step contract">
+          <span id="contract-label" class="contract-label">Input</span>
+          <pre id="contract-code"></pre>
+        </aside>
+      </div>
+
+      <div class="explorer-controls">
+        <div class="control-group">
+          <button type="button" class="control-button" id="prev-step">Previous</button>
+          <button type="button" class="control-button" id="play-flow" aria-pressed="false">Play</button>
+          <button type="button" class="control-button primary" id="next-step">Next</button>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div id="progress-bar" class="progress-bar"></div></div>
+      </div>
+    </section>
+
+    <section id="offline" class="section-block reveal">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Flow 01 · Deterministic</p>
+          <h2>Offline book preprocessing</h2>
+        </div>
+        <p>Runs when a book or a new revision is appended. It contains no LLM reasoning and publishes nothing until validation passes.</p>
+      </div>
+
+      <div class="flow-io">
+        <article class="io-card">
+          <span class="io-label">Exact input</span>
+          <h3>Authoritative source request</h3>
+          <p>Only the source identity is accepted. Book metadata is retrieved and verified.</p>
+          <div class="code-card"><pre>{
+  "source_type": "project_gutenberg",
+  "gutenberg_id": 11,
+  "source_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt"
+}</pre></div>
+        </article>
+        <div class="io-arrow" aria-hidden="true">→</div>
+        <article class="io-card">
+          <span class="io-label">Exact output</span>
+          <h3>Published book version</h3>
+          <p>A validated, searchable revision with stable IDs and ready indexes.</p>
+          <div class="code-card"><pre>{
+  "status": "published",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v7be31a2f",
+  "section_count": 12,
+  "keyword_index_status": "ready",
+  "semantic_index_status": "ready"
+}</pre></div>
+        </article>
+      </div>
+
+      <div class="detail-grid">
+        <article class="detail-card">
+          <span class="detail-number">01</span>
+          <h3>Acquire and verify</h3>
+          <p>Download the plain-text file, resolve its URL, store the download time, and calculate the raw SHA-256 hash.</p>
+          <div class="chip-row"><span class="chip">English only</span><span class="chip">Public domain</span><span class="chip">Plain text</span></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">02</span>
+          <h3>Clean and normalize</h3>
+          <p>Remove Gutenberg material outside the book body while preserving spelling, punctuation, paragraphs, headings, dialogue, and poems.</p>
+          <div class="chip-row"><span class="chip">Stable line endings</span><span class="chip">Normalized Unicode</span></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">03</span>
+          <h3>Detect and validate sections</h3>
+          <p>Identify chapters or other structural sections, then reject overlaps, empty sections, gaps, and table-of-contents false positives.</p>
+          <div class="callout"><b>Fail closed:</b> uncertain chapter detection requires review. The book is not indexed.</div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">04</span>
+          <h3>Create chapter-safe chunks</h3>
+          <p>Use 450-token targets and 75-token overlap. Prefer paragraph boundaries, and never let a chunk cross a chapter.</p>
+          <div class="chip-row"><span class="chip">450 tokens</span><span class="chip">75 overlap</span><span class="chip">Exact character range</span></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">05</span>
+          <h3>Assign evidence identity</h3>
+          <p>The ID permanently connects a returned chunk to an exact revision and source location.</p>
+          <div class="code-card"><pre>pg11-v7be31a2f-ch001-ck003
+
+pg11       work
+v7be31a2f  revision hash
+ch001      chapter
+ck003      chunk</pre></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">06</span>
+          <h3>Build both indexes</h3>
+          <p>Keyword indexing supports exact terms and names. Semantic indexing stores meaning-based embeddings. Both retain filterable book and chapter metadata.</p>
+          <div class="chip-row"><span class="chip">Keyword</span><span class="chip">Semantic</span><span class="chip">Model version recorded</span></div>
+        </article>
+        <article class="detail-card span-2">
+          <span class="detail-number">07</span>
+          <h3>Publish atomically and remain append-only</h3>
+          <p>A version becomes searchable only when source, structure, chunks, evidence IDs, and both indexes pass validation. A revised source creates another version; it never replaces the old one.</p>
+          <div class="code-card"><pre>Old revision  pg11-v7be31a2f-ch001-ck003
+New revision  pg11-v91c44d08-ch001-ck003
+
+Both remain independently searchable and verifiable.</pre></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="online" class="section-block reveal">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Flow 02 · Agent + tools</p>
+          <h2>Online evidence retrieval</h2>
+        </div>
+        <p>Muse asks for support. Trusted application context defines the allowed area before either search method runs.</p>
+      </div>
+
+      <div class="flow-io">
+        <article class="io-card">
+          <span class="io-label">Exact input</span>
+          <h3>Muse request + trusted context</h3>
+          <div class="code-card"><pre>MUSE REQUEST
+{
+  "query": "Why does Alice follow the White Rabbit?",
+  "book_version_ids": ["pg11-v7be31a2f"],
+  "maximum_results": 5
+}
+
+SERVER CONTEXT
+{
+  "account_id": "account-123",
+  "chapter": 5,
+  "status": "completed"
+}</pre></div>
+        </article>
+        <div class="io-arrow" aria-hidden="true">→</div>
+        <article class="io-card">
+          <span class="io-label">Exact output</span>
+          <h3>Typed evidence result</h3>
+          <div class="code-card"><pre>{
+  "status": "evidence_found",
+  "evidence_strength": "sufficient",
+  "strength_reason": "The passage directly supports an answer.",
+  "evidence": [
+    {
+      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
+      "text": "Exact source text...",
+      "rank": 1
+    }
+  ]
+}</pre></div>
+        </article>
+      </div>
+
+      <div class="detail-grid">
+        <article class="detail-card span-2">
+          <span class="detail-number">01</span>
+          <h3>Validate the boundary before search</h3>
+          <p>If the user says only “I am on Chapter 5,” Librarian asks whether they started or completed it. No search runs until the answer is clear.</p>
+          <div class="boundary-demo" aria-label="Chapters one through five allowed; six through twelve blocked">
+            <span class="chapter allowed">1</span><span class="chapter allowed">2</span><span class="chapter allowed">3</span><span class="chapter allowed">4</span><span class="chapter allowed">5</span>
+            <span class="chapter blocked">6</span><span class="chapter blocked">7</span><span class="chapter blocked">8</span><span class="chapter blocked">9</span><span class="chapter blocked">10</span><span class="chapter blocked">11</span><span class="chapter blocked">12</span>
+          </div>
+          <div class="chip-row"><span class="chip">Completed 5 → allow 1–5</span><span class="chip">Started 5 → allow 1–4</span></div>
+        </article>
+
+        <article class="detail-card">
+          <span class="detail-number">02</span>
+          <h3>Search permitted chunks</h3>
+          <p>Keyword and semantic search run over the allowed area only. Later chapters are not searched and are never exposed to a model.</p>
+          <div class="chip-row"><span class="chip">Keyword top 10</span><span class="chip">Semantic top 10</span><span class="chip">Semantic ≥ 0.5</span></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">03</span>
+          <h3>Fuse and deduplicate</h3>
+          <p>Combine the two ranked lists without directly comparing incompatible raw scores. The same evidence ID appears only once.</p>
+          <div class="code-card"><pre>{
+  "evidence_id": "...ck002",
+  "retrieval_methods": ["keyword", "semantic"],
+  "keyword_rank": 2,
+  "semantic_rank": 1
+}</pre></div>
+        </article>
+
+        <article class="detail-card span-2">
+          <span class="detail-number">04</span>
+          <h3>Reranking and evidence strength are different</h3>
+          <div class="comparison">
+            <div class="rank-box">
+              <h3>Reranker tool</h3>
+              <p>Orders individual candidate chunks by relevance to the exact query. It receives no more than 15 permitted chunks.</p>
+            </div>
+            <div class="strength-box">
+              <h3>Librarian agent</h3>
+              <p>Looks at the best chunks together and judges whether they can answer Muse's request.</p>
+            </div>
+          </div>
+          <div class="strength-grid">
+            <div class="strength-card sufficient"><b>Sufficient</b><p>The passages directly support an answer.</p></div>
+            <div class="strength-card weak"><b>Weak</b><p>Relevant context exists, but it cannot fully answer the request.</p></div>
+            <div class="strength-card none"><b>None</b><p>No useful evidence exists within the allowed material.</p></div>
+          </div>
+        </article>
+
+        <article class="detail-card">
+          <span class="detail-number">05</span>
+          <h3>Weak evidence keeps its context</h3>
+          <p>Weak evidence still includes the exact passages and a reason explaining what they cannot establish.</p>
+          <div class="code-card"><pre>{
+  "evidence_strength": "weak",
+  "strength_reason": "The passage shows the action but not regret.",
+  "evidence": [{ "evidence_id": "...ck004", "text": "..." }]
+}</pre></div>
+        </article>
+        <article class="detail-card">
+          <span class="detail-number">06</span>
+          <h3>Return only useful evidence</h3>
+          <p>Return up to five exact chunks with source metadata, methods, rank, and reranker score. Never pad the result with irrelevant text.</p>
+          <div class="chip-row"><span class="chip">Up to 5</span><span class="chip">Exact text</span><span class="chip">Resolvable ID</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-block reveal" aria-labelledby="failure-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Safe behavior</p>
+          <h2 id="failure-title">Failures never widen access</h2>
+        </div>
+        <p>Optional retrieval features may degrade. Policy and evidence integrity always fail closed.</p>
+      </div>
+      <details>
+        <summary>Unclear spoiler boundary</summary>
+        <div>Return <code>clarification_needed</code> and ask whether the current chapter was started or completed. Do not search.</div>
+      </details>
+      <details>
+        <summary>Semantic search unavailable</summary>
+        <div>Continue with keyword search, mark the result <code>keyword_only</code>, and include a warning.</div>
+      </details>
+      <details>
+        <summary>Reranker unavailable</summary>
+        <div>Use the fused ranking, mark the result <code>fusion_without_reranking</code>, and include a warning.</div>
+      </details>
+      <details>
+        <summary>Evidence ID does not resolve</summary>
+        <div>Exclude the broken item. Fail the request if the remaining evidence cannot support the declared strength.</div>
+      </details>
+      <details>
+        <summary>No useful evidence</summary>
+        <div>Return <code>no_evidence</code>, an empty evidence list, and the permitted range that was searched.</div>
+      </details>
+    </section>
+
+    <section class="section-block reveal" aria-labelledby="handoff-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Downstream handoff</p>
+          <h2 id="handoff-title">Evidence is not release authority</h2>
+        </div>
+        <p>Librarian's bundle helps Muse draft. Provenance and deterministic checks still decide whether that draft may reach the user.</p>
+      </div>
+      <div class="detail-grid">
+        <article class="detail-card"><span class="detail-number">01</span><h3>Librarian</h3><p>Returns exact evidence, strength, reasons, and limitations.</p></article>
+        <article class="detail-card"><span class="detail-number">02</span><h3>Muse</h3><p>Drafts a response that separates evidence from interpretation.</p></article>
+        <article class="detail-card"><span class="detail-number">03</span><h3>Provenance</h3><p>Reviews the complete response and semantic support.</p></article>
+        <article class="detail-card"><span class="detail-number">04</span><h3>Application checks</h3><p>Validates IDs, quotations, source positions, scope, and spoilers before release.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block reveal" aria-labelledby="config-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Starting point</p>
+          <h2 id="config-title">Configuration and open decisions</h2>
+        </div>
+        <p>These defaults are configurable starting values, not validated quality claims.</p>
+      </div>
+      <div class="config-grid">
+        <article class="decision-card">
+          <span class="io-label">Initial configuration</span>
+          <div class="code-card"><pre>librarian:
+  preprocessing:
+    chunk_size_tokens: 450
+    chunk_overlap_tokens: 75
+    corpus_mode: append_only
+
+  retrieval:
+    keyword_candidates: 10
+    semantic_candidates: 10
+    semantic_score_threshold: 0.5
+    maximum_combined_candidates: 20
+    maximum_rerank_candidates: 15
+    reranker_score_threshold: 0.5
+    final_evidence_limit: 5</pre></div>
+        </article>
+        <article class="decision-card">
+          <span class="io-label">Still to decide</span>
+          <dl class="decision-list">
+            <div><dt>Embedding model</dt><dd class="status-tbd">TBD</dd></div>
+            <div><dt>Reranking model</dt><dd class="status-tbd">TBD</dd></div>
+            <div><dt>Ranking-fusion method</dt><dd class="status-tbd">TBD</dd></div>
+            <div><dt>Evidence-strength implementation</dt><dd class="status-tbd">TBD</dd></div>
+            <div><dt>Latency limit</dt><dd>Cheap and fast</dd></div>
+            <div><dt>Cost limit</dt><dd>Cheap and fast</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">Linger · Librarian subsystem design · Self-contained reference</div>
+  </footer>
+
+  <script>
+    (() => {
+      const flows = {
+        offline: [
+          {
+            label: 'Receive source',
+            title: 'Receive an authoritative book source',
+            owner: 'Application code',
+            description: 'Start with a Gutenberg ID and plain-text URL. Retrieve title, author, language, and rights metadata from the source instead of trusting entered values.',
+            points: ['The first source is Gutenberg #11.', 'The corpus accepts new books and revisions only by appending them.', 'Existing book versions are never changed.'],
+            contractLabel: 'Input',
+            contract: '{\n  "source_type": "project_gutenberg",\n  "gutenberg_id": 11,\n  "source_url": ".../pg11.txt"\n}'
+          },
+          {
+            label: 'Verify',
+            title: 'Download and verify the source',
+            owner: 'Book processor',
+            description: 'Download the file, follow redirects, record provenance, and verify that it is English, public domain, and available as plain text.',
+            points: ['Store requested and resolved URLs.', 'Calculate a raw SHA-256 hash.', 'Reject ineligible or unavailable sources.'],
+            contractLabel: 'Stored provenance',
+            contract: '{\n  "gutenberg_id": 11,\n  "downloaded_at_utc": "...",\n  "raw_sha256": "abc123..."\n}'
+          },
+          {
+            label: 'Normalize',
+            title: 'Clean and normalize the book body',
+            owner: 'Book processor',
+            description: 'Remove Gutenberg material outside the book, normalize technical formatting, and preserve the writing itself.',
+            points: ['Preserve spelling and punctuation.', 'Preserve paragraph and chapter boundaries.', 'Hash the normalized body.'],
+            contractLabel: 'Output',
+            contract: '{\n  "normalized_text_sha256": "7be31a2f...",\n  "body": "Exact normalized text..."\n}'
+          },
+          {
+            label: 'Find chapters',
+            title: 'Detect and validate sections',
+            owner: 'Structure parser',
+            description: 'Detect chapters or other structural sections, then verify their order, coverage, and boundaries.',
+            points: ['Ignore headings repeated in the contents list.', 'Reject gaps, overlaps, and empty sections.', 'Require review when detection is uncertain.'],
+            contractLabel: 'Section record',
+            contract: '{\n  "section_number": 1,\n  "section_title": "Down the Rabbit-Hole",\n  "start_character": 0,\n  "end_character": 11240\n}'
+          },
+          {
+            label: 'Chunk',
+            title: 'Create chapter-safe chunks',
+            owner: 'Chunker',
+            description: 'Split each validated chapter into coherent pieces that are small enough to search and large enough to preserve context.',
+            points: ['Target 450 tokens.', 'Overlap 75 tokens within the same chapter.', 'Never cross a chapter boundary.'],
+            contractLabel: 'Chunk settings',
+            contract: 'chunk_size_tokens: 450\nchunk_overlap_tokens: 75\nrespect_chapter_boundary: true'
+          },
+          {
+            label: 'Assign IDs',
+            title: 'Assign stable evidence IDs',
+            owner: 'Chunker',
+            description: 'Connect every chunk to its work, exact book revision, chapter, and position so it can always be resolved and verified.',
+            points: ['The revision hash distinguishes editions.', 'Appending another book does not change existing IDs.', 'Hash collisions stop ingestion.'],
+            contractLabel: 'Evidence ID',
+            contract: 'pg11-v7be31a2f-ch001-ck003'
+          },
+          {
+            label: 'Build indexes',
+            title: 'Build keyword and semantic indexes',
+            owner: 'Index builder',
+            description: 'Create two search paths over the same validated chunks while keeping book and chapter metadata available for filtering.',
+            points: ['Keyword search supports exact terms.', 'Semantic search supports related meaning.', 'Record the embedding model and version.'],
+            contractLabel: 'Index state',
+            contract: '{\n  "keyword_index_status": "ready",\n  "semantic_index_status": "ready"\n}'
+          },
+          {
+            label: 'Publish',
+            title: 'Publish the complete book version',
+            owner: 'Application code',
+            description: 'Make the version searchable only after every source, structure, chunk, ID, and index check succeeds.',
+            points: ['Publication is atomic.', 'Partial output stays unavailable.', 'A revision is appended as a separate version.'],
+            contractLabel: 'Output',
+            contract: '{\n  "status": "published",\n  "work_id": "pg11",\n  "book_version_id": "pg11-v7be31a2f",\n  "section_count": 12\n}'
+          }
+        ],
+        online: [
+          {
+            label: 'Receive request',
+            title: 'Receive Muse’s evidence request',
+            owner: 'Librarian agent',
+            description: 'Muse supplies the question and requested book versions. Trusted application code separately supplies account and reading boundaries.',
+            points: ['Muse cannot supply account identity.', 'Muse cannot modify spoiler boundaries.', 'The request asks for no more than five results.'],
+            contractLabel: 'Input',
+            contract: '{\n  "query": "Why does Alice follow the Rabbit?",\n  "book_version_ids": ["pg11-v7be31a2f"],\n  "maximum_results": 5\n}'
+          },
+          {
+            label: 'Set boundary',
+            title: 'Resolve the spoiler boundary',
+            owner: 'Policy service',
+            description: 'Turn the user’s reading state into a precise maximum chapter before retrieval begins.',
+            points: ['Completed Chapter 5 allows Chapters 1–5.', 'Started Chapter 5 allows Chapters 1–4.', 'Ambiguity returns a clarification question.'],
+            contractLabel: 'Trusted context',
+            contract: '{\n  "chapter": 5,\n  "status": "completed",\n  "maximum_allowed_chapter": 5\n}'
+          },
+          {
+            label: 'Limit search',
+            title: 'Construct the permitted search area',
+            owner: 'Retrieval service',
+            description: 'Filter or partition the indexes before search. Searching the full book and removing spoilers afterward is forbidden.',
+            points: ['Only requested, published versions are included.', 'Only chapters within each boundary are included.', 'Forbidden text never reaches a model or reranker.'],
+            contractLabel: 'Allowed scope',
+            contract: '{\n  "pg11-v7be31a2f": {\n    "minimum_chapter": 1,\n    "maximum_chapter": 5\n  }\n}'
+          },
+          {
+            label: 'Search',
+            title: 'Run keyword and semantic search',
+            owner: 'Retrieval tools',
+            description: 'Search the permitted chunks through complementary methods, in parallel when practical.',
+            points: ['Keyword search returns up to 10.', 'Semantic search returns up to 10.', 'Semantic threshold starts at 0.5.'],
+            contractLabel: 'Raw result',
+            contract: '{\n  "evidence_id": "...ch001-ck002",\n  "method": "semantic",\n  "rank": 1,\n  "score": 0.83\n}'
+          },
+          {
+            label: 'Fuse',
+            title: 'Combine rankings and remove duplicates',
+            owner: 'Fusion service',
+            description: 'Merge the two ranked lists without treating their raw scores as comparable. Keep one record per evidence ID.',
+            points: ['Preserve both retrieval methods.', 'Record the original ranks.', 'Keep no more than 20 combined candidates.'],
+            contractLabel: 'Fused candidate',
+            contract: '{\n  "evidence_id": "...ck002",\n  "retrieval_methods": ["keyword", "semantic"],\n  "keyword_rank": 2,\n  "semantic_rank": 1\n}'
+          },
+          {
+            label: 'Rerank',
+            title: 'Rerank candidate chunks',
+            owner: 'Reranker tool',
+            description: 'Compare each permitted candidate with the exact query and order the chunks by predicted relevance.',
+            points: ['Receive no more than 15 candidates.', 'Return a relevance order and score.', 'Do not decide sufficient, weak, or none.'],
+            contractLabel: 'Reranked item',
+            contract: '{\n  "evidence_id": "...ck002",\n  "rank": 1,\n  "score": 0.91\n}'
+          },
+          {
+            label: 'Judge strength',
+            title: 'Judge whether the evidence can answer',
+            owner: 'Librarian agent',
+            description: 'Inspect the best passages together and classify their ability to answer Muse’s request.',
+            points: ['Sufficient directly supports an answer.', 'Weak returns context plus its limitation.', 'None means no useful permitted evidence.'],
+            contractLabel: 'Strength decision',
+            contract: '{\n  "evidence_strength": "weak",\n  "strength_reason": "Related, but does not show regret."\n}'
+          },
+          {
+            label: 'Return bundle',
+            title: 'Return the evidence bundle to Muse',
+            owner: 'Librarian agent',
+            description: 'Return up to five useful exact chunks with IDs, source information, ranks, methods, and limitations.',
+            points: ['Weak results still include their evidence.', 'None normally returns an empty evidence list.', 'The bundle does not authorise user-visible output.'],
+            contractLabel: 'Output',
+            contract: '{\n  "status": "evidence_found",\n  "evidence_strength": "sufficient",\n  "evidence": [{\n    "evidence_id": "...ck002",\n    "text": "Exact source text...",\n    "rank": 1\n  }]\n}'
+          }
+        ]
+      };
+
+      const state = { flow: 'offline', step: 0, timer: null };
+      const flowMap = document.getElementById('flow-map');
+      const offlineToggle = document.getElementById('offline-toggle');
+      const onlineToggle = document.getElementById('online-toggle');
+      const prevButton = document.getElementById('prev-step');
+      const nextButton = document.getElementById('next-step');
+      const playButton = document.getElementById('play-flow');
+      const progressBar = document.getElementById('progress-bar');
+
+      function stopPlayback() {
+        if (state.timer) window.clearInterval(state.timer);
+        state.timer = null;
+        playButton.textContent = 'Play';
+        playButton.setAttribute('aria-pressed', 'false');
+      }
+
+      function render() {
+        const steps = flows[state.flow];
+        const step = steps[state.step];
+        offlineToggle.setAttribute('aria-pressed', String(state.flow === 'offline'));
+        onlineToggle.setAttribute('aria-pressed', String(state.flow === 'online'));
+
+        flowMap.replaceChildren(...steps.map((item, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'step-node';
+          if (index < state.step) button.classList.add('is-complete');
+          if (index === state.step) button.classList.add('is-active');
+          button.setAttribute('aria-current', index === state.step ? 'step' : 'false');
+          button.innerHTML = `<span class="node-number">${String(index + 1).padStart(2, '0')}</span><span class="node-label">${item.label}</span>`;
+          button.addEventListener('click', () => {
+            stopPlayback();
+            state.step = index;
+            render();
+          });
+          return button;
+        }));
+
+        document.getElementById('stage-count').textContent = `Step ${state.step + 1} of ${steps.length}`;
+        document.getElementById('stage-owner').textContent = step.owner;
+        document.getElementById('stage-title').textContent = step.title;
+        document.getElementById('stage-description').textContent = step.description;
+        document.getElementById('contract-label').textContent = step.contractLabel;
+        document.getElementById('contract-code').textContent = step.contract;
+
+        const pointList = document.getElementById('stage-points');
+        pointList.replaceChildren(...step.points.map(point => {
+          const item = document.createElement('li');
+          item.textContent = point;
+          return item;
+        }));
+
+        prevButton.disabled = state.step === 0;
+        nextButton.textContent = state.step === steps.length - 1 ? 'Restart' : 'Next';
+        progressBar.style.width = `${((state.step + 1) / steps.length) * 100}%`;
+      }
+
+      function setFlow(flow) {
+        stopPlayback();
+        state.flow = flow;
+        state.step = 0;
+        render();
+      }
+
+      offlineToggle.addEventListener('click', () => setFlow('offline'));
+      onlineToggle.addEventListener('click', () => setFlow('online'));
+      prevButton.addEventListener('click', () => {
+        stopPlayback();
+        state.step = Math.max(0, state.step - 1);
+        render();
+      });
+      nextButton.addEventListener('click', () => {
+        stopPlayback();
+        const length = flows[state.flow].length;
+        state.step = state.step === length - 1 ? 0 : state.step + 1;
+        render();
+      });
+      playButton.addEventListener('click', () => {
+        if (state.timer) {
+          stopPlayback();
+          return;
+        }
+        playButton.textContent = 'Pause';
+        playButton.setAttribute('aria-pressed', 'true');
+        state.timer = window.setInterval(() => {
+          const length = flows[state.flow].length;
+          if (state.step === length - 1) {
+            stopPlayback();
+            return;
+          }
+          state.step += 1;
+          render();
+        }, 2100);
+      });
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reveals = document.querySelectorAll('.reveal');
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        reveals.forEach(element => element.classList.add('is-visible'));
+      } else {
+        const observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.08 });
+        reveals.forEach(element => observer.observe(element));
+      }
+
+      render();
+    })();
+  </script>
+</body>
+</html>
