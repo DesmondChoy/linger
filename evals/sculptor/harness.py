@@ -5,8 +5,18 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic import model_validator
+
+from src.linger.agents.sculptor.models import (
+    CurationProposal as CurationProposalResponse,
+    DerivedSummary as DerivedSummaryResponse,
+    DuplicateLink as DuplicateLinkResponse,
+    NoCurationProposal as NoCurationProposalResponse,
+    SCULPTOR_RESPONSE_ADAPTER as RESPONSE_ADAPTER,
+    SculptorResponse,
+    TopicGroup as TopicGroupResponse,
+)
 
 DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases")
 
@@ -166,46 +176,6 @@ class SculptorEvalCase(StrictModel):
                 f"expected source memory IDs are outside the input: {sorted(unknown_ids)}"
             )
         return self
-
-
-class DuplicateLinkResponse(StrictModel):
-    action: Literal["link_duplicates"]
-    source_memory_ids: tuple[str, ...] = Field(min_length=2)
-
-
-class DerivedSummaryResponse(StrictModel):
-    action: Literal["update_derived_summary"]
-    source_memory_ids: tuple[str, ...] = Field(min_length=2)
-    summary: str = Field(min_length=1)
-
-
-class TopicGroupResponse(StrictModel):
-    action: Literal["assign_topic_group"]
-    source_memory_ids: tuple[str, ...] = Field(min_length=2)
-    topic_label: str = Field(min_length=1)
-
-
-ResponseAction = Annotated[
-    DuplicateLinkResponse | DerivedSummaryResponse | TopicGroupResponse,
-    Field(discriminator="action"),
-]
-
-
-class CurationProposalResponse(StrictModel):
-    kind: Literal["curation_proposal"]
-    action: ResponseAction
-
-
-class NoCurationProposalResponse(StrictModel):
-    kind: Literal["no_curation_proposal"]
-    reason: str = Field(min_length=1)
-
-
-SculptorResponse = Annotated[
-    CurationProposalResponse | NoCurationProposalResponse,
-    Field(discriminator="kind"),
-]
-RESPONSE_ADAPTER = TypeAdapter(SculptorResponse)
 
 
 class GradeResult(StrictModel):
