@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "case_id": "sculptor-paraphrased-duplicate-v1",
+  "owner": "sculptor",
+  "primary_behavior": "paraphrased_duplicate",
+  "description": "Recognise two differently worded records of the same personal reflection as duplicates.",
+  "input": {
+    "account_scope": "eval-account-sculptor",
+    "memories": [
+      {
+        "memory_id": "mem-sketching-1",
+        "text": "When I sketch without trying to make it good, my mind settles.",
+        "capture_type": "explicit",
+        "source_event_id": "turn-sketching-008",
+        "evidence_ids": []
+      },
+      {
+        "memory_id": "mem-sketching-2",
+        "text": "Unpressured drawing helps me feel mentally quieter.",
+        "capture_type": "automatic",
+        "source_event_id": "turn-sketching-031",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "expected": {
+    "kind": "curation_proposal",
+    "action": {
+      "action": "link_duplicates",
+      "source_memory_ids": [
+        "mem-sketching-1",
+        "mem-sketching-2"
+      ]
+    }
+  },
+  "invariants": {
+    "originals_immutable": true,
+    "provenance_required": true,
+    "no_storage_authority": true
+  },
+  "forbidden_outcomes": [
+    "delete_original",
+    "rewrite_original",
+    "reference_unknown_memory",
+    "collapse_provenance"
+  ]
+}

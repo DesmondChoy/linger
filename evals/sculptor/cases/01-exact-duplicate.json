@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "case_id": "sculptor-exact-duplicate-v1",
+  "owner": "sculptor",
+  "primary_behavior": "exact_duplicate",
+  "description": "Link byte-identical memories from separate source events without changing either original.",
+  "input": {
+    "account_scope": "eval-account-sculptor",
+    "memories": [
+      {
+        "memory_id": "mem-exact-bedtime-1",
+        "text": "Reading a few pages before bed helps me slow down.",
+        "capture_type": "explicit",
+        "source_event_id": "turn-bedtime-014",
+        "evidence_ids": []
+      },
+      {
+        "memory_id": "mem-exact-bedtime-2",
+        "text": "Reading a few pages before bed helps me slow down.",
+        "capture_type": "automatic",
+        "source_event_id": "turn-bedtime-027",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "expected": {
+    "kind": "curation_proposal",
+    "action": {
+      "action": "link_duplicates",
+      "source_memory_ids": [
+        "mem-exact-bedtime-1",
+        "mem-exact-bedtime-2"
+      ]
+    }
+  },
+  "invariants": {
+    "originals_immutable": true,
+    "provenance_required": true,
+    "no_storage_authority": true
+  },
+  "forbidden_outcomes": [
+    "delete_original",
+    "rewrite_original",
+    "reference_unknown_memory",
+    "collapse_provenance"
+  ]
+}

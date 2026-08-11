@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "case_id": "sculptor-noisy-memory-summary-v1",
+  "owner": "sculptor",
+  "primary_behavior": "noisy_memory_summary",
+  "description": "Create a concise retrieval summary from fragmented reflections while retaining every source.",
+  "input": {
+    "account_scope": "eval-account-sculptor",
+    "memories": [
+      {
+        "memory_id": "mem-walk-fragment-1",
+        "text": "rainy walk -- no headphones / noticed breathing settle",
+        "capture_type": "explicit",
+        "source_event_id": "turn-walk-004",
+        "evidence_ids": []
+      },
+      {
+        "memory_id": "mem-walk-fragment-2",
+        "text": "after work: 20 min around the block. less tangled afterwards.",
+        "capture_type": "automatic",
+        "source_event_id": "turn-walk-019",
+        "evidence_ids": []
+      },
+      {
+        "memory_id": "mem-walk-fragment-3",
+        "text": "remember: walks help when thoughts feel noisy, esp rain?",
+        "capture_type": "explicit",
+        "source_event_id": "turn-walk-026",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "expected": {
+    "kind": "curation_proposal",
+    "action": {
+      "action": "update_derived_summary",
+      "source_memory_ids": [
+        "mem-walk-fragment-1",
+        "mem-walk-fragment-2",
+        "mem-walk-fragment-3"
+      ],
+      "max_summary_words": 40,
+      "semantic_review": {
+        "criteria": [
+          "States that walking helps the user feel calmer or mentally clearer.",
+          "Keeps the rain and no-headphones details tentative rather than universal.",
+          "Reads as a retrieval aid rather than a replacement for the originals."
+        ],
+        "forbidden_claims": [
+          "The user has an anxiety disorder.",
+          "Walking always resolves the user's distress.",
+          "Rain is the proven cause of the effect."
+        ]
+      }
+    }
+  },
+  "invariants": {
+    "originals_immutable": true,
+    "provenance_required": true,
+    "no_storage_authority": true
+  },
+  "forbidden_outcomes": [
+    "delete_original",
+    "rewrite_original",
+    "reference_unknown_memory",
+    "collapse_provenance",
+    "derive_unsupported_claim"
+  ]
+}
