@@ -141,11 +141,15 @@ Working context contains only:
 
 - server-supplied `account_id`;
 - `memory_capture_enabled`;
-- the current `spoiler_boundary`;
+- the request-scoped `spoiler_boundary` inferred by Muse from the user's current
+  message and transient conversation context, or established through
+  clarification;
 - the active topic; and
 - a compact conversation summary.
 
-The complete memory archive is never injected into every prompt.
+The complete memory archive is never injected into every prompt. Reading
+progress is not stored as durable user state; Muse resolves a temporary spoiler
+boundary anew for each book-related request.
 
 ### 5.2 Memory record
 
@@ -217,7 +221,14 @@ A connection proposal contains:
 
 ### 6.1 Spoilers
 
-At the start of each book-related session, the user states their position in the book. If unstated, Muse assumes no content beyond the opening and asks for the current chapter before Librarian retrieves unfinished text.
+For each book-related request, Muse infers a temporary reading boundary from
+what the user has said in the current message and transient conversation
+context. If Muse cannot determine the boundary reliably, it asks where the user
+stopped before Librarian retrieves book evidence. Muse returns the boundary as
+a typed request-scoped constraint, such as the last completed chapter and an
+optional position within the current chapter; Librarian retrieves only within
+that declared scope. Application code validates and propagates the constraint
+but does not choose it. Linger does not persist reading progress.
 
 ### 6.2 Citations and attribution
 

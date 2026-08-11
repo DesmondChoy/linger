@@ -2,31 +2,41 @@
 
 Status: **Draft implementation design**
 
-This document defines the Librarian subsystem from book ingestion through the evidence bundle returned to Muse. It elaborates on the Librarian responsibilities and safeguards in [`../specification.md`](../specification.md).
+This document defines the retrieval-neutral book corpus and the boundaries for
+the future Librarian implementation. It elaborates on the Librarian
+responsibilities and safeguards in [`../specification.md`](../specification.md).
 
 ## 1. Purpose and scope
 
-The Librarian subsystem prepares books for retrieval and returns relevant, traceable, spoiler-safe evidence to Muse. It has two flows:
+The subsystem has two deliberately separate flows:
 
-1. **Offline book preprocessing** converts a source book into validated, chapter-aware chunks and searchable indexes.
-2. **Online retrieval** searches only the chunks permitted for the current request, ranks the results, judges whether they can answer Muse's request, and returns a typed evidence bundle.
+1. **Offline corpus preparation** converts a verified source book into
+   canonical, human-readable Markdown chapters and a derived metadata-only
+   catalogue.
+2. **Online retrieval** uses a request-scoped reading boundary to inspect the
+   eligible catalogue, open relevant chapters just in time, and return cited
+   source evidence to Muse.
 
-The offline flow is deterministic application code, not an LLM agent. The online flow contains the Librarian reasoning agent and deterministic retrieval tools. Librarian never writes a user-facing response, changes access restrictions, or authorises output release.
+The current vertical slice implements the first flow for Project Gutenberg
+ebook 11. The chapter files also support direct agentic retrieval now. BM25
+paragraph windows, embeddings, hybrid retrieval, fusion, and reranking remain
+optional derived capabilities; their exact design is not yet fixed.
 
 ### 1.1 Responsibilities
 
 Librarian may:
 
-- understand Muse's evidence request;
-- choose from permitted retrieval strategies;
-- call keyword, semantic, fusion, and reranking tools;
-- judge whether the returned evidence is sufficient, weak, or absent; and
-- return exact source chunks and their metadata to Muse.
+- inspect compact metadata for chapters inside the current request's boundary;
+- choose and read relevant canonical chapter files;
+- use later keyword, semantic, or hybrid indexes when available;
+- judge whether the retrieved evidence is sufficient, weak, or absent; and
+- return exact source evidence and resolvable locations to Muse.
 
 Librarian may not:
 
-- widen a spoiler or account boundary;
-- retrieve an unpublished book version;
+- choose, persist, or widen the user's reading boundary;
+- expose metadata or text beyond the validated request scope;
+- treat generated routing metadata as citable evidence;
 - invent, rewrite, or silently truncate source evidence;
 - save, modify, or delete memories;
 - draft the final user-facing response; or
@@ -34,881 +44,308 @@ Librarian may not:
 
 ## 2. System overview
 
-### 2.1 The two flows
+### 2.1 Offline corpus flow
 
 ```text
-OFFLINE BOOK-PREPROCESSING FLOW
-
-Book source
-    ↓
-Download and verify
-    ↓
-Clean and normalize
-    ↓
-Detect and validate chapters
-    ↓
-Split chapters into chunks
-    ↓
-Assign evidence IDs
-    ↓
-Build keyword and semantic indexes
-    ↓
-Publish searchable book version
-
-
-ONLINE RETRIEVAL FLOW
-
-Muse request + trusted policy context
-    ↓
-Validate request and spoiler boundary
-    ↓
-Create permitted search area
-    ↓
-Keyword search + semantic search
-    ↓
-Filter, combine, and deduplicate
-    ↓
-Rerank
-    ↓
-Decide evidence strength
-    ↓
-Return evidence bundle to Muse
+Immutable Gutenberg source + download metadata
+                    ↓
+Verify source hash and book structure
+                    ↓
+Extract 12 chapters deterministically
+                    ↓
+Canonical Markdown chapters
+(exact layout + compact JSON front matter)
+                    ↓
+Derived metadata-only catalogue
+                    ↓
+Optional later indexes
+(BM25 paragraph windows, embeddings, or hybrid)
 ```
 
-The offline output is the online flow's searchable input:
+The immutable text file remains the upstream source. The checked-in Markdown
+chapters are the canonical retrieval corpus. The catalogue and any future
+search indexes are disposable projections that must be regenerable from those
+chapters.
+
+### 2.2 Online retrieval flow
 
 ```text
-Published book metadata
-Chapter metadata
-Chunk records
-Keyword index
-Semantic index
-    ↓
-Online retrieval
+User request + transient conversation context
+                    ↓
+Muse infers the temporary reading boundary
+or asks where the user stopped
+                    ↓
+Application validates the typed boundary
+                    ↓
+Eligible chapter catalogue only
+                    ↓
+Librarian selects and reads relevant chapters
+                    ↓
+Exact cited evidence returned to Muse
 ```
 
-The online flow must never search a book version that has not completed preprocessing successfully.
+An optional search index may later supply candidate passages between catalogue
+filtering and chapter reading. It does not change the boundary or the source of
+truth.
 
-### 2.2 Component ownership
+### 2.3 Component ownership
 
-| Component | Flow | Responsibility |
-|---|---|---|
-| Book processor | Offline | Downloads, verifies, cleans, and structures books |
-| Chunker | Offline | Creates chapter-safe chunks and evidence IDs |
-| Index builder | Offline | Builds keyword and semantic indexes |
-| Policy service | Online | Supplies trusted account and spoiler restrictions |
-| Librarian agent | Online | Plans retrieval and judges evidence strength |
-| Retrieval service | Online | Searches only permitted chunks |
-| Reranker | Online | Orders candidate chunks by relevance to the request |
-| Muse | Consumer | Uses the evidence bundle to draft a candidate response |
-| Provenance | Downstream | Checks Muse's complete response against the evidence |
-| Citation validator | Downstream | Resolves evidence IDs and validates exact quotations |
+| Component | Responsibility |
+|---|---|
+| Gutenberg source | Immutable upstream text and download provenance |
+| Corpus processor | Verifies the source, extracts exact chapter bodies, renders initial Markdown, and checks integrity |
+| Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
+| Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
+| Muse | Infers or clarifies a temporary reading boundary and passes it as a typed request constraint |
+| Application boundary | Validates and enforces Muse's declared scope without choosing or persisting it |
+| Librarian | Selects eligible chapters, retrieves evidence, and judges evidence strength |
+| Sculptor | May later propose reviewed routing-metadata improvements; it never changes canonical chapter bodies |
+| Muse and Provenance | Draft and review the eventual response; neither treats routing metadata as evidence |
 
-The Librarian agent may choose how to search, but it cannot widen what the retrieval service permits it to search.
+## 3. Offline corpus preparation
 
-## 3. Offline book-preprocessing flow
+### 3.1 Checked-in artifacts
 
-### 3.1 Purpose
-
-The offline flow converts an unstructured source book into stable, chapter-aware chunks that can be safely searched and cited. It runs when a new book or a new revision of an existing book is appended to the corpus.
-
-The corpus is append-only:
-
-- an existing book version is never replaced or modified;
-- a new revision creates a separate book version;
-- old and new revisions may coexist; and
-- existing evidence IDs remain resolvable.
-
-### 3.2 Flow overview
+The first corpus is:
 
 ```text
-Preprocessing request
-      ↓
-Retrieve source book and metadata
-      ↓
-Verify eligibility and source hashes
-      ↓
-Clean and normalize text
-      ↓
-Detect and validate chapters
-      ↓
-Create chapter-safe chunks
-      ↓
-Assign evidence IDs
-      ↓
-Build keyword and semantic indexes
-      ↓
-Validate all stored records
-      ↓
-Publish book version
+data/gutenberg/
+└── alice-in-wonderland.txt            # immutable downloaded source
+
+data/corpus/alice-in-wonderland/
+├── catalog.json                       # derived, metadata only
+└── chapters/
+    ├── 01-down-the-rabbit-hole.md     # canonical
+    ├── 02-the-pool-of-tears.md
+    └── ...
 ```
 
-### 3.3 Input contract
+The source SHA-256 is fixed in the processor and recorded in every chapter's
+front matter. A changed source fails validation and requires deliberate review;
+the processor does not silently accept a new edition.
 
-The preprocessing input identifies an authoritative source. Metadata such as the title, author, language, and copyright status is retrieved and verified rather than trusted from user-entered values.
+### 3.2 Deterministic extraction
 
-```python
-class BookPreprocessingRequest(BaseModel):
-    source_type: Literal["project_gutenberg"]
-    gutenberg_id: int
-    source_url: HttpUrl
-```
+The Alice processor verifies:
 
-Example:
+- the expected source SHA-256;
+- exactly one Gutenberg start marker and end marker;
+- the twelve expected contents entries;
+- twelve ordered chapter headings and titles; and
+- one `THE END` marker after Chapter XII.
+
+It excludes the Gutenberg wrapper, contents page, leading illustration marker,
+`THE END`, and licence. It converts CRLF or CR newlines to LF, but otherwise
+preserves each chapter body's source layout and Unicode code points exactly,
+including hard line wraps, blank lines, indentation, poems, the Mouse's tale,
+italics markers, and decorative scene breaks.
+
+The generated Markdown adds only JSON front matter and one Markdown chapter
+heading before the extracted body. It does not paraphrase or reflow the source.
+
+### 3.3 Canonical chapter contract
+
+Each chapter begins with validated JSON front matter inside Markdown `---`
+delimiters:
 
 ```json
 {
-  "source_type": "project_gutenberg",
-  "gutenberg_id": 11,
-  "source_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt"
+  "schema_version": 1,
+  "document_id": "pg11",
+  "chapter_id": "pg11-ch01",
+  "chapter_number": 1,
+  "title": "Down the Rabbit-Hole",
+  "routing_description": "Alice follows a watch-carrying White Rabbit...",
+  "characters": ["Alice", "White Rabbit"],
+  "locations": ["riverbank", "rabbit-hole"],
+  "retrieval_cues": ["waistcoat-pocket watch", "DRINK ME bottle"],
+  "word_count": 2143,
+  "source_path": "data/gutenberg/alice-in-wonderland.txt",
+  "source_lines": [58, 272],
+  "body_lines": [62, 272],
+  "source_sha256": "01b38e...",
+  "body_sha256": "e721ad..."
 }
 ```
 
-The first implementation uses [Project Gutenberg eBook #11, *Alice's Adventures in Wonderland*](https://www.gutenberg.org/ebooks/11).
+The fields have three roles:
 
-### 3.4 Source acquisition and verification
+- `chapter_id`, `chapter_number`, and `title` identify and order the chapter;
+- `routing_description`, `characters`, `locations`, and `retrieval_cues` help
+  an agent decide whether to open it; and
+- counts, paths, ranges, and hashes support deterministic integrity checks.
 
-The book processor:
+Routing metadata is navigation help, not evidence. Quotations and factual book
+claims must resolve to the chapter body.
 
-1. downloads the plain-text source;
-2. records the requested and resolved URLs;
-3. records the download time;
-4. calculates a SHA-256 hash of the raw file;
-5. retrieves the official Gutenberg metadata; and
-6. verifies that the book is exclusively English, public domain, and available as plain text.
+### 3.4 Metadata-only catalogue
 
-Example source metadata:
-
-```json
-{
-  "gutenberg_id": 11,
-  "requested_url": "https://www.gutenberg.org/ebooks/11.txt.utf-8",
-  "resolved_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
-  "downloaded_at_utc": "2026-08-10T10:00:00Z",
-  "raw_sha256": "abc123..."
-}
-```
-
-### 3.5 Text cleaning and normalization
-
-The processor removes material outside the book body, including the Project Gutenberg header, footer, download notices, and licence text. It then normalizes line endings, Unicode representation, repeated whitespace, and paragraph separators.
-
-Normalization must preserve:
-
-- original spelling and punctuation;
-- paragraph boundaries;
-- chapter headings;
-- dialogue; and
-- poem formatting where practical.
-
-The normalized text is the authoritative source for section boundaries, chunks, searches, evidence resolution, and quotation validation. The processor records its SHA-256 hash.
-
-### 3.6 Section detection
-
-`Section` is the general internal term because books may use chapters, parts, books, letters, acts, scenes, or stories.
-
-Example:
+`catalog.json` contains document identity and a projection of each chapter's
+routing metadata:
 
 ```json
 {
-  "section_id": "pg11-v7be31a2f-ch001",
-  "section_type": "chapter",
-  "section_number": 1,
-  "section_title": "Down the Rabbit-Hole",
-  "start_character": 0,
-  "end_character": 11240
-}
-```
-
-Section detection must distinguish real headings in the body from repeated headings in a table of contents.
-
-### 3.7 Section validation
-
-Before chunking, deterministic checks verify that:
-
-- sections are in source order;
-- sections do not overlap;
-- every section contains body text;
-- all searchable body text belongs to a section;
-- table-of-contents entries were not treated as body sections; and
-- the detected section count agrees with the contents list when one exists.
-
-Failure prevents publication:
-
-```json
-{
-  "status": "review_required",
-  "reason": "Detected 24 chapter headings, but the contents list contains 12."
-}
-```
-
-A human may correct the section boundaries and rerun preprocessing. The pipeline does not guess past a failed structural validation.
-
-### 3.8 Chunk creation
-
-Initial settings:
-
-```yaml
-chunk_size_tokens: 450
-chunk_overlap_tokens: 75
-```
-
-Rules:
-
-- one chunk belongs to exactly one book version;
-- one chunk belongs to exactly one section;
-- a chunk never crosses a section boundary;
-- paragraph boundaries are preferred when choosing a split point;
-- overlap occurs only between neighbouring chunks in the same section;
-- every chunk records its exact character range in the normalized text; and
-- a very short final chunk may be combined with its preceding chunk.
-
-Example:
-
-```text
-Chapter 1
-├── Chunk 1: tokens 1–450
-├── Chunk 2: tokens 376–825
-├── Chunk 3: tokens 751–1200
-└── Chunk 4: remaining chapter text
-```
-
-### 3.9 Evidence identity
-
-The evidence ID identifies a chunk from an exact book revision:
-
-```text
-pg11-v7be31a2f-ch001-ck003
-```
-
-Its components are:
-
-```text
-pg11       Project Gutenberg work ID
-v7be31a2f  Prefix of the normalized book-text hash
-ch001      Chapter or section number
-ck003      Chunk number within the section
-```
-
-The full hash remains in the stored record and is used to verify the shortened version component. A collision during ingestion is a hard failure; the system does not silently lengthen or replace an existing ID.
-
-Example chunk record:
-
-```json
-{
-  "evidence_id": "pg11-v7be31a2f-ch001-ck003",
-  "work_id": "pg11",
-  "book_version_id": "pg11-v7be31a2f",
-  "book_title": "Alice's Adventures in Wonderland",
-  "author": "Lewis Carroll",
-  "section_type": "chapter",
-  "section_number": 1,
-  "section_title": "Down the Rabbit-Hole",
-  "chunk_number": 3,
-  "start_character": 8240,
-  "end_character": 9468,
-  "text_hash": "3f924...",
-  "text": "Exact normalized source text..."
-}
-```
-
-Because the book-version hash is part of the ID, two revisions of Gutenberg work #11 remain distinct:
-
-```text
-pg11-v7be31a2f-ch001-ck003
-pg11-v91c44d08-ch001-ck003
-```
-
-Appending another book does not change existing evidence IDs.
-
-### 3.10 Keyword-index construction
-
-Every validated chunk is added to the keyword index. The entry keeps the evidence ID, book version, section position, and exact normalized text as filterable or resolvable metadata.
-
-```json
-{
-  "evidence_id": "pg11-v7be31a2f-ch001-ck003",
-  "book_version_id": "pg11-v7be31a2f",
-  "section_number": 1,
-  "text": "Exact normalized source text..."
-}
-```
-
-Failed and unpublished book versions are not indexed for online retrieval.
-
-### 3.11 Semantic-index construction
-
-Every validated chunk is converted into an embedding and stored with its evidence ID and filterable book and section metadata.
-
-```json
-{
-  "evidence_id": "pg11-v7be31a2f-ch001-ck003",
-  "embedding_model": "TBD",
-  "embedding_version": "TBD",
-  "embedding": ["numeric vector omitted"]
-}
-```
-
-The embedding model and version are recorded. Changing the embedding model creates a new derived index; it does not mutate the underlying book version or evidence records.
-
-### 3.12 Publication
-
-A book version becomes searchable only when:
-
-- source eligibility and hashes are valid;
-- section validation passes;
-- chunk ranges and hashes are valid;
-- every evidence ID is unique and resolves to the expected text;
-- keyword indexing succeeds; and
-- semantic indexing succeeds.
-
-Partial output remains unpublished and cannot be selected by the online flow.
-
-### 3.13 Output contract
-
-```python
-class PublishedBookVersion(BaseModel):
-    status: Literal["published"]
-    work_id: str
-    book_version_id: str
-    title: str
-    author: str
-    section_count: int
-    chunk_count: int
-    raw_sha256: str
-    normalized_text_sha256: str
-    keyword_index_status: Literal["ready"]
-    semantic_index_status: Literal["ready"]
-    warnings: list[str]
-
-
-class PreprocessingFailure(BaseModel):
-    status: Literal["review_required", "failed"]
-    reason: str
-```
-
-Successful example; counts are illustrative until preprocessing runs:
-
-```json
-{
-  "status": "published",
-  "work_id": "pg11",
-  "book_version_id": "pg11-v7be31a2f",
+  "schema_version": 1,
+  "document_id": "pg11",
   "title": "Alice's Adventures in Wonderland",
   "author": "Lewis Carroll",
-  "section_count": 12,
-  "chunk_count": 84,
-  "raw_sha256": "abc123...",
-  "normalized_text_sha256": "7be31a2f...",
-  "keyword_index_status": "ready",
-  "semantic_index_status": "ready",
-  "warnings": []
+  "source_path": "data/gutenberg/alice-in-wonderland.txt",
+  "source_sha256": "01b38e...",
+  "chapter_count": 12,
+  "chapters": [
+    {
+      "chapter_id": "pg11-ch01",
+      "chapter_number": 1,
+      "title": "Down the Rabbit-Hole",
+      "routing_description": "Alice follows a watch-carrying White Rabbit...",
+      "characters": ["Alice", "White Rabbit"],
+      "locations": ["riverbank", "rabbit-hole"],
+      "retrieval_cues": ["waistcoat-pocket watch", "DRINK ME bottle"],
+      "word_count": 2143,
+      "path": "chapters/01-down-the-rabbit-hole.md"
+    }
+  ]
 }
 ```
 
-### 3.14 Offline-flow verification
+It contains no chapter body, generated timestamp, chunk size, embedding, or
+retrieval score. Rebuilding it reads the canonical front matter and never
+rewrites chapter files.
 
-Tests cover:
+### 3.5 Lifecycle commands
 
-- Gutenberg header and footer removal;
-- section detection and order;
-- table-of-contents headings not being treated as body sections;
-- no chunk crossing a section boundary;
-- correct overlap and character ranges;
-- unique and reproducible evidence IDs;
-- every evidence ID resolving to exact normalized source text;
-- a new revision producing a new book-version ID;
-- append-only behavior; and
-- any failed validation preventing publication.
+The processor exposes three explicit operations:
+
+```bash
+# One-time creation; refuses to overwrite any existing corpus artifact
+uv run python -m src.linger.corpus.alice init
+
+# Regenerate only the derived catalogue from canonical front matter
+uv run python -m src.linger.corpus.alice build-catalog
+
+# Read-only source, chapter, front-matter, and catalogue verification
+uv run python -m src.linger.corpus.alice check
+```
+
+After initial creation, routing metadata may be edited in the canonical chapter
+files and the catalogue rebuilt. The integrity check still requires every
+chapter body and deterministic provenance field to match the immutable source.
+
+### 3.6 Verification
+
+Automated checks cover:
+
+- immutable-source hashing;
+- twelve ordered story chapters with expected titles and line ranges;
+- exclusion of contents, illustration, Gutenberg wrapper, and `THE END`;
+- exact preservation of source layout and code points;
+- deterministic initial rendering and overwrite refusal;
+- valid front matter, stable identifiers, checksums, and word counts;
+- a metadata-only catalogue in canonical chapter order;
+- catalogue rebuilding without changing chapter files;
+- detection of missing, unexpected, stale, or tampered files; and
+- checked-in corpus freshness.
+
+### 3.7 Optional derived indexes
+
+Future retrieval experiments may derive paragraph windows from canonical
+chapter bodies for BM25, embeddings, or hybrid search. Any such index must:
+
+- be fully regenerable and never become the source of truth;
+- retain `document_id`, `chapter_id`, and a resolvable source location;
+- never cross a chapter boundary;
+- preserve exact body text for evidence and quotation validation;
+- record its chunking, embedding, and ranking versions; and
+- apply the request boundary before forbidden text reaches a model or reranker.
+
+No chunk size, overlap, embedding model, threshold, fusion method, or reranker
+is selected until evaluation shows that it improves on direct chapter reads.
 
 ## 4. Online retrieval flow
 
-### 4.1 Purpose
+### 4.1 Current retrieval-neutral path
 
-The online flow receives an evidence request from Muse, searches only the book chunks permitted by trusted application state, and returns a typed evidence bundle. The Librarian agent plans the search and judges answerability; deterministic services enforce scope and execute retrieval.
+The canonical corpus supports the following minimal Librarian path without a
+database or search index:
 
-### 4.2 Flow overview
+1. Muse infers a temporary boundary from the current message and transient
+   conversation context.
+2. If the stopping point is unclear, Muse asks a focused clarification before
+   book retrieval.
+3. Muse returns a typed, request-scoped constraint such as the last completed
+   chapter and, later, an optional position within the current chapter.
+4. Application code validates the declared chapter against the corpus and
+   filters the catalogue before Librarian sees it.
+5. Librarian uses the eligible routing metadata to choose chapter files and
+   reads only those bodies.
+6. Librarian returns exact evidence from the canonical body with enough source
+   information for deterministic citation validation.
 
-```text
-Muse retrieval request
-      +
-Trusted application context
-      ↓
-Validate request
-      ↓
-Resolve spoiler boundary
-      ↓
-Create permitted search area
-      ↓
-Keyword and semantic search
-      ↓
-Apply method-specific thresholds
-      ↓
-Combine rankings and deduplicate
-      ↓
-Rerank candidates
-      ↓
-Decide evidence strength
-      ↓
-Build evidence bundle
-      ↓
-Return to Muse
-```
+Reading progress is not account data, policy state, or durable memory. Linger
+resolves the boundary again for each book-related request. Application code
+validates and enforces Muse's declared boundary; it does not infer one itself.
 
-### 4.3 Input contract
+### 4.2 Boundary enforcement
 
-Muse supplies the evidence request:
+A missing, invalid, or ambiguous boundary fails closed and leads to
+clarification. Post-boundary catalogue entries and chapter bodies must not be
+shown to Librarian, Muse, an optional index, a reranker, or downstream model
+context.
 
-```python
-class LibrarianRequest(BaseModel):
-    query: str
-    book_version_ids: list[str]
-    maximum_results: int = 5
-    reason: str
-```
+If a future boundary includes a position within the current chapter, the
+application must define and validate a resolvable location before partial-
+chapter retrieval is enabled. Until then, chapter-level scope is the supported
+unit.
 
-```json
-{
-  "query": "Why does Alice follow the White Rabbit?",
-  "book_version_ids": ["pg11-v7be31a2f"],
-  "maximum_results": 5,
-  "reason": "Muse needs textual support for a reflection."
-}
-```
+### 4.3 Optional search path
 
-Trusted application code separately supplies the policy context:
-
-```python
-class ReadingBoundary(BaseModel):
-    section_number: int
-    status: Literal["started", "completed"]
-
-
-class RetrievalContext(BaseModel):
-    account_id: str
-    spoiler_boundaries: dict[str, ReadingBoundary]
-```
-
-```json
-{
-  "account_id": "account-123",
-  "spoiler_boundaries": {
-    "pg11-v7be31a2f": {
-      "section_number": 5,
-      "status": "completed"
-    }
-  }
-}
-```
-
-Muse cannot provide, modify, or override `account_id` or the spoiler boundaries.
-
-### 4.4 Request validation
-
-Before retrieval, application code checks that:
-
-- the query is non-empty;
-- every requested book version exists and is published;
-- the requested result count is between one and the configured maximum;
-- a spoiler boundary exists for every requested book;
-- the stated section exists in that book version; and
-- the current section is explicitly marked `started` or `completed`.
-
-Possible validation outcomes are `valid`, `clarification_needed`, and `invalid`.
-
-If the user says only that they are "on Chapter 5," retrieval does not run:
-
-```json
-{
-  "status": "clarification_needed",
-  "question": "Have you started or completed Chapter 5?"
-}
-```
-
-### 4.5 Spoiler-boundary resolution
-
-The boundary resolves as follows:
+Direct chapter selection is the baseline. A later search path may add:
 
 ```text
-Started Chapter 5:   permit Chapters 1–4
-Completed Chapter 5: permit Chapters 1–5
+Eligible catalogue
+        ↓
+BM25 paragraph windows and/or embeddings
+        ↓
+Optional fusion and reranking
+        ↓
+Canonical chapter text resolution
+        ↓
+Evidence bundle
 ```
 
-Each requested book version receives its own boundary. A missing, invalid, or ambiguous boundary fails closed; it never defaults to the whole book.
-
-### 4.6 Permitted search-area construction
-
-The retrieval service constructs an allowed set or filtered index query from:
-
-```text
-Requested published book versions
-AND
-Section position within each spoiler boundary
-```
-
-The search backend must apply this restriction as part of its query or through a pre-partitioned allowed collection. Searching the full book and removing forbidden results afterward is not permitted.
-
-Forbidden chunk text is never returned to the Librarian agent, Muse, the reranker, or downstream model context.
-
-When private-memory retrieval is added, the allowed set will also require the authenticated account, active status, and non-deleted status before search.
-
-### 4.7 Keyword retrieval
-
-Keyword retrieval is suited to names, places, exact phrases, known quotations, objects, and explicit events.
-
-Input:
-
-```json
-{
-  "query": "Why does Alice follow the White Rabbit?",
-  "allowed_book_versions": ["pg11-v7be31a2f"],
-  "maximum_sections": {
-    "pg11-v7be31a2f": 5
-  },
-  "limit": 10
-}
-```
-
-Output:
-
-```json
-{
-  "results": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "rank": 1,
-      "raw_score": 7.42
-    }
-  ]
-}
-```
-
-Initial setting:
-
-```yaml
-keyword_candidates: 10
-```
-
-Raw keyword scores such as BM25 are not assumed to use a zero-to-one scale, so the shared `0.5` threshold does not apply to them.
-
-### 4.8 Semantic retrieval
-
-Semantic retrieval is suited to themes, emotions, paraphrases, and similar meanings expressed with different words.
-
-Input:
-
-```json
-{
-  "query": "Why does Alice follow the White Rabbit?",
-  "allowed_book_versions": ["pg11-v7be31a2f"],
-  "maximum_sections": {
-    "pg11-v7be31a2f": 5
-  },
-  "limit": 10,
-  "minimum_score": 0.5
-}
-```
-
-Output:
-
-```json
-{
-  "results": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "rank": 1,
-      "score": 0.83
-    }
-  ]
-}
-```
-
-Initial settings:
-
-```yaml
-semantic_candidates: 10
-semantic_score_threshold: 0.5
-```
-
-The threshold is configurable and applies only when the chosen similarity measure has the documented zero-to-one interpretation.
-
-### 4.9 Ranking fusion and duplicate handling
-
-Ranking fusion combines the keyword and semantic result lists without directly comparing their incompatible raw scores. The exact fusion method is TBD.
-
-Input:
-
-```json
-{
-  "keyword_results": ["keyword result records"],
-  "semantic_results": ["semantic result records"]
-}
-```
-
-The same evidence ID may appear in both lists. It is merged into one candidate that records both retrieval paths:
-
-```json
-{
-  "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-  "retrieval_methods": ["keyword", "semantic"],
-  "keyword_rank": 2,
-  "semantic_rank": 1,
-  "fusion_score": 0.0325
-}
-```
-
-Initial limits:
-
-```yaml
-maximum_combined_candidates: 20
-maximum_rerank_candidates: 15
-```
-
-### 4.10 Reranking
-
-Reranking answers: **Which candidate chunks are most relevant to this exact request?**
-
-At the product level, Librarian owns reranking. Technically, the Librarian agent calls a separate reranking tool. The tool orders individual chunks; it does not assign the bundle-level labels `sufficient`, `weak`, or `none`.
-
-Only permitted chunks may be sent to the reranker.
-
-Input:
-
-```json
-{
-  "query": "Why does Alice follow the White Rabbit?",
-  "candidates": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "text": "Exact chunk text..."
-    }
-  ],
-  "limit": 15
-}
-```
-
-Output:
-
-```json
-{
-  "results": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "rank": 1,
-      "score": 0.91
-    }
-  ]
-}
-```
-
-Initial setting:
-
-```yaml
-reranker_score_threshold: 0.5
-```
-
-The threshold applies only if the selected reranker returns a documented normalized zero-to-one score. The reranking model is TBD.
-
-### 4.11 Evidence-strength decision
-
-Evidence strength answers a different question: **Can the best retrieved passages answer Muse's request?**
-
-After reranking, the Librarian agent inspects the top permitted evidence and returns one bundle-level label:
-
-- `sufficient`: the evidence directly supports an answer;
-- `weak`: the evidence provides relevant context but does not fully support an answer; or
-- `none`: no useful evidence was found within the permitted sources.
-
-Input:
-
-```json
-{
-  "query": "Does Alice regret following the White Rabbit?",
-  "top_evidence": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "text": "Exact chunk text..."
-    }
-  ]
-}
-```
-
-Output:
-
-```json
-{
-  "evidence_strength": "weak",
-  "strength_reason": "The passage shows Alice following the Rabbit but does not show that she regrets doing so."
-}
-```
-
-A high retrieval or reranker score does not automatically mean sufficient evidence. Weak evidence remains in the bundle so Muse can understand the available context and its limitation. `none` normally has an empty evidence list.
-
-The strength label is an advisory reasoning result, not release authority. Provenance independently reviews Muse's eventual use of the evidence.
-
-### 4.12 Evidence-bundle construction
-
-The final bundle contains no more than five useful chunks. It may contain fewer; Librarian does not add irrelevant chunks to meet the limit.
-
-Every returned item contains:
-
-- evidence ID;
-- exact chunk text;
-- work and book-version IDs;
-- book title and author;
-- section type, number, and title;
-- retrieval methods;
-- final rank; and
-- reranker score when available.
-
-It never contains forbidden text, later-chapter summaries, generated quotations, or unsupported conclusions.
-
-### 4.13 Output contract
-
-The result is a typed union:
-
-```python
-LibrarianResult = Annotated[
-    EvidenceFound | ClarificationNeeded | NoEvidence | RetrievalFailed,
-    Field(discriminator="status"),
-]
-```
-
-#### Sufficient evidence
-
-```json
-{
-  "status": "evidence_found",
-  "query": "Why does Alice follow the White Rabbit?",
-  "evidence_strength": "sufficient",
-  "strength_reason": "The passage directly describes Alice following the Rabbit out of curiosity.",
-  "evidence": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck002",
-      "text": "Exact source text...",
-      "source": {
-        "work_id": "pg11",
-        "book_version_id": "pg11-v7be31a2f",
-        "book_title": "Alice's Adventures in Wonderland",
-        "author": "Lewis Carroll",
-        "section_type": "chapter",
-        "section_number": 1,
-        "section_title": "Down the Rabbit-Hole"
-      },
-      "retrieval_methods": ["keyword", "semantic"],
-      "rank": 1,
-      "reranker_score": 0.91
-    }
-  ],
-  "limitations": [],
-  "warnings": []
-}
-```
-
-#### Weak evidence
-
-```json
-{
-  "status": "evidence_found",
-  "query": "Does Alice regret following the White Rabbit?",
-  "evidence_strength": "weak",
-  "strength_reason": "The passages describe the consequences but do not directly express regret.",
-  "evidence": [
-    {
-      "evidence_id": "pg11-v7be31a2f-ch001-ck004",
-      "text": "Exact related source text...",
-      "source": {
-        "work_id": "pg11",
-        "book_version_id": "pg11-v7be31a2f",
-        "book_title": "Alice's Adventures in Wonderland",
-        "author": "Lewis Carroll",
-        "section_type": "chapter",
-        "section_number": 1,
-        "section_title": "Down the Rabbit-Hole"
-      },
-      "retrieval_methods": ["semantic"],
-      "rank": 1,
-      "reranker_score": 0.67
-    }
-  ],
-  "limitations": [
-    "No passage directly states that Alice regrets her decision."
-  ],
-  "warnings": []
-}
-```
-
-#### No evidence
-
-```json
-{
-  "status": "no_evidence",
-  "query": "Does Alice regret following the White Rabbit?",
-  "evidence_strength": "none",
-  "strength_reason": "No relevant passage was found within the permitted chapters.",
-  "evidence": [],
-  "limitations": [
-    "Only Chapters 1–5 were searchable."
-  ],
-  "warnings": []
-}
-```
-
-#### Clarification required
-
-```json
-{
-  "status": "clarification_needed",
-  "question": "Have you started or completed Chapter 5?",
-  "evidence": []
-}
-```
-
-#### Retrieval failure
-
-```json
-{
-  "status": "retrieval_failed",
-  "reason": "The permitted reading boundary could not be verified.",
-  "evidence": []
-}
-```
-
-### 4.14 Failure and degraded operation
-
-The online flow fails closed on policy and evidence integrity but may degrade safely when an optional retrieval method fails:
-
-- if the spoiler boundary cannot be verified, return `retrieval_failed` and do not search;
-- if semantic search fails, keyword search may continue and the result records `keyword_only` mode;
-- if reranking fails, fusion-ranked results may be returned with a warning;
-- if an evidence ID does not resolve, exclude it and fail the request if the remaining bundle cannot support its declared strength; and
-- no fallback may expand the permitted book versions, chapters, accounts, or result limit.
-
-Example degraded metadata:
-
-```json
-{
-  "retrieval_mode": "keyword_only",
-  "warnings": ["Semantic search was unavailable."]
-}
-```
-
-### 4.15 Online-flow verification
-
-Tests cover:
-
-- exact quotation, named entity, paraphrase, and theme queries;
-- expected evidence appearing in the top five;
-- keyword and semantic duplicates being merged;
-- `started` and `completed` boundaries;
-- ambiguous boundaries requiring clarification before search;
-- later chapters never reaching search results, reranking, or model context;
-- weak evidence including the relevant chunks and limitation;
-- absent evidence producing an empty evidence list;
-- every returned evidence ID resolving to exact source text;
-- multiple book revisions remaining distinguishable;
-- semantic-search and reranker failures degrading as specified; and
-- no failure path widening the allowed search area.
+Search results are candidates, not evidence by themselves. Returned text must
+resolve back to the canonical Markdown body, and failure of an optional index
+must never widen the boundary. Exact tool inputs, evidence identifiers,
+candidate limits, and evidence-strength types remain open until the baseline is
+evaluated.
+
+### 4.4 Evidence and failure behaviour
+
+Librarian should distinguish:
+
+- `sufficient`: the eligible source directly supports an answer;
+- `weak`: relevant source exists but does not fully support the claim; and
+- `none`: no useful evidence was found inside the eligible scope.
+
+These labels are advisory. Provenance still reviews Muse's complete draft, and
+application code still validates exact quotations and source locations.
+
+Retrieval fails closed when the boundary or evidence location cannot be
+validated. Optional search or reranking failures may degrade to direct chapter
+reads only when those reads remain inside the same validated scope.
+
+### 4.5 Online verification
+
+Before the online path is considered complete, tests must cover:
+
+- boundary inference and clarification hand-offs;
+- catalogue filtering before agent exposure;
+- direct chapter selection for names, events, quotations, and themes;
+- later chapters never reaching tools or model context;
+- exact quotation and source-location resolution;
+- sufficient, weak, and absent evidence behaviour;
+- prompt instructions in book text remaining untrusted data; and
+- every degraded path retaining the same scope.
 
 ## 5. Downstream integration
 
@@ -921,90 +358,80 @@ Muse drafts typed candidate response
       ↓
 Provenance reviews complete response and cited evidence
       ↓
-Application validates evidence IDs, exact quotations,
-source locations, account scope, and spoiler boundaries
+Application validates exact quotations, source locations,
+account scope, and request-scoped spoiler boundary
       ↓
 Release or application-authored safe decline
 ```
 
-Muse should use `evidence_strength` to calibrate its response:
-
-- `sufficient`: answer using the cited evidence;
-- `weak`: distinguish the available context from any tentative interpretation; and
-- `none`: state that no support was found within the permitted material.
-
-Provenance independently determines whether Muse followed those rules.
+Muse should distinguish direct evidence from interpretation and state when the
+eligible material is weak or silent. Provenance independently determines
+whether the resulting response is supported and spoiler-safe.
 
 ## 6. Initial configuration
 
-```yaml
-librarian:
-  preprocessing:
-    chunk_size_tokens: 450
-    chunk_overlap_tokens: 75
-    corpus_mode: append_only
+The implemented corpus has no retrieval tuning configuration. Its fixed
+contract is the source path, source hash, twelve expected chapters, canonical
+output path, and schema version defined by the processor.
 
-  retrieval:
-    keyword_candidates: 10
-    semantic_candidates: 10
-    semantic_score_threshold: 0.5
-    maximum_combined_candidates: 20
-    maximum_rerank_candidates: 15
-    reranker_score_threshold: 0.5
-    final_evidence_limit: 5
-```
-
-All thresholds and limits are overridable configuration. They are initial values, not validated quality claims, and must be revisited through evaluation.
+Chunk size, overlap, candidate counts, embedding thresholds, fusion, reranking,
+and evidence limits are intentionally absent. Add them only with the retrieval
+implementation that uses them and evidence that the chosen defaults are useful.
 
 ## 7. Implementation sequence
 
-### 7.1 Offline vertical slice
+### 7.1 Completed offline vertical slice
 
-1. Process Gutenberg #11.
-2. Validate its 12 chapters.
-3. Produce 450-token chunks with 75-token overlap.
-4. Assign evidence IDs and verify their source ranges.
-5. Build keyword and semantic indexes.
-6. Publish the book version only after all validation passes.
+1. Verify the immutable Gutenberg #11 source.
+2. Extract and validate its twelve exact-layout chapter bodies.
+3. Create canonical Markdown chapter files with compact JSON front matter.
+4. Generate the metadata-only catalogue.
+5. Check source, body, metadata, and catalogue integrity deterministically.
 
-### 7.2 Online vertical slice
+### 7.2 Next online vertical slice
 
-1. Accept the typed Muse request and trusted context separately.
-2. Validate and resolve the spoiler boundary.
-3. Construct the permitted search area.
-4. Run keyword and semantic retrieval.
-5. Fuse and deduplicate candidates.
-6. Rerank no more than 15 chunks.
-7. Decide evidence strength.
-8. Return no more than five useful evidence records.
+1. Define Muse's typed request-scoped reading-boundary hand-off.
+2. Validate the declared boundary against the catalogue.
+3. Expose eligible chapter metadata and bounded chapter reads to Librarian.
+4. Return exact canonical text and resolvable locations to Muse.
+5. Validate quotations after Provenance approval.
+6. Exercise clarification and spoiler-suppression paths end to end.
 
-### 7.3 End-to-end integration
+### 7.3 Retrieval experiments, only if needed
 
-1. Pass the evidence bundle to Muse.
-2. Pass Muse's candidate and cited evidence to Provenance.
-3. Validate evidence IDs and exact quotations after semantic approval.
-4. Exercise spoiler suppression and safe-decline paths end to end.
+1. Create a small Alice query set covering names, exact quotations, events,
+   paraphrases, themes, and boundary failures.
+2. Measure direct chapter reads as the baseline.
+3. Compare BM25 paragraph windows, embeddings, and hybrid retrieval as derived
+   indexes.
+4. Add only the smallest approach that materially improves retrieval quality,
+   latency, or context use while preserving citation resolution.
 
-## 8. Open decisions
+## 8. Decisions and open questions
+
+### 8.1 Resolved
+
+| Decision | Resolution |
+|---|---|
+| First book | Project Gutenberg ebook 11 |
+| Upstream source | Immutable downloaded text with a fixed SHA-256 |
+| Canonical retrieval corpus | Twelve exact-layout Markdown chapter files |
+| Routing metadata | Compact, validated JSON front matter |
+| Agent catalogue | Generated metadata-only JSON projection |
+| Database or index as source of truth | No |
+| Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
+| Reading progress | Not persisted; boundary is inferred or clarified per request |
+| Metadata as evidence | No; only canonical chapter bodies are authoritative |
+
+### 8.2 Open
 
 | Decision | Status |
 |---|---|
-| First book | Gutenberg #11 |
-| Corpus lifecycle | Append-only |
-| Ambiguous current chapter | Ask whether started or completed |
-| Chunk size | 450 tokens |
-| Chunk overlap | 75 tokens |
-| Keyword candidates | 10 |
-| Semantic candidates | 10 |
-| Semantic threshold | 0.5, configurable |
-| Combined candidates | Up to 20 |
-| Rerank candidates | Up to 15 |
-| Reranker threshold | 0.5 when score is normalized, configurable |
-| Final evidence | Up to 5 useful chunks |
-| Evidence strength | Whether the evidence can answer the request |
-| Embedding model | TBD |
-| Reranking model | TBD |
-| Ranking-fusion method | TBD |
-| Evidence-strength implementation | TBD |
-| Latency limit | TBD; prefer cheap and fast |
-| Cost limit | TBD; prefer cheap and fast |
+| Librarian tool and result contracts | Define in the online vertical slice |
+| Exact evidence identifiers and within-chapter locations | Evaluate with citation validation |
+| Partial-current-chapter boundaries | Define only when resolvable positions are available |
+| BM25 paragraph-window rules | Optional; evaluate against direct reads |
+| Embedding model and contextualization | Optional; evaluate later |
+| Hybrid fusion and reranking | Optional; evaluate only if simpler retrieval is insufficient |
+| Candidate and final evidence limits | Set from evaluation, not guessed defaults |
+| Latency and cost budgets | Set with the implemented retrieval path |

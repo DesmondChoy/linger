@@ -68,13 +68,30 @@ For Beads setup and usage, ask your coding agent to consult the
 
 ## Corpus
 
-The first end-to-end corpus contains one book: Lewis Carroll's *Alice's
+The first corpus contains one book: Lewis Carroll's *Alice's
 Adventures in Wonderland* ([Project Gutenberg ebook 11](https://www.gutenberg.org/ebooks/11)).
 
-- Text: `data/gutenberg/alice-in-wonderland.txt`
+- Immutable source: `data/gutenberg/alice-in-wonderland.txt`
+- Canonical chapters: `data/corpus/alice-in-wonderland/chapters/`
+- Derived routing catalogue: `data/corpus/alice-in-wonderland/catalog.json`
 
-This milestone proves ingestion, retrieval, spoiler filtering, citation, and
-evaluation end to end. The corpus can then grow to the planned 3–5 books.
+The deterministic processor preserves each chapter's source layout, adds compact
+JSON front matter for routing, and excludes the Gutenberg wrapper and contents
+page. It supports agents inspecting the metadata-only catalogue, then reading
+only relevant chapter files. BM25 paragraph windows, embeddings, and hybrid
+indexes may be generated later; none is a source of truth or a publication
+requirement.
+
+Verify the checked-in corpus or rebuild its derived catalogue with:
+
+```bash
+uv run python -m src.linger.corpus.alice check
+uv run python -m src.linger.corpus.alice build-catalog
+```
+
+This milestone establishes ingestion and a retrieval-neutral corpus. Librarian's
+exact retrieval implementation and its end-to-end citation evaluation remain
+future work.
 
 ## Project Gutenberg notebook
 
@@ -110,6 +127,7 @@ linger/
 │   │   ├── sculptor/
 │   │   ├── serendipity/
 │   │   └── provenance/
+│   ├── corpus/                     # Canonical chapter processing and checks
 │   ├── orchestration/              # Reflection, capture, and connection flows
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations
