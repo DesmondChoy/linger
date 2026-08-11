@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { resetSession, sendMessage } from '../api'
 import type { Message } from '../types'
 import { Composer } from './Composer'
+import { MemoryDrawer } from './MemoryDrawer'
 import { MessageList } from './MessageList'
 
 export function Chat() {
@@ -10,6 +11,7 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [memoryOpen, setMemoryOpen] = useState(false)
 
   async function handleSend(text: string) {
     setMessages((current) => [
@@ -44,19 +46,44 @@ export function Chat() {
   }
 
   return (
-    <div className="chat">
-      <header>
-        <h1>Linger</h1>
-        <button type="button" onClick={handleReset} disabled={pending || !messages.length}>
-          New chat
-        </button>
-      </header>
+    <main className={`workspace${memoryOpen ? ' drawer-open' : ''}`}>
+      <section className="chat" aria-label="Reflection chat">
+        <header className="chat-header">
+          <div className="brand">
+            <span aria-hidden="true">L</span>
+            <div>
+              <h1>Linger</h1>
+              <p>Notice what stays with you.</p>
+            </div>
+          </div>
+          <div className="header-actions">
+            <button
+              className="quiet-button memory-button"
+              type="button"
+              onClick={() => setMemoryOpen((open) => !open)}
+              aria-expanded={memoryOpen}
+            >
+              Memories
+            </button>
+            <button
+              className="quiet-button"
+              type="button"
+              onClick={handleReset}
+              disabled={pending || !messages.length}
+            >
+              New chat
+            </button>
+          </div>
+        </header>
 
-      <MessageList messages={messages} pending={pending} />
+        <MessageList messages={messages} pending={pending} />
 
-      {error && <p className="error">{error}</p>}
+        {error && <p className="error">{error}</p>}
 
-      <Composer disabled={pending} onSend={handleSend} />
-    </div>
+        <Composer disabled={pending} onSend={handleSend} />
+      </section>
+
+      {memoryOpen && <MemoryDrawer onClose={() => setMemoryOpen(false)} />}
+    </main>
   )
 }

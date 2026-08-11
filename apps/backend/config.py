@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     anthropic_api_key: SecretStr | None = None
     linger_model: str = "google:gemini-2.5-flash"
     linger_allowed_origins: str = "http://localhost:5173"
+    linger_account_id: str = "local-prototype-user"
 
     @property
     def allowed_origins(self) -> list[str]:
