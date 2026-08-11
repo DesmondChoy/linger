@@ -27,10 +27,10 @@ The core journey is:
 |---|---|
 | **Reflect** | Muse drafts responses to text or a photograph and asks a small number of useful follow-up questions. Provenance reviews every complete draft before display, including drafts with no declared factual claims. |
 | **Ground** | Librarian retrieves authorised book passages and memories. Muse drafts a response separating quotations, user statements, and generated interpretation; Provenance checks the complete draft and its claimed support. |
-| **Preserve** | After explicit onboarding opt-in, Sculptor captures and organises useful memories automatically. Each save is disclosed with immediate undo; the user may pause, review, correct, or delete memories. |
+| **Preserve** | The user may save a memory explicitly, or, after explicit onboarding opt-in, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe automatic candidate, and the deterministic Memory & Policy Service alone validates and commits every save. Each save is disclosed with immediate undo; the user may pause, review, correct, or delete memories. Sculptor later curates existing memories for retrieval. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
-Automatic capture does not require per-memory approval once enabled. Content about sensitive traits is excluded from automatic capture and may be saved only through an explicit user action.
+Automatic capture does not require per-memory approval once enabled, but it does require a Muse nomination, no Provenance veto, and deterministic policy approval. Content about sensitive traits is excluded from automatic capture and may be saved only through an explicit user action.
 
 ## 3. Prototype scope
 
@@ -74,28 +74,28 @@ The system contains five reasoning agents and one deterministic service:
 
 | Component | Responsibility | Write authority |
 |---|---|---|
-| **Muse** | Maintains the reflection conversation, handles photographs and spoiler uncertainty, routes work, and produces candidate responses that cannot be sent directly to the user. | None |
+| **Muse** | Maintains the reflection conversation, handles photographs and spoiler uncertainty, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
 | **Librarian** | Plans, executes, fuses, and reranks retrieval across the corpus and authorised memories. | None |
-| **Sculptor** | Proposes structured memories, summaries, duplicate links, groups, and derived-record updates while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May request memory writes; may propose playbook pull requests |
+| **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summary or formatting updates, duplicate links, and topic groups while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
-| **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. | None |
-| **Memory & Policy Service** | Authenticates account scope and deterministically enforces access, storage, versioning, review, and cascading deletion. | Commits validated writes |
+| **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
+| **Memory & Policy Service** | Authenticates account scope and deterministically enforces capture opt-in, access, storage, idempotency, versioning, review, and cascading deletion. It accepts explicit user saves directly and automatic candidates only after the required review. | Commits validated writes |
 
-The Memory & Policy Service derives account identity from authenticated request context and never accepts it from model output; agents cannot choose or widen account scope. User review, correction, and deletion actions go directly from the web interface to the service and are not mediated by a model.
+The Memory & Policy Service derives account identity from authenticated request context and never accepts it from model output; agents cannot choose or widen account scope. Explicit saves, review, correction, and deletion actions go directly from the web interface to the service and are not mediated by a model.
 
 Agents are logical roles, not necessarily separate models or processes. Muse handles the main interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed; Provenance runs for every Muse candidate response.
 
-The five roles separate conversation, retrieval, memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, writes, and output release.
+The five roles separate conversation and optional memory nomination, retrieval, post-capture memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, capture, writes, and output release.
 
-Each hand-off carries only the candidate response, claims, evidence identifiers, confidence, and policy flags required by the next step. Full transcripts and unrestricted working context are not passed between agents.
+Each hand-off carries only the candidate response, optional memory candidate, claims, evidence identifiers, confidence, and policy flags required by the next step. Full transcripts and unrestricted working context are not passed between agents.
 
-Provenance is a separate model call that shares no working context with the other agents. It receives the complete candidate response, the cited evidence, and the applicable policy constraints — nothing else, and no write tools. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
+Provenance is a separate model call that shares no working context with the other agents. It receives the complete candidate response, any optional `MemoryCandidate`, the cited evidence, and the applicable policy constraints — nothing else, and no write tools. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
 
 ### 4.1 Output release contract
 
-Every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, and sensitive-inference flags. Those fields assist review but do not authorise release: Provenance examines the entire draft and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
+Every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
-Provenance returns `pass`, `revise`, or `reject`. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision, which returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
+Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision, which returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
 ### 4.2 End-to-end flows
 
@@ -107,7 +107,9 @@ Muse asks Librarian for evidence only when grounding is needed, but every path p
 
 #### 4.2.2 Opt-in memory capture and control
 
-Sculptor may propose a memory change, but the Memory & Policy Service owns access control and every write. The application-generated save notice reports the committed operation; it is not an unreviewed Muse response or a model-generated paraphrase.
+Explicit user saves go directly from the web interface to the Memory & Policy Service without an agent. For automatic capture, Muse may nominate one typed `MemoryCandidate`; Provenance may veto it for privacy, sensitive inference, unsupported provenance, or injection risk. The Memory & Policy Service then derives account scope, checks opt-in and idempotency, validates the request, and owns every write. The application-generated save notice reports only a committed operation and provides immediate undo.
+
+Sculptor is not part of capture. It later receives a bounded, account-scoped set of existing memories and may return a `CurationProposal | NoCurationProposal`; the Memory & Policy Service validates and applies permitted derived changes without modifying originals.
 
 ![Opt-in memory capture and control flow](images/opt-in-memory-capture-and-control.png)
 
@@ -169,11 +171,23 @@ Every candidate response contains:
 - declared claims and quotations;
 - cited evidence identifiers;
 - sensitive-inference and policy flags; and
+- `MemoryCandidate | NoMemoryCandidate`; and
 - revision metadata, when applicable.
 
-Muse's declarations are untrusted review hints. They do not narrow what Provenance must inspect or what application code must validate.
+Muse's declarations and memory nomination are untrusted review hints. They do not narrow what Provenance must inspect or what application code must validate.
 
-### 5.5 Connection proposal
+### 5.5 Memory candidate
+
+An automatic `MemoryCandidate` contains only:
+
+- the user's original words proposed for capture;
+- the source turn and evidence identifiers, when applicable;
+- a concise nomination reason; and
+- sensitive-inference and policy flags.
+
+`NoMemoryCandidate` contains a machine-checkable reason code. Neither type contains account scope or write authority. Explicit user saves bypass this agent contract and go directly to the Memory & Policy Service.
+
+### 5.6 Connection proposal
 
 A connection proposal contains:
 
@@ -197,7 +211,8 @@ Whenever an exact quotation is displayed or stored, application code verifies it
 
 - Automatic capture requires explicit onboarding opt-in.
 - Every capture produces a visible notice and immediate undo.
-- Before a long opted-in conversation is compacted or closed, Sculptor makes one final check for an important uncaptured reflection, under the same notice, undo, and sensitive-content rules.
+- Before a long opted-in conversation is compacted or closed, Muse may make one final memory nomination through the same Provenance review and deterministic capture path.
+- Explicit saves go directly to the Memory & Policy Service; no agent mediates user control actions.
 - Raw photographs remain transient unless the user explicitly saves them.
 - Derived memories from photographs may be captured only while opt-in remains active.
 - Sensitive-trait content is never captured automatically.
@@ -243,6 +258,8 @@ Before implementation, the repository will contain 40 versioned JSON or YAML cas
 - 5 memory-capture cases;
 - 10 expected-connection cases; and
 - 5 weak-evidence cases.
+
+The five memory-capture cases evaluate Muse nomination, Provenance vetoes, explicit agent-free saves, and deterministic opt-in, account-scope, sensitive-content, and idempotency enforcement. Sculptor curation is evaluated separately using seeded duplicate, noisy, grouped, and no-change memory sets under Section 7.1.
 
 Shared deterministic checks validate citations, evidence identifiers, disclosure boundaries, and Provenance verdict coverage across the set. The harness reports reflection-action accuracy; semantic detection recall for quotations, factual claims, and sensitive inferences; unsupported-claim block rate; non-factual pass rate; memory-capture precision and recall; target-connection hit rate; evidence recall; citation precision; exact-quotation accuracy; weak-evidence decline rate; latency; and cost.
 
@@ -317,7 +334,7 @@ Two loops are in scope.
 
 - Every RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
 - Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
-- No agent gains write authority: playbook and evaluation-case writes happen through repository review, not through the Memory & Policy Service, and Sculptor's product-side write path is unchanged.
+- No agent gains write authority: playbook and evaluation-case writes happen through repository review, not through the Memory & Policy Service, and Sculptor's product-side curation path remains proposal-only.
 - Loops consume only the operational metadata permitted by Section 8.1 — never raw personal memories, full messages, or sensitive-inference content.
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
