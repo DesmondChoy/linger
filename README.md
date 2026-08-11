@@ -116,6 +116,7 @@ linger/
 ├── data/                           # Corpus, manifests, and fixtures
 ├── evals/                          # Fixed evaluation cases and scorers
 ├── tests/                          # Integration, security, and end-to-end tests
+├── memories/                       # Git-ignored runtime Markdown memories
 ├── docs/                           # Architecture, reports, and risk register
 └── deploy/                         # Containers and deployment configuration
 ```

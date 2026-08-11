@@ -164,7 +164,9 @@ Each active memory contains:
 - created and updated timestamps; and
 - active or deleted status.
 
-Original user records are immutable. A user correction creates a linked active version while preserving the prior record for provenance. Sculptor may add or replace versioned derived summaries and links but cannot delete an original. User deletion cascades through all versions, derived summaries, links, embeddings, indexes, and application traces controlled by Linger.
+Original user records are immutable. A user correction creates a linked active version while preserving the prior record for provenance. Sculptor may add or replace versioned derived summaries and links but cannot delete an original. User deletion cascades through all versions and any derived storage that Linger actually controls.
+
+For the prototype, the Memory & Policy Service stores each immutable version as a Markdown file with JSON front matter under a Git-ignored `memories/<hashed-account-id>/` directory. Account capture preference lives beside those files in `policy.json`. No embedding, search-index, telemetry-memory, or vector-database layer is created until retrieval requires one; deletion covers only storage that actually exists.
 
 ### 5.3 Evidence record
 
