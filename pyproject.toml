@@ -16,4 +16,8 @@ dependencies = [
 dev = [
     "ipykernel>=7.3.0",
     "jupyterlab>=4.6.2",
+    "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
