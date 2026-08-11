@@ -1,4 +1,4 @@
-import type { MemorySaveResult, MemoryState } from './types'
+import type { ChatResult, MemorySaveResult, MemoryState } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -22,7 +22,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 export async function sendMessage(
   sessionId: string,
   message: string,
-): Promise<string> {
+): Promise<ChatResult> {
   const response = await fetch(`${BASE_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,15 +35,10 @@ export async function sendMessage(
   }
 
   const payload: unknown = await response.json()
-  if (
-    typeof payload !== 'object' ||
-    payload === null ||
-    !('reply' in payload) ||
-    typeof payload.reply !== 'string'
-  ) {
+  if (typeof payload !== 'object' || payload === null || !('reply' in payload) || typeof payload.reply !== 'string' || !('inspection' in payload)) {
     throw new Error('The server returned an invalid response.')
   }
-  return payload.reply
+  return payload as ChatResult
 }
 
 export async function resetSession(sessionId: string): Promise<void> {

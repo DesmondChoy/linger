@@ -1,4 +1,130 @@
+export type Connection = {
+  status: 'proposal'
+  tentative_claim: string
+  evidence_ids: string[]
+  interpretation: string
+  uncertainty: 'low' | 'medium' | 'high'
+  suggested_follow_up: string
+  cultural_suggestion?: {
+    kind: 'song'
+    title: string
+    creator: string
+    source_url: string
+    rationale: string
+  } | null
+}
+
+export type ConnectionBrief = {
+  cue: string
+  book_id: string | null
+  chapter_max: number | null
+  intent: 'find_connection' | 'get_recommendation'
+  allowed_sources: string[]
+}
+
+export type AgentTrace = {
+  agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Sculptor' | 'Memory Policy' | 'Provenance'
+  status: 'waiting' | 'running' | 'complete' | 'declined' | 'skipped' | 'not_wired' | 'failed'
+  detail: string
+}
+
+export type MuseTurnContract = {
+  turn_id: string
+  user_message: string
+  reading_context: { work_id: string; chapter_max: number; boundary_source: 'reader_confirmed' | 'inferred_from_question' } | null
+  policy: {
+    spoiler_ceiling: number | null
+    allow_retrieval: boolean
+    allow_connection: boolean
+  }
+}
+
+export type ContextResolution = {
+  status: 'confirmed' | 'inferred' | 'unknown'
+  work_id: string | null
+  work_title: string | null
+  chapter_max: number | null
+  boundary_source: 'reader_confirmed' | 'inferred_from_question' | null
+  explanation: string
+}
+
+export type PromptInspection = {
+  system_instructions: string
+  dynamic_input: string
+}
+
+export type LibrarianRequest = {
+  query: string
+  book_scopes: { book_id: string; chapter_max: number }[]
+  include_session_memories: boolean
+  purpose: 'connection_discovery' | 'memory_reconnection'
+}
+
+export type EvidenceBundle = {
+  items: {
+    evidence_id: string
+    source_title: string
+    location: string
+    chapter: number | null
+    excerpt: string
+    relevance: number
+    source_kind: 'book_corpus' | 'session_memory'
+  }[]
+  retrieval_note: string
+}
+
+export type SculptorCaptureInput = {
+  turn_id: string
+  original_text: string
+  capture_enabled: boolean
+}
+
+export type MemoryDecision =
+  | { status: 'proposal'; original_text: string; reason: string }
+  | { status: 'decline'; reason: string }
+
+export type MemorySavedNotice = {
+  memory_id: string
+  original_text: string
+  source_turn_id: string
+}
+
+export type TurnTimeline = {
+  id: string
+  userInput: string
+  response: string
+  traces: AgentTrace[]
+  contract?: MuseTurnContract
+  contextResolution?: ContextResolution
+  promptInspection?: PromptInspection
+  connectionBrief?: ConnectionBrief
+  librarianRequest?: LibrarianRequest
+  evidenceBundle?: EvidenceBundle
+  connection?: Connection
+  sculptorInput?: SculptorCaptureInput
+  memoryDecision?: MemoryDecision
+  memorySaved?: MemorySavedNotice
+  status: 'running' | 'complete' | 'failed'
+}
+
+export type TurnInspection = {
+  muse_turn: MuseTurnContract
+  context_resolution: ContextResolution
+  traces: AgentTrace[]
+  connection_brief: ConnectionBrief | null
+  librarian_request: LibrarianRequest | null
+  evidence_bundle: EvidenceBundle | null
+  connection_proposal: Connection | null
+  prompt: string
+}
+
+export type ChatResult = {
+  reply: string
+  inspection: TurnInspection
+}
+
 export type Message = {
+  id: string
   role: 'user' | 'assistant'
   content: string
 }
