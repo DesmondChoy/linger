@@ -83,6 +83,20 @@ The system contains five reasoning agents and one deterministic service:
 
 The Memory & Policy Service derives account identity from authenticated request context and never accepts it from model output; agents cannot choose or widen account scope. Explicit saves, review, correction, and deletion actions go directly from the web interface to the service and are not mediated by a model.
 
+**Tool implementation policy.** Pydantic AI's maintained tools, capabilities, and toolsets are the default implementation, not examples to recreate locally. The implementation must first use an [official Pydantic AI tool or capability](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/), a provider-native tool supported by Pydantic AI, or a supported external toolset such as MCP. A custom Pydantic AI function tool is permitted only for Linger-specific domain operations for which no maintained implementation exists, such as enforcing account-scoped memory retrieval or the book spoiler boundary. Such tools must be thin adapters over application services; they must not reimplement generic search clients, page fetching, tool schema generation, dispatch, or retries already supplied by Pydantic AI.
+
+The allowed tool surface is deliberately smaller than each agent's responsibility:
+
+| Agent | Allowed tools or capabilities | Implementation source |
+|---|---|---|
+| **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support; specialist calls and memory nomination are typed, application-controlled hand-offs rather than model-controlled tools. | Pydantic AI multimodal input and typed outputs; Linger orchestration |
+| **Librarian** | Search the public-domain corpus, search authorised memories, and resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
+| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
+| **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
+| **Provenance** | No tools. It reviews only the complete candidate, supplied evidence, and policy constraints. | Pydantic AI typed input and output contracts |
+
+Exa is the sole general web-search integration for the prototype. Install the `pydantic-ai-harness[exa]` extra and register `ExaSearch()` in Serendipity's `capabilities`; do not implement an Exa client or web-search tool locally. The older `exa_search_tool`, related Exa common tools, and `ExaToolset` are deprecated and must not be introduced. Exa results remain untrusted evidence and are still subject to Sections 6.4 and 6.5. This allocation does not authorise browser control, arbitrary URL fetching, shell access, or any external action excluded by Section 3.
+
 Agents are logical roles, not necessarily separate models or processes. Muse handles the main interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed; Provenance runs for every Muse candidate response.
 
 The five roles separate conversation and optional memory nomination, retrieval, post-capture memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, capture, writes, and output release.
