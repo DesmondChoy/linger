@@ -2897,6 +2897,10 @@ def run_trufflehog_preflight(
                 "--branch",
                 "HEAD",
                 "--no-color",
+                # Package managers own binary upgrades. TruffleHog's
+                # self-updater fails for Homebrew-managed installations and
+                # must never turn a credential scan into an updater failure.
+                "--no-update",
                 # Match TruffleHog's pre-commit mode. Unverified heuristic
                 # candidates are excluded to avoid restoring false positives.
                 "--results=verified,unknown",

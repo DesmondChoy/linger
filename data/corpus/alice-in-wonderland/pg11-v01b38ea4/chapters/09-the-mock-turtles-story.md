@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch09",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch09",
   "chapter_number": 9,
   "title": "The Mock Turtle’s Story",
   "routing_description": "The Duchess searches for morals in everything until the Queen drives her away. The Gryphon then takes Alice to the sorrowful Mock Turtle, who describes his pun-filled education under the sea.",

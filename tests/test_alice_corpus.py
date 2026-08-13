@@ -9,16 +9,21 @@ from pathlib import Path
 import pytest
 
 from src.linger.corpus.alice import (
+    BOOK,
+    BOOK_VERSION_ID,
     CHAPTERS,
     DEFAULT_OUTPUT,
     DEFAULT_SOURCE,
     SOURCE_SHA256,
+    WORK_ID,
+    parse_chapters,
+)
+from src.linger.corpus.book import (
     CorpusBuildError,
     build_catalog,
     check_corpus,
     initialise_corpus,
     parse_chapter_markdown,
-    parse_chapters,
     render_initial_corpus,
 )
 
@@ -55,7 +60,7 @@ EXPECTED_SOURCE_LINES = [
 
 
 def _copy_initial_corpus(destination: Path) -> None:
-    initialise_corpus(DEFAULT_SOURCE, destination)
+    initialise_corpus(BOOK, DEFAULT_SOURCE, destination)
 
 
 def test_raw_source_is_immutable() -> None:
@@ -88,7 +93,7 @@ def test_parser_preserves_source_layout_and_codepoints() -> None:
 
 
 def test_initial_render_has_twelve_chapters_and_catalog() -> None:
-    artifacts = render_initial_corpus()
+    artifacts = render_initial_corpus(BOOK)
     chapter_paths = sorted(path for path in artifacts if path.suffix == ".md")
 
     assert len(chapter_paths) == 12
@@ -97,7 +102,9 @@ def test_initial_render_has_twelve_chapters_and_catalog() -> None:
     assert chapter_paths[-1] == Path("chapters/12-alices-evidence.md")
 
     metadata, body = parse_chapter_markdown(artifacts[chapter_paths[0]])
-    assert metadata.chapter_id == "pg11-ch01"
+    assert metadata.work_id == WORK_ID
+    assert metadata.book_version_id == BOOK_VERSION_ID
+    assert metadata.chapter_id == f"{BOOK_VERSION_ID}-ch01"
     assert metadata.routing_description
     assert metadata.characters
     assert metadata.retrieval_cues
@@ -130,6 +137,8 @@ def test_catalog_projection(tmp_path: Path) -> None:
     _copy_initial_corpus(tmp_path)
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
 
+    assert catalog["work_id"] == WORK_ID
+    assert catalog["book_version_id"] == BOOK_VERSION_ID
     assert catalog["chapter_count"] == 12
     assert [chapter["chapter_number"] for chapter in catalog["chapters"]] == list(
         range(1, 13)
@@ -152,15 +161,79 @@ def test_catalog_rebuild_preserves_canonical_chapter(tmp_path: Path) -> None:
         f"---\n{encoded}\n---\n\n{body}", encoding="utf-8", newline="\n"
     )
 
-    assert "catalog.json is missing or stale" in check_corpus(DEFAULT_SOURCE, tmp_path)
-    build_catalog(tmp_path)
+    assert "catalog.json is missing or stale" in check_corpus(
+        BOOK, DEFAULT_SOURCE, tmp_path
+    )
+    build_catalog(BOOK, DEFAULT_SOURCE, tmp_path)
 
-    assert check_corpus(DEFAULT_SOURCE, tmp_path) == ()
+    assert check_corpus(BOOK, DEFAULT_SOURCE, tmp_path) == ()
     assert chapter_path.read_text(encoding="utf-8") != original
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert catalog["chapters"][0]["routing_description"] == (
         "A revised routing description."
     )
+
+
+def test_unknown_schema_version_fails_closed(tmp_path: Path) -> None:
+    _copy_initial_corpus(tmp_path)
+    chapter_path = tmp_path / "chapters/01-down-the-rabbit-hole.md"
+    chapter_path.write_text(
+        chapter_path.read_text(encoding="utf-8").replace(
+            '"schema_version": 1', '"schema_version": 2', 1
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    errors = check_corpus(BOOK, DEFAULT_SOURCE, tmp_path)
+
+    assert any("chapter front matter is invalid" in error for error in errors)
+    with pytest.raises(CorpusBuildError, match="cannot build catalog"):
+        build_catalog(BOOK, DEFAULT_SOURCE, tmp_path)
+
+
+def test_catalog_rebuild_rejects_structurally_invalid_chapter(tmp_path: Path) -> None:
+    _copy_initial_corpus(tmp_path)
+    catalog_path = tmp_path / "catalog.json"
+    original_catalog = catalog_path.read_bytes()
+    chapter_path = tmp_path / "chapters/01-down-the-rabbit-hole.md"
+    chapter_path.write_text(
+        chapter_path.read_text(encoding="utf-8").replace(
+            f'"chapter_id": "{BOOK_VERSION_ID}-ch01"',
+            '"chapter_id": "wrong-version-ch01"',
+            1,
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    with pytest.raises(CorpusBuildError, match="stale chapter_id"):
+        build_catalog(BOOK, DEFAULT_SOURCE, tmp_path)
+
+    assert catalog_path.read_bytes() == original_catalog
+
+
+def test_check_rejects_every_unexpected_artifact(tmp_path: Path) -> None:
+    _copy_initial_corpus(tmp_path)
+    (tmp_path / "notes.txt").write_text("unexpected", encoding="utf-8")
+    nested = tmp_path / "chapters/drafts"
+    nested.mkdir()
+    (nested / "alternate.md").write_text("unexpected", encoding="utf-8")
+    (tmp_path / "empty").mkdir()
+
+    errors = check_corpus(BOOK, DEFAULT_SOURCE, tmp_path)
+
+    assert "unexpected file: notes.txt" in errors
+    assert "unexpected file: chapters/drafts/alternate.md" in errors
+    assert "unexpected directory: chapters/drafts" in errors
+    assert "unexpected directory: empty" in errors
+
+
+def test_initialization_rejects_an_unrelated_existing_file(tmp_path: Path) -> None:
+    (tmp_path / "keep.txt").write_text("do not overwrite", encoding="utf-8")
+
+    with pytest.raises(CorpusBuildError, match="non-empty corpus directory"):
+        _copy_initial_corpus(tmp_path)
 
 
 def test_check_detects_tampered_or_missing_chapters(tmp_path: Path) -> None:
@@ -175,7 +248,7 @@ def test_check_detects_tampered_or_missing_chapters(tmp_path: Path) -> None:
     )
     (tmp_path / "chapters/02-the-pool-of-tears.md").unlink()
 
-    errors = check_corpus(DEFAULT_SOURCE, tmp_path)
+    errors = check_corpus(BOOK, DEFAULT_SOURCE, tmp_path)
 
     assert "chapters/01-down-the-rabbit-hole.md: body differs from source" in errors
     assert "missing chapter file: chapters/02-the-pool-of-tears.md" in errors
@@ -183,4 +256,4 @@ def test_check_detects_tampered_or_missing_chapters(tmp_path: Path) -> None:
 
 def test_checked_in_corpus_is_current() -> None:
     assert len(CHAPTERS) == 12
-    assert check_corpus(DEFAULT_SOURCE, DEFAULT_OUTPUT) == ()
+    assert check_corpus(BOOK, DEFAULT_SOURCE, DEFAULT_OUTPUT) == ()

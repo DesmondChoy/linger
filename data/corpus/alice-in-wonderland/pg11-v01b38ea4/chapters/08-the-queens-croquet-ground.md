@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch08",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch08",
   "chapter_number": 8,
   "title": "The Queen’s Croquet-Ground",
   "routing_description": "Alice meets card gardeners painting white roses red, then joins the King and Queen of Hearts for a lawless croquet game using flamingoes, hedgehogs, and soldiers. The Cheshire Cat's bodiless head creates a dispute over whether it can be beheaded.",

@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch10",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch10",
   "chapter_number": 10,
   "title": "The Lobster Quadrille",
   "routing_description": "The Mock Turtle and Gryphon demonstrate the Lobster Quadrille, explain fanciful facts about sea creatures, and make Alice recite altered poems. Their songs end when they hear that the Knave's trial is beginning.",

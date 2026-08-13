@@ -35,13 +35,14 @@ Use stable, lowercase slugs:
 
 ```text
 data/gutenberg/<source-file>
-data/corpus/<document-slug>/catalog.json
-data/corpus/<document-slug>/chapters/<NN>-<chapter-slug>.md
+data/corpus/<work-slug>/<book-version-id>/catalog.json
+data/corpus/<work-slug>/<book-version-id>/chapters/<NN>-<chapter-slug>.md
 ```
 
-Use enough zero padding to keep lexical order equal to source order. Do not
-rename established files merely to improve wording; paths may become durable
-retrieval references.
+Use enough zero padding to keep lexical order equal to source order. The
+book-version directory lets immutable revisions coexist without collisions. Do
+not rename established files merely to improve wording; paths may become
+durable retrieval references.
 
 ## Chapter file
 
@@ -51,8 +52,9 @@ Use JSON front matter with this stable field order:
 ---
 {
   "schema_version": 1,
-  "document_id": "stable-document-id",
-  "chapter_id": "stable-document-id-ch01",
+  "work_id": "stable-work-id",
+  "book_version_id": "stable-work-id-v1234abcd",
+  "chapter_id": "stable-work-id-v1234abcd-ch01",
   "chapter_number": 1,
   "title": "Source chapter title",
   "routing_description": "Concrete body-grounded routing summary.",
@@ -76,9 +78,12 @@ Exact narrative body...
 ### Field rules
 
 - `schema_version`: Version the file contract, not the curation prose.
-- `document_id`: Use a stable source-backed identifier, not a title slug likely
-  to change.
-- `chapter_id`: Combine the document ID and stable source order.
+- `work_id`: Identify the logical work across immutable source revisions. Use a
+  stable source-backed identifier, not a title slug likely to change.
+- `book_version_id`: Identify one immutable source revision by combining the
+  work ID with the first eight characters of its full SHA-256.
+- `chapter_id`: Combine the book-version ID and stable source order so two
+  revisions cannot produce the same chapter identity.
 - `chapter_number`: Store numeric source order. Do not impose an Alice-specific
   upper bound.
 - `title`: Preserve the source's title and Unicode.
@@ -135,7 +140,8 @@ Use this shape unless a current consumer requires less:
 ```json
 {
   "schema_version": 1,
-  "document_id": "stable-document-id",
+  "work_id": "stable-work-id",
+  "book_version_id": "stable-work-id-v1234abcd",
   "title": "Document title",
   "author": "Author",
   "source_path": "data/gutenberg/source.txt",
@@ -180,13 +186,20 @@ not turn a guess into a contract.
 
 ## Minimum command contract
 
-Provide source-specific equivalents of:
+The shared command accepts a source-specific adapter module that exposes
+`BOOK`. The adapter owns source parsing and curated metadata; the shared
+lifecycle owns rendering, strict validation, catalogue projection, and complete
+artifact checks:
 
 ```text
-init           create canonical files once; refuse overwrite
-build-catalog  rebuild only the derived catalog
-check          read-only source and artifact integrity verification
+python -m src.linger.corpus.book <adapter-module> init
+python -m src.linger.corpus.book <adapter-module> build-catalog
+python -m src.linger.corpus.book <adapter-module> check
 ```
+
+For example, Alice uses `src.linger.corpus.alice`. A new chapter-based book adds
+a small adapter with its own immutable-source hash and fail-closed extractor;
+it does not copy the lifecycle implementation or reuse Alice's heading rules.
 
 Do not make routine builds regenerate reviewed semantic metadata. Do not make a
 database or an index necessary to inspect, diff, validate, or recover the

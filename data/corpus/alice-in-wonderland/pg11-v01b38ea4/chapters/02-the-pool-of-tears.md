@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch02",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch02",
   "chapter_number": 2,
   "title": "The Pool of Tears",
   "routing_description": "Alice grows more than nine feet tall, cries a pool of tears, then shrinks with the White Rabbit's fan and swims with a Mouse and other animals while questioning her identity and memory.",

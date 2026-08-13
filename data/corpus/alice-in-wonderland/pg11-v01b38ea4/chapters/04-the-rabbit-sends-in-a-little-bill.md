@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch04",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch04",
   "chapter_number": 4,
   "title": "The Rabbit Sends in a Little Bill",
   "routing_description": "Mistaken for the White Rabbit's servant Mary Ann, Alice enters his house and grows until she fills it. After Bill the Lizard is sent down the chimney, Alice escapes, plays with a giant puppy, and finds a mushroom topped by a blue Caterpillar.",

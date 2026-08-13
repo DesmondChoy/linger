@@ -16,7 +16,7 @@ designing files or code. Also inspect the current reference implementation:
 
 - `src/linger/corpus/alice.py`
 - `tests/test_alice_corpus.py`
-- `data/corpus/alice-in-wonderland/`
+- `data/corpus/alice-in-wonderland/pg11-v01b38ea4/`
 
 Reuse its invariants, not its Gutenberg markers, chapter count, heading regexes,
 titles, line ranges, or metadata values.
@@ -65,11 +65,12 @@ genuinely shared code. Do not build a generic ingestion framework pre-emptively.
 Write files under:
 
 ```text
-data/corpus/<document-slug>/
-├── catalog.json
-└── chapters/
-    ├── 01-<chapter-slug>.md
-    └── ...
+data/corpus/<work-slug>/
+└── <book-version-id>/
+    ├── catalog.json
+    └── chapters/
+        ├── 01-<chapter-slug>.md
+        └── ...
 ```
 
 Use deterministic JSON inside Markdown `---` front-matter delimiters. JSON is

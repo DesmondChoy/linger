@@ -173,6 +173,7 @@ class AutoreviewHardeningTests(unittest.TestCase):
                     command[7:],
                     [
                         "--no-color",
+                        "--no-update",
                         "--results=verified,unknown",
                         "--fail",
                         "--fail-on-scan-errors",

@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch11",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch11",
   "chapter_number": 11,
   "title": "Who Stole the Tarts?",
   "routing_description": "The Knave of Hearts is tried for stealing the Queen's tarts in a chaotic courtroom overseen by the King. The Hatter and Cook give absurd evidence while Alice grows larger and is called as the next witness.",

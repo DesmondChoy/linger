@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch12",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch12",
   "chapter_number": 12,
   "title": "Alice’s Evidence",
   "routing_description": "Alice challenges the court's invented rules and meaningless evidence as she grows to full size. She rejects sentence before verdict, wakes on the riverbank, and tells her sister that Wonderland was a dream.",

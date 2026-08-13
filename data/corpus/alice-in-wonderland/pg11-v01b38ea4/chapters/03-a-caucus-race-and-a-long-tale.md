@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch03",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch03",
   "chapter_number": 3,
   "title": "A Caucus-Race and a Long Tale",
   "routing_description": "The soaked animals try to dry themselves with a history lesson and a chaotic Caucus-race in which everyone wins. The Mouse tells a tail-shaped tale before Alice frightens the company away by praising Dinah.",

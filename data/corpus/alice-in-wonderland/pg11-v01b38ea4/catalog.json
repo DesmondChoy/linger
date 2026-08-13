@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "document_id": "pg11",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
   "title": "Alice's Adventures in Wonderland",
   "author": "Lewis Carroll",
   "source_path": "data/gutenberg/alice-in-wonderland.txt",
@@ -8,7 +9,7 @@
   "chapter_count": 12,
   "chapters": [
     {
-      "chapter_id": "pg11-ch01",
+      "chapter_id": "pg11-v01b38ea4-ch01",
       "chapter_number": 1,
       "title": "Down the Rabbit-Hole",
       "routing_description": "Alice follows a watch-carrying White Rabbit down a deep rabbit-hole into an underground hall, where a golden key, DRINK ME bottle, and EAT ME cake repeatedly change her size as she tries to reach a garden.",
@@ -38,7 +39,7 @@
       "path": "chapters/01-down-the-rabbit-hole.md"
     },
     {
-      "chapter_id": "pg11-ch02",
+      "chapter_id": "pg11-v01b38ea4-ch02",
       "chapter_number": 2,
       "title": "The Pool of Tears",
       "routing_description": "Alice grows more than nine feet tall, cries a pool of tears, then shrinks with the White Rabbit's fan and swims with a Mouse and other animals while questioning her identity and memory.",
@@ -70,7 +71,7 @@
       "path": "chapters/02-the-pool-of-tears.md"
     },
     {
-      "chapter_id": "pg11-ch03",
+      "chapter_id": "pg11-v01b38ea4-ch03",
       "chapter_number": 3,
       "title": "A Caucus-Race and a Long Tale",
       "routing_description": "The soaked animals try to dry themselves with a history lesson and a chaotic Caucus-race in which everyone wins. The Mouse tells a tail-shaped tale before Alice frightens the company away by praising Dinah.",
@@ -102,7 +103,7 @@
       "path": "chapters/03-a-caucus-race-and-a-long-tale.md"
     },
     {
-      "chapter_id": "pg11-ch04",
+      "chapter_id": "pg11-v01b38ea4-ch04",
       "chapter_number": 4,
       "title": "The Rabbit Sends in a Little Bill",
       "routing_description": "Mistaken for the White Rabbit's servant Mary Ann, Alice enters his house and grows until she fills it. After Bill the Lizard is sent down the chimney, Alice escapes, plays with a giant puppy, and finds a mushroom topped by a blue Caterpillar.",
@@ -132,7 +133,7 @@
       "path": "chapters/04-the-rabbit-sends-in-a-little-bill.md"
     },
     {
-      "chapter_id": "pg11-ch05",
+      "chapter_id": "pg11-v01b38ea4-ch05",
       "chapter_number": 5,
       "title": "Advice from a Caterpillar",
       "routing_description": "The Caterpillar questions Alice's identity, tests her memory, and explains that opposite sides of the mushroom change her size. A long-necked Alice is then mistaken for a serpent by a Pigeon guarding its eggs.",
@@ -161,7 +162,7 @@
       "path": "chapters/05-advice-from-a-caterpillar.md"
     },
     {
-      "chapter_id": "pg11-ch06",
+      "chapter_id": "pg11-v01b38ea4-ch06",
       "chapter_number": 6,
       "title": "Pig and Pepper",
       "routing_description": "Alice visits the Duchess's pepper-filled kitchen, where the Cook throws dishes and a sneezing baby turns into a pig. The Cheshire Cat directs Alice toward the March Hare while appearing and disappearing.",
@@ -194,7 +195,7 @@
       "path": "chapters/06-pig-and-pepper.md"
     },
     {
-      "chapter_id": "pg11-ch07",
+      "chapter_id": "pg11-v01b38ea4-ch07",
       "chapter_number": 7,
       "title": "A Mad Tea-Party",
       "routing_description": "Alice joins the Hatter, March Hare, and Dormouse at an endless tea party filled with riddles, wordplay, a broken watch, and the Dormouse's treacle-well story. She leaves in disgust and finally enters the garden.",
@@ -226,7 +227,7 @@
       "path": "chapters/07-a-mad-tea-party.md"
     },
     {
-      "chapter_id": "pg11-ch08",
+      "chapter_id": "pg11-v01b38ea4-ch08",
       "chapter_number": 8,
       "title": "The Queen’s Croquet-Ground",
       "routing_description": "Alice meets card gardeners painting white roses red, then joins the King and Queen of Hearts for a lawless croquet game using flamingoes, hedgehogs, and soldiers. The Cheshire Cat's bodiless head creates a dispute over whether it can be beheaded.",
@@ -260,7 +261,7 @@
       "path": "chapters/08-the-queens-croquet-ground.md"
     },
     {
-      "chapter_id": "pg11-ch09",
+      "chapter_id": "pg11-v01b38ea4-ch09",
       "chapter_number": 9,
       "title": "The Mock Turtle’s Story",
       "routing_description": "The Duchess searches for morals in everything until the Queen drives her away. The Gryphon then takes Alice to the sorrowful Mock Turtle, who describes his pun-filled education under the sea.",
@@ -293,7 +294,7 @@
       "path": "chapters/09-the-mock-turtles-story.md"
     },
     {
-      "chapter_id": "pg11-ch10",
+      "chapter_id": "pg11-v01b38ea4-ch10",
       "chapter_number": 10,
       "title": "The Lobster Quadrille",
       "routing_description": "The Mock Turtle and Gryphon demonstrate the Lobster Quadrille, explain fanciful facts about sea creatures, and make Alice recite altered poems. Their songs end when they hear that the Knave's trial is beginning.",
@@ -322,7 +323,7 @@
       "path": "chapters/10-the-lobster-quadrille.md"
     },
     {
-      "chapter_id": "pg11-ch11",
+      "chapter_id": "pg11-v01b38ea4-ch11",
       "chapter_number": 11,
       "title": "Who Stole the Tarts?",
       "routing_description": "The Knave of Hearts is tried for stealing the Queen's tarts in a chaotic courtroom overseen by the King. The Hatter and Cook give absurd evidence while Alice grows larger and is called as the next witness.",
@@ -357,7 +358,7 @@
       "path": "chapters/11-who-stole-the-tarts.md"
     },
     {
-      "chapter_id": "pg11-ch12",
+      "chapter_id": "pg11-v01b38ea4-ch12",
       "chapter_number": 12,
       "title": "Alice’s Evidence",
       "routing_description": "Alice challenges the court's invented rules and meaningless evidence as she grows to full size. She rejects sentence before verdict, wakes on the riverbank, and tells her sister that Wonderland was a dream.",

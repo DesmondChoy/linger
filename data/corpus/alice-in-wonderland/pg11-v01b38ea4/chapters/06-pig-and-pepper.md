@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch06",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch06",
   "chapter_number": 6,
   "title": "Pig and Pepper",
   "routing_description": "Alice visits the Duchess's pepper-filled kitchen, where the Cook throws dishes and a sneezing baby turns into a pig. The Cheshire Cat directs Alice toward the March Hare while appearing and disappearing.",

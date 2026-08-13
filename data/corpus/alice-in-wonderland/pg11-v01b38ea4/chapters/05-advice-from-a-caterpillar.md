@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch05",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch05",
   "chapter_number": 5,
   "title": "Advice from a Caterpillar",
   "routing_description": "The Caterpillar questions Alice's identity, tests her memory, and explains that opposite sides of the mushroom change her size. A long-necked Alice is then mistaken for a serpent by a Pigeon guarding its eggs.",

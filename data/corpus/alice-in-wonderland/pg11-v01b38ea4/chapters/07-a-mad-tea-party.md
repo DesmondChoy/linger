@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch07",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch07",
   "chapter_number": 7,
   "title": "A Mad Tea-Party",
   "routing_description": "Alice joins the Hatter, March Hare, and Dormouse at an endless tea party filled with riddles, wordplay, a broken watch, and the Dormouse's treacle-well story. She leaves in disgust and finally enters the garden.",

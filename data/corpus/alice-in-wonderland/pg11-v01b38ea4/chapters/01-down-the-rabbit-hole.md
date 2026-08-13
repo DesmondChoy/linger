@@ -1,8 +1,9 @@
 ---
 {
   "schema_version": 1,
-  "document_id": "pg11",
-  "chapter_id": "pg11-ch01",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "chapter_id": "pg11-v01b38ea4-ch01",
   "chapter_number": 1,
   "title": "Down the Rabbit-Hole",
   "routing_description": "Alice follows a watch-carrying White Rabbit down a deep rabbit-hole into an underground hall, where a golden key, DRINK ME bottle, and EAT ME cake repeatedly change her size as she tries to reach a garden.",
