@@ -7,6 +7,10 @@ NOTE(kay): That is deliberate for the prototype. Swapping in Redis or a
 database means changing this module and nothing else.
 """
 
+from dataclasses import dataclass
+from uuid import uuid4
+
+from pydantic import BaseModel, Field
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -14,8 +18,6 @@ from pydantic_ai.messages import (
     TextPart,
     UserPromptPart,
 )
-from pydantic import BaseModel, Field
-from uuid import uuid4
 
 _sessions: dict[str, list[ModelMessage]] = {}
 _book_contexts: dict[str, "BookContext"] = {}
@@ -48,6 +50,16 @@ class ReflectionMemory(BaseModel):
     source_turn_id: str
 
 
+@dataclass(frozen=True)
+class ReadingStateSnapshot:
+    """Reading state to restore when a turn fails before release."""
+
+    book_context: BookContext | None
+    confirmed_book_contexts: dict[str, BookContext]
+    book_selection: BookSelection | None
+    reading_candidate: ReadingCandidate | None
+
+
 def history(session_id: str) -> list[ModelMessage]:
     return _sessions.get(session_id, [])
 
@@ -69,6 +81,32 @@ def clear(session_id: str) -> bool:
     _reading_candidates.pop(session_id, None)
     _memories.pop(session_id, None)
     return _sessions.pop(session_id, None) is not None
+
+
+def snapshot_reading_state(session_id: str) -> ReadingStateSnapshot:
+    """Capture the state that prompt assembly may tentatively change."""
+    return ReadingStateSnapshot(
+        book_context=_book_contexts.get(session_id),
+        confirmed_book_contexts=dict(_confirmed_book_contexts.get(session_id, {})),
+        book_selection=_book_selections.get(session_id),
+        reading_candidate=_reading_candidates.get(session_id),
+    )
+
+
+def restore_reading_state(session_id: str, snapshot: ReadingStateSnapshot) -> None:
+    """Roll back tentative reading state after a failed turn."""
+    _book_contexts.pop(session_id, None)
+    _confirmed_book_contexts.pop(session_id, None)
+    _book_selections.pop(session_id, None)
+    _reading_candidates.pop(session_id, None)
+    if snapshot.book_context is not None:
+        _book_contexts[session_id] = snapshot.book_context
+    if snapshot.confirmed_book_contexts:
+        _confirmed_book_contexts[session_id] = dict(snapshot.confirmed_book_contexts)
+    if snapshot.book_selection is not None:
+        _book_selections[session_id] = snapshot.book_selection
+    if snapshot.reading_candidate is not None:
+        _reading_candidates[session_id] = snapshot.reading_candidate
 
 
 def book_context(session_id: str) -> BookContext | None:

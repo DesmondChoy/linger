@@ -8,7 +8,7 @@ from apps.backend.serendipity import discover
 class SerendipityTests(unittest.TestCase):
     def discover(self, brief: ConnectionBrief):
         evidence = Librarian().retrieve(LibrarianRequest(
-            query=f"{brief.cue} identity change rule power equal pigs milk",
+            query=f"{brief.cue} identity change rule power equal pigs milk growing myself",
             book_scopes=[BookScope(book_id=brief.book_id or "", chapter_max=brief.chapter_max or 1)],
         ))
         return discover(brief, evidence)
@@ -56,6 +56,29 @@ class SerendipityTests(unittest.TestCase):
             ConnectionBrief(cue="How does the milk connect to power and equality?", book_id="animal-farm", chapter_max=3)
         )
         self.assertIsInstance(result, ConnectionProposal)
+
+    def test_declines_when_animal_farm_claim_lacks_required_evidence(self) -> None:
+        result = self.discover(
+            ConnectionBrief(
+                cue="How do all animals being comrades connect to equality and power?",
+                book_id="animal-farm",
+                chapter_max=2,
+            )
+        )
+
+        self.assertIsInstance(result, ConnectionDecline)
+        assert isinstance(result, ConnectionDecline)
+        self.assertEqual(result.reason, "insufficient_evidence")
+
+    def test_declines_for_an_unregistered_book(self) -> None:
+        result = discover(
+            ConnectionBrief(cue="How does identity change?", book_id="unknown-book", chapter_max=5),
+            Librarian().retrieve(LibrarianRequest(query="identity")),
+        )
+
+        self.assertIsInstance(result, ConnectionDecline)
+        assert isinstance(result, ConnectionDecline)
+        self.assertEqual(result.reason, "unsupported_cue")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,11 @@
 data/gutenberg/pg*.txt
 data/gutenberg/pg*.metadata.json
 
+# Canonical, reviewable corpus artifacts are part of the repository.
+!data/
+!data/corpus/
+!data/corpus/**
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

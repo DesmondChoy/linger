@@ -68,13 +68,32 @@ For Beads setup and usage, ask your coding agent to consult the
 
 ## Corpus
 
-The first end-to-end corpus contains one book: Lewis Carroll's *Alice's
+The first corpus contains one book: Lewis Carroll's *Alice's
 Adventures in Wonderland* ([Project Gutenberg ebook 11](https://www.gutenberg.org/ebooks/11)).
 
-- Text: `data/gutenberg/alice-in-wonderland.txt`
+- Immutable source: `data/gutenberg/alice-in-wonderland.txt`
+- Immutable revision: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/`
+- Canonical chapters: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/`
+- Derived routing catalogue: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/catalog.json`
 
-This milestone proves ingestion, retrieval, spoiler filtering, citation, and
-evaluation end to end. The corpus can then grow to the planned 3–5 books.
+The shared corpus lifecycle preserves chapter layout, adds compact JSON front
+matter for routing, and validates every canonical artifact before publication.
+Alice supplies a small Gutenberg-specific adapter for its wrapper, contents,
+headings, and boundaries. Each future book supplies its own source-specific
+adapter while reusing the same renderer, catalogue builder, and integrity
+checks. BM25 paragraph windows, embeddings, and hybrid indexes may be generated
+later; none is a source of truth or a publication requirement.
+
+Verify the checked-in corpus or rebuild its derived catalogue with:
+
+```bash
+uv run python -m src.linger.corpus.book src.linger.corpus.alice check
+uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
+```
+
+This milestone establishes ingestion and a retrieval-neutral corpus. Librarian's
+exact retrieval implementation and its end-to-end citation evaluation remain
+future work.
 
 ## Project Gutenberg notebook
 
@@ -110,6 +129,7 @@ linger/
 │   │   ├── sculptor/
 │   │   ├── serendipity/
 │   │   └── provenance/
+│   ├── corpus/                     # Canonical chapter processing and checks
 │   ├── orchestration/              # Reflection, capture, and connection flows
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations

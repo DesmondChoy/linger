@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "title": "Alice's Adventures in Wonderland",
+  "author": "Lewis Carroll",
+  "source_path": "data/gutenberg/alice-in-wonderland.txt",
+  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+  "chapter_count": 12,
+  "chapters": [
+    {
+      "chapter_id": "pg11-v01b38ea4-ch01",
+      "chapter_number": 1,
+      "title": "Down the Rabbit-Hole",
+      "routing_description": "Alice follows a watch-carrying White Rabbit down a deep rabbit-hole into an underground hall, where a golden key, DRINK ME bottle, and EAT ME cake repeatedly change her size as she tries to reach a garden.",
+      "characters": [
+        "Alice",
+        "White Rabbit",
+        "Alice's sister",
+        "Dinah"
+      ],
+      "locations": [
+        "riverbank",
+        "rabbit-hole",
+        "deep well",
+        "underground hall",
+        "garden doorway"
+      ],
+      "retrieval_cues": [
+        "waistcoat-pocket watch",
+        "orange marmalade jar",
+        "do cats eat bats",
+        "golden key and glass table",
+        "DRINK ME bottle",
+        "EAT ME cake",
+        "shutting up like a telescope"
+      ],
+      "word_count": 2143,
+      "path": "chapters/01-down-the-rabbit-hole.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch02",
+      "chapter_number": 2,
+      "title": "The Pool of Tears",
+      "routing_description": "Alice grows more than nine feet tall, cries a pool of tears, then shrinks with the White Rabbit's fan and swims with a Mouse and other animals while questioning her identity and memory.",
+      "characters": [
+        "Alice",
+        "White Rabbit",
+        "Mouse",
+        "Duck",
+        "Dodo",
+        "Lory",
+        "Eaglet",
+        "Dinah"
+      ],
+      "locations": [
+        "underground hall",
+        "pool of tears"
+      ],
+      "retrieval_cues": [
+        "curiouser and curiouser",
+        "nine feet high",
+        "white kid gloves and fan",
+        "who in the world am I",
+        "How doth the little crocodile",
+        "swimming in her own tears",
+        "O Mouse",
+        "cats and dogs offend the Mouse"
+      ],
+      "word_count": 2111,
+      "path": "chapters/02-the-pool-of-tears.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch03",
+      "chapter_number": 3,
+      "title": "A Caucus-Race and a Long Tale",
+      "routing_description": "The soaked animals try to dry themselves with a history lesson and a chaotic Caucus-race in which everyone wins. The Mouse tells a tail-shaped tale before Alice frightens the company away by praising Dinah.",
+      "characters": [
+        "Alice",
+        "Mouse",
+        "Dodo",
+        "Lory",
+        "Duck",
+        "Eaglet",
+        "Crab",
+        "Magpie",
+        "Canary"
+      ],
+      "locations": [
+        "shore of the pool of tears"
+      ],
+      "retrieval_cues": [
+        "driest thing I know",
+        "William the Conqueror",
+        "Caucus-race",
+        "everybody has won",
+        "comfits and thimble prizes",
+        "long tale and long tail",
+        "Fury as judge and jury",
+        "Dinah scares the birds"
+      ],
+      "word_count": 1697,
+      "path": "chapters/03-a-caucus-race-and-a-long-tale.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch04",
+      "chapter_number": 4,
+      "title": "The Rabbit Sends in a Little Bill",
+      "routing_description": "Mistaken for the White Rabbit's servant Mary Ann, Alice enters his house and grows until she fills it. After Bill the Lizard is sent down the chimney, Alice escapes, plays with a giant puppy, and finds a mushroom topped by a blue Caterpillar.",
+      "characters": [
+        "Alice",
+        "White Rabbit",
+        "Pat",
+        "Bill the Lizard",
+        "Puppy",
+        "Caterpillar"
+      ],
+      "locations": [
+        "White Rabbit's house",
+        "thick wood",
+        "mushroom"
+      ],
+      "retrieval_cues": [
+        "Mary Ann",
+        "W. RABBIT brass plate",
+        "giant Alice trapped in house",
+        "Bill down the chimney",
+        "pebbles turn into cakes",
+        "enormous puppy",
+        "blue Caterpillar smoking a hookah"
+      ],
+      "word_count": 2648,
+      "path": "chapters/04-the-rabbit-sends-in-a-little-bill.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch05",
+      "chapter_number": 5,
+      "title": "Advice from a Caterpillar",
+      "routing_description": "The Caterpillar questions Alice's identity, tests her memory, and explains that opposite sides of the mushroom change her size. A long-necked Alice is then mistaken for a serpent by a Pigeon guarding its eggs.",
+      "characters": [
+        "Alice",
+        "Caterpillar",
+        "Pigeon"
+      ],
+      "locations": [
+        "mushroom in the wood",
+        "treetops",
+        "Pigeon's nest",
+        "woodland clearing"
+      ],
+      "retrieval_cues": [
+        "Who are you",
+        "keep your temper",
+        "You are old Father William",
+        "three inches high",
+        "mushroom makes Alice taller or shorter",
+        "Alice's long neck",
+        "Pigeon calls Alice a serpent",
+        "eggs"
+      ],
+      "word_count": 2169,
+      "path": "chapters/05-advice-from-a-caterpillar.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch06",
+      "chapter_number": 6,
+      "title": "Pig and Pepper",
+      "routing_description": "Alice visits the Duchess's pepper-filled kitchen, where the Cook throws dishes and a sneezing baby turns into a pig. The Cheshire Cat directs Alice toward the March Hare while appearing and disappearing.",
+      "characters": [
+        "Alice",
+        "Fish-Footman",
+        "Frog-Footman",
+        "Duchess",
+        "Cook",
+        "Baby",
+        "Cheshire Cat"
+      ],
+      "locations": [
+        "Duchess's house",
+        "kitchen",
+        "wood",
+        "March Hare's house"
+      ],
+      "retrieval_cues": [
+        "invitation to play croquet",
+        "too much pepper in the soup",
+        "grinning Cheshire Cat",
+        "Speak roughly to your little boy",
+        "baby turns into a pig",
+        "minding their own business",
+        "we're all mad here",
+        "grin without a cat"
+      ],
+      "word_count": 2594,
+      "path": "chapters/06-pig-and-pepper.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch07",
+      "chapter_number": 7,
+      "title": "A Mad Tea-Party",
+      "routing_description": "Alice joins the Hatter, March Hare, and Dormouse at an endless tea party filled with riddles, wordplay, a broken watch, and the Dormouse's treacle-well story. She leaves in disgust and finally enters the garden.",
+      "characters": [
+        "Alice",
+        "Hatter",
+        "March Hare",
+        "Dormouse"
+      ],
+      "locations": [
+        "tea table outside the March Hare's house",
+        "wood",
+        "underground hall",
+        "garden"
+      ],
+      "retrieval_cues": [
+        "no room",
+        "raven and writing-desk",
+        "best butter",
+        "quarrel with Time",
+        "always six o'clock",
+        "Twinkle twinkle little bat",
+        "treacle-well",
+        "memory and muchness",
+        "Dormouse in the teapot",
+        "Alice enters the garden"
+      ],
+      "word_count": 2293,
+      "path": "chapters/07-a-mad-tea-party.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch08",
+      "chapter_number": 8,
+      "title": "The Queen’s Croquet-Ground",
+      "routing_description": "Alice meets card gardeners painting white roses red, then joins the King and Queen of Hearts for a lawless croquet game using flamingoes, hedgehogs, and soldiers. The Cheshire Cat's bodiless head creates a dispute over whether it can be beheaded.",
+      "characters": [
+        "Alice",
+        "Two",
+        "Five",
+        "Seven",
+        "Queen of Hearts",
+        "King of Hearts",
+        "White Rabbit",
+        "Knave of Hearts",
+        "Cheshire Cat",
+        "Executioner"
+      ],
+      "locations": [
+        "rose garden",
+        "Queen's croquet-ground"
+      ],
+      "retrieval_cues": [
+        "painting the roses red",
+        "pack of cards",
+        "Off with her head",
+        "flamingo mallets",
+        "hedgehog balls",
+        "soldiers as croquet arches",
+        "unfair croquet game",
+        "beheading the Cheshire Cat's head"
+      ],
+      "word_count": 2488,
+      "path": "chapters/08-the-queens-croquet-ground.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch09",
+      "chapter_number": 9,
+      "title": "The Mock Turtle’s Story",
+      "routing_description": "The Duchess searches for morals in everything until the Queen drives her away. The Gryphon then takes Alice to the sorrowful Mock Turtle, who describes his pun-filled education under the sea.",
+      "characters": [
+        "Alice",
+        "Duchess",
+        "Queen of Hearts",
+        "King of Hearts",
+        "Gryphon",
+        "Mock Turtle"
+      ],
+      "locations": [
+        "croquet-ground",
+        "garden",
+        "Mock Turtle's rocky ledge"
+      ],
+      "retrieval_cues": [
+        "everything's got a moral",
+        "mustard mine",
+        "the more there is of mine",
+        "all prisoners pardoned",
+        "they never executes nobody",
+        "once I was a real Turtle",
+        "Tortoise because he taught us",
+        "Reeling and Writhing",
+        "Ambition Distraction Uglification and Derision",
+        "lessons lessen from day to day"
+      ],
+      "word_count": 2286,
+      "path": "chapters/09-the-mock-turtles-story.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch10",
+      "chapter_number": 10,
+      "title": "The Lobster Quadrille",
+      "routing_description": "The Mock Turtle and Gryphon demonstrate the Lobster Quadrille, explain fanciful facts about sea creatures, and make Alice recite altered poems. Their songs end when they hear that the Knave's trial is beginning.",
+      "characters": [
+        "Alice",
+        "Mock Turtle",
+        "Gryphon"
+      ],
+      "locations": [
+        "Mock Turtle's rocky ledge",
+        "seashore imagined in the dance",
+        "path to trial"
+      ],
+      "retrieval_cues": [
+        "Lobster Quadrille",
+        "will you join the dance",
+        "whiting and snail",
+        "boots and shoes done with whiting",
+        "soles and eels",
+        "porpoise and purpose",
+        "Tis the voice of the Lobster",
+        "Beautiful Soup",
+        "trial's beginning"
+      ],
+      "word_count": 2049,
+      "path": "chapters/10-the-lobster-quadrille.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch11",
+      "chapter_number": 11,
+      "title": "Who Stole the Tarts?",
+      "routing_description": "The Knave of Hearts is tried for stealing the Queen's tarts in a chaotic courtroom overseen by the King. The Hatter and Cook give absurd evidence while Alice grows larger and is called as the next witness.",
+      "characters": [
+        "Alice",
+        "King of Hearts",
+        "Queen of Hearts",
+        "Knave of Hearts",
+        "White Rabbit",
+        "Gryphon",
+        "Hatter",
+        "March Hare",
+        "Dormouse",
+        "Cook",
+        "Bill the Lizard"
+      ],
+      "locations": [
+        "royal courtroom"
+      ],
+      "retrieval_cues": [
+        "Knave in chains",
+        "dish of tarts",
+        "jury writing on slates",
+        "Queen of Hearts nursery rhyme",
+        "Hatter as first witness",
+        "teacup and bread-and-butter",
+        "guinea-pigs suppressed",
+        "tarts made of pepper or treacle",
+        "Alice called as witness"
+      ],
+      "word_count": 1878,
+      "path": "chapters/11-who-stole-the-tarts.md"
+    },
+    {
+      "chapter_id": "pg11-v01b38ea4-ch12",
+      "chapter_number": 12,
+      "title": "Alice’s Evidence",
+      "routing_description": "Alice challenges the court's invented rules and meaningless evidence as she grows to full size. She rejects sentence before verdict, wakes on the riverbank, and tells her sister that Wonderland was a dream.",
+      "characters": [
+        "Alice",
+        "King of Hearts",
+        "Queen of Hearts",
+        "Knave of Hearts",
+        "White Rabbit",
+        "Bill the Lizard",
+        "Alice's sister"
+      ],
+      "locations": [
+        "royal courtroom",
+        "riverbank"
+      ],
+      "retrieval_cues": [
+        "overturned jury-box",
+        "Rule Forty-two",
+        "more than a mile high",
+        "unsigned verses as evidence",
+        "begin at the beginning",
+        "sentence first verdict afterwards",
+        "nothing but a pack of cards",
+        "Alice wakes from the dream",
+        "sister dreams of Wonderland",
+        "happy summer days"
+      ],
+      "word_count": 2119,
+      "path": "chapters/12-alices-evidence.md"
+    }
+  ]
+}

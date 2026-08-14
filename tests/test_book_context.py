@@ -1,8 +1,20 @@
+import os
 import unittest
+from unittest.mock import patch
 
-from apps.backend import sessions
-from apps.backend.main import update_book_context
-from apps.backend.schemas import ChatRequest
+from apps.backend.config import get_settings
+
+get_settings.cache_clear()
+with patch.dict(
+    os.environ,
+    {
+        "LINGER_MODEL": "google:gemini-2.5-flash",
+        "GOOGLE_API_KEY": "test-key",
+    },
+):
+    from apps.backend import sessions
+    from apps.backend.main import update_book_context
+    from apps.backend.schemas import ChatRequest
 
 
 class BookContextTests(unittest.TestCase):
@@ -75,6 +87,35 @@ class BookContextTests(unittest.TestCase):
             ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm done with the chapter")
         )
         self.assertIsNone(context)
+
+    def test_negated_completion_keeps_candidate_unconfirmed(self) -> None:
+        sessions.set_reading_candidate(
+            "context-test",
+            sessions.ReadingCandidate(book_id="alice-wonderland", chapter=5),
+        )
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="alice-wonderland"),
+        )
+
+        context = update_book_context(
+            ChatRequest(session_id="context-test", message="I'm not finished with the chapter.")
+        )
+
+        self.assertIsNone(context)
+        self.assertIsNone(sessions.book_context("context-test"))
+        self.assertIsNotNone(sessions.reading_candidate("context-test"))
+
+    def test_negated_explicit_chapter_does_not_set_progress(self) -> None:
+        context = update_book_context(
+            ChatRequest(
+                session_id="context-test",
+                message="I'm reading Animal Farm and haven't finished Chapter 3.",
+            )
+        )
+
+        self.assertIsNone(context)
+        self.assertIsNone(sessions.book_context("context-test"))
 
 
 if __name__ == "__main__":

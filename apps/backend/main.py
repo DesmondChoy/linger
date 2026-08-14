@@ -61,9 +61,21 @@ TITLE_END_PATTERN = re.compile(
     r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
     re.IGNORECASE,
 )
-COMPLETION_TERMS = ("finished", "completed", "read through", "got through", "done with", "i'm done", "im done", "done")
-IN_PROGRESS_TERMS = ("still in", "still reading", "not finished", "in the middle", "partway through")
-AFFIRMATION_TERMS = ("yes", "yeah", "yep", "correct", "that's right", "that is right")
+COMPLETION_PATTERN = re.compile(
+    r"\b(?:finished|completed|read\s+through|got\s+through|done\s+with|done)\b",
+    re.IGNORECASE,
+)
+IN_PROGRESS_PATTERN = re.compile(
+    r"\b(?:still\s+(?:in|reading)|not\s+(?:yet\s+)?(?:finished|completed|done)|"
+    r"(?:have|has|had)\s+not\s+(?:finished|completed)|"
+    r"(?:haven['’]?t|hasn['’]?t|hadn['’]?t)\s+(?:finished|completed)|"
+    r"in\s+the\s+middle|partway\s+through)\b",
+    re.IGNORECASE,
+)
+AFFIRMATION_PATTERN = re.compile(
+    r"^\s*(?:yes|yeah|yep|correct|that(?:'s| is)\s+right)\b",
+    re.IGNORECASE,
+)
 CONNECTION_TRIGGERS = ("why", "feel", "identity", "who", "change", "rule", "authority", "power", "equal", "equality", "connect", "pattern")
 librarian = Librarian()
 
@@ -78,9 +90,15 @@ def update_book_context(request: ChatRequest) -> sessions.BookContext | None:
     candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
     lowered = request.message.lower()
+    in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
+    completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
+    candidate_name_mentioned = bool(
+        candidate
+        and re.search(rf"\b{re.escape(candidate.book_id.split('-')[0])}\b", lowered)
+    )
     if candidate and selection is None and (
-        any(term in lowered for term in AFFIRMATION_TERMS)
-        or candidate.book_id.split("-")[0] in lowered
+        AFFIRMATION_PATTERN.search(request.message)
+        or candidate_name_mentioned
         or "wonderland" in lowered and candidate.book_id.startswith("alice")
     ):
         sessions.set_book_selection(
@@ -89,15 +107,19 @@ def update_book_context(request: ChatRequest) -> sessions.BookContext | None:
         )
         selection = sessions.book_selection(request.session_id)
     chapter_match = CHAPTER_PATTERN.search(request.message)
-    if chapter_match is None and candidate and selection and selection.book_id == candidate.book_id and any(term in lowered for term in COMPLETION_TERMS):
-        context = sessions.BookContext(book_id=candidate.book_id, book_title=candidate.book_title, chapter_max=candidate.chapter)
-        sessions.set_book_context(request.session_id, context)
-        sessions.clear_reading_candidate(request.session_id)
-        return context
-    if chapter_match is None and candidate and selection and selection.book_id == candidate.book_id and any(term in lowered for term in IN_PROGRESS_TERMS):
-        sessions.set_book_selection(request.session_id, sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title))
-        return previous
-    if chapter_match is None or not any(term in lowered for term in COMPLETION_TERMS):
+    if chapter_match is None and candidate and selection and selection.book_id == candidate.book_id:
+        if in_progress:
+            return previous
+        if completed:
+            context = sessions.BookContext(
+                book_id=candidate.book_id,
+                book_title=candidate.book_title,
+                chapter_max=candidate.chapter,
+            )
+            sessions.set_book_context(request.session_id, context)
+            sessions.clear_reading_candidate(request.session_id)
+            return context
+    if chapter_match is None or not completed:
         if chapter_match:
             title_match = TITLE_PREFIX_PATTERN.search(request.message[: chapter_match.start()])
             if title_match:
@@ -196,7 +218,11 @@ def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str]:
     brief_data = request_data = evidence_data = proposal_data = None
     if context and librarian.has_corpus(context.book_id) and any(term in request.message.lower() for term in CONNECTION_TRIGGERS):
         brief = ConnectionBrief(cue=request.message, book_id=context.book_id, chapter_max=context.chapter_max)
-        themes = "power equal rule pigs milk" if context.book_id == "animal-farm" else "identity change rule authority"
+        themes = (
+            "power equal rule pigs milk"
+            if context.book_id == "animal-farm"
+            else "identity change rule authority growing myself"
+        )
         retrieval = LibrarianRequest(
             query=f"{request.message} {themes}",
             book_scopes=[BookScope(book_id=context.book_id, chapter_max=context.chapter_max)],
@@ -277,6 +303,7 @@ async def health() -> dict[str, str]:
 async def chat(request: ChatRequest) -> ChatResponse:
     """Run the complete output gate before releasing or storing a reply."""
     started = perf_counter()
+    reading_state = sessions.snapshot_reading_state(request.session_id)
     try:
         inspection, muse_input = _inspection_for(request)
         reply = await reflection_reply(
@@ -287,6 +314,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
         sessions.append_turn(request.session_id, request.message, reply)
     except Exception as exc:
+        sessions.restore_reading_state(request.session_id, reading_state)
         logger.exception(
             "Agent run failed session=%s elapsed=%.2fs",
             request.session_id,

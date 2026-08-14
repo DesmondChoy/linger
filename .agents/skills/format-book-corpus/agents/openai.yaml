@@ -1,0 +1,4 @@
+interface:
+  display_name: "Format Book Corpus"
+  short_description: "Turn source books into retrieval-ready chapters"
+  default_prompt: "Use $format-book-corpus to convert this source book into validated chapter Markdown and a routing catalog."

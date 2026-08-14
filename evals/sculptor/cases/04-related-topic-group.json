@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "case_id": "sculptor-related-topic-group-v1",
+  "owner": "sculptor",
+  "primary_behavior": "related_topic_group",
+  "description": "Group three distinct unwinding rituals without falsely treating them as duplicate memories.",
+  "input": {
+    "account_scope": "eval-account-sculptor",
+    "memories": [
+      {
+        "memory_id": "mem-unwind-walk",
+        "text": "Taking a slow walk after work helps me transition out of work mode.",
+        "capture_type": "automatic",
+        "source_event_id": "turn-unwind-006",
+        "evidence_ids": []
+      },
+      {
+        "memory_id": "mem-unwind-fiction",
+        "text": "Reading fiction before bed gives me distance from the day.",
+        "capture_type": "explicit",
+        "source_event_id": "turn-unwind-012",
+        "evidence_ids": [
+          "gutenberg-alice-chapter-7"
+        ]
+      },
+      {
+        "memory_id": "mem-unwind-tea",
+        "text": "Making tea without my phone creates a useful pause.",
+        "capture_type": "automatic",
+        "source_event_id": "turn-unwind-021",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "expected": {
+    "kind": "curation_proposal",
+    "action": {
+      "action": "assign_topic_group",
+      "source_memory_ids": [
+        "mem-unwind-walk",
+        "mem-unwind-fiction",
+        "mem-unwind-tea"
+      ],
+      "semantic_review": {
+        "criteria": [
+          "Names a topic about unwinding, restorative pauses, or transitions out of the day.",
+          "Does not imply that walking, reading, and making tea are duplicates.",
+          "Keeps the three source memories independently retrievable."
+        ],
+        "forbidden_claims": [
+          "The three activities are the same memory.",
+          "The user performs every activity every day."
+        ]
+      }
+    }
+  },
+  "invariants": {
+    "originals_immutable": true,
+    "provenance_required": true,
+    "no_storage_authority": true
+  },
+  "forbidden_outcomes": [
+    "delete_original",
+    "rewrite_original",
+    "reference_unknown_memory",
+    "collapse_provenance",
+    "link_related_memories_as_duplicates"
+  ]
+}

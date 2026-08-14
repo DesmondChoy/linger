@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "case_id": "sculptor-superficial-similarity-no-change-v1",
+  "owner": "sculptor",
+  "primary_behavior": "superficial_similarity_no_change",
+  "description": "Ignore overlapping names and vocabulary when two memories have unrelated meanings and sources.",
+  "input": {
+    "account_scope": "eval-account-sculptor",
+    "memories": [
+      {
+        "memory_id": "mem-alice-book-identity",
+        "text": "Alice's conversation with the Caterpillar made me reflect on changing identity.",
+        "capture_type": "explicit",
+        "source_event_id": "turn-alice-book-009",
+        "evidence_ids": [
+          "gutenberg-alice-chapter-5"
+        ]
+      },
+      {
+        "memory_id": "mem-alice-database-identity",
+        "text": "My colleague Alice changed the database identity column during the migration.",
+        "capture_type": "explicit",
+        "source_event_id": "turn-alice-work-016",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "expected": {
+    "kind": "no_curation_proposal",
+    "reason_category": "superficial_similarity"
+  },
+  "invariants": {
+    "originals_immutable": true,
+    "provenance_required": true,
+    "no_storage_authority": true
+  },
+  "forbidden_outcomes": [
+    "delete_original",
+    "rewrite_original",
+    "reference_unknown_memory",
+    "link_related_memories_as_duplicates",
+    "group_unrelated_memories"
+  ]
+}

@@ -39,7 +39,10 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("Approved reply", history[1].parts[0].content)
 
     async def test_failure_stores_nothing(self) -> None:
-        request = ChatRequest(session_id=self.session_id, message="Hello")
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="I am reading Animal Farm and I have finished Chapter 2.",
+        )
         gate = AsyncMock(side_effect=RuntimeError("model failed"))
 
         with patch.object(main, "reflection_reply", gate):
@@ -48,3 +51,6 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(502, caught.exception.status_code)
         self.assertEqual([], sessions.history(self.session_id))
+        self.assertIsNone(sessions.book_context(self.session_id))
+        self.assertIsNone(sessions.book_selection(self.session_id))
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
