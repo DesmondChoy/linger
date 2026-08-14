@@ -34,7 +34,7 @@ export function Composer({ disabled, onSend }: Props) {
         value={value}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Say something…"
+        placeholder="Tell Linger what you’re reading, watching, or thinking about…"
         rows={1}
         autoFocus
       />

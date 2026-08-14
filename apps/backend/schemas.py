@@ -1,6 +1,6 @@
 """Request and response bodies for the application API."""
 
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -14,11 +14,26 @@ class RequestBody(BaseModel):
 
 class ChatRequest(RequestBody):
     session_id: str = Field(min_length=1, max_length=200)
+    turn_id: str | None = Field(default=None, min_length=1, max_length=200)
     message: str = Field(min_length=1, max_length=8000)
+
+
+class TurnInspection(BaseModel):
+    """Read-only record of the contracts used for one released response."""
+
+    muse_turn: dict[str, Any]
+    context_resolution: dict[str, Any]
+    traces: list[dict[str, str]]
+    connection_brief: dict[str, Any] | None = None
+    librarian_request: dict[str, Any] | None = None
+    evidence_bundle: dict[str, Any] | None = None
+    connection_proposal: dict[str, Any] | None = None
+    prompt: str
 
 
 class ChatResponse(BaseModel):
     reply: str
+    inspection: TurnInspection
 
 
 class MemoryWriteRequest(RequestBody):
