@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Five evaluation worlds for Linger's 40-case baseline and multi-agent system comparison.">
+  <title>Five evaluation worlds for Linger’s 40-case baseline</title>
+  <style>
+    :root {
+      --canvas: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #20242c;
+      --muted: #535c68;
+      --line: #dfe3e8;
+      --accent: #4d6081;
+      --accent-soft: #edf1f6;
+      --good: #426858;
+      --display: Georgia, "Times New Roman", serif;
+      --body: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+      --utility: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      --shell: 1500px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 1180px;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, a { font: inherit; color: inherit; }
+    :focus-visible { outline: 3px solid #8a9ab6; outline-offset: 3px; }
+    .shell { width: min(calc(100% - 64px), var(--shell)); margin-inline: auto; }
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 50;
+      padding: 8px 12px;
+      background: var(--ink);
+      color: white;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: none; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+    }
+    .nav {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; }
+    .brand strong { font-family: var(--display); font-size: 23px; line-height: 1; }
+    .brand span, .eyebrow, .label, .micro {
+      color: var(--muted);
+      font-family: var(--utility);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: #4f5662; font-size: 12px; font-weight: 700; text-decoration: none; }
+    .nav-links a:hover { color: var(--accent); }
+    .print-button {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .print-button:hover { background: var(--accent-soft); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.6fr);
+      gap: 64px;
+      align-items: end;
+      padding-block: 96px 72px;
+    }
+    .hero h1 {
+      max-width: 760px;
+      margin: 16px 0 20px;
+      font-family: var(--display);
+      font-size: clamp(46px, 7vw, 72px);
+      font-weight: 400;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
+    .hero-lede { max-width: 700px; margin: 0; color: #4e5662; font-size: 20px; line-height: 1.5; }
+    .decision-note { padding: 20px 0 2px 22px; border-left: 2px solid var(--accent); }
+    .decision-note p { margin: 7px 0 0; font-size: 15px; }
+
+    .page-path { border-block: 1px solid var(--line); background: var(--paper); }
+    .path-inner { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .path-inner a {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 8px;
+      min-height: 72px;
+      align-content: center;
+      padding: 14px 20px;
+      border-right: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .path-inner a:first-child { border-left: 1px solid var(--line); }
+    .path-inner b { color: var(--accent); font-family: var(--utility); font-size: 11px; }
+    .path-inner span { font-size: 13px; font-weight: 700; }
+
+    section { scroll-margin-top: 62px; }
+    .content-section { padding-block: 76px; border-bottom: 1px solid var(--line); }
+    .section-head {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 34px;
+      margin-bottom: 40px;
+    }
+    .section-head h2 {
+      max-width: 760px;
+      margin: 0 0 12px;
+      font-family: var(--display);
+      font-size: clamp(34px, 5vw, 48px);
+      font-weight: 400;
+      letter-spacing: -0.035em;
+      line-height: 1.06;
+    }
+    .section-intro { max-width: 720px; margin: 0; color: var(--muted); font-size: 17px; }
+
+    .thesis {
+      margin-bottom: 38px;
+      padding: 24px 28px;
+      border-left: 3px solid var(--accent);
+      background: var(--paper);
+      font-family: var(--display);
+      font-size: clamp(22px, 3vw, 30px);
+      line-height: 1.35;
+    }
+    .outcomes { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--line); }
+    .outcome { padding: 24px 24px 26px 0; border-right: 1px solid var(--line); }
+    .outcome + .outcome { padding-left: 24px; }
+    .outcome:last-child { border-right: 0; }
+    .outcome h3 { margin: 6px 0 5px; font-size: 16px; }
+    .outcome p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .trust-invariant {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 34px;
+      margin-top: 30px;
+      padding: 18px 22px;
+      border: 1px solid #cbd4df;
+      background: var(--accent-soft);
+    }
+    .trust-invariant strong { color: var(--accent); font-size: 12px; }
+    .trust-invariant p { margin: 0; color: #465267; font-size: 13px; }
+
+    .edge-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 50px; align-items: start; }
+    .principles { border-top: 1px solid var(--line); }
+    .principle {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 12px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .principle > span { color: var(--accent); font-family: var(--utility); font-size: 11px; font-weight: 700; }
+    .principle h3 { margin: -2px 0 3px; font-size: 15px; }
+    .principle p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .proof {
+      padding: 26px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .proof h3 { margin: 6px 0 14px; font-family: var(--display); font-size: 26px; font-weight: 400; }
+    .proof-row {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+    }
+    .proof-row strong { font-size: 12px; }
+    .proof-row p { margin: 0; color: var(--muted); font-size: 12px; }
+    .guardrail { margin-top: 14px; padding: 15px 16px; background: var(--accent-soft); font-size: 12px; }
+    .guardrail strong { color: var(--accent); }
+
+    .cast { margin-top: 44px; }
+    .cast-head { display: grid; grid-template-columns: 150px 1fr; gap: 34px; margin-bottom: 16px; }
+    .cast-head h3 { margin: 0; font-family: var(--display); font-size: 25px; font-weight: 400; }
+    .agent-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); background: var(--paper); }
+    .agent { padding: 16px 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .agent:nth-child(3n) { border-right: 0; }
+    .agent:nth-last-child(-n + 3) { border-bottom: 0; }
+    .agent strong { display: block; margin-bottom: 2px; font-size: 13px; }
+    .agent span { color: var(--muted); font-size: 12px; }
+
+    .personas-section { background: var(--paper); }
+    .personas-section > .shell { width: min(calc(100% - 32px), 1600px); }
+    .personas-section .section-head { margin-bottom: 24px; }
+    .evaluation-portfolio {
+      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .portfolio-head {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 34px;
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .portfolio-head h3 { margin: 0 0 5px; font-family: var(--display); font-size: 28px; font-weight: 400; }
+    .portfolio-head p { max-width: 900px; margin: 0; color: var(--muted); font-size: 13px; }
+    .portfolio-table-wrap { overflow-x: auto; }
+    .portfolio-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
+    .portfolio-table th, .portfolio-table td { padding: 14px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .portfolio-table th:last-child, .portfolio-table td:last-child { border-right: 0; }
+    .portfolio-table tbody tr:last-child td { border-bottom: 0; }
+    .portfolio-table th { color: var(--muted); background: #fafbfc; font-family: var(--utility); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .portfolio-table td { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .portfolio-table td:first-child { color: var(--ink); }
+    .portfolio-table strong { display: block; margin-bottom: 2px; font-size: 13px; }
+    .portfolio-table small { display: block; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .evaluation-contract { margin-bottom: 24px; }
+    .contract-head { display: grid; grid-template-columns: 150px 1fr; gap: 34px; margin-bottom: 14px; }
+    .contract-head h3 { margin: 0; font-family: var(--display); font-size: 25px; font-weight: 400; }
+    .contract-grid { display: grid; grid-template-columns: 0.9fr 1.1fr 1fr; border: 1px solid var(--line); background: var(--paper); }
+    .contract-card { padding: 20px; border-right: 1px solid var(--line); }
+    .contract-card:last-child { border-right: 0; }
+    .contract-card h4 { margin: 6px 0 8px; font-size: 15px; }
+    .contract-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .contract-card ul { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+    .contract-card li { position: relative; padding-left: 14px; color: var(--muted); font-size: 12px; }
+    .contract-card li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
+    .contract-rule { margin-top: 12px; padding: 11px 12px; background: var(--accent-soft); color: #465267; font-size: 11px; }
+    .persona-lab {
+      display: grid;
+      grid-template-columns: 350px minmax(0, 1fr);
+      scroll-margin-top: 62px;
+      border: 1px solid var(--line);
+      background: var(--canvas);
+    }
+    .persona-sidebar {
+      min-height: 100%;
+      border-right: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .lab-controls {
+      position: sticky;
+      top: 62px;
+      z-index: 4;
+      display: grid;
+      gap: 11px;
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .persona-lab .micro { font-size: 11px; }
+    .select-group { display: grid; gap: 8px; }
+    .select-group label { font-size: 14px; font-weight: 750; }
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: "⌄";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      color: var(--accent);
+      pointer-events: none;
+      transform: translateY(-54%);
+    }
+    #persona-select {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 38px 10px 13px;
+      border: 1px solid #cbd1da;
+      border-radius: 5px;
+      background: var(--paper);
+      appearance: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .load-button {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 18px;
+      border: 1px solid var(--ink);
+      border-radius: 5px;
+      background: var(--ink);
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .load-button:hover { background: var(--accent); border-color: var(--accent); }
+    .load-button[aria-disabled="true"] { cursor: wait; opacity: 0.65; }
+    .lab-status {
+      min-height: 18px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .definition-card { padding: 26px 24px 30px; background: var(--paper); }
+    .definition-card h3 {
+      margin: 12px 0 2px;
+      font-family: var(--display);
+      font-size: 38px;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    .definition-role { margin: 0 0 4px; color: var(--accent); font-size: 14px; font-weight: 750; }
+    .definition-context { margin: 0 0 22px; color: var(--muted); font-size: 12px; }
+    .definition-use {
+      padding: 16px 17px;
+      border-left: 2px solid var(--accent);
+      background: var(--accent-soft);
+    }
+    .definition-use h4 { margin: 5px 0 11px; font-size: 15px; }
+    .definition-use-list { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+    .definition-use-list li {
+      position: relative;
+      padding-left: 14px;
+      color: #465267;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .definition-use-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.58em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .definition-use-list strong { display: block; margin-bottom: 1px; color: var(--ink); font-size: 11px; }
+    .definition-block { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .definition-block h4 { margin: 6px 0 5px; font-size: 15px; }
+    .definition-block p { margin: 0; color: var(--muted); font-size: 13px; }
+    .definition-quote { margin: 22px 0 0; color: #4c5562; font-size: 13px; font-style: italic; }
+
+    .runtime { position: relative; min-width: 0; padding: 14px 20px; outline: none; overflow: hidden; }
+    .runtime::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid transparent;
+      pointer-events: none;
+    }
+    .runtime.loaded::before { animation: runtime-confirm 1500ms ease-out; }
+    @keyframes runtime-confirm {
+      0% { border-color: var(--accent); background: rgba(77, 96, 129, 0.08); }
+      100% { border-color: transparent; background: transparent; }
+    }
+    .runtime-head { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .runtime-title { display: flex; align-items: center; gap: 10px; }
+    .runtime-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-family: var(--display);
+      font-size: 20px;
+    }
+    .runtime-title h3 { margin: 0; font-size: 17px; }
+    .runtime-title p { margin: 0; color: var(--muted); font-size: 12px; }
+    .loaded-persona {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .loaded .loaded-persona { border-color: #9cb6a8; color: var(--good); }
+    .scenario-line {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 10px 15px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      font-size: 13px;
+    }
+    .scenario-line strong { color: var(--accent); }
+    .scenario-line span { color: var(--muted); }
+
+    .architecture-board { margin-top: 10px; }
+    .architecture-head { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 9px; }
+    .architecture-head h4 { margin: 0; font-size: 14px; }
+    .stress-legend { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 10px; }
+    .stress-legend span { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: #d9dde3; }
+    .legend-dot.touched { background: #bac3d0; }
+    .legend-dot.supporting { background: #8fa0bb; }
+    .legend-dot.primary { background: var(--accent); box-shadow: 0 0 0 4px rgba(77, 96, 129, 0.13); }
+
+    .architecture-canvas {
+      position: relative;
+      height: 390px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      overflow: hidden;
+    }
+    .architecture-domain {
+      position: absolute;
+      left: 14.5%;
+      top: 11px;
+      width: 75.5%;
+      height: 365px;
+      border: 1px dashed #d8dce3;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .architecture-domain span {
+      position: absolute;
+      left: 10px;
+      top: -8px;
+      padding: 0 5px;
+      background: var(--paper);
+      color: #66707c;
+      font-family: var(--utility);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .architecture-invariant { margin: 0 0 8px; color: var(--accent); font-size: 10px; font-weight: 700; }
+    .arch-connections { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .arch-path {
+      fill: none;
+      stroke: #d8dce2;
+      stroke-width: 1.5;
+      vector-effect: non-scaling-stroke;
+      transition: stroke 520ms ease, opacity 520ms ease, stroke-width 520ms ease;
+    }
+    .arch-path.active { stroke: #8495ae; stroke-width: 2.2; stroke-dasharray: 7 8; animation: path-flow 1700ms linear infinite; }
+    .arch-path.stress-3 { stroke: var(--accent); stroke-width: 3.2; filter: drop-shadow(0 0 5px rgba(77, 96, 129, 0.58)); }
+    @keyframes path-flow { to { stroke-dashoffset: -26; } }
+
+    .arch-node {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      align-content: center;
+      min-height: 68px;
+      padding: 10px;
+      border: 1px solid #d9dde3;
+      border-radius: 6px;
+      background: #fbfbfc;
+      color: #59626f;
+      text-align: center;
+      transition: border-color 620ms ease, box-shadow 620ms ease, background 620ms ease, color 620ms ease, transform 620ms ease;
+    }
+    .arch-node span { font-family: var(--utility); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .arch-node strong { display: block; margin: 1px 0; font-size: 13px; }
+    .arch-node small { font-size: 10px; line-height: 1.25; }
+    .arch-node[data-level]:not([data-level="0"])::after {
+      content: attr(data-stress-label);
+      position: absolute;
+      left: 50%;
+      bottom: -9px;
+      padding: 2px 6px;
+      border: 1px solid #cbd2dc;
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--accent);
+      font-family: var(--utility);
+      font-size: 8px;
+      font-weight: 700;
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+    .arch-node.stress-1 { border-color: #bac3d0; color: #596575; background: #f8f9fb; }
+    .arch-node.stress-2 { border-color: #8294af; color: #334056; background: #f2f5f8; box-shadow: 0 0 0 2px rgba(77, 96, 129, 0.08); transform: translateY(-1px); }
+    .arch-node.stress-3 {
+      border-color: var(--accent);
+      color: var(--ink);
+      background: #f5f7fa;
+      box-shadow: 0 0 0 3px rgba(77, 96, 129, 0.11), 0 0 22px rgba(77, 96, 129, 0.28);
+      transform: translateY(-2px);
+      animation: component-glow 3.4s ease-in-out infinite;
+    }
+    .arch-node.service.stress-3 { border-color: var(--good); animation-name: service-glow; }
+    @keyframes component-glow {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(77, 96, 129, 0.11), 0 0 18px rgba(77, 96, 129, 0.26); transform: translateY(-2px) scale(1); }
+      50% { box-shadow: 0 0 0 7px rgba(77, 96, 129, 0.17), 0 0 38px rgba(77, 96, 129, 0.48); transform: translateY(-2px) scale(1.025); }
+    }
+    @keyframes service-glow {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(66, 104, 88, 0.11), 0 0 18px rgba(66, 104, 88, 0.24); transform: translateY(-2px) scale(1); }
+      50% { box-shadow: 0 0 0 7px rgba(66, 104, 88, 0.17), 0 0 38px rgba(66, 104, 88, 0.44); transform: translateY(-2px) scale(1.025); }
+    }
+    .arch-node.input { left: 1.5%; top: 100px; width: 11%; }
+    .arch-node.orchestrator { left: 14.5%; top: 100px; width: 13.5%; }
+    .arch-node.muse { left: 31%; top: 95px; width: 13.5%; min-height: 78px; }
+    .arch-node.librarian { left: 48%; top: 28px; width: 13.5%; }
+    .arch-node.serendipity { left: 48%; top: 155px; width: 13.5%; }
+    .arch-node.provenance { left: 64.5%; top: 95px; width: 13%; min-height: 78px; }
+    .arch-node.postcheck { left: 80%; top: 100px; width: 9.5%; }
+    .arch-node.release { left: 91.5%; top: 100px; width: 8%; }
+    .arch-node.web { left: 1.5%; top: 297px; width: 11%; }
+    .arch-node.sculptor { left: 31%; top: 297px; width: 13.5%; }
+    .arch-node.policy { left: 53%; top: 297px; width: 20%; min-height: 68px; }
+    .arch-node.memory { left: 79%; top: 297px; width: 10.5%; }
+
+    .probe-strip { display: grid; grid-template-columns: 96px repeat(4, 1fr); gap: 8px; align-items: center; margin-top: 10px; }
+    .probe-strip > strong { font-size: 12px; }
+    .eval-probe {
+      position: relative;
+      padding: 8px 9px 8px 23px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: #606a77;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 560ms ease;
+    }
+    .eval-probe::before { content: ""; position: absolute; left: 9px; top: 50%; width: 7px; height: 7px; border-radius: 50%; background: #bfc6cf; transform: translateY(-50%); }
+    .eval-probe.stress-1 { color: #5e6876; border-color: #bdc6d2; }
+    .eval-probe.stress-2 { color: #39475c; border-color: #8999b1; background: #f4f6f9; }
+    .eval-probe.stress-3 { color: var(--ink); border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 14px rgba(77, 96, 129, 0.17); }
+    .eval-probe.stress-1::before, .eval-probe.stress-2::before { background: #8495ae; }
+    .eval-probe.stress-3::before { background: var(--accent); box-shadow: 0 0 0 3px rgba(77, 96, 129, 0.12); }
+    .eval-probe.invariant { color: var(--ink); border-color: #7f948a; background: #eef3f0; }
+    .eval-probe.invariant::before { background: var(--good); box-shadow: 0 0 0 3px rgba(66, 104, 88, 0.12); }
+
+    .output-grid { display: grid; grid-template-columns: 1.1fr 1fr 1.05fr; gap: 12px; margin-top: 10px; }
+    .output-panel { min-height: 190px; padding: 17px; border: 1px solid var(--line); background: var(--paper); }
+    .output-panel h4 { margin: 5px 0 12px; font-size: 16px; }
+    .empty-output { color: var(--muted); font-size: 13px; }
+    .output-panel.populated { animation: panel-in 650ms ease-out both; }
+    @keyframes panel-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    .eval-list, .value-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    #eval-output .eval-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .eval-list li { padding: 8px 9px; background: var(--accent-soft); color: #3e4a5e; font-size: 12px; font-weight: 700; }
+    .value-list li { display: grid; grid-template-columns: 13px 1fr; gap: 8px; color: var(--muted); font-size: 12px; }
+    .value-list li::before { content: "✓"; color: var(--good); font-weight: 800; }
+    .fit-list { display: grid; gap: 10px; }
+    .fit-row { display: grid; grid-template-columns: 72px 1fr 60px; gap: 9px; align-items: center; }
+    .fit-row > span { font-size: 11px; }
+    .fit-row > span:last-child { color: var(--muted); text-align: right; }
+    .fit-meter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+    .fit-meter i { height: 5px; background: #e1e4e8; }
+    .fit-meter i.on { background: var(--accent); }
+    .ask {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 34px;
+      margin-top: 44px;
+      padding: 28px 0;
+      border-block: 1px solid var(--ink);
+    }
+    .ask h3 { margin: 0 0 5px; font-family: var(--display); font-size: 27px; font-weight: 400; }
+    .ask p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    footer { padding-block: 30px; background: var(--paper); }
+    .footer-inner { display: flex; justify-content: space-between; gap: 28px; color: var(--muted); font-size: 10px; }
+    .footer-inner a { text-underline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    }
+
+    @media print {
+      :root { --canvas: #fff; }
+      body { min-width: 0; font-size: 11pt; }
+      .site-header, .page-path { display: none; }
+      .shell { width: 100%; }
+      .hero { padding-block: 18px 30px; }
+      .hero h1 { font-size: 40pt; }
+      .content-section { padding-block: 30px; }
+      .persona-lab { display: none; }
+      .portfolio-table { min-width: 0; }
+      .portfolio-table th, .portfolio-table td { padding: 6px; font-size: 7.5pt; }
+      .contract-card { break-inside: avoid; }
+      .ask { margin-top: 28px; }
+      .footer-inner { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="shell nav">
+      <a class="brand" href="#top" aria-label="Linger executive brief home"><strong>Linger</strong><span>evaluation brief</span></a>
+      <nav class="nav-links" aria-label="Page sections">
+        <a href="#goal">01 Goal</a>
+        <a href="#edge">02 Compare</a>
+        <a href="#persona-lab">03 Worlds</a>
+        <button class="print-button" type="button" onclick="window.print()">Print / PDF</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="shell hero" id="top">
+      <div>
+        <p class="eyebrow">Five-minute executive brief</p>
+        <h1>Five evaluation worlds for Linger’s 40-case baseline.</h1>
+        <p class="hero-lede">Use five user histories and 40 fixed cases to test Linger’s product usefulness, compare its agent architecture with a single-agent system, and measure the cost of specialisation.</p>
+      </div>
+      <aside class="decision-note">
+        <span class="micro">Decision requested</span>
+        <p>Approve the five evaluation worlds and Maya pilot. The worlds keep case histories coherent; the frozen cases test product usefulness and the agent architecture. Market demand requires separate user research.</p>
+      </aside>
+    </div>
+
+    <nav class="page-path" aria-label="Brief structure">
+      <div class="shell path-inner">
+        <a href="#goal"><b>01</b><span>What Linger should achieve</span></a>
+        <a href="#edge"><b>02</b><span>How to compare architectures</span></a>
+        <a href="#persona-lab"><b>03</b><span>Five evaluation worlds</span></a>
+      </div>
+    </nav>
+
+    <section class="content-section" id="goal">
+      <div class="shell">
+        <header class="section-head">
+          <span class="label">01 / The goal</span>
+          <div>
+            <h2>Help people think with what they have read and remembered.</h2>
+            <p class="section-intro">Linger helps readers reflect while keeping their voice, sources, and boundaries intact.</p>
+          </div>
+        </header>
+
+        <div class="thesis">Carry meaning from a book or moment into a person’s life, then help them find it again with its source, context, and boundaries intact.</div>
+
+        <div class="outcomes" aria-label="Linger product journey">
+          <article class="outcome"><span class="micro">Reflect</span><h3>Keep the person’s voice</h3><p>Ask useful questions and keep the meaning in the reader’s own words.</p></article>
+          <article class="outcome"><span class="micro">Ground</span><h3>Use evidence selectively</h3><p>Retrieve from books, memories, or the web when the response needs support.</p></article>
+          <article class="outcome"><span class="micro">Preserve</span><h3>Save meaning with consent</h3><p>Keep durable insights inspectable, scoped, and reversible.</p></article>
+          <article class="outcome"><span class="micro">Reconnect</span><h3>Keep changes visible over time</h3><p>Recover earlier thinking and offer grounded connections across time.</p></article>
+        </div>
+
+        <aside class="trust-invariant">
+          <strong>Rules that apply everywhere</strong>
+          <p>The same trust rules apply across Reflect, Ground, Preserve, and Reconnect: spoiler boundaries, consent, account scope, deletion, provenance, and safe release.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="content-section" id="edge">
+      <div class="shell">
+        <header class="section-head">
+          <span class="label">02 / Architecture test</span>
+          <div>
+            <h2>Specialised agents must improve evidence quality, safety, or cost.</h2>
+            <p class="section-intro">Compare the agent system with a same-model monolith on the same frozen cases. Track evidence quality, unsupported claims, latency, tokens, and cost.</p>
+          </div>
+        </header>
+
+        <div class="edge-grid">
+          <div class="principles">
+            <article class="principle"><span>01</span><div><h3>Retrieve when the response needs evidence</h3><p>Muse should clarify, decline, or skip retrieval when evidence or boundaries are unclear.</p></div></article>
+            <article class="principle"><span>02</span><div><h3>Separate evidence from interpretation</h3><p>Show whether each claim came from the book, memory, web, or reader.</p></div></article>
+            <article class="principle"><span>03</span><div><h3>Keep original memories intact</h3><p>Store links, summaries, and corrections as inspectable additions.</p></div></article>
+            <article class="principle"><span>04</span><div><h3>Compare with simpler systems</h3><p>Run the same cases against a single-agent system, the full agent system, and versions with one role removed or merged.</p></div></article>
+          </div>
+
+          <aside class="proof">
+            <span class="micro">Claims under test</span>
+            <h3>Score three claims separately</h3>
+            <div class="proof-row"><strong>Product usefulness</strong><p>Frozen cases measure routing, useful outcomes, capture accuracy, and trust failures. User research measures market demand.</p></div>
+            <div class="proof-row"><strong>Agent architecture</strong><p>Compare evidence success, unsupported claims, latency, tokens, and cost across a same-model single-agent system, full agent system, and versions with one role removed or merged.</p></div>
+            <div class="proof-row"><strong>Retrieval strategy</strong><p>Compare adaptive retrieval with the strongest fixed strategy using Recall@5, nDCG@5, citation precision, and context use.</p></div>
+            <div class="guardrail"><strong>Guardrail:</strong> count retrieval calls as a diagnostic. Judge success by evidence quality, safety, latency, and cost.</div>
+          </aside>
+        </div>
+
+        <div class="cast">
+          <div class="cast-head"><span class="label">Specialist roles</span><h3>Roles in the agent system</h3></div>
+          <div class="agent-grid">
+            <div class="agent"><strong>Muse</strong><span>Leads the conversation and chooses the next action.</span></div>
+            <div class="agent"><strong>Librarian</strong><span>Retrieves allowed evidence from books and memories.</span></div>
+            <div class="agent"><strong>Provenance</strong><span>Checks support, citations, scope, and uncertainty.</span></div>
+            <div class="agent"><strong>Sculptor</strong><span>Proposes links, summaries, and corrections that users can trace.</span></div>
+            <div class="agent"><strong>Serendipity</strong><span>Explores unexpected connections and keeps claims within the evidence.</span></div>
+            <div class="agent"><strong>Memory &amp; Policy</strong><span>Enforces consent, account scope, storage, and deletion.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section personas-section" id="personas">
+      <div class="shell">
+        <header class="section-head">
+          <span class="label">03 / Evaluation worlds</span>
+          <div>
+            <h2>Review the full set, then open a world for detail.</h2>
+            <p class="section-intro">Use the matrix to check coverage. Open a profile to see its route, stressed components, measures, and user need.</p>
+          </div>
+        </header>
+
+        <section class="evaluation-portfolio" aria-labelledby="portfolio-title">
+          <header class="portfolio-head">
+            <span class="label">Five worlds at a glance</span>
+            <div><h3 id="portfolio-title">Map five evaluation worlds to the 40 frozen cases.</h3><p>Each evaluation world combines a persona, history, and cases. The 40 frozen cases provide the observations and acceptance criteria.</p></div>
+          </header>
+          <div class="portfolio-table-wrap">
+            <table class="portfolio-table">
+              <thead><tr><th>Evaluation world</th><th>User need</th><th>History</th><th>Cases covered</th><th>Components and gates</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Maya Chen</strong><small>Reflects on passages</small></td><td>Talk through why a passage matters, then save the reflection in her own words.</td><td>Multi-session reflections with explicit consent and capture preference.</td><td>Reflection and memory-capture cases.</td><td>Muse · Memory &amp; Policy · ≥80% reflection-action and capture accuracy.</td></tr>
+                <tr><td><strong>Idris Okafor</strong><small>Avoids spoilers</small></td><td>Discuss a book safely when he remembers the last scene but not the chapter.</td><td>Request-scoped reading boundary across audio and print.</td><td>Reflection cases plus safety overlays.</td><td>Orchestrator · Librarian · clarification on ambiguity; zero post-boundary disclosure.</td></tr>
+                <tr><td><strong>Priya Nair</strong><small>Revisits old notes</small></td><td>Find what she wrote before and compare it with how she thinks now.</td><td>Longitudinal archive with revisions, curation, and deletions.</td><td>Section 7.1 memory retrieval and curation plus safety overlays.</td><td>Librarian · Sculptor · Memory &amp; Policy · deleted-data recall = 0.</td></tr>
+                <tr><td><strong>Tomás Alvarez</strong><small>Checks interpretations against the text</small></td><td>Test an interpretation against supporting and opposing passages from the book.</td><td>Book context with evidence and counter-evidence judgments.</td><td>Weak-evidence and grounding cases.</td><td>Librarian · Provenance · ≥95% citation precision; 100% exact quotations.</td></tr>
+                <tr><td><strong>Amina Yusuf</strong><small>Connects images to books and memories</small></td><td>Use a photo to find related book passages, saved reflections, and reliable public context.</td><td>Photo cue plus prior memory, book evidence, and cited web evidence.</td><td>Expected-connection cases.</td><td>Serendipity · Provenance · ≥80% target connections; every web claim retrievable.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="evaluation-contract" aria-labelledby="contract-title">
+          <header class="contract-head"><span class="label">Evaluation plan</span><h3 id="contract-title">The 40 cases test the claims within five coherent user histories.</h3></header>
+          <div class="contract-grid">
+            <article class="contract-card">
+              <span class="micro">01 / Fixed cases</span>
+              <h4>Use the §7.2 acceptance criteria</h4>
+              <p>The specification defines the case counts and required outcomes.</p>
+              <ul>
+                <li>15 safety or adversarial overlays</li>
+                <li>5 reflection and 5 memory-capture cases</li>
+                <li>10 expected-connection cases</li>
+                <li>5 weak-evidence cases</li>
+                <li>Retrieval strategy and Sculptor curation remain in §7.1</li>
+              </ul>
+              <div class="contract-rule"><a href="../specification.md#72-fixed-evaluation-set">Fixed evaluation set</a> · new cases based on failures extend the set while preserving every baseline case.</div>
+            </article>
+            <article class="contract-card">
+              <span class="micro">02 / Architecture comparison</span>
+              <h4>Hold inputs steady and vary the architecture</h4>
+              <p>Use the same base model, fixed case inputs, available evidence, and application rules for:</p>
+              <ul>
+                <li>single-agent system;</li>
+                <li>full five-role agent system;</li>
+                <li>adaptive Librarian compared with the strongest fixed retrieval;</li>
+                <li>separate Provenance review compared with review inside Muse; and</li>
+                <li>connection cases with and without Serendipity.</li>
+              </ul>
+              <div class="contract-rule">Run every applicable fixed case on every version. Every version must pass all safety checks. A useful result improves evidence outcomes or reduces unsupported claims. Report latency, tokens, and cost. Keep outputs from reduced systems inside the evaluator.</div>
+            </article>
+            <article class="contract-card">
+              <span class="micro">03 / Pilot to freeze</span>
+              <h4>Use synthetic tools for drafts and reviewers for decisions</h4>
+              <p>Start with 6–8 Maya cases: reflection that skips retrieval, grounded retrieval, allowed and vetoed capture, explicit save, weak-evidence decline, reconnection, and one safety overlay.</p>
+              <ul>
+                <li>Two reviewers independently check routes, evidence, forbidden outputs, and expected labels.</li>
+                <li>Reviewers resolve disagreements before freezing a case.</li>
+                <li>Use behaviour coverage to decide how many cases each world needs.</li>
+                <li>Publish each version with a dataset card and limitations.</li>
+              </ul>
+              <div class="contract-rule">Synthetic tools can draft histories and dialogue. Reviewers set expected behaviour and expected labels.</div>
+            </article>
+          </div>
+        </section>
+
+        <div class="persona-lab" id="persona-lab">
+          <aside class="persona-sidebar" aria-label="Evaluation world selection and profile">
+          <div class="lab-controls">
+            <div class="select-group">
+              <label for="persona-select">Choose an evaluation world</label>
+              <div class="select-wrap">
+                <select id="persona-select" aria-describedby="lab-status">
+                  <option value="maya">Maya Chen: Reflects on passages</option>
+                  <option value="idris">Idris Okafor: Avoids spoilers</option>
+                  <option value="priya">Priya Nair: Revisits old notes</option>
+                  <option value="tomas">Tomás Alvarez: Checks book evidence</option>
+                  <option value="amina">Amina Yusuf: Connects images</option>
+                </select>
+              </div>
+            </div>
+            <button class="load-button" id="load-persona" type="button">View Maya’s evaluation profile</button>
+            <p class="lab-status" id="lab-status" aria-live="polite">Review Maya’s profile, then show how her case uses Linger.</p>
+          </div>
+
+            <div class="definition-card" aria-label="Selected persona profile">
+              <span class="micro" id="definition-number">Persona 01</span>
+              <h3 id="definition-name">Maya Chen</h3>
+              <p class="definition-role" id="definition-role">Reflects on passages</p>
+              <p class="definition-context" id="definition-context">34 · product lead · career transition</p>
+              <div class="definition-use">
+                <span class="micro">In practice</span>
+                <h4 id="definition-use-title">How Maya uses Linger</h4>
+                <ul class="definition-use-list" id="definition-use-list">
+                  <li><strong>Use case</strong>She highlights or quotes a passage, talks through what it brings up, and chooses whether to save the reflection.</li>
+                  <li><strong>Agents and checks</strong>Muse asks follow-up questions and drafts the reflection. Librarian fetches the exact passage when needed. Provenance checks source claims, and Memory &amp; Policy saves only what Maya approves.</li>
+                </ul>
+              </div>
+              <div class="definition-block">
+                <span class="micro">Example</span>
+                <h4 id="definition-moment-title">A workplace passage hits home</h4>
+                <p id="definition-moment">Maya highlights a passage about identity and asks why it reminds her of changing her voice at work.</p>
+              </div>
+              <p class="definition-quote" id="definition-quote">“This passage reminds me of how I speak at work. Help me think it through, then ask before saving anything.”</p>
+            </div>
+          </aside>
+
+          <div class="runtime" id="runtime" tabindex="-1" aria-label="Linger evaluation profile">
+              <div class="runtime-head">
+                <div class="runtime-title"><span class="runtime-mark">L</span><div><h3>Linger evaluation profile</h3><p>Shows system pressure for one authored case</p></div></div>
+                <span class="loaded-persona" id="loaded-persona">No profile selected</span>
+              </div>
+
+              <div class="scenario-line"><strong>Scenario</strong><span id="scenario-text">Choose a world to show how its case uses Linger.</span></div>
+
+              <div class="architecture-board">
+                <div class="architecture-head">
+                  <h4>Architecture stress map</h4>
+                  <div class="stress-legend" aria-label="Stress intensity legend">
+                    <span><i class="legend-dot"></i>Idle</span>
+                    <span><i class="legend-dot touched"></i>Touched</span>
+                    <span><i class="legend-dot supporting"></i>Supporting</span>
+                    <span><i class="legend-dot primary"></i>Primary stress</span>
+                  </div>
+                </div>
+                <p class="architecture-invariant">Every Muse candidate passes through Provenance and application checks; deterministic services control all writes.</p>
+
+                <div class="architecture-canvas" aria-label="Linger architecture. Loading an evaluation world highlights its route and primary stress points.">
+                  <div class="architecture-domain"><span>Application-controlled hand-offs, checks &amp; services</span></div>
+                  <svg class="arch-connections" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <marker id="arch-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3.5 L0,7 z" fill="#aeb6c1"></path></marker>
+                    </defs>
+                    <path class="arch-path" data-path="input-orchestrator" d="M125 139 L145 139" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="orchestrator-muse" d="M280 139 L310 139" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="muse-librarian" d="M445 117 C465 105 468 65 480 63" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="librarian-muse" d="M480 82 C465 112 454 128 445 138" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="muse-serendipity" d="M445 157 C465 165 468 188 480 190" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="serendipity-muse" d="M480 215 C460 200 450 175 440 168" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="serendipity-web" d="M480 215 C390 255 230 300 125 320" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="web-serendipity" d="M125 345 C250 340 400 260 480 210" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="muse-provenance" d="M445 139 L645 139" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="provenance-postcheck" d="M775 139 L800 139" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="postcheck-release" d="M895 139 L915 139" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="provenance-policy" d="M710 173 C710 235 650 275 630 297" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="input-policy" d="M70 169 C70 260 420 275 530 320" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="sculptor-policy" d="M445 331 L530 331" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="policy-memory" d="M730 331 L790 331" marker-end="url(#arch-arrow)"></path>
+                    <path class="arch-path" data-path="memory-librarian" d="M840 297 C830 230 650 85 615 63" marker-end="url(#arch-arrow)"></path>
+                  </svg>
+
+                  <div class="arch-node input" data-component="input"><span>Input</span><strong>User / UI</strong><small>cue · explicit save</small></div>
+                  <div class="arch-node orchestrator" data-component="orchestrator"><span>Application</span><strong>Orchestrator</strong><small>session · limits · hand-offs</small></div>
+                  <div class="arch-node muse" data-component="muse"><span>Agent</span><strong>Muse</strong><small>conversation · routing</small></div>
+                  <div class="arch-node librarian" data-component="librarian"><span>Agent</span><strong>Librarian</strong><small>bounded retrieval</small></div>
+                  <div class="arch-node serendipity" data-component="serendipity"><span>Agent</span><strong>Serendipity</strong><small>optional connections</small></div>
+                  <div class="arch-node provenance" data-component="provenance"><span>Mandatory gate</span><strong>Provenance</strong><small>pass · revise · reject</small></div>
+                  <div class="arch-node postcheck service" data-component="postcheck"><span>Application</span><strong>Post-checks</strong><small>quotes · scope</small></div>
+                  <div class="arch-node release" data-component="release"><span>Output</span><strong>Safe release</strong><small>or decline</small></div>
+                  <div class="arch-node web" data-component="web"><span>External evidence</span><strong>Exa web</strong><small>public · untrusted</small></div>
+                  <div class="arch-node sculptor" data-component="sculptor"><span>Offline agent</span><strong>Sculptor</strong><small>curation proposals</small></div>
+                  <div class="arch-node policy service" data-component="policy"><span>Deterministic service</span><strong>Memory &amp; Policy</strong><small>scope · consent · deletion</small></div>
+                  <div class="arch-node memory service" data-component="memory"><span>Storage</span><strong>Memory store</strong><small>account-scoped evidence</small></div>
+                </div>
+
+                <div class="probe-strip" aria-label="Evaluation pressure probes">
+                  <strong>Eval pressure</strong>
+                  <div class="eval-probe" data-probe="routing">Routing</div>
+                  <div class="eval-probe" data-probe="evidence">Evidence</div>
+                  <div class="eval-probe" data-probe="memory">Memory</div>
+                  <div class="eval-probe invariant" aria-label="Trust and boundaries: mandatory floor">Trust floor · always on</div>
+                </div>
+              </div>
+
+              <div class="output-grid" aria-live="polite">
+                <section class="output-panel" id="eval-output"><span class="micro">Measures</span><h4>Choose a world</h4><p class="empty-output">The relevant measures will appear here.</p></section>
+                <section class="output-panel" id="value-output"><span class="micro">What this case checks</span><h4>Choose a world</h4><p class="empty-output">The evaluation purpose will appear here.</p></section>
+                <section class="output-panel" id="fit-output"><span class="micro">Fit across Linger</span><h4>Choose a world</h4><p class="empty-output">Journey fit will appear here.</p></section>
+              </div>
+            </div>
+        </div>
+
+        <noscript><p>This interactive profile requires JavaScript. The portfolio matrix and evaluation contract above remain complete without it.</p></noscript>
+
+        <aside class="ask">
+          <span class="label">Recommended next step</span>
+          <div><h3>Build Maya’s pilot first.</h3><p>Create Maya’s history and have two reviewers check 6–8 cases before drafting the other worlds.</p></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <span>Linger · provenance-first reflection companion</span>
+      <span>Method references: <a href="https://github.com/xiaowu0162/LongMemEval">LongMemEval</a> · <a href="https://github.com/snap-research/locomo">LoCoMo</a> · <a href="https://huggingface.co/datasets/sapienzanlp/LiteraryQA">LiteraryQA</a> · <a href="https://huggingface.co/datasets/mteb/BIRCO-Relic-Test">BIRCO-RELiC</a></span>
+    </div>
+  </footer>
+
+  <script>
+    const personaData = {
+      maya: {
+        number: "Persona 01",
+        name: "Maya Chen",
+        role: "Reflects on passages",
+        context: "34 · product lead · career transition",
+        uses: [
+          {label: "Use case", text: "She highlights or quotes a passage, talks through what it brings up, and chooses whether to save the reflection."},
+          {label: "Agents and checks", text: "Muse asks follow-up questions and drafts the reflection. Librarian fetches the exact passage when needed. Provenance checks source claims, and Memory & Policy saves only what Maya approves."}
+        ],
+        momentTitle: "A workplace passage hits home",
+        moment: "Maya highlights a passage about identity and asks why it reminds her of changing her voice at work.",
+        quote: "This passage reminds me of how I speak at work. Help me think it through, then ask before saving anything.",
+        scenario: "A passage about identity prompts Maya to recognise how she changes her voice at work.",
+        stress: {input: 1, orchestrator: 2, muse: 3, librarian: 1, serendipity: 0, provenance: 3, postcheck: 3, release: 2, web: 0, sculptor: 1, policy: 3, memory: 2},
+        paths: ["input-orchestrator", "input-policy", "orchestrator-muse", "muse-librarian", "librarian-muse", "muse-provenance", "provenance-postcheck", "postcheck-release", "provenance-policy", "policy-memory"],
+        corePaths: ["orchestrator-muse", "muse-provenance", "provenance-policy"],
+        probes: {routing: 3, evidence: 1, memory: 3},
+        evals: ["Reflection-action accuracy", "Unnecessary retrieval", "Capture precision / recall", "Non-factual pass rate"],
+        good: ["Checks whether Muse reflects before retrieving", "Measures capture consent and accuracy", "Covers the pilot path with one small history"],
+        fit: {reflect: 3, ground: 2, preserve: 3, reconnect: 1}
+      },
+      idris: {
+        number: "Persona 02",
+        name: "Idris Okafor",
+        role: "Avoids spoilers",
+        context: "46 · nurse and parent · audio + print",
+        uses: [
+          {label: "Use case", text: "He describes the last scene he remembers, then asks Linger a question without risking spoilers from later in the book."},
+          {label: "Agents and checks", text: "Muse confirms where he stopped. Librarian searches only up to that point. Provenance and post-checks block details from later in the book."}
+        ],
+        momentTitle: "He remembers a scene, not a chapter",
+        moment: "Idris remembers the tea party and wants to discuss it, but he is unsure what comes next.",
+        quote: "I’m somewhere around the tea party. Please don’t tell me anything after that.",
+        scenario: "Idris remembers the tea party but cannot say whether he finished it or which chapter it was.",
+        stress: {input: 1, orchestrator: 3, muse: 3, librarian: 3, serendipity: 0, provenance: 3, postcheck: 3, release: 2, web: 0, sculptor: 0, policy: 1, memory: 0},
+        paths: ["input-orchestrator", "orchestrator-muse", "muse-librarian", "librarian-muse", "muse-provenance", "provenance-postcheck", "postcheck-release"],
+        corePaths: ["orchestrator-muse", "muse-librarian", "librarian-muse", "muse-provenance"],
+        probes: {routing: 3, evidence: 2, memory: 0},
+        evals: ["Clarification rate", "Routing precision", "Post-boundary disclosure = 0", "Bounded evidence recall"],
+        good: ["Checks spoiler boundaries when progress is unclear", "Measures clarification and bounded retrieval", "Rewards a safe question over a risky answer"],
+        fit: {reflect: 2, ground: 3, preserve: 0, reconnect: 0}
+      },
+      priya: {
+        number: "Persona 03",
+        name: "Priya Nair",
+        role: "Revisits old notes",
+        context: "29 · organiser · five years of notes",
+        uses: [
+          {label: "Use case", text: "She names a topic, asks Linger to find what she wrote months or years ago, and compares it with what she thinks now."},
+          {label: "Agents and checks", text: "Librarian retrieves her active notes, Muse compares them, and Provenance shows the source and date. Sculptor runs offline to propose links and summaries. Memory & Policy excludes deleted notes."}
+        ],
+        momentTitle: "An old note meets a changed opinion",
+        moment: "Priya asks Linger to find her earlier notes about slowing down at work and show what she later corrected or disagreed with.",
+        quote: "I remember the idea, but not the words. I may not agree with it now.",
+        scenario: "Priya asks what she has said before about slowing down when work becomes noisy.",
+        stress: {input: 1, orchestrator: 2, muse: 2, librarian: 3, serendipity: 1, provenance: 3, postcheck: 3, release: 2, web: 0, sculptor: 3, policy: 3, memory: 3},
+        paths: ["input-orchestrator", "orchestrator-muse", "sculptor-policy", "policy-memory", "memory-librarian", "librarian-muse", "muse-provenance", "provenance-postcheck", "postcheck-release"],
+        corePaths: ["sculptor-policy", "policy-memory", "memory-librarian", "librarian-muse"],
+        probes: {routing: 1, evidence: 2, memory: 3},
+        evals: ["Memory Recall@5", "nDCG@5", "Curation precision", "Deleted-data recall = 0", "Provenance resolution"],
+        good: ["Measures memory retrieval across five years", "Compares retrieval before and after Sculptor curation", "Checks corrections and deletion"],
+        fit: {reflect: 2, ground: 3, preserve: 3, reconnect: 3}
+      },
+      tomas: {
+        number: "Persona 04",
+        name: "Tomás Alvarez",
+        role: "Checks interpretations against the text",
+        context: "61 · literature teacher · evidence-led",
+        uses: [
+          {label: "Use case", text: "He shares an interpretation and asks Linger to find passages that support or challenge it."},
+          {label: "Agents and checks", text: "Muse develops the argument. Librarian finds supporting and opposing passages. Provenance verifies each quote and citation and marks weak support."}
+        ],
+        momentTitle: "An interpretation needs textual support",
+        moment: "Tomás asks whether Alice becomes more self-assured and wants passages that support and challenge that reading.",
+        quote: "Does Alice become more self-assured? Show me the passages that support and challenge that reading.",
+        scenario: "Tomás asks whether Alice becomes more self-assured while admitting that may be his projection.",
+        stress: {input: 1, orchestrator: 2, muse: 3, librarian: 3, serendipity: 0, provenance: 3, postcheck: 3, release: 3, web: 0, sculptor: 0, policy: 0, memory: 0},
+        paths: ["input-orchestrator", "orchestrator-muse", "muse-librarian", "librarian-muse", "muse-provenance", "provenance-postcheck", "postcheck-release"],
+        corePaths: ["muse-librarian", "librarian-muse", "muse-provenance", "postcheck-release"],
+        probes: {routing: 2, evidence: 3, memory: 0},
+        evals: ["Book Recall@5", "Citation precision", "Exact-quote accuracy", "Weak-evidence decline"],
+        good: ["Checks citation and quotation accuracy", "Measures weak-evidence declines", "Separates evidence from interpretation"],
+        fit: {reflect: 3, ground: 3, preserve: 0, reconnect: 1}
+      },
+      amina: {
+        number: "Persona 05",
+        name: "Amina Yusuf",
+        role: "Connects images to books and memories",
+        context: "26 · documentary photographer · visual thinker",
+        uses: [
+          {label: "Use case", text: "She shares a photo or describes an image, then asks Linger to find related passages, saved reflections, or public context."},
+          {label: "Agents and checks", text: "Serendipity proposes links across her notes, the book, and Exa web. Librarian retrieves the exact sources, Muse explains the possible connection, and Provenance checks every claim."}
+        ],
+        momentTitle: "A doorway photo recalls Alice",
+        moment: "Amina shares a photo of a half-open doorway and asks Linger to find links to Alice in Wonderland and similar ideas in her saved reflections.",
+        quote: "This doorway makes me think of Alice. Can you find the passage and anything I wrote before that feels related?",
+        scenario: "A photograph of a half-open doorway recalls the rabbit hole, one earlier personal memory, and a cited public image-history source.",
+        stress: {input: 1, orchestrator: 3, muse: 3, librarian: 2, serendipity: 3, provenance: 3, postcheck: 3, release: 2, web: 2, sculptor: 0, policy: 2, memory: 2},
+        paths: ["input-orchestrator", "orchestrator-muse", "muse-serendipity", "serendipity-web", "web-serendipity", "serendipity-muse", "memory-librarian", "librarian-muse", "muse-provenance", "provenance-postcheck", "postcheck-release"],
+        corePaths: ["muse-serendipity", "serendipity-muse", "muse-provenance"],
+        probes: {routing: 2, evidence: 3, memory: 2},
+        evals: ["Target-connection hit", "Cross-source evidence recall", "Unsupported-claim block", "Web citation resolution", "Photo persistence = 0"],
+        good: ["Measures cross-source connection quality", "Checks cited web evidence and photo handling", "Blocks unsupported personal claims"],
+        fit: {reflect: 2, ground: 2, preserve: 1, reconnect: 3}
+      }
+    };
+
+    const stageLabels = {reflect: "Reflect", ground: "Ground", preserve: "Preserve", reconnect: "Reconnect"};
+    const fitLabels = ["None", "Light", "Supporting", "Core"];
+    const select = document.querySelector("#persona-select");
+    const loadButton = document.querySelector("#load-persona");
+    const status = document.querySelector("#lab-status");
+    const runtime = document.querySelector("#runtime");
+    const loadedPersona = document.querySelector("#loaded-persona");
+    const scenarioText = document.querySelector("#scenario-text");
+    const evalOutput = document.querySelector("#eval-output");
+    const valueOutput = document.querySelector("#value-output");
+    const fitOutput = document.querySelector("#fit-output");
+    const architectureNodes = [...document.querySelectorAll(".arch-node")];
+    const architecturePaths = [...document.querySelectorAll(".arch-path")];
+    const evalProbes = [...document.querySelectorAll(".eval-probe[data-probe]")];
+    const stressLabels = ["Idle", "Touched", "Supporting", "Primary"];
+    const invariantComponents = new Set(["provenance", "postcheck"]);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let personaLoading = false;
+
+    function setText(id, value) {
+      document.querySelector(`#${id}`).textContent = value;
+    }
+
+    function renderDefinition(key) {
+      const persona = personaData[key];
+      const firstName = persona.name.split(" ")[0];
+      setText("definition-number", persona.number);
+      setText("definition-name", persona.name);
+      setText("definition-role", persona.role);
+      setText("definition-context", persona.context);
+      setText("definition-use-title", `How ${firstName} uses Linger`);
+      const useList = document.querySelector("#definition-use-list");
+      useList.replaceChildren(...persona.uses.map(item => {
+        const listItem = document.createElement("li");
+        const label = document.createElement("strong");
+        label.textContent = item.label;
+        listItem.append(label, item.text);
+        return listItem;
+      }));
+      setText("definition-moment-title", persona.momentTitle);
+      setText("definition-moment", persona.moment);
+      setText("definition-quote", `“${persona.quote}”`);
+      loadButton.textContent = `View ${firstName}’s evaluation profile`;
+      status.textContent = `Review ${firstName}’s profile, then show how the case uses Linger.`;
+    }
+
+    function resetRuntime() {
+      runtime.classList.remove("loaded");
+      runtime.removeAttribute("aria-busy");
+      clearStressMap();
+      loadedPersona.textContent = "No profile selected";
+      scenarioText.textContent = "Choose a world to show how its case uses Linger.";
+      evalOutput.className = "output-panel";
+      valueOutput.className = "output-panel";
+      fitOutput.className = "output-panel";
+      evalOutput.innerHTML = '<span class="micro">Measures</span><h4>Choose a world</h4><p class="empty-output">The relevant measures will appear here.</p>';
+      valueOutput.innerHTML = '<span class="micro">What this case checks</span><h4>Choose a world</h4><p class="empty-output">The evaluation purpose will appear here.</p>';
+      fitOutput.innerHTML = '<span class="micro">Fit across Linger</span><h4>Choose a world</h4><p class="empty-output">Journey fit will appear here.</p>';
+    }
+
+    function wait(milliseconds) {
+      return new Promise(resolve => window.setTimeout(resolve, reduceMotion ? 0 : milliseconds));
+    }
+
+    function clearStressMap() {
+      architectureNodes.forEach(node => {
+        node.classList.remove("stress-1", "stress-2", "stress-3");
+        node.removeAttribute("data-level");
+        node.removeAttribute("data-stress-label");
+      });
+      architecturePaths.forEach(path => path.classList.remove("active", "stress-3"));
+      evalProbes.forEach(probe => {
+        probe.classList.remove("stress-1", "stress-2", "stress-3");
+        probe.removeAttribute("aria-label");
+      });
+    }
+
+    function renderOutputs(persona) {
+      evalOutput.innerHTML = `<span class="micro">Measures</span><h4>${persona.evals.length} measures</h4><ul class="eval-list">${persona.evals.map(item => `<li>${item}</li>`).join("")}</ul>`;
+      valueOutput.innerHTML = `<span class="micro">What this case checks</span><h4>Evaluation purpose</h4><ul class="value-list">${persona.good.map(item => `<li>${item}</li>`).join("")}</ul>`;
+      fitOutput.innerHTML = `<span class="micro">Fit across Linger</span><h4>Journey coverage</h4><div class="fit-list">${Object.entries(persona.fit).map(([stage, score]) => `<div class="fit-row"><span>${stageLabels[stage]}</span><span class="fit-meter" aria-label="${fitLabels[score]} fit">${[1, 2, 3].map(level => `<i class="${level <= score ? "on" : ""}"></i>`).join("")}</span><span>${fitLabels[score]}</span></div>`).join("")}</div>`;
+      evalOutput.classList.add("populated");
+      valueOutput.classList.add("populated");
+      fitOutput.classList.add("populated");
+    }
+
+    async function loadPersona() {
+      if (personaLoading) return;
+      personaLoading = true;
+      const persona = personaData[select.value];
+      select.disabled = true;
+      loadButton.setAttribute("aria-disabled", "true");
+      loadButton.textContent = "Loading profile…";
+      runtime.classList.remove("loaded");
+      runtime.setAttribute("aria-busy", "true");
+      clearStressMap();
+      status.textContent = `Loading ${persona.name}’s evaluation profile…`;
+      loadedPersona.textContent = `Loading ${persona.name.split(" ")[0]}…`;
+      scenarioText.textContent = persona.scenario;
+
+      await wait(260);
+      for (const path of architecturePaths) {
+        if (persona.paths.includes(path.dataset.path)) {
+          path.classList.add("active");
+          if (persona.corePaths.includes(path.dataset.path)) path.classList.add("stress-3");
+          await wait(110);
+        }
+      }
+      for (const node of architectureNodes) {
+        const score = persona.stress[node.dataset.component] || 0;
+        if (score) {
+          node.classList.add(`stress-${score}`);
+          node.dataset.level = String(score);
+          node.dataset.stressLabel = stressLabels[score];
+          await wait(score === 3 ? 280 : 200);
+        }
+      }
+      for (const probe of evalProbes) {
+        const score = persona.probes[probe.dataset.probe] || 0;
+        if (score) {
+          probe.classList.add(`stress-${score}`);
+          await wait(180);
+        }
+        probe.setAttribute("aria-label", `${probe.textContent}: ${stressLabels[score]} evaluation pressure`);
+      }
+
+      renderOutputs(persona);
+      runtime.classList.add("loaded");
+      runtime.removeAttribute("aria-busy");
+      loadedPersona.textContent = `${persona.name} loaded`;
+      const primaryStressPoints = Object.entries(persona.stress).filter(([component, score]) => score === 3 && !invariantComponents.has(component)).length;
+      status.textContent = `${persona.name}: ${primaryStressPoints} main stress points and ${persona.evals.length} measures. Provenance and post-checks remain mandatory.`;
+      loadButton.textContent = `Show ${persona.name.split(" ")[0]} again`;
+      loadButton.setAttribute("aria-disabled", "false");
+      select.disabled = false;
+      personaLoading = false;
+    }
+
+    select.addEventListener("change", () => {
+      resetRuntime();
+      renderDefinition(select.value);
+    });
+    loadButton.addEventListener("click", loadPersona);
+    renderDefinition("maya");
+    resetRuntime();
+  </script>
+</body>
+</html>
