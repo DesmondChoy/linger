@@ -32,6 +32,24 @@ class MuseAgentToolWiringTests(unittest.TestCase):
             finally:
                 importlib.reload(muse_agent_module)
 
+    def test_muse_chat_agent_registers_serendipity_explore(self) -> None:
+        settings = Settings(
+            _env_file=None,
+            linger_model="google:gemini-2.5-flash",
+            google_api_key="test-key",
+        )
+        with patch("src.linger.agents.build.get_settings", return_value=settings):
+            import importlib
+
+            from src.linger.agents.muse import agent as muse_agent_module
+
+            importlib.reload(muse_agent_module)
+            try:
+                names = _sample_tool_names(muse_agent_module.muse_chat_agent)
+                self.assertIn("serendipity_explore", names)
+            finally:
+                importlib.reload(muse_agent_module)
+
 
 if __name__ == "__main__":
     unittest.main()

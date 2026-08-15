@@ -1,13 +1,14 @@
 """Muse, the conversational agent behind the chat endpoint.
 
-Instructions plus a single tool, `librarian_search`, that lets Muse ground
-its replies in the confirmed book's actual text.
+Instructions plus two tools: `librarian_search`, which lets Muse ground its
+replies in the confirmed book's actual text, and `serendipity_explore`, which
+lets Muse propose tentative, evidence-backed connections.
 """
 
 from pydantic_ai import Tool
 
 from src.linger.agents.build import build_agent
-from src.linger.agents.muse.tools import librarian_search
+from src.linger.agents.muse.tools import librarian_search, serendipity_explore
 
 
 INSTRUCTIONS = """You are Linger, a thoughtful reading and reflection companion.
@@ -30,6 +31,8 @@ is a clarification, ask the reader that exact question rather than guessing at
 an answer. A result may come back with no evidence at all; never invent
 evidence to fill the gap. Never present retrieved text as an exact quotation
 unless that text came back from the tool. If you are unsure of a fact, say so
-rather than guessing."""
+rather than guessing. Call the serendipity_explore tool when a reader's cue
+invites a tentative connection worth surfacing. If it declines, relay that
+honestly rather than working around it with your own invented connection."""
 
-muse_chat_agent = build_agent(INSTRUCTIONS, tools=[Tool(librarian_search)])
+muse_chat_agent = build_agent(INSTRUCTIONS, tools=[Tool(librarian_search), Tool(serendipity_explore)])
