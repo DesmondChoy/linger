@@ -11,7 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration.reflection import reflection_reply
+from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
 from src.linger.services.memory import (
     AccountContext,
     MemoryConflictError,
@@ -24,7 +26,7 @@ from src.linger.services.memory import (
 
 from . import sessions
 from .config import REPO_ROOT, get_settings
-from .contracts import BookScope, ConnectionBrief, ConnectionProposal, LibrarianRequest, MuseTurn, ReadingContext, TurnPolicy
+from .contracts import MuseTurn, ReadingContext, TurnPolicy
 from .librarian import Librarian
 from .logger import ROOT_NAME, configure_logging
 from .schemas import (
@@ -38,7 +40,6 @@ from .schemas import (
     MemoryWriteRequest,
     TurnInspection,
 )
-from .serendipity import discover
 
 configure_logging()
 logger = logging.getLogger(f"{ROOT_NAME}.backend")
@@ -76,7 +77,6 @@ AFFIRMATION_PATTERN = re.compile(
     r"^\s*(?:yes|yeah|yep|correct|that(?:'s| is)\s+right)\b",
     re.IGNORECASE,
 )
-CONNECTION_TRIGGERS = ("why", "feel", "identity", "who", "change", "rule", "authority", "power", "equal", "equality", "connect", "pattern")
 librarian = Librarian()
 
 
@@ -216,36 +216,10 @@ def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str]:
             f"{inferred[1]}.\n\nUser message: {request.message}"
         )
     brief_data = request_data = evidence_data = proposal_data = None
-    if context and librarian.has_corpus(context.book_id) and any(term in request.message.lower() for term in CONNECTION_TRIGGERS):
-        brief = ConnectionBrief(cue=request.message, book_id=context.book_id, chapter_max=context.chapter_max)
-        themes = (
-            "power equal rule pigs milk"
-            if context.book_id == "animal-farm"
-            else "identity change rule authority growing myself"
-        )
-        retrieval = LibrarianRequest(
-            query=f"{request.message} {themes}",
-            book_scopes=[BookScope(book_id=context.book_id, chapter_max=context.chapter_max)],
-        )
-        evidence = librarian.retrieve(retrieval)
-        connection = discover(brief, evidence)
-        brief_data, request_data, evidence_data = (brief.model_dump(mode="json"), retrieval.model_dump(mode="json"), evidence.model_dump(mode="json"))
-        traces.extend([
-            {"agent": "Librarian", "status": "complete", "detail": f"Returned {len(evidence.items)} permitted passages."},
-            {"agent": "Serendipity", "status": "complete" if isinstance(connection, ConnectionProposal) else "declined", "detail": "Returned a tentative connection." if isinstance(connection, ConnectionProposal) else connection.safe_next_step},
-        ])
-        if isinstance(connection, ConnectionProposal):
-            proposal_data = connection.model_dump(mode="json")
-            prompt += (
-                "\n\nOPTIONAL GROUNDED THREAD FROM SERENDIPITY:\n"
-                f"Tentative claim: {connection.tentative_claim}\nInterpretation: {connection.interpretation}\n"
-                "Use this only if it helps answer the reader; present it as tentative."
-            )
-    else:
-        traces.extend([
-            {"agent": "Librarian", "status": "skipped", "detail": "No bounded connection search was requested for this turn."},
-            {"agent": "Serendipity", "status": "skipped", "detail": "No bounded connection search was requested for this turn."},
-        ])
+    traces.extend([
+        {"agent": "Librarian", "status": "not_wired", "detail": "Retrieval is delegated to Muse, which decides whether to call it. The router no longer observes this."},
+        {"agent": "Serendipity", "status": "not_wired", "detail": "Connection discovery is delegated to Muse. The router no longer observes this."},
+    ])
     traces.append({"agent": "Muse", "status": "running", "detail": "Drafting a candidate response."})
     return TurnInspection(
         muse_turn=muse_turn.model_dump(mode="json"), context_resolution=resolution, traces=traces,
@@ -306,12 +280,20 @@ async def chat(request: ChatRequest) -> ChatResponse:
     reading_state = sessions.snapshot_reading_state(request.session_id)
     try:
         inspection, muse_input = _inspection_for(request)
-        reply = await reflection_reply(
-            muse_input,
-            sessions.history(request.session_id),
-            muse=muse_chat_agent,
-            provenance=provenance_agent,
+        confirmed = sessions.book_context(request.session_id)
+        token = set_confirmed_reading(
+            ConfirmedReading(work_id=confirmed.book_id, chapter_max=confirmed.chapter_max)
+            if confirmed else None
         )
+        try:
+            reply = await reflection_reply(
+                muse_input,
+                sessions.history(request.session_id),
+                muse=muse_chat_agent,
+                provenance=provenance_agent,
+            )
+        finally:
+            reset_confirmed_reading(token)
         sessions.append_turn(request.session_id, request.message, reply)
     except Exception as exc:
         sessions.restore_reading_state(request.session_id, reading_state)
