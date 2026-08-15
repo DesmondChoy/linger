@@ -108,11 +108,12 @@ function timelineFromInspection(inspection: TurnInspection, userInput: string, r
     traces: inspection.traces,
     contract: inspection.muse_turn,
     contextResolution: inspection.context_resolution,
-    promptInspection: { system_instructions: 'Muse’s fixed instructions are applied before this dynamic input.', dynamic_input: inspection.prompt },
+    promptInspection: { dynamic_input: inspection.prompt },
     connectionBrief: inspection.connection_brief ?? undefined,
     librarianRequest: inspection.librarian_request ?? undefined,
     evidenceBundle: inspection.evidence_bundle ?? undefined,
     connection: inspection.connection_proposal ?? undefined,
-    status: 'complete',
+    release: inspection.release ?? undefined,
+    status: inspection.release?.release_source === 'application_safe_decline' ? 'failed' : 'complete',
   }
 }

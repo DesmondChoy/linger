@@ -10,11 +10,11 @@ function boundarySummary(turn: TurnTimeline) {
   if (resolution.status === 'confirmed') {
     return resolution.chapter_max
       ? `${resolution.work_title ?? resolution.work_id}, through completed chapter ${resolution.chapter_max}.`
-      : `${resolution.work_title ?? resolution.work_id} confirmed; no completed chapter saved.`
+      : `${resolution.work_title ?? resolution.work_id} confirmed; no completed chapter confirmed for this request.`
   }
   if (resolution.status === 'inferred') {
     return resolution.chapter_max
-      ? `Likely scene: ${resolution.work_title}, Chapter ${resolution.chapter_max} — not saved as reading progress.`
+      ? `Likely scene: ${resolution.work_title}, Chapter ${resolution.chapter_max} — not a retrieval boundary.`
       : `Possible book: ${resolution.work_title}; chapter not inferred.`
   }
   return 'No book or reading position confirmed.'
@@ -41,7 +41,7 @@ export function Inspector({ timeline }: Props) {
           confirmed reading boundary. Muse is the only agent that writes to the reader; the other contracts are
           optional preparation steps you can open when you want the technical detail.
         </p>
-        <p className="process-key">Reader message → context check → optional memory capture → optional evidence hand-off → Muse reply</p>
+        <p className="process-key">Reader message → context check → optional evidence hand-off → Muse draft → Provenance release decision</p>
       </div>
 
       <section className="process-timeline" aria-label="Turn-by-turn processing timeline">
@@ -103,17 +103,14 @@ export function Inspector({ timeline }: Props) {
                     )}
                     {turn.promptInspection && (
                       <details className="raw-detail">
-                        <summary>How Muse generated this reply: view exact prompt</summary>
-                        <p className="muted">Muse received the fixed system instructions plus the dynamic turn input below. The released response is its streamed output.</p>
-                        <h4>System instructions</h4>
-                        <pre>{turn.promptInspection.system_instructions}</pre>
-                        <h4>Dynamic input</h4>
+                        <summary>View Muse dynamic input</summary>
+                        <p className="muted">This is the request-scoped JSON contract passed to Muse.</p>
                         <pre>{turn.promptInspection.dynamic_input}</pre>
                       </details>
                     )}
                     {turn.connectionBrief && (
                       <details className="raw-detail">
-                        <summary>View ConnectionBrief: Muse → Serendipity</summary>
+                        <summary>View ConnectionBrief: Orchestrator → Serendipity</summary>
                         <pre>{JSON.stringify(turn.connectionBrief, null, 2)}</pre>
                       </details>
                     )}
@@ -129,13 +126,16 @@ export function Inspector({ timeline }: Props) {
                         <pre>{JSON.stringify(turn.evidenceBundle, null, 2)}</pre>
                       </details>
                     )}
-                    {(turn.sculptorInput || turn.memoryDecision || turn.memorySaved) && (
-                      <details className="raw-detail">
-                        <summary>View memory-capture handshake</summary>
-                        {turn.sculptorInput && <><h4>Input to Sculptor</h4><pre>{JSON.stringify(turn.sculptorInput, null, 2)}</pre></>}
-                        {turn.memoryDecision && <><h4>Sculptor’s decision</h4><pre>{JSON.stringify(turn.memoryDecision, null, 2)}</pre></>}
-                        {turn.memorySaved && <><h4>Memory Policy’s saved notice</h4><pre>{JSON.stringify(turn.memorySaved, null, 2)}</pre></>}
-                      </details>
+                    {turn.release && (
+                      <section>
+                        <h4>Release decision</h4>
+                        <p>
+                          {turn.release.release_source === 'muse_candidate'
+                            ? `Provenance approved the Muse candidate (${turn.release.provenance_verdicts.join(' → ')}).`
+                            : 'The Muse candidate was withheld and the application supplied a safe decline.'}
+                        </p>
+                        {turn.release.failure_stage && <p className="muted">Failure stage: {turn.release.failure_stage.replace('_', ' ')}</p>}
+                      </section>
                     )}
                     {turn.response && (
                       <section>

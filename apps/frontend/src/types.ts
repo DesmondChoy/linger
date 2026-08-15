@@ -23,7 +23,7 @@ export type ConnectionBrief = {
 }
 
 export type AgentTrace = {
-  agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Sculptor' | 'Memory Policy' | 'Provenance'
+  agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Provenance'
   status: 'waiting' | 'running' | 'complete' | 'declined' | 'skipped' | 'not_wired' | 'failed'
   detail: string
 }
@@ -31,7 +31,7 @@ export type AgentTrace = {
 export type MuseTurnContract = {
   turn_id: string
   user_message: string
-  reading_context: { work_id: string; chapter_max: number; boundary_source: 'reader_confirmed' | 'inferred_from_question' } | null
+  reading_context: { work_id: string; chapter_max: number; boundary_source: 'reader_confirmed' } | null
   policy: {
     spoiler_ceiling: number | null
     allow_retrieval: boolean
@@ -49,15 +49,13 @@ export type ContextResolution = {
 }
 
 export type PromptInspection = {
-  system_instructions: string
   dynamic_input: string
 }
 
 export type LibrarianRequest = {
   query: string
   book_scopes: { book_id: string; chapter_max: number }[]
-  include_session_memories: boolean
-  purpose: 'connection_discovery' | 'memory_reconnection'
+  purpose: 'connection_discovery'
 }
 
 export type EvidenceBundle = {
@@ -68,25 +66,17 @@ export type EvidenceBundle = {
     chapter: number | null
     excerpt: string
     relevance: number
-    source_kind: 'book_corpus' | 'session_memory'
+    source_kind: 'book_corpus'
   }[]
   retrieval_note: string
 }
 
-export type SculptorCaptureInput = {
-  turn_id: string
-  original_text: string
-  capture_enabled: boolean
-}
-
-export type MemoryDecision =
-  | { status: 'proposal'; original_text: string; reason: string }
-  | { status: 'decline'; reason: string }
-
-export type MemorySavedNotice = {
-  memory_id: string
-  original_text: string
-  source_turn_id: string
+export type ReleaseInspection = {
+  release_source: 'muse_candidate' | 'application_safe_decline'
+  provenance_verdicts: ('pass' | 'revise' | 'reject')[]
+  critiques: string[]
+  revision_count: number
+  failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | null
 }
 
 export type TurnTimeline = {
@@ -101,9 +91,7 @@ export type TurnTimeline = {
   librarianRequest?: LibrarianRequest
   evidenceBundle?: EvidenceBundle
   connection?: Connection
-  sculptorInput?: SculptorCaptureInput
-  memoryDecision?: MemoryDecision
-  memorySaved?: MemorySavedNotice
+  release?: ReleaseInspection
   status: 'running' | 'complete' | 'failed'
 }
 
@@ -116,6 +104,7 @@ export type TurnInspection = {
   evidence_bundle: EvidenceBundle | null
   connection_proposal: Connection | null
   prompt: string
+  release: ReleaseInspection | null
 }
 
 export type ChatResult = {

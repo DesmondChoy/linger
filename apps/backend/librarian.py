@@ -7,7 +7,6 @@ explicitly established a book title and reading boundary.
 import re
 
 from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
-from .sessions import ReflectionMemory
 
 
 def evidence(evidence_id: str, title: str, location: str, chapter: int, excerpt: str, relevance: float) -> EvidenceItem:
@@ -44,12 +43,8 @@ class Librarian:
     def has_corpus(self, book_id: str) -> bool:
         return book_id in CORPORA
 
-    def retrieve(self, request: LibrarianRequest, memories: list[ReflectionMemory] | None = None) -> EvidenceBundle:
-        """Fuse only sources explicitly granted by the request.
-
-        Book excerpts are filtered at each book's own confirmed boundary. A
-        memory is an authorised session object, never a chat transcript.
-        """
+    def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
+        """Retrieve book excerpts within each request-scoped boundary."""
         words = set(re.findall(r"[a-z]+", request.query.lower()))
         selected: list[EvidenceItem] = []
         for scope in request.book_scopes:
@@ -63,21 +58,7 @@ class Librarian:
             # reader's wording differs from the source's wording.
             selected.extend((matches[:3] if matches else allowed[-3:]))
 
-        if request.include_session_memories:
-            for memory in memories or []:
-                memory_words = set(re.findall(r"[a-z]+", memory.original_text.lower()))
-                if words & memory_words:
-                    selected.append(EvidenceItem(
-                        evidence_id=memory.memory_id,
-                        source_title="Saved reader reflection",
-                        location=f"Memory from turn {memory.source_turn_id}",
-                        excerpt=memory.original_text,
-                        relevance=0.86,
-                        source_kind="session_memory",
-                    ))
         return EvidenceBundle(
             items=selected,
-            retrieval_note=(
-                "Only reader-confirmed book boundaries and authorised session memories were searched."
-            ),
+            retrieval_note="Only the reader-confirmed, request-scoped book boundary was searched.",
         )

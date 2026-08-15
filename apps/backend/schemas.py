@@ -29,6 +29,7 @@ class TurnInspection(BaseModel):
     evidence_bundle: dict[str, Any] | None = None
     connection_proposal: dict[str, Any] | None = None
     prompt: str
+    release: dict[str, Any] | None = None
 
 
 class ChatResponse(BaseModel):
