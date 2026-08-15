@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     google_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
+    # A Logfire write token. Unset means tracing stays local: spans are still
+    # created, so the trace path is exercised, but nothing leaves the machine.
+    logfire_token: SecretStr | None = None
     linger_model: str = "google:gemini-2.5-flash"
     linger_allowed_origins: str = "http://localhost:5173"
     linger_account_id: str = "local-prototype-user"

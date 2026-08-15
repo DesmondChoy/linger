@@ -22,6 +22,7 @@ import logfire
 
 from src.linger.agents.provenance.models import ProvenanceReview
 
+from .config import get_settings
 from .contracts import (
     ConnectionBrief,
     ContextResolution,
@@ -42,11 +43,18 @@ def configure_telemetry() -> None:
     `instrument_pydantic_ai` has to be in effect before those imports run or it
     never sees them.
 
-    Without `LOGFIRE_TOKEN` nothing leaves the machine: spans are created and
-    dropped, so the trace path stays exercised in local development without
-    requiring an account.
+    Without a token nothing leaves the machine: spans are created and dropped,
+    so the trace path stays exercised in local development without requiring an
+    account.
+
+    The token is read through `Settings` rather than from the environment,
+    because nothing in this project loads `.env` into `os.environ` — Pydantic
+    Settings reads that file itself. Letting Logfire pick the variable up on its
+    own would work only when the token is exported by hand.
     """
+    token = get_settings().logfire_token
     logfire.configure(
+        token=token.get_secret_value() if token else None,
         send_to_logfire="if-token-present",
         service_name=SERVICE_NAME,
         console=False,
