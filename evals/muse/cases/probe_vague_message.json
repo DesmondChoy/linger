@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-probe-vague-message-v1",
+  "owner": "muse",
+  "primary_behavior": "probe_vague_message",
+  "description": "The reader's message names no book and gives no position. Muse must probe for the missing context rather than guess a book on its own.",
+  "input": {
+    "reader_message": "That chapter left me feeling strange and I can't say why.",
+    "reader_context": {
+      "book_confirmed": false,
+      "chapter_state": null,
+      "candidate_book": null
+    },
+    "tools": {}
+  },
+  "expected": {
+    "kind": "probe",
+    "must_ask_question": true,
+    "forbidden_terms": ["Alice", "Wonderland", "Cheshire", "rabbit"],
+    "max_words": 120,
+    "semantic_review": {
+      "criteria": [
+        "acknowledges the feeling before asking anything",
+        "asks which book the reader means and where they are in it",
+        "asks at most two questions"
+      ],
+      "forbidden_claims": ["naming or guessing any specific book"]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "book_detail_before_confirmation",
+    "answer_instead_of_probe",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}

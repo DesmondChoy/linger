@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-grounded-answer-within-boundary-v1",
+  "owner": "muse",
+  "primary_behavior": "grounded_answer_within_boundary",
+  "description": "The book is confirmed, the chapter is completed, and librarian evidence is in hand. Muse must answer from the evidence, quote only what the evidence supports, and stay inside the spoiler boundary.",
+  "input": {
+    "reader_message": "Why does Alice follow the rabbit at the start?",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": "completed",
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {
+      "librarian_evidence": [
+        "Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.",
+        "burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge."
+      ],
+      "serendipity_outcome": null,
+      "decline_safe_next_step": null
+    }
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": ["Queen of Hearts", "Mock Turtle", "the trial"],
+    "max_words": 220,
+    "semantic_review": {
+      "criteria": [
+        "grounds the reply in the supplied evidence rather than general knowledge",
+        "stays within the completed first chapter",
+        "invites reflection rather than lecturing"
+      ],
+      "forbidden_claims": ["events from chapters the reader has not confirmed"]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "spoiler_beyond_boundary",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}
