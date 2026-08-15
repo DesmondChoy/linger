@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Callable
 
+import logfire
+
 from apps.backend.config import REPO_ROOT, get_settings
 from apps.backend.contracts import (
     BookScope,
@@ -15,6 +17,7 @@ from apps.backend.contracts import (
     LibrarianRequest,
 )
 from apps.backend.serendipity import discover
+from apps.backend.telemetry import brief_attrs, evidence_attrs, librarian_request_attrs
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import confirmed_reading
 from src.linger.services.memory import AccountContext, MemoryPolicyService
@@ -49,7 +52,14 @@ def _repeats_private_memory(cue: str) -> bool:
     account = AccountContext(account_id=get_settings().linger_account_id)
     try:
         records = memory_service.list_active(account)
-    except Exception:
+    except Exception as exc:
+        # Fail closed, but leave a trace: an unreadable memory store silently
+        # blocking every cue is otherwise indistinguishable from a genuine match.
+        logfire.warn(
+            "memory store unreadable; treating cue as unsafe",
+            failure_stage="memory_read",
+            error_type=type(exc).__name__,
+        )
         return True
 
     cue_tokens = _tokens(cue)
@@ -115,12 +125,22 @@ async def connection_proposal(
     request = LibrarianRequest(
         query=clamped_brief.cue, book_scopes=[BookScope(book_id=reading.work_id, chapter_max=ceiling)]
     )
-    try:
-        bundle = librarian_service.retrieve(request)
-    except Exception:
-        return _insufficient_evidence("Evidence retrieval was unavailable; try again shortly.")
+    with logfire.span("serendipity.connection", **brief_attrs(clamped_brief)) as span:
+        try:
+            with logfire.span("librarian.retrieve", **librarian_request_attrs(request)):
+                bundle = librarian_service.retrieve(request)
+        except Exception as exc:
+            span.set_attribute("failure_stage", "librarian_retrieve")
+            span.record_exception(exc)
+            return _insufficient_evidence("Evidence retrieval was unavailable; try again shortly.")
 
-    try:
-        return explorer(clamped_brief, bundle)
-    except Exception:
-        return _insufficient_evidence("The connection could not be safely explored from the available evidence.")
+        span.set_attribute("evidence", evidence_attrs(bundle))
+        try:
+            result = explorer(clamped_brief, bundle)
+        except Exception as exc:
+            span.set_attribute("failure_stage", "serendipity_explore")
+            span.record_exception(exc)
+            return _insufficient_evidence("The connection could not be safely explored from the available evidence.")
+
+        span.set_attribute("result_status", result.status)
+        return result
