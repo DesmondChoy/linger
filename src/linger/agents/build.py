@@ -8,7 +8,9 @@ request.
 """
 
 
-from pydantic_ai import Agent
+from collections.abc import Sequence
+
+from pydantic_ai import Agent, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
@@ -55,6 +57,6 @@ def build_model() -> Model:
     return model
 
 
-def build_agent(instructions: str) -> Agent[None, str]:
+def build_agent(instructions: str, *, tools: Sequence[Tool[None]] = ()) -> Agent[None, str]:
     """Build a plain-text agent on the configured model."""
-    return Agent(build_model(), instructions=instructions)
+    return Agent(build_model(), instructions=instructions, tools=tools)

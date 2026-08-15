@@ -3,12 +3,25 @@
 import unittest
 from unittest.mock import patch
 
+from pydantic_ai import Tool
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIResponsesModel
 
 from apps.backend.config import Settings
 from src.linger.agents.build import build_agent
+
+
+def _sample_tool_names(agent) -> set[str]:
+    names: set[str] = set()
+    for toolset in agent.toolsets:
+        names.update(getattr(toolset, "tools", {}).keys())
+    return names
+
+
+def _example_tool(value: int) -> int:
+    """A trivial tool used only to test tool registration."""
+    return value + 1
 
 
 class BuildAgentTests(unittest.TestCase):
@@ -72,6 +85,28 @@ class BuildAgentTests(unittest.TestCase):
                 ):
                     with self.assertRaisesRegex(RuntimeError, "Unsupported LINGER_MODEL"):
                         build_agent("Test instructions")
+
+    def test_default_build_agent_has_no_tools(self) -> None:
+        settings = Settings(
+            _env_file=None,
+            linger_model="google:gemini-2.5-flash",
+            google_api_key="test-key",
+        )
+        with patch("src.linger.agents.build.get_settings", return_value=settings):
+            agent = build_agent("Test instructions")
+
+        self.assertEqual(set(), _sample_tool_names(agent))
+
+    def test_build_agent_registers_supplied_tools(self) -> None:
+        settings = Settings(
+            _env_file=None,
+            linger_model="google:gemini-2.5-flash",
+            google_api_key="test-key",
+        )
+        with patch("src.linger.agents.build.get_settings", return_value=settings):
+            agent = build_agent("Test instructions", tools=[Tool(_example_tool)])
+
+        self.assertIn("_example_tool", _sample_tool_names(agent))
 
 
 if __name__ == "__main__":

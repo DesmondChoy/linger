@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-confirm-chapter-boundary-v1",
+  "owner": "muse",
+  "primary_behavior": "confirm_chapter_boundary",
+  "description": "The book is confirmed but the chapter state is unknown. Muse must ask whether the chapter is finished or still in progress before treating it as a spoiler boundary.",
+  "input": {
+    "reader_message": "I'm at the tea party chapter - what should I make of it?",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": null,
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {}
+  },
+  "expected": {
+    "kind": "probe",
+    "must_ask_question": true,
+    "forbidden_terms": ["Queen of Hearts", "Knave of Hearts", "the trial", "Mock Turtle"],
+    "max_words": 120,
+    "semantic_review": {
+      "criteria": [
+        "asks whether the chapter is finished or still in progress",
+        "defers interpretation until the boundary is known",
+        "stays warm rather than procedural"
+      ],
+      "forbidden_claims": ["events from chapters after the tea party"]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "spoiler_beyond_boundary",
+    "answer_instead_of_probe",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}
