@@ -8,7 +8,7 @@ from pydantic_ai import Agent
 from pydantic_ai.messages import ModelMessage, ToolReturnPart
 from pydantic_core import to_jsonable_python
 
-from src.linger.agents.provenance.models import ProvenanceVerdict
+from src.linger.agents.provenance.models import ProvenanceReview
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 
@@ -79,9 +79,9 @@ def _context_with_tool_results(
 
 async def _review(
     candidate: str,
-    provenance: Agent[None, ProvenanceVerdict],
+    provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
-) -> ProvenanceVerdict:
+) -> ProvenanceReview:
     payload = json.dumps(
         {**review_context, "candidate_response": candidate},
         ensure_ascii=False,
@@ -95,7 +95,7 @@ async def reflection_reply(
     history: list[ModelMessage],
     *,
     muse: Agent[None, str],
-    provenance: Agent[None, ProvenanceVerdict],
+    provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object] | None = None,
 ) -> ReflectionRelease:
     """Return an approved candidate or an application-authored safe decline."""
@@ -108,21 +108,21 @@ async def reflection_reply(
     draft_review_context = _context_with_tool_results(review_context, draft_tool_results)
 
     try:
-        verdict = await _review(candidate, provenance, draft_review_context)
+        review = await _review(candidate, provenance, draft_review_context)
     except Exception:
         return _safe_decline(failure_stage="provenance_review")
 
-    if verdict.decision == "pass":
+    if review.response_decision == "pass":
         return ReflectionRelease(
             reply=candidate,
             release_source="muse_candidate",
             provenance_verdicts=("pass",),
-            critiques=(verdict.critique,),
+            critiques=(review.critique(),),
         )
-    if verdict.decision != "revise":
+    if review.response_decision != "revise":
         return _safe_decline(
-            verdicts=(verdict.decision,),
-            critiques=(verdict.critique,),
+            verdicts=(review.response_decision,),
+            critiques=(review.critique(),),
         )
 
     revision_request = json.dumps(
@@ -130,7 +130,7 @@ async def reflection_reply(
             "task": "Revise the candidate once to address the review critique.",
             "original_muse_input": message,
             "candidate_response": candidate,
-            "review_critique": verdict.critique,
+            "review_critique": review.critique(),
         },
         ensure_ascii=False,
     )
@@ -139,7 +139,7 @@ async def reflection_reply(
     except Exception:
         return _safe_decline(
             verdicts=("revise",),
-            critiques=(verdict.critique,),
+            critiques=(review.critique(),),
             revision_count=1,
             failure_stage="muse_revision",
         )
@@ -148,14 +148,14 @@ async def reflection_reply(
     if not revised_candidate:
         return _safe_decline(
             verdicts=("revise",),
-            critiques=(verdict.critique,),
+            critiques=(review.critique(),),
             revision_count=1,
             failure_stage="muse_revision",
         )
 
     try:
         revised_tool_results = draft_tool_results + _tool_results(revision_result)
-        revised_verdict = await _review(
+        revised_review = await _review(
             revised_candidate,
             provenance,
             _context_with_tool_results(review_context, revised_tool_results),
@@ -163,21 +163,21 @@ async def reflection_reply(
     except Exception:
         return _safe_decline(
             verdicts=("revise",),
-            critiques=(verdict.critique,),
+            critiques=(review.critique(),),
             revision_count=1,
             failure_stage="provenance_review",
         )
 
-    if revised_verdict.decision == "pass":
+    if revised_review.response_decision == "pass":
         return ReflectionRelease(
             reply=revised_candidate,
             release_source="muse_candidate",
             provenance_verdicts=("revise", "pass"),
-            critiques=(verdict.critique, revised_verdict.critique),
+            critiques=(review.critique(), revised_review.critique()),
             revision_count=1,
         )
     return _safe_decline(
-        verdicts=("revise", revised_verdict.decision),
-        critiques=(verdict.critique, revised_verdict.critique),
+        verdicts=("revise", revised_review.response_decision),
+        critiques=(review.critique(), revised_review.critique()),
         revision_count=1,
     )
