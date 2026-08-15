@@ -9,17 +9,20 @@ responsibilities and safeguards in [`../specification.md`](../specification.md).
 ### Progress snapshot
 
 Beads is the durable source of truth; this table is its human-readable design
-projection as of 13 August 2026.
+projection as of 15 August 2026.
 
 | Track | Progress | Current state | Beads |
 |---|---:|---|---|
 | Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
-| Initial Librarian implementation | 1 of 5 slices (20%) | Offline corpus slice complete; first online slice is ready to start | `linger-ibq` |
+| Initial Librarian implementation | 1 of 6 slices (17%) | Offline corpus slice complete; first online slice is ready; retrieval comparison is a required later slice | `linger-ibq` |
 | Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
 
-The 20% implementation figure intentionally excludes optional BM25, embeddings,
-and reranking experiments. The initial product slice uses bounded direct reads;
-advanced retrieval is added only if evaluation shows a material benefit.
+The 17% implementation figure includes a mandatory retrieval benchmark. Linger
+will implement bounded direct reads as the control, then test BM25, semantic
+embeddings, hybrid fusion, and reranking on the same evaluation set before
+selecting the production strategy from measured safety, quality, latency, token
+use, and monetary cost. Safety and exact citation resolution are hard gates;
+evidence quality comes first, with latency and cost breaking near-equal results.
 
 ## 1. Purpose and scope
 
@@ -33,9 +36,9 @@ The subsystem has two deliberately separate flows:
    evidence result to Muse.
 
 The current vertical slice implements the first flow for Project Gutenberg
-ebook 11. The chapter files also support direct agentic retrieval now. BM25
-paragraph windows, embeddings, hybrid retrieval, fusion, and reranking remain
-optional derived capabilities; their exact design is not yet fixed.
+ebook 11. The chapter files also support direct agentic retrieval now. The
+online plan will benchmark direct reads, BM25 paragraph windows, embeddings,
+hybrid fusion, and reranking before fixing the production retrieval design.
 
 ### 1.1 Responsibilities
 
@@ -73,8 +76,8 @@ Canonical Markdown chapters
                     ↓
 Derived metadata-only catalogue
                     ↓
-Optional later indexes
-(BM25 paragraph windows, embeddings, or hybrid)
+Derived evaluation indexes
+(BM25 paragraph windows and embeddings)
 ```
 
 The immutable text file remains the upstream source. The checked-in Markdown
@@ -102,9 +105,9 @@ Clarification to Muse          Eligible catalogue only
                          Typed result returned to Muse
 ```
 
-An optional search index may later supply candidate passages between catalogue
-filtering and chapter reading. It does not change the boundary or the source of
-truth.
+The benchmark search indexes supply candidate passages between catalogue
+filtering and chapter reading. They do not change the boundary or the source of
+truth, and non-selected indexes need not remain in the production path.
 
 ### 2.3 Component ownership
 
@@ -278,10 +281,10 @@ The shared lifecycle fails on unknown schema versions, validates every
 canonical record before replacing the catalogue, and rejects artifacts outside
 the complete allowed output tree.
 
-### 3.7 Optional derived indexes
+### 3.7 Derived indexes for retrieval evaluation
 
-Future retrieval experiments may derive paragraph windows from canonical
-chapter bodies for BM25, embeddings, or hybrid search. Any such index must:
+The required retrieval benchmark derives paragraph windows from canonical
+chapter bodies for BM25, semantic, and hybrid search. Every index must:
 
 - be fully regenerable and never become the source of truth;
 - retain `work_id`, `book_version_id`, `chapter_id`, and a resolvable source
@@ -292,10 +295,9 @@ chapter bodies for BM25, embeddings, or hybrid search. Any such index must:
   and its chunking, embedding, and ranking versions; and
 - apply the request boundary before forbidden text reaches a model or reranker.
 
-The first search experiment uses 450-token paragraph windows with 75-token
-overlap, always contained within one chapter. These are derived-index defaults,
-not part of the canonical chapter format, and must be compared with direct
-chapter reads before adoption.
+The benchmark starts with 450-token paragraph windows and 75-token overlap,
+always contained within one chapter. These are derived-index defaults, not part
+of the canonical chapter format, and are tuned during comparison.
 
 ### 3.8 Offline input and output contract
 
@@ -407,8 +409,8 @@ validated position format within a chapter.
 
 ### 4.3 Retrieval, fusion, and deduplication
 
-Direct bounded chapter selection is the baseline. The first hybrid experiment
-adds only disposable indexes:
+Direct bounded chapter selection is the control. The benchmark adds only
+disposable indexes:
 
 ```text
 Validated request
@@ -571,10 +573,10 @@ ordinary `no_evidence`.
 ### 4.7 Failure behaviour
 
 Retrieval fails closed when the boundary or evidence location cannot be
-validated. Optional search or reranking failures may degrade to direct chapter
-reads only when those reads remain inside the same validated scope. The failure
-response includes a stable error code and retryability flag, but no unvalidated
-excerpt.
+validated. Once a production strategy is selected, search or reranking failures
+may degrade to direct chapter reads only when those reads remain inside the same
+validated scope. The failure response includes a stable error code and
+retryability flag, but no unvalidated excerpt.
 
 ### 4.8 Online verification
 
@@ -626,8 +628,8 @@ whether the resulting response is supported and spoiler-safe.
 
 ## 6. Initial configuration
 
-The canonical corpus has no retrieval tuning configuration. The optional hybrid
-experiment begins with inexpensive, overrideable defaults:
+The canonical corpus has no retrieval tuning configuration. The required
+retrieval benchmark begins with inexpensive, overrideable defaults:
 
 ```yaml
 derived_windows:
@@ -658,10 +660,13 @@ set. Direct bounded chapter reads remain the no-index baseline.
 | 2 | Contracts and spoiler boundary | Ready next | Typed request/response models and trusted completed/started/ambiguous chapter enforcement before corpus access | `linger-ibq.1` |
 | 3A | Bounded direct evidence retrieval | Blocked by Slice 2 | Eligible catalogue and canonical reads, exact evidence IDs, and sufficient/weak/none result | `linger-ibq.2` |
 | 3B | Muse response integration | Blocked by Slice 2 | Separate handling for clarification, sufficient, weak, none, and failure | `linger-ibq.3` |
-| 4 | End-to-end validation | Blocked by Slices 3A and 3B | Alice evaluation set, spoiler suppression, evidence resolution, failure, and safe-degradation tests | `linger-ibq.4` |
+| 4 | Retrieval benchmark and selection | Blocked by Slice 3A | Compare direct reads, BM25, semantic search, hybrid fusion, and reranking; select the production strategy from measured results | `linger-ibq.5` |
+| 5 | End-to-end validation | Blocked by Slices 3B and 4 | Validate the selected strategy, spoiler suppression, evidence resolution, failure, and safe degradation | `linger-ibq.4` |
 
 Slices 3A and 3B may proceed in parallel after the shared contract and boundary
-slice is complete. The epic closes only after Slice 4 passes.
+slice is complete. Slice 4 can run after the direct-read control exists while
+Muse integration proceeds independently. The epic closes only after Slice 5
+passes with the selected retrieval strategy.
 
 ### 7.2 Separate memory implementation
 
@@ -695,15 +700,24 @@ keys, superseded versions, and direct mutation authority.
 Migrating the Memory & Policy Service to this schema is tracked by `linger-4sp`;
 it can proceed independently and does not block the initial Librarian path.
 
-### 7.3 Retrieval experiments, only after the direct baseline
+### 7.3 Required retrieval benchmark and selection
 
-1. Create a small Alice query set covering names, exact quotations, events,
-   paraphrases, themes, and boundary failures.
-2. Measure direct chapter reads as the baseline.
-3. Compare BM25 paragraph windows, embeddings, and hybrid retrieval as derived
-   indexes.
-4. Add only the smallest approach that materially improves retrieval quality,
-   latency, or context use while preserving citation resolution.
+1. Version an Alice query set covering names, exact quotations, events,
+   paraphrases, themes, weak or absent evidence, and boundary failures.
+2. Run every query against the same eligible chapter boundary using:
+   - bounded direct canonical reads;
+   - BM25 lexical retrieval;
+   - embedding-based semantic retrieval;
+   - hybrid BM25 plus semantic fusion and deduplication without reranking; and
+   - the same hybrid candidates with reranking.
+3. Require zero forbidden-chapter exposure and exact canonical evidence
+   resolution from every qualifying approach.
+4. Measure evidence recall, citation precision, evidence-strength accuracy,
+   p95 latency, token use, and monetary cost with versioned configurations.
+5. Select the configuration with the strongest evidence quality. When results
+   fall within a predeclared quality-equivalence margin, prefer lower p95
+   latency, then lower token use and monetary cost. Report every metric rather
+   than hiding trade-offs in one blended score.
 
 ## 8. Decisions and open questions
 
@@ -718,6 +732,7 @@ it can proceed independently and does not block the initial Librarian path.
 | Agent catalogue | Generated metadata-only JSON projection |
 | Database or index as source of truth | No |
 | Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
+| Retrieval strategy selection | Mandatory comparison of direct, BM25, semantic, hybrid, and reranked hybrid configurations |
 | Reading progress | Not persisted; boundary is inferred or clarified per request |
 | Metadata as evidence | No; only canonical chapter bodies are authoritative |
 | Ambiguous boundary | Typed clarification; retrieval does not run |
@@ -734,7 +749,8 @@ it can proceed independently and does not block the initial Librarian path.
 | Decision | Status |
 |---|---|
 | Partial-current-chapter boundaries | Define only when resolvable positions are available |
-| Embedding model and contextualization | Optional; evaluate later |
+| Embedding model and contextualization | Choose and version candidates for the required benchmark |
 | Keyword, embedding, and reranking libraries/models | Choose the cheapest fast stack that passes the Alice evals |
 | Hybrid fusion weights | Evaluate against direct reads and single-method retrieval |
 | Latency and cost budgets | Set with the implemented retrieval path |
+| Production retrieval strategy | Select from benchmark results; no approach is assumed in advance |
