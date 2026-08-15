@@ -1,15 +1,19 @@
 """Tests for the mandatory Muse-to-Provenance release gate."""
 
+import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+
+from pydantic_ai.messages import ToolReturnPart
 
 from src.linger.agents.provenance.models import ProvenanceVerdict
 from src.linger.orchestration.reflection import SAFE_DECLINE, reflection_reply
 
 
-def result(output: object) -> SimpleNamespace:
-    return SimpleNamespace(output=output)
+def result(output: object, *tool_returns: ToolReturnPart) -> SimpleNamespace:
+    messages = [SimpleNamespace(parts=list(tool_returns))]
+    return SimpleNamespace(output=output, all_messages=lambda: messages)
 
 
 class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
@@ -19,10 +23,42 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = result(ProvenanceVerdict(decision="pass"))
 
-        reply = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+        release = await reflection_reply(
+            "Hello",
+            [],
+            muse=muse,
+            provenance=provenance,
+            review_context={"policy_constraints": {"spoiler_ceiling": 3}, "cited_evidence": {"items": []}},
+        )
 
-        self.assertEqual("Approved reply", reply)
+        self.assertEqual("Approved reply", release.reply)
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertEqual(("pass",), release.provenance_verdicts)
         provenance.run.assert_awaited_once()
+        review_payload = json.loads(provenance.run.await_args.args[0])
+        self.assertEqual(3, review_payload["policy_constraints"]["spoiler_ceiling"])
+        self.assertEqual({"items": []}, review_payload["cited_evidence"])
+
+    async def test_provenance_receives_actual_muse_tool_results(self) -> None:
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            "Grounded reply",
+            ToolReturnPart(
+                "librarian_search",
+                {"kind": "result", "evidence": [{"evidence_id": "alice-ch2-identity"}]},
+            ),
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(ProvenanceVerdict(decision="pass"))
+
+        await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        review_payload = json.loads(provenance.run.await_args.args[0])
+        self.assertEqual("librarian_search", review_payload["muse_tool_results"][0]["tool_name"])
+        self.assertEqual(
+            "alice-ch2-identity",
+            review_payload["cited_evidence"][0]["evidence"][0]["evidence_id"],
+        )
 
     async def test_allows_one_reviewed_revision(self) -> None:
         muse = AsyncMock()
@@ -33,9 +69,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             result(ProvenanceVerdict(decision="pass")),
         ]
 
-        reply = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual("Revised reply", reply)
+        self.assertEqual("Revised reply", release.reply)
+        self.assertEqual(("revise", "pass"), release.provenance_verdicts)
+        self.assertEqual(1, release.revision_count)
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)
 
@@ -45,9 +83,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = result(ProvenanceVerdict(decision="reject"))
 
-        reply = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, reply)
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual("application_safe_decline", release.release_source)
+        self.assertEqual(("reject",), release.provenance_verdicts)
         self.assertEqual(1, muse.run.await_count)
 
     async def test_failed_review_returns_safe_decline(self) -> None:
@@ -56,9 +96,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.side_effect = RuntimeError("provider failed")
 
-        reply = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, reply)
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual("provenance_review", release.failure_stage)
+        self.assertEqual((), release.provenance_verdicts)
 
     async def test_second_revision_request_returns_safe_decline(self) -> None:
         muse = AsyncMock()
@@ -69,8 +111,9 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             result(ProvenanceVerdict(decision="revise", critique="Still unsafe.")),
         ]
 
-        reply = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, reply)
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(("revise", "revise"), release.provenance_verdicts)
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)

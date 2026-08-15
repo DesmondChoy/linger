@@ -1,5 +1,6 @@
 """FastAPI entry point for the Linger chat prototype."""
 
+import json
 import logging
 import re
 from time import perf_counter
@@ -12,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.turn import ConfirmedReading
-from src.linger.orchestration.reflection import reflection_reply
+from src.linger.orchestration.reflection import ReflectionRelease, reflection_reply
 from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
 from src.linger.services.memory import (
     AccountContext,
@@ -26,7 +27,12 @@ from src.linger.services.memory import (
 
 from . import sessions
 from .config import REPO_ROOT, get_settings
-from .contracts import MuseTurn, ReadingContext, TurnPolicy
+from .contracts import (
+    ContextResolution,
+    MuseTurn,
+    ReadingContext,
+    TurnPolicy,
+)
 from .librarian import Librarian
 from .logger import ROOT_NAME, configure_logging
 from .schemas import (
@@ -63,7 +69,8 @@ TITLE_END_PATTERN = re.compile(
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
-    r"\b(?:finished|completed|read\s+through|got\s+through|done\s+with|done)\b",
+    r"\b(?:i(?:'ve|’ve| have)\s+(?:now\s+)?(?:finished|completed|read\s+through|got\s+through)|"
+    r"i(?:'m| am)\s+(?:now\s+)?done\s+with)\b",
     re.IGNORECASE,
 )
 IN_PROGRESS_PATTERN = re.compile(
@@ -80,73 +87,24 @@ AFFIRMATION_PATTERN = re.compile(
 librarian = Librarian()
 
 
-def update_book_context(request: ChatRequest) -> sessions.BookContext | None:
-    """Record a spoiler boundary only when the reader says a chapter is complete.
-
-    This domain helper is intentionally independent of the upstream chat API;
-    the streaming reading-companion integration will call it separately.
-    """
-    previous = sessions.book_context(request.session_id)
-    candidate = sessions.reading_candidate(request.session_id)
-    selection = sessions.book_selection(request.session_id)
-    lowered = request.message.lower()
-    in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
-    completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
-    candidate_name_mentioned = bool(
-        candidate
-        and re.search(rf"\b{re.escape(candidate.book_id.split('-')[0])}\b", lowered)
-    )
-    if candidate and selection is None and (
-        AFFIRMATION_PATTERN.search(request.message)
-        or candidate_name_mentioned
-        or "wonderland" in lowered and candidate.book_id.startswith("alice")
-    ):
-        sessions.set_book_selection(
-            request.session_id,
-            sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title),
-        )
-        selection = sessions.book_selection(request.session_id)
-    chapter_match = CHAPTER_PATTERN.search(request.message)
-    if chapter_match is None and candidate and selection and selection.book_id == candidate.book_id:
-        if in_progress:
-            return previous
-        if completed:
-            context = sessions.BookContext(
-                book_id=candidate.book_id,
-                book_title=candidate.book_title,
-                chapter_max=candidate.chapter,
-            )
-            sessions.set_book_context(request.session_id, context)
-            sessions.clear_reading_candidate(request.session_id)
-            return context
-    if chapter_match is None or not completed:
-        if chapter_match:
-            title_match = TITLE_PREFIX_PATTERN.search(request.message[: chapter_match.start()])
-            if title_match:
-                title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(" \"'“”.,:;")
-                if title:
-                    sessions.set_book_selection(
-                        request.session_id,
-                        sessions.BookSelection(
-                            book_id=re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-"), book_title=title,
-                        ),
-                    )
-        return previous
-    chapter = int(chapter_match.group(1))
-    title_match = TITLE_PREFIX_PATTERN.search(request.message[: chapter_match.start()])
-    if title_match:
-        title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(" \"'“”.,:;")
-        if not title:
-            return previous
-        book_id = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
-        sessions.set_book_selection(request.session_id, sessions.BookSelection(book_id=book_id, book_title=title))
-        context = sessions.BookContext(book_id=book_id, book_title=title, chapter_max=chapter)
-    elif previous:
-        context = previous.model_copy(update={"chapter_max": chapter})
-    else:
+def _title_before_chapter(message: str, chapter_start: int) -> str | None:
+    title_match = TITLE_PREFIX_PATTERN.search(message[:chapter_start])
+    if title_match is None:
         return None
-    sessions.set_book_context(request.session_id, context)
-    return context
+    title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(" \"'“”.,:;")
+    return title or None
+
+
+def _candidate_confirmed(message: str, candidate: sessions.ReadingCandidate) -> bool:
+    lowered = message.lower()
+    aliases = [candidate.book_id.replace("-", " ")]
+    if candidate.book_title:
+        aliases.append(candidate.book_title.lower())
+    return bool(
+        AFFIRMATION_PATTERN.search(message)
+        or any(alias in lowered for alias in aliases)
+        or "wonderland" in lowered and candidate.book_id.startswith("alice")
+    )
 
 
 def _inferred_context(message: str) -> tuple[str, str, int] | None:
@@ -160,72 +118,135 @@ def _inferred_context(message: str) -> tuple[str, str, int] | None:
     return None
 
 
-def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str]:
-    """Build bounded optional retrieval context before Muse and Provenance run."""
-    confirmed = update_book_context(request)
-    inferred = _inferred_context(request.message) if confirmed is None else None
+def resolve_reading_context(request: ChatRequest) -> ContextResolution:
+    """Accept only an explicit current-turn completion as a retrieval boundary.
+
+    Regexes validate the reader's direct declaration. They never infer progress,
+    and no chapter ceiling is carried into a later request.
+    """
+    candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
-    context = confirmed
-    if context is None and inferred:
+    in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
+    completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
+
+    if candidate and _candidate_confirmed(request.message, candidate):
+        selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title)
+        sessions.set_book_selection(request.session_id, selection)
+
+    chapter_match = CHAPTER_PATTERN.search(request.message)
+    explicit_title = _title_before_chapter(request.message, chapter_match.start()) if chapter_match else None
+    if explicit_title:
+        book_id = re.sub(r"[^a-z0-9]+", "-", explicit_title.lower()).strip("-")
+        selection = sessions.BookSelection(book_id=book_id, book_title=explicit_title)
+        sessions.set_book_selection(request.session_id, selection)
+
+    if completed and chapter_match and selection:
+        chapter = int(chapter_match.group(1))
+        if candidate and selection.book_id == candidate.book_id:
+            sessions.clear_reading_candidate(request.session_id)
+        return ContextResolution(
+            status="confirmed",
+            work_id=selection.book_id,
+            work_title=selection.book_title,
+            chapter_max=chapter,
+            boundary_source="reader_confirmed",
+            explanation="The reader explicitly confirmed this completed chapter in the current message.",
+        )
+
+    if completed and chapter_match is None and candidate and selection and selection.book_id == candidate.book_id:
+        sessions.clear_reading_candidate(request.session_id)
+        return ContextResolution(
+            status="confirmed",
+            work_id=candidate.book_id,
+            work_title=candidate.book_title,
+            chapter_max=candidate.chapter,
+            boundary_source="reader_confirmed",
+            explanation="The reader confirmed the candidate book and completed scene in the current message.",
+        )
+
+    inferred = _inferred_context(request.message) if explicit_title is None else None
+    if inferred:
         sessions.set_reading_candidate(
             request.session_id,
             sessions.ReadingCandidate(book_id=inferred[0], book_title=inferred[1], chapter=inferred[2]),
         )
-        resolution = {
-            "status": "inferred", "work_id": inferred[0], "work_title": inferred[1],
-            "chapter_max": inferred[2], "boundary_source": "inferred_from_question",
-            "explanation": "A possible book and scene were detected, but neither is confirmed or used as reading progress.",
-        }
-    elif context:
-        resolution = {
-            "status": "confirmed", "work_id": context.book_id, "work_title": context.book_title,
-            "chapter_max": context.chapter_max, "boundary_source": "reader_confirmed",
-            "explanation": "The reader explicitly confirmed this completed chapter in chat.",
-        }
-    elif selection:
-        resolution = {
-            "status": "confirmed", "work_id": selection.book_id, "work_title": selection.book_title,
-            "chapter_max": None, "boundary_source": None,
-            "explanation": "The reader confirmed the book, but has not confirmed a completed chapter.",
-        }
-    else:
-        resolution = {"status": "unknown", "work_id": None, "work_title": None, "chapter_max": None,
-                      "boundary_source": None, "explanation": "No book or safe reading boundary was established."}
+        return ContextResolution(
+            status="inferred",
+            work_id=inferred[0],
+            work_title=inferred[1],
+            chapter_max=inferred[2],
+            boundary_source="inferred_from_question",
+            explanation="A possible book and scene were detected, but neither is a retrieval boundary.",
+        )
 
+    if selection:
+        return ContextResolution(
+            status="confirmed",
+            work_id=selection.book_id,
+            work_title=selection.book_title,
+            explanation="The reader confirmed the book, but not a completed chapter in this request.",
+        )
+
+    return ContextResolution(
+        status="unknown",
+        explanation="No book or safe reading boundary was established for this request.",
+    )
+
+
+def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str, dict[str, object]]:
+    """Build the request-scoped Muse input and Provenance policy context."""
+    resolution = resolve_reading_context(request)
+    context = (
+        ReadingContext(work_id=resolution.work_id, chapter_max=resolution.chapter_max)
+        if resolution.status == "confirmed" and resolution.work_id and resolution.chapter_max
+        else None
+    )
     turn_id = request.turn_id or str(uuid4())
     muse_turn = MuseTurn(
         turn_id=turn_id,
         user_message=request.message,
-        reading_context=ReadingContext(
-            work_id=context.book_id, chapter_max=context.chapter_max,
-            boundary_source="reader_confirmed" if confirmed else "inferred_from_question",
-        ) if context else None,
+        reading_context=context,
         policy=TurnPolicy(
             spoiler_ceiling=context.chapter_max if context else None,
-            allow_retrieval=context is not None and librarian.has_corpus(context.book_id),
-            allow_connection=context is not None and librarian.has_corpus(context.book_id),
+            allow_retrieval=context is not None and librarian.has_corpus(context.work_id),
+            allow_connection=context is not None and librarian.has_corpus(context.work_id),
         ),
     )
-    traces = [{"agent": "Router", "status": "complete" if context else "waiting", "detail": resolution["explanation"]}]
-    prompt = request.message
-    if inferred and confirmed is None:
-        prompt = (
-            "A possible reading context was detected, but the reader has not confirmed the book. "
-            "Do not use character names, plot details, quotations, chapter information, or facts from any book. "
-            "Offer only a general reflection based on the reader's wording, then ask whether they mean "
-            f"{inferred[1]}.\n\nUser message: {request.message}"
-        )
+    traces = [{
+        "agent": "Router",
+        "status": "complete" if context else "waiting",
+        "detail": resolution.explanation,
+    }]
     brief_data = request_data = evidence_data = proposal_data = None
     traces.extend([
         {"agent": "Librarian", "status": "not_wired", "detail": "Retrieval is delegated to Muse, which decides whether to call it. The router no longer observes this."},
         {"agent": "Serendipity", "status": "not_wired", "detail": "Connection discovery is delegated to Muse. The router no longer observes this."},
     ])
+
+    muse_payload = {
+        "muse_turn": muse_turn.model_dump(mode="json"),
+        "context_resolution": resolution.model_dump(mode="json"),
+        "connection_proposal": proposal_data,
+        "supporting_evidence": evidence_data,
+    }
+    muse_input = json.dumps(muse_payload, ensure_ascii=False)
+    review_context: dict[str, object] = {
+        "policy_constraints": muse_turn.policy.model_dump(mode="json"),
+        "reading_context": context.model_dump(mode="json") if context else None,
+        "connection_proposal": proposal_data,
+        "cited_evidence": evidence_data,
+    }
     traces.append({"agent": "Muse", "status": "running", "detail": "Drafting a candidate response."})
     return TurnInspection(
-        muse_turn=muse_turn.model_dump(mode="json"), context_resolution=resolution, traces=traces,
-        connection_brief=brief_data, librarian_request=request_data, evidence_bundle=evidence_data,
-        connection_proposal=proposal_data, prompt=prompt,
-    ), prompt
+        muse_turn=muse_turn.model_dump(mode="json"),
+        context_resolution=resolution.model_dump(mode="json"),
+        traces=traces,
+        connection_brief=brief_data,
+        librarian_request=request_data,
+        evidence_bundle=evidence_data,
+        connection_proposal=proposal_data,
+        prompt=muse_input,
+    ), muse_input, review_context
 
 
 def get_memory_service() -> MemoryPolicyService:
@@ -279,22 +300,25 @@ async def chat(request: ChatRequest) -> ChatResponse:
     started = perf_counter()
     reading_state = sessions.snapshot_reading_state(request.session_id)
     try:
-        inspection, muse_input = _inspection_for(request)
-        confirmed = sessions.book_context(request.session_id)
+        inspection, muse_input, review_context = _inspection_for(request)
+        context = inspection.muse_turn.get("reading_context")
         token = set_confirmed_reading(
-            ConfirmedReading(work_id=confirmed.book_id, chapter_max=confirmed.chapter_max)
-            if confirmed else None
+            ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
+            if context else None
         )
         try:
-            reply = await reflection_reply(
+            release: ReflectionRelease = await reflection_reply(
                 muse_input,
                 sessions.history(request.session_id),
                 muse=muse_chat_agent,
                 provenance=provenance_agent,
+                review_context=review_context,
             )
         finally:
             reset_confirmed_reading(token)
-        sessions.append_turn(request.session_id, request.message, reply)
+        if release.release_source == "application_safe_decline":
+            sessions.restore_reading_state(request.session_id, reading_state)
+        sessions.append_turn(request.session_id, request.message, release.reply)
     except Exception as exc:
         sessions.restore_reading_state(request.session_id, reading_state)
         logger.exception(
@@ -308,14 +332,47 @@ async def chat(request: ChatRequest) -> ChatResponse:
         ) from exc
 
     logger.info(
-        "Agent run completed session=%s elapsed=%.2fs turns=%d",
+        "Agent run completed session=%s elapsed=%.2fs turns=%d release_source=%s provenance_path=%s",
         request.session_id,
         perf_counter() - started,
         len(sessions.history(request.session_id)),
+        release.release_source,
+        ",".join(release.provenance_verdicts) or "none",
     )
-    inspection.traces[-1] = {"agent": "Muse", "status": "complete", "detail": "Candidate passed through Provenance and was released."}
-    inspection.traces.append({"agent": "Provenance", "status": "complete", "detail": "Reviewed the response before release."})
-    return ChatResponse(reply=reply, inspection=inspection)
+    inspection.release = {
+        "release_source": release.release_source,
+        "provenance_verdicts": list(release.provenance_verdicts),
+        "critiques": [critique for critique in release.critiques if critique],
+        "revision_count": release.revision_count,
+        "failure_stage": release.failure_stage,
+    }
+    verdict_path = " → ".join(release.provenance_verdicts)
+    if release.release_source == "muse_candidate":
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "complete",
+            "detail": "Provenance approved the candidate that was released.",
+        }
+        provenance_status = "complete"
+        provenance_detail = f"Recorded review path: {verdict_path}."
+    else:
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "declined",
+            "detail": "No Muse candidate was released; the application supplied its safe decline.",
+        }
+        provenance_status = "failed" if release.failure_stage == "provenance_review" else "declined"
+        provenance_detail = (
+            f"Review failed at {release.failure_stage}; no Muse candidate was released."
+            if release.failure_stage
+            else f"Recorded review path: {verdict_path}; no Muse candidate was released."
+        )
+    inspection.traces.append({
+        "agent": "Provenance",
+        "status": provenance_status,
+        "detail": provenance_detail,
+    })
+    return ChatResponse(reply=release.reply, inspection=inspection)
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)

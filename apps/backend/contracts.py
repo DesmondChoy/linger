@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class ReadingContext(BaseModel):
     work_id: str
     chapter_max: int = Field(ge=1)
-    boundary_source: Literal["reader_confirmed", "inferred_from_question"] = "reader_confirmed"
+    boundary_source: Literal["reader_confirmed"] = "reader_confirmed"
 
 
 class ContextResolution(BaseModel):
@@ -39,13 +39,13 @@ class MuseTurn(BaseModel):
 
 
 class ConnectionBrief(BaseModel):
-    """The minimum context Muse gives Serendipity for one bounded search."""
+    """The minimum context orchestration gives Serendipity for one bounded search."""
 
     cue: str = Field(min_length=1, max_length=2000)
     book_id: str | None = None
     chapter_max: int | None = Field(default=None, ge=1)
     intent: Literal["find_connection", "get_recommendation"] = "find_connection"
-    allowed_sources: set[Literal["book_corpus", "session_memories"]] = {"book_corpus"}
+    allowed_sources: set[Literal["book_corpus"]] = {"book_corpus"}
 
 
 class BookScope(BaseModel):
@@ -60,8 +60,7 @@ class LibrarianRequest(BaseModel):
 
     query: str = Field(min_length=1, max_length=2000)
     book_scopes: list[BookScope] = []
-    include_session_memories: bool = False
-    purpose: Literal["connection_discovery", "memory_reconnection"] = "connection_discovery"
+    purpose: Literal["connection_discovery"] = "connection_discovery"
 
 
 class EvidenceItem(BaseModel):
@@ -71,7 +70,7 @@ class EvidenceItem(BaseModel):
     chapter: int | None = None
     excerpt: str
     relevance: float = Field(ge=0, le=1)
-    source_kind: Literal["book_corpus", "session_memory"] = "book_corpus"
+    source_kind: Literal["book_corpus"] = "book_corpus"
 
 
 class EvidenceBundle(BaseModel):
@@ -104,28 +103,3 @@ class ConnectionDecline(BaseModel):
 
 
 ConnectionResult = ConnectionProposal | ConnectionDecline
-
-
-class SculptorCaptureInput(BaseModel):
-    """The bounded input used to decide whether a reader message becomes memory."""
-
-    turn_id: str
-    original_text: str
-    capture_enabled: bool
-
-
-class MemoryProposal(BaseModel):
-    status: Literal["proposal"] = "proposal"
-    original_text: str
-    reason: str
-
-
-class MemoryDecline(BaseModel):
-    status: Literal["decline"] = "decline"
-    reason: str
-
-
-class MemorySavedNotice(BaseModel):
-    memory_id: str
-    original_text: str
-    source_turn_id: str

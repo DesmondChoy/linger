@@ -47,6 +47,7 @@ const books: LibraryBook[] = [
 export function Reader({ disabled }: Props) {
   const [selectedBookId, setSelectedBookId] = useState<LibraryBook['id'] | null>(null)
   const [activeChapter, setActiveChapter] = useState(1)
+  const [summaryVisible, setSummaryVisible] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const selectedBook = books.find((book) => book.id === selectedBookId) ?? null
   const bookUrl = selectedBook ? `${selectedBook.sourceUrl}#${selectedBook.chapterAnchor(activeChapter)}` : ''
@@ -54,11 +55,18 @@ export function Reader({ disabled }: Props) {
   function openBook(book: LibraryBook) {
     setSelectedBookId(book.id)
     setActiveChapter(1)
+    setSummaryVisible(false)
   }
 
   function closeBook() {
     setSelectedBookId(null)
     setActiveChapter(1)
+    setSummaryVisible(false)
+  }
+
+  function selectChapter(chapter: number) {
+    setActiveChapter(chapter)
+    setSummaryVisible(false)
   }
 
   return (
@@ -84,15 +92,21 @@ export function Reader({ disabled }: Props) {
             </div>
             <label className="chapter-select">
               Go to chapter
-              <select value={activeChapter} onChange={(event) => setActiveChapter(Number(event.target.value))}>
+              <select value={activeChapter} onChange={(event) => selectChapter(Number(event.target.value))}>
                 {selectedBook.chapters.map((chapter, index) => <option key={chapter} value={index + 1}>Chapter {index + 1} — {chapter}</option>)}
               </select>
             </label>
           </div>
           <section className="chapter-summary" aria-live="polite">
             <p className="eyebrow">Chapter summary</p>
-            <p>{selectedBook.summaries[activeChapter - 1]}</p>
-            <small>Reader-only reference · selecting a chapter does not update chat or agents.</small>
+            {summaryVisible ? (
+              <p>{selectedBook.summaries[activeChapter - 1]}</p>
+            ) : (
+              <button type="button" onClick={() => setSummaryVisible(true)}>
+                Reveal summary — contains Chapter {activeChapter} spoilers
+              </button>
+            )}
+            <small>Reader-only reference · chapter navigation does not establish a chat spoiler boundary.</small>
           </section>
           <article className="chapter-reader">
             <p className="eyebrow">Chapter {activeChapter}</p>

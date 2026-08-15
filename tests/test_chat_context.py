@@ -20,7 +20,16 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
 
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.orchestration.turn_context import confirmed_reading
+
+
+def released(text: str = "reply") -> ReflectionRelease:
+    return ReflectionRelease(
+        reply=text,
+        release_source="muse_candidate",
+        provenance_verdicts=("pass",),
+    )
 
 
 class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
@@ -30,21 +39,16 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         sessions.clear(self.session_id)
 
     async def test_confirmed_context_exposed_to_reflection_reply(self) -> None:
-        sessions.set_book_context(
-            self.session_id,
-            sessions.BookContext(
-                book_id="alice-adventures-in-wonderland",
-                book_title="Alice's Adventures in Wonderland",
-                chapter_max=3,
-            ),
-        )
         seen: dict[str, ConfirmedReading | None] = {}
 
-        async def fake_reflection_reply(*args, **kwargs) -> str:
+        async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
-            return "reply"
+            return released()
 
-        request = ChatRequest(session_id=self.session_id, message="I've finished Chapter 3.")
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
+        )
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
             await main.chat(request)
@@ -57,9 +61,9 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
     async def test_no_confirmed_context_exposes_none(self) -> None:
         seen: dict[str, ConfirmedReading | None] = {}
 
-        async def fake_reflection_reply(*args, **kwargs) -> str:
+        async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
-            return "reply"
+            return released()
 
         request = ChatRequest(session_id=self.session_id, message="Hello")
 
@@ -71,9 +75,9 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
     async def test_inferred_only_context_exposes_none(self) -> None:
         seen: dict[str, ConfirmedReading | None] = {}
 
-        async def fake_reflection_reply(*args, **kwargs) -> str:
+        async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
-            return "reply"
+            return released()
 
         request = ChatRequest(session_id=self.session_id, message="Why is the Caterpillar so rude?")
 
@@ -81,34 +85,24 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             await main.chat(request)
 
         self.assertIsNone(seen["value"])
-        self.assertIsNone(sessions.book_context(self.session_id))
+        self.assertIsNone(sessions.book_selection(self.session_id))
 
     async def test_var_reset_after_successful_turn(self) -> None:
-        sessions.set_book_context(
-            self.session_id,
-            sessions.BookContext(
-                book_id="alice-adventures-in-wonderland",
-                book_title="Alice's Adventures in Wonderland",
-                chapter_max=3,
-            ),
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
         )
-        request = ChatRequest(session_id=self.session_id, message="I've finished Chapter 3.")
 
-        with patch.object(main, "reflection_reply", AsyncMock(return_value="reply")):
+        with patch.object(main, "reflection_reply", AsyncMock(return_value=released())):
             await main.chat(request)
 
         self.assertIsNone(confirmed_reading())
 
     async def test_var_reset_after_failed_turn(self) -> None:
-        sessions.set_book_context(
-            self.session_id,
-            sessions.BookContext(
-                book_id="alice-adventures-in-wonderland",
-                book_title="Alice's Adventures in Wonderland",
-                chapter_max=3,
-            ),
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
         )
-        request = ChatRequest(session_id=self.session_id, message="I've finished Chapter 3.")
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=RuntimeError("boom"))):
             with self.assertRaises(HTTPException):
