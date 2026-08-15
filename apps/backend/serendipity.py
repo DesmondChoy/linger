@@ -2,6 +2,8 @@
 
 import re
 
+import logfire
+
 from .contracts import ConnectionBrief, ConnectionDecline, ConnectionProposal, ConnectionResult, EvidenceBundle
 
 
@@ -21,6 +23,10 @@ def insufficient_evidence() -> ConnectionDecline:
     )
 
 
+# `extract_args=False` is required, not stylistic: the arguments carry the
+# reader's cue and raw book excerpts, which §8.1 bars from telemetry. The
+# caller's span in `connection.py` records the safe projections instead.
+@logfire.instrument("serendipity.discover", extract_args=False, record_return=False)
 def discover(brief: ConnectionBrief, evidence: EvidenceBundle) -> ConnectionResult:
     """Return a proposal or decline from an already-authorised evidence bundle.
 

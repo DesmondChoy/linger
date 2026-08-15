@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+import logfire
+
 from apps.backend.config import get_settings
 from apps.backend.contracts import BookScope
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
@@ -153,7 +155,13 @@ async def grounding_evidence(
 
     try:
         bundle = librarian.retrieve(shipped_request)
-    except Exception:
+    except Exception as exc:
+        logfire.warn(
+            "librarian retrieval unavailable",
+            failure_stage="retrieval_unavailable",
+            error_type=type(exc).__name__,
+            request_id=request.request_id,
+        )
         failure = RetrievalFailure(
             kind="failure",
             request_id=request.request_id,

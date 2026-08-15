@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.141.1",
+    "logfire[fastapi]>=4.40.0",
     "polars>=1.43.2",
     "pydantic-ai>=2.26.0",
     "pydantic-settings>=2.15.0",
@@ -21,3 +22,9 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.logfire]
+# Modules that create spans are importable without the FastAPI entry point that
+# calls `configure_telemetry()` (tests, scripts). Spans are simply dropped there,
+# which is correct; the warning about it is noise.
+ignore_no_config = true

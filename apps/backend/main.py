@@ -10,8 +10,17 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.linger.agents.muse.agent import muse_chat_agent
-from src.linger.agents.provenance.agent import provenance_agent
+# Muse, Provenance and Sculptor are constructed at import time, so tracing must
+# be configured before those imports or instrumentation never sees them. This
+# call is deliberately placed above them and must stay there.
+from .telemetry import configure_telemetry, resolution_attrs, turn_attrs
+
+configure_telemetry()
+
+import logfire  # noqa: E402  (import order is load-bearing, see above)
+
+from src.linger.agents.muse.agent import muse_chat_agent  # noqa: E402
+from src.linger.agents.provenance.agent import provenance_agent  # noqa: E402
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration.reflection import ReflectionRelease, reflection_reply
 from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
@@ -52,6 +61,7 @@ logger = logging.getLogger(f"{ROOT_NAME}.backend")
 
 settings = get_settings()
 app = FastAPI(title="Linger Chat API")
+logfire.instrument_fastapi(app)
 memory_service = MemoryPolicyService(REPO_ROOT / "memories")
 memory_context = AccountContext(settings.linger_account_id)
 
@@ -249,6 +259,20 @@ def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str, dict[str
     ), muse_input, review_context
 
 
+def _turn_telemetry(inspection: TurnInspection) -> dict[str, object]:
+    """Project the turn onto span attributes §8.1 permits.
+
+    `_inspection_for` has already dumped the contracts to dicts, so the
+    allowlists are rebuilt from the models before projecting.
+    """
+    turn = MuseTurn.model_validate(inspection.muse_turn)
+    resolution = ContextResolution.model_validate(inspection.context_resolution)
+    return {
+        "turn": turn_attrs(turn),
+        "context_resolution": resolution_attrs(resolution),
+    }
+
+
 def get_memory_service() -> MemoryPolicyService:
     """Return the application-owned memory service."""
     return memory_service
@@ -301,6 +325,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
     reading_state = sessions.snapshot_reading_state(request.session_id)
     try:
         inspection, muse_input, review_context = _inspection_for(request)
+        logfire.info(
+            "chat turn accepted",
+            session_id=request.session_id,
+            **_turn_telemetry(inspection),
+        )
         context = inspection.muse_turn.get("reading_context")
         token = set_confirmed_reading(
             ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
@@ -332,16 +361,24 @@ async def chat(request: ChatRequest) -> ChatResponse:
         ) from exc
 
     logger.info(
-        "Agent run completed session=%s elapsed=%.2fs turns=%d release_source=%s provenance_path=%s",
+        "Agent run completed session=%s elapsed=%.2fs turns=%d release_source=%s "
+        "provenance_path=%s findings=%s revisions=%d failure_stage=%s",
         request.session_id,
         perf_counter() - started,
         len(sessions.history(request.session_id)),
         release.release_source,
         ",".join(release.provenance_verdicts) or "none",
+        # Risk codes only. The matching critique text quotes the candidate
+        # response, which specification section 8.1 keeps out of logs; read it
+        # from the API response's `release.critiques` when debugging a turn.
+        ",".join(release.finding_codes) or "none",
+        release.revision_count,
+        release.failure_stage or "none",
     )
     inspection.release = {
         "release_source": release.release_source,
         "provenance_verdicts": list(release.provenance_verdicts),
+        "finding_codes": list(release.finding_codes),
         "critiques": [critique for critique in release.critiques if critique],
         "revision_count": release.revision_count,
         "failure_stage": release.failure_stage,
