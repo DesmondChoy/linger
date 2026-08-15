@@ -4,6 +4,7 @@ import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+from pydantic_ai.messages import ToolReturnPart
 
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.orchestration.reflection import SAFE_DECLINE, reflection_reply
@@ -70,7 +71,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             ),
         )
         provenance = AsyncMock()
-        provenance.run.return_value = result(ProvenanceVerdict(decision="pass"))
+        provenance.run.return_value = result(review("pass"))
 
         await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 

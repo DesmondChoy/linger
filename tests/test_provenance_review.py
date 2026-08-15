@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from pydantic_ai.models.test import TestModel
 
 from src.linger.agents.provenance.models import (
+    MAX_FINDINGS,
     SENSITIVE_RISK_CODES,
     ProvenanceReview,
     RiskCode,
@@ -115,6 +116,25 @@ class ProvenanceReviewTests(unittest.TestCase):
                 capture_decision="no_candidate",
                 unexpected_field="x",
             )
+
+    def test_too_many_findings_is_rejected(self) -> None:
+        with self.assertRaises(ValidationError):
+            ProvenanceReview(
+                findings=tuple(finding("spoiler") for _ in range(MAX_FINDINGS + 1)),
+                response_decision="reject",
+                capture_decision="no_candidate",
+            )
+
+    def test_findings_array_declares_no_length_bound(self) -> None:
+        """Gemini rejects any request whose schema bounds an array length.
+
+        The cap belongs in `require_justified_refusal`, not on the field: an
+        array bound here returns 400 "constraint that has too many states for
+        serving" and the agent cannot run at all. String bounds are safe.
+        """
+        findings_schema = ProvenanceReview.model_json_schema()["properties"]["findings"]
+        self.assertNotIn("maxItems", findings_schema)
+        self.assertNotIn("minItems", findings_schema)
 
 
 class ProvenanceAgentTests(unittest.TestCase):

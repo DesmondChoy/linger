@@ -29,6 +29,9 @@ SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
     {"unsupported_claim", "boundary_violation", "prompt_injection"}
 )
 
+# One review reports at most this many findings.
+MAX_FINDINGS = 20
+
 
 class RiskFinding(StrictModel):
     """One detected risk, tied to the span that caused it."""
@@ -41,13 +44,18 @@ class RiskFinding(StrictModel):
 class ProvenanceReview(StrictModel):
     """One review of one candidate, carrying both release decisions."""
 
-    findings: tuple[RiskFinding, ...] = Field(default=(), max_length=20)
+    # `max_length` is enforced below rather than declared on the field: an array
+    # bound in the wire schema makes Gemini reject the whole request with
+    # "constraint that has too many states for serving". String bounds are fine.
+    findings: tuple[RiskFinding, ...] = ()
     response_decision: Literal["pass", "revise", "reject"]
     capture_decision: Literal["allow_capture", "reject_capture", "no_candidate"]
 
     @model_validator(mode="after")
     def require_justified_refusal(self) -> Self:
         """Forbid blocking without naming a specific risk code."""
+        if len(self.findings) > MAX_FINDINGS:
+            raise ValueError(f"a review carries at most {MAX_FINDINGS} findings")
         if self.response_decision != "pass" and not self.findings:
             raise ValueError(
                 "a non-pass response_decision requires at least one finding"
