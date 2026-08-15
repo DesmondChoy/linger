@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     linger_model: str = "google:gemini-2.5-flash"
     linger_allowed_origins: str = "http://localhost:5173"
     linger_account_id: str = "local-prototype-user"
+    allowed_book_version_ids: tuple[str, ...] = ("pg11-v01b38ea4",)
 
     @property
     def allowed_origins(self) -> list[str]:
