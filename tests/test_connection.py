@@ -209,6 +209,27 @@ class EgressGuardTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("unsupported_cue", result.reason)
         explorer.assert_not_called()
 
+    async def test_short_memory_is_still_blocked_verbatim(self) -> None:
+        self._service.save_explicit(self._account, text="sexual abuse", source_event_id="evt-2")
+        explorer = MagicMock()
+        brief = build_brief("does the story say anything about sexual abuse")
+
+        result = await connection_proposal(brief, explorer=explorer)
+
+        self.assertIsInstance(result, ConnectionDecline)
+        self.assertEqual("unsupported_cue", result.reason)
+        explorer.assert_not_called()
+
+    async def test_memory_without_word_characters_blocks_nothing(self) -> None:
+        self._service.save_explicit(self._account, text="...", source_event_id="evt-3")
+        explorer = MagicMock()
+        explorer.return_value = ConnectionDecline(reason="unsupported_cue", safe_next_step="n/a")
+        brief = build_brief("growing caterpillar")
+
+        await connection_proposal(brief, explorer=explorer)
+
+        explorer.assert_called_once()
+
     async def test_cue_about_same_topic_in_different_words_reaches_explorer(self) -> None:
         explorer = MagicMock()
         explorer.return_value = ConnectionDecline(reason="unsupported_cue", safe_next_step="n/a")

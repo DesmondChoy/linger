@@ -21,7 +21,7 @@ from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 Explorer = Callable[[ConnectionBrief, EvidenceBundle], ConnectionResult]
 
-MIN_PRIVATE_WORDS = 3
+MIN_PRIVATE_WORDS = 1
 VERBATIM_WINDOW = 6
 
 memory_service = MemoryPolicyService(REPO_ROOT / "memories")
