@@ -10,5 +10,5 @@ from src.linger.contracts.base import StrictModel
 class ConfirmedReading(StrictModel):
     """The reader-confirmed boundary, owned by the application. Muse cannot forge it."""
 
-    work_id: str  # the shipped corpus key (e.g. "alice-adventures-in-wonderland")
+    work_id: str  # stable corpus work identifier (e.g. "pg11")
     chapter_max: int = Field(ge=1)

@@ -9,7 +9,8 @@ import logfire
 from apps.backend.config import get_settings
 from apps.backend.contracts import BookScope
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
-from apps.backend.librarian import CORPORA, Librarian
+from apps.backend.librarian import Librarian
+from apps.backend.hybrid_librarian import HybridLibrarian
 from src.linger.contracts.librarian import (
     AccessScope,
     ClarificationRequest,
@@ -23,11 +24,15 @@ from src.linger.contracts.librarian import (
     SearchedScope,
 )
 from src.linger.contracts.reading import ReadingBoundary
+from src.linger.orchestration.evidence_strength import (
+    StrengthJudge,
+    judge_evidence_strength,
+)
 from src.linger.orchestration.turn_context import confirmed_reading
 
 MAX_FINAL_EVIDENCE = 5
 
-librarian_service = Librarian()
+librarian_service = HybridLibrarian()
 
 
 class BookVersionOutOfScope(ValueError):
@@ -36,21 +41,6 @@ class BookVersionOutOfScope(ValueError):
 
 def _clamp_max_final_evidence(value: int) -> int:
     return max(1, min(value, MAX_FINAL_EVIDENCE))
-
-
-def _same_work(declared: str, confirmed: str) -> bool:
-    """Compare book identity, not slug spelling.
-
-    The confirmed slug is derived from however the reader typed the title, so
-    the same book reaches us as `alice-s-adventures-in-wonderland` or
-    `alice-adventures-in-wonderland`. Both resolve to one corpus, and this
-    check exists to catch Muse discussing a different *book* — retrieval is
-    scoped by the confirmed slug either way, so Muse's spelling grants nothing.
-    """
-    if declared == confirmed:
-        return True
-    declared_corpus = CORPORA.get(declared)
-    return declared_corpus is not None and declared_corpus is CORPORA.get(confirmed)
 
 
 def build_request(
@@ -87,7 +77,10 @@ def _clarification(
 
 
 async def grounding_evidence(
-    request: LibrarianRequest, *, librarian: Librarian = librarian_service
+    request: LibrarianRequest,
+    *,
+    librarian: Librarian = librarian_service,
+    strength_judge: StrengthJudge | None = None,
 ) -> LibrarianResponse:
     """Resolve the reader-confirmed ceiling and dispatch to the shipped Librarian.
 
@@ -100,6 +93,11 @@ async def grounding_evidence(
             f"{request.book_version_id!r} is not in the allowed access scope"
         )
 
+    if not librarian.supports_revision(request.work_id, request.book_version_id):
+        raise BookVersionOutOfScope(
+            f"{request.book_version_id!r} is not a registered revision of {request.work_id!r}"
+        )
+
     reading = confirmed_reading()
     if reading is None:
         return _clarification(
@@ -109,7 +107,7 @@ async def grounding_evidence(
             ExpectedAnswer(type="free_text"),
         )
 
-    if not _same_work(request.work_id, reading.work_id):
+    if request.work_id != reading.work_id:
         return _clarification(
             request.request_id,
             "work_not_confirmed",
@@ -150,7 +148,15 @@ async def grounding_evidence(
 
     shipped_request = ShippedLibrarianRequest(
         query=request.query,
-        book_scopes=[BookScope(book_id=reading.work_id, chapter_max=ceiling)],
+        book_scopes=[
+            BookScope(
+                work_id=reading.work_id,
+                book_version_id=request.book_version_id,
+                chapter_max=ceiling,
+            )
+        ],
+        retrieval_score_threshold=request.options.retrieval_score_threshold,
+        max_results=request.options.max_final_evidence,
     )
 
     try:
@@ -173,29 +179,25 @@ async def grounding_evidence(
     records = [
         EvidenceRecord(
             evidence_id=item.evidence_id,
-            work_id=reading.work_id,
-            book_version_id=request.book_version_id,
+            work_id=item.work_id,
+            book_version_id=item.book_version_id,
+            chapter_id=item.chapter_id,
             chapter_number=item.chapter,
             location=item.location,
+            source_sha256=item.source_sha256,
+            source_lines=item.source_lines,
             text=item.excerpt,
         )
         for item in bundle.items
-        if item.chapter is not None and item.chapter <= ceiling
+        if (
+            item.work_id == reading.work_id
+            and item.book_version_id == request.book_version_id
+            and item.chapter <= ceiling
+        )
     ]
     records = records[: request.options.max_final_evidence]
 
-    if records:
-        result = RetrievalResult(
-            kind="result",
-            request_id=request.request_id,
-            outcome="evidence_found",
-            evidence_strength="weak",
-            strength_reason="Passages were retrieved but not independently judged for sufficiency.",
-            searched_scope=searched_scope,
-            evidence=tuple(records),
-            limitations=("Evidence strength was not independently judged.",),
-        )
-    else:
+    if not records:
         result = RetrievalResult(
             kind="result",
             request_id=request.request_id,
@@ -207,4 +209,43 @@ async def grounding_evidence(
             limitations=(),
         )
 
-    return result
+        return result
+
+    try:
+        decision = await (strength_judge or judge_evidence_strength)(
+            request.query, tuple(records)
+        )
+    except Exception:
+        return RetrievalFailure(
+            kind="failure",
+            request_id=request.request_id,
+            error_code="evidence_judgement_unavailable",
+            retryable=True,
+        )
+
+    selected_ids = set(decision.relevant_evidence_ids)
+    selected_records = tuple(
+        record for record in records if record.evidence_id in selected_ids
+    )
+    if decision.evidence_strength == "none":
+        return RetrievalResult(
+            kind="result",
+            request_id=request.request_id,
+            outcome="no_evidence",
+            evidence_strength="none",
+            strength_reason=decision.strength_reason,
+            searched_scope=searched_scope,
+            evidence=(),
+            limitations=decision.limitations,
+        )
+
+    return RetrievalResult(
+        kind="result",
+        request_id=request.request_id,
+        outcome="evidence_found",
+        evidence_strength=decision.evidence_strength,
+        strength_reason=decision.strength_reason,
+        searched_scope=searched_scope,
+        evidence=selected_records,
+        limitations=decision.limitations,
+    )

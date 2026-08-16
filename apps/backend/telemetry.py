@@ -122,7 +122,11 @@ def librarian_request_attrs(request: LibrarianRequest) -> dict[str, Any]:
         "purpose": request.purpose,
         "query_length": len(request.query),
         "book_scopes": [
-            {"book_id": scope.book_id, "chapter_max": scope.chapter_max}
+            {
+                "work_id": scope.work_id,
+                "book_version_id": scope.book_version_id,
+                "chapter_max": scope.chapter_max,
+            }
             for scope in request.book_scopes
         ],
     }

@@ -83,7 +83,7 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("guessing", lowered)
 
     def test_instructions_keep_the_in_scope_identifiers(self) -> None:
-        self.assertIn('"alice-adventures-in-wonderland"', self.instructions)
+        self.assertIn('"pg11"', self.instructions)
         self.assertIn('"pg11-v01b38ea4"', self.instructions)
 
     def test_instructions_keep_the_safety_and_honesty_rules(self) -> None:
@@ -98,6 +98,23 @@ class MuseInstructionTests(unittest.TestCase):
             "never present retrieved text as an exact quotation", lowered
         )
         self.assertIn("relay that honestly", lowered)
+
+    def test_instructions_distinguish_every_librarian_response_branch(self) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        for phrase in (
+            "clarification means retrieval did not run",
+            "result` with `sufficient",
+            "result` with `weak",
+            "result` with `none",
+            "for a `failure",
+            "inspect `kind` before drafting",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, lowered)
+
+        self.assertIn("state its `strength_reason` and `limitations`", lowered)
+        self.assertIn("do not imply that later chapters were searched", lowered)
+        self.assertIn("produce no evidence-based book answer", lowered)
 
 
 if __name__ == "__main__":

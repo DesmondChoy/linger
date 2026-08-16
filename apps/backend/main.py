@@ -42,7 +42,7 @@ from .contracts import (
     ReadingContext,
     TurnPolicy,
 )
-from .librarian import Librarian
+from .hybrid_librarian import HybridLibrarian
 from .logger import ROOT_NAME, configure_logging
 from .schemas import (
     CapturePreferenceRequest,
@@ -94,7 +94,7 @@ AFFIRMATION_PATTERN = re.compile(
     r"^\s*(?:yes|yeah|yep|correct|that(?:'s| is)\s+right)\b",
     re.IGNORECASE,
 )
-librarian = Librarian()
+librarian = HybridLibrarian()
 
 
 def _title_before_chapter(message: str, chapter_start: int) -> str | None:
@@ -113,16 +113,24 @@ def _candidate_confirmed(message: str, candidate: sessions.ReadingCandidate) -> 
     return bool(
         AFFIRMATION_PATTERN.search(message)
         or any(alias in lowered for alias in aliases)
-        or "wonderland" in lowered and candidate.book_id.startswith("alice")
+        or "wonderland" in lowered and candidate.book_id == "pg11"
     )
+
+
+def _work_id_for_title(title: str) -> str:
+    """Resolve known titles to stable corpus IDs; keep unknown books as slugs."""
+    words = set(re.findall(r"[a-z0-9]+", title.lower()))
+    if "alice" in words and "wonderland" in words:
+        return "pg11"
+    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
 def _inferred_context(message: str) -> tuple[str, str, int] | None:
     text = message.lower()
     if "caterpillar" in text:
-        return ("alice-adventures-in-wonderland", "Alice's Adventures in Wonderland", 5)
+        return ("pg11", "Alice's Adventures in Wonderland", 5)
     if "ada" in text or "mabel" in text:
-        return ("alice-adventures-in-wonderland", "Alice's Adventures in Wonderland", 2)
+        return ("pg11", "Alice's Adventures in Wonderland", 2)
     if any(cue in text for cue in ("milk", "apples")) and any(cue in text for cue in ("pigs", "animal farm", "equality", "power")):
         return ("animal-farm", "Animal Farm", 3)
     return None
@@ -146,7 +154,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     chapter_match = CHAPTER_PATTERN.search(request.message)
     explicit_title = _title_before_chapter(request.message, chapter_match.start()) if chapter_match else None
     if explicit_title:
-        book_id = re.sub(r"[^a-z0-9]+", "-", explicit_title.lower()).strip("-")
+        book_id = _work_id_for_title(explicit_title)
         selection = sessions.BookSelection(book_id=book_id, book_title=explicit_title)
         sessions.set_book_selection(request.session_id, selection)
 

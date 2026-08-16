@@ -16,9 +16,9 @@ from apps.backend.contracts import (
     EvidenceBundle,
     LibrarianRequest,
 )
+from apps.backend.librarian import Librarian
 from apps.backend.serendipity import discover
 from apps.backend.telemetry import brief_attrs, evidence_attrs, librarian_request_attrs
-from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import confirmed_reading
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
@@ -28,6 +28,10 @@ MIN_PRIVATE_WORDS = 1
 VERBATIM_WINDOW = 6
 
 memory_service = MemoryPolicyService(REPO_ROOT / "memories")
+# Connection discovery deliberately needs diversified passages from multiple
+# chapters. Its retrieval strategy is evaluated separately from Librarian's
+# selected exact-question grounding path.
+librarian_service = Librarian()
 
 
 def _insufficient_evidence(safe_next_step: str) -> ConnectionDecline:
@@ -122,8 +126,21 @@ async def connection_proposal(
         update={"book_id": reading.work_id, "chapter_max": ceiling, "allowed_sources": {"book_corpus"}}
     )
 
+    book_version_id = librarian_service.version_for(reading.work_id)
+    if book_version_id is None:
+        return _insufficient_evidence(
+            "This book does not have a registered evidence corpus yet."
+        )
+
     request = LibrarianRequest(
-        query=clamped_brief.cue, book_scopes=[BookScope(book_id=reading.work_id, chapter_max=ceiling)]
+        query=clamped_brief.cue,
+        book_scopes=[
+            BookScope(
+                work_id=reading.work_id,
+                book_version_id=book_version_id,
+                chapter_max=ceiling,
+            )
+        ],
     )
     with logfire.span("serendipity.connection", **brief_attrs(clamped_brief)) as span:
         try:

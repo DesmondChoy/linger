@@ -1,6 +1,6 @@
 # Librarian Subsystem Design
 
-Status: **Design approved; offline flow implemented; online flow planned**
+Status: **Design approved; selected online retrieval implemented; final validation in progress**
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -9,20 +9,22 @@ responsibilities and safeguards in [`../specification.md`](../specification.md).
 ### Progress snapshot
 
 Beads is the durable source of truth; this table is its human-readable design
-projection as of 15 August 2026.
+projection as of 16 August 2026.
 
 | Track | Progress | Current state | Beads |
 |---|---:|---|---|
 | Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
-| Initial Librarian implementation | 1 of 6 slices (17%) | Offline corpus slice complete; first online slice is ready; retrieval comparison is a required later slice | `linger-ibq` |
+| Initial Librarian implementation | 5 of 6 slices (83%) | Corpus, boundary, direct control, Muse handling, and five-way retrieval benchmark complete; selected hybrid strategy is implemented and end-to-end validation is in progress | `linger-ibq` |
 | Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
 
-The 17% implementation figure includes a mandatory retrieval benchmark. Linger
-will implement bounded direct reads as the control, then test BM25, semantic
-embeddings, hybrid fusion, and reranking on the same evaluation set before
-selecting the production strategy from measured safety, quality, latency, token
-use, and monetary cost. Safety and exact citation resolution are hard gates;
-evidence quality comes first, with latency and cost breaking near-equal results.
+The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
+reciprocal-rank fusion, overlap deduplication, and local cross-encoder reranking.
+All five configurations passed the zero-forbidden-exposure and exact-resolution
+gates. The selected retrieval path reached 91.7% evidence recall and 76.4%
+candidate precision; the latter is diagnostic because the Librarian judge still
+filters candidates before Muse receives final evidence. Measuring the final
+user-visible citation target requires the live evidence-strength agent and is
+part of the remaining end-to-end slice.
 
 ## 1. Purpose and scope
 
@@ -35,10 +37,11 @@ The subsystem has two deliberately separate flows:
    focused clarification or inspect only eligible chapters and return a typed
    evidence result to Muse.
 
-The current vertical slice implements the first flow for Project Gutenberg
-ebook 11. The chapter files also support direct agentic retrieval now. The
-online plan will benchmark direct reads, BM25 paragraph windows, embeddings,
-hybrid fusion, and reranking before fixing the production retrieval design.
+The current vertical slice implements both flows for Project Gutenberg ebook
+11. Direct canonical reads remain the benchmark control; the measured
+production path uses bounded BM25 and local embeddings, reciprocal-rank fusion,
+overlap deduplication, and a local cross-encoder reranker before the independent
+Librarian evidence-strength decision.
 
 ### 1.1 Responsibilities
 
@@ -657,11 +660,11 @@ set. Direct bounded chapter reads remain the no-index baseline.
 | Order | Slice | Status | Deliverable | Beads |
 |---:|---|---|---|---|
 | 1 | Offline corpus and hardening | Complete | Verified immutable source, revision-aware canonical chapters, derived catalogue, reusable lifecycle, and deterministic checks | `linger-tz2` |
-| 2 | Contracts and spoiler boundary | Ready next | Typed request/response models and trusted completed/started/ambiguous chapter enforcement before corpus access | `linger-ibq.1` |
-| 3A | Bounded direct evidence retrieval | Blocked by Slice 2 | Eligible catalogue and canonical reads, exact evidence IDs, and sufficient/weak/none result | `linger-ibq.2` |
-| 3B | Muse response integration | Blocked by Slice 2 | Separate handling for clarification, sufficient, weak, none, and failure | `linger-ibq.3` |
-| 4 | Retrieval benchmark and selection | Blocked by Slice 3A | Compare direct reads, BM25, semantic search, hybrid fusion, and reranking; select the production strategy from measured results | `linger-ibq.5` |
-| 5 | End-to-end validation | Blocked by Slices 3B and 4 | Validate the selected strategy, spoiler suppression, evidence resolution, failure, and safe degradation | `linger-ibq.4` |
+| 2 | Contracts and spoiler boundary | Complete | Typed request/response models and trusted completed/started/ambiguous chapter enforcement before corpus access | `linger-ibq.1` |
+| 3A | Bounded direct evidence retrieval | Complete | Canonical reads, thresholds, no-match behavior, exact line-range evidence IDs, pre-read spoiler filtering, and independent strength judgement | `linger-ibq.2` |
+| 3B | Muse response integration | Complete | Separate handling for clarification, sufficient, weak, none, and failure | `linger-ibq.3` |
+| 4 | Retrieval benchmark and selection | Complete | Five versioned configurations compared; reranked hybrid selected and implemented | `linger-ibq.5` |
+| 5 | End-to-end validation | In progress | Validate the selected strategy, spoiler suppression, evidence resolution, failures, and safe degradation; deterministic coverage is implemented and live-agent measurement remains | `linger-ibq.4` |
 
 Slices 3A and 3B may proceed in parallel after the shared contract and boundary
 slice is complete. Slice 4 can run after the direct-read control exists while
@@ -719,6 +722,32 @@ it can proceed independently and does not block the initial Librarian path.
    latency, then lower token use and monetary cost. Report every metric rather
    than hiding trade-offs in one blended score.
 
+### 7.4 Measured selection
+
+The frozen 12-case Alice set produced these five-repeat warm-query results. The
+reported precision is retrieval-candidate precision before the common
+Librarian evidence-strength judge; final user-visible citation precision is
+measured in the end-to-end evaluation.
+
+| Strategy | Recall | Candidate precision | Strength-support accuracy | p95 latency | Mean evidence words |
+|---|---:|---:|---:|---:|---:|
+| Direct canonical reads | 50.0% | 16.3% | 66.7% | 3.3 ms | 402 |
+| BM25 | 75.0% | 25.0% | 91.7% | 3.4 ms | 1,518 |
+| Semantic embeddings | 79.2% | 30.0% | 100% | 2.8 ms | 1,433 |
+| Hybrid without reranking | 79.2% | 26.7% | 100% | 2.8 ms | 1,535 |
+| **Hybrid with reranking** | **91.7%** | **76.4%** | **91.7%** | **451.0 ms** | **595** |
+
+The selected local stack is BM25S, FastEmbed
+`BAAI/bge-small-en-v1.5`, reciprocal-rank fusion with `k = 60`, and FastEmbed
+cross-encoder `Xenova/ms-marco-MiniLM-L-6-v2`. Derived indexes are cached by
+immutable book revision and exact chapter ceiling. The first local model and
+index initialization is excluded from warm p95 and remains visible as a
+deployment warm-up cost. This selection applies to Librarian's exact-question
+grounding path. Serendipity's deliberately multi-chapter connection discovery
+keeps the bounded diversified direct-read control until connection retrieval
+has its own evaluation; it must not silently inherit a strategy optimized for a
+different objective.
+
 ## 8. Decisions and open questions
 
 ### 8.1 Resolved
@@ -732,7 +761,7 @@ it can proceed independently and does not block the initial Librarian path.
 | Agent catalogue | Generated metadata-only JSON projection |
 | Database or index as source of truth | No |
 | Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
-| Retrieval strategy selection | Mandatory comparison of direct, BM25, semantic, hybrid, and reranked hybrid configurations |
+| Retrieval strategy selection | Reranked hybrid won the mandatory five-way comparison |
 | Reading progress | Not persisted; boundary is inferred or clarified per request |
 | Metadata as evidence | No; only canonical chapter bodies are authoritative |
 | Ambiguous boundary | Typed clarification; retrieval does not run |
@@ -740,17 +769,16 @@ it can proceed independently and does not block the initial Librarian path.
 | Weak result | Includes exact evidence details plus limitations |
 | Corpus identity | Stable work ID plus immutable source-revision ID |
 | Evidence identity | Book version + chapter + canonical source lines |
-| Initial derived windows | 450 tokens with 75-token overlap, never crossing chapters |
+| Initial derived windows | 350 words (approximately 450 tokens) with 60-word overlap (approximately 75 tokens), never crossing chapters |
 | Initial thresholds | 0.5 for semantic candidate and reranker scores; overrideable |
 | Candidate limits | 10 keyword + 10 semantic, at most 15 reranked, at most 5 returned |
+| Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
+| Hybrid fusion | Reciprocal-rank fusion with `k = 60`, followed by 50% source-range overlap deduplication |
 
 ### 8.2 Open
 
 | Decision | Status |
 |---|---|
 | Partial-current-chapter boundaries | Define only when resolvable positions are available |
-| Embedding model and contextualization | Choose and version candidates for the required benchmark |
-| Keyword, embedding, and reranking libraries/models | Choose the cheapest fast stack that passes the Alice evals |
-| Hybrid fusion weights | Evaluate against direct reads and single-method retrieval |
 | Latency and cost budgets | Set with the implemented retrieval path |
-| Production retrieval strategy | Select from benchmark results; no approach is assumed in advance |
+| Final live-model citation precision | Run the common Librarian judge and Muse/Provenance release path with configured provider credentials |

@@ -13,7 +13,7 @@ from src.linger.orchestration.connection import build_brief, connection_proposal
 from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
-WORK_ID = "alice-adventures-in-wonderland"
+WORK_ID = "pg11"
 
 
 class ConnectionBriefTests(unittest.TestCase):
@@ -124,32 +124,6 @@ class ConnectionProposalTests(unittest.IsolatedAsyncioTestCase):
         result = await connection_proposal(brief, explorer=discover)
 
         self.assertIsInstance(result, ConnectionProposal)
-
-    async def test_slug_variance_all_reach_corpus_and_produce_evidence(self) -> None:
-        for confirmed_slug in (
-            "alice-s-adventures-in-wonderland",
-            "alice-adventures-in-wonderland",
-            "alice-wonderland",
-        ):
-            with self.subTest(confirmed_slug=confirmed_slug):
-                self._confirm(work_id=confirmed_slug, chapter_max=5)
-                explorer = MagicMock()
-                explorer.return_value = ConnectionProposal(
-                    tentative_claim="x",
-                    evidence_ids=[],
-                    interpretation="y",
-                    uncertainty="low",
-                    suggested_follow_up="z",
-                )
-                brief = build_brief("identity and change")
-
-                await connection_proposal(brief, explorer=explorer)
-
-                _, evidence = explorer.call_args.args
-                self.assertTrue(len(evidence.items) > 0)
-                reset_confirmed_reading(self._token)
-                self._token = None
-
 
 class WebReachPermittedTests(unittest.TestCase):
     def test_denies_when_unset_default_settings(self) -> None:

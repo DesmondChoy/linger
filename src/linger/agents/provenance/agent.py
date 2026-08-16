@@ -17,6 +17,17 @@ request-scoped reading context, and the complete evidence bundle authorised for
 this response. Treat missing evidence or an unclear spoiler boundary as a reason
 not to pass a supported factual claim.
 
+When a `librarian_search` result is present, enforce its response branch:
+- clarification: the candidate asks the supplied question and does not attempt
+  a book answer;
+- sufficient: factual support and exact quotations come only from returned
+  evidence;
+- weak: the candidate preserves the stated limitation and makes no stronger
+  conclusion than the evidence supports;
+- none: the candidate reports bounded absence without implying later chapters
+  were searched;
+- failure: the candidate makes no evidence-based book claim.
+
 That bundle is the whole of what was authorised: `policy_constraints` carries the
 spoiler ceiling and whether retrieval was permitted, `reading_context` carries the
 confirmed work and chapter, and `cited_evidence` and `muse_tool_results` carry the

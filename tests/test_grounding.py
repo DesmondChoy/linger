@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from apps.backend.config import Settings, get_settings
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
+from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     ClarificationRequest,
@@ -38,7 +39,7 @@ class ConfirmedReadingContextVarTests(unittest.TestCase):
         self.assertIsNone(confirmed_reading())
 
     def test_round_trip(self) -> None:
-        reading = ConfirmedReading(work_id="alice-adventures-in-wonderland", chapter_max=3)
+        reading = ConfirmedReading(work_id="pg11", chapter_max=3)
         token = set_confirmed_reading(reading)
         try:
             self.assertEqual(reading, confirmed_reading())
@@ -47,7 +48,7 @@ class ConfirmedReadingContextVarTests(unittest.TestCase):
         self.assertIsNone(confirmed_reading())
 
     def test_reset_restores_prior_value(self) -> None:
-        outer = ConfirmedReading(work_id="alice-adventures-in-wonderland", chapter_max=3)
+        outer = ConfirmedReading(work_id="pg11", chapter_max=3)
         outer_token = set_confirmed_reading(outer)
         try:
             inner = ConfirmedReading(work_id="animal-farm", chapter_max=1)
@@ -72,24 +73,30 @@ class ConcurrentTurnIsolationTests(unittest.IsolatedAsyncioTestCase):
                 reset_confirmed_reading(token)
 
         await asyncio.gather(
-            run_turn("a", "alice-adventures-in-wonderland"),
+            run_turn("a", "pg11"),
             run_turn("b", "animal-farm"),
         )
 
-        self.assertEqual("alice-adventures-in-wonderland", results["a"].work_id)
+        self.assertEqual("pg11", results["a"].work_id)
         self.assertEqual("animal-farm", results["b"].work_id)
 
 
-WORK_ID = "alice-adventures-in-wonderland"
+WORK_ID = "pg11"
 VALID_VERSION = get_settings().allowed_book_version_ids[0]
+SOURCE_SHA256 = "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e"
 
 
-def evidence_item(evidence_id: str, chapter: int | None, excerpt: str = "text") -> EvidenceItem:
+def evidence_item(evidence_id: str, chapter: int, excerpt: str = "text") -> EvidenceItem:
     return EvidenceItem(
         evidence_id=evidence_id,
+        work_id=WORK_ID,
+        book_version_id=VALID_VERSION,
+        chapter_id=f"{VALID_VERSION}-ch{chapter:02d}",
         source_title="Alice's Adventures in Wonderland",
         location=f"Chapter {chapter}",
         chapter=chapter,
+        source_sha256=SOURCE_SHA256,
+        source_lines=(chapter, chapter),
         excerpt=excerpt,
         relevance=0.9,
     )
@@ -101,6 +108,23 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
 
     def _confirm(self, work_id: str = WORK_ID, chapter_max: int = 5) -> None:
         self._token = set_confirmed_reading(ConfirmedReading(work_id=work_id, chapter_max=chapter_max))
+
+    def _judge(
+        self,
+        strength: str,
+        evidence_ids: tuple[str, ...],
+        *,
+        reason: str = "Judged from the complete evidence set.",
+    ) -> AsyncMock:
+        limitations = ("The evidence only partially answers the query.",) if strength == "weak" else ()
+        return AsyncMock(
+            return_value=EvidenceStrengthDecision(
+                evidence_strength=strength,
+                strength_reason=reason,
+                relevant_evidence_ids=evidence_ids,
+                limitations=limitations,
+            )
+        )
 
     def tearDown(self) -> None:
         if self._token is not None:
@@ -131,11 +155,15 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian = MagicMock()
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=2, chapter_state="completed"))
 
-        response = await grounding_evidence(request, librarian=librarian)
+        judge = self._judge("weak", ("e1",))
+        response = await grounding_evidence(
+            request, librarian=librarian, strength_judge=judge
+        )
 
         self.assertIsInstance(response, ClarificationRequest)
         self.assertEqual("reading_boundary_unconfirmed", response.reason_code)
         librarian.retrieve.assert_not_called()
+        judge.assert_not_awaited()
 
     async def test_work_id_mismatch_returns_clarification_without_dispatch(self) -> None:
         self._confirm(work_id="animal-farm")
@@ -212,12 +240,17 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         )
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
 
-        response = await grounding_evidence(request, librarian=librarian)
+        judge = self._judge("weak", ("e1",))
+        response = await grounding_evidence(
+            request, librarian=librarian, strength_judge=judge
+        )
 
         self.assertIsInstance(response, RetrievalResult)
         evidence_ids = {record.evidence_id for record in response.evidence}
         self.assertIn("e1", evidence_ids)
         self.assertNotIn("e2", evidence_ids)
+        judged_records = judge.await_args.args[1]
+        self.assertEqual(("e1",), tuple(record.evidence_id for record in judged_records))
 
     async def test_max_final_evidence_clamps_to_five(self) -> None:
         self._confirm(chapter_max=5)
@@ -231,7 +264,10 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(5, request.options.max_final_evidence)
-        response = await grounding_evidence(request, librarian=librarian)
+        judge = self._judge("weak", tuple(f"e{i}" for i in range(5)))
+        response = await grounding_evidence(
+            request, librarian=librarian, strength_judge=judge
+        )
 
         self.assertIsInstance(response, RetrievalResult)
         self.assertLessEqual(len(response.evidence), 5)
@@ -254,10 +290,84 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve.return_value = EvidenceBundle(items=[evidence_item("e1", 2)], retrieval_note="")
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
 
-        response = await grounding_evidence(request, librarian=librarian)
+        response = await grounding_evidence(
+            request,
+            librarian=librarian,
+            strength_judge=self._judge("sufficient", ("e1",)),
+        )
 
         # Round-trips through the discriminated adapter without error.
         LIBRARIAN_RESPONSE_ADAPTER.validate_python(response.model_dump(mode="json"))
+
+    async def test_strength_judge_can_return_sufficient(self) -> None:
+        self._confirm()
+        librarian = MagicMock()
+        librarian.retrieve.return_value = EvidenceBundle(
+            items=[evidence_item("e1", 5, "Alice directly explains her confusion.")],
+            retrieval_note="",
+        )
+        request = build_request(
+            "Why is Alice confused?",
+            WORK_ID,
+            VALID_VERSION,
+            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+        )
+
+        response = await grounding_evidence(
+            request,
+            librarian=librarian,
+            strength_judge=self._judge("sufficient", ("e1",), reason="The passage directly answers the question."),
+        )
+
+        self.assertIsInstance(response, RetrievalResult)
+        self.assertEqual("sufficient", response.evidence_strength)
+        self.assertEqual(("e1",), tuple(record.evidence_id for record in response.evidence))
+
+    async def test_strength_judge_can_reject_high_scoring_matches_as_none(self) -> None:
+        self._confirm()
+        librarian = MagicMock()
+        librarian.retrieve.return_value = EvidenceBundle(
+            items=[evidence_item("e1", 5, "The same words occur without answering the question.")],
+            retrieval_note="",
+        )
+        request = build_request(
+            "Why does this happen?",
+            WORK_ID,
+            VALID_VERSION,
+            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+        )
+
+        response = await grounding_evidence(
+            request,
+            librarian=librarian,
+            strength_judge=self._judge("none", (), reason="The word overlap does not answer the question."),
+        )
+
+        self.assertIsInstance(response, RetrievalResult)
+        self.assertEqual("no_evidence", response.outcome)
+        self.assertEqual("none", response.evidence_strength)
+        self.assertEqual((), response.evidence)
+
+    async def test_strength_judgement_failure_returns_typed_failure(self) -> None:
+        self._confirm()
+        librarian = MagicMock()
+        librarian.retrieve.return_value = EvidenceBundle(
+            items=[evidence_item("e1", 5)], retrieval_note=""
+        )
+        judge = AsyncMock(side_effect=RuntimeError("provider unavailable"))
+        request = build_request(
+            "identity",
+            WORK_ID,
+            VALID_VERSION,
+            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+        )
+
+        response = await grounding_evidence(
+            request, librarian=librarian, strength_judge=judge
+        )
+
+        self.assertIsInstance(response, RetrievalFailure)
+        self.assertEqual("evidence_judgement_unavailable", response.error_code)
 
 
 class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
@@ -333,56 +443,6 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
 
 
 class WorkIdentityTests(unittest.IsolatedAsyncioTestCase):
-    """The confirmed slug is derived from the reader's own typing.
-
-    `main.update_book_context` builds it from whatever title the reader wrote,
-    so one book arrives as several slugs. Muse is instructed to pass a single
-    canonical `work_id`, and grounding must still dispatch.
-    """
-
-    def _bundle(self) -> EvidenceBundle:
-        return EvidenceBundle(
-            items=[
-                EvidenceItem(
-                    evidence_id="alice-ch2-identity",
-                    source_title="Alice's Adventures in Wonderland",
-                    location="Chapter 2",
-                    chapter=2,
-                    excerpt="How queer everything is to-day!",
-                    relevance=0.9,
-                )
-            ],
-            retrieval_note="note",
-        )
-
-    async def test_title_spelling_variants_still_retrieve(self) -> None:
-        for confirmed_slug in (
-            "alice-s-adventures-in-wonderland",
-            "alice-adventures-in-wonderland",
-            "alice-wonderland",
-        ):
-            with self.subTest(confirmed_slug=confirmed_slug):
-                librarian = MagicMock()
-                librarian.retrieve.return_value = self._bundle()
-                token = set_confirmed_reading(
-                    ConfirmedReading(work_id=confirmed_slug, chapter_max=3)
-                )
-                try:
-                    response = await grounding_evidence(
-                        build_request(
-                            "identity",
-                            "alice-adventures-in-wonderland",
-                            VALID_VERSION,
-                            ReadingBoundary(chapter_number=2, chapter_state="completed"),
-                        ),
-                        librarian=librarian,
-                    )
-                finally:
-                    reset_confirmed_reading(token)
-
-                self.assertEqual("result", response.kind)
-                self.assertEqual(confirmed_slug, response.searched_scope.work_id)
-
     async def test_a_genuinely_different_book_still_clarifies(self) -> None:
         librarian = MagicMock()
         token = set_confirmed_reading(
@@ -392,7 +452,7 @@ class WorkIdentityTests(unittest.IsolatedAsyncioTestCase):
             response = await grounding_evidence(
                 build_request(
                     "identity",
-                    "alice-adventures-in-wonderland",
+                    WORK_ID,
                     VALID_VERSION,
                     ReadingBoundary(chapter_number=2, chapter_state="completed"),
                 ),
@@ -403,4 +463,24 @@ class WorkIdentityTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsInstance(response, ClarificationRequest)
         self.assertEqual("work_not_confirmed", response.reason_code)
+        librarian.retrieve.assert_not_called()
+
+    async def test_allowed_revision_for_a_different_work_fails_before_retrieval(self) -> None:
+        librarian = MagicMock()
+        librarian.supports_revision.return_value = False
+        token = set_confirmed_reading(ConfirmedReading(work_id="animal-farm", chapter_max=3))
+        try:
+            with self.assertRaises(BookVersionOutOfScope):
+                await grounding_evidence(
+                    build_request(
+                        "power",
+                        "animal-farm",
+                        VALID_VERSION,
+                        ReadingBoundary(chapter_number=3, chapter_state="completed"),
+                    ),
+                    librarian=librarian,
+                )
+        finally:
+            reset_confirmed_reading(token)
+
         librarian.retrieve.assert_not_called()

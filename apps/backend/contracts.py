@@ -49,9 +49,10 @@ class ConnectionBrief(BaseModel):
 
 
 class BookScope(BaseModel):
-    """One corpus and its reader-confirmed spoiler boundary."""
+    """One immutable corpus revision and its reader-confirmed boundary."""
 
-    book_id: str
+    work_id: str
+    book_version_id: str
     chapter_max: int = Field(ge=1)
 
 
@@ -60,14 +61,21 @@ class LibrarianRequest(BaseModel):
 
     query: str = Field(min_length=1, max_length=2000)
     book_scopes: list[BookScope] = []
+    retrieval_score_threshold: float = Field(default=0.5, ge=0, le=1)
+    max_results: int = Field(default=5, ge=1, le=10)
     purpose: Literal["connection_discovery"] = "connection_discovery"
 
 
 class EvidenceItem(BaseModel):
     evidence_id: str
+    work_id: str
+    book_version_id: str
+    chapter_id: str
     source_title: str
     location: str
-    chapter: int | None = None
+    chapter: int = Field(ge=1)
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_lines: tuple[int, int]
     excerpt: str
     relevance: float = Field(ge=0, le=1)
     source_kind: Literal["book_corpus"] = "book_corpus"

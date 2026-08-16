@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "book_version_id": "pg11-v01b38ea4",
+  "cases": [
+    {"case_id":"rabbit-watch","query":"What made Alice finally chase the White Rabbit?","chapter_max":1,"expected_strength":"sufficient","relevant_ranges":[[1,74,84]]},
+    {"case_id":"drink-me","query":"What did the bottle label tell Alice to do?","chapter_max":1,"expected_strength":"sufficient","relevant_ranges":[[1,185,194]]},
+    {"case_id":"pool-of-tears","query":"Where did the pool Alice swims in come from?","chapter_max":2,"expected_strength":"sufficient","relevant_ranges":[[2,395,403]]},
+    {"case_id":"caucus-prizes","query":"Who wins the Caucus-race and receives prizes?","chapter_max":3,"expected_strength":"sufficient","relevant_ranges":[[3,566,580]]},
+    {"case_id":"giant-puppy","query":"How does Alice play with the enormous puppy without being trampled?","chapter_max":4,"expected_strength":"sufficient","relevant_ranges":[[4,906,925]]},
+    {"case_id":"identity-change","query":"Why can Alice not explain who she is to the Caterpillar?","chapter_max":5,"expected_strength":"sufficient","relevant_ranges":[[5,964,981]]},
+    {"case_id":"father-william","query":"What poem does the Caterpillar make Alice recite?","chapter_max":5,"expected_strength":"sufficient","relevant_ranges":[[5,1029,1046]]},
+    {"case_id":"pigeon-serpent","query":"Why does the Pigeon insist that Alice is a serpent?","chapter_max":5,"expected_strength":"sufficient","relevant_ranges":[[5,1164,1173],[5,1210,1224]]},
+    {"case_id":"identity-theme","query":"How do Alice's changing size and uncertain identity reinforce each other?","chapter_max":5,"expected_strength":"weak","relevant_ranges":[[4,762,770],[5,966,981]]},
+    {"case_id":"exact-caucus-quote","query":"Find the passage saying everybody won and all must have prizes.","chapter_max":3,"expected_strength":"sufficient","relevant_ranges":[[3,566,580]]},
+    {"case_id":"future-cheshire","query":"What advice does the Cheshire Cat give Alice about which road to take?","chapter_max":5,"expected_strength":"none","relevant_ranges":[]},
+    {"case_id":"absent-spaceship","query":"Where does Alice repair a spaceship?","chapter_max":5,"expected_strength":"none","relevant_ranges":[]}
+  ]
+}

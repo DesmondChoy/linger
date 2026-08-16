@@ -59,7 +59,7 @@ class BookContextTests(unittest.TestCase):
         sessions.set_reading_candidate(
             "context-test",
             sessions.ReadingCandidate(
-                book_id="alice-adventures-in-wonderland",
+                book_id="pg11",
                 book_title="Alice's Adventures in Wonderland",
                 chapter=5,
             ),
@@ -67,20 +67,20 @@ class BookContextTests(unittest.TestCase):
         sessions.set_book_selection(
             "context-test",
             sessions.BookSelection(
-                book_id="alice-adventures-in-wonderland",
+                book_id="pg11",
                 book_title="Alice's Adventures in Wonderland",
             ),
         )
         context = resolve_reading_context(
             ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm done with the chapter")
         )
-        self.assertEqual(context.work_id, "alice-adventures-in-wonderland")
+        self.assertEqual(context.work_id, "pg11")
         self.assertEqual(context.chapter_max, 5)
 
     def test_candidate_does_not_set_progress_without_book_confirmation(self) -> None:
         sessions.set_reading_candidate(
             "context-test",
-            sessions.ReadingCandidate(book_id="alice-adventures-in-wonderland", chapter=5),
+            sessions.ReadingCandidate(book_id="pg11", chapter=5),
         )
         context = resolve_reading_context(
             ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm done with the chapter")
@@ -90,11 +90,11 @@ class BookContextTests(unittest.TestCase):
     def test_negated_completion_keeps_candidate_unconfirmed(self) -> None:
         sessions.set_reading_candidate(
             "context-test",
-            sessions.ReadingCandidate(book_id="alice-wonderland", chapter=5),
+            sessions.ReadingCandidate(book_id="pg11", chapter=5),
         )
         sessions.set_book_selection(
             "context-test",
-            sessions.BookSelection(book_id="alice-wonderland"),
+            sessions.BookSelection(book_id="pg11"),
         )
 
         context = resolve_reading_context(
@@ -153,7 +153,7 @@ class BookContextTests(unittest.TestCase):
         )
 
         self.assertEqual("inferred", inspection.context_resolution["status"])
-        self.assertEqual("alice-adventures-in-wonderland", inspection.context_resolution["work_id"])
+        self.assertEqual("pg11", inspection.context_resolution["work_id"])
         self.assertIsNone(inspection.muse_turn["reading_context"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
         self.assertIsNone(review_context["reading_context"])

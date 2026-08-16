@@ -54,7 +54,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             await main.chat(request)
 
         self.assertEqual(
-            ConfirmedReading(work_id="alice-adventures-in-wonderland", chapter_max=3),
+            ConfirmedReading(work_id="pg11", chapter_max=3),
             seen["value"],
         )
 

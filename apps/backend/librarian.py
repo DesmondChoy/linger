@@ -1,64 +1,197 @@
-"""Pre-ingested, spoiler-aware reference corpora for default library books.
+"""Spoiler-bounded retrieval from immutable, checked-in book corpora."""
 
-The reader UI never calls this module. It is queried only after chat has
-explicitly established a book title and reading boundary.
-"""
+from __future__ import annotations
 
+import json
 import re
+from dataclasses import dataclass
+from pathlib import Path
+
+from src.linger.corpus.alice import BOOK
+from src.linger.corpus.book import BookCorpus, ChapterFrontMatter, parse_chapter_markdown
 
 from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
 
 
-def evidence(evidence_id: str, title: str, location: str, chapter: int, excerpt: str, relevance: float) -> EvidenceItem:
-    return EvidenceItem(evidence_id=evidence_id, source_title=title, location=location, chapter=chapter, excerpt=excerpt, relevance=relevance)
-
-
-ALICE_EVIDENCE = (
-    evidence("alice-ch2-identity", "Alice's Adventures in Wonderland", "Chapter 2 — The Pool of Tears", 2, "How queer everything is to-day!", 0.92),
-    evidence("alice-ch3-rules", "Alice's Adventures in Wonderland", "Chapter 3 — A Caucus-Race and a Long Tale", 3, "Everybody has won, and all must have prizes.", 0.82),
-    evidence("alice-ch4-change", "Alice's Adventures in Wonderland", "Chapter 4 — The Rabbit Sends in a Little Bill", 4, "One wasn't always growing larger and smaller.", 0.96),
-    evidence("alice-ch5-identity", "Alice's Adventures in Wonderland", "Chapter 5 — Advice from a Caterpillar", 5, "Who are YOU? said the Caterpillar.", 0.99),
-    evidence("alice-ch5-reason", "Alice's Adventures in Wonderland", "Chapter 5 — Advice from a Caterpillar", 5, "I can't explain myself, because I am not myself.", 0.99),
-)
-
-ANIMAL_FARM_EVIDENCE = (
-    evidence("animal-ch1-comrades", "Animal Farm", "Chapter I", 1, "All men are enemies. All animals are comrades.", 0.94),
-    evidence("animal-ch2-equality", "Animal Farm", "Chapter II", 2, "All animals are equal.", 0.99),
-    evidence("animal-ch3-milk", "Animal Farm", "Chapter III", 3, "The milk and apples should be reserved for the pigs alone.", 0.97),
-    evidence("animal-ch4-battle", "Animal Farm", "Chapter IV", 4, "Snowball was wounded by Jones's gun.", 0.7),
-    evidence("animal-ch5-dogs", "Animal Farm", "Chapter V", 5, "Nine enormous dogs wearing brass-studded collars came bounding into the barn.", 0.9),
-)
-
-CORPORA = {
-    "alice-s-adventures-in-wonderland": ALICE_EVIDENCE,
-    "alice-adventures-in-wonderland": ALICE_EVIDENCE,
-    "alice-wonderland": ALICE_EVIDENCE,
-    "animal-farm": ANIMAL_FARM_EVIDENCE,
+TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
+STOP_WORDS = {
+    "a", "about", "after", "again", "all", "also", "am", "an", "and",
+    "are", "as", "at", "be", "because", "been", "before", "being", "but",
+    "by", "can", "could", "did", "do", "does", "for", "from", "had", "has",
+    "have", "he", "her", "hers", "him", "his", "how", "i", "if", "in",
+    "into", "is", "it", "its", "me", "my", "of", "on", "or", "our", "she",
+    "so", "that", "the", "their", "them", "then", "there", "they", "this",
+    "to", "too", "us", "was", "we", "were", "what", "when", "where", "which",
+    "who", "why", "will", "with", "would", "you", "your",
 }
 
 
-class Librarian:
-    """Retrieve excerpts only from a registered corpus and confirmed range."""
+class CorpusScopeError(ValueError):
+    """Raised before chapter text is opened when a corpus scope is invalid."""
 
-    def has_corpus(self, book_id: str) -> bool:
-        return book_id in CORPORA
+
+@dataclass(frozen=True)
+class CorpusRegistration:
+    book: BookCorpus
+    root: Path
+
+
+CORPORA = {
+    BOOK.work_id: CorpusRegistration(book=BOOK, root=BOOK.default_output),
+}
+
+
+@dataclass(frozen=True)
+class Paragraph:
+    text: str
+    source_lines: tuple[int, int]
+
+
+def _terms(text: str) -> set[str]:
+    return {
+        token.casefold()
+        for token in TOKEN.findall(text)
+        if len(token) > 1 and token.casefold() not in STOP_WORDS
+    }
+
+
+def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Paragraph, ...]:
+    """Return exact source paragraphs and their inclusive Gutenberg line ranges."""
+    try:
+        _, source_body = markdown_body.split("\n\n", maxsplit=1)
+    except ValueError as exc:
+        raise CorpusScopeError(f"{metadata.chapter_id} is missing its Markdown heading") from exc
+
+    lines = source_body.splitlines()
+    paragraphs: list[Paragraph] = []
+    start: int | None = None
+    for index in range(len(lines) + 1):
+        line = lines[index] if index < len(lines) else ""
+        if line and start is None:
+            start = index
+        if not line and start is not None:
+            end = index - 1
+            source_start = metadata.body_lines[0] + start
+            source_end = metadata.body_lines[0] + end
+            paragraphs.append(
+                Paragraph(
+                    text="\n".join(lines[start:index]),
+                    source_lines=(source_start, source_end),
+                )
+            )
+            start = None
+    return tuple(paragraphs)
+
+
+def _score(query_terms: set[str], paragraph: str) -> float:
+    """Return a bounded lexical score; zero means no textual anchor exists."""
+    if not query_terms:
+        return 0.0
+    overlap = len(query_terms & _terms(paragraph))
+    if overlap == 0:
+        return 0.0
+    # One real textual anchor clears the 0.5 baseline. More matched terms raise
+    # confidence, while later strategy benchmarks can replace this scorer.
+    return min(1.0, 0.5 + 0.5 * overlap / min(len(query_terms), 4))
+
+
+def _load_catalog(registration: CorpusRegistration) -> dict[str, object]:
+    catalog = json.loads((registration.root / "catalog.json").read_text(encoding="utf-8"))
+    book = registration.book
+    if catalog.get("work_id") != book.work_id or catalog.get("book_version_id") != book.book_version_id:
+        raise CorpusScopeError("catalog identity does not match its registered corpus")
+    return catalog
+
+
+class Librarian:
+    """Retrieve exact passages only from a registered revision and chapter range."""
+
+    def has_corpus(self, work_id: str) -> bool:
+        return work_id in CORPORA
+
+    def supports_revision(self, work_id: str, book_version_id: str) -> bool:
+        registration = CORPORA.get(work_id)
+        return registration is not None and registration.book.book_version_id == book_version_id
+
+    def version_for(self, work_id: str) -> str | None:
+        registration = CORPORA.get(work_id)
+        return registration.book.book_version_id if registration else None
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
-        """Retrieve book excerpts within each request-scoped boundary."""
-        words = set(re.findall(r"[a-z]+", request.query.lower()))
+        """Search eligible chapter bodies without opening a forbidden chapter."""
+        query_terms = _terms(request.query)
         selected: list[EvidenceItem] = []
-        for scope in request.book_scopes:
-            corpus = CORPORA.get(scope.book_id, ())
-            allowed = [item for item in corpus if item.chapter is not None and item.chapter <= scope.chapter_max]
-            matches = [
-                item for item in allowed
-                if words & set(re.findall(r"[a-z]+", f"{item.excerpt} {item.location}".lower()))
-            ]
-            # A narrow corpus can still support a thematic connection when the
-            # reader's wording differs from the source's wording.
-            selected.extend((matches[:3] if matches else allowed[-3:]))
 
+        for scope in request.book_scopes:
+            registration = CORPORA.get(scope.work_id)
+            if registration is None or registration.book.book_version_id != scope.book_version_id:
+                raise CorpusScopeError(
+                    f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
+                )
+
+            catalog = _load_catalog(registration)
+            chapters = catalog.get("chapters")
+            if not isinstance(chapters, list):
+                raise CorpusScopeError("catalog chapters must be a list")
+
+            # The metadata-only catalogue is filtered first. A chapter above the
+            # trusted ceiling is never opened and therefore cannot leak text.
+            eligible = [
+                chapter
+                for chapter in chapters
+                if isinstance(chapter, dict)
+                and isinstance(chapter.get("chapter_number"), int)
+                and chapter["chapter_number"] <= scope.chapter_max
+            ]
+            for chapter in eligible:
+                relative_path = chapter.get("path")
+                if not isinstance(relative_path, str):
+                    raise CorpusScopeError("catalog chapter path is invalid")
+                metadata, markdown_body = parse_chapter_markdown(
+                    (registration.root / relative_path).read_text(encoding="utf-8")
+                )
+                if (
+                    metadata.work_id != scope.work_id
+                    or metadata.book_version_id != scope.book_version_id
+                    or metadata.chapter_number != chapter["chapter_number"]
+                ):
+                    raise CorpusScopeError("chapter identity does not match its search scope")
+
+                for paragraph in _paragraphs(metadata, markdown_body):
+                    relevance = _score(query_terms, paragraph.text)
+                    if relevance < request.retrieval_score_threshold:
+                        continue
+                    start, end = paragraph.source_lines
+                    selected.append(
+                        EvidenceItem(
+                            evidence_id=f"{metadata.chapter_id}-ln{start:04d}-{end:04d}",
+                            work_id=metadata.work_id,
+                            book_version_id=metadata.book_version_id,
+                            chapter_id=metadata.chapter_id,
+                            source_title=registration.book.title,
+                            location=(
+                                f"Chapter {metadata.chapter_number} — {metadata.title}, "
+                                f"source lines {start}-{end}"
+                            ),
+                            chapter=metadata.chapter_number,
+                            source_sha256=metadata.source_sha256,
+                            source_lines=paragraph.source_lines,
+                            excerpt=paragraph.text,
+                            relevance=relevance,
+                        )
+                    )
+
+        selected.sort(key=lambda item: (-item.relevance, item.chapter, item.source_lines[0]))
+        diversified: list[EvidenceItem] = []
+        per_chapter: dict[int, int] = {}
+        for item in selected:
+            if per_chapter.get(item.chapter, 0) >= 2:
+                continue
+            diversified.append(item)
+            per_chapter[item.chapter] = per_chapter.get(item.chapter, 0) + 1
+            if len(diversified) == request.max_results:
+                break
         return EvidenceBundle(
-            items=selected,
-            retrieval_note="Only the reader-confirmed, request-scoped book boundary was searched.",
+            items=diversified,
+            retrieval_note="Only exact text inside the reader-confirmed corpus revision and chapter boundary was searched.",
         )

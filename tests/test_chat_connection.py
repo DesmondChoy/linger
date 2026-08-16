@@ -26,7 +26,18 @@ from src.linger.agents.provenance.agent import provenance_agent
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
     tool = info.output_tools[0]
-    return ModelResponse(parts=[ToolCallPart(tool.name, {"decision": "pass", "critique": ""})])
+    return ModelResponse(
+        parts=[
+            ToolCallPart(
+                tool.name,
+                {
+                    "findings": [],
+                    "response_decision": "pass",
+                    "capture_decision": "no_candidate",
+                },
+            )
+        ]
+    )
 
 
 def _muse_calls_serendipity(cue: str, captured: list):

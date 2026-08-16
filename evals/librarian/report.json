@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "benchmark_set": "evals/librarian/cases.json",
+  "book_version_id": "pg11-v01b38ea4",
+  "configuration": {
+    "window_target_words": 350,
+    "window_overlap_words": 60,
+    "overlap_dedupe_threshold": 0.5,
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "reranker_model": "Xenova/ms-marco-MiniLM-L-6-v2",
+    "semantic_threshold": 0.5,
+    "reranker_threshold": 0.5,
+    "quality_equivalence_margin": 0.02,
+    "repetitions": 5
+  },
+  "metric_notes": {
+    "evidence_strength_accuracy": "Whether the retrieved gold coverage supports the expected sufficient, weak, or none label; the common Librarian judge is evaluated end to end separately.",
+    "mean_evidence_tokens": "Whitespace-token count of evidence passed downstream; local retrieval itself consumes zero model tokens.",
+    "monetary_cost_usd": "Incremental retrieval cost for local models; excludes shared hardware and the common downstream Librarian judgment call."
+  },
+  "project_targets": {
+    "minimum_evidence_recall": 0.9,
+    "minimum_citation_precision": 0.95,
+    "scope": "Final user-visible pipeline; retrieval-only candidate precision is diagnostic."
+  },
+  "metrics": {
+    "direct": {
+      "evidence_recall": 0.5,
+      "citation_precision": 0.1625,
+      "evidence_strength_accuracy": 0.6666666666666666,
+      "quality_score": 0.41541666666666666,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 3.3316253684461117,
+      "mean_evidence_tokens": 401.5,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "bm25": {
+      "evidence_recall": 0.75,
+      "citation_precision": 0.25,
+      "evidence_strength_accuracy": 0.9166666666666666,
+      "quality_score": 0.6166666666666666,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 3.427540883421898,
+      "mean_evidence_tokens": 1517.8333333333333,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "semantic": {
+      "evidence_recall": 0.7916666666666666,
+      "citation_precision": 0.3,
+      "evidence_strength_accuracy": 1.0,
+      "quality_score": 0.6649999999999999,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 2.7538337744772434,
+      "mean_evidence_tokens": 1433.1666666666667,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "hybrid": {
+      "evidence_recall": 0.7916666666666666,
+      "citation_precision": 0.26666666666666666,
+      "evidence_strength_accuracy": 1.0,
+      "quality_score": 0.6549999999999999,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 2.819166984409094,
+      "mean_evidence_tokens": 1534.5,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "hybrid_reranked": {
+      "evidence_recall": 0.9166666666666666,
+      "citation_precision": 0.7638888888888888,
+      "evidence_strength_accuracy": 0.9166666666666666,
+      "quality_score": 0.8708333333333332,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 450.96208341419697,
+      "mean_evidence_tokens": 595.25,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    }
+  },
+  "selected_strategy": "hybrid_reranked",
+  "selected_strategy_meets_retrieval_only_targets": false,
+  "case_results": {
+    "direct": [
+      {
+        "case_id": "rabbit-watch",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0068-0072",
+          "pg11-v01b38ea4-ch01-ln0150-0158"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "drink-me",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0186-0192",
+          "pg11-v01b38ea4-ch01-ln0134-0148"
+        ],
+        "recall": 1.0,
+        "precision": 0.5,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pool-of-tears",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0392-0401",
+          "pg11-v01b38ea4-ch01-ln0111-0121",
+          "pg11-v01b38ea4-ch01-ln0240-0249",
+          "pg11-v01b38ea4-ch02-ln0310-0314"
+        ],
+        "recall": 1.0,
+        "precision": 0.25,
+        "strength_correct": true
+      },
+      {
+        "case_id": "caucus-prizes",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0550-0551",
+          "pg11-v01b38ea4-ch03-ln0553-0555"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "giant-puppy",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0913-0925",
+          "pg11-v01b38ea4-ch04-ln0906-0911",
+          "pg11-v01b38ea4-ch01-ln0062-0066",
+          "pg11-v01b38ea4-ch01-ln0174-0184",
+          "pg11-v01b38ea4-ch02-ln0363-0373"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-change",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0974-0975",
+          "pg11-v01b38ea4-ch05-ln1004-1006",
+          "pg11-v01b38ea4-ch01-ln0089-0092",
+          "pg11-v01b38ea4-ch01-ln0111-0121",
+          "pg11-v01b38ea4-ch02-ln0327-0335"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "father-william",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1114-1119",
+          "pg11-v01b38ea4-ch01-ln0240-0249",
+          "pg11-v01b38ea4-ch03-ln0499-0503",
+          "pg11-v01b38ea4-ch03-ln0640-0641",
+          "pg11-v01b38ea4-ch04-ln0880-0884"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "pigeon-serpent",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1221-1224",
+          "pg11-v01b38ea4-ch05-ln1162-1169",
+          "pg11-v01b38ea4-ch01-ln0062-0066",
+          "pg11-v01b38ea4-ch01-ln0074-0084",
+          "pg11-v01b38ea4-ch02-ln0281-0291"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-theme",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0913-0925",
+          "pg11-v01b38ea4-ch04-ln0931-0937",
+          "pg11-v01b38ea4-ch05-ln0960-0962",
+          "pg11-v01b38ea4-ch05-ln1091-1092",
+          "pg11-v01b38ea4-ch01-ln0160-0163"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "exact-caucus-quote",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0570-0574",
+          "pg11-v01b38ea4-ch02-ln0337-0350",
+          "pg11-v01b38ea4-ch02-ln0363-0373",
+          "pg11-v01b38ea4-ch03-ln0490-0497",
+          "pg11-v01b38ea4-ch01-ln0111-0121"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "future-cheshire",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0438-0447",
+          "pg11-v01b38ea4-ch01-ln0074-0084",
+          "pg11-v01b38ea4-ch01-ln0134-0148",
+          "pg11-v01b38ea4-ch02-ln0281-0291",
+          "pg11-v01b38ea4-ch03-ln0667-0670"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "absent-spaceship",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0062-0066",
+          "pg11-v01b38ea4-ch01-ln0074-0084",
+          "pg11-v01b38ea4-ch02-ln0281-0291",
+          "pg11-v01b38ea4-ch02-ln0306-0308",
+          "pg11-v01b38ea4-ch03-ln0490-0497"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      }
+    ],
+    "bm25": [
+      {
+        "case_id": "rabbit-watch",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch01-ln0165-0192"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "drink-me",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0186-0219",
+          "pg11-v01b38ea4-ch01-ln0123-0148",
+          "pg11-v01b38ea4-ch01-ln0165-0192",
+          "pg11-v01b38ea4-ch01-ln0111-0132",
+          "pg11-v01b38ea4-ch01-ln0206-0238"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pool-of-tears",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0454-0477",
+          "pg11-v01b38ea4-ch01-ln0094-0121",
+          "pg11-v01b38ea4-ch02-ln0392-0412",
+          "pg11-v01b38ea4-ch02-ln0408-0436",
+          "pg11-v01b38ea4-ch01-ln0134-0158"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "caucus-prizes",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0514-0559",
+          "pg11-v01b38ea4-ch03-ln0578-0617",
+          "pg11-v01b38ea4-ch03-ln0486-0526",
+          "pg11-v01b38ea4-ch02-ln0363-0382"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "giant-puppy",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0906-0929",
+          "pg11-v01b38ea4-ch04-ln0895-0911",
+          "pg11-v01b38ea4-ch04-ln0714-0740",
+          "pg11-v01b38ea4-ch02-ln0363-0382",
+          "pg11-v01b38ea4-ch04-ln0731-0755"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-change",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch04-ln0696-0721",
+          "pg11-v01b38ea4-ch05-ln1048-1102"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "father-william",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1048-1102",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch04-ln0731-0755"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pigeon-serpent",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch05-ln1151-1186",
+          "pg11-v01b38ea4-ch05-ln1230-1250",
+          "pg11-v01b38ea4-ch04-ln0795-0827"
+        ],
+        "recall": 1.0,
+        "precision": 0.6,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-theme",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1048-1102",
+          "pg11-v01b38ea4-ch04-ln0913-0937",
+          "pg11-v01b38ea4-ch05-ln1230-1250",
+          "pg11-v01b38ea4-ch04-ln0931-0951",
+          "pg11-v01b38ea4-ch05-ln1127-1160"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "exact-caucus-quote",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617",
+          "pg11-v01b38ea4-ch01-ln0165-0192",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch02-ln0363-0382"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "future-cheshire",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0795-0827",
+          "pg11-v01b38ea4-ch04-ln0714-0740",
+          "pg11-v01b38ea4-ch02-ln0425-0452",
+          "pg11-v01b38ea4-ch01-ln0231-0256",
+          "pg11-v01b38ea4-ch03-ln0553-0587"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "absent-spaceship",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0795-0827",
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch04-ln0714-0740",
+          "pg11-v01b38ea4-ch04-ln0731-0755",
+          "pg11-v01b38ea4-ch05-ln1127-1160"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      }
+    ],
+    "semantic": [
+      {
+        "case_id": "rabbit-watch",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch01-ln0206-0238"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "drink-me",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0206-0238",
+          "pg11-v01b38ea4-ch01-ln0186-0219",
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0086-0109"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pool-of-tears",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0392-0412",
+          "pg11-v01b38ea4-ch02-ln0408-0436",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch01-ln0062-0092"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "caucus-prizes",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617"
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "giant-puppy",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0906-0929",
+          "pg11-v01b38ea4-ch04-ln0931-0951",
+          "pg11-v01b38ea4-ch02-ln0438-0465",
+          "pg11-v01b38ea4-ch04-ln0895-0911",
+          "pg11-v01b38ea4-ch01-ln0062-0092"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-change",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch04-ln0931-0951",
+          "pg11-v01b38ea4-ch05-ln1179-1219"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "father-william",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch03-ln0640-0678",
+          "pg11-v01b38ea4-ch04-ln0931-0951"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pigeon-serpent",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch05-ln1151-1186",
+          "pg11-v01b38ea4-ch03-ln0640-0678",
+          "pg11-v01b38ea4-ch02-ln0438-0465"
+        ],
+        "recall": 1.0,
+        "precision": 0.6,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-theme",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch02-ln0327-0360",
+          "pg11-v01b38ea4-ch02-ln0363-0382",
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch05-ln1094-1135"
+        ],
+        "recall": 0.5,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "exact-caucus-quote",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617",
+          "pg11-v01b38ea4-ch03-ln0514-0559",
+          "pg11-v01b38ea4-ch03-ln0606-0649",
+          "pg11-v01b38ea4-ch03-ln0640-0678"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "future-cheshire",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch04-ln0772-0809",
+          "pg11-v01b38ea4-ch04-ln0895-0911",
+          "pg11-v01b38ea4-ch03-ln0640-0678"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "absent-spaceship",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1127-1160"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      }
+    ],
+    "hybrid": [
+      {
+        "case_id": "rabbit-watch",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch01-ln0165-0192"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "drink-me",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0186-0219",
+          "pg11-v01b38ea4-ch01-ln0206-0238",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch01-ln0062-0092",
+          "pg11-v01b38ea4-ch01-ln0165-0192"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pool-of-tears",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0392-0412",
+          "pg11-v01b38ea4-ch02-ln0408-0436",
+          "pg11-v01b38ea4-ch01-ln0086-0109",
+          "pg11-v01b38ea4-ch02-ln0454-0477",
+          "pg11-v01b38ea4-ch01-ln0134-0158"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "caucus-prizes",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617",
+          "pg11-v01b38ea4-ch03-ln0514-0559",
+          "pg11-v01b38ea4-ch03-ln0486-0526",
+          "pg11-v01b38ea4-ch02-ln0363-0382"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "giant-puppy",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0906-0929",
+          "pg11-v01b38ea4-ch04-ln0895-0911",
+          "pg11-v01b38ea4-ch04-ln0931-0951",
+          "pg11-v01b38ea4-ch04-ln0795-0827",
+          "pg11-v01b38ea4-ch04-ln0714-0740"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-change",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch03-ln0553-0587"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "father-william",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch04-ln0931-0951",
+          "pg11-v01b38ea4-ch05-ln1048-1102"
+        ],
+        "recall": 1.0,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pigeon-serpent",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch05-ln1151-1186",
+          "pg11-v01b38ea4-ch04-ln0795-0827",
+          "pg11-v01b38ea4-ch05-ln1230-1250"
+        ],
+        "recall": 1.0,
+        "precision": 0.6,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-theme",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1230-1250",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln1127-1160",
+          "pg11-v01b38ea4-ch05-ln1048-1102"
+        ],
+        "recall": 0.5,
+        "precision": 0.2,
+        "strength_correct": true
+      },
+      {
+        "case_id": "exact-caucus-quote",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617",
+          "pg11-v01b38ea4-ch01-ln0165-0192",
+          "pg11-v01b38ea4-ch03-ln0514-0559",
+          "pg11-v01b38ea4-ch01-ln0134-0158"
+        ],
+        "recall": 1.0,
+        "precision": 0.4,
+        "strength_correct": true
+      },
+      {
+        "case_id": "future-cheshire",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0438-0465",
+          "pg11-v01b38ea4-ch04-ln0795-0827",
+          "pg11-v01b38ea4-ch01-ln0134-0158",
+          "pg11-v01b38ea4-ch04-ln0714-0740",
+          "pg11-v01b38ea4-ch01-ln0062-0092"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "absent-spaceship",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1127-1160",
+          "pg11-v01b38ea4-ch05-ln1151-1186",
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch04-ln0820-0851",
+          "pg11-v01b38ea4-ch04-ln0795-0827"
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "strength_correct": true
+      }
+    ],
+    "hybrid_reranked": [
+      {
+        "case_id": "rabbit-watch",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0150-0172",
+          "pg11-v01b38ea4-ch01-ln0062-0092"
+        ],
+        "recall": 1.0,
+        "precision": 0.5,
+        "strength_correct": true
+      },
+      {
+        "case_id": "drink-me",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch01-ln0186-0219",
+          "pg11-v01b38ea4-ch01-ln0206-0238",
+          "pg11-v01b38ea4-ch01-ln0165-0192"
+        ],
+        "recall": 1.0,
+        "precision": 0.6666666666666666,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pool-of-tears",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch02-ln0408-0436",
+          "pg11-v01b38ea4-ch02-ln0392-0412"
+        ],
+        "recall": 1.0,
+        "precision": 0.5,
+        "strength_correct": true
+      },
+      {
+        "case_id": "caucus-prizes",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587"
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "giant-puppy",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch04-ln0906-0929",
+          "pg11-v01b38ea4-ch04-ln0895-0911"
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-change",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln1048-1102"
+        ],
+        "recall": 1.0,
+        "precision": 0.25,
+        "strength_correct": true
+      },
+      {
+        "case_id": "father-william",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln0960-1016",
+          "pg11-v01b38ea4-ch05-ln1094-1135",
+          "pg11-v01b38ea4-ch05-ln1004-1056",
+          "pg11-v01b38ea4-ch05-ln1048-1102"
+        ],
+        "recall": 1.0,
+        "precision": 0.25,
+        "strength_correct": true
+      },
+      {
+        "case_id": "pigeon-serpent",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch05-ln1151-1186"
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "identity-theme",
+        "evidence_ids": [],
+        "recall": 0.0,
+        "precision": 1.0,
+        "strength_correct": false
+      },
+      {
+        "case_id": "exact-caucus-quote",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch03-ln0553-0587",
+          "pg11-v01b38ea4-ch03-ln0578-0617"
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "future-cheshire",
+        "evidence_ids": [],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      },
+      {
+        "case_id": "absent-spaceship",
+        "evidence_ids": [],
+        "recall": 1.0,
+        "precision": 1.0,
+        "strength_correct": true
+      }
+    ]
+  }
+}

@@ -82,12 +82,15 @@ def _valid_request() -> LibrarianRequest:
 
 def _evidence_record() -> EvidenceRecord:
     return EvidenceRecord(
-        evidence_id="alice-ch5-identity",
+        evidence_id="pg11-v01b38ea4-ch05-ln0964-0964",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
+        chapter_id="pg11-v01b38ea4-ch05",
         chapter_number=5,
         location="Chapter 5 — Advice from a Caterpillar",
-        text="Who are YOU? said the Caterpillar.",
+        source_sha256="01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        source_lines=(964, 964),
+        text="“Who are _you?_” said the Caterpillar.",
     )
 
 

@@ -75,8 +75,11 @@ class EvidenceRecord(StrictModel):
     evidence_id: str
     work_id: str
     book_version_id: str
+    chapter_id: str
     chapter_number: int = Field(ge=1)
     location: str
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_lines: tuple[int, int]
     text: str
 
 

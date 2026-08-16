@@ -82,6 +82,55 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             review_payload["cited_evidence"][0]["evidence"][0]["evidence_id"],
         )
 
+    async def test_every_librarian_branch_reaches_provenance_unchanged(self) -> None:
+        branches = (
+            {
+                "kind": "clarification",
+                "question": "Have you completed Chapter 5?",
+            },
+            {
+                "kind": "result",
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "evidence": [{"evidence_id": "e-sufficient"}],
+            },
+            {
+                "kind": "result",
+                "outcome": "evidence_found",
+                "evidence_strength": "weak",
+                "evidence": [{"evidence_id": "e-weak"}],
+                "limitations": ["The motive is not directly stated."],
+            },
+            {
+                "kind": "result",
+                "outcome": "no_evidence",
+                "evidence_strength": "none",
+                "evidence": [],
+            },
+            {
+                "kind": "failure",
+                "error_code": "retrieval_unavailable",
+                "retryable": True,
+            },
+        )
+
+        for branch in branches:
+            with self.subTest(branch=branch):
+                muse = AsyncMock()
+                muse.run.return_value = result(
+                    "Candidate handled the Librarian response.",
+                    ToolReturnPart("librarian_search", branch),
+                )
+                provenance = AsyncMock()
+                provenance.run.return_value = result(
+                    review("pass")
+                )
+
+                await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+                review_payload = json.loads(provenance.run.await_args.args[0])
+                self.assertEqual(branch, review_payload["cited_evidence"][0])
+
     async def test_allows_one_reviewed_revision(self) -> None:
         muse = AsyncMock()
         muse.run.side_effect = [result("Draft"), result("Revised reply")]

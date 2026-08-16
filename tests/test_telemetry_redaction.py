@@ -77,9 +77,16 @@ class ProjectionRedactionTests(TelemetryTestCase):
             items=[
                 EvidenceItem(
                     evidence_id="alice-ch3-rules",
+                    work_id="pg11",
+                    book_version_id="pg11-v01b38ea4",
+                    chapter_id="pg11-v01b38ea4-ch03",
                     source_title="Alice",
                     location="ch3",
                     chapter=3,
+                    source_sha256=(
+                        "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e"
+                    ),
+                    source_lines=(1, 2),
                     excerpt=SECRET_EXCERPT,
                     relevance=0.8,
                 )
