@@ -4,6 +4,8 @@ Status: **Draft implementation specification**
 
 This document is the canonical source for product scope, architecture, implementation rules, and acceptance criteria. The submitted project proposal remains available as an immutable PDF under `docs/submissions/`.
 
+Academic, frontier-lab, and expert sources for the final project report are maintained in [Sources for the Final Project Report](report-sources.md).
+
 The architecture and acceptance criteria below describe the target prototype. Delivery is staged: the current output-release slice uses a typed Muse candidate containing the complete reply and declared book-corpus evidence uses, then validates those declarations against trusted Librarian results and the server-trusted work, book version, and chapter ceiling. Serendipity-only, memory, web, and image evidence are not citation authorities in this slice and therefore fail closed. Declared claims, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate` remain target requirements for later slices.
 
 ## 1. Purpose and positioning
