@@ -247,7 +247,7 @@ Whenever an exact quotation is displayed or stored, application code verifies it
 - Raw photographs remain transient unless the user explicitly saves them.
 - Derived memories from photographs may be captured only while opt-in remains active.
 - Sensitive-trait content is never captured automatically.
-- Logs and general telemetry exclude raw personal memories.
+- Logs and telemetry follow the canonical [telemetry data contract](telemetry.md).
 
 ### 6.4 Untrusted content and privacy
 
@@ -321,17 +321,13 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 ## 8. Operations and change control
 
-The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend. The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
+The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Prompts, corpus builds, policies, tool contracts, schemas, evaluation cases, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. Tracing records Provenance verdicts, decisions, and evidence identifiers without logging raw personal memories. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation cases, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 ### 8.1 Agent telemetry and debugging
 
-Pydantic Logfire is the OpenTelemetry backend for agent telemetry. Each incoming request starts a correlated trace spanning the relevant Muse, Librarian, Sculptor, Serendipity, and Provenance invocations, including model calls, tool calls, hand-offs, deterministic post-checks, and the final release or safe-decline decision. Spans record only operational metadata needed to debug and evaluate the system: agent role, deployment environment, duration, status, retries, failures, token or cost metadata when available, validation outcomes, Provenance verdicts, revision count, and non-content trace identifiers.
-
-Telemetry exists to debug and evaluate the system: it helps verify bounded hand-offs, account isolation, mandatory Provenance review, deterministic validation, rejected-draft suppression, safe declines, latency, cost, and failure behaviour. It must never authorise output release, choose account scope, or commit memory writes; the Memory & Policy Service remains the source of truth for access control and durable state. Logs and spans must exclude raw personal memories, full user or assistant messages, photographs, raw book or web excerpts, credentials, API keys, and sensitive-inference content. This satisfies the specification's observability, debugging, privacy, and acceptance-testing requirements without making telemetry part of the product's reasoning or memory model.
-
-Telemetry must remain behind an OpenTelemetry-compatible exporter so the backend can be replaced without changing agent contracts or application authority. If the TypeScript/Pi implementation is selected, it must emit the same trace and event semantics through an equivalent OpenTelemetry backend.
+The canonical [telemetry data contract](telemetry.md) defines the minimal captured fields, prohibited content, evaluation boundary, and verification requirements. Telemetry is diagnostic only: it never authorises output release, chooses account scope, commits memory writes, or becomes product memory.
 
 ## 9. Recursive self-improvement
 
@@ -343,7 +339,7 @@ Two loops are in scope.
 
 **Pain point.** A hand-authored evaluation set goes stale the moment the system meets real inputs. Observed failures — blocked prompt-injection attempts, Provenance rejections, failed deterministic post-checks — are the best possible regression tests, but converting them by hand is toil that reliably does not happen.
 
-**Mechanism.** When the running system blocks a seeded or live failure, the harness drafts a candidate evaluation case in the versioned case format of Section 7.2, recording the input, the expected verdict or behaviour, and forbidden outputs. The drafting step writes the candidate file and has no other authority; candidates are queued for human approval and merged as ordinary pull requests, after which CI runs them permanently. A detected injection attempt therefore becomes, within one review cycle, a frozen test the system can never silently regress against.
+**Mechanism.** When the running system blocks a seeded failure, the harness may draft a candidate evaluation case in the versioned case format of Section 7.2 because that reviewed input is already an authorised eval artifact. A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. A human uses that signature to author a synthetic or sanitised regression case; runtime telemetry never reconstructs or copies the user's input. The drafting step writes the candidate file and has no other authority; candidates are queued for human approval and merged as ordinary pull requests, after which CI runs them permanently.
 
 **Agents involved.** Provenance and the deterministic post-check layer act as detectors; a small drafting step formats candidates; humans and CI are the release gate. No detector gains new authority — detection already happens as part of Section 6.5.
 
@@ -353,7 +349,7 @@ Two loops are in scope.
 
 **Pain point.** Every agent system accumulates operational lessons — recurring Provenance critique patterns, evaluation-failure clusters, retrieval quirks, prompt gotchas — and they evaporate because nothing owns them. Current harness-engineering practice keeps these lessons in a versioned playbook that developers — and, where useful, prompts — draw on at the moment they are relevant. Maintaining such a playbook is curation work: deduplicate, summarise, link, and prune — which is precisely Sculptor's existing skill set, pointed at a second corpus.
 
-**Mechanism.** A scheduled Sculptor task, run outside user conversations, reads operational records only — Provenance verdict metadata, evaluation results, developer notes — and proposes playbook edits: merge duplicate lessons, summarise clusters, retire stale entries, link related ones. The playbook is a versioned repository file, not a record in the user memory store; the Memory & Policy Service is not involved. Sculptor's output is a proposed pull request; humans review and CI gates the merge, identical to any other change under Section 8.
+**Mechanism.** A scheduled Sculptor task, run outside user conversations, reads only operational records permitted by the [telemetry data contract](telemetry.md), evaluation results, and developer notes, then proposes playbook edits: merge duplicate lessons, summarise clusters, retire stale entries, and link related ones. The playbook is a versioned repository file, not a record in the user memory store; the Memory & Policy Service is not involved. Sculptor's output is a proposed pull request; humans review and CI gates the merge, identical to any other change under Section 8.
 
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
@@ -366,7 +362,7 @@ Two loops are in scope.
 - Every RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
 - Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
 - No agent gains write authority: playbook and evaluation-case writes happen through repository review, not through the Memory & Policy Service, and Sculptor's product-side curation path remains proposal-only.
-- Loops consume only the operational metadata permitted by Section 8.1 — never raw personal memories, full messages, or sensitive-inference content.
+- Loops consume only the operational metadata permitted by the [telemetry data contract](telemetry.md).
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
 ### 9.4 Practice-module alignment
