@@ -19,7 +19,7 @@ with patch.dict(
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
 
-from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.orchestration.turn_context import confirmed_reading
 
@@ -39,10 +39,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         sessions.clear(self.session_id)
 
     async def test_confirmed_context_exposed_to_reflection_reply(self) -> None:
-        seen: dict[str, ConfirmedReading | None] = {}
+        seen: dict[str, object] = {}
 
         async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
+            seen["release_scope"] = kwargs["release_scope"]
             return released()
 
         request = ChatRequest(
@@ -57,12 +58,21 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             ConfirmedReading(work_id="pg11", chapter_max=3),
             seen["value"],
         )
+        self.assertEqual(
+            ReleaseScope(
+                work_id="pg11",
+                book_version_id="pg11-v01b38ea4",
+                chapter_max=3,
+            ),
+            seen["release_scope"],
+        )
 
     async def test_no_confirmed_context_exposes_none(self) -> None:
-        seen: dict[str, ConfirmedReading | None] = {}
+        seen: dict[str, object] = {}
 
         async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
+            seen["release_scope"] = kwargs["release_scope"]
             return released()
 
         request = ChatRequest(session_id=self.session_id, message="Hello")
@@ -71,12 +81,14 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             await main.chat(request)
 
         self.assertIsNone(seen["value"])
+        self.assertIsNone(seen["release_scope"])
 
     async def test_inferred_only_context_exposes_none(self) -> None:
-        seen: dict[str, ConfirmedReading | None] = {}
+        seen: dict[str, object] = {}
 
         async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
             seen["value"] = confirmed_reading()
+            seen["release_scope"] = kwargs["release_scope"]
             return released()
 
         request = ChatRequest(session_id=self.session_id, message="Why is the Caterpillar so rude?")
@@ -85,6 +97,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             await main.chat(request)
 
         self.assertIsNone(seen["value"])
+        self.assertIsNone(seen["release_scope"])
         self.assertIsNone(sessions.book_selection(self.session_id))
 
     async def test_var_reset_after_successful_turn(self) -> None:

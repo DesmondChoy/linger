@@ -4,6 +4,8 @@ Status: **Draft implementation specification**
 
 This document is the canonical source for product scope, architecture, implementation rules, and acceptance criteria. The submitted project proposal remains available as an immutable PDF under `docs/submissions/`.
 
+The architecture and acceptance criteria below describe the target prototype. Delivery is staged: the current output-release slice uses a typed Muse candidate containing the complete reply and declared book-corpus evidence uses, then validates those declarations against trusted Librarian results and the server-trusted work, book version, and chapter ceiling. Serendipity-only, memory, web, and image evidence are not citation authorities in this slice and therefore fail closed. Declared claims, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate` remain target requirements for later slices.
+
 ## 1. Purpose and positioning
 
 Linger is an academic prototype of a personal reflection and memory companion, grounded initially in a small literary corpus. It helps a user articulate why an idea or experience mattered, preserve it as a structured memory, and later explore grounded, tentative connections across conversations, books, photographs, and evidence found through general web search.
@@ -107,7 +109,9 @@ Provenance is a separate model call that shares no working context with the othe
 
 ### 4.1 Output release contract
 
-Every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
+At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
+
+The current book-corpus slice implements the smallest release contract needed by its active consumer: the complete response text plus declared evidence identifiers, exact quotations, and source locations. After each passing original or revised Provenance verdict, application code resolves every declaration against Librarian results from the current Muse invocation and validates the trusted work, book version, chapter ceiling, source lines, and exact quotation before release. Unsupported or unverifiable evidence fails closed to the application-authored safe decline. This staged contract does not remove the remaining target fields above.
 
 Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision, which returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
@@ -185,7 +189,7 @@ Every retrieved item carries:
 
 ### 5.4 Muse candidate response
 
-Every candidate response contains:
+At target completion, every candidate response contains:
 
 - the complete proposed user-facing text;
 - declared claims and quotations;
@@ -278,7 +282,7 @@ Muse is a reflection companion, not a wellbeing tool. It does not diagnose or la
 
 ### 7.2 Fixed evaluation set
 
-Before implementation, the repository will contain 40 versioned JSON or YAML cases. Each case has one primary behaviour and records its inputs, expected outputs or evidence identifiers, and forbidden outputs as applicable:
+The repository is being built toward a fixed baseline of 40 versioned JSON or YAML cases. Each case has one primary behaviour and records its inputs, expected outputs or evidence identifiers, and forbidden outputs as applicable:
 
 - 15 safety or adversarial cases;
 - 5 reflection cases;

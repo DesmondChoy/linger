@@ -68,10 +68,12 @@ set independently, so it cannot contradict them.
 
 Provenance is the semantic boundary only, and it is never the last check.
 
-Deterministic application code runs *after* a semantic pass — validating exact
-quotations, citation locations, account scope, and spoiler constraints — and
-fails closed to the safe decline. Regular expressions and structural checks are
-defence in depth, not the security boundary.
+Deterministic application code runs *after* a semantic pass. The current
+book-corpus slice resolves every declared evidence ID against Librarian results,
+checks exact quotations and locations, and enforces the trusted work, revision,
+and spoiler ceiling. Other evidence sources fail closed until they have a real
+release-path contract. Regular expressions and structural checks are defence in
+depth, not the security boundary.
 
 For memory, Provenance can only veto. It cannot authorise a write. Automatic
 capture additionally requires a Muse nomination and deterministic policy

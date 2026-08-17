@@ -21,7 +21,7 @@ import logfire  # noqa: E402  (import order is load-bearing, see above)
 
 from src.linger.agents.muse.agent import muse_chat_agent  # noqa: E402
 from src.linger.agents.provenance.agent import provenance_agent  # noqa: E402
-from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease, reflection_reply
 from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
 from src.linger.services.memory import (
@@ -340,6 +340,16 @@ async def chat(request: ChatRequest) -> ChatResponse:
             **_turn_telemetry(inspection),
         )
         context = inspection.muse_turn.get("reading_context")
+        book_version_id = librarian.version_for(context["work_id"]) if context else None
+        release_scope = (
+            ReleaseScope(
+                work_id=context["work_id"],
+                book_version_id=book_version_id,
+                chapter_max=context["chapter_max"],
+            )
+            if context and book_version_id
+            else None
+        )
         token = set_confirmed_reading(
             ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
             if context else None
@@ -351,6 +361,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 muse=muse_chat_agent,
                 provenance=provenance_agent,
                 review_context=review_context,
+                release_scope=release_scope,
             )
         finally:
             reset_confirmed_reading(token)
@@ -395,7 +406,10 @@ async def chat(request: ChatRequest) -> ChatResponse:
         inspection.traces[-1] = {
             "agent": "Muse",
             "status": "complete",
-            "detail": "Provenance approved the candidate that was released.",
+            "detail": (
+                "Provenance and deterministic release validation approved the "
+                "candidate that was released."
+            ),
         }
         provenance_status = "complete"
         provenance_detail = f"Recorded review path: {verdict_path}."
@@ -405,12 +419,27 @@ async def chat(request: ChatRequest) -> ChatResponse:
             "status": "declined",
             "detail": "No Muse candidate was released; the application supplied its safe decline.",
         }
-        provenance_status = "failed" if release.failure_stage == "provenance_review" else "declined"
-        provenance_detail = (
-            f"Review failed at {release.failure_stage}; no Muse candidate was released."
-            if release.failure_stage
-            else f"Recorded review path: {verdict_path}; no Muse candidate was released."
-        )
+        if release.failure_stage == "deterministic_validation":
+            provenance_status = "complete"
+            provenance_detail = (
+                f"Recorded review path: {verdict_path}; deterministic release "
+                "validation failed closed."
+            )
+        else:
+            if release.failure_stage == "provenance_review":
+                provenance_status = "failed"
+                provenance_detail = "Provenance review failed; no candidate was released."
+            elif release.failure_stage:
+                provenance_status = "declined"
+                provenance_detail = (
+                    f"Candidate production failed at {release.failure_stage}; no "
+                    "candidate was released."
+                )
+            else:
+                provenance_status = "declined"
+                provenance_detail = (
+                    f"Recorded review path: {verdict_path}; no Muse candidate was released."
+                )
     inspection.traces.append({
         "agent": "Provenance",
         "status": provenance_status,

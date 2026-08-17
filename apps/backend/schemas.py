@@ -29,7 +29,12 @@ class ReleaseInspection(BaseModel):
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...]
     finding_codes: tuple[RiskCode, ...]
     revision_count: int = Field(ge=0, le=1)
-    failure_stage: Literal["muse_draft", "provenance_review", "muse_revision"] | None
+    failure_stage: Literal[
+        "muse_draft",
+        "provenance_review",
+        "muse_revision",
+        "deterministic_validation",
+    ] | None
 
 
 class TurnInspection(BaseModel):

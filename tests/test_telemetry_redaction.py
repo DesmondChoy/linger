@@ -34,6 +34,7 @@ from apps.backend.telemetry import (
     review_attrs,
     turn_attrs,
 )
+from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.orchestration.reflection import (
     SAFE_DECLINE,
@@ -50,8 +51,10 @@ SECRET_QUOTE = "hjklm the offending verbatim span hjklm"
 
 def result(output: object) -> SimpleNamespace:
     """Match the fake run-result shape used by tests/test_reflection.py."""
+    if isinstance(output, str):
+        output = MuseCandidate(reply=output)
     messages = [SimpleNamespace(parts=[])]
-    return SimpleNamespace(output=output, all_messages=lambda: messages)
+    return SimpleNamespace(output=output, new_messages=lambda: messages)
 
 
 class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
@@ -143,6 +146,31 @@ class ProjectionRedactionTests(TelemetryTestCase):
 
 
 class ReflectionSpanTests(TelemetryTestCase):
+    async def test_invalid_typed_candidate_does_not_leak_through_exception_span(self) -> None:
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            {
+                "reply": SECRET_QUOTE,
+                "evidence_uses": [
+                    {
+                        "source_kind": "web",
+                        "evidence_id": "web-secret",
+                        "source_location": "private-location",
+                    }
+                ],
+            }
+        )
+        provenance = AsyncMock()
+
+        release = await reflection_reply(
+            SECRET_MESSAGE, [], muse=muse, provenance=provenance
+        )
+
+        self.assertEqual("muse_draft", release.failure_stage)
+        payload = self.exported_payload()
+        self.assertNotIn(SECRET_QUOTE, payload)
+        self.assertNotIn("private-location", payload)
+
     async def test_released_turn_records_verdicts_without_content(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("An approved reply mentioning nothing secret")

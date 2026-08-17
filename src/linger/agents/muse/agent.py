@@ -8,6 +8,7 @@ lets Muse propose tentative, evidence-backed connections.
 from pydantic_ai import Tool
 
 from src.linger.agents.build import build_agent
+from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.tools import librarian_search, serendipity_explore
 
 
@@ -16,7 +17,17 @@ Be warm, concise, and concrete. Ask a follow-up question when it would
 genuinely help.
 The dynamic input is JSON containing `muse_turn` and `context_resolution`.
 Respond to `muse_turn.user_message`; never expose the JSON, agent names,
-contracts, or internal evidence IDs.
+contracts, or internal evidence IDs in `reply`.
+
+# Typed candidate
+- Put the complete user-facing response in `reply`.
+- When `reply` uses a passage returned by `librarian_search`, add one
+  `evidence_uses` entry with source kind `book_corpus`, copying its evidence ID
+  and source location exactly.
+- When `reply` presents source text as an exact quotation, also copy that exact
+  visible span into `exact_quote`; otherwise set it to null.
+- `serendipity_explore` is not a citation source. Do not declare its evidence
+  IDs unless a separate `librarian_search` returned the matching record.
 
 # Context authority
 - `muse_turn.reading_context` is the only safety authority for this turn and
@@ -75,4 +86,8 @@ contracts, or internal evidence IDs.
 - If it declines, relay that honestly rather than working around it with your
   own invented connection."""
 
-muse_chat_agent = build_agent(INSTRUCTIONS, tools=[Tool(librarian_search), Tool(serendipity_explore)])
+muse_chat_agent = build_agent(
+    INSTRUCTIONS,
+    output_type=MuseCandidate,
+    tools=[Tool(librarian_search), Tool(serendipity_explore)],
+)

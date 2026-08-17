@@ -9,6 +9,7 @@ request.
 
 
 from collections.abc import Sequence
+from typing import Any, TypeVar, overload
 
 from pydantic_ai import Agent, Tool
 from pydantic_ai.models import Model
@@ -22,6 +23,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from apps.backend.config import get_settings
 
 SUPPORTED_PROVIDERS = ("google", "openai", "anthropic")
+OutputT = TypeVar("OutputT")
 
 
 def build_model() -> Model:
@@ -57,6 +59,35 @@ def build_model() -> Model:
     return model
 
 
-def build_agent(instructions: str, *, tools: Sequence[Tool[None]] = ()) -> Agent[None, str]:
-    """Build a plain-text agent on the configured model."""
-    return Agent(build_model(), instructions=instructions, tools=tools)
+@overload
+def build_agent(
+    instructions: str,
+    *,
+    output_type: None = None,
+    tools: Sequence[Tool[None]] = (),
+) -> Agent[None, str]: ...
+
+
+@overload
+def build_agent(
+    instructions: str,
+    *,
+    output_type: type[OutputT],
+    tools: Sequence[Tool[None]] = (),
+) -> Agent[None, OutputT]: ...
+
+
+def build_agent(
+    instructions: str,
+    *,
+    output_type: type[Any] | None = None,
+    tools: Sequence[Tool[None]] = (),
+) -> Agent[None, Any]:
+    """Build an agent with the configured model and requested output contract."""
+    selected_output: type[Any] = output_type or str
+    return Agent(
+        build_model(),
+        output_type=selected_output,
+        instructions=instructions,
+        tools=tools,
+    )

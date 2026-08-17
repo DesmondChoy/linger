@@ -20,6 +20,7 @@ with patch.dict(
 ):
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
+    from src.linger.agents.muse.models import MuseCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
     from src.linger.orchestration.reflection import (
         SAFE_DECLINE,
@@ -117,13 +118,34 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             "application_safe_decline", response.inspection.release.release_source
         )
 
+    async def test_deterministic_validation_failure_is_serialized(self) -> None:
+        gate = AsyncMock(
+            return_value=ReflectionRelease(
+                reply=SAFE_DECLINE,
+                release_source="application_safe_decline",
+                provenance_verdicts=("pass",),
+                failure_stage="deterministic_validation",
+            )
+        )
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await main.chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(SAFE_DECLINE, response.reply)
+        self.assertEqual(
+            "deterministic_validation", response.inspection.release.failure_stage
+        )
+        self.assertEqual("complete", response.inspection.traces[-1]["status"])
+
     async def test_rejected_critique_never_reaches_serialized_response(self) -> None:
         secret_quote = "PRIVATE_REJECTED_QUOTE_7f68b6"
         secret_explanation = "PRIVATE_REVIEW_EXPLANATION_34ab91"
         muse = AsyncMock()
         muse.run.return_value = SimpleNamespace(
-            output="Unsafe draft",
-            all_messages=lambda: [],
+            output=MuseCandidate(reply="Unsafe draft"),
+            new_messages=lambda: [],
         )
         provenance = AsyncMock()
         provenance.run.return_value = SimpleNamespace(

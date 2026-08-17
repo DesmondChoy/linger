@@ -10,9 +10,26 @@ from pydantic_ai.messages import ModelMessage, ToolReturnPart
 from pydantic_core import to_jsonable_python
 
 from apps.backend.telemetry import review_attrs, review_context_attrs
+from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskCode
+from src.linger.contracts.librarian import (
+    LIBRARIAN_RESPONSE_ADAPTER,
+    EvidenceRecord,
+    RetrievalResult,
+)
+from src.linger.contracts.turn import ReleaseScope
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
+FailureStage = Literal[
+    "muse_draft",
+    "provenance_review",
+    "muse_revision",
+    "deterministic_validation",
+]
+
+
+class ReleaseValidationError(ValueError):
+    """Raised when a passed candidate cannot be proven against trusted evidence."""
 
 
 @dataclass(frozen=True)
@@ -23,7 +40,7 @@ class ReflectionRelease:
     release_source: Literal["muse_candidate", "application_safe_decline"]
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...] = ()
     revision_count: int = 0
-    failure_stage: Literal["muse_draft", "provenance_review", "muse_revision"] | None = None
+    failure_stage: FailureStage | None = None
     # Why Provenance blocked, as bare risk codes. The matching critique contains
     # rejected draft text and therefore never crosses the release boundary.
     finding_codes: tuple[RiskCode, ...] = ()
@@ -42,7 +59,7 @@ def _safe_decline(
     *,
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
     revision_count: int = 0,
-    failure_stage: Literal["muse_draft", "provenance_review", "muse_revision"] | None = None,
+    failure_stage: FailureStage | None = None,
     finding_codes: tuple[RiskCode, ...] = (),
 ) -> ReflectionRelease:
     return ReflectionRelease(
@@ -63,11 +80,90 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
             "outcome": part.outcome,
             "content": to_jsonable_python(part.content, serialize_unknown=True),
         }
-        for message in run_result.all_messages()
+        # Only this invocation may authorise this candidate. History can contain
+        # tool results from older turns, so `all_messages()` is not safe here.
+        for message in run_result.new_messages()
         for part in message.parts
         if isinstance(part, ToolReturnPart)
         and part.tool_name in {"librarian_search", "serendipity_explore"}
     ]
+
+
+def _candidate(output: object) -> MuseCandidate:
+    """Validate and trim one typed Muse output without relaxing its schema."""
+    try:
+        candidate = MuseCandidate.model_validate(output)
+    except Exception:
+        raise ReleaseValidationError("Muse returned an invalid candidate") from None
+    reply = candidate.reply.strip()
+    if not reply:
+        raise ReleaseValidationError("Muse returned an empty candidate")
+    return candidate.model_copy(update={"reply": reply})
+
+
+def _trusted_book_evidence(
+    tool_results: list[dict[str, object]],
+    release_scope: ReleaseScope | None,
+) -> dict[str, EvidenceRecord]:
+    """Build a turn-local index from typed Librarian results only."""
+    evidence: dict[str, EvidenceRecord] = {}
+    for tool_result in tool_results:
+        if tool_result["tool_name"] != "librarian_search":
+            continue
+        try:
+            response = LIBRARIAN_RESPONSE_ADAPTER.validate_python(tool_result["content"])
+        except Exception:
+            raise ReleaseValidationError("Librarian returned an invalid response") from None
+        if not isinstance(response, RetrievalResult):
+            continue
+        if release_scope is None:
+            raise ReleaseValidationError("Librarian result has no trusted release scope")
+
+        searched = response.searched_scope
+        if (
+            searched.work_id != release_scope.work_id
+            or searched.book_version_id != release_scope.book_version_id
+            or searched.max_chapter_inclusive > release_scope.chapter_max
+        ):
+            raise ReleaseValidationError("Librarian result exceeds the release scope")
+
+        for record in response.evidence:
+            start_line, end_line = record.source_lines
+            if (
+                record.work_id != searched.work_id
+                or record.book_version_id != searched.book_version_id
+                or record.chapter_number > searched.max_chapter_inclusive
+                or start_line < 1
+                or end_line < start_line
+            ):
+                raise ReleaseValidationError("Librarian evidence exceeds its searched scope")
+            existing = evidence.get(record.evidence_id)
+            if existing is not None and existing != record:
+                raise ReleaseValidationError("Librarian evidence identifier is ambiguous")
+            evidence[record.evidence_id] = record
+    return evidence
+
+
+def _validate_release(
+    candidate: MuseCandidate,
+    tool_results: list[dict[str, object]],
+    release_scope: ReleaseScope | None,
+) -> None:
+    """Validate declared book citations after semantic approval."""
+    evidence = _trusted_book_evidence(tool_results, release_scope)
+    for declared in candidate.evidence_uses:
+        if declared.source_kind != "book_corpus":
+            raise ReleaseValidationError("Candidate uses an unsupported evidence source")
+        record = evidence.get(declared.evidence_id)
+        if record is None:
+            raise ReleaseValidationError("Candidate cites unresolved evidence")
+        if declared.source_location != record.location:
+            raise ReleaseValidationError("Candidate cites an incorrect source location")
+        if declared.exact_quote is not None and (
+            declared.exact_quote not in candidate.reply
+            or declared.exact_quote not in record.text
+        ):
+            raise ReleaseValidationError("Candidate exact quotation is not supported")
 
 
 def _context_with_tool_results(
@@ -91,12 +187,18 @@ def _context_with_tool_results(
 
 
 async def _review(
-    candidate: str,
+    candidate: MuseCandidate,
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
 ) -> ProvenanceReview:
     payload = json.dumps(
-        {**review_context, "candidate_response": candidate},
+        {
+            **review_context,
+            "candidate_response": candidate.reply,
+            "candidate_evidence_uses": [
+                evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
+            ],
+        },
         ensure_ascii=False,
     )
     with logfire.span("provenance.review", **review_context_attrs(review_context)) as span:
@@ -110,9 +212,10 @@ async def reflection_reply(
     message: str,
     history: list[ModelMessage],
     *,
-    muse: Agent[None, str],
+    muse: Agent[None, MuseCandidate],
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object] | None = None,
+    release_scope: ReleaseScope | None = None,
 ) -> ReflectionRelease:
     """Return an approved candidate or an application-authored safe decline."""
     review_context = review_context or {}
@@ -123,6 +226,7 @@ async def reflection_reply(
             muse=muse,
             provenance=provenance,
             review_context=review_context,
+            release_scope=release_scope,
             span=span,
         )
 
@@ -147,18 +251,21 @@ async def _reflection_reply(
     message: str,
     history: list[ModelMessage],
     *,
-    muse: Agent[None, str],
+    muse: Agent[None, MuseCandidate],
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
+    release_scope: ReleaseScope | None,
     span: Any,
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
-    with logfire.span("muse.draft"):
-        draft_result = await muse.run(message, message_history=history)
-    candidate = draft_result.output.strip()
-    if not candidate:
+    try:
+        with logfire.span("muse.draft"):
+            draft_result = await muse.run(message, message_history=history)
+        candidate = _candidate(draft_result.output)
+        draft_tool_results = _tool_results(draft_result)
+    except Exception as exc:
+        span.record_exception(exc)
         return _record_release(span, _safe_decline(failure_stage="muse_draft"))
-    draft_tool_results = _tool_results(draft_result)
     draft_review_context = _context_with_tool_results(review_context, draft_tool_results)
 
     try:
@@ -168,10 +275,22 @@ async def _reflection_reply(
         return _record_release(span, _safe_decline(failure_stage="provenance_review"))
 
     if review.response_decision == "pass":
+        try:
+            _validate_release(candidate, draft_tool_results, release_scope)
+        except ReleaseValidationError as exc:
+            span.record_exception(exc)
+            return _record_release(
+                span,
+                _safe_decline(
+                    verdicts=("pass",),
+                    failure_stage="deterministic_validation",
+                    finding_codes=_codes(review),
+                ),
+            )
         return _record_release(
             span,
             ReflectionRelease(
-                reply=candidate,
+                reply=candidate.reply,
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
                 finding_codes=_codes(review),
@@ -191,7 +310,10 @@ async def _reflection_reply(
         {
             "task": "Revise the candidate once to address the review critique.",
             "original_muse_input": message,
-            "candidate_response": candidate,
+            "candidate_response": candidate.reply,
+            "candidate_evidence_uses": [
+                evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
+            ],
             "review_critique": revision_critique,
         },
         ensure_ascii=False,
@@ -199,20 +321,9 @@ async def _reflection_reply(
     try:
         with logfire.span("muse.revision"):
             revision_result = await muse.run(revision_request, message_history=history)
+        revised_candidate = _candidate(revision_result.output)
     except Exception as exc:
         span.record_exception(exc)
-        return _record_release(
-            span,
-            _safe_decline(
-                verdicts=("revise",),
-                revision_count=1,
-                failure_stage="muse_revision",
-                finding_codes=_codes(review),
-            ),
-        )
-
-    revised_candidate = revision_result.output.strip()
-    if not revised_candidate:
         return _record_release(
             span,
             _safe_decline(
@@ -243,10 +354,23 @@ async def _reflection_reply(
         )
 
     if revised_review.response_decision == "pass":
+        try:
+            _validate_release(revised_candidate, revised_tool_results, release_scope)
+        except ReleaseValidationError as exc:
+            span.record_exception(exc)
+            return _record_release(
+                span,
+                _safe_decline(
+                    verdicts=("revise", "pass"),
+                    revision_count=1,
+                    failure_stage="deterministic_validation",
+                    finding_codes=_codes(review, revised_review),
+                ),
+            )
         return _record_release(
             span,
             ReflectionRelease(
-                reply=revised_candidate,
+                reply=revised_candidate.reply,
                 release_source="muse_candidate",
                 provenance_verdicts=("revise", "pass"),
                 revision_count=1,

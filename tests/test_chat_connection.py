@@ -18,7 +18,7 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
 
 from apps.backend.contracts import ConnectionProposal
-from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
@@ -48,7 +48,18 @@ def _muse_calls_serendipity(cue: str, captured: list):
                     captured.append(part.content)
         if len(messages) == 1:
             return ModelResponse(parts=[ToolCallPart("serendipity_explore", {"cue": cue})])
-        return ModelResponse(parts=[TextPart("Here's a connection worth sitting with.")])
+        output_tool = info.output_tools[0]
+        return ModelResponse(
+            parts=[
+                ToolCallPart(
+                    output_tool.name,
+                    {
+                        "reply": "Here's a connection worth sitting with.",
+                        "evidence_uses": [],
+                    },
+                )
+            ]
+        )
 
     return _respond
 

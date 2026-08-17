@@ -85,7 +85,7 @@ export type ReleaseInspection = {
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
   finding_codes: RiskCode[]
   revision_count: number
-  failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | null
+  failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
 }
 
 export type TurnTimeline = {

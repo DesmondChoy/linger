@@ -66,6 +66,7 @@ class MuseInstructionTests(unittest.TestCase):
         }
         self.assertEqual(
             {
+                "# Typed candidate",
                 "# Context authority",
                 "# Book confirmation and spoilers",
                 "# Probe when context is insufficient",

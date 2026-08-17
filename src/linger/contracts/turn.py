@@ -12,3 +12,11 @@ class ConfirmedReading(StrictModel):
 
     work_id: str  # stable corpus work identifier (e.g. "pg11")
     chapter_max: int = Field(ge=1)
+
+
+class ReleaseScope(StrictModel):
+    """Trusted book revision and spoiler ceiling for one release decision."""
+
+    work_id: str
+    book_version_id: str
+    chapter_max: int = Field(ge=1)

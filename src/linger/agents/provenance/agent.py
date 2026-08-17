@@ -17,6 +17,11 @@ request-scoped reading context, and the complete evidence bundle authorised for
 this response. Treat missing evidence or an unclear spoiler boundary as a reason
 not to pass a supported factual claim.
 
+`candidate_evidence_uses` contains Muse's untrusted declarations about the
+book-corpus records used by the response and any exact quotation it presents.
+Check those declarations, but inspect the complete candidate independently:
+Muse may omit or mislabel a claim or quotation.
+
 When a `librarian_search` result is present, enforce its response branch:
 - clarification: the candidate asks the supplied question and does not attempt
   a book answer;
