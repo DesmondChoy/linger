@@ -3,6 +3,7 @@
 import json
 import os
 import unittest
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from fastapi import HTTPException
@@ -19,7 +20,12 @@ with patch.dict(
 ):
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
-    from src.linger.orchestration.reflection import ReflectionRelease
+    from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
+    from src.linger.orchestration.reflection import (
+        SAFE_DECLINE,
+        ReflectionRelease,
+        reflection_reply as run_reflection_gate,
+    )
 
 
 class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
@@ -43,8 +49,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         history = sessions.history(self.session_id)
         self.assertEqual("Hello", history[0].parts[0].content)
         self.assertEqual("Approved reply", history[1].parts[0].content)
-        self.assertEqual("muse_candidate", response.inspection.release["release_source"])
-        self.assertEqual(["pass"], response.inspection.release["provenance_verdicts"])
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertEqual(("pass",), response.inspection.release.provenance_verdicts)
         review_context = gate.await_args.kwargs["review_context"]
         self.assertIn("policy_constraints", review_context)
         self.assertIn("cited_evidence", review_context)
@@ -107,4 +113,60 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("Safe decline", response.reply)
         self.assertIsNone(sessions.reading_candidate(self.session_id))
-        self.assertEqual("application_safe_decline", response.inspection.release["release_source"])
+        self.assertEqual(
+            "application_safe_decline", response.inspection.release.release_source
+        )
+
+    async def test_rejected_critique_never_reaches_serialized_response(self) -> None:
+        secret_quote = "PRIVATE_REJECTED_QUOTE_7f68b6"
+        secret_explanation = "PRIVATE_REVIEW_EXPLANATION_34ab91"
+        muse = AsyncMock()
+        muse.run.return_value = SimpleNamespace(
+            output="Unsafe draft",
+            all_messages=lambda: [],
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = SimpleNamespace(
+            output=ProvenanceReview(
+                findings=(
+                    RiskFinding(
+                        code="unsupported_claim",
+                        quote=secret_quote,
+                        explanation=secret_explanation,
+                    ),
+                ),
+                response_decision="reject",
+                capture_decision="no_candidate",
+            )
+        )
+        release = await run_reflection_gate(
+            "Hello",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+        gate = AsyncMock(return_value=release)
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await main.chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        payload = response.model_dump_json()
+        self.assertEqual(SAFE_DECLINE, response.reply)
+        self.assertEqual(
+            ("unsupported_claim",), response.inspection.release.finding_codes
+        )
+        self.assertEqual(
+            {
+                "release_source",
+                "provenance_verdicts",
+                "finding_codes",
+                "revision_count",
+                "failure_stage",
+            },
+            set(response.inspection.release.model_dump()),
+        )
+        self.assertNotIn(secret_quote, payload)
+        self.assertNotIn(secret_explanation, payload)
+        self.assertNotIn('"critiques"', payload)

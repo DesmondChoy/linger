@@ -147,6 +147,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, release.revision_count)
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)
+        revision_payload = json.loads(muse.run.await_args_list[1].args[0])
+        self.assertIn("Qualify the claim.", revision_payload["review_critique"])
+        self.assertIn("an unsupported span", revision_payload["review_critique"])
+        self.assertFalse(hasattr(release, "critiques"))
 
     async def test_reject_returns_safe_decline(self) -> None:
         muse = AsyncMock()

@@ -53,6 +53,7 @@ from .schemas import (
     MemorySaveResponse,
     MemoryStateResponse,
     MemoryWriteRequest,
+    ReleaseInspection,
     TurnInspection,
 )
 
@@ -376,21 +377,19 @@ async def chat(request: ChatRequest) -> ChatResponse:
         len(sessions.history(request.session_id)),
         release.release_source,
         ",".join(release.provenance_verdicts) or "none",
-        # Risk codes only. The matching critique text quotes the candidate
-        # response, which specification section 8.1 keeps out of logs; read it
-        # from the API response's `release.critiques` when debugging a turn.
+        # Risk codes only. The matching critique text quotes rejected candidate
+        # content and is intentionally absent from logs and API responses.
         ",".join(release.finding_codes) or "none",
         release.revision_count,
         release.failure_stage or "none",
     )
-    inspection.release = {
-        "release_source": release.release_source,
-        "provenance_verdicts": list(release.provenance_verdicts),
-        "finding_codes": list(release.finding_codes),
-        "critiques": [critique for critique in release.critiques if critique],
-        "revision_count": release.revision_count,
-        "failure_stage": release.failure_stage,
-    }
+    inspection.release = ReleaseInspection(
+        release_source=release.release_source,
+        provenance_verdicts=release.provenance_verdicts,
+        finding_codes=release.finding_codes,
+        revision_count=release.revision_count,
+        failure_stage=release.failure_stage,
+    )
     verdict_path = " → ".join(release.provenance_verdicts)
     if release.release_source == "muse_candidate":
         inspection.traces[-1] = {

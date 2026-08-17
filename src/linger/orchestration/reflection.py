@@ -22,12 +22,10 @@ class ReflectionRelease:
     reply: str
     release_source: Literal["muse_candidate", "application_safe_decline"]
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...] = ()
-    critiques: tuple[str, ...] = ()
     revision_count: int = 0
     failure_stage: Literal["muse_draft", "provenance_review", "muse_revision"] | None = None
-    # Why Provenance blocked, as bare risk codes. `critiques` carries the same
-    # findings rendered as prose with the offending quote, which specification
-    # section 8.1 bars from logs; the codes are a fixed enum and are loggable.
+    # Why Provenance blocked, as bare risk codes. The matching critique contains
+    # rejected draft text and therefore never crosses the release boundary.
     finding_codes: tuple[RiskCode, ...] = ()
 
 
@@ -43,7 +41,6 @@ def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
 def _safe_decline(
     *,
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
-    critiques: tuple[str, ...] = (),
     revision_count: int = 0,
     failure_stage: Literal["muse_draft", "provenance_review", "muse_revision"] | None = None,
     finding_codes: tuple[RiskCode, ...] = (),
@@ -52,7 +49,6 @@ def _safe_decline(
         reply=SAFE_DECLINE,
         release_source="application_safe_decline",
         provenance_verdicts=verdicts,
-        critiques=critiques,
         revision_count=revision_count,
         failure_stage=failure_stage,
         finding_codes=finding_codes,
@@ -135,9 +131,9 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
     """Attach the release outcome to the parent span.
 
     Every field here is an enum, tuple of enums, or int, so §8.1 permits all of
-    them — `finding_codes` included, being a fixed `RiskCode` enum. `critiques`
-    is excluded: the same findings rendered as prose quote the candidate
-    response verbatim.
+    them — `finding_codes` included, being a fixed `RiskCode` enum. Provenance
+    critique prose is intentionally absent from `ReflectionRelease` because it
+    quotes rejected candidate text verbatim.
     """
     span.set_attribute("release_source", release.release_source)
     span.set_attribute("provenance_verdicts", list(release.provenance_verdicts))
@@ -178,7 +174,6 @@ async def _reflection_reply(
                 reply=candidate,
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
-                critiques=(review.critique(),),
                 finding_codes=_codes(review),
             ),
         )
@@ -187,17 +182,17 @@ async def _reflection_reply(
             span,
             _safe_decline(
                 verdicts=(review.response_decision,),
-                critiques=(review.critique(),),
                 finding_codes=_codes(review),
             ),
         )
 
+    revision_critique = review.critique()
     revision_request = json.dumps(
         {
             "task": "Revise the candidate once to address the review critique.",
             "original_muse_input": message,
             "candidate_response": candidate,
-            "review_critique": review.critique(),
+            "review_critique": revision_critique,
         },
         ensure_ascii=False,
     )
@@ -210,7 +205,6 @@ async def _reflection_reply(
             span,
             _safe_decline(
                 verdicts=("revise",),
-                critiques=(review.critique(),),
                 revision_count=1,
                 failure_stage="muse_revision",
                 finding_codes=_codes(review),
@@ -223,7 +217,6 @@ async def _reflection_reply(
             span,
             _safe_decline(
                 verdicts=("revise",),
-                critiques=(review.critique(),),
                 revision_count=1,
                 failure_stage="muse_revision",
                 finding_codes=_codes(review),
@@ -243,7 +236,6 @@ async def _reflection_reply(
             span,
             _safe_decline(
                 verdicts=("revise",),
-                critiques=(review.critique(),),
                 revision_count=1,
                 failure_stage="provenance_review",
                 finding_codes=_codes(review),
@@ -257,7 +249,6 @@ async def _reflection_reply(
                 reply=revised_candidate,
                 release_source="muse_candidate",
                 provenance_verdicts=("revise", "pass"),
-                critiques=(review.critique(), revised_review.critique()),
                 revision_count=1,
                 finding_codes=_codes(review, revised_review),
             ),
@@ -266,7 +257,6 @@ async def _reflection_reply(
         span,
         _safe_decline(
             verdicts=("revise", revised_review.response_decision),
-            critiques=(review.critique(), revised_review.critique()),
             revision_count=1,
             finding_codes=_codes(review, revised_review),
         ),

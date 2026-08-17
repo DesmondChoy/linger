@@ -275,7 +275,6 @@ class LogLineTests(unittest.TestCase):
             reply=SAFE_DECLINE,
             release_source="application_safe_decline",
             provenance_verdicts=("reject",),
-            critiques=(f"- [unsupported_claim] prose (offending text: {SECRET_QUOTE!r})",),
             finding_codes=("unsupported_claim", "spoiler"),
         )
 
@@ -297,7 +296,7 @@ class LogLineTests(unittest.TestCase):
         self.assertIn("findings=unsupported_claim,spoiler", line)
         self.assertIn("provenance_path=reject", line)
         self.assertIn("failure_stage=none", line)
-        # The critique prose and its quote never reach the log.
+        # Rejected quote-bearing critique prose never enters the release object.
         self.assertNotIn(SECRET_QUOTE, line)
 
     def test_clean_run_log_line_says_none(self) -> None:

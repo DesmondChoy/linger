@@ -71,10 +71,19 @@ export type EvidenceBundle = {
   retrieval_note: string
 }
 
+export type RiskCode =
+  | 'unresolved_evidence'
+  | 'misattribution'
+  | 'spoiler'
+  | 'boundary_violation'
+  | 'uncited_web_claim'
+  | 'unsupported_claim'
+  | 'prompt_injection'
+
 export type ReleaseInspection = {
   release_source: 'muse_candidate' | 'application_safe_decline'
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
-  critiques: string[]
+  finding_codes: RiskCode[]
   revision_count: number
   failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | null
 }
