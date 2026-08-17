@@ -23,6 +23,12 @@ Do not use Git worktrees. Work in the main working directory and stay on the cur
 
 - Run authenticated or networked `gh` commands with escalated permissions outside the sandbox on the first attempt; do not treat sandboxed `gh auth status` failures as invalid credentials.
 
+## Commit and Push
+
+- Every authorised commit-and-push workflow must also run `bd dolt push` after Beads updates and before `git push`.
+- Treat an explicit request to commit and push as authorisation to sync the configured Beads Dolt remote. The user does not need to request the Beads sync separately.
+- A current instruction not to commit or push still wins. If either Dolt sync or Git push fails, stop and report the exact command and error.
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
