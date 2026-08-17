@@ -10,10 +10,8 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
-# Muse, Provenance and Sculptor are constructed at import time, so tracing must
-# be configured before those imports or instrumentation never sees them. This
-# call is deliberately placed above them and must stay there.
-from .telemetry import configure_telemetry, resolution_attrs, turn_attrs
+# Configure the exporter before application-owned spans can be created.
+from .telemetry import configure_telemetry, record_failure, set_span_attrs
 
 configure_telemetry()
 
@@ -62,7 +60,6 @@ logger = logging.getLogger(f"{ROOT_NAME}.backend")
 
 settings = get_settings()
 app = FastAPI(title="Linger Chat API")
-logfire.instrument_fastapi(app)
 memory_service = MemoryPolicyService(REPO_ROOT / "memories")
 memory_context = AccountContext(settings.linger_account_id)
 
@@ -268,20 +265,6 @@ def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str, dict[str
     ), muse_input, review_context
 
 
-def _turn_telemetry(inspection: TurnInspection) -> dict[str, object]:
-    """Project the turn onto span attributes §8.1 permits.
-
-    `_inspection_for` has already dumped the contracts to dicts, so the
-    allowlists are rebuilt from the models before projecting.
-    """
-    turn = MuseTurn.model_validate(inspection.muse_turn)
-    resolution = ContextResolution.model_validate(inspection.context_resolution)
-    return {
-        "turn": turn_attrs(turn),
-        "context_resolution": resolution_attrs(resolution),
-    }
-
-
 def get_memory_service() -> MemoryPolicyService:
     """Return the application-owned memory service."""
     return memory_service
@@ -316,9 +299,15 @@ def _memory_http_error(error: MemoryServiceError) -> HTTPException:
             detail="This memory operation conflicts with an earlier request.",
         )
     if isinstance(error, MemoryStorageError):
-        logger.exception("Memory storage failed")
+        logger.error(
+            "Memory storage failed failure_stage=memory_storage "
+            "failure_code=storage_unavailable retryable=true"
+        )
         return HTTPException(status_code=500, detail="Memory storage is unavailable.")
-    logger.exception("Memory operation failed")
+    logger.error(
+        "Memory operation failed failure_stage=memory_operation "
+        "failure_code=operation_failed retryable=false"
+    )
     return HTTPException(status_code=400, detail="Memory operation failed.")
 
 
@@ -327,65 +316,110 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "model": settings.linger_model}
 
 
+async def _run_chat_pipeline(
+    request: ChatRequest, reading_state: sessions.ReadingStateSnapshot
+) -> tuple[TurnInspection, ReflectionRelease]:
+    """Run the agent pipeline without adding request content to telemetry."""
+    inspection, muse_input, review_context = _inspection_for(request)
+    context = inspection.muse_turn.get("reading_context")
+    book_version_id = librarian.version_for(context["work_id"]) if context else None
+    release_scope = (
+        ReleaseScope(
+            work_id=context["work_id"],
+            book_version_id=book_version_id,
+            chapter_max=context["chapter_max"],
+        )
+        if context and book_version_id
+        else None
+    )
+    token = set_confirmed_reading(
+        ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
+        if context
+        else None
+    )
+    try:
+        release: ReflectionRelease = await reflection_reply(
+            muse_input,
+            sessions.history(request.session_id),
+            muse=muse_chat_agent,
+            provenance=provenance_agent,
+            review_context=review_context,
+            release_scope=release_scope,
+        )
+    finally:
+        reset_confirmed_reading(token)
+    if release.release_source == "application_safe_decline":
+        sessions.restore_reading_state(request.session_id, reading_state)
+    sessions.append_turn(request.session_id, request.message, release.reply)
+    return inspection, release
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """Run the complete output gate before releasing or storing a reply."""
     started = perf_counter()
     reading_state = sessions.snapshot_reading_state(request.session_id)
-    try:
-        inspection, muse_input, review_context = _inspection_for(request)
-        logfire.info(
-            "chat turn accepted",
-            session_id=request.session_id,
-            **_turn_telemetry(inspection),
-        )
-        context = inspection.muse_turn.get("reading_context")
-        book_version_id = librarian.version_for(context["work_id"]) if context else None
-        release_scope = (
-            ReleaseScope(
-                work_id=context["work_id"],
-                book_version_id=book_version_id,
-                chapter_max=context["chapter_max"],
-            )
-            if context and book_version_id
-            else None
-        )
-        token = set_confirmed_reading(
-            ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
-            if context else None
-        )
+    failure: Exception | None = None
+    inspection: TurnInspection | None = None
+    release: ReflectionRelease | None = None
+    with logfire.span(
+        "chat.request",
+        **{
+            "http.route": "/api/chat",
+            "http.request.method": "POST",
+            "status": "started",
+        },
+    ) as span:
         try:
-            release: ReflectionRelease = await reflection_reply(
-                muse_input,
-                sessions.history(request.session_id),
-                muse=muse_chat_agent,
-                provenance=provenance_agent,
-                review_context=review_context,
-                release_scope=release_scope,
-            )
-        finally:
-            reset_confirmed_reading(token)
-        if release.release_source == "application_safe_decline":
+            inspection, release = await _run_chat_pipeline(request, reading_state)
+        except Exception as exc:
+            failure = exc
             sessions.restore_reading_state(request.session_id, reading_state)
-        sessions.append_turn(request.session_id, request.message, release.reply)
-    except Exception as exc:
-        sessions.restore_reading_state(request.session_id, reading_state)
-        logger.exception(
-            "Agent run failed session=%s elapsed=%.2fs",
-            request.session_id,
+            record_failure(
+                span,
+                stage="chat_request",
+                code="agent_pipeline_failed",
+                retryable=True,
+                failure_type="application",
+            )
+            set_span_attrs(
+                span,
+                {
+                    "http.response.status_code": 502,
+                    "request.outcome": "failed",
+                },
+            )
+        else:
+            set_span_attrs(
+                span,
+                {
+                    "status": "success",
+                    "http.response.status_code": 200,
+                    "request.outcome": (
+                        "declined"
+                        if release.release_source == "application_safe_decline"
+                        else "completed"
+                    ),
+                },
+            )
+
+    if failure is not None:
+        logger.error(
+            "Agent run failed elapsed=%.2fs failure_stage=chat_request "
+            "failure_code=agent_pipeline_failed retryable=true",
             perf_counter() - started,
         )
         raise HTTPException(
             status_code=502,
             detail="The model call failed. Try again.",
-        ) from exc
+        ) from None
+
+    assert inspection is not None and release is not None
 
     logger.info(
-        "Agent run completed session=%s elapsed=%.2fs turns=%d release_source=%s "
+        "Agent run completed elapsed=%.2fs release_source=%s "
         "provenance_path=%s findings=%s revisions=%d failure_stage=%s",
-        request.session_id,
         perf_counter() - started,
-        len(sessions.history(request.session_id)),
         release.release_source,
         ",".join(release.provenance_verdicts) or "none",
         # Risk codes only. The matching critique text quotes rejected candidate
@@ -465,7 +499,7 @@ async def list_memories(
             memories=[_memory_response(record) for record in service.list_active(context)],
         )
     except MemoryServiceError as error:
-        raise _memory_http_error(error) from error
+        raise _memory_http_error(error) from None
 
 
 @app.put(
@@ -482,7 +516,7 @@ async def set_memory_capture_preference(
         service.set_capture_enabled(context, request.enabled)
         return CapturePreferenceResponse(enabled=service.capture_enabled(context))
     except MemoryServiceError as error:
-        raise _memory_http_error(error) from error
+        raise _memory_http_error(error) from None
 
 
 @app.post(
@@ -507,7 +541,7 @@ async def save_memory(
             created=result.created,
         )
     except MemoryServiceError as error:
-        raise _memory_http_error(error) from error
+        raise _memory_http_error(error) from None
 
 
 @app.put(
@@ -534,7 +568,7 @@ async def correct_memory(
             created=result.created,
         )
     except MemoryServiceError as error:
-        raise _memory_http_error(error) from error
+        raise _memory_http_error(error) from None
 
 
 @app.delete("/api/memories/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -547,4 +581,4 @@ async def delete_memory(
     try:
         service.delete(context, memory_id)
     except MemoryServiceError as error:
-        raise _memory_http_error(error) from error
+        raise _memory_http_error(error) from None

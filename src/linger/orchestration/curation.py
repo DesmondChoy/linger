@@ -5,6 +5,7 @@ import json
 from pydantic import ValidationError
 from pydantic_ai import Agent
 
+from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.sculptor.agent import sculptor_agent
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
@@ -31,11 +32,20 @@ async def propose_curation(
     agent: Agent[None, SculptorResponse] = sculptor_agent,
 ) -> SculptorResponse:
     """Return a validated proposal without exposing account or storage metadata."""
-    result = await agent.run(_model_input(batch))
+    result = await run_agent_traced(
+        agent,
+        _model_input(batch),
+        span_name="sculptor.curation",
+        role="Sculptor",
+        stage="curation",
+        prompt_template_id="sculptor.curation",
+        failure_code="sculptor_model_failed",
+        retryable=False,
+    )
     try:
         response = SCULPTOR_RESPONSE_ADAPTER.validate_python(result.output)
-    except ValidationError as exc:
-        raise InvalidCurationProposal("Sculptor returned malformed output") from exc
+    except ValidationError:
+        raise InvalidCurationProposal("Sculptor returned malformed output") from None
 
     if isinstance(response, CurationProposal):
         input_ids = {memory.memory_id for memory in batch.memories}

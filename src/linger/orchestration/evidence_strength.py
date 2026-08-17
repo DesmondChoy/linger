@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Awaitable, Callable
 
+from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import EvidenceRecord
 
@@ -30,7 +31,15 @@ async def judge_evidence_strength(
         },
         ensure_ascii=False,
     )
-    result = await librarian_strength_agent.run(payload)
+    result = await run_agent_traced(
+        librarian_strength_agent,
+        payload,
+        span_name="librarian.evidence_strength",
+        role="Librarian",
+        stage="evidence_strength",
+        prompt_template_id="librarian.evidence-strength",
+        failure_code="evidence_strength_model_failed",
+    )
     decision = result.output
 
     available_ids = {record.evidence_id for record in evidence}

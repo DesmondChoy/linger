@@ -9,7 +9,12 @@ from pydantic_ai import Agent
 from pydantic_ai.messages import ModelMessage, ToolReturnPart
 from pydantic_core import to_jsonable_python
 
-from apps.backend.telemetry import review_attrs, review_context_attrs
+from apps.backend.telemetry import (
+    record_failure,
+    review_attrs,
+    run_agent_traced,
+    set_span_attrs,
+)
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskCode
 from src.linger.contracts.librarian import (
@@ -201,11 +206,17 @@ async def _review(
         },
         ensure_ascii=False,
     )
-    with logfire.span("provenance.review", **review_context_attrs(review_context)) as span:
-        result = await provenance.run(payload)
-        review = result.output
-        span.set_attribute("review", review_attrs(review))
-    return review
+    result = await run_agent_traced(
+        provenance,
+        payload,
+        span_name="provenance.review",
+        role="Provenance",
+        stage="review",
+        prompt_template_id="provenance.release-gate",
+        failure_code="provenance_model_failed",
+        result_attrs=lambda run_result: review_attrs(run_result.output),
+    )
+    return result.output
 
 
 async def reflection_reply(
@@ -219,31 +230,80 @@ async def reflection_reply(
 ) -> ReflectionRelease:
     """Return an approved candidate or an application-authored safe decline."""
     review_context = review_context or {}
+    caught: Exception | None = None
+    release: ReflectionRelease | None = None
     with logfire.span("reflection.release") as span:
-        return await _reflection_reply(
-            message,
-            history,
-            muse=muse,
-            provenance=provenance,
-            review_context=review_context,
-            release_scope=release_scope,
-            span=span,
-        )
+        try:
+            release = await _reflection_reply(
+                message,
+                history,
+                muse=muse,
+                provenance=provenance,
+                review_context=review_context,
+                release_scope=release_scope,
+                span=span,
+            )
+        except Exception as exc:
+            caught = exc
+            record_failure(
+                span,
+                stage="reflection_release",
+                code="reflection_pipeline_failed",
+                retryable=False,
+                failure_type="application",
+            )
+    if caught is not None:
+        raise caught
+    assert release is not None
+    return release
 
 
 def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
     """Attach the release outcome to the parent span.
 
-    Every field here is an enum, tuple of enums, or int, so §8.1 permits all of
-    them — `finding_codes` included, being a fixed `RiskCode` enum. Provenance
-    critique prose is intentionally absent from `ReflectionRelease` because it
-    quotes rejected candidate text verbatim.
+    Every field is a fixed enum or number permitted by the telemetry contract.
+    Provenance critique prose stays out because it quotes candidate text.
     """
-    span.set_attribute("release_source", release.release_source)
-    span.set_attribute("provenance_verdicts", list(release.provenance_verdicts))
-    span.set_attribute("revision_count", release.revision_count)
-    span.set_attribute("failure_stage", release.failure_stage)
-    span.set_attribute("finding_codes", list(release.finding_codes))
+    set_span_attrs(
+        span,
+        {
+            "status": (
+                "decline"
+                if release.release_source == "application_safe_decline"
+                else "success"
+            ),
+            "release.source": release.release_source,
+            "release.revision_count": release.revision_count,
+            "provenance.finding_codes": list(release.finding_codes),
+            "validation.outcome": (
+                "passed"
+                if release.release_source == "muse_candidate"
+                else (
+                    "failed"
+                    if release.failure_stage == "deterministic_validation"
+                    else "not_run"
+                )
+            ),
+        },
+    )
+    if release.failure_stage is not None:
+        failure_code = {
+            "muse_draft": "muse_draft_failed",
+            "provenance_review": "provenance_review_failed",
+            "muse_revision": "muse_revision_failed",
+            "deterministic_validation": "release_validation_failed",
+        }[release.failure_stage]
+        record_failure(
+            span,
+            stage=release.failure_stage,
+            code=failure_code,
+            retryable=release.failure_stage != "deterministic_validation",
+            failure_type=(
+                "validation"
+                if release.failure_stage == "deterministic_validation"
+                else "model"
+            ),
+        )
     return release
 
 
@@ -259,26 +319,31 @@ async def _reflection_reply(
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
     try:
-        with logfire.span("muse.draft"):
-            draft_result = await muse.run(message, message_history=history)
+        draft_result = await run_agent_traced(
+            muse,
+            message,
+            span_name="muse.draft",
+            role="Muse",
+            stage="draft",
+            prompt_template_id="muse.reflection",
+            failure_code="muse_model_failed",
+            message_history=history,
+        )
         candidate = _candidate(draft_result.output)
         draft_tool_results = _tool_results(draft_result)
-    except Exception as exc:
-        span.record_exception(exc)
+    except Exception:
         return _record_release(span, _safe_decline(failure_stage="muse_draft"))
     draft_review_context = _context_with_tool_results(review_context, draft_tool_results)
 
     try:
         review = await _review(candidate, provenance, draft_review_context)
-    except Exception as exc:
-        span.record_exception(exc)
+    except Exception:
         return _record_release(span, _safe_decline(failure_stage="provenance_review"))
 
     if review.response_decision == "pass":
         try:
             _validate_release(candidate, draft_tool_results, release_scope)
-        except ReleaseValidationError as exc:
-            span.record_exception(exc)
+        except ReleaseValidationError:
             return _record_release(
                 span,
                 _safe_decline(
@@ -319,11 +384,18 @@ async def _reflection_reply(
         ensure_ascii=False,
     )
     try:
-        with logfire.span("muse.revision"):
-            revision_result = await muse.run(revision_request, message_history=history)
+        revision_result = await run_agent_traced(
+            muse,
+            revision_request,
+            span_name="muse.revision",
+            role="Muse",
+            stage="revision",
+            prompt_template_id="muse.revision",
+            failure_code="muse_revision_model_failed",
+            message_history=history,
+        )
         revised_candidate = _candidate(revision_result.output)
-    except Exception as exc:
-        span.record_exception(exc)
+    except Exception:
         return _record_release(
             span,
             _safe_decline(
@@ -341,8 +413,7 @@ async def _reflection_reply(
             provenance,
             _context_with_tool_results(review_context, revised_tool_results),
         )
-    except Exception as exc:
-        span.record_exception(exc)
+    except Exception:
         return _record_release(
             span,
             _safe_decline(
@@ -356,8 +427,7 @@ async def _reflection_reply(
     if revised_review.response_decision == "pass":
         try:
             _validate_release(revised_candidate, revised_tool_results, release_scope)
-        except ReleaseValidationError as exc:
-            span.record_exception(exc)
+        except ReleaseValidationError:
             return _record_release(
                 span,
                 _safe_decline(

@@ -71,10 +71,11 @@ regression case. Runtime telemetry cannot reconstruct the user's content.
 
 The contract is enforced by construction:
 
-1. Pydantic AI instrumentation sets `include_content=False` and
-   `include_binary_content=False`.
-2. FastAPI instrumentation excludes bodies, headers, raw URLs, query strings,
-   and resolved path values.
+1. Automatic Pydantic AI and FastAPI instrumentation remains disabled because
+   it emits fields outside this allowlist. Application-owned spans record the
+   required model, tool, and request metadata instead.
+2. Request spans use fixed route templates and never inspect bodies, headers,
+   raw URLs, query strings, or resolved path values.
 3. Application-authored attributes come only from typed allowlist projections.
 4. Failures map to fixed stages and codes instead of recording exception
    objects or messages.

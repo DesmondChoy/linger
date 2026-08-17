@@ -1,6 +1,6 @@
 """Telemetry must carry operational metadata and no content.
 
-`docs/specification.md` §8.1 bars raw personal memories, full user or assistant
+`docs/telemetry.md` bars raw personal memories, full user or assistant
 messages, photographs, raw book or web excerpts, credentials, API keys, and
 sensitive-inference content from logs and spans.
 
@@ -12,27 +12,29 @@ field added anywhere in the pipeline fails here.
 import json
 import logging
 import unittest
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import logfire
 from logfire.testing import TestExporter
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelResponse, TextPart
+from pydantic_ai.models.function import FunctionModel
+from pydantic_ai.usage import RequestUsage
 
 from apps.backend.contracts import (
     ConnectionBrief,
     EvidenceBundle,
     EvidenceItem,
     LibrarianRequest,
-    MuseTurn,
-    ReadingContext,
-    TurnPolicy,
 )
 from apps.backend.telemetry import (
     brief_attrs,
     evidence_attrs,
     librarian_request_attrs,
     review_attrs,
-    turn_attrs,
+    run_agent_traced,
 )
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
@@ -47,6 +49,8 @@ SECRET_MESSAGE = "zqxjv my private reflection about the caterpillar zqxjv"
 SECRET_EXCERPT = "wqmzk raw book excerpt text that must never be logged wqmzk"
 SECRET_CUE = "vbnpl the cue the reader typed vbnpl"
 SECRET_QUOTE = "hjklm the offending verbatim span hjklm"
+SECRET_SYSTEM = "rtvbn private system instruction rtvbn"
+SECRET_EXCEPTION = "plmok private provider failure plmok"
 
 
 def result(output: object) -> SimpleNamespace:
@@ -99,30 +103,24 @@ class ProjectionRedactionTests(TelemetryTestCase):
         attrs = evidence_attrs(bundle)
 
         self.assertNotIn(SECRET_EXCERPT, json.dumps(attrs))
-        self.assertEqual(1, attrs["item_count"])
-        self.assertEqual(["alice-ch3-rules"], attrs["evidence_ids"])
-        self.assertEqual([3], attrs["chapters"])
-
-    def test_turn_projection_drops_user_message(self) -> None:
-        turn = MuseTurn(
-            turn_id="t1",
-            user_message=SECRET_MESSAGE,
-            reading_context=ReadingContext(work_id="alice", chapter_max=3),
-            policy=TurnPolicy(spoiler_ceiling=3, allow_retrieval=True, allow_connection=True),
+        self.assertEqual(1, attrs["retrieval.item_count"])
+        self.assertEqual(
+            ["alice-ch3-rules"], attrs["retrieval.evidence_ids"]
         )
-        attrs = turn_attrs(turn)
-
-        self.assertNotIn(SECRET_MESSAGE, json.dumps(attrs))
-        self.assertEqual(len(SECRET_MESSAGE), attrs["user_message_length"])
-        self.assertEqual("t1", attrs["turn_id"])
+        self.assertNotIn("chapters", attrs)
 
     def test_brief_and_request_projections_drop_reader_text(self) -> None:
         brief = ConnectionBrief(cue=SECRET_CUE, book_id="alice", chapter_max=3)
         request = LibrarianRequest(query=SECRET_CUE)
 
-        self.assertNotIn(SECRET_CUE, json.dumps(brief_attrs(brief)))
-        self.assertNotIn(SECRET_CUE, json.dumps(librarian_request_attrs(request)))
-        self.assertEqual(len(SECRET_CUE), brief_attrs(brief)["cue_length"])
+        brief_projection = brief_attrs(brief)
+        request_projection = librarian_request_attrs(request)
+        self.assertNotIn(SECRET_CUE, json.dumps(brief_projection))
+        self.assertNotIn(SECRET_CUE, json.dumps(request_projection))
+        self.assertNotIn("cue_length", brief_projection)
+        self.assertNotIn("query_length", request_projection)
+        self.assertEqual("serendipity_explore", brief_projection["tool.name"])
+        self.assertEqual("librarian_search", request_projection["tool.name"])
 
     def test_review_projection_keeps_codes_and_drops_quotes(self) -> None:
         review = ProvenanceReview(
@@ -141,8 +139,66 @@ class ProjectionRedactionTests(TelemetryTestCase):
         payload = json.dumps(attrs)
         self.assertNotIn(SECRET_QUOTE, payload)
         self.assertNotIn("explanatory prose", payload)
-        self.assertEqual(["unsupported_claim"], attrs["finding_codes"])
-        self.assertEqual("reject", attrs["response_decision"])
+        self.assertEqual(
+            ["unsupported_claim"], attrs["provenance.finding_codes"]
+        )
+        self.assertEqual("reject", attrs["provenance.response_decision"])
+
+
+class AgentInstrumentationTests(TelemetryTestCase):
+    async def test_explicit_agent_span_excludes_all_model_content(self) -> None:
+        def respond(_messages, _info):
+            return ModelResponse(
+                parts=[TextPart("zxcas private model output zxcas")],
+                usage=RequestUsage(
+                    input_tokens=12,
+                    output_tokens=4,
+                    cost=Decimal("0.0012"),
+                ),
+            )
+
+        agent = Agent(FunctionModel(respond), instructions=SECRET_SYSTEM)
+        await run_agent_traced(
+            agent,
+            SECRET_MESSAGE,
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            prompt_template_id="test.prompt",
+            failure_code="test_model_failed",
+        )
+
+        payload = self.exported_payload()
+        self.assertNotIn(SECRET_SYSTEM, payload)
+        self.assertNotIn(SECRET_MESSAGE, payload)
+        self.assertNotIn("zxcas private model output zxcas", payload)
+        self.assertIn("test.prompt", payload)
+        self.assertIn('"input_tokens": 12', payload)
+        self.assertIn('"output_tokens": 4', payload)
+        self.assertIn('"cost.usd": 0.0012', payload)
+
+    async def test_explicit_agent_span_maps_failure_without_exception(self) -> None:
+        def fail(_messages, _info):
+            raise RuntimeError(SECRET_EXCEPTION)
+
+        agent = Agent(FunctionModel(fail), instructions=SECRET_SYSTEM)
+        with self.assertRaises(RuntimeError):
+            await run_agent_traced(
+                agent,
+                SECRET_MESSAGE,
+                span_name="test.agent",
+                role="Muse",
+                stage="test",
+                prompt_template_id="test.prompt",
+                failure_code="test_model_failed",
+            )
+
+        payload = self.exported_payload()
+        self.assertNotIn(SECRET_SYSTEM, payload)
+        self.assertNotIn(SECRET_MESSAGE, payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("RuntimeError", payload)
+        self.assertIn("test_model_failed", payload)
 
 
 class ReflectionSpanTests(TelemetryTestCase):
@@ -191,14 +247,14 @@ class ReflectionSpanTests(TelemetryTestCase):
         payload = self.exported_payload()
         # The message was passed straight into reflection_reply; no span may echo it.
         self.assertNotIn(SECRET_MESSAGE, payload)
-        self.assertIn("release_source", payload)
+        self.assertIn("release.source", payload)
         self.assertIn("muse_candidate", payload)
 
-    async def test_provenance_failure_records_stage_and_exception(self) -> None:
+    async def test_provenance_failure_records_fixed_metadata_only(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("A candidate reply")
         provenance = AsyncMock()
-        provenance.run.side_effect = RuntimeError("provider failed")
+        provenance.run.side_effect = RuntimeError(SECRET_EXCEPTION)
 
         release = await reflection_reply(
             SECRET_MESSAGE,
@@ -215,7 +271,9 @@ class ReflectionSpanTests(TelemetryTestCase):
 
         payload = self.exported_payload()
         self.assertIn("provenance_review", payload)
-        self.assertIn("RuntimeError", payload)
+        self.assertIn("provenance_model_failed", payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("RuntimeError", payload)
         self.assertNotIn(SECRET_MESSAGE, payload)
 
     async def test_reject_reports_risk_codes_without_the_quote(self) -> None:
@@ -308,11 +366,9 @@ class LogLineTests(unittest.TestCase):
 
         with self.assertLogs("linger.backend", level="INFO") as captured:
             logging.getLogger("linger.backend").info(
-                "Agent run completed session=%s elapsed=%.2fs turns=%d release_source=%s "
+                "Agent run completed elapsed=%.2fs release_source=%s "
                 "provenance_path=%s findings=%s revisions=%d failure_stage=%s",
-                "s1",
                 1.0,
-                2,
                 release.release_source,
                 ",".join(release.provenance_verdicts) or "none",
                 ",".join(release.finding_codes) or "none",

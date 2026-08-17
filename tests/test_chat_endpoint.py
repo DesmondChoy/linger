@@ -6,7 +6,10 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+import logfire
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
+from logfire.testing import TestExporter
 
 from apps.backend.config import get_settings
 
@@ -34,6 +37,52 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
+
+    def test_http_and_file_telemetry_exclude_request_content(self) -> None:
+        exporter = TestExporter()
+        logfire.configure(
+            send_to_logfire=False,
+            console=False,
+            inspect_arguments=False,
+            additional_span_processors=[
+                logfire.testing.SimpleSpanProcessor(exporter)
+            ],
+        )
+        session_marker = "qazws-private-session-qazws"
+        turn_marker = "edcrf-private-turn-edcrf"
+        message_marker = "tgbnh-private-message-tgbnh"
+        query_marker = "yhnuj-private-query-yhnuj"
+        path_marker = "ikmol-private-path-ikmol"
+        exception_marker = "olpaz-private-exception-olpaz"
+        gate = AsyncMock(side_effect=RuntimeError(exception_marker))
+
+        with self.assertLogs("linger.backend", level="ERROR") as captured:
+            with patch.object(main, "reflection_reply", gate):
+                response = TestClient(main.app).post(
+                    f"/api/chat?debug={query_marker}",
+                    json={
+                        "session_id": session_marker,
+                        "turn_id": turn_marker,
+                        "message": message_marker,
+                    },
+                )
+        TestClient(main.app).delete(f"/api/sessions/{path_marker}")
+
+        self.assertEqual(502, response.status_code)
+        payload = json.dumps(exporter.exported_spans_as_dict(), default=str)
+        logs = "\n".join(captured.output)
+        for marker in (
+            session_marker,
+            turn_marker,
+            message_marker,
+            query_marker,
+            path_marker,
+            exception_marker,
+        ):
+            self.assertNotIn(marker, payload)
+            self.assertNotIn(marker, logs)
+        self.assertIn("agent_pipeline_failed", payload)
+        self.assertIn("agent_pipeline_failed", logs)
 
     async def test_success_stores_only_released_turn(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="Hello")
@@ -71,6 +120,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 await main.chat(request)
 
         self.assertEqual(502, caught.exception.status_code)
+        self.assertTrue(caught.exception.__suppress_context__)
         self.assertEqual([], sessions.history(self.session_id))
         self.assertIsNone(sessions.book_selection(self.session_id))
         self.assertIsNone(sessions.reading_candidate(self.session_id))

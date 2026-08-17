@@ -11,6 +11,7 @@ from apps.backend.contracts import BookScope
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
 from apps.backend.librarian import Librarian
 from apps.backend.hybrid_librarian import HybridLibrarian
+from apps.backend.telemetry import record_failure, set_span_attrs
 from src.linger.contracts.librarian import (
     AccessScope,
     ClarificationRequest,
@@ -76,7 +77,7 @@ def _clarification(
     )
 
 
-async def grounding_evidence(
+async def _grounding_evidence(
     request: LibrarianRequest,
     *,
     librarian: Librarian = librarian_service,
@@ -161,13 +162,7 @@ async def grounding_evidence(
 
     try:
         bundle = librarian.retrieve(shipped_request)
-    except Exception as exc:
-        logfire.warn(
-            "librarian retrieval unavailable",
-            failure_stage="retrieval_unavailable",
-            error_type=type(exc).__name__,
-            request_id=request.request_id,
-        )
+    except Exception:
         failure = RetrievalFailure(
             kind="failure",
             request_id=request.request_id,
@@ -249,3 +244,88 @@ async def grounding_evidence(
         evidence=selected_records,
         limitations=decision.limitations,
     )
+
+
+async def grounding_evidence(
+    request: LibrarianRequest,
+    *,
+    librarian: Librarian = librarian_service,
+    strength_judge: StrengthJudge | None = None,
+) -> LibrarianResponse:
+    """Trace the Librarian tool using validated scope and fixed outcomes only."""
+    caught: Exception | None = None
+    response: LibrarianResponse | None = None
+    with logfire.span(
+        "librarian.search",
+        **{
+            "tool.name": "librarian_search",
+            "tool.retry_count": 0,
+            "status": "started",
+        },
+    ) as span:
+        try:
+            response = await _grounding_evidence(
+                request,
+                librarian=librarian,
+                strength_judge=strength_judge,
+            )
+        except BookVersionOutOfScope as exc:
+            caught = exc
+            record_failure(
+                span,
+                stage="scope_validation",
+                code="book_version_out_of_scope",
+                retryable=False,
+                failure_type="validation",
+            )
+            span.set_attribute("tool.status", "failure")
+        except Exception as exc:
+            caught = exc
+            record_failure(
+                span,
+                stage="librarian_search",
+                code="librarian_tool_failed",
+                retryable=False,
+                failure_type="application",
+            )
+            span.set_attribute("tool.status", "failure")
+        else:
+            if isinstance(response, RetrievalFailure):
+                record_failure(
+                    span,
+                    stage="librarian_search",
+                    code=response.error_code,
+                    retryable=response.retryable,
+                    failure_type="retrieval",
+                )
+                span.set_attribute("tool.status", "failure")
+            elif isinstance(response, ClarificationRequest):
+                set_span_attrs(
+                    span,
+                    {
+                        "status": "decline",
+                        "tool.status": "decline",
+                        "retrieval.outcome": "clarification",
+                    },
+                )
+            else:
+                set_span_attrs(
+                    span,
+                    {
+                        "status": "success",
+                        "tool.status": "success",
+                        "scope.work_id": response.searched_scope.work_id,
+                        "scope.book_version_id": response.searched_scope.book_version_id,
+                        "scope.chapter_max": response.searched_scope.max_chapter_inclusive,
+                        "retrieval.item_count": len(response.evidence),
+                        "retrieval.evidence_ids": [
+                            record.evidence_id for record in response.evidence
+                        ],
+                        "retrieval.outcome": response.outcome,
+                    },
+                )
+
+    if caught is not None:
+        raise caught
+    assert response is not None
+    return response

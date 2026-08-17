@@ -18,7 +18,14 @@ from apps.backend.contracts import (
 )
 from apps.backend.librarian import Librarian
 from apps.backend.serendipity import discover
-from apps.backend.telemetry import brief_attrs, evidence_attrs, librarian_request_attrs
+from apps.backend.telemetry import (
+    brief_attrs,
+    evidence_attrs,
+    failure_attrs,
+    librarian_request_attrs,
+    record_failure,
+    set_span_attrs,
+)
 from src.linger.orchestration.turn_context import confirmed_reading
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
@@ -56,13 +63,17 @@ def _repeats_private_memory(cue: str) -> bool:
     account = AccountContext(account_id=get_settings().linger_account_id)
     try:
         records = memory_service.list_active(account)
-    except Exception as exc:
+    except Exception:
         # Fail closed, but leave a trace: an unreadable memory store silently
         # blocking every cue is otherwise indistinguishable from a genuine match.
         logfire.warn(
             "memory store unreadable; treating cue as unsafe",
-            failure_stage="memory_read",
-            error_type=type(exc).__name__,
+            **failure_attrs(
+                stage="memory_read",
+                code="memory_store_unavailable",
+                retryable=True,
+                failure_type="storage",
+            ),
         )
         return True
 
@@ -143,21 +154,66 @@ async def connection_proposal(
         ],
     )
     with logfire.span("serendipity.connection", **brief_attrs(clamped_brief)) as span:
-        try:
-            with logfire.span("librarian.retrieve", **librarian_request_attrs(request)):
+        span.set_attribute("scope.book_version_id", book_version_id)
+        retrieval_failed = False
+        bundle: EvidenceBundle | None = None
+        with logfire.span(
+            "librarian.retrieve", **librarian_request_attrs(request)
+        ) as retrieval_span:
+            try:
                 bundle = librarian_service.retrieve(request)
-        except Exception as exc:
-            span.set_attribute("failure_stage", "librarian_retrieve")
-            span.record_exception(exc)
+            except Exception:
+                retrieval_failed = True
+                record_failure(
+                    retrieval_span,
+                    stage="librarian_retrieve",
+                    code="retrieval_unavailable",
+                    retryable=True,
+                    failure_type="retrieval",
+                )
+            else:
+                set_span_attrs(
+                    retrieval_span,
+                    {
+                        "status": "success",
+                        "tool.status": "success",
+                        "retrieval.outcome": (
+                            "evidence_found" if bundle.items else "no_evidence"
+                        ),
+                        **evidence_attrs(bundle),
+                    },
+                )
+        if retrieval_failed or bundle is None:
+            record_failure(
+                span,
+                stage="librarian_retrieve",
+                code="retrieval_unavailable",
+                retryable=True,
+                failure_type="retrieval",
+            )
+            span.set_attribute("tool.status", "failure")
             return _insufficient_evidence("Evidence retrieval was unavailable; try again shortly.")
 
-        span.set_attribute("evidence", evidence_attrs(bundle))
+        set_span_attrs(span, evidence_attrs(bundle))
         try:
             result = explorer(clamped_brief, bundle)
-        except Exception as exc:
-            span.set_attribute("failure_stage", "serendipity_explore")
-            span.record_exception(exc)
+        except Exception:
+            record_failure(
+                span,
+                stage="serendipity_explore",
+                code="connection_exploration_failed",
+                retryable=False,
+                failure_type="application",
+            )
+            span.set_attribute("tool.status", "failure")
             return _insufficient_evidence("The connection could not be safely explored from the available evidence.")
 
-        span.set_attribute("result_status", result.status)
+        set_span_attrs(
+            span,
+            {
+                "status": "success" if result.status == "proposal" else "decline",
+                "tool.status": "success" if result.status == "proposal" else "decline",
+                "retrieval.outcome": result.status,
+            },
+        )
         return result
