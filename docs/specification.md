@@ -6,7 +6,16 @@ This document is the canonical source for product scope, architecture, implement
 
 Academic, frontier-lab, and expert sources for the final project report are maintained in [Sources for the Final Project Report](report-sources.md).
 
-The architecture and acceptance criteria below describe the target prototype. Delivery is staged: the current output-release slice uses a typed Muse candidate containing the complete reply and declared book-corpus evidence uses, then validates those declarations against trusted Librarian results and the server-trusted work, book version, and chapter ceiling. Serendipity-only, memory, web, and image evidence are not citation authorities in this slice and therefore fail closed. Declared claims, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate` remain target requirements for later slices.
+The architecture and acceptance criteria below describe the target prototype.
+Delivery is staged: the current output-release slice uses a typed Muse candidate
+containing the complete reply, declared book-corpus evidence uses, and
+`MemoryCandidate | NoMemoryCandidate`. Provenance reviews both response and
+nomination; application code binds a nomination to an exact source-turn span,
+validates book evidence against trusted Librarian results, and lets the
+deterministic Memory & Policy Service enforce automatic capture. Serendipity-
+only, stored-memory, web, and image evidence are not citation authorities in
+this slice and therefore fail closed. Declared claims, richer sensitive-
+inference flags, and account-scoped memory retrieval remain later slices.
 
 ## 1. Purpose and positioning
 
@@ -212,6 +221,14 @@ An automatic `MemoryCandidate` contains only:
 - sensitive-inference and policy flags.
 
 `NoMemoryCandidate` contains a machine-checkable reason code. Neither type contains account scope or write authority. Explicit user saves bypass this agent contract and go directly to the Memory & Policy Service.
+
+For the fixed synthetic-journal baseline, the versioned
+[`capture-policy-v1`](../data/synthetic-journals/policies/capture-policy-v1.md)
+contract operationalises these nomination and capture rules. It labels Muse
+nomination, Provenance review, and deterministic storage separately; it does
+not grant an agent write authority or replace this specification.
+
+![Persona-neutral synthetic journal pipeline](images/persona-neutral-synthetic-journal-pipeline.png)
 
 ### 5.6 Connection proposal
 
