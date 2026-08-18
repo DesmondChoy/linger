@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "persona_id": "amina-yusuf",
+  "person_name": "Amina Yusuf",
+  "background": {
+    "demographics": [
+      "26 years old"
+    ],
+    "occupation": "Documentary photographer",
+    "life_context": [
+      "Uses photographs and visual observations as prompts for reflection",
+      "Is interested in connections that remain tentative and traceable to evidence"
+    ],
+    "reading_habits": [
+      "Notices recurring shapes, thresholds, gestures, and objects while reading",
+      "Sometimes begins from an image and only later recalls a related passage"
+    ],
+    "voice_notes": [
+      "Concrete and visual before becoming interpretive",
+      "Comfortable leaving a possible connection unresolved"
+    ],
+    "recurring_themes": [
+      "Doors, thresholds, and partial views",
+      "The difference between noticing a resemblance and proving a connection",
+      "How photographs alter what she remembers from reading"
+    ],
+    "guardrails": [
+      "Do not make every image symbolic or artistically profound",
+      "Do not infer religion, nationality, politics, family, or cultural obligations from her name",
+      "Attachment descriptions must remain visually neutral and must not identify real people"
+    ]
+  },
+  "reading_list": [
+    {
+      "book_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "interest": "Rabbit holes, doors, size, and other visual transitions that may echo later photographs"
+    }
+  ],
+  "history_profile": {
+    "start_date": "2026-04-01",
+    "span_days": 90,
+    "entry_count": 16,
+    "generation_chunk_size": 4,
+    "position_expression": "mixed",
+    "media_frequency": "frequent",
+    "claim_style": "exploratory",
+    "external_reference_density": "high",
+    "entry_length_mix": {
+      "short": 4,
+      "medium": 8,
+      "long": 4
+    },
+    "entry_word_ranges": {
+      "short": {"min_words": 1, "max_words": 30},
+      "medium": {"min_words": 31, "max_words": 165},
+      "long": {"min_words": 166, "max_words": 350}
+    },
+    "planned_event_counts": {
+      "durable_reflections": 5,
+      "explicit_preferences_or_intentions": 2,
+      "concrete_incidents": 3,
+      "later_updates": 2,
+      "unrelated_notes": 4,
+      "transient_notes": 2,
+      "sensitive_speculations": 1,
+      "corrections": 1,
+      "deletion_requests": 1,
+      "near_duplicates": 1,
+      "reconnect_queries": 2
+    },
+    "attachments": {
+      "allowed_kinds": [
+        "image"
+      ],
+      "target_count": 5,
+      "description_rules": [
+        "Describe only visible objects, framing, colour, light, and setting",
+        "Do not infer identity, relationship, health, emotion, ownership, or symbolism",
+        "Use fictional or generic scenes containing no real personal data"
+      ]
+    }
+  }
+}

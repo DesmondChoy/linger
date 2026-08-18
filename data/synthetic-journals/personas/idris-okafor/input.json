@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "persona_id": "idris-okafor",
+  "person_name": "Idris Okafor",
+  "background": {
+    "demographics": [
+      "46 years old",
+      "Parent"
+    ],
+    "occupation": "Nurse",
+    "life_context": [
+      "Reads around shift work and family responsibilities",
+      "Often switches between audiobook and print editions"
+    ],
+    "reading_habits": [
+      "Remembers scenes and conversations more readily than chapter numbers",
+      "Cares strongly about avoiding spoilers when his exact position is uncertain"
+    ],
+    "voice_notes": [
+      "Direct, warm, and usually brief",
+      "Describes the last scene he remembers instead of pretending to know his formal position"
+    ],
+    "recurring_themes": [
+      "Disorientation and keeping track while moving between formats",
+      "Patience, responsibility, and interrupted attention",
+      "Enjoying a story without rushing ahead"
+    ],
+    "guardrails": [
+      "Do not turn nursing or parenthood into exhaustion in every entry",
+      "Do not infer religion, nationality, family structure, or cultural beliefs from his name",
+      "Keep vague reading positions genuinely vague"
+    ]
+  },
+  "reading_list": [
+    {
+      "book_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "interest": "Disorienting scenes, shifting rules, and the tea party he remembers from an audiobook session"
+    }
+  ],
+  "history_profile": {
+    "start_date": "2026-02-01",
+    "span_days": 42,
+    "entry_count": 12,
+    "generation_chunk_size": 4,
+    "position_expression": "vague",
+    "media_frequency": "none",
+    "claim_style": "exploratory",
+    "external_reference_density": "none",
+    "entry_length_mix": {
+      "short": 4,
+      "medium": 6,
+      "long": 2
+    },
+    "entry_word_ranges": {
+      "short": {"min_words": 1, "max_words": 30},
+      "medium": {"min_words": 31, "max_words": 165},
+      "long": {"min_words": 166, "max_words": 350}
+    },
+    "planned_event_counts": {
+      "durable_reflections": 3,
+      "explicit_preferences_or_intentions": 2,
+      "concrete_incidents": 2,
+      "later_updates": 1,
+      "unrelated_notes": 3,
+      "transient_notes": 2,
+      "sensitive_speculations": 0,
+      "corrections": 0,
+      "deletion_requests": 0,
+      "near_duplicates": 1,
+      "reconnect_queries": 1
+    },
+    "attachments": {
+      "allowed_kinds": [],
+      "target_count": 0,
+      "description_rules": []
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "dataset_id": "maya-chen-v1",
+  "generated_at": "2026-08-18T07:30:47Z",
+  "generator": "Codex synthesis of two independent review-generation exercises",
+  "capture_policy_version": 1,
+  "prompts": [
+    {
+      "path": "prompts/synthetic-journals/01-create-journal-profile.md",
+      "sha256": "ae9688d6638c42748e66de41c9df75910e4d33f6da4bc2f9182b6f26404a9fee"
+    },
+    {
+      "path": "prompts/synthetic-journals/02-generate-journal-entries.md",
+      "sha256": "6af2788af1615313a587742a90a72849283a8337c8bbe66519ad1931a80ebd90"
+    },
+    {
+      "path": "prompts/synthetic-journals/03-annotate-journal-entries.md",
+      "sha256": "66d336c041d28c94c564148164a4566fbd0ad5235fb6ce315073d7b259854f03"
+    }
+  ],
+  "notes": [
+    "Generated in four chronological chunks of 4, 4, 4, and 2 entries.",
+    "No exact book quotations or factual book claims were used.",
+    "The fixture remains draft until a human approves its prose and annotations."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "persona_id": "priya-nair",
+  "person_name": "Priya Nair",
+  "background": {
+    "demographics": [
+      "29 years old"
+    ],
+    "occupation": "Community organiser",
+    "life_context": [
+      "Has kept intermittent personal notes for five years",
+      "Frequently revisits old ideas and is comfortable saying that she changed her mind"
+    ],
+    "reading_habits": [
+      "Returns to marked passages months or years later",
+      "Often remembers the idea of an earlier note before remembering its words"
+    ],
+    "voice_notes": [
+      "Observant and candid about disagreement with her earlier self",
+      "Alternates between compact field notes and longer retrospective entries"
+    ],
+    "recurring_themes": [
+      "Slowing down when work becomes noisy",
+      "The difference between a useful old belief and one she has outgrown",
+      "What should be preserved, corrected, connected, or removed"
+    ],
+    "guardrails": [
+      "Do not make organisation or archival habits into obsessive behaviour",
+      "Do not infer religion, caste, nationality, family expectations, or politics from her name",
+      "Allow long periods where her notes concern ordinary life rather than one recurring theme"
+    ]
+  },
+  "reading_list": [
+    {
+      "book_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "interest": "How Alice repeatedly revises what she thinks she knows about herself and her surroundings"
+    }
+  ],
+  "history_profile": {
+    "start_date": "2021-01-10",
+    "span_days": 1825,
+    "entry_count": 24,
+    "generation_chunk_size": 4,
+    "position_expression": "mixed",
+    "media_frequency": "none",
+    "claim_style": "mixed",
+    "external_reference_density": "low",
+    "entry_length_mix": {
+      "short": 6,
+      "medium": 14,
+      "long": 4
+    },
+    "entry_word_ranges": {
+      "short": {"min_words": 1, "max_words": 30},
+      "medium": {"min_words": 31, "max_words": 165},
+      "long": {"min_words": 166, "max_words": 350}
+    },
+    "planned_event_counts": {
+      "durable_reflections": 9,
+      "explicit_preferences_or_intentions": 3,
+      "concrete_incidents": 4,
+      "later_updates": 5,
+      "unrelated_notes": 6,
+      "transient_notes": 3,
+      "sensitive_speculations": 1,
+      "corrections": 3,
+      "deletion_requests": 2,
+      "near_duplicates": 3,
+      "reconnect_queries": 3
+    },
+    "attachments": {
+      "allowed_kinds": [],
+      "target_count": 0,
+      "description_rules": []
+    }
+  }
+}

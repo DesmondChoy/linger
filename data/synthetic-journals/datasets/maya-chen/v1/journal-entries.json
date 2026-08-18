@@ -1,0 +1,136 @@
+{
+  "journal_dataset_version": 1,
+  "persona_id": "maya-chen",
+  "entries": [
+    {
+      "entry_id": "entry-001",
+      "sequence": 1,
+      "timestamp": "2026-01-05T21:10:00Z",
+      "text": "The coffee grinder made that awful rattling noise again. I tightened the little cup underneath and it stopped, at least for tonight. I keep forgetting how satisfying it is when a problem is exactly as small as it looks.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-002",
+      "sequence": 2,
+      "timestamp": "2026-01-09T18:40:00Z",
+      "text": "In the leadership review today, I answered a question before anyone else had really finished thinking. The answer was reasonable, but I watched the room reorganize around it. Two people who had been leaning forward went quiet. I cannot tell whether they disagreed or simply decided the decision had already been made. I keep saying I want exploratory conversations, then I arrive sounding like the conclusion. Next time I want to wait long enough to hear one full alternative before I offer mine.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-003",
+      "sequence": 3,
+      "timestamp": "2026-01-12T22:05:00Z",
+      "text": "I finished Chapter 5 tonight. I am less interested in turning it into advice than in the irritation it left behind: how quickly I reach for a stable description of myself. At work I say I am being decisive, as if that settles whether I am being useful. Maybe the question is not whether I am a product leader or something else. Maybe it is which version of leadership I keep rehearsing when the room gets tense. I do not have an answer, and I would rather not manufacture one just because the book gave me a good question.",
+      "attachments": [],
+      "book_contexts": [
+        {
+          "book_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "declared_position": "I finished Chapter 5 tonight"
+        }
+      ]
+    },
+    {
+      "entry_id": "entry-004",
+      "sequence": 4,
+      "timestamp": "2026-01-16T23:18:00Z",
+      "text": "Too tired to make sense of today. The meeting was loud, the train was louder, and I left my umbrella somewhere.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-005",
+      "sequence": 5,
+      "timestamp": "2026-01-19T20:25:00Z",
+      "text": "Small experiment for Thursday: when the roadmap question comes up, I will say what I know, name what I do not know, and ask each person for the risk they think I am missing. No speech about psychological safety. No dramatic announcement that I am changing my leadership style. Just leave the door open for five minutes and see whether anyone walks through it.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-006",
+      "sequence": 6,
+      "timestamp": "2026-01-22T19:02:00Z",
+      "text": "Made too much soup. Froze three containers and still have enough for tomorrow. I also finally threw out the wooden spoon with the cracked handle, which felt absurdly disloyal.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-007",
+      "sequence": 7,
+      "timestamp": "2026-01-25T17:48:00Z",
+      "text": "Someone on the team has been unusually quiet in the last two meetings. I caught myself deciding they must be depressed, which is a story I cannot possibly know from two video calls. Their silence may have nothing to do with work, or with me, or with anything I can name. I should ask a normal, non-invasive question and listen to the answer instead of turning a gap in my knowledge into a diagnosis.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-008",
+      "sequence": 8,
+      "timestamp": "2026-01-29T21:12:00Z",
+      "text": "I tried the five-minute pause in the roadmap meeting. It was not magical. There was an awkward stretch where everyone looked at the document, and I nearly rescued us with my answer. Then one person named a dependency I had missed and another disagreed with the sequence entirely. We still chose a direction, just later and with a better reason. The surprising part was that I did not feel less responsible. I felt more aware of what the responsibility actually included. One meeting is not evidence that I should stay in this role forever, but it is evidence that the role is not fixed in the way I have been treating it. Before the meeting I had written down three answers in case the silence became unbearable. I used none of them exactly. Near the end I still compressed the disagreement too quickly because time was running out, so this was not some clean transformation. It was one useful counterexample to my assumption that openness means abandoning responsibility. I want to try it again when the stakes feel less rehearsed and the room is less familiar.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-009",
+      "sequence": 9,
+      "timestamp": "2026-02-02T20:46:00Z",
+      "text": "I keep coming back to the same uncomfortable sentence: I ask for exploration and then speak like the conclusion. That is close to what I wrote after the leadership review, but today it feels less like an accusation and more like a useful warning light. The moment I become anxious about time, I make certainty do the work that a clearer process should be doing. I want to notice that moment before I fill it.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-010",
+      "sequence": 10,
+      "timestamp": "2026-02-06T08:15:00Z",
+      "text": "Rain before breakfast. My shoes are still damp from yesterday, so I wore the pair that squeaks on tile. There is no discreet way to arrive anywhere in squeaking shoes.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-011",
+      "sequence": 11,
+      "timestamp": "2026-02-10T22:32:00Z",
+      "text": "Please remember this in my own words: when I feel rushed, I use certainty to replace process. I want to return to that before the next high-stakes review, not because it is a permanent truth about me, but because it is a pattern I can actually test.",
+      "attachments": [],
+      "book_contexts": []
+    },
+    {
+      "entry_id": "entry-012",
+      "sequence": 12,
+      "timestamp": "2026-02-15T19:55:00Z",
+      "text": "Correction to what I wrote after Chapter 5: I said the question might be whether I am a product leader or something else. That made the choice sound cleaner than it is. I am not choosing between two finished identities. I am trying to separate what drains me from what I have simply learned to do badly under pressure. The small meeting experiments matter because they give me information, but they do not prove I should stay. For now the more accurate sentence is: I am testing whether I can lead without treating certainty as the price of admission, while still allowing that I may eventually want different work. I also notice that I keep treating a career decision as though it should arrive as a single decisive insight. That is probably the same habit in a different outfit. I can collect evidence without promising that the evidence will produce a dramatic answer. The next useful test is a leadership review with people who are less comfortable disagreeing with me; that is where my stated openness and my actual behavior are most likely to separate.",
+      "attachments": [],
+      "book_contexts": [
+        {
+          "book_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "declared_position": "after Chapter 5"
+        }
+      ]
+    },
+    {
+      "entry_id": "entry-013",
+      "sequence": 13,
+      "timestamp": "2026-02-20T21:08:00Z",
+      "text": "Can you bring back what I wrote after Chapter 5 and compare it with the note about leaving five minutes open in the roadmap meeting? I think they are circling the same question about identity and authority, but I do not want a tidy connection pasted over the differences. Show me where my own words genuinely line up and where they do not.",
+      "attachments": [],
+      "book_contexts": [
+        {
+          "book_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "declared_position": "after Chapter 5"
+        }
+      ]
+    },
+    {
+      "entry_id": "entry-014",
+      "sequence": 14,
+      "timestamp": "2026-03-01T16:30:00Z",
+      "text": "Repotted the stubborn plant. Most of the soil ended up on the floor. It looks exactly the same.",
+      "attachments": [],
+      "book_contexts": []
+    }
+  ]
+}
