@@ -1,7 +1,9 @@
 """End-to-end tests driving the real chat route through Muse's serendipity_explore tool."""
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from apps.backend.config import get_settings
@@ -22,6 +24,7 @@ from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
@@ -56,6 +59,10 @@ def _muse_calls_serendipity(cue: str, captured: list):
                     {
                         "reply": "Here's a connection worth sitting with.",
                         "evidence_uses": [],
+                        "memory": {
+                            "kind": "no_memory_candidate",
+                            "reason_code": "automatic_capture_disabled",
+                        },
                     },
                 )
             ]
@@ -66,6 +73,12 @@ def _muse_calls_serendipity(cue: str, captured: list):
 
 class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
     session_id = "chat-connection-e2e"
+
+    def setUp(self) -> None:
+        self._directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self._directory.cleanup)
+        self.service = MemoryPolicyService(Path(self._directory.name))
+        self.account = AccountContext("chat-connection-test")
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
@@ -79,7 +92,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
         with muse_chat_agent.override(model=FunctionModel(_muse_calls_serendipity("growing caterpillar", captured))):
             with provenance_agent.override(model=FunctionModel(_provenance_pass)):
-                response = await main.chat(request)
+                response = await main.chat(request, self.service, self.account)
 
         self.assertTrue(response.reply)
         self.assertTrue(captured)
@@ -94,7 +107,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
         with muse_chat_agent.override(model=FunctionModel(_muse_calls_serendipity("growing caterpillar", captured))):
             with provenance_agent.override(model=FunctionModel(_provenance_pass)):
-                response = await main.chat(request)
+                response = await main.chat(request, self.service, self.account)
 
         self.assertTrue(response.reply)
         self.assertTrue(captured)

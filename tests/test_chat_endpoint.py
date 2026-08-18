@@ -2,7 +2,9 @@
 
 import json
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -23,17 +25,27 @@ with patch.dict(
 ):
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
-    from src.linger.agents.muse.models import MuseCandidate
+    from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
     from src.linger.orchestration.reflection import (
         SAFE_DECLINE,
         ReflectionRelease,
         reflection_reply as run_reflection_gate,
     )
+    from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
 class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     session_id = "endpoint-test"
+
+    def setUp(self) -> None:
+        self._memory_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self._memory_directory.cleanup)
+        self.memory_service = MemoryPolicyService(Path(self._memory_directory.name))
+        self.memory_context = AccountContext("chat-endpoint-test")
+
+    async def call_chat(self, request: ChatRequest):
+        return await main.chat(request, self.memory_service, self.memory_context)
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
@@ -93,7 +105,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         ))
 
         with patch.object(main, "reflection_reply", gate):
-            response = await main.chat(request)
+            response = await self.call_chat(request)
 
         self.assertEqual("Approved reply", response.reply)
         history = sessions.history(self.session_id)
@@ -117,7 +129,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(main, "reflection_reply", gate):
             with self.assertRaises(HTTPException) as caught:
-                await main.chat(request)
+                await self.call_chat(request)
 
         self.assertEqual(502, caught.exception.status_code)
         self.assertTrue(caught.exception.__suppress_context__)
@@ -140,7 +152,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         ))
 
         with patch.object(main, "reflection_reply", gate):
-            await main.chat(request)
+            await self.call_chat(request)
 
         muse_payload = json.loads(gate.await_args.args[0])
         review_context = gate.await_args.kwargs["review_context"]
@@ -160,7 +172,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         ))
 
         with patch.object(main, "reflection_reply", gate):
-            response = await main.chat(request)
+            response = await self.call_chat(request)
 
         self.assertEqual("Safe decline", response.reply)
         self.assertIsNone(sessions.reading_candidate(self.session_id))
@@ -179,7 +191,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         )
 
         with patch.object(main, "reflection_reply", gate):
-            response = await main.chat(
+            response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
 
@@ -187,14 +199,20 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             "deterministic_validation", response.inspection.release.failure_stage
         )
-        self.assertEqual("complete", response.inspection.traces[-1]["status"])
+        self.assertEqual("not_run", response.inspection.traces[-1]["status"])
 
     async def test_rejected_critique_never_reaches_serialized_response(self) -> None:
         secret_quote = "PRIVATE_REJECTED_QUOTE_7f68b6"
         secret_explanation = "PRIVATE_REVIEW_EXPLANATION_34ab91"
         muse = AsyncMock()
         muse.run.return_value = SimpleNamespace(
-            output=MuseCandidate(reply="Unsafe draft"),
+            output=MuseCandidate(
+                reply="Unsafe draft",
+                memory=NoMemoryCandidate(
+                    kind="no_memory_candidate",
+                    reason_code="transient_or_low_signal",
+                ),
+            ),
             new_messages=lambda: [],
         )
         provenance = AsyncMock()
@@ -220,7 +238,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         gate = AsyncMock(return_value=release)
 
         with patch.object(main, "reflection_reply", gate):
-            response = await main.chat(
+            response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
 
@@ -236,6 +254,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 "finding_codes",
                 "revision_count",
                 "failure_stage",
+                "capture",
             },
             set(response.inspection.release.model_dump()),
         )

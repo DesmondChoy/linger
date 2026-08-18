@@ -23,7 +23,7 @@ export type ConnectionBrief = {
 }
 
 export type AgentTrace = {
-  agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Provenance'
+  agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Provenance' | 'Memory & Policy'
   status: 'waiting' | 'running' | 'complete' | 'declined' | 'skipped' | 'not_wired' | 'failed'
   detail: string
 }
@@ -36,6 +36,7 @@ export type MuseTurnContract = {
     spoiler_ceiling: number | null
     allow_retrieval: boolean
     allow_connection: boolean
+    allow_memory_capture: boolean
   }
 }
 
@@ -78,7 +79,16 @@ export type RiskCode =
   | 'boundary_violation'
   | 'uncited_web_claim'
   | 'unsupported_claim'
+  | 'sensitive_content'
   | 'prompt_injection'
+
+export type CaptureInspection = {
+  nomination: 'candidate' | 'no_candidate' | 'unavailable'
+  provenance_decision: 'allow_capture' | 'reject_capture' | 'no_candidate' | null
+  binding: 'exact' | 'not_applicable' | 'invalid'
+  storage: 'committed' | 'refused' | 'not_applicable'
+  reason_code: string | null
+}
 
 export type ReleaseInspection = {
   release_source: 'muse_candidate' | 'application_safe_decline'
@@ -86,6 +96,7 @@ export type ReleaseInspection = {
   finding_codes: RiskCode[]
   revision_count: number
   failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
+  capture: CaptureInspection
 }
 
 export type TurnTimeline = {
@@ -119,6 +130,12 @@ export type TurnInspection = {
 export type ChatResult = {
   reply: string
   inspection: TurnInspection
+  memory_capture: MemoryCaptureNotice | null
+}
+
+export type MemoryCaptureNotice = {
+  memory_id: string
+  notice: 'Saved to your memories.'
 }
 
 export type Message = {

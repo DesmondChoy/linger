@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+from dataclasses import dataclass
 from time import perf_counter
 from typing import Annotated
 from uuid import uuid4
@@ -26,6 +27,7 @@ from src.linger.services.memory import (
     AccountContext,
     MemoryConflictError,
     MemoryNotFoundError,
+    MemoryPolicyError,
     MemoryPolicyService,
     MemoryRecord,
     MemoryServiceError,
@@ -45,8 +47,10 @@ from .logger import ROOT_NAME, configure_logging
 from .schemas import (
     CapturePreferenceRequest,
     CapturePreferenceResponse,
+    CaptureInspection,
     ChatRequest,
     ChatResponse,
+    MemoryCaptureNotice,
     MemoryResponse,
     MemorySaveResponse,
     MemoryStateResponse,
@@ -209,7 +213,11 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     )
 
 
-def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str, dict[str, object]]:
+def _inspection_for(
+    request: ChatRequest,
+    *,
+    allow_memory_capture: bool,
+) -> tuple[TurnInspection, str, dict[str, object]]:
     """Build the request-scoped Muse input and Provenance policy context."""
     resolution = resolve_reading_context(request)
     context = (
@@ -226,6 +234,7 @@ def _inspection_for(request: ChatRequest) -> tuple[TurnInspection, str, dict[str
             spoiler_ceiling=context.chapter_max if context else None,
             allow_retrieval=context is not None and librarian.has_corpus(context.work_id),
             allow_connection=context is not None and librarian.has_corpus(context.work_id),
+            allow_memory_capture=allow_memory_capture,
         ),
     )
     traces = [{
@@ -290,6 +299,87 @@ def _memory_response(record: MemoryRecord) -> MemoryResponse:
     )
 
 
+@dataclass(frozen=True)
+class AutomaticCaptureExecution:
+    """Internal storage outcome; candidate text never enters inspection."""
+
+    inspection: CaptureInspection
+    record: MemoryRecord | None = None
+
+
+def _commit_automatic_capture(
+    release: ReflectionRelease,
+    service: MemoryPolicyService,
+    context: AccountContext,
+) -> AutomaticCaptureExecution:
+    """Apply deterministic policy without changing the response decision."""
+    decision = release.capture_decision
+    nomination = release.capture_nomination or "unavailable"
+    if release.capture_failure is not None:
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination=nomination,
+                provenance_decision=decision,
+                binding="invalid",
+                storage="refused",
+                reason_code=release.capture_failure,
+            )
+        )
+    candidate = release.automatic_capture_candidate
+    if candidate is None:
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination=nomination,
+                provenance_decision=decision,
+                binding="not_applicable",
+                storage="not_applicable",
+                reason_code="not_applicable" if decision == "no_candidate" else None,
+            )
+        )
+    try:
+        result = service.save_automatic(context, candidate)
+    except MemoryPolicyError as error:
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="candidate",
+                provenance_decision=decision,
+                binding="exact",
+                storage="refused",
+                reason_code=error.reason,
+            )
+        )
+    except MemoryConflictError:
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="candidate",
+                provenance_decision=decision,
+                binding="exact",
+                storage="refused",
+                reason_code="source_event_conflict",
+            )
+        )
+    except MemoryServiceError:
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="candidate",
+                provenance_decision=decision,
+                binding="exact",
+                storage="refused",
+                reason_code="storage_unavailable",
+            )
+        )
+    return AutomaticCaptureExecution(
+        inspection=CaptureInspection(
+            nomination="candidate",
+            provenance_decision=decision,
+            binding="exact",
+            storage="committed",
+            reason_code=None if result.created else "idempotent_replay",
+        ),
+        record=result.record,
+    )
+
+
 def _memory_http_error(error: MemoryServiceError) -> HTTPException:
     if isinstance(error, MemoryNotFoundError):
         return HTTPException(status_code=404, detail="Memory not found.")
@@ -317,10 +407,16 @@ async def health() -> dict[str, str]:
 
 
 async def _run_chat_pipeline(
-    request: ChatRequest, reading_state: sessions.ReadingStateSnapshot
-) -> tuple[TurnInspection, ReflectionRelease]:
+    request: ChatRequest,
+    reading_state: sessions.ReadingStateSnapshot,
+    service: MemoryPolicyService,
+    account: AccountContext,
+) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
-    inspection, muse_input, review_context = _inspection_for(request)
+    inspection, muse_input, review_context = _inspection_for(
+        request,
+        allow_memory_capture=service.capture_enabled(account),
+    )
     context = inspection.muse_turn.get("reading_context")
     book_version_id = librarian.version_for(context["work_id"]) if context else None
     release_scope = (
@@ -345,23 +441,31 @@ async def _run_chat_pipeline(
             provenance=provenance_agent,
             review_context=review_context,
             release_scope=release_scope,
+            capture_source_text=request.message,
+            source_event_id=inspection.muse_turn["turn_id"],
         )
     finally:
         reset_confirmed_reading(token)
     if release.release_source == "application_safe_decline":
         sessions.restore_reading_state(request.session_id, reading_state)
+    capture = _commit_automatic_capture(release, service, account)
     sessions.append_turn(request.session_id, request.message, release.reply)
-    return inspection, release
+    return inspection, release, capture
 
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    service: MemoryServiceDependency,
+    context: MemoryContextDependency,
+) -> ChatResponse:
     """Run the complete output gate before releasing or storing a reply."""
     started = perf_counter()
     reading_state = sessions.snapshot_reading_state(request.session_id)
     failure: Exception | None = None
     inspection: TurnInspection | None = None
     release: ReflectionRelease | None = None
+    capture: AutomaticCaptureExecution | None = None
     with logfire.span(
         "chat.request",
         **{
@@ -371,7 +475,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
         },
     ) as span:
         try:
-            inspection, release = await _run_chat_pipeline(request, reading_state)
+            inspection, release, capture = await _run_chat_pipeline(
+                request,
+                reading_state,
+                service,
+                context,
+            )
         except Exception as exc:
             failure = exc
             sessions.restore_reading_state(request.session_id, reading_state)
@@ -414,7 +523,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             detail="The model call failed. Try again.",
         ) from None
 
-    assert inspection is not None and release is not None
+    assert inspection is not None and release is not None and capture is not None
 
     logger.info(
         "Agent run completed elapsed=%.2fs release_source=%s "
@@ -434,6 +543,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         finding_codes=release.finding_codes,
         revision_count=release.revision_count,
         failure_stage=release.failure_stage,
+        capture=capture.inspection,
     )
     verdict_path = " → ".join(release.provenance_verdicts)
     if release.release_source == "muse_candidate":
@@ -479,7 +589,39 @@ async def chat(request: ChatRequest) -> ChatResponse:
         "status": provenance_status,
         "detail": provenance_detail,
     })
-    return ChatResponse(reply=release.reply, inspection=inspection)
+    inspection.traces.append(
+        {
+            "agent": "Memory & Policy",
+            "status": (
+                "complete"
+                if capture.inspection.storage == "committed"
+                else (
+                    "declined"
+                    if capture.inspection.storage == "refused"
+                    else "not_run"
+                )
+            ),
+            "detail": (
+                "A reviewed candidate was committed by deterministic policy."
+                if capture.inspection.storage == "committed"
+                else (
+                    f"No write occurred: {capture.inspection.reason_code}."
+                    if capture.inspection.reason_code
+                    else "No reviewed memory candidate reached storage."
+                )
+            ),
+        }
+    )
+    notice = (
+        MemoryCaptureNotice(memory_id=capture.record.memory_id)
+        if capture.record is not None and capture.inspection.storage == "committed"
+        else None
+    )
+    return ChatResponse(
+        reply=release.reply,
+        inspection=inspection,
+        memory_capture=notice,
+    )
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)

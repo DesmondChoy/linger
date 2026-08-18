@@ -6,7 +6,11 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from pydantic_ai.messages import ToolReturnPart
 
-from src.linger.agents.muse.models import EvidenceUse, MuseCandidate
+from src.linger.agents.muse.models import (
+    EvidenceUse,
+    MuseCandidate,
+    NoMemoryCandidate,
+)
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.reflection import SAFE_DECLINE, reflection_reply
@@ -38,7 +42,14 @@ def candidate(
                 exact_quote=exact_quote,
             ),
         )
-    return MuseCandidate(reply=reply, evidence_uses=uses)
+    return MuseCandidate(
+        reply=reply,
+        evidence_uses=uses,
+        memory=NoMemoryCandidate(
+            kind="no_memory_candidate",
+            reason_code="transient_or_low_signal",
+        ),
+    )
 
 
 def result(output: object, *tool_returns: ToolReturnPart) -> SimpleNamespace:

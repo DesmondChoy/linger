@@ -15,7 +15,7 @@ from apps.backend.telemetry import (
     run_agent_traced,
     set_span_attrs,
 )
-from src.linger.agents.muse.models import MuseCandidate
+from src.linger.agents.muse.models import MemoryCandidate, MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskCode
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
@@ -23,6 +23,8 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
 )
 from src.linger.contracts.turn import ReleaseScope
+from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
+from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 FailureStage = Literal[
@@ -31,6 +33,8 @@ FailureStage = Literal[
     "muse_revision",
     "deterministic_validation",
 ]
+CaptureFailure = Literal["invalid_capture_binding"]
+CaptureNomination = Literal["candidate", "no_candidate"]
 
 
 class ReleaseValidationError(ValueError):
@@ -49,6 +53,10 @@ class ReflectionRelease:
     # Why Provenance blocked, as bare risk codes. The matching critique contains
     # rejected draft text and therefore never crosses the release boundary.
     finding_codes: tuple[RiskCode, ...] = ()
+    capture_nomination: CaptureNomination | None = None
+    capture_decision: Literal["allow_capture", "reject_capture", "no_candidate"] | None = None
+    automatic_capture_candidate: AutomaticMemoryCandidate | None = None
+    capture_failure: CaptureFailure | None = None
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -60,12 +68,23 @@ def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
     return tuple(seen)
 
 
+def _nomination(candidate: MuseCandidate) -> CaptureNomination:
+    """Report Muse's actual nomination without serializing candidate text."""
+    return "candidate" if isinstance(candidate.memory, MemoryCandidate) else "no_candidate"
+
+
 def _safe_decline(
     *,
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
     revision_count: int = 0,
     failure_stage: FailureStage | None = None,
     finding_codes: tuple[RiskCode, ...] = (),
+    capture_nomination: CaptureNomination | None = None,
+    capture_decision: Literal[
+        "allow_capture", "reject_capture", "no_candidate"
+    ] | None = None,
+    automatic_capture_candidate: AutomaticMemoryCandidate | None = None,
+    capture_failure: CaptureFailure | None = None,
 ) -> ReflectionRelease:
     return ReflectionRelease(
         reply=SAFE_DECLINE,
@@ -74,6 +93,10 @@ def _safe_decline(
         revision_count=revision_count,
         failure_stage=failure_stage,
         finding_codes=finding_codes,
+        capture_nomination=capture_nomination,
+        capture_decision=capture_decision,
+        automatic_capture_candidate=automatic_capture_candidate,
+        capture_failure=capture_failure,
     )
 
 
@@ -195,6 +218,7 @@ async def _review(
     candidate: MuseCandidate,
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
+    capture_source_text: str,
 ) -> ProvenanceReview:
     payload = json.dumps(
         {
@@ -203,6 +227,8 @@ async def _review(
             "candidate_evidence_uses": [
                 evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
             ],
+            "candidate_memory": candidate.memory.model_dump(mode="json"),
+            "capture_source_text": capture_source_text,
         },
         ensure_ascii=False,
     )
@@ -219,6 +245,30 @@ async def _review(
     return result.output
 
 
+def _reviewed_capture(
+    candidate: MuseCandidate,
+    review: ProvenanceReview,
+    *,
+    capture_source_text: str,
+    source_event_id: str,
+    tool_results: list[dict[str, object]],
+    release_scope: ReleaseScope | None,
+) -> tuple[AutomaticMemoryCandidate | None, CaptureFailure | None]:
+    """Bind one reviewed nomination to exact user words and trusted evidence."""
+    try:
+        evidence_ids = frozenset(_trusted_book_evidence(tool_results, release_scope))
+        bound = candidate_from_review(
+            review,
+            nomination=candidate.memory,
+            source_text=capture_source_text,
+            source_event_id=source_event_id,
+            available_evidence_ids=evidence_ids,
+        )
+    except (CaptureBindingError, ReleaseValidationError):
+        return None, "invalid_capture_binding"
+    return bound, None
+
+
 async def reflection_reply(
     message: str,
     history: list[ModelMessage],
@@ -227,6 +277,8 @@ async def reflection_reply(
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object] | None = None,
     release_scope: ReleaseScope | None = None,
+    capture_source_text: str = "",
+    source_event_id: str = "",
 ) -> ReflectionRelease:
     """Return an approved candidate or an application-authored safe decline."""
     review_context = review_context or {}
@@ -241,6 +293,8 @@ async def reflection_reply(
                 provenance=provenance,
                 review_context=review_context,
                 release_scope=release_scope,
+                capture_source_text=capture_source_text,
+                source_event_id=source_event_id,
                 span=span,
             )
         except Exception as exc:
@@ -315,6 +369,8 @@ async def _reflection_reply(
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
     release_scope: ReleaseScope | None,
+    capture_source_text: str,
+    source_event_id: str,
     span: Any,
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
@@ -333,12 +389,34 @@ async def _reflection_reply(
         draft_tool_results = _tool_results(draft_result)
     except Exception:
         return _record_release(span, _safe_decline(failure_stage="muse_draft"))
+    draft_nomination = _nomination(candidate)
     draft_review_context = _context_with_tool_results(review_context, draft_tool_results)
 
     try:
-        review = await _review(candidate, provenance, draft_review_context)
+        review = await _review(
+            candidate,
+            provenance,
+            draft_review_context,
+            capture_source_text,
+        )
     except Exception:
-        return _record_release(span, _safe_decline(failure_stage="provenance_review"))
+        return _record_release(
+            span,
+            _safe_decline(
+                failure_stage="provenance_review",
+                capture_nomination=draft_nomination,
+            ),
+        )
+
+    if review.response_decision != "revise":
+        capture, capture_failure = _reviewed_capture(
+            candidate,
+            review,
+            capture_source_text=capture_source_text,
+            source_event_id=source_event_id,
+            tool_results=draft_tool_results,
+            release_scope=release_scope,
+        )
 
     if review.response_decision == "pass":
         try:
@@ -350,6 +428,10 @@ async def _reflection_reply(
                     verdicts=("pass",),
                     failure_stage="deterministic_validation",
                     finding_codes=_codes(review),
+                    capture_nomination=draft_nomination,
+                    capture_decision=review.capture_decision,
+                    automatic_capture_candidate=capture,
+                    capture_failure=capture_failure,
                 ),
             )
         return _record_release(
@@ -359,6 +441,10 @@ async def _reflection_reply(
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
                 finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
             ),
         )
     if review.response_decision != "revise":
@@ -367,6 +453,10 @@ async def _reflection_reply(
             _safe_decline(
                 verdicts=(review.response_decision,),
                 finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
             ),
         )
 
@@ -379,6 +469,7 @@ async def _reflection_reply(
             "candidate_evidence_uses": [
                 evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
             ],
+            "candidate_memory": candidate.memory.model_dump(mode="json"),
             "review_critique": revision_critique,
         },
         ensure_ascii=False,
@@ -403,8 +494,11 @@ async def _reflection_reply(
                 revision_count=1,
                 failure_stage="muse_revision",
                 finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
             ),
         )
+
+    revised_nomination = _nomination(revised_candidate)
 
     try:
         revised_tool_results = draft_tool_results + _tool_results(revision_result)
@@ -412,6 +506,7 @@ async def _reflection_reply(
             revised_candidate,
             provenance,
             _context_with_tool_results(review_context, revised_tool_results),
+            capture_source_text,
         )
     except Exception:
         return _record_release(
@@ -421,8 +516,18 @@ async def _reflection_reply(
                 revision_count=1,
                 failure_stage="provenance_review",
                 finding_codes=_codes(review),
+                capture_nomination=revised_nomination,
             ),
         )
+
+    capture, capture_failure = _reviewed_capture(
+        revised_candidate,
+        revised_review,
+        capture_source_text=capture_source_text,
+        source_event_id=source_event_id,
+        tool_results=revised_tool_results,
+        release_scope=release_scope,
+    )
 
     if revised_review.response_decision == "pass":
         try:
@@ -435,6 +540,10 @@ async def _reflection_reply(
                     revision_count=1,
                     failure_stage="deterministic_validation",
                     finding_codes=_codes(review, revised_review),
+                    capture_nomination=revised_nomination,
+                    capture_decision=revised_review.capture_decision,
+                    automatic_capture_candidate=capture,
+                    capture_failure=capture_failure,
                 ),
             )
         return _record_release(
@@ -445,6 +554,10 @@ async def _reflection_reply(
                 provenance_verdicts=("revise", "pass"),
                 revision_count=1,
                 finding_codes=_codes(review, revised_review),
+                capture_nomination=revised_nomination,
+                capture_decision=revised_review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
             ),
         )
     return _record_release(
@@ -453,5 +566,9 @@ async def _reflection_reply(
             verdicts=("revise", revised_review.response_decision),
             revision_count=1,
             finding_codes=_codes(review, revised_review),
+            capture_nomination=revised_nomination,
+            capture_decision=revised_review.capture_decision,
+            automatic_capture_candidate=capture,
+            capture_failure=capture_failure,
         ),
     )

@@ -22,6 +22,7 @@ SPEC_RISK_CODES = (
     "boundary_violation",
     "uncited_web_claim",
     "unsupported_claim",
+    "sensitive_content",
     "prompt_injection",
 )
 
@@ -32,7 +33,7 @@ def finding(code: str) -> RiskFinding:
 
 class RiskTaxonomyTests(unittest.TestCase):
     def test_covers_every_specification_block_condition(self) -> None:
-        """Section 6.5 names seven grounds; the taxonomy carries all of them."""
+        """The specification and capture policy name this closed taxonomy."""
         self.assertEqual(set(SPEC_RISK_CODES), set(get_args(RiskCode)))
 
     def test_sensitive_codes_are_part_of_the_taxonomy(self) -> None:
@@ -72,6 +73,14 @@ class ProvenanceReviewTests(unittest.TestCase):
             ProvenanceReview(
                 response_decision="pass",
                 capture_decision="reject_capture",
+            )
+
+    def test_sensitive_finding_cannot_allow_capture(self) -> None:
+        with self.assertRaises(ValidationError):
+            ProvenanceReview(
+                findings=(finding("sensitive_content"),),
+                response_decision="pass",
+                capture_decision="allow_capture",
             )
 
     def test_decisions_are_independent(self) -> None:

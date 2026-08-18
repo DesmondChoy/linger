@@ -21,12 +21,18 @@ RiskCode = Literal[
     "boundary_violation",
     "uncited_web_claim",
     "unsupported_claim",
+    "sensitive_content",
     "prompt_injection",
 ]
 
 # Grounds that make content ineligible for automatic capture.
 SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
-    {"unsupported_claim", "boundary_violation", "prompt_injection"}
+    {
+        "unsupported_claim",
+        "sensitive_content",
+        "boundary_violation",
+        "prompt_injection",
+    }
 )
 
 # One review reports at most this many findings.
@@ -62,6 +68,8 @@ class ProvenanceReview(StrictModel):
             )
         if self.capture_decision == "reject_capture" and not self.findings:
             raise ValueError("reject_capture requires at least one finding")
+        if self.capture_decision == "allow_capture" and self.contains_sensitive_content:
+            raise ValueError("sensitive content cannot be allowed for automatic capture")
         return self
 
     @property

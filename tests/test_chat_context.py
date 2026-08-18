@@ -1,7 +1,9 @@
 """Tests that the chat route sets the request-scoped confirmed-reading ContextVar."""
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from fastapi import HTTPException
@@ -22,6 +24,7 @@ with patch.dict(
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.orchestration.turn_context import confirmed_reading
+from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
 def released(text: str = "reply") -> ReflectionRelease:
@@ -34,6 +37,15 @@ def released(text: str = "reply") -> ReflectionRelease:
 
 class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
     session_id = "chat-context-test"
+
+    def setUp(self) -> None:
+        self._directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self._directory.cleanup)
+        self.service = MemoryPolicyService(Path(self._directory.name))
+        self.account = AccountContext("chat-context-test")
+
+    async def call_chat(self, request: ChatRequest):
+        return await main.chat(request, self.service, self.account)
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
@@ -52,7 +64,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         )
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
-            await main.chat(request)
+            await self.call_chat(request)
 
         self.assertEqual(
             ConfirmedReading(work_id="pg11", chapter_max=3),
@@ -78,7 +90,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         request = ChatRequest(session_id=self.session_id, message="Hello")
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
-            await main.chat(request)
+            await self.call_chat(request)
 
         self.assertIsNone(seen["value"])
         self.assertIsNone(seen["release_scope"])
@@ -94,7 +106,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         request = ChatRequest(session_id=self.session_id, message="Why is the Caterpillar so rude?")
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
-            await main.chat(request)
+            await self.call_chat(request)
 
         self.assertIsNone(seen["value"])
         self.assertIsNone(seen["release_scope"])
@@ -107,7 +119,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         )
 
         with patch.object(main, "reflection_reply", AsyncMock(return_value=released())):
-            await main.chat(request)
+            await self.call_chat(request)
 
         self.assertIsNone(confirmed_reading())
 
@@ -119,7 +131,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(main, "reflection_reply", AsyncMock(side_effect=RuntimeError("boom"))):
             with self.assertRaises(HTTPException):
-                await main.chat(request)
+                await self.call_chat(request)
 
         self.assertIsNone(confirmed_reading())
 

@@ -36,7 +36,7 @@ from apps.backend.telemetry import (
     review_attrs,
     run_agent_traced,
 )
-from src.linger.agents.muse.models import MuseCandidate
+from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.orchestration.reflection import (
     SAFE_DECLINE,
@@ -56,7 +56,13 @@ SECRET_EXCEPTION = "plmok private provider failure plmok"
 def result(output: object) -> SimpleNamespace:
     """Match the fake run-result shape used by tests/test_reflection.py."""
     if isinstance(output, str):
-        output = MuseCandidate(reply=output)
+        output = MuseCandidate(
+            reply=output,
+            memory=NoMemoryCandidate(
+                kind="no_memory_candidate",
+                reason_code="transient_or_low_signal",
+            ),
+        )
     messages = [SimpleNamespace(parts=[])]
     return SimpleNamespace(output=output, new_messages=lambda: messages)
 

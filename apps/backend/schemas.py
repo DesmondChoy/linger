@@ -20,6 +20,20 @@ class ChatRequest(RequestBody):
     message: str = Field(min_length=1, max_length=8000)
 
 
+class CaptureInspection(BaseModel):
+    """Content-free outcome for the three automatic-capture stages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nomination: Literal["candidate", "no_candidate", "unavailable"]
+    provenance_decision: Literal[
+        "allow_capture", "reject_capture", "no_candidate"
+    ] | None
+    binding: Literal["exact", "not_applicable", "invalid"]
+    storage: Literal["committed", "refused", "not_applicable"]
+    reason_code: str | None
+
+
 class ReleaseInspection(BaseModel):
     """Content-free metadata describing the application release decision."""
 
@@ -35,6 +49,7 @@ class ReleaseInspection(BaseModel):
         "muse_revision",
         "deterministic_validation",
     ] | None
+    capture: CaptureInspection
 
 
 class TurnInspection(BaseModel):
@@ -51,9 +66,17 @@ class TurnInspection(BaseModel):
     release: ReleaseInspection | None = None
 
 
+class MemoryCaptureNotice(BaseModel):
+    """Application-authored disclosure for one committed automatic capture."""
+
+    memory_id: str
+    notice: Literal["Saved to your memories."] = "Saved to your memories."
+
+
 class ChatResponse(BaseModel):
     reply: str
     inspection: TurnInspection
+    memory_capture: MemoryCaptureNotice | None = None
 
 
 class MemoryWriteRequest(RequestBody):

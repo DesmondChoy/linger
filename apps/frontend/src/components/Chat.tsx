@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { resetSession, sendMessage } from '../api'
-import type { Message, TurnInspection, TurnTimeline } from '../types'
+import { deleteMemory, resetSession, sendMessage } from '../api'
+import type { MemoryCaptureNotice, Message, TurnInspection, TurnTimeline } from '../types'
 import { Composer } from './Composer'
 import { MemoryDrawer } from './MemoryDrawer'
 import { MessageList } from './MessageList'
@@ -16,6 +16,7 @@ export function Chat() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [memoryOpen, setMemoryOpen] = useState(false)
+  const [captureNotice, setCaptureNotice] = useState<MemoryCaptureNotice | null>(null)
 
   async function handleSend(text: string) {
     const turnId = crypto.randomUUID()
@@ -34,6 +35,7 @@ export function Chat() {
         { ...current[current.length - 1], content: result.reply },
       ])
       setTimeline((current) => [...current, timelineFromInspection(result.inspection, text, result.reply, turnId)])
+      setCaptureNotice(result.memory_capture)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Something went wrong.')
       // The server stores nothing on a failed request, so roll back both local
@@ -50,6 +52,17 @@ export function Chat() {
     setMessages([])
     setTimeline([])
     setError(null)
+    setCaptureNotice(null)
+  }
+
+  async function handleUndoCapture() {
+    if (!captureNotice) return
+    try {
+      await deleteMemory(captureNotice.memory_id)
+      setCaptureNotice(null)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not undo the memory save.')
+    }
   }
 
   return (
@@ -90,6 +103,12 @@ export function Chat() {
 
         {view === 'chat' ? <>
           <MessageList messages={messages} pending={pending} />
+          {captureNotice && (
+            <p className="notice">
+              <span>{captureNotice.notice}</span>
+              <button type="button" onClick={handleUndoCapture}>Undo</button>
+            </p>
+          )}
           {error && <p className="error">{error}</p>}
           <Composer disabled={pending} onSend={handleSend} />
         </> : <Inspector timeline={timeline} />}

@@ -45,7 +45,7 @@ Interactive API docs: <http://127.0.0.1:8000/docs>.
 | Method | Path                       | Purpose                            |
 | ------ | -------------------------- | ---------------------------------- |
 | GET    | `/api/health`              | Liveness plus the configured model |
-| POST   | `/api/chat`                | `{session_id, message}` → `{reply}` |
+| POST   | `/api/chat`                | Reviewed reply plus capture outcome |
 | DELETE | `/api/sessions/{id}`       | Drop a conversation's history      |
 
 ## Layout

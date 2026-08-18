@@ -47,8 +47,8 @@ an unexplained `revise`, `reject`, or `reject_capture`. Each finding quotes the
 exact offending span, which makes per-category detection recall measurable and
 gives the one permitted revision something specific to act on.
 
-The seven `RiskCode` values transcribe the specification's block conditions
-one-for-one:
+The `RiskCode` values cover the specification's release conditions plus the
+absolute sensitive-content capture veto:
 
 | Code | Ground |
 | --- | --- |
@@ -58,6 +58,7 @@ one-for-one:
 | `boundary_violation` | Evidence crosses an account or deletion boundary. |
 | `uncited_web_claim` | A factual web claim lacks a retrievable citation. |
 | `unsupported_claim` | An unsupported claim or a sensitive inference. |
+| `sensitive_content` | Sensitive-trait content ineligible for automatic capture. |
 | `prompt_injection` | Retrieved content attempts to redirect agent behaviour. |
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic

@@ -149,7 +149,11 @@ class BookContextTests(unittest.TestCase):
             )
         )
         inspection, _, review_context = _inspection_for(
-            ChatRequest(session_id="context-test", message="Why does the Caterpillar ask who Alice is?")
+            ChatRequest(
+                session_id="context-test",
+                message="Why does the Caterpillar ask who Alice is?",
+            ),
+            allow_memory_capture=False,
         )
 
         self.assertEqual("inferred", inspection.context_resolution["status"])
