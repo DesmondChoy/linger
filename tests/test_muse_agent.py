@@ -8,7 +8,11 @@ from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ToolReturnPart
 
 from apps.backend.config import Settings
-from src.linger.agents.muse.models import EvidenceUse, MuseCandidate
+from src.linger.agents.muse.models import (
+    EvidenceUse,
+    MuseCandidate,
+    NoMemoryCandidate,
+)
 from src.linger.contracts.librarian import (
     EvidenceRecord,
     RetrievalResult,
@@ -21,6 +25,13 @@ def _sample_tool_names(agent) -> set[str]:
     for toolset in agent.toolsets:
         names.update(getattr(toolset, "tools", {}).keys())
     return names
+
+
+def _no_memory() -> NoMemoryCandidate:
+    return NoMemoryCandidate(
+        kind="no_memory_candidate",
+        reason_code="transient_or_low_signal",
+    )
 
 
 class MuseAgentToolWiringTests(unittest.TestCase):
@@ -174,6 +185,7 @@ class MuseOutputValidationTests(unittest.TestCase):
 
         output = MuseCandidate(
             reply="Alice is unsure of herself.",
+            memory=_no_memory(),
             evidence_uses=(
                 EvidenceUse(
                     source_kind="book_corpus",
@@ -194,6 +206,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             with self.subTest(exact_quote=exact_quote):
                 output = MuseCandidate(
                     reply='The Caterpillar asks, "Who are you?"',
+                    memory=_no_memory(),
                     evidence_uses=(
                         EvidenceUse(
                             source_kind="book_corpus",
@@ -211,6 +224,7 @@ class MuseOutputValidationTests(unittest.TestCase):
         record = self.record()
         output = MuseCandidate(
             reply='The Caterpillar asks, "Who are you?"',
+            memory=_no_memory(),
             evidence_uses=(
                 EvidenceUse(
                     source_kind="book_corpus",
@@ -229,6 +243,7 @@ class MuseOutputValidationTests(unittest.TestCase):
         record = self.record()
         output = MuseCandidate(
             reply="A supported paraphrase.",
+            memory=_no_memory(),
             evidence_uses=(
                 EvidenceUse(
                     source_kind="book_corpus",
