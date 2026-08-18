@@ -1,6 +1,6 @@
 # Librarian Subsystem Design
 
-Status: **Design approved; selected online retrieval implemented; final validation in progress**
+Status: **Initial Librarian vertical slice implemented and validated**
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -9,22 +9,22 @@ responsibilities and safeguards in [`../specification.md`](../specification.md).
 ### Progress snapshot
 
 Beads is the durable source of truth; this table is its human-readable design
-projection as of 16 August 2026.
+projection as of 17 August 2026.
 
 | Track | Progress | Current state | Beads |
 |---|---:|---|---|
 | Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
-| Initial Librarian implementation | 5 of 6 slices (83%) | Corpus, boundary, direct control, Muse handling, and five-way retrieval benchmark complete; selected hybrid strategy is implemented and end-to-end validation is in progress | `linger-ibq` |
+| Initial Librarian implementation | 6 of 6 slices (100%) | Corpus, boundary, retrieval, Muse handling, five-way strategy selection, and live end-to-end validation are complete | `linger-ibq` |
 | Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
 
 The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
 reciprocal-rank fusion, overlap deduplication, and local cross-encoder reranking.
 All five configurations passed the zero-forbidden-exposure and exact-resolution
-gates. The selected retrieval path reached 91.7% evidence recall and 76.4%
+gates. The selected retrieval path reached 91.7% evidence recall and 82.6%
 candidate precision; the latter is diagnostic because the Librarian judge still
-filters candidates before Muse receives final evidence. Measuring the final
-user-visible citation target requires the live evidence-strength agent and is
-part of the remaining end-to-end slice.
+filters candidates before Muse receives final evidence. The live 12-case
+Librarian → Muse → Provenance release evaluation then reached 91.7% final
+evidence recall, 100% citation precision, and zero spoiler exposure.
 
 ## 1. Purpose and scope
 
@@ -664,7 +664,7 @@ set. Direct bounded chapter reads remain the no-index baseline.
 | 3A | Bounded direct evidence retrieval | Complete | Canonical reads, thresholds, no-match behavior, exact line-range evidence IDs, pre-read spoiler filtering, and independent strength judgement | `linger-ibq.2` |
 | 3B | Muse response integration | Complete | Separate handling for clarification, sufficient, weak, none, and failure | `linger-ibq.3` |
 | 4 | Retrieval benchmark and selection | Complete | Five versioned configurations compared; reranked hybrid selected and implemented | `linger-ibq.5` |
-| 5 | End-to-end validation | In progress | Validate the selected strategy, spoiler suppression, evidence resolution, failures, and safe degradation; deterministic coverage is implemented and live-agent measurement remains | `linger-ibq.4` |
+| 5 | End-to-end validation | Complete | Selected strategy, spoiler suppression, evidence resolution, failures, safe degradation, live strength judgement, and Muse/Provenance release measured against the full versioned set | `linger-ibq.4` |
 
 Slices 3A and 3B may proceed in parallel after the shared contract and boundary
 slice is complete. Slice 4 can run after the direct-read control exists while
@@ -731,11 +731,11 @@ measured in the end-to-end evaluation.
 
 | Strategy | Recall | Candidate precision | Strength-support accuracy | p95 latency | Mean evidence words |
 |---|---:|---:|---:|---:|---:|
-| Direct canonical reads | 50.0% | 16.3% | 66.7% | 3.3 ms | 402 |
-| BM25 | 75.0% | 25.0% | 91.7% | 3.4 ms | 1,518 |
-| Semantic embeddings | 79.2% | 30.0% | 100% | 2.8 ms | 1,433 |
-| Hybrid without reranking | 79.2% | 26.7% | 100% | 2.8 ms | 1,535 |
-| **Hybrid with reranking** | **91.7%** | **76.4%** | **91.7%** | **451.0 ms** | **595** |
+| Direct canonical reads | 50.0% | 16.3% | 66.7% | 3.2 ms | 402 |
+| BM25 | 75.0% | 28.3% | 91.7% | 3.1 ms | 1,518 |
+| Semantic embeddings | 79.2% | 33.3% | 100% | 3.0 ms | 1,433 |
+| Hybrid without reranking | 79.2% | 30.0% | 100% | 2.9 ms | 1,535 |
+| **Hybrid with reranking** | **91.7%** | **82.6%** | **91.7%** | **461.1 ms** | **595** |
 
 The selected local stack is BM25S, FastEmbed
 `BAAI/bge-small-en-v1.5`, reciprocal-rank fusion with `k = 60`, and FastEmbed
@@ -747,6 +747,31 @@ grounding path. Serendipity's deliberately multi-chapter connection discovery
 keeps the bounded diversified direct-read control until connection retrieval
 has its own evaluation; it must not silently inherit a strategy optimized for a
 different objective.
+
+### 7.5 Live end-to-end validation
+
+The complete frozen 12-case set was run through the reader-confirmed
+application boundary, selected hybrid retriever, configured Librarian strength
+judge, Muse, Provenance, and deterministic release validation with
+`openai:gpt-5.6-luna`. The report is versioned at
+[`../../evals/librarian/live-report.json`](../../evals/librarian/live-report.json).
+
+| Metric | Result | Target | Outcome |
+|---|---:|---:|---|
+| Final evidence recall | 91.7% | at least 90% | Pass |
+| Final citation precision | 100% | at least 95% | Pass |
+| Evidence-strength accuracy | 91.7% | at least 90% | Pass |
+| Answerable-case release rate | 100% | at least 90% | Pass |
+| Forbidden-chapter exposure | 0 | 0 | Pass |
+| Exact citation resolution | 100% | 100% | Pass |
+| End-to-end latency | 13.7 s mean; 27.9 s p95 | budget TBD | Measured |
+
+Muse passes the reader's book question to Librarian without paraphrasing. A
+bounded output-only retry repairs citation-copy metadata before Provenance;
+deterministic validation still fails closed if an evidence ID, location, or
+visible exact quote does not resolve. The configured provider did not expose
+token usage through the current SDK result, so token and monetary cost remain
+unreported rather than being estimated.
 
 ## 8. Decisions and open questions
 
@@ -774,11 +799,11 @@ different objective.
 | Candidate limits | 10 keyword + 10 semantic, at most 15 reranked, at most 5 returned |
 | Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
 | Hybrid fusion | Reciprocal-rank fusion with `k = 60`, followed by 50% source-range overlap deduplication |
+| Live release quality | 91.7% evidence recall, 100% citation precision, 91.7% strength accuracy, and zero spoiler exposure on the complete 12-case set |
 
 ### 8.2 Open
 
 | Decision | Status |
 |---|---|
 | Partial-current-chapter boundaries | Define only when resolvable positions are available |
-| Latency and cost budgets | Set with the implemented retrieval path |
-| Final live-model citation precision | Run the common Librarian judge and Muse/Provenance release path with configured provider credentials |
+| Latency and cost budgets | End-to-end mean and p95 are measured; set product budgets and obtain provider token/cost reporting in `linger-cnx` |

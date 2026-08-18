@@ -1,0 +1,591 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-17T15:58:21.634207+00:00",
+  "model": "openai:gpt-5.6-luna",
+  "case_set": "evals/librarian/cases.json",
+  "configuration": {
+    "retriever": "hybrid_reranked",
+    "application_boundary": "reader-confirmed completed chapter",
+    "release_path": "Librarian -> Muse -> Provenance -> deterministic validation"
+  },
+  "targets": {
+    "minimum_evidence_recall": 0.9,
+    "minimum_citation_precision": 0.95,
+    "minimum_strength_accuracy": 0.9,
+    "minimum_answerable_release_rate": 0.9,
+    "maximum_spoiler_exposure_count": 0,
+    "exact_citation_resolution_required": true
+  },
+  "summary": {
+    "case_count": 12,
+    "complete_case_set": true,
+    "targets_pass": true,
+    "evidence_recall": 0.9167,
+    "citation_precision": 1.0,
+    "strength_accuracy": 0.9167,
+    "answerable_release_rate": 1.0,
+    "spoiler_exposure_count": 0,
+    "citation_resolution_pass": true,
+    "mean_latency_ms": 13733.1,
+    "p95_latency_ms": 27858.3,
+    "usage": {
+      "available": false,
+      "input_tokens": null,
+      "output_tokens": null,
+      "requests": null
+    }
+  },
+  "cases": [
+    {
+      "case_id": "rabbit-watch",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 1,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch01-ln0062-0092"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch01-ln0062-0092",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 11427.4,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "drink-me",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 1,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch01-ln0165-0192"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch01-ln0165-0192",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 15009.5,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "pool-of-tears",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 2,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch02-ln0392-0412"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch02-ln0392-0412",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 11812.1,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "caucus-prizes",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 3,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch03-ln0553-0587"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch03-ln0553-0587",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 9977.5,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "giant-puppy",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 4,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch04-ln0906-0929"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch04-ln0906-0929",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 11984.1,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "identity-change",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        },
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "revise",
+        "pass"
+      ],
+      "finding_codes": [
+        "unsupported_claim"
+      ],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln0960-1016",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 27858.3,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "father-william",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1004-1056"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1004-1056",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 8645.8,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "pigeon-serpent",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 2,
+      "relevant_citation_count": 2,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1151-1186",
+        "pg11-v01b38ea4-ch05-ln1208-1237"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        },
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1208-1237",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 12747.3,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "identity-theme",
+      "expected_strength": "weak",
+      "predicted_strength": "none",
+      "strength_correct": false,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 0,
+      "relevant_citation_count": 0,
+      "cited_evidence_ids": [],
+      "candidate_declarations": [],
+      "final_evidence_recall": 0.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 10854.2,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "exact-caucus-quote",
+      "expected_strength": "sufficient",
+      "predicted_strength": "sufficient",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 3,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 1,
+      "relevant_citation_count": 1,
+      "cited_evidence_ids": [
+        "pg11-v01b38ea4-ch03-ln0553-0587"
+      ],
+      "candidate_declarations": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch03-ln0553-0587",
+          "resolves": true,
+          "location_matches": true,
+          "exact_quote_in_reply": true,
+          "exact_quote_in_evidence": true
+        }
+      ],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 9590.4,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "future-cheshire",
+      "expected_strength": "none",
+      "predicted_strength": "none",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        },
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "revise",
+        "pass"
+      ],
+      "finding_codes": [
+        "unsupported_claim",
+        "spoiler"
+      ],
+      "failure_stage": null,
+      "citation_count": 0,
+      "relevant_citation_count": 0,
+      "cited_evidence_ids": [],
+      "candidate_declarations": [],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 26998.2,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    },
+    {
+      "case_id": "absent-spaceship",
+      "expected_strength": "none",
+      "predicted_strength": "none",
+      "strength_correct": true,
+      "librarian_calls": [
+        {
+          "query_matches_case": true,
+          "work_id_matches": true,
+          "book_version_id_matches": true,
+          "boundary_chapter": 5,
+          "boundary_state": "completed"
+        }
+      ],
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "finding_codes": [],
+      "failure_stage": null,
+      "citation_count": 0,
+      "relevant_citation_count": 0,
+      "cited_evidence_ids": [],
+      "candidate_declarations": [],
+      "final_evidence_recall": 1.0,
+      "final_citation_precision": 1.0,
+      "exact_citations_resolve": true,
+      "spoiler_exposure": false,
+      "latency_ms": 7892.2,
+      "usage": {
+        "available": false,
+        "input_tokens": null,
+        "output_tokens": null,
+        "requests": null
+      }
+    }
+  ]
+}

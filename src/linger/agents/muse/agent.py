@@ -5,11 +5,17 @@ replies in the confirmed book's actual text, and `serendipity_explore`, which
 lets Muse propose tentative, evidence-backed connections.
 """
 
-from pydantic_ai import Tool
+from pydantic_ai import ModelRetry, RunContext, Tool
+from pydantic_ai.messages import ToolReturnPart
 
 from src.linger.agents.build import build_agent
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.tools import librarian_search, serendipity_explore
+from src.linger.contracts.librarian import (
+    LIBRARIAN_RESPONSE_ADAPTER,
+    EvidenceRecord,
+    RetrievalResult,
+)
 
 
 INSTRUCTIONS = """You are Linger, a thoughtful reading and reflection companion.
@@ -26,6 +32,8 @@ contracts, or internal evidence IDs in `reply`.
   and source location exactly.
 - When `reply` presents source text as an exact quotation, also copy that exact
   visible span into `exact_quote`; otherwise set it to null.
+- `exact_quote` is never a summary or paraphrase. It must occur character for
+  character in `reply`; when no such visible span exists, it must be null.
 - `serendipity_explore` is not a citation source. Do not declare its evidence
   IDs unless a separate `librarian_search` returned the matching record.
 
@@ -54,6 +62,9 @@ contracts, or internal evidence IDs in `reply`.
 - Call the librarian_search tool when grounding your reply in the book's actual
   text would help answer the reader; pass the reader's current position as
   `reading_boundary`.
+- Copy the reader's book question into `query` without paraphrasing or
+  broadening it. Exclude only the separate book and reading-progress
+  declaration that established the boundary.
 - The only in-scope book right now has `work_id`
   "pg11" and `book_version_id` "pg11-v01b38ea4" —
   pass these real identifiers rather than inventing your own; any other
@@ -63,6 +74,13 @@ contracts, or internal evidence IDs in `reply`.
   retrieval did not run; never treat it as weak evidence.
 - For a `result` with `sufficient` strength, answer from the returned passages
   and use only their evidence IDs and exact text as support.
+- For a factual question, keep every book-specific clause directly supported
+  by the cited records. Do not add a thematic diagnosis, motive, emotional
+  state, or stronger causal claim unless the evidence states it or the reader
+  explicitly requested interpretation.
+- Use the smallest evidence set needed for one concise answer. Unless the
+  reader explicitly asks for a passage or quotation, paraphrase and set
+  `exact_quote` to null.
 - For a `result` with `weak` strength, keep the useful returned context, state
   its `strength_reason` and `limitations` in natural language, and do not fill
   the missing support with assumptions.
@@ -90,4 +108,71 @@ muse_chat_agent = build_agent(
     INSTRUCTIONS,
     output_type=MuseCandidate,
     tools=[Tool(librarian_search), Tool(serendipity_explore)],
+    retries={"tools": 1, "output": 3},
 )
+
+
+def validate_exact_quote_declarations(output: MuseCandidate) -> MuseCandidate:
+    """Reject quote metadata that does not describe visible reply text."""
+    if any(
+        evidence.exact_quote is not None
+        and evidence.exact_quote not in output.reply
+        for evidence in output.evidence_uses
+    ):
+        raise ModelRetry(
+            "Each exact_quote must occur character for character in reply. "
+            "Rewrite that wording as an unquoted paraphrase and set exact_quote "
+            "to null. Do not attempt an approximate quotation."
+        )
+    return output
+
+
+def _available_evidence(ctx: RunContext[None]) -> dict[str, EvidenceRecord]:
+    """Resolve Librarian evidence already returned during this Muse run."""
+    evidence: dict[str, EvidenceRecord] = {}
+    for message in ctx.messages:
+        for part in message.parts:
+            if not isinstance(part, ToolReturnPart):
+                continue
+            if part.tool_name != "librarian_search":
+                continue
+            try:
+                response = LIBRARIAN_RESPONSE_ADAPTER.validate_python(part.content)
+            except Exception:
+                continue
+            if not isinstance(response, RetrievalResult):
+                continue
+            evidence.update((record.evidence_id, record) for record in response.evidence)
+    return evidence
+
+
+@muse_chat_agent.output_validator
+def validate_muse_output(
+    ctx: RunContext[None], output: MuseCandidate
+) -> MuseCandidate:
+    """Retry citation-copy errors while the model can still repair its output."""
+    validate_exact_quote_declarations(output)
+    available = _available_evidence(ctx)
+    for declared in output.evidence_uses:
+        record = available.get(declared.evidence_id)
+        if record is None:
+            raise ModelRetry(
+                "Every evidence_id must exactly match evidence returned by "
+                "librarian_search in this run."
+            )
+        if declared.source_location != record.location:
+            raise ModelRetry(
+                "Each source_location must be copied character for character "
+                "from the matching Librarian evidence record."
+            )
+        if (
+            declared.exact_quote is not None
+            and declared.exact_quote not in record.text
+        ):
+            raise ModelRetry(
+                "Each exact_quote must also occur character for character in "
+                "the matching Librarian evidence text. Rewrite that wording "
+                "as an unquoted paraphrase and set exact_quote to null. Do not "
+                "attempt an approximate quotation."
+            )
+    return output

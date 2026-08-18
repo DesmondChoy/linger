@@ -59,6 +59,7 @@ class BenchmarkCase(StrictModel):
     chapter_max: int = Field(ge=1)
     expected_strength: Literal["sufficient", "weak", "none"]
     relevant_ranges: tuple[tuple[int, int, int], ...]
+    required_ranges: tuple[tuple[int, int, int], ...] | None = None
 
     @model_validator(mode="after")
     def ranges_match_strength(self) -> "BenchmarkCase":
@@ -66,9 +67,21 @@ class BenchmarkCase(StrictModel):
             RelevantRange(chapter=chapter, start=start, end=end)
             if chapter > self.chapter_max:
                 raise ValueError("gold evidence exceeds the spoiler boundary")
+        for gold in self.required_ranges or ():
+            chapter, start, end = gold
+            RelevantRange(chapter=chapter, start=start, end=end)
+            if chapter > self.chapter_max:
+                raise ValueError("required evidence exceeds the spoiler boundary")
+            if gold not in self.relevant_ranges:
+                raise ValueError("required evidence must also be a relevant range")
         if (self.expected_strength == "none") != (not self.relevant_ranges):
             raise ValueError("none cases must be the only cases without gold evidence")
         return self
+
+    @property
+    def recall_ranges(self) -> tuple[tuple[int, int, int], ...]:
+        """Evidence facts required for recall, excluding optional support."""
+        return self.required_ranges or self.relevant_ranges
 
 
 class BenchmarkSet(StrictModel):
@@ -291,9 +304,9 @@ def _citation_resolves(hit: Hit, source_lines: list[str]) -> bool:
 
 
 def measure(case: BenchmarkCase, hits: list[Hit], source_lines: list[str]) -> CaseMeasurement:
-    matched_gold = {index for index, gold in enumerate(case.relevant_ranges) if any(_overlaps(hit, gold) for hit in hits)}
+    matched_gold = {index for index, gold in enumerate(case.recall_ranges) if any(_overlaps(hit, gold) for hit in hits)}
     relevant_hits = [hit for hit in hits if any(_overlaps(hit, gold) for gold in case.relevant_ranges)]
-    recall = len(matched_gold) / len(case.relevant_ranges) if case.relevant_ranges else float(not hits)
+    recall = len(matched_gold) / len(case.recall_ranges) if case.recall_ranges else float(not hits)
     precision = len(relevant_hits) / len(hits) if hits else 1.0
     if not relevant_hits:
         predicted_strength = "none"

@@ -37,6 +37,19 @@ class LibrarianBenchmarkFixtureTests(unittest.TestCase):
                     all(chapter <= case.chapter_max for chapter, _, _ in case.relevant_ranges)
                 )
 
+    def test_required_ranges_are_relevant_and_within_boundary(self) -> None:
+        for case in self.cases.cases:
+            with self.subTest(case_id=case.case_id):
+                self.assertTrue(
+                    all(gold in case.relevant_ranges for gold in case.recall_ranges)
+                )
+                self.assertTrue(
+                    all(
+                        chapter <= case.chapter_max
+                        for chapter, _, _ in case.recall_ranges
+                    )
+                )
+
     def test_windows_never_cross_chapters_and_resolve_exactly(self) -> None:
         self.assertTrue(self.windows)
         for window in self.windows:

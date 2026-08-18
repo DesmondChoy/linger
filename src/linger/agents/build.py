@@ -11,7 +11,7 @@ request.
 from collections.abc import Sequence
 from typing import Any, TypeVar, overload
 
-from pydantic_ai import Agent, Tool
+from pydantic_ai import Agent, AgentRetries, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
@@ -65,6 +65,7 @@ def build_agent(
     *,
     output_type: None = None,
     tools: Sequence[Tool[None]] = (),
+    retries: int | AgentRetries | None = None,
 ) -> Agent[None, str]: ...
 
 
@@ -74,6 +75,7 @@ def build_agent(
     *,
     output_type: type[OutputT],
     tools: Sequence[Tool[None]] = (),
+    retries: int | AgentRetries | None = None,
 ) -> Agent[None, OutputT]: ...
 
 
@@ -82,6 +84,7 @@ def build_agent(
     *,
     output_type: type[Any] | None = None,
     tools: Sequence[Tool[None]] = (),
+    retries: int | AgentRetries | None = None,
 ) -> Agent[None, Any]:
     """Build an agent with the configured model and requested output contract."""
     selected_output: type[Any] = output_type or str
@@ -90,4 +93,5 @@ def build_agent(
         output_type=selected_output,
         instructions=instructions,
         tools=tools,
+        retries=retries,
     )

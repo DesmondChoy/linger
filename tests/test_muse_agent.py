@@ -1,9 +1,19 @@
 """Tests for Muse's tool wiring and instruction invariants."""
 
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
+from pydantic_ai import ModelRetry
+from pydantic_ai.messages import ToolReturnPart
+
 from apps.backend.config import Settings
+from src.linger.agents.muse.models import EvidenceUse, MuseCandidate
+from src.linger.contracts.librarian import (
+    EvidenceRecord,
+    RetrievalResult,
+    SearchedScope,
+)
 
 
 def _sample_tool_names(agent) -> set[str]:
@@ -116,6 +126,120 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("state its `strength_reason` and `limitations`", lowered)
         self.assertIn("do not imply that later chapters were searched", lowered)
         self.assertIn("produce no evidence-based book answer", lowered)
+        self.assertIn("without paraphrasing or broadening", lowered)
+        self.assertIn("smallest evidence set", lowered)
+        self.assertIn("directly supported by the cited records", lowered)
+
+
+class MuseOutputValidationTests(unittest.TestCase):
+    @staticmethod
+    def context(record: EvidenceRecord) -> SimpleNamespace:
+        result = RetrievalResult(
+            kind="result",
+            request_id="libreq-test",
+            outcome="evidence_found",
+            evidence_strength="sufficient",
+            strength_reason="The evidence answers the question.",
+            searched_scope=SearchedScope(
+                work_id=record.work_id,
+                book_version_id=record.book_version_id,
+                max_chapter_inclusive=record.chapter_number,
+            ),
+            evidence=(record,),
+        )
+        return SimpleNamespace(
+            messages=[
+                SimpleNamespace(
+                    parts=[ToolReturnPart("librarian_search", result)]
+                )
+            ]
+        )
+
+    @staticmethod
+    def record() -> EvidenceRecord:
+        return EvidenceRecord(
+            evidence_id="evidence-1",
+            work_id="pg11",
+            book_version_id="pg11-v01b38ea4",
+            chapter_id="pg11-v01b38ea4-ch05",
+            chapter_number=5,
+            location="Chapter 5, source lines 1-2",
+            source_sha256="a" * 64,
+            source_lines=(1, 2),
+            text='The Caterpillar asks, "Who are you?"',
+        )
+
+    def test_retries_non_visible_exact_quote_metadata(self) -> None:
+        from src.linger.agents.muse.agent import validate_exact_quote_declarations
+
+        output = MuseCandidate(
+            reply="Alice is unsure of herself.",
+            evidence_uses=(
+                EvidenceUse(
+                    source_kind="book_corpus",
+                    evidence_id="evidence-1",
+                    source_location="Chapter 5, source lines 1-2",
+                    exact_quote="A paraphrase incorrectly marked as exact",
+                ),
+            ),
+        )
+
+        with self.assertRaises(ModelRetry):
+            validate_exact_quote_declarations(output)
+
+    def test_accepts_visible_exact_quote_or_null(self) -> None:
+        from src.linger.agents.muse.agent import validate_exact_quote_declarations
+
+        for exact_quote in ("Who are you?", None):
+            with self.subTest(exact_quote=exact_quote):
+                output = MuseCandidate(
+                    reply='The Caterpillar asks, "Who are you?"',
+                    evidence_uses=(
+                        EvidenceUse(
+                            source_kind="book_corpus",
+                            evidence_id="evidence-1",
+                            source_location="Chapter 5, source lines 1-2",
+                            exact_quote=exact_quote,
+                        ),
+                    ),
+                )
+                self.assertIs(output, validate_exact_quote_declarations(output))
+
+    def test_live_validator_resolves_quote_location_and_evidence_id(self) -> None:
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record()
+        output = MuseCandidate(
+            reply='The Caterpillar asks, "Who are you?"',
+            evidence_uses=(
+                EvidenceUse(
+                    source_kind="book_corpus",
+                    evidence_id=record.evidence_id,
+                    source_location=record.location,
+                    exact_quote="Who are you?",
+                ),
+            ),
+        )
+
+        self.assertIs(output, validate_muse_output(self.context(record), output))
+
+    def test_live_validator_retries_unknown_evidence(self) -> None:
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record()
+        output = MuseCandidate(
+            reply="A supported paraphrase.",
+            evidence_uses=(
+                EvidenceUse(
+                    source_kind="book_corpus",
+                    evidence_id="unknown-evidence",
+                    source_location=record.location,
+                ),
+            ),
+        )
+
+        with self.assertRaises(ModelRetry):
+            validate_muse_output(self.context(record), output)
 
 
 if __name__ == "__main__":

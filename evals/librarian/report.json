@@ -16,7 +16,8 @@
   "metric_notes": {
     "evidence_strength_accuracy": "Whether the retrieved gold coverage supports the expected sufficient, weak, or none label; the common Librarian judge is evaluated end to end separately.",
     "mean_evidence_tokens": "Whitespace-token count of evidence passed downstream; local retrieval itself consumes zero model tokens.",
-    "monetary_cost_usd": "Incremental retrieval cost for local models; excludes shared hardware and the common downstream Librarian judgment call."
+    "monetary_cost_usd": "Incremental retrieval cost for local models; excludes shared hardware and the common downstream Librarian judgment call.",
+    "p95_latency_ms": "Warm query latency after the immutable revision's derived windows and embeddings are built; one-time local model and index initialization is excluded."
   },
   "project_targets": {
     "minimum_evidence_recall": 0.9,
@@ -31,55 +32,55 @@
       "quality_score": 0.41541666666666666,
       "safety_pass": true,
       "citation_pass": true,
-      "p95_latency_ms": 3.3316253684461117,
+      "p95_latency_ms": 3.2259998843073845,
       "mean_evidence_tokens": 401.5,
       "retrieval_model_tokens": 0.0,
       "monetary_cost_usd": 0.0
     },
     "bm25": {
       "evidence_recall": 0.75,
-      "citation_precision": 0.25,
+      "citation_precision": 0.2833333333333333,
       "evidence_strength_accuracy": 0.9166666666666666,
-      "quality_score": 0.6166666666666666,
+      "quality_score": 0.6266666666666666,
       "safety_pass": true,
       "citation_pass": true,
-      "p95_latency_ms": 3.427540883421898,
+      "p95_latency_ms": 3.080666996538639,
       "mean_evidence_tokens": 1517.8333333333333,
       "retrieval_model_tokens": 0.0,
       "monetary_cost_usd": 0.0
     },
     "semantic": {
       "evidence_recall": 0.7916666666666666,
-      "citation_precision": 0.3,
+      "citation_precision": 0.3333333333333333,
       "evidence_strength_accuracy": 1.0,
-      "quality_score": 0.6649999999999999,
+      "quality_score": 0.6749999999999999,
       "safety_pass": true,
       "citation_pass": true,
-      "p95_latency_ms": 2.7538337744772434,
+      "p95_latency_ms": 3.011583350598812,
       "mean_evidence_tokens": 1433.1666666666667,
       "retrieval_model_tokens": 0.0,
       "monetary_cost_usd": 0.0
     },
     "hybrid": {
       "evidence_recall": 0.7916666666666666,
-      "citation_precision": 0.26666666666666666,
+      "citation_precision": 0.3,
       "evidence_strength_accuracy": 1.0,
-      "quality_score": 0.6549999999999999,
+      "quality_score": 0.6649999999999999,
       "safety_pass": true,
       "citation_pass": true,
-      "p95_latency_ms": 2.819166984409094,
+      "p95_latency_ms": 2.9455828480422497,
       "mean_evidence_tokens": 1534.5,
       "retrieval_model_tokens": 0.0,
       "monetary_cost_usd": 0.0
     },
     "hybrid_reranked": {
       "evidence_recall": 0.9166666666666666,
-      "citation_precision": 0.7638888888888888,
+      "citation_precision": 0.8263888888888888,
       "evidence_strength_accuracy": 0.9166666666666666,
-      "quality_score": 0.8708333333333332,
+      "quality_score": 0.8895833333333333,
       "safety_pass": true,
       "citation_pass": true,
-      "p95_latency_ms": 450.96208341419697,
+      "p95_latency_ms": 461.06170769780874,
       "mean_evidence_tokens": 595.25,
       "retrieval_model_tokens": 0.0,
       "monetary_cost_usd": 0.0
@@ -312,7 +313,7 @@
           "pg11-v01b38ea4-ch05-ln1048-1102"
         ],
         "recall": 1.0,
-        "precision": 0.2,
+        "precision": 0.6,
         "strength_correct": true
       },
       {
@@ -467,7 +468,7 @@
           "pg11-v01b38ea4-ch05-ln1179-1219"
         ],
         "recall": 1.0,
-        "precision": 0.2,
+        "precision": 0.6,
         "strength_correct": true
       },
       {
@@ -625,7 +626,7 @@
           "pg11-v01b38ea4-ch03-ln0553-0587"
         ],
         "recall": 1.0,
-        "precision": 0.2,
+        "precision": 0.6,
         "strength_correct": true
       },
       {
@@ -767,7 +768,7 @@
           "pg11-v01b38ea4-ch05-ln1048-1102"
         ],
         "recall": 1.0,
-        "precision": 0.25,
+        "precision": 1.0,
         "strength_correct": true
       },
       {
