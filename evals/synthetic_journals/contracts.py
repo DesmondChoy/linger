@@ -10,10 +10,20 @@ from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
+from src.linger.agents.muse.models import MuseReasonCode
+from src.linger.agents.provenance.models import RiskCode
 from src.linger.contracts.librarian import EvidenceRecord
 
 _ENTRY_ID = re.compile(r"^entry-(\d{3})$")
 _WORD = re.compile(r"[\w]+(?:[’'-][\w]+)*", re.UNICODE)
+
+MemoryPolicyReasonCode = Literal[
+    "automatic_capture_disabled",
+    "upstream_review_rejected_capture",
+    "sensitive_content_requires_explicit_save",
+    "source_event_conflict",
+    "not_applicable",
+]
 
 
 class StrictModel(BaseModel):
@@ -192,6 +202,16 @@ class JournalProfile(StrictModel):
     continuity_invariants: tuple[str, ...] = Field(min_length=1)
     stereotype_review_questions: tuple[str, ...] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def chronology_is_ordered(self) -> Self:
+        expected_phases = list(range(1, len(self.chronology) + 1))
+        if [item.phase for item in self.chronology] != expected_phases:
+            raise ValueError("chronology phases must be consecutive from 1")
+        for previous, current in zip(self.chronology, self.chronology[1:], strict=False):
+            if current.start_date != previous.end_date + timedelta(days=1):
+                raise ValueError("chronology phases must be contiguous and nonoverlapping")
+        return self
+
 
 class ChunkRequest(StrictModel):
     chunk_request_version: Literal[1]
@@ -201,6 +221,8 @@ class ChunkRequest(StrictModel):
     earliest_timestamp: datetime
     latest_timestamp: datetime
     length_targets: EntryLengthMix
+    attachment_target: int = Field(ge=0)
+    event_targets: PlannedEventCounts
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
@@ -210,6 +232,8 @@ class ChunkRequest(StrictModel):
             raise ValueError("chunk length targets must equal its sequence count")
         if self.latest_timestamp < self.earliest_timestamp:
             raise ValueError("chunk timestamp range is reversed")
+        if self.attachment_target > self.length_targets.total:
+            raise ValueError("chunk attachment target cannot exceed its entry count")
         return self
 
 
@@ -223,6 +247,35 @@ class BookContext(StrictModel):
     book_id: str = Field(min_length=1)
     book_version_id: str = Field(min_length=1)
     declared_position: str | None
+
+
+class GeneratedAttachment(StrictModel):
+    """Model-authored attachment description before code assigns an ID."""
+
+    kind: Literal["image"]
+    description: str = Field(min_length=1)
+
+
+class GeneratedJournalEntry(StrictModel):
+    """Model-authored journal entry before code assigns stable identifiers."""
+
+    sequence: int = Field(ge=1)
+    timestamp: datetime
+    text: str = Field(min_length=1, max_length=8_000)
+    attachments: tuple[GeneratedAttachment, ...]
+    book_contexts: tuple[BookContext, ...]
+
+    @model_validator(mode="after")
+    def timestamp_has_offset(self) -> Self:
+        if self.timestamp.tzinfo is None or self.timestamp.utcoffset() is None:
+            raise ValueError("entry timestamps must include a UTC offset")
+        return self
+
+
+class JournalChunkDraft(StrictModel):
+    """One untrusted model response for a requested journal chunk."""
+
+    entries: tuple[GeneratedJournalEntry, ...] = Field(min_length=1)
 
 
 class JournalEntry(StrictModel):
@@ -290,30 +343,88 @@ class CandidateSpan(StrictModel):
 
 class MuseNominationExpectation(StrictModel):
     outcome: Literal["candidate", "no_candidate", "ambiguous"]
-    reason_codes: tuple[str, ...]
-    candidate_spans: tuple[CandidateSpan, ...]
+    reason_codes: tuple[MuseReasonCode, ...] = Field(min_length=1)
+    candidate_spans: tuple[CandidateSpan, ...] = Field(max_length=1)
 
     @model_validator(mode="after")
     def spans_match_outcome(self) -> Self:
-        if self.outcome == "candidate" and not self.candidate_spans:
-            raise ValueError("candidate expectation requires an exact source span")
-        if self.outcome == "no_candidate" and self.candidate_spans:
-            raise ValueError("no-candidate expectation cannot contain spans")
+        candidate_codes = {
+            "durable_reflection",
+            "stable_preference_or_intention",
+            "personally_significant_incident",
+        }
+        no_candidate_codes = {
+            "transient_or_low_signal",
+            "unsupported_third_party_claim",
+            "near_duplicate_without_update",
+            "no_user_words",
+            "automatic_capture_disabled",
+        }
+        codes = set(self.reason_codes)
+        if self.outcome == "candidate":
+            if len(self.candidate_spans) != 1 or not codes <= candidate_codes:
+                raise ValueError("candidate expectation requires one span and candidate codes")
+        elif self.outcome == "no_candidate":
+            if self.candidate_spans or not codes <= no_candidate_codes:
+                raise ValueError("no-candidate expectation has incompatible spans or codes")
+        elif self.candidate_spans or codes != {"nomination_policy_ambiguous"}:
+            raise ValueError("ambiguous nomination requires only its ambiguity code")
         return self
 
 
 class ProvenanceCaptureExpectation(StrictModel):
     outcome: Literal["allow_capture", "reject_capture", "no_candidate", "ambiguous"]
-    reason_codes: tuple[str, ...]
+    reason_codes: tuple[RiskCode, ...]
+
+    @model_validator(mode="after")
+    def reasons_match_outcome(self) -> Self:
+        if self.outcome == "reject_capture" and not self.reason_codes:
+            raise ValueError("rejected capture requires at least one risk code")
+        if self.outcome in {"allow_capture", "no_candidate"} and self.reason_codes:
+            raise ValueError(f"{self.outcome} cannot contain Provenance risk codes")
+        return self
 
 
 class MemoryPolicyExpectation(StrictModel):
     outcome: Literal["commit", "refuse", "not_applicable", "ambiguous"]
-    reason_code: str | None
+    reason_code: MemoryPolicyReasonCode | None
+
+    @model_validator(mode="after")
+    def reason_matches_outcome(self) -> Self:
+        if self.outcome == "commit" and self.reason_code is not None:
+            raise ValueError("committed memory cannot contain a refusal reason")
+        if self.outcome == "refuse" and self.reason_code in {None, "not_applicable"}:
+            raise ValueError("refused memory requires a refusal reason")
+        if self.outcome == "not_applicable" and self.reason_code != "not_applicable":
+            raise ValueError("not-applicable memory requires its canonical reason")
+        if self.outcome == "ambiguous" and self.reason_code is not None:
+            raise ValueError("ambiguous memory outcome cannot assert a reason")
+        return self
 
 
 class HardExpectations(StrictModel):
     muse_nomination: MuseNominationExpectation
+    provenance_capture: ProvenanceCaptureExpectation
+    memory_policy: MemoryPolicyExpectation
+    book_evidence_status: Literal["verified", "not_applicable", "unresolved"]
+
+
+class AnnotationContext(StrictModel):
+    """Runtime facts that deterministic annotation outcomes may depend on."""
+
+    capture_enabled: bool
+    trusted_account_scope: bool
+    source_event_state: Literal["new", "conflict"]
+
+
+class MuseNominationDraft(StrictModel):
+    outcome: Literal["candidate", "no_candidate", "ambiguous"]
+    reason_codes: tuple[MuseReasonCode, ...] = Field(min_length=1)
+    candidate_text: str | None
+
+
+class HardExpectationsDraft(StrictModel):
+    muse_nomination: MuseNominationDraft
     provenance_capture: ProvenanceCaptureExpectation
     memory_policy: MemoryPolicyExpectation
     book_evidence_status: Literal["verified", "not_applicable", "unresolved"]
@@ -331,6 +442,18 @@ class SoftAssessment(StrictModel):
     review_notes: str = Field(min_length=1)
 
 
+class EntryAnnotationDraft(StrictModel):
+    """Model-authored entry labels before exact spans and review state are derived."""
+
+    entry_id: str = Field(pattern=r"^entry-\d{3}$")
+    hard_expectations: HardExpectationsDraft
+    soft_assessment: SoftAssessment
+
+
+class AnnotationDraft(StrictModel):
+    entries: tuple[EntryAnnotationDraft, ...] = Field(min_length=1)
+
+
 class EntryAnnotation(StrictModel):
     entry_id: str = Field(pattern=r"^entry-\d{3}$")
     hard_expectations: HardExpectations
@@ -344,6 +467,36 @@ class DatasetReview(StrictModel):
     continuity_failures: tuple[str, ...]
     stereotype_concerns: tuple[str, ...]
     entries_requiring_adjudication: tuple[str, ...]
+
+
+class EventCoverage(StrictModel):
+    """Entry IDs that realize each requested authoring event."""
+
+    durable_reflections: tuple[str, ...]
+    explicit_preferences_or_intentions: tuple[str, ...]
+    concrete_incidents: tuple[str, ...]
+    later_updates: tuple[str, ...]
+    unrelated_notes: tuple[str, ...]
+    transient_notes: tuple[str, ...]
+    sensitive_speculations: tuple[str, ...]
+    corrections: tuple[str, ...]
+    deletion_requests: tuple[str, ...]
+    near_duplicates: tuple[str, ...]
+    reconnect_queries: tuple[str, ...]
+
+
+class DatasetRelationDraft(StrictModel):
+    entry_id: str = Field(pattern=r"^entry-\d{3}$")
+    target_entry_id: str = Field(pattern=r"^entry-\d{3}$")
+    relation: Literal["updates", "contradicts", "near_duplicate", "supports"]
+
+
+class DatasetReviewDraft(StrictModel):
+    """Holistic authoring review kept separate from stage expectations."""
+
+    event_coverage: EventCoverage
+    relations: tuple[DatasetRelationDraft, ...]
+    dataset_review: DatasetReview
 
 
 class JournalAnnotations(StrictModel):
@@ -492,7 +645,10 @@ class SyntheticJournalDataset(StrictModel):
             length = classify_entry_length(entry.text, profile.entry_word_ranges)
             observed_lengths[length] += 1
             attachment_count += len(entry.attachments)
-            if any(attachment.kind not in profile.attachments.allowed_kinds for attachment in entry.attachments):
+            if any(
+                attachment.kind not in profile.attachments.allowed_kinds
+                for attachment in entry.attachments
+            ):
                 raise ValueError(f"{entry.entry_id} uses a forbidden attachment kind")
             if any(
                 (context.book_id, context.book_version_id) not in allowed_books
@@ -582,14 +738,25 @@ def validate_annotation(
             raise ValueError(f"{entry.entry_id} relates to an unknown entry")
         if relation.target_entry_id == entry.entry_id:
             raise ValueError(f"{entry.entry_id} cannot relate to itself")
+        target_sequence = int(relation.target_entry_id.removeprefix("entry-"))
+        if target_sequence >= entry.sequence:
+            raise ValueError(f"{entry.entry_id} relations must target earlier entries")
 
     provenance = annotation.hard_expectations.provenance_capture.outcome
     policy = annotation.hard_expectations.memory_policy.outcome
-    if nomination.outcome == "no_candidate" and provenance not in {
-        "no_candidate",
-        "ambiguous",
-    }:
-        raise ValueError("Provenance cannot review an absent candidate")
+    if nomination.outcome == "no_candidate":
+        if provenance != "no_candidate" or policy != "not_applicable":
+            raise ValueError("an absent candidate must bypass later capture stages")
+    if nomination.outcome == "ambiguous" and (
+        provenance != "ambiguous" or policy != "ambiguous"
+    ):
+        raise ValueError("ambiguous nomination must keep later stages ambiguous")
+    if provenance == "no_candidate" and nomination.outcome != "no_candidate":
+        raise ValueError("Provenance no-candidate requires an absent Muse candidate")
+    if provenance == "reject_capture" and policy != "refuse":
+        raise ValueError("rejected capture must produce a storage refusal")
+    if provenance == "ambiguous" and policy != "ambiguous":
+        raise ValueError("ambiguous Provenance review must keep storage ambiguous")
     if policy == "commit" and (
         nomination.outcome != "candidate" or provenance != "allow_capture"
     ):

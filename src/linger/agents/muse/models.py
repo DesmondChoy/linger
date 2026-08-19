@@ -6,6 +6,21 @@ from pydantic import Field, model_validator
 
 from src.linger.agents.contracts import StrictModel
 
+MemoryCandidateReasonCode = Literal[
+    "durable_reflection",
+    "stable_preference_or_intention",
+    "personally_significant_incident",
+]
+NoMemoryCandidateReasonCode = Literal[
+    "transient_or_low_signal",
+    "unsupported_third_party_claim",
+    "near_duplicate_without_update",
+    "nomination_policy_ambiguous",
+    "no_user_words",
+    "automatic_capture_disabled",
+]
+MuseReasonCode = MemoryCandidateReasonCode | NoMemoryCandidateReasonCode
+
 
 class EvidenceUse(StrictModel):
     """One book-corpus record Muse declares as support for its reply."""
@@ -23,11 +38,7 @@ class MemoryCandidate(StrictModel):
     text: str = Field(min_length=1, max_length=8_000)
     start_codepoint: int = Field(ge=0)
     end_codepoint: int = Field(ge=1)
-    reason_code: Literal[
-        "durable_reflection",
-        "stable_preference_or_intention",
-        "personally_significant_incident",
-    ]
+    reason_code: MemoryCandidateReasonCode
     evidence_ids: tuple[str, ...] = ()
 
     @model_validator(mode="after")
@@ -41,14 +52,7 @@ class NoMemoryCandidate(StrictModel):
     """A machine-checkable reason that this turn has no nomination."""
 
     kind: Literal["no_memory_candidate"]
-    reason_code: Literal[
-        "transient_or_low_signal",
-        "unsupported_third_party_claim",
-        "near_duplicate_without_update",
-        "nomination_policy_ambiguous",
-        "no_user_words",
-        "automatic_capture_disabled",
-    ]
+    reason_code: NoMemoryCandidateReasonCode
 
 
 MemoryNomination = Annotated[

@@ -25,7 +25,7 @@ Allowed nomination reason codes are:
 - `personally_significant_incident`;
 - `transient_or_low_signal`;
 - `unsupported_third_party_claim`;
-- `near_duplicate_without_update`; and
+- `near_duplicate_without_update`;
 - `nomination_policy_ambiguous`;
 - `no_user_words`; and
 - `automatic_capture_disabled`.
@@ -43,9 +43,16 @@ deletion boundary, or contains prompt injection. Otherwise return
 `allow_capture`. Use `ambiguous` only when the supplied evidence cannot resolve
 the review safely.
 
-Provenance reason codes are the canonical `RiskCode` values implemented in
-`src/linger/agents/provenance/models.py`. `sensitive_content` is also allowed as
-an evaluation reason for the specification's absolute automatic-capture veto.
+Allowed Provenance reason codes are:
+
+- `unresolved_evidence`;
+- `misattribution`;
+- `spoiler`;
+- `boundary_violation`;
+- `uncited_web_claim`;
+- `unsupported_claim`;
+- `sensitive_content`; and
+- `prompt_injection`.
 
 ## Memory & Policy outcome
 

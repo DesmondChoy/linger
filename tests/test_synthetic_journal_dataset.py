@@ -52,6 +52,39 @@ def test_non_exact_annotation_span_fails_the_dataset_gate() -> None:
         SyntheticJournalDataset.model_validate(payload)
 
 
+def test_unknown_annotation_reason_code_fails_the_dataset_gate() -> None:
+    dataset = load_dataset(MAYA_V1, require_frozen=False)
+    payload = dataset.model_dump(mode="json")
+    payload["annotations"]["entries"][0]["hard_expectations"]["muse_nomination"][
+        "reason_codes"
+    ] = ["invented_code"]
+
+    with pytest.raises(ValidationError, match="literal_error"):
+        SyntheticJournalDataset.model_validate(payload)
+
+
+def test_multiple_candidate_spans_fail_the_dataset_gate() -> None:
+    dataset = load_dataset(MAYA_V1, require_frozen=False)
+    payload = dataset.model_dump(mode="json")
+    spans = payload["annotations"]["entries"][1]["hard_expectations"][
+        "muse_nomination"
+    ]["candidate_spans"]
+    spans.append(dict(spans[0]))
+
+    with pytest.raises(ValidationError, match="at most 1 item"):
+        SyntheticJournalDataset.model_validate(payload)
+
+
+def test_absent_candidate_cannot_skip_stage_consistency() -> None:
+    dataset = load_dataset(MAYA_V1, require_frozen=False)
+    payload = dataset.model_dump(mode="json")
+    hard = payload["annotations"]["entries"][0]["hard_expectations"]
+    hard["provenance_capture"] = {"outcome": "allow_capture", "reason_codes": []}
+
+    with pytest.raises(ValidationError, match="absent candidate"):
+        SyntheticJournalDataset.model_validate(payload)
+
+
 def test_control_cannot_use_text_before_its_journal_note() -> None:
     dataset = load_dataset(MAYA_V1, require_frozen=False)
     payload = dataset.model_dump(mode="json")

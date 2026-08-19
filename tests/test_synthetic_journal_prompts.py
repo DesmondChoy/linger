@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import get_args
 
 from evals.synthetic_journals.contracts import PersonaInput
+from src.linger.agents.muse.models import (
+    MemoryCandidateReasonCode,
+    NoMemoryCandidateReasonCode,
+)
+from src.linger.agents.provenance.models import RiskCode
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -83,11 +89,15 @@ def test_prompt_templates_declare_their_runtime_variables() -> None:
             "LIBRARIAN_EVIDENCE_RECORDS_JSON",
         },
         "03-annotate-journal-entries.md": {
+            "JOURNAL_ENTRIES_JSON",
+            "ANNOTATION_CONTEXT_JSON",
+            "CAPTURE_POLICY_CONTRACT",
+            "LIBRARIAN_EVIDENCE_RECORDS_JSON",
+        },
+        "04-review-journal-dataset.md": {
             "PERSONA_INPUT_JSON",
             "JOURNAL_PROFILE_JSON",
             "JOURNAL_ENTRIES_JSON",
-            "CAPTURE_POLICY_CONTRACT",
-            "LIBRARIAN_EVIDENCE_RECORDS_JSON",
         },
     }
 
@@ -122,3 +132,19 @@ def test_capture_policy_is_versioned_and_stage_separated() -> None:
     assert "Provenance capture review" in policy
     assert "Memory & Policy outcome" in policy
     assert "withheld from Muse" in policy
+    assert "src/linger/agents/provenance/models.py" not in policy
+    assert "automatic_capture_disabled" in policy.split(
+        "## Provenance capture review", maxsplit=1
+    )[0]
+    for code in (
+        *get_args(MemoryCandidateReasonCode),
+        *get_args(NoMemoryCandidateReasonCode),
+        *get_args(RiskCode),
+    ):
+        assert f"`{code}`" in policy
+
+
+def test_prompt_examples_match_strict_contract_field_names() -> None:
+    profile = (PROMPTS / "01-create-journal-profile.md").read_text(encoding="utf-8")
+    assert '"ordinary_or_low_stakes_entries"' in profile
+    assert '"ordinary_or_low-stakes_entries"' not in profile

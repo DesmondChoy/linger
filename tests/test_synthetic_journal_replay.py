@@ -200,7 +200,7 @@ def test_manifest_controls_use_deterministic_memory_paths() -> None:
         hard = annotation["hard_expectations"]
         hard["muse_nomination"] = {
             "outcome": "ambiguous",
-            "reason_codes": [],
+            "reason_codes": ["nomination_policy_ambiguous"],
             "candidate_spans": [],
         }
         hard["provenance_capture"] = {

@@ -33,7 +33,10 @@ the corresponding event finishes.
 
 - `01-create-journal-profile.md` creates voice and continuity context.
 - `02-generate-journal-entries.md` writes chronological chunks.
-- `03-annotate-journal-entries.md` creates the grader-only sidecar.
+- `03-annotate-journal-entries.md` creates isolated entry-level labels.
+- `04-review-journal-dataset.md` checks continuity, relations, and event coverage.
+- `archive/` preserves exact historical prompts referenced by generation records;
+  generation must use the active prompts above.
 - `../../data/synthetic-journals/personas/*/input.json` supplies persona data.
 - `../../data/synthetic-journals/input.schema.json` documents that input.
 - `../../data/synthetic-journals/policies/capture-policy-v1.md` defines labels.
@@ -52,10 +55,16 @@ it must not require copied prompts or persona-specific Python branches.
    Pass all previously accepted entries into the next chunk.
 4. Supply book evidence as serialized, corpus-backed Librarian
    `EvidenceRecord` values. Never hand-invent a second evidence format.
-5. Generate annotations using the versioned capture policy.
-6. Validate chronology, length ranges, attachment counts, book versions, exact
+5. Generate entry-level annotations using only the journal, versioned capture
+   policy, evidence, and explicit replay conditions. Do not expose persona
+   quotas or the journal profile to this pass.
+6. Run a separate holistic review for continuity, relationships, stereotypes,
+   and event coverage, then merge it with the entry-level annotations.
+7. Derive stable identifiers, exact span offsets, fixed version fields, and
+   pending review state in code.
+8. Validate chronology, length ranges, attachment counts, book versions, exact
    spans, relations, event coverage, and stage-consistent labels.
-7. Store the result as `draft`. A human must approve every annotation before
+9. Store the result as `draft`. A human must approve every annotation before
    the manifest may be changed to `frozen`.
 
 Seeds and model versions are provenance, not reproducibility guarantees. The
@@ -107,9 +116,13 @@ The journal prompt receives `PERSONA_INPUT_JSON`, `JOURNAL_PROFILE_JSON`,
 `PRIOR_ENTRIES_JSON`, `CHUNK_REQUEST_JSON`, and
 `LIBRARIAN_EVIDENCE_RECORDS_JSON`.
 
-The annotation prompt receives `PERSONA_INPUT_JSON`, `JOURNAL_PROFILE_JSON`,
-`JOURNAL_ENTRIES_JSON`, `CAPTURE_POLICY_CONTRACT`, and
-`LIBRARIAN_EVIDENCE_RECORDS_JSON`.
+The entry-annotation prompt receives `JOURNAL_ENTRIES_JSON`,
+`ANNOTATION_CONTEXT_JSON`, `CAPTURE_POLICY_CONTRACT`, and
+`LIBRARIAN_EVIDENCE_RECORDS_JSON`. It does not receive persona quotas or the
+journal profile.
+
+The dataset-review prompt receives `PERSONA_INPUT_JSON`, `JOURNAL_PROFILE_JSON`,
+and `JOURNAL_ENTRIES_JSON`. It cannot assign capture outcomes.
 
 ## Review principles
 

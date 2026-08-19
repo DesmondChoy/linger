@@ -1,8 +1,8 @@
 # Prompt 1: Create a synthetic journal profile
 
-You are authoring a fictional evaluation world for Linger, a reading and
-reflection companion. Create a compact continuity plan that another model can
-use to write a chronological journal history.
+You are creating a continuity plan for a fictional journal history used to
+evaluate Linger, a reading and reflection companion. Another model will use this
+plan to write the journal entries.
 
 ## Input
 
@@ -14,43 +14,48 @@ use to write a chronological journal history.
 
 ## Rules
 
-Treat the input as authoritative. Do not add protected characteristics,
-diagnoses, trauma, relationships, employers, locations, or life events that it
-does not support.
+Treat `PERSONA_INPUT_JSON` as authoritative. Do not invent new stable
+biographical facts, protected characteristics, diagnoses, trauma, relationships,
+employers, locations, or major life events. You may plan ordinary fictional
+incidents that do not change the supplied biography.
 
-Background and demographics are biography, not causation. Do not explain the
-person's voice, intelligence, values, family role, or reading behaviour through
-age, ethnicity, gender, occupation, or name. Use the structured
-`history_profile` to shape the journal.
+Use `PERSONA_INPUT_JSON.background` for biographical context, not as a cause of
+the person's voice, intelligence, values, family role, or reading behavior. Use
+`PERSONA_INPUT_JSON.history_profile` for the history length, date range,
+structure, and realism targets.
 
 Create one coherent person rather than a showcase for Linger. Include mundane
-concerns and interests outside the headline use case. Do not force every book,
-entry, or life event into one theme.
+concerns and interests outside the main evaluation scenario. Do not force every
+book, entry, or incident into one theme.
 
-Use only books listed in `reading_list`. Treat `book_id` and `book_version_id`
-as routing identifiers, not facts to quote. Do not invent passages or plot
-details in this stage.
+Use every book in `PERSONA_INPUT_JSON.reading_list`, and use no other books.
+Copy each `book_id` and `book_version_id` exactly. Treat these values as routing
+identifiers, not book evidence. Do not invent quotations, passages, plot facts,
+or reading positions.
 
-Plan the requested counts and structural events across the full history, but do
-not make each entry serve exactly one labelled purpose. Real entries can overlap
-and some planned events may take several entries to develop.
+Plan natural situations that can satisfy the requested structural events. An
+entry may satisfy more than one event. Describe what the person does or writes;
+do not predict how Linger handles an entry.
 
-This stage creates authoring intent, not evaluation ground truth. Do not assign
-capture verdicts, expected memories, risk codes, retrieval labels, or storage
-fields.
+Set `realism_plan.short_or_fragmentary_entries` to
+`PERSONA_INPUT_JSON.history_profile.entry_length_mix.short`. Use the other
+realism counts as concrete minimum authoring targets.
 
-A planned correction or deletion request is something the fictional person may
-write or ask for. It is not permission for this generator, Muse, or any other
-agent to mutate stored data.
+The chronology must:
+
+- begin on `PERSONA_INPUT_JSON.history_profile.start_date`;
+- end exactly `span_days` later;
+- use consecutive phase numbers starting at 1; and
+- contain ordered, contiguous, nonoverlapping phases.
 
 ## Output
 
-Return valid JSON only, with this shape:
+Return valid JSON only, with exactly this shape:
 
 ```json
 {
   "journal_profile_version": 1,
-  "persona_id": "opaque persona identifier from the input",
+  "persona_id": "exact persona_id from PERSONA_INPUT_JSON",
   "voice": {
     "first_person_characteristics": ["..."],
     "recurring_phrases_or_habits": ["..."],
@@ -67,30 +72,30 @@ Return valid JSON only, with this shape:
   ],
   "reading_trajectory": [
     {
-      "book_id": "...",
-      "book_version_id": "...",
-      "stages": ["positions or scenes the person may naturally mention"]
+      "book_id": "exact reading_list book_id",
+      "book_version_id": "exact reading_list book_version_id",
+      "stages": ["general reader reactions or questions that may develop"]
     }
   ],
   "chronology": [
     {
       "phase": 1,
-      "start_date": "fictional ISO date",
-      "end_date": "fictional ISO date",
+      "start_date": "YYYY-MM-DD",
+      "end_date": "YYYY-MM-DD",
       "continuity_notes": ["..."],
-      "planned_beats": ["reader-behaviour descriptions, not evaluation labels"]
+      "planned_beats": ["natural journal situations, not expected system outcomes"]
     }
   ],
   "realism_plan": {
     "short_or_fragmentary_entries": 0,
-    "ordinary_or_low-stakes_entries": 0,
+    "ordinary_or_low_stakes_entries": 0,
     "entries_without_a_closing_insight": 0,
-    "repetition_or_unplanned_callbacks": ["..."]
+    "repetition_or_unplanned_callbacks": ["plausible recurring details"]
   },
   "continuity_invariants": ["facts later chunks must preserve"],
-  "stereotype_review_questions": ["questions a human reviewer must answer"]
+  "stereotype_review_questions": ["persona-specific questions for human review"]
 }
 ```
 
-Use opaque identifiers such as `thread-001`; never encode an expected label in
-an identifier.
+Use neutral sequential identifiers such as `thread-001`. Do not encode an
+expected evaluation outcome in an identifier.
