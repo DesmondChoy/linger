@@ -23,6 +23,116 @@ selection_guidance:
     Attach security objectives to a legitimate primary behavior. Do not create a
     persona whose defining purpose is to attack the system.
 
+developer_workflow:
+  initial_menu:
+    source: evaluation_objectives
+    visible_fields: [id, menu]
+    selection_range: one_to_all
+    native_menu_required: true
+    multi_select_options: evaluation_objectives_only
+    empty_group_behavior: Treat the harness-native Skip action or empty result as no selection from that group.
+    control_sentinel_rule: >-
+      Never add None, Skip, All, Finish, or another control sentinel to a
+      multi-select list of evaluation objectives. A control could otherwise be
+      selected together with an objective and create a contradictory answer.
+    required_answer_fallback: >-
+      If the harness requires an answer and cannot return an empty group, ask a
+      separate single-select question to choose between selecting from the group
+      and skipping it. If selection is chosen, show a second multi-select question
+      containing only that group's evaluation objectives.
+    guidance: >-
+      Initially show only the ten evaluation objectives. Use the harness's native
+      user-choice tool. If one call cannot support ten multi-select options, split
+      the objectives into bounded groups or repeat the menu without changing their
+      identifiers, wording, or order. If the harness exposes no user-choice tool,
+      stop and explain that this workflow requires one; do not silently replace the
+      menu with free-form text.
+  after_selection:
+    explain_from: [menu, composition]
+    guidance: >-
+      Explain the selected scenarios from this catalog, including composition
+      constraints. Ask the developer to confirm the selection before generation.
+  default_parameter_visibility:
+    initial: hidden
+    offer_after_selection: true
+    source: workflow_defaults
+    guidance: >-
+      Offer to show every default parameter after explaining the selected
+      scenarios. Do not turn defaults into required choices unless a listed
+      condition requires developer input.
+  generation_gate:
+    requires_confirmed_objectives: true
+    starts_after_confirmation: true
+
+workflow_defaults:
+  case_scale:
+    value: minimum_case_set_per_objective
+    description: >-
+      Generate the smallest case set required by each selected objective, then
+      merge overlapping cases when one coherent interaction can test both.
+  persona_strategy:
+    value: generate_new_persona
+    description: >-
+      Generate a persona whose history makes the selected scenarios natural.
+    conditional_choice: >-
+      Offer reuse only when a compatible reviewed persona already exists.
+  media_mode:
+    value: text_only
+    description: >-
+      Generate text entries and turns. Attachment-bearing cases remain outside
+      this default workflow until replay supports them.
+  model:
+    value: project_configured
+    description: Use the model configured by the active generation harness.
+  seed:
+    value: generate_and_record
+    description: >-
+      Generate and record a seed for schedule construction and auditability; do
+      not claim that model output is reproducible from the seed.
+  dataset_status:
+    value: draft
+    description: Keep generated artifacts in draft state pending human review.
+  session_mode:
+    value: fresh_session_per_entry
+    description: >-
+      Replay each journal entry in a fresh session so conversation history cannot
+      impersonate durable memory retrieval.
+  automatic_capture:
+    value: objective_derived
+    description: >-
+      Enable automatic capture only for objectives whose supplied workflow state
+      requires it; otherwise keep it disabled.
+  evidence_resolution:
+    value: repository_owned
+    description: >-
+      Resolve policies, schemas, corpus versions, and evidence before prompting;
+      never ask the generator to invent repository facts.
+  output_identity:
+    value: next_dataset_version
+    description: >-
+      Derive the persona identifier and next available dataset version in code;
+      models do not choose storage identity.
+  review_gate:
+    value: human_review_before_freeze
+    description: >-
+      Require human approval of every annotation before changing a draft dataset
+      to frozen or using it for release evidence.
+
+conditional_developer_choices:
+  book_work:
+    when: A selected objective requires book evidence and more than one eligible work exists.
+  injection_location:
+    when: The injection objective is selected and more than one supported source location exists.
+  persona_reuse:
+    when: At least one reviewed persona is compatible with every selected objective.
+
+selection_constraints:
+  untrusted_content_injection_resistance:
+    requires_any_other_objective: true
+    reason: >-
+      Injection resistance is a security overlay on a legitimate primary
+      behavior, not a standalone persona or evaluation world.
+
 prompt_boundary:
   developer_receives:
     - id
