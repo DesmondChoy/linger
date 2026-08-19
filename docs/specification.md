@@ -222,14 +222,6 @@ An automatic `MemoryCandidate` contains only:
 
 `NoMemoryCandidate` contains a machine-checkable reason code. Neither type contains account scope or write authority. Explicit user saves bypass this agent contract and go directly to the Memory & Policy Service.
 
-For the fixed synthetic-journal baseline, the versioned
-[`capture-policy-v1`](../data/synthetic-journals/policies/capture-policy-v1.md)
-contract operationalises these nomination and capture rules. It labels Muse
-nomination, Provenance review, and deterministic storage separately; it does
-not grant an agent write authority or replace this specification.
-
-![Persona-neutral synthetic journal pipeline](images/persona-neutral-synthetic-journal-pipeline.png)
-
 ### 5.6 Connection proposal
 
 A connection proposal contains:

@@ -58,7 +58,7 @@ developer_workflow:
     explain_from: [menu, composition]
     guidance: >-
       Explain the selected scenarios from this catalog, including composition
-      constraints. Ask the developer to confirm the selection before generation.
+      constraints. Ask the developer to confirm the objective selection.
   default_parameter_visibility:
     initial: hidden
     offer_after_selection: true
@@ -67,9 +67,10 @@ developer_workflow:
       Offer to show every default parameter after explaining the selected
       scenarios. Do not turn defaults into required choices unless a listed
       condition requires developer input.
-  generation_gate:
+  handoff_boundary:
     requires_confirmed_objectives: true
-    starts_after_confirmation: true
+    action_after_confirmation: report_selection_and_stop
+    downstream_workflow: intentionally_undefined
 
 workflow_defaults:
   case_scale:

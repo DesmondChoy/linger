@@ -1,6 +1,6 @@
 ---
 name: generate-synthetic-journals
-description: Select Linger evaluation objectives, explain their scenarios and defaults, then generate a persona-neutral draft synthetic-journal dataset. Use when a developer asks to create, plan, or configure synthetic journal evaluation data; do not use for replaying an existing frozen dataset.
+description: Select Linger evaluation objectives, explain their scenarios and defaults, and confirm the selection before downstream generation is designed. Use when a developer asks to begin planning synthetic journal evaluation data; currently stops after confirmation and creates no dataset.
 ---
 
 # Generate Synthetic Journals
@@ -59,33 +59,18 @@ After selection, explain each scenario using only its `menu` and `composition`
 fields. Include relevant combination constraints. Then use the native choice
 tool to ask whether the developer wants to:
 
-- confirm and continue;
+- confirm the objective selection;
 - revise the objective selection; or
 - view all entries under `workflow_defaults`.
 
 If defaults are requested, show every default's name, value, and description,
 plus any applicable `conditional_developer_choices`. Defaults are informational:
 ask the developer to choose only when a listed condition is true. Return to the
-confirmation menu afterward. Do not start generation without confirmation.
+confirmation menu afterward. Confirmation does not start generation.
 
-## Generate the draft
+## Stop after confirmation
 
-After confirmation:
-
-1. Read the selected objectives' `generation_brief` and `prompt_inputs`.
-2. Resolve every prompt input through its declared supplier. Ask only the
-   conditional developer questions that apply. Stop if an authoritative policy,
-   corpus version, evidence record, or required workflow state cannot be resolved.
-3. Give the generator only `generation_brief` and resolved prompt content. Keep
-   `prompt_inputs`, `composition`, and `evaluation_metadata` out of generator
-   context, as required by `prompt_boundary`.
-4. Read `prompts/synthetic-journals/README.md` and use the active prompts plus
-   `evals.synthetic_journals.generation` for profile, chunk, annotation, review,
-   merge, and validation stages. Do not use archived prompts.
-5. Keep raw journals separate from product memory, annotations grader-only, and
-   the output in `draft` state. Generation does not authorize replay, freezing,
-   committing, or publishing the dataset.
-
-If the checked-in generation API cannot complete a canonical draft package,
-report the exact missing stage and stop. Do not hand-assemble a partial package
-or present it as generated data.
+After confirmation, report the selected objective IDs and titles, then stop.
+Do not resolve prompt inputs, invoke a model, create a persona, generate journal
+entries, annotate data, or write dataset artifacts. The downstream workflow is
+intentionally undefined until the project adopts a new design.

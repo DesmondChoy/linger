@@ -1,4 +1,4 @@
 interface:
-  display_name: "Synthetic Journal Generator"
-  short_description: "Select objectives and generate journal fixtures"
-  default_prompt: "Use $generate-synthetic-journals to choose evaluation objectives and generate a draft synthetic journal dataset."
+  display_name: "Synthetic Journal Objectives"
+  short_description: "Select synthetic-journal objectives"
+  default_prompt: "Use $generate-synthetic-journals to choose and confirm evaluation objectives."
