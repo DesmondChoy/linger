@@ -32,9 +32,16 @@ developer_workflow:
     multi_select_options: evaluation_objectives_only
     empty_group_behavior: Treat the harness-native Skip action or empty result as no selection from that group.
     control_sentinel_rule: >-
-      Never add None, Skip, All, Finish, or another control sentinel to a
-      multi-select list of evaluation objectives. A control could otherwise be
-      selected together with an objective and create a contradictory answer.
+      Never add None, Skip, All, Finish, Other, or another non-objective option
+      to a multi-select list of evaluation objectives. A non-objective option
+      could otherwise be selected together with an objective and create an
+      invalid answer.
+    harness_free_text_rule: >-
+      Suppress harness-provided free-text choices when the live tool schema
+      supports suppression. If the harness adds a free-text choice such as Other
+      and provides no suppression setting, state that only listed evaluation
+      objectives are accepted. Treat any free-text response as invalid and ask
+      that group again; never convert it into an evaluation objective.
     required_answer_fallback: >-
       If the harness requires an answer and cannot return an empty group, ask a
       separate single-select question to choose between selecting from the group

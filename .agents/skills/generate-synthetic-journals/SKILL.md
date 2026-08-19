@@ -23,9 +23,14 @@ boundaries. Never copy that content into this skill.
 4. Respect the tool's live schema. If one call cannot present ten multi-select
    options, paginate, group, or repeat native menu calls and combine the answers.
    A multi-select option list must contain evaluation objectives only. Never add
-   **None**, **Skip**, **All**, **Finish**, or another control sentinel to that
-   list; native multi-select tools can allow a control and an objective to be
-   selected together.
+   **None**, **Skip**, **All**, **Finish**, **Other**, or another non-objective
+   option to that list; native multi-select tools can allow it and an objective
+   to be selected together.
+   - Suppress harness-provided free-text choices when the live tool schema
+     supports suppression. If the harness adds a free-text choice such as
+     **Other** and provides no suppression setting, label the question with
+     "Select only the listed evaluation objectives; free-text responses are not
+     accepted." Treat that control as harness UI, not as an evaluation objective.
    - Treat the harness-native **Skip** action or empty answer as no selection from
      that group.
    - If the harness requires an answer and cannot return an empty group, first use
@@ -36,10 +41,12 @@ boundaries. Never copy that content into this skill.
    remove selected items from later calls, then ask **Add another** or **Finish
    selection** in a separate control question. Never truncate the catalog or
    replace the menu with an assumed choice.
-5. Accept one through all ten objectives. Reject an empty final selection and
-   unknown or duplicate identifiers. If a result contains both an objective and
-   a mutually exclusive control sentinel, reject that group result and ask it
-   again. Apply every rule under
+5. Accept one through all ten objectives. Accept only exact catalog IDs or
+   titles. Reject an empty final selection, free-text response, and unknown or
+   duplicate identifier. If a result contains **Other**, another free-text
+   response, or both an objective and a mutually exclusive control sentinel,
+   reject that group result and ask it again. Never convert free text into a new
+   evaluation objective. Apply every rule under
    `selection_constraints`; in particular, injection resistance must accompany
    at least one legitimate primary objective.
 
