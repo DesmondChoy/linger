@@ -284,47 +284,36 @@ Muse is a reflection companion, not a wellbeing tool. It does not diagnose or la
 
 ## 7. Evaluation and acceptance
 
-### 7.1 Retrieval and memory quality
+### 7.1 Product evaluation requirements
 
-- Citation-labelled book and memory queries compare keyword, semantic, hybrid, and reranked retrieval using Recall@5 and nDCG@5.
-- The same set tests whether Librarian's strategy selection improves relevance or latency over the strongest fixed strategy.
-- Seeded duplicate and noisy memories test Sculptor's linking and grouping precision and their effect on Recall@5 and nDCG@5.
-- Every derived record must resolve to its originals, and Sculptor must never delete an original.
+Evaluation must test the product behaviour and authority boundaries in Sections 4–6. Retrieval and memory quality evaluation covers the following requirements:
 
-### 7.2 Fixed evaluation set
+- Compare keyword, semantic, hybrid, and reranked book and memory retrieval using measures such as Recall@5 and nDCG@5.
+- Test whether Librarian's strategy selection improves relevance or latency over the strongest fixed strategy.
+- Measure Sculptor's linking and grouping quality without allowing it to modify or delete an original memory.
+- Verify that every derived record resolves to its originals.
 
-The repository is being built toward a fixed baseline of 40 versioned JSON or YAML cases. Each case has one primary behaviour and records its inputs, expected outputs or evidence identifiers, and forbidden outputs as applicable:
+The suggested measures in the [synthetic journal evaluation-objective catalog](../synthetic-journal-evaluation/evaluation-objectives.yaml) identify relevant signals. They are not adopted thresholds, aggregate scores, or release gates. Every factual web claim must include a retrievable citation, every evidence identifier must resolve, and any LLM-as-judge result is secondary and labelled non-independent.
 
-- 15 safety or adversarial cases;
-- 5 reflection cases;
-- 5 memory-capture cases;
-- 10 expected-connection cases; and
-- 5 weak-evidence cases.
+### 7.2 Scenario-first synthetic journal evaluation
 
-The five memory-capture cases evaluate Muse nomination, Provenance vetoes, explicit agent-free saves, and deterministic opt-in, account-scope, sensitive-content, and idempotency enforcement. Sculptor curation is evaluated separately using seeded duplicate, noisy, grouped, and no-change memory sets under Section 7.1.
+The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
 
-Shared deterministic checks validate citations, evidence identifiers, disclosure boundaries, and Provenance verdict coverage across the set. The harness reports reflection-action accuracy; semantic detection recall for quotations, factual claims, and sensitive inferences; unsupported-claim block rate; non-factual pass rate; memory-capture precision and recall; target-connection hit rate; evidence recall; citation precision; exact-quotation accuracy; weak-evidence decline rate; latency; and cost.
+The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. After confirmation, the skill reports the selected objective identifiers and titles, then stops.
 
-Required outcomes:
+The downstream workflow is intentionally undefined. The project has not adopted decisions for:
 
-- at least 80% reflection-action accuracy;
-- at least 80% memory-capture precision and recall;
-- at least 80% target-connection hits;
-- at least 90% evidence recall;
-- at least 95% citation precision;
-- at least 95% semantic detection recall for seeded quotations, factual claims, and sensitive inferences;
-- 100% exact-quotation accuracy;
-- 100% Provenance verdict coverage for user-visible Muse responses;
-- 100% suppression of rejected and superseded drafts;
-- at least 80% weak-evidence declines;
-- no cross-account, deleted, or post-boundary disclosure;
-- all seeded text-, web-, and image-borne injections blocked or safely ignored;
-- no automatic capture of sensitive-trait content; and
-- clarification whenever the spoiler boundary is ambiguous.
+- personas;
+- histories;
+- cases;
+- artifact schemas;
+- annotation;
+- packaging;
+- review;
+- freezing; or
+- replay.
 
-Every factual web claim must include a retrievable citation, and every evidence identifier must resolve. Any LLM-as-judge result is secondary and labelled non-independent.
-
-Once authored, the 40 cases form the frozen baseline. Failure-to-eval promotion (Section 9.1) may extend the set with additional human-approved cases; promoted cases follow the same format and versioning and never replace, relax, or retire a baseline case.
+The generation briefs and prompt boundaries describe requirements that a future design must preserve. They do not define a stage sequence, artifact model, or lifecycle. The earlier 40-case inventory, category allocation, JSON or YAML case format, numeric thresholds, and frozen-baseline policy are unadopted and do not constrain the future design.
 
 ### 7.3 Deployment checks
 
@@ -342,19 +331,19 @@ The canonical [telemetry data contract](telemetry.md) defines the minimal captur
 
 ## 9. Recursive self-improvement
 
-Linger includes a deliberately bounded form of **recursive self-improvement (RSI)**: the system helps improve its own harness — its regression tests and its operational guidance — while humans retain approval authority over every change. This follows current frontier practice, which frames near-term RSI not as a model modifying its own weights or prompts autonomously, but as agents improving the scaffolding around the model through feedback loops that end in reviewed, gated changes. Linger adopts exactly that shape: each loop turns an observed failure into a versioned, human-approved file in the repository, and no loop grants any agent new runtime authority.
+Linger considers a deliberately bounded form of **recursive self-improvement (RSI)**: the system may help improve its regression coverage and operational guidance while humans retain approval authority over every change. This follows current frontier practice, which frames near-term RSI not as a model modifying its own weights or prompts autonomously, but as agents improving the scaffolding around the model through feedback loops that end in reviewed, gated changes. Any adopted loop must preserve that boundary and cannot grant an agent new runtime authority.
 
 Two loops are in scope.
 
 ### 9.1 Failure-to-eval promotion
 
-**Pain point.** A hand-authored evaluation set goes stale the moment the system meets real inputs. Observed failures — blocked prompt-injection attempts, Provenance rejections, failed deterministic post-checks — are the best possible regression tests, but converting them by hand is toil that reliably does not happen.
+**Pain point.** Observed failures, including blocked prompt-injection attempts, Provenance rejections, and failed deterministic post-checks, can reveal gaps in regression coverage.
 
-**Mechanism.** When the running system blocks a seeded failure, the harness may draft a candidate evaluation case in the versioned case format of Section 7.2 because that reviewed input is already an authorised eval artifact. A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. A human uses that signature to author a synthetic or sanitised regression case; runtime telemetry never reconstructs or copies the user's input. The drafting step writes the candidate file and has no other authority; candidates are queued for human approval and merged as ordinary pull requests, after which CI runs them permanently.
+**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. The project has not adopted a case format, drafting mechanism, artifact lifecycle, review process, or promotion workflow. Section 7.2 governs those open decisions.
 
-**Agents involved.** Provenance and the deterministic post-check layer act as detectors; a small drafting step formats candidates; humans and CI are the release gate. No detector gains new authority — detection already happens as part of Section 6.5.
+**Agents involved.** Provenance and the deterministic post-check layer act only as detectors. They cannot create, write, freeze, or promote evaluation artifacts.
 
-**Success measures.** End-to-end demonstration that a blocked adversarial input becomes a merged CI case; a deliberately reintroduced regression is caught by a promoted case; 100% of promoted cases are human-approved and versioned before entering the set.
+**Adoption criteria.** Any future failure-to-eval workflow must use synthetic or sanitised content, require human approval before repository integration, and grant no detector write or release authority.
 
 ### 9.2 Sculptor-curated system playbook
 
@@ -364,15 +353,15 @@ Two loops are in scope.
 
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
-**Relationship to failure-to-eval promotion.** The two loops are complementary halves of one flywheel and overlap minimally: Section 9.1 promotes failures into frozen *tests* so regressions are caught; Section 9.2 curates failures into *guidance* so repeats are prevented.
+**Relationship to failure-to-eval promotion.** If the project adopts the workflow in Section 9.1, failure-to-eval promotion will produce regression coverage, while Section 9.2 will continue to curate operational guidance. The two concerns remain separate.
 
 **Success measures.** Playbook deduplication precision on seeded duplicate lessons; human acceptance rate of proposed edits; recurrence of repeated Provenance rejection classes tracked across releases. These are reported as evidence that the loop operates as designed; consistent with Section 3.3, the prototype makes no claim that telemetry measurably improved the system.
 
 ### 9.3 Boundaries
 
-- Every RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
+- Every adopted RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
 - Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
-- No agent gains write authority: playbook and evaluation-case writes happen through repository review, not through the Memory & Policy Service, and Sculptor's product-side curation path remains proposal-only.
+- No agent gains write authority. Playbook changes, and any future evaluation artifacts, must enter through repository review rather than the Memory & Policy Service. Sculptor's product-side curation path remains proposal-only.
 - Loops consume only the operational metadata permitted by the [telemetry data contract](telemetry.md).
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
@@ -380,8 +369,8 @@ Two loops are in scope.
 
 These loops are the specification's explicit answer to the practice-module briefing (`docs/submissions/aas-practice-module-briefing.pdf`), which asks which parts of the AI system lifecycle can be automated to reduce development effort and improve system quality attributes, and which grades the project on concrete artifacts:
 
-- **MLSecOps/LLMSecOps pipeline design.** Failure-to-eval promotion is the automated-testing, versioning, and monitoring portion of the CI/CD pipeline made self-extending: security detections feed the test suite through a reviewed path.
-- **AI security risk register.** Each identified risk (prompt injection, unsupported claims, sensitive-inference leakage) gains a living mitigation — *detected once, converted to a permanent test* — rather than a static bullet point.
-- **Testing artifacts.** Promoted cases, the seeded adversarial corpus, and the evaluation harness of Section 7.2 constitute the required AI security tests and end-to-end verification.
+- **MLSecOps/LLMSecOps pipeline design.** Section 9.1 defines the authority and privacy boundary for a possible future path from security detections to regression coverage. The downstream workflow remains unadopted.
+- **AI security risk register.** Detection metadata can identify candidate regression gaps for prompt injection, unsupported claims, and sensitive-inference leakage without copying live-user content.
+- **Testing artifacts.** The evaluation-objective catalog defines the intended security coverage. A future downstream design must define the test artifacts, harness, review process, and lifecycle.
 - **Agent design documentation.** The system playbook demonstrates Sculptor's curation contract generalising across two memory stores under identical safeguards — an agent-design argument, not an added subsystem.
 - **Responsible-AI governance.** Both loops are bounded, human-in-the-loop, and auditable: every change they produce is versioned, reviewed, and traceable, aligning the self-improvement story with the module's governance and accountability requirements.

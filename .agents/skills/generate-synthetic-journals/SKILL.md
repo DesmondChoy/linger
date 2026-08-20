@@ -1,13 +1,13 @@
 ---
 name: generate-synthetic-journals
-description: Select Linger evaluation objectives, explain their scenarios and defaults, and confirm the selection before downstream generation is designed. Use when a developer asks to begin planning synthetic journal evaluation data; currently stops after confirmation and creates no dataset.
+description: Select Linger evaluation objectives, explain their scenarios, and confirm the selection before downstream generation is designed. Use when a developer asks to begin planning synthetic journal evaluation data; currently stops after confirmation and creates no dataset.
 ---
 
 # Generate Synthetic Journals
 
 Use `synthetic-journal-evaluation/evaluation-objectives.yaml` as the sole source
-of evaluation-objective text, composition rules, workflow defaults, and prompt
-boundaries. Never copy that content into this skill.
+of evaluation-objective text, composition rules, and prompt boundaries. Never
+copy that content into this skill.
 
 ## Select objectives
 
@@ -15,7 +15,7 @@ boundaries. Never copy that content into this skill.
    `evaluation_objectives`.
 2. Initially surface only those ten objectives. Build labels and descriptions
    from each objective's `menu.title` and `menu.summary`; retain its `id` as the
-   stable selection key. Do not surface workflow parameters yet.
+   stable selection key.
 3. Use the harness-native user-choice tool:
    - In Codex, call `request_user_input` when the harness exposes it.
    - In Claude Code, call `AskUserQuestion` with `multiSelect: true`.
@@ -60,17 +60,14 @@ fields. Include relevant combination constraints. Then use the native choice
 tool to ask whether the developer wants to:
 
 - confirm the objective selection;
-- revise the objective selection; or
-- view all entries under `workflow_defaults`.
+- revise the objective selection.
 
-If defaults are requested, show every default's name, value, and description,
-plus any applicable `conditional_developer_choices`. Defaults are informational:
-ask the developer to choose only when a listed condition is true. Return to the
-confirmation menu afterward. Confirmation does not start generation.
+Confirmation does not start generation.
 
 ## Stop after confirmation
 
 After confirmation, report the selected objective IDs and titles, then stop.
-Do not resolve prompt inputs, invoke a model, create a persona, generate journal
-entries, annotate data, or write dataset artifacts. The downstream workflow is
-intentionally undefined until the project adopts a new design.
+Do not resolve prompt inputs, invoke a model, or create personas, histories,
+cases, artifacts, annotations, packages, review records, frozen releases, or
+replay data. The downstream workflow is intentionally undefined until the
+project adopts a new design.

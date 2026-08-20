@@ -156,9 +156,8 @@
     .evaluation-contract { margin-bottom: 24px; }
     .contract-head { display: grid; grid-template-columns: 150px 1fr; gap: 34px; margin-bottom: 14px; }
     .contract-head h3 { margin: 0; font-family: var(--display); font-size: 25px; font-weight: 400; }
-    .contract-grid { display: grid; grid-template-columns: 0.9fr 1.1fr 1fr; border: 1px solid var(--line); background: var(--paper); }
-    .contract-card { padding: 20px; border-right: 1px solid var(--line); }
-    .contract-card:last-child { border-right: 0; }
+    .contract-grid { border: 1px solid var(--line); background: var(--paper); }
+    .contract-card { padding: 20px; }
     .contract-card h4 { margin: 6px 0 8px; font-size: 15px; }
     .contract-card p { margin: 0; color: var(--muted); font-size: 12px; }
     .contract-card ul { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
@@ -532,7 +531,7 @@
         <section class="evaluation-portfolio" aria-labelledby="portfolio-title">
           <header class="portfolio-head">
             <span class="label">Ten objectives at a glance</span>
-            <div><h3 id="portfolio-title">Every objective names the components, gates, and measures it expects.</h3><p>Each objective covers one behaviour under evaluation. The <a href="../../synthetic-journal-evaluation/evaluation-objectives.yaml">evaluation-objective catalog</a> holds the full text, composition rules, generation briefs, prompt boundaries, and workflow defaults.</p></div>
+            <div><h3 id="portfolio-title">Every objective names the components, gates, and measures it expects.</h3><p>Each objective covers one behaviour under evaluation. The <a href="../../synthetic-journal-evaluation/evaluation-objectives.yaml">evaluation-objective catalog</a> holds the full text, composition rules, generation briefs, prompt boundaries, and selection rules.</p></div>
           </header>
           <div class="portfolio-table-wrap">
             <table class="portfolio-table">
@@ -554,37 +553,18 @@
         </section>
 
         <section class="evaluation-contract" aria-labelledby="contract-title">
-          <header class="contract-head"><span class="label">Evaluation plan</span><h3 id="contract-title">The objectives state what the evaluation data must exercise.</h3></header>
+          <header class="contract-head"><span class="label">Workflow boundary</span><h3 id="contract-title">The selection workflow stops after confirmation.</h3></header>
           <div class="contract-grid">
             <article class="contract-card">
-              <span class="micro">01 / Fixed cases</span>
-              <h4>The Linger specification sets the case mix and thresholds</h4>
-              <p>Section 7.2 of the Linger system specification defines the fixed evaluation set the repository is being built toward: 15 safety or adversarial cases, 5 reflection cases, 5 memory-capture cases, 10 expected-connection cases, and 5 weak-evidence cases, each with a required pass threshold. Section 7.1 measures retrieval strategy and Sculptor curation separately.</p>
-              <div class="contract-rule"><a href="../specification.md#72-fixed-evaluation-set">Linger system specification, section 7.2, Fixed evaluation set</a> · new cases based on failures extend the set while preserving every baseline case.</div>
-            </article>
-            <article class="contract-card">
-              <span class="micro">02 / Architecture comparison</span>
-              <h4>Hold inputs steady and vary the architecture</h4>
-              <p>Hold the base model, case inputs, evidence, and application rules steady across:</p>
-              <ul>
-                <li>single-agent system;</li>
-                <li>full five-role agent system;</li>
-                <li>adaptive Librarian compared with the strongest fixed retrieval;</li>
-                <li>separate Provenance review compared with review inside Muse; and</li>
-                <li>connection cases with and without Serendipity.</li>
-              </ul>
-              <div class="contract-rule">Every version must pass all safety checks. Report latency, tokens, and cost, and keep outputs from reduced systems inside the evaluator.</div>
-            </article>
-            <article class="contract-card">
-              <span class="micro">03 / Workflow boundary</span>
+              <span class="micro">Stop after confirmation</span>
               <h4>Selection is defined; what follows it is not</h4>
               <p>The repository’s <code>generate-synthetic-journals</code> skill selects objectives, explains their scenarios and composition constraints, asks the developer to confirm, then stops.</p>
               <ul>
                 <li>Confirmation reports the selected objective IDs and titles.</li>
-                <li>Confirmation creates no persona, dataset, case set, annotation file, package, or replay report.</li>
-                <li>Workflow defaults such as <code>dataset_status: draft</code> describe intent for a workflow that is not designed.</li>
+                <li>Confirmation creates no personas, histories, cases, artifacts, annotations, packages, review records, frozen releases, or replay data.</li>
+                <li>No downstream workflow defaults are defined.</li>
               </ul>
-              <div class="contract-rule">The catalog records the downstream workflow as intentionally undefined. Persona creation, case construction, prompt rendering, annotation, packaging, review, and replay are open decisions.</div>
+              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the downstream workflow is intentionally undefined.</div>
             </article>
           </div>
         </section>

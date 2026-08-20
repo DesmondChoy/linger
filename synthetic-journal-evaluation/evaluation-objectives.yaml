@@ -2,10 +2,10 @@ schema_version: 1
 catalog_id: synthetic-journal-evaluation-objectives
 title: Synthetic journal evaluation objectives
 purpose: >-
-  Let developers select one or more evaluation objectives before generating a
-  coherent persona, history, journal, and focused cases. A repository-owned
-  renderer supplies the selected model with complete contracts and run-specific
-  context, so the model does not need access to Linger's source code.
+  Let developers select one or more evaluation objectives and review their
+  scenarios before the project adopts a downstream workflow. The catalog
+  defines what future evaluation data must exercise, not how to create or
+  package that data.
 
 terms:
   evaluation_world: A coherent persona, history, system state, and set of focused cases.
@@ -59,80 +59,20 @@ developer_workflow:
     guidance: >-
       Explain the selected scenarios from this catalog, including composition
       constraints. Ask the developer to confirm the objective selection.
-  default_parameter_visibility:
-    initial: hidden
-    offer_after_selection: true
-    source: workflow_defaults
-    guidance: >-
-      Offer to show every default parameter after explaining the selected
-      scenarios. Do not turn defaults into required choices unless a listed
-      condition requires developer input.
   handoff_boundary:
     requires_confirmed_objectives: true
     action_after_confirmation: report_selection_and_stop
     downstream_workflow: intentionally_undefined
-
-workflow_defaults:
-  case_scale:
-    value: minimum_case_set_per_objective
-    description: >-
-      Generate the smallest case set required by each selected objective, then
-      merge overlapping cases when one coherent interaction can test both.
-  persona_strategy:
-    value: generate_new_persona
-    description: >-
-      Generate a persona whose history makes the selected scenarios natural.
-    conditional_choice: >-
-      Offer reuse only when a compatible reviewed persona already exists.
-  media_mode:
-    value: text_only
-    description: >-
-      Generate text entries and turns. Attachment-bearing cases remain outside
-      this default workflow until replay supports them.
-  model:
-    value: project_configured
-    description: Use the model configured by the active generation harness.
-  seed:
-    value: generate_and_record
-    description: >-
-      Generate and record a seed for schedule construction and auditability; do
-      not claim that model output is reproducible from the seed.
-  dataset_status:
-    value: draft
-    description: Keep generated artifacts in draft state pending human review.
-  session_mode:
-    value: fresh_session_per_entry
-    description: >-
-      Replay each journal entry in a fresh session so conversation history cannot
-      impersonate durable memory retrieval.
-  automatic_capture:
-    value: objective_derived
-    description: >-
-      Enable automatic capture only for objectives whose supplied workflow state
-      requires it; otherwise keep it disabled.
-  evidence_resolution:
-    value: repository_owned
-    description: >-
-      Resolve policies, schemas, corpus versions, and evidence before prompting;
-      never ask the generator to invent repository facts.
-  output_identity:
-    value: next_dataset_version
-    description: >-
-      Derive the persona identifier and next available dataset version in code;
-      models do not choose storage identity.
-  review_gate:
-    value: human_review_before_freeze
-    description: >-
-      Require human approval of every annotation before changing a draft dataset
-      to frozen or using it for release evidence.
-
-conditional_developer_choices:
-  book_work:
-    when: A selected objective requires book evidence and more than one eligible work exists.
-  injection_location:
-    when: The injection objective is selected and more than one supported source location exists.
-  persona_reuse:
-    when: At least one reviewed persona is compatible with every selected objective.
+    decisions_not_adopted:
+      - personas
+      - histories
+      - cases
+      - artifact_schemas
+      - annotation
+      - packaging
+      - review
+      - freezing
+      - replay
 
 selection_constraints:
   untrusted_content_injection_resistance:
