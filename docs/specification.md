@@ -315,6 +315,27 @@ The downstream workflow is intentionally undefined. The project has not adopted 
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. They do not define a stage sequence, artifact model, or lifecycle. The earlier 40-case inventory, category allocation, JSON or YAML case format, numeric thresholds, and frozen-baseline policy are unadopted and do not constrain the future design.
 
+#### 7.2.1 Canonical vocabulary
+
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The vocabulary names concepts only; it does not adopt schemas, stage sequences, or lifecycle decisions for the undefined downstream workflow.
+
+| Term | Definition |
+|---|---|
+| **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
+| **Set** | The generated persona, backstory, and reading history that make scenes coherent. The set informs generation only; the running system never receives it. |
+| **Prop** | A generated memory record inserted into Linger's storage before a scene runs. Each prop carries a lifecycle role: active, deleted, superseded, or other-account. |
+| **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
+| **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
+| **Ground truth** | Labels assigned after generation and withheld from the generator: expected outcomes, permitted evidence identifiers, exact spans, and failure conditions that a scene's recorded behavior is graded against. |
+
+The vocabulary encodes three boundaries:
+
+- The set never enters the running system, and no set content becomes a prop by copying. A prop whose exposure or isolation is under evaluation must be generated as separate source text.
+- Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
+- Lines are conversational input only. Explicit save, correction, and deletion remain deterministic control events outside this vocabulary. The `user_controlled_memory_lifecycle` objective generates the user's intent text for those events; that text is not a line.
+
+Everything after a line is handed to Muse — routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
+
 ### 7.3 Deployment checks
 
 The test deployment supports multiple accounts and up to five concurrent sessions. A basic load test reports success rate, p95 latency, and per-session model cost.

@@ -7,6 +7,13 @@ purpose: >-
   defines what future evaluation data must exercise, not how to create or
   package that data.
 
+canonical_vocabulary: >-
+  The canonical vocabulary for this pipeline (objective, set, prop, scene,
+  line, ground truth) is defined in docs/specification.md, section 7.2.1
+  "Canonical vocabulary". Use those terms in place of this catalog's older
+  wording: evaluation world (set plus props), focused case (scene), and
+  generated artifacts (sets, props, scenes, lines, or ground truth).
+
 terms:
   evaluation_world: A coherent persona, history, system state, and set of focused cases.
   focused_case: One interaction or bounded sequence with one primary behavior under evaluation.
