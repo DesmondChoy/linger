@@ -1,4 +1,4 @@
 interface:
   display_name: "Synthetic Journal Objectives"
-  short_description: "Select synthetic-journal objectives"
-  default_prompt: "Use $generate-synthetic-journals to choose and confirm evaluation objectives."
+  short_description: "Plan objectives and write a review report"
+  default_prompt: "Use $generate-synthetic-journals to choose evaluation objectives and write a pre-generation report for review."

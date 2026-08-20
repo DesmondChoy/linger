@@ -87,8 +87,8 @@ The system contains five reasoning agents and one deterministic service:
 
 | Component | Responsibility | Write authority |
 |---|---|---|
-| **Muse** | Maintains the reflection conversation, handles photographs and spoiler uncertainty, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
-| **Librarian** | Plans, executes, fuses, and reranks retrieval across the corpus and authorised memories. | None |
+| **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
+| **Librarian** | Infers request-scoped reading boundaries by cross-referencing authorised memories with the complete corpus, then plans, executes, fuses, and reranks evidence retrieval within the inferred ceiling. | None |
 | **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summary or formatting updates, duplicate links, and topic groups while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
@@ -103,7 +103,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | Agent | Allowed tools or capabilities | Implementation source |
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support; specialist calls and memory nomination are typed, application-controlled hand-offs rather than model-controlled tools. | Pydantic AI multimodal input and typed outputs; Linger orchestration |
-| **Librarian** | Search the public-domain corpus, search authorised memories, and resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
+| **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. It reviews only the complete candidate, supplied evidence, and policy constraints. | Pydantic AI typed input and output contracts |
@@ -156,15 +156,15 @@ Working context contains only:
 
 - server-supplied `account_id`;
 - `memory_capture_enabled`;
-- the request-scoped `spoiler_boundary` inferred by Muse from the user's current
-  message and transient conversation context, or established through
-  clarification;
+- the request-scoped `spoiler_boundary` inferred by Librarian from authorised
+  memories, the current message, and the complete immutable work, or established
+  through clarification;
 - the active topic; and
 - a compact conversation summary.
 
 The complete memory archive is never injected into every prompt. Reading
-progress is not stored as durable user state; Muse resolves a temporary spoiler
-boundary anew for each book-related request.
+progress is not stored as durable user state; Librarian resolves a temporary
+spoiler boundary anew for each book-related request.
 
 ### 5.2 Memory record
 
@@ -236,14 +236,29 @@ A connection proposal contains:
 
 ### 6.1 Spoilers
 
-For each book-related request, Muse infers a temporary reading boundary from
-what the user has said in the current message and transient conversation
-context. If Muse cannot determine the boundary reliably, it asks where the user
-stopped before Librarian retrieves book evidence. Muse returns the boundary as
-a typed request-scoped constraint, such as the last completed chapter and an
-optional position within the current chapter; Librarian retrieves only within
-that declared scope. Application code validates and propagates the constraint
-but does not choose it. Linger does not persist reading progress.
+For each book-related request, Librarian first performs boundary inference. The
+complete immutable work is its search scope: Librarian cross-references all
+chapters against relevant, account-scoped memories and the current Line to
+localize the latest event the person appears to know. This inference phase
+returns a typed candidate boundary, confidence, and supporting locations for
+the trace; it must not return
+post-boundary story content to Muse. If the evidence is ambiguous or confidence
+is insufficient, Muse asks a focused clarification before book evidence is
+retrieved.
+
+After inference, application code validates the work and version and propagates
+the candidate as a request-scoped ceiling. Librarian then performs a separate
+retrieval bounded to that ceiling, and application code rejects evidence outside
+it before Muse can use it. Linger stores memories of what the person discussed,
+not a durable chapter-progress field; the boundary is derived anew for each
+request. This separation lets evaluation compare Librarian's inferred ceiling
+with event-derived Ground truth while preventing full-work inference access from
+becoming full-work disclosure authority.
+
+The current implementation has only the second phase: it requires a
+reader-confirmed `ConfirmedReading` ceiling before Librarian dispatch and fails
+closed when that ceiling is absent. Full-work boundary inference from memories
+is the next implementation gap, not shipped behavior.
 
 ### 6.2 Citations and attribution
 
@@ -304,7 +319,7 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 | Term | Definition |
 |---|---|
 | **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
-| **Set** | The generated persona, backstory, and reading history that make scenes coherent. The set informs generation only; the running system never receives it. |
+| **Set** | The generated persona and backstory, plus reading history only when relevant, that make scenes coherent. The set informs generation only; the running system never receives it. |
 | **Prop** | A generated memory record inserted into Linger's storage before a scene runs. Each prop carries a lifecycle role: active, deleted, superseded, or other-account. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
@@ -316,15 +331,20 @@ The vocabulary encodes three boundaries:
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
 - Lines are conversational input only. Explicit save, correction, and deletion remain deterministic control events outside this vocabulary. The `user_controlled_memory_lifecycle` objective generates the user's intent text for those events; that text is not a line.
 
+A Set may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
+Prop and Line may refer naturally to events the person has already discussed;
+the corresponding corpus position becomes Ground truth for grading Librarian's
+boundary inference. Memory-only Sets do not inspect or depend on the book corpus.
+
 Everything after a line is handed to Muse — routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
 
 #### 7.2.2 Objective selection and downstream boundary
 
 The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
 
-The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. After confirmation, the skill reports the selected objective identifiers and titles, then stops.
+The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped, one-page Markdown pre-generation report for human review. The report contains the proposed generator prompt, its corpus-backed or memory-only source decision, Line and response hypotheses, an evaluation approach, current architecture fit, academic alignment, and an implementation-aware opportunity for additional Lines. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
-The downstream workflow is intentionally undefined. The project has not adopted decisions for:
+Human approval of the report and the downstream workflow remain intentionally undefined. The project has not adopted decisions for:
 
 - set generation;
 - prop generation;
