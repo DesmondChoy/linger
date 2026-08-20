@@ -135,6 +135,7 @@ linger/
 │   └── services/                   # Memory policy, retrieval, and citations
 ├── data/                           # Corpus, manifests, and fixtures
 ├── evals/                          # Fixed evaluation cases and scorers
+├── synthetic-journal-evaluation/   # Evaluation-objective catalog
 ├── tests/                          # Integration, security, and end-to-end tests
 ├── memories/                       # Git-ignored runtime Markdown memories
 ├── docs/                           # Architecture, reports, and risk register

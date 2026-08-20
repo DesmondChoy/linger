@@ -324,7 +324,7 @@ Required outcomes:
 
 Every factual web claim must include a retrievable citation, and every evidence identifier must resolve. Any LLM-as-judge result is secondary and labelled non-independent.
 
-The 40 authored cases are the frozen baseline. Failure-to-eval promotion (Section 9.1) may extend the set with additional human-approved cases; promoted cases follow the same format and versioning and never replace, relax, or retire a baseline case.
+Once authored, the 40 cases form the frozen baseline. Failure-to-eval promotion (Section 9.1) may extend the set with additional human-approved cases; promoted cases follow the same format and versioning and never replace, relax, or retire a baseline case.
 
 ### 7.3 Deployment checks
 
