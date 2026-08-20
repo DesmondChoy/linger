@@ -42,13 +42,17 @@ copy that content into this skill.
    selection** in a separate control question. Never truncate the catalog or
    replace the menu with an assumed choice.
 5. Accept one through all ten objectives. Accept only exact catalog IDs or
-   titles. Reject an empty final selection, free-text response, and unknown or
-   duplicate identifier. If a result contains **Other**, another free-text
-   response, or both an objective and a mutually exclusive control sentinel,
-   reject that group result and ask it again. Never convert free text into a new
-   evaluation objective. Apply every rule under
+   titles. Validate each group result before combining it. If a group contains
+   **Other**, free text, an unknown value, or both an objective and a mutually
+   exclusive control sentinel, discard only that group's complete result and
+   ask the same group again. Never retain the valid-looking part of an invalid
+   group or convert free text into a new evaluation objective.
+6. After combining the group results, reject a candidate selection that is
+   empty, contains a duplicate identifier, or violates any rule under
    `selection_constraints`; in particular, injection resistance must accompany
-   at least one legitimate primary objective.
+   at least one legitimate primary objective. Discard the complete candidate
+   selection and restart from the full ten-objective catalog. Never silently
+   deduplicate, remove, or otherwise repair an invalid candidate.
 
 If the harness exposes no native user-choice tool, stop and explain the missing
 capability. Do not silently substitute a free-form prompt.
@@ -62,7 +66,9 @@ tool to ask whether the developer wants to:
 - confirm the objective selection;
 - revise the objective selection.
 
-Confirmation does not start generation.
+If the developer chooses revision, discard the complete candidate selection and
+restart from the full ten-objective catalog. Do not carry any prior choice
+forward as selected. Confirmation does not start generation.
 
 ## Stop after confirmation
 
