@@ -31,7 +31,7 @@ copy that content into this skill.
      **Other** and provides no suppression setting, label the question with
      "Select only the listed evaluation objectives; free-text responses are not
      accepted." Treat that control as harness UI, not as an evaluation objective.
-   - Treat the harness-native **Skip** action or empty answer as no selection from
+   - Treat the harness-native **Skip** control or empty answer as no selection from
      that group.
    - If the harness requires an answer and cannot return an empty group, first use
      a separate single-select question to choose **Select from this group** or
@@ -73,7 +73,7 @@ forward as selected. Confirmation does not start generation.
 ## Stop after confirmation
 
 After confirmation, report the selected objective IDs and titles, then stop.
-Do not resolve prompt inputs, invoke a model, or create personas, histories,
-cases, artifacts, annotations, packages, review records, frozen releases, or
+Do not resolve prompt inputs, invoke a model, or create sets, props, scenes,
+lines, ground truth, annotations, packages, review records, frozen releases, or
 replay data. The downstream workflow is intentionally undefined until the
 project adopts a new design.

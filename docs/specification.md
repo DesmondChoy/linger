@@ -297,24 +297,6 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 ### 7.2 Scenario-first synthetic journal evaluation
 
-The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
-
-The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. After confirmation, the skill reports the selected objective identifiers and titles, then stops.
-
-The downstream workflow is intentionally undefined. The project has not adopted decisions for:
-
-- personas;
-- histories;
-- cases;
-- artifact schemas;
-- annotation;
-- packaging;
-- review;
-- freezing; or
-- replay.
-
-The generation briefs and prompt boundaries describe requirements that a future design must preserve. They do not define a stage sequence, artifact model, or lifecycle. The earlier 40-case inventory, category allocation, JSON or YAML case format, numeric thresholds, and frozen-baseline policy are unadopted and do not constrain the future design.
-
 #### 7.2.1 Canonical vocabulary
 
 Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The vocabulary names concepts only; it does not adopt schemas, stage sequences, or lifecycle decisions for the undefined downstream workflow.
@@ -336,6 +318,27 @@ The vocabulary encodes three boundaries:
 
 Everything after a line is handed to Muse — routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
 
+#### 7.2.2 Objective selection and downstream boundary
+
+The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
+
+The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. After confirmation, the skill reports the selected objective identifiers and titles, then stops.
+
+The downstream workflow is intentionally undefined. The project has not adopted decisions for:
+
+- set generation;
+- prop generation;
+- scene composition;
+- line generation;
+- ground-truth assignment;
+- schemas;
+- packaging;
+- review;
+- freezing; or
+- replay.
+
+The generation briefs and prompt boundaries describe requirements that a future design must preserve. They do not define a stage sequence, schema, or lifecycle. The earlier inventory of 40 proposed scenes, category allocation, JSON or YAML scene format, numeric thresholds, and frozen-baseline policy are unadopted and do not constrain the future design.
+
 ### 7.3 Deployment checks
 
 The test deployment supports multiple accounts and up to five concurrent sessions. A basic load test reports success rate, p95 latency, and per-session model cost.
@@ -344,7 +347,7 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation cases, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 ### 8.1 Agent telemetry and debugging
 
@@ -360,9 +363,9 @@ Two loops are in scope.
 
 **Pain point.** Observed failures, including blocked prompt-injection attempts, Provenance rejections, and failed deterministic post-checks, can reveal gaps in regression coverage.
 
-**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. The project has not adopted a case format, drafting mechanism, artifact lifecycle, review process, or promotion workflow. Section 7.2 governs those open decisions.
+**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. The project has not adopted a scene format, generation mechanism, data lifecycle, review process, or promotion workflow. Section 7.2 governs those open decisions.
 
-**Agents involved.** Provenance and the deterministic post-check layer act only as detectors. They cannot create, write, freeze, or promote evaluation artifacts.
+**Agents involved.** Provenance and the deterministic post-check layer act only as detectors. They cannot create, write, freeze, or promote evaluation data.
 
 **Adoption criteria.** Any future failure-to-eval workflow must use synthetic or sanitised content, require human approval before repository integration, and grant no detector write or release authority.
 
@@ -380,9 +383,9 @@ Two loops are in scope.
 
 ### 9.3 Boundaries
 
-- Every adopted RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation cases itself.
+- Every adopted RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation scenes itself.
 - Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
-- No agent gains write authority. Playbook changes, and any future evaluation artifacts, must enter through repository review rather than the Memory & Policy Service. Sculptor's product-side curation path remains proposal-only.
+- No agent gains write authority. Playbook changes, and any future evaluation data, must enter through repository review rather than the Memory & Policy Service. Sculptor's product-side curation path remains proposal-only.
 - Loops consume only the operational metadata permitted by the [telemetry data contract](telemetry.md).
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
@@ -392,6 +395,6 @@ These loops are the specification's explicit answer to the practice-module brief
 
 - **MLSecOps/LLMSecOps pipeline design.** Section 9.1 defines the authority and privacy boundary for a possible future path from security detections to regression coverage. The downstream workflow remains unadopted.
 - **AI security risk register.** Detection metadata can identify candidate regression gaps for prompt injection, unsupported claims, and sensitive-inference leakage without copying live-user content.
-- **Testing artifacts.** The evaluation-objective catalog defines the intended security coverage. A future downstream design must define the test artifacts, harness, review process, and lifecycle.
+- **Testing data.** The evaluation-objective catalog defines the intended security coverage. A future downstream design must define the test data, harness, review process, and lifecycle.
 - **Agent design documentation.** The system playbook demonstrates Sculptor's curation contract generalising across two memory stores under identical safeguards — an agent-design argument, not an added subsystem.
 - **Responsible-AI governance.** Both loops are bounded, human-in-the-loop, and auditable: every change they produce is versioned, reviewed, and traceable, aligning the self-improvement story with the module's governance and accountability requirements.
