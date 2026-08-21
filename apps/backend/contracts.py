@@ -39,13 +39,15 @@ class MuseTurn(BaseModel):
 
 
 class ConnectionBrief(BaseModel):
-    """The minimum context orchestration gives Serendipity for one bounded search."""
+    """A reader cue plus the source kinds orchestration may search for it."""
 
     cue: str = Field(min_length=1, max_length=2000)
     book_id: str | None = None
     chapter_max: int | None = Field(default=None, ge=1)
     intent: Literal["find_connection", "get_recommendation"] = "find_connection"
-    allowed_sources: set[Literal["book_corpus"]] = {"book_corpus"}
+    allowed_sources: set[
+        Literal["authorised_memory", "book_corpus", "web"]
+    ] = {"authorised_memory"}
 
 
 class BookScope(BaseModel):
@@ -86,28 +88,11 @@ class EvidenceBundle(BaseModel):
     retrieval_note: str
 
 
-class CulturalSuggestion(BaseModel):
-    kind: Literal["song"]
-    title: str
-    creator: str
-    source_url: str
-    rationale: str
+class MemoryEvidenceItem(BaseModel):
+    """One active account-owned memory returned by Librarian."""
 
-
-class ConnectionProposal(BaseModel):
-    status: Literal["proposal"] = "proposal"
-    tentative_claim: str
-    evidence_ids: list[str]
-    interpretation: str
-    uncertainty: Literal["low", "medium", "high"]
-    suggested_follow_up: str
-    cultural_suggestion: CulturalSuggestion | None = None
-
-
-class ConnectionDecline(BaseModel):
-    status: Literal["decline"] = "decline"
-    reason: Literal["insufficient_evidence", "spoiler_boundary", "unsupported_cue"]
-    safe_next_step: str
-
-
-ConnectionResult = ConnectionProposal | ConnectionDecline
+    evidence_id: str
+    excerpt: str
+    capture_type: Literal["explicit", "automatic", "correction"]
+    recorded_at: str
+    relevance: float = Field(ge=0, le=1)

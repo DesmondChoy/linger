@@ -188,6 +188,45 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             review_payload["candidate_evidence_uses"][0]["evidence_id"],
         )
 
+    async def test_direct_librarian_grounding_is_exposed_for_inspection(self) -> None:
+        from pydantic_ai.messages import ToolCallPart
+
+        call = ToolCallPart(
+            "librarian_search",
+            {"query": "the pool of tears", "work_id": "pg11"},
+            "call-1",
+        )
+        tool_return = ToolReturnPart("librarian_search", retrieval_result(), "call-1")
+        muse = AsyncMock()
+        muse.run.return_value = SimpleNamespace(
+            output=candidate(
+                f'The text asks, "{QUOTE}"',
+                evidence_id=EVIDENCE_ID,
+                exact_quote=QUOTE,
+            ),
+            new_messages=lambda: [SimpleNamespace(parts=[call, tool_return])],
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Hello",
+            [],
+            muse=muse,
+            provenance=provenance,
+            release_scope=RELEASE_SCOPE,
+        )
+
+        self.assertEqual(1, len(release.librarian_grounding_calls))
+        grounding_call = release.librarian_grounding_calls[0]
+        self.assertEqual(
+            "the pool of tears", grounding_call["request"]["query"]
+        )
+        self.assertEqual("success", grounding_call["outcome"])
+        self.assertEqual(
+            "evidence_found", grounding_call["response"]["outcome"]
+        )
+
     async def test_every_librarian_branch_reaches_provenance_unchanged(self) -> None:
         branches = (
             {

@@ -6,7 +6,7 @@ from typing import Any, Literal, Mapping
 
 import logfire
 from pydantic_ai import Agent
-from pydantic_ai.messages import ModelMessage, ToolReturnPart
+from pydantic_ai.messages import ModelMessage, ToolCallPart, ToolReturnPart
 from pydantic_core import to_jsonable_python
 
 from apps.backend.telemetry import (
@@ -57,6 +57,9 @@ class ReflectionRelease:
     capture_decision: Literal["allow_capture", "reject_capture", "no_candidate"] | None = None
     automatic_capture_candidate: AutomaticMemoryCandidate | None = None
     capture_failure: CaptureFailure | None = None
+    # Muse's direct librarian_search calls, outside connection discovery.
+    # Inspection-only: request args plus the validated LibrarianResponse.
+    librarian_grounding_calls: tuple[dict[str, object], ...] = ()
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -85,6 +88,7 @@ def _safe_decline(
     ] | None = None,
     automatic_capture_candidate: AutomaticMemoryCandidate | None = None,
     capture_failure: CaptureFailure | None = None,
+    librarian_grounding_calls: tuple[dict[str, object], ...] = (),
 ) -> ReflectionRelease:
     return ReflectionRelease(
         reply=SAFE_DECLINE,
@@ -97,24 +101,53 @@ def _safe_decline(
         capture_decision=capture_decision,
         automatic_capture_candidate=automatic_capture_candidate,
         capture_failure=capture_failure,
+        librarian_grounding_calls=librarian_grounding_calls,
     )
 
 
 def _tool_results(run_result: Any) -> list[dict[str, object]]:
-    """Extract the actual bounded tool outputs that could support Muse's draft."""
+    """Extract the actual bounded tool calls and outputs that could support Muse's draft."""
+    # Only this invocation may authorise this candidate. History can contain
+    # tool results from older turns, so `all_messages()` is not safe here.
+    messages = run_result.new_messages()
+    call_args: dict[str, dict[str, object]] = {
+        part.tool_call_id: (part.args_as_dict() or {})
+        for message in messages
+        for part in message.parts
+        if isinstance(part, ToolCallPart)
+        and part.tool_name in {"librarian_search", "serendipity_explore"}
+    }
     return [
         {
             "tool_name": part.tool_name,
             "outcome": part.outcome,
+            "args": call_args.get(part.tool_call_id, {}),
             "content": to_jsonable_python(part.content, serialize_unknown=True),
         }
-        # Only this invocation may authorise this candidate. History can contain
-        # tool results from older turns, so `all_messages()` is not safe here.
-        for message in run_result.new_messages()
+        for message in messages
         for part in message.parts
         if isinstance(part, ToolReturnPart)
         and part.tool_name in {"librarian_search", "serendipity_explore"}
     ]
+
+
+def _librarian_grounding(
+    tool_results: list[dict[str, object]],
+) -> tuple[dict[str, object], ...]:
+    """Expose Muse's direct grounding calls for inspection only.
+
+    This is diagnostic surfacing of an already-validated tool result, not a new
+    authority: release still depends solely on `_trusted_book_evidence`.
+    """
+    return tuple(
+        {
+            "request": result["args"],
+            "outcome": result["outcome"],
+            "response": result["content"],
+        }
+        for result in tool_results
+        if result["tool_name"] == "librarian_search"
+    )
 
 
 def _candidate(output: object) -> MuseCandidate:
@@ -405,6 +438,7 @@ async def _reflection_reply(
             _safe_decline(
                 failure_stage="provenance_review",
                 capture_nomination=draft_nomination,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
             ),
         )
 
@@ -432,6 +466,7 @@ async def _reflection_reply(
                     capture_decision=review.capture_decision,
                     automatic_capture_candidate=capture,
                     capture_failure=capture_failure,
+                    librarian_grounding_calls=_librarian_grounding(draft_tool_results),
                 ),
             )
         return _record_release(
@@ -445,6 +480,7 @@ async def _reflection_reply(
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
             ),
         )
     if review.response_decision != "revise":
@@ -457,6 +493,7 @@ async def _reflection_reply(
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
             ),
         )
 
@@ -470,6 +507,7 @@ async def _reflection_reply(
                 evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
             ],
             "candidate_memory": candidate.memory.model_dump(mode="json"),
+            "muse_tool_results": draft_tool_results,
             "review_critique": revision_critique,
         },
         ensure_ascii=False,
@@ -495,6 +533,7 @@ async def _reflection_reply(
                 failure_stage="muse_revision",
                 finding_codes=_codes(review),
                 capture_nomination=draft_nomination,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
             ),
         )
 
@@ -517,6 +556,7 @@ async def _reflection_reply(
                 failure_stage="provenance_review",
                 finding_codes=_codes(review),
                 capture_nomination=revised_nomination,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
             ),
         )
 
@@ -544,6 +584,7 @@ async def _reflection_reply(
                     capture_decision=revised_review.capture_decision,
                     automatic_capture_candidate=capture,
                     capture_failure=capture_failure,
+                    librarian_grounding_calls=_librarian_grounding(revised_tool_results),
                 ),
             )
         return _record_release(
@@ -558,6 +599,7 @@ async def _reflection_reply(
                 capture_decision=revised_review.capture_decision,
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(revised_tool_results),
             ),
         )
     return _record_release(
@@ -570,5 +612,6 @@ async def _reflection_reply(
             capture_decision=revised_review.capture_decision,
             automatic_capture_candidate=capture,
             capture_failure=capture_failure,
+            librarian_grounding_calls=_librarian_grounding(revised_tool_results),
         ),
     )

@@ -160,6 +160,26 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual("pg11", inspection.context_resolution["work_id"])
         self.assertIsNone(inspection.muse_turn["reading_context"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
+        self.assertTrue(inspection.muse_turn["policy"]["allow_connection"])
+        self.assertIsNone(review_context["reading_context"])
+
+    def test_reflection_connections_do_not_require_book_context(self) -> None:
+        inspection, _, review_context = _inspection_for(
+            ChatRequest(
+                session_id="context-test",
+                message=(
+                    "I rushed to fill the silence again today. Does that connect "
+                    "to anything I have noticed before?"
+                ),
+            ),
+            allow_memory_capture=False,
+        )
+
+        self.assertIsNone(inspection.muse_turn["reading_context"])
+        self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
+        self.assertTrue(inspection.muse_turn["policy"]["allow_connection"])
+        self.assertEqual("complete", inspection.traces[0]["status"])
+        self.assertIn("memory or web connections", inspection.traces[0]["detail"])
         self.assertIsNone(review_context["reading_context"])
 
 

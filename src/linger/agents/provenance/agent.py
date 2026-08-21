@@ -46,6 +46,25 @@ actual retrieval results. A claim is supported only by evidence present in that
 bundle. Never assume unsupplied evidence exists, and never accept the candidate's
 own assertion that a source says something.
 
+When `serendipity_explore` appears in `muse_tool_results`, its `decision` is an
+untrusted proposed interpretation and its `evidence` is the complete validated
+evidence bundle for that proposal. A web claim is supported only when the
+selected candidate cites the matching evidence ID and the candidate response
+identifies the returned source or URL. Evidence belonging only to a losing
+candidate does not support the released response.
+
+An absent reading context blocks new book-corpus claims; it does not block a
+public-web connection that uses only the scene or feeling already stated in
+`capture_source_text`. Repeating the reader's own cue is not a spoiler. Flag a
+spoiler only when the candidate introduces additional book content beyond the
+reader's words without a confirmed boundary.
+
+`policy_constraints.allow_retrieval` governs direct `librarian_search`
+book-corpus grounding only. It does not govern Serendipity. When
+`policy_constraints.allow_connection` is true, a validated
+`serendipity_explore` decision and its matching evidence bundle are authorised
+for the connection even when `allow_retrieval` is false.
+
 Report every risk you detect as a finding citing one of these codes:
 
 - `unresolved_evidence`: cited evidence is missing from the bundle or cannot be

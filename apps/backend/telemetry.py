@@ -12,6 +12,7 @@ from typing import Any
 import logfire
 
 from src.linger.agents.provenance.models import ProvenanceReview
+from src.linger.orchestration.progress_context import emit_progress
 
 from .config import get_settings
 from .contracts import ConnectionBrief, EvidenceBundle, LibrarianRequest
@@ -142,6 +143,17 @@ async def run_agent_traced(
     """
     caught: Exception | None = None
     result: Any = None
+    emit_progress(
+        role,
+        stage,
+        "running",
+        {
+            "Muse": "Muse is deciding how to handle this message.",
+            "Serendipity": "Serendipity is choosing searches and comparing connections.",
+            "Provenance": "Provenance is reviewing the candidate before release.",
+            "Librarian": "Librarian is judging the retrieved evidence set.",
+        }.get(role, f"{role} is processing this stage."),
+    )
     with logfire.span(
         span_name,
         **agent_attrs(
@@ -167,7 +179,26 @@ async def run_agent_traced(
             _record_agent_success(span, result)
 
     if caught is not None:
+        emit_progress(
+            role,
+            stage,
+            "failed",
+            f"{role} could not complete this stage safely.",
+        )
         raise caught
+    emit_progress(
+        role,
+        stage,
+        "complete",
+        {
+            "Muse": "Muse prepared a typed candidate.",
+            "Serendipity": (
+                "Serendipity finished its model pass; deterministic validation follows."
+            ),
+            "Provenance": "Provenance completed its release review.",
+            "Librarian": "Librarian completed its evidence judgment.",
+        }.get(role, f"{role} completed this stage."),
+    )
     return result
 
 

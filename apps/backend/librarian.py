@@ -10,7 +10,14 @@ from pathlib import Path
 from src.linger.corpus.alice import BOOK
 from src.linger.corpus.book import BookCorpus, ChapterFrontMatter, parse_chapter_markdown
 
-from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
+from src.linger.services.memory import AccountContext, MemoryPolicyService
+
+from .contracts import (
+    EvidenceBundle,
+    EvidenceItem,
+    LibrarianRequest,
+    MemoryEvidenceItem,
+)
 
 
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
@@ -53,6 +60,10 @@ def _terms(text: str) -> set[str]:
         for token in TOKEN.findall(text)
         if len(token) > 1 and token.casefold() not in STOP_WORDS
     }
+
+
+def _normalise(text: str) -> str:
+    return " ".join(token.casefold() for token in TOKEN.findall(text))
 
 
 def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Paragraph, ...]:
@@ -104,7 +115,7 @@ def _load_catalog(registration: CorpusRegistration) -> dict[str, object]:
 
 
 class Librarian:
-    """Retrieve exact passages only from a registered revision and chapter range."""
+    """Retrieve authorised internal evidence from books and reader memories."""
 
     def has_corpus(self, work_id: str) -> bool:
         return work_id in CORPORA
@@ -116,6 +127,49 @@ class Librarian:
     def version_for(self, work_id: str) -> str | None:
         registration = CORPORA.get(work_id)
         return registration.book.book_version_id if registration else None
+
+    def retrieve_memories(
+        self,
+        query: str,
+        *,
+        memory_service: MemoryPolicyService,
+        account: AccountContext,
+        max_results: int = 5,
+    ) -> tuple[MemoryEvidenceItem, ...]:
+        """Search only active memories resolved inside the trusted account.
+
+        Account identity and the service handle are application-owned inputs;
+        neither is accepted from an agent or tool argument. An exact duplicate
+        of the current cue is excluded because it cannot form a second side of
+        a useful connection.
+        """
+        query_terms = _terms(query)
+        normalised_query = _normalise(query)
+        candidates = [
+            record
+            for record in memory_service.list_active(account)
+            if _normalise(record.text) != normalised_query
+        ]
+        ranked = sorted(
+            candidates,
+            key=lambda record: (
+                len(query_terms & _terms(record.text)),
+                record.updated_at,
+                record.memory_id,
+            ),
+            reverse=True,
+        )[:max_results]
+        denominator = max(len(query_terms), 1)
+        return tuple(
+            MemoryEvidenceItem(
+                evidence_id=record.memory_id,
+                excerpt=record.text,
+                capture_type=record.capture_type,
+                recorded_at=record.updated_at,
+                relevance=min(1.0, len(query_terms & _terms(record.text)) / denominator),
+            )
+            for record in ranked
+        )
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
         """Search eligible chapter bodies without opening a forbidden chapter."""

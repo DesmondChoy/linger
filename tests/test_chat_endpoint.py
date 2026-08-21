@@ -131,6 +131,88 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         muse_payload = json.loads(gate.await_args.args[0])
         self.assertEqual("Hello", muse_payload["muse_turn"]["user_message"])
         self.assertIn("context_resolution", muse_payload)
+        serendipity_trace = next(
+            trace
+            for trace in response.inspection.traces
+            if trace["agent"] == "Serendipity"
+        )
+        librarian_trace = next(
+            trace
+            for trace in response.inspection.traces
+            if trace["agent"] == "Librarian"
+        )
+        self.assertEqual("skipped", serendipity_trace["status"])
+        self.assertIn("did not call", serendipity_trace["detail"])
+        self.assertEqual("skipped", librarian_trace["status"])
+
+    async def test_direct_grounding_calls_reach_the_inspector(self) -> None:
+        request = ChatRequest(session_id=self.session_id, message="What happens in chapter 2?")
+        grounding_call = {
+            "request": {"query": "chapter 2", "work_id": "pg11"},
+            "outcome": "success",
+            "response": {"kind": "result", "outcome": "evidence_found"},
+        }
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            librarian_grounding_calls=(grounding_call,),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(request)
+
+        self.assertEqual([grounding_call], response.inspection.librarian_grounding)
+        librarian_trace = next(
+            trace
+            for trace in response.inspection.traces
+            if trace["agent"] == "Librarian"
+        )
+        self.assertEqual("complete", librarian_trace["status"])
+        self.assertIn("librarian_search directly", librarian_trace["detail"])
+
+    async def test_stream_sends_only_safe_progress_before_atomic_result(self) -> None:
+        request = ChatRequest(
+            session_id=self.session_id,
+            turn_id="stream-turn",
+            message="PRIVATE_READER_TEXT_must_not_enter_progress",
+        )
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Reviewed final reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await main.chat_stream(
+                request,
+                self.memory_service,
+                self.memory_context,
+            )
+            chunks = [chunk async for chunk in response.body_iterator]
+
+        body = "".join(
+            chunk.decode() if isinstance(chunk, bytes) else chunk for chunk in chunks
+        )
+        frames = [frame for frame in body.split("\n\n") if frame]
+        progress_frames = [
+            frame for frame in frames if frame.startswith("event: progress")
+        ]
+        result_frames = [frame for frame in frames if frame.startswith("event: result")]
+
+        self.assertTrue(progress_frames)
+        self.assertEqual(1, len(result_frames))
+        self.assertLess(body.index("event: progress"), body.index("event: result"))
+        self.assertNotIn("PRIVATE_READER_TEXT_must_not_enter_progress", "\n".join(progress_frames))
+        self.assertNotIn("Reviewed final reply", "\n".join(progress_frames))
+        for sequence, frame in enumerate(progress_frames, start=1):
+            payload = json.loads(frame.split("data: ", 1)[1])
+            self.assertEqual(sequence, payload["sequence"])
+            self.assertGreaterEqual(payload["elapsed_ms"], 0)
+            self.assertEqual(
+                {"agent", "stage", "status", "detail", "sequence", "elapsed_ms"},
+                set(payload),
+            )
 
     async def test_failure_stores_nothing(self) -> None:
         request = ChatRequest(

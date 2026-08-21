@@ -1,0 +1,527 @@
+{
+  "schema_version": 1,
+  "users": [
+    {
+      "reader_id": "demo-maya",
+      "display_name": "Maya",
+      "profile_summary": "An introspective reader drawn to identity, uncertainty, and the emotional pressure hidden inside playful scenes.",
+      "days": [
+        {
+          "date": "2026-07-06",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 1,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "maya-d1-t1",
+              "reader_message": "The fall feels exciting at first, but the endlessness starts to make me anxious.",
+              "assistant_response": "The scene stretches curiosity until it becomes loss of control. The same movement can feel like an adventure and like being unable to stop.",
+              "captured_memory_ids": ["maya-m1"]
+            },
+            {
+              "turn_id": "maya-d1-t2",
+              "reader_message": "I tend to enjoy stories where wonder and fear sit next to each other.",
+              "assistant_response": "That tension may be a useful thread to notice as Wonderland becomes stranger.",
+              "captured_memory_ids": ["maya-m2"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-07",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 2,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "maya-d2-t1",
+              "reader_message": "Alice testing whether she might be Ada or Mabel makes identity sound like a quiz she can fail.",
+              "assistant_response": "She reaches for hair, knowledge, and remembered facts as proof of who she is, but each test leaves her less certain.",
+              "captured_memory_ids": ["maya-m3"]
+            },
+            {
+              "turn_id": "maya-d2-t2",
+              "reader_message": "That reminds me of changing schools and wondering whether I had to become a different version of myself to fit in.",
+              "assistant_response": "The personal association makes Alice's confusion less abstract: belonging can make identity feel conditional.",
+              "captured_memory_ids": ["maya-m4"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-09",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 3,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "maya-d3-t1",
+              "reader_message": "The race is funny, but declaring everyone a winner feels like a rule invented after the fact.",
+              "assistant_response": "Its fairness is generous and arbitrary at once. The rule resolves the scene without explaining how judgment works.",
+              "captured_memory_ids": []
+            },
+            {
+              "turn_id": "maya-d3-t2",
+              "reader_message": "I notice I distrust calm authority figures when they refuse to explain their rules.",
+              "assistant_response": "That is a specific reading preference worth carrying forward: composure does not necessarily make authority trustworthy.",
+              "captured_memory_ids": ["maya-m5"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-11",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 5,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "maya-d4-t1",
+              "reader_message": "The Caterpillar's calmness is more unsettling than if he were openly hostile.",
+              "assistant_response": "His composure puts all the burden of explanation on Alice while he remains unreadable.",
+              "captured_memory_ids": []
+            },
+            {
+              "turn_id": "maya-d4-t2",
+              "reader_message": "His question about who she is brings back the identity tests with Ada and Mabel, but now another person is demanding the answer.",
+              "assistant_response": "The earlier private puzzle has become an interrogation. That change can make the same uncertainty feel more exposed.",
+              "captured_memory_ids": []
+            }
+          ]
+        }
+      ],
+      "memories": [
+        {
+          "memory_id": "maya-m1",
+          "text": "The rabbit-hole fall turns wonder into anxiety when Alice cannot control when it will end.",
+          "memory_type": "emotional_response",
+          "work_id": "alice-adventures-in-wonderland",
+          "source_turn_id": "maya-d1-t1",
+          "captured_on": "2026-07-06",
+          "themes": ["wonder", "fear", "loss of control"]
+        },
+        {
+          "memory_id": "maya-m2",
+          "text": "Maya enjoys stories that keep wonder and fear close together.",
+          "memory_type": "reading_preference",
+          "work_id": null,
+          "source_turn_id": "maya-d1-t2",
+          "captured_on": "2026-07-06",
+          "themes": ["wonder", "fear", "ambivalence"]
+        },
+        {
+          "memory_id": "maya-m3",
+          "text": "Alice's attempt to distinguish herself from Ada and Mabel makes identity feel like a test she might fail.",
+          "memory_type": "interpretation",
+          "work_id": "alice-adventures-in-wonderland",
+          "source_turn_id": "maya-d2-t1",
+          "captured_on": "2026-07-07",
+          "themes": ["identity", "Ada", "Mabel", "self knowledge"]
+        },
+        {
+          "memory_id": "maya-m4",
+          "text": "Alice's identity confusion reminded Maya of changing schools and feeling pressure to become someone different in order to belong.",
+          "memory_type": "personal_association",
+          "work_id": "alice-adventures-in-wonderland",
+          "source_turn_id": "maya-d2-t2",
+          "captured_on": "2026-07-07",
+          "themes": ["identity", "belonging", "change", "school"]
+        },
+        {
+          "memory_id": "maya-m5",
+          "text": "Maya distrusts calm authority figures who expect obedience while refusing to explain their rules.",
+          "memory_type": "reading_preference",
+          "work_id": null,
+          "source_turn_id": "maya-d3-t2",
+          "captured_on": "2026-07-09",
+          "themes": ["authority", "rules", "calmness", "trust"]
+        }
+      ]
+    },
+    {
+      "reader_id": "demo-theo",
+      "display_name": "Theo",
+      "profile_summary": "A systems-oriented reader who notices labour, persuasion, fairness, and the gap between declared principles and material decisions.",
+      "days": [
+        {
+          "date": "2026-07-13",
+          "reading_context": {
+            "work_id": "animal-farm",
+            "work_title": "Animal Farm",
+            "chapter": 1,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "theo-d1-t1",
+              "reader_message": "Old Major makes solidarity sound simple by giving everyone one shared enemy.",
+              "assistant_response": "The simplicity gives the speech force, but it also compresses differences among the animals into one opposition.",
+              "captured_memory_ids": ["theo-m1"]
+            },
+            {
+              "turn_id": "theo-d1-t2",
+              "reader_message": "I am suspicious when a complicated problem is explained with one villain.",
+              "assistant_response": "That preference may help you notice when persuasive clarity begins replacing complexity.",
+              "captured_memory_ids": ["theo-m2"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-14",
+          "reading_context": {
+            "work_id": "animal-farm",
+            "work_title": "Animal Farm",
+            "chapter": 2,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "theo-d2-t1",
+              "reader_message": "The commandments feel reassuring because they turn the revolution into visible rules.",
+              "assistant_response": "Writing them down creates the appearance of a stable shared standard, even before the animals know how it will be interpreted.",
+              "captured_memory_ids": ["theo-m3"]
+            },
+            {
+              "turn_id": "theo-d2-t2",
+              "reader_message": "At work, written principles often sound equal while exceptions quietly favour the people with more influence.",
+              "assistant_response": "That association highlights the difference between a rule's wording and the authority to interpret it.",
+              "captured_memory_ids": ["theo-m4"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-16",
+          "reading_context": {
+            "work_id": "animal-farm",
+            "work_title": "Animal Farm",
+            "chapter": 3,
+            "chapter_state": "started"
+          },
+          "turns": [
+            {
+              "turn_id": "theo-d3-t1",
+              "reader_message": "The harvest succeeds because everyone works, but the pigs are already becoming managers rather than workers.",
+              "assistant_response": "The division can initially look practical. Its political meaning depends on who controls information and rewards.",
+              "captured_memory_ids": []
+            },
+            {
+              "turn_id": "theo-d3-t2",
+              "reader_message": "I keep noticing how administrative work becomes an argument for special treatment.",
+              "assistant_response": "That is a precise power mechanism: coordination is presented as labour, then used to justify unequal benefits.",
+              "captured_memory_ids": ["theo-m5"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-17",
+          "reading_context": {
+            "work_id": "animal-farm",
+            "work_title": "Animal Farm",
+            "chapter": 3,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "theo-d4-t1",
+              "reader_message": "The milk and apples bother me because the inequality is introduced as a technical necessity.",
+              "assistant_response": "The explanation avoids openly rejecting equality; it frames privilege as a sacrifice made for everyone else.",
+              "captured_memory_ids": []
+            },
+            {
+              "turn_id": "theo-d4-t2",
+              "reader_message": "That sounds like the commandments still matter, but only for people who cannot explain themselves out of them.",
+              "assistant_response": "The principle remains visible while interpretive power changes who is bound by it.",
+              "captured_memory_ids": []
+            }
+          ]
+        }
+      ],
+      "memories": [
+        {
+          "memory_id": "theo-m1",
+          "text": "Old Major creates solidarity by reducing a complicated system to one shared enemy.",
+          "memory_type": "interpretation",
+          "work_id": "animal-farm",
+          "source_turn_id": "theo-d1-t1",
+          "captured_on": "2026-07-13",
+          "themes": ["solidarity", "enemy", "persuasion", "simplification"]
+        },
+        {
+          "memory_id": "theo-m2",
+          "text": "Theo distrusts explanations that reduce complicated problems to a single villain.",
+          "memory_type": "reading_preference",
+          "work_id": null,
+          "source_turn_id": "theo-d1-t2",
+          "captured_on": "2026-07-13",
+          "themes": ["complexity", "villains", "persuasion"]
+        },
+        {
+          "memory_id": "theo-m3",
+          "text": "Written commandments reassure the animals by making revolutionary equality look stable and visible.",
+          "memory_type": "interpretation",
+          "work_id": "animal-farm",
+          "source_turn_id": "theo-d2-t1",
+          "captured_on": "2026-07-14",
+          "themes": ["commandments", "rules", "equality", "stability"]
+        },
+        {
+          "memory_id": "theo-m4",
+          "text": "Workplace principles can promise equality while quiet exceptions favour people with more influence.",
+          "memory_type": "personal_association",
+          "work_id": "animal-farm",
+          "source_turn_id": "theo-d2-t2",
+          "captured_on": "2026-07-14",
+          "themes": ["workplace", "rules", "exceptions", "influence"]
+        },
+        {
+          "memory_id": "theo-m5",
+          "text": "Administrative work can become a justification for special treatment when managers control information and rewards.",
+          "memory_type": "interpretation",
+          "work_id": "animal-farm",
+          "source_turn_id": "theo-d3-t2",
+          "captured_on": "2026-07-16",
+          "themes": ["management", "privilege", "labour", "power", "milk", "apples"]
+        }
+      ]
+    },
+    {
+      "reader_id": "demo-noor",
+      "display_name": "Noor",
+      "profile_summary": "A visually imaginative reader moving between Alice and Animal Farm, interested in language, changing rules, and cultural connections that make ideas memorable.",
+      "days": [
+        {
+          "date": "2026-07-20",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 2,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "noor-d1-t1",
+              "reader_message": "Alice uses facts and appearance to prove who she is, but both keep failing her.",
+              "assistant_response": "Her evidence is concrete but unstable, so the effort to verify herself creates more uncertainty.",
+              "captured_memory_ids": ["noor-m1"]
+            },
+            {
+              "turn_id": "noor-d1-t2",
+              "reader_message": "I remember ideas better when I can connect them to a painting, photograph, or song.",
+              "assistant_response": "Visual and musical anchors could make your reading reflections easier to return to later.",
+              "captured_memory_ids": ["noor-m2"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-22",
+          "reading_context": {
+            "work_id": "animal-farm",
+            "work_title": "Animal Farm",
+            "chapter": 2,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "noor-d2-t1",
+              "reader_message": "The commandments seem permanent because they are painted on a wall.",
+              "assistant_response": "Their physical visibility gives political language the authority of an object everyone can point to.",
+              "captured_memory_ids": ["noor-m3"]
+            },
+            {
+              "turn_id": "noor-d2-t2",
+              "reader_message": "It makes me think about photographs: they look like proof even though framing decides what is left outside.",
+              "assistant_response": "Both cases turn a selective representation into something that appears complete and self-evident.",
+              "captured_memory_ids": ["noor-m4"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-24",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 3,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "noor-d3-t1",
+              "reader_message": "The race has official language and prizes, but nobody can explain how it works.",
+              "assistant_response": "Ceremony gives the improvised event a surface of legitimacy, even though its standard of success is empty.",
+              "captured_memory_ids": []
+            },
+            {
+              "turn_id": "noor-d3-t2",
+              "reader_message": "That feels connected to the commandments: writing or ceremony can make arbitrary rules look natural.",
+              "assistant_response": "Across the books, the form of a rule can command trust before anyone examines who made it or whom it serves.",
+              "captured_memory_ids": ["noor-m5"]
+            }
+          ]
+        },
+        {
+          "date": "2026-07-26",
+          "reading_context": {
+            "work_id": "alice-adventures-in-wonderland",
+            "work_title": "Alice's Adventures in Wonderland",
+            "chapter": 5,
+            "chapter_state": "completed"
+          },
+          "turns": [
+            {
+              "turn_id": "noor-d4-t1",
+              "reader_message": "The Caterpillar stays visually still while Alice keeps changing. That contrast feels important.",
+              "assistant_response": "His stillness can look like authority because her body and explanations remain unsettled.",
+              "captured_memory_ids": ["noor-m6"]
+            },
+            {
+              "turn_id": "noor-d4-t2",
+              "reader_message": "I would like a visual connection for that contrast, but only if it is more specific than a generic picture about identity.",
+              "assistant_response": "A useful recommendation would need evidence for both compositional stillness and transformation, not just a shared label.",
+              "captured_memory_ids": []
+            }
+          ]
+        }
+      ],
+      "memories": [
+        {
+          "memory_id": "noor-m1",
+          "text": "Alice tries to prove her identity through facts and appearance, but her chosen evidence keeps failing.",
+          "memory_type": "interpretation",
+          "work_id": "alice-adventures-in-wonderland",
+          "source_turn_id": "noor-d1-t1",
+          "captured_on": "2026-07-20",
+          "themes": ["identity", "evidence", "appearance", "uncertainty"]
+        },
+        {
+          "memory_id": "noor-m2",
+          "text": "Noor remembers literary ideas better when they connect to a specific painting, photograph, or song.",
+          "memory_type": "reading_preference",
+          "work_id": null,
+          "source_turn_id": "noor-d1-t2",
+          "captured_on": "2026-07-20",
+          "themes": ["artwork", "photography", "song", "memory", "recommendation"]
+        },
+        {
+          "memory_id": "noor-m3",
+          "text": "Painting the commandments on a wall makes political language appear permanent and authoritative.",
+          "memory_type": "interpretation",
+          "work_id": "animal-farm",
+          "source_turn_id": "noor-d2-t1",
+          "captured_on": "2026-07-22",
+          "themes": ["commandments", "language", "authority", "permanence"]
+        },
+        {
+          "memory_id": "noor-m4",
+          "text": "Photographs can look like complete proof even though framing determines what is excluded.",
+          "memory_type": "personal_association",
+          "work_id": null,
+          "source_turn_id": "noor-d2-t2",
+          "captured_on": "2026-07-22",
+          "themes": ["photography", "evidence", "framing", "exclusion"]
+        },
+        {
+          "memory_id": "noor-m5",
+          "text": "The caucus race and Animal Farm's commandments both show how ceremony or writing can make arbitrary rules look natural.",
+          "memory_type": "interpretation",
+          "work_id": null,
+          "source_turn_id": "noor-d3-t2",
+          "captured_on": "2026-07-24",
+          "themes": ["cross book", "rules", "ceremony", "commandments", "authority"]
+        },
+        {
+          "memory_id": "noor-m6",
+          "text": "The Caterpillar's physical stillness appears authoritative beside Alice's changing body and unstable explanations.",
+          "memory_type": "interpretation",
+          "work_id": "alice-adventures-in-wonderland",
+          "source_turn_id": "noor-d4-t1",
+          "captured_on": "2026-07-26",
+          "themes": ["Caterpillar", "stillness", "change", "authority", "identity"]
+        }
+      ]
+    }
+  ],
+  "connection_scenarios": [
+    {
+      "scenario_id": "maya-caterpillar-authority",
+      "reader_id": "demo-maya",
+      "current_cue": "The Caterpillar's calm authority makes the question about Alice's identity feel like a test.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["maya-m3", "maya-m5"],
+      "expected_connection": "Connect the current discomfort to Maya's earlier view of identity as a test and her distrust of unexplained calm authority."
+    },
+    {
+      "scenario_id": "maya-wonder-fear",
+      "reader_id": "demo-maya",
+      "current_cue": "The scene is full of wonder, but Alice's loss of control makes it frightening too.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["maya-m1", "maya-m2"],
+      "expected_connection": "Recall Maya's established preference for stories where wonder and fear coexist, grounded in her reaction to the rabbit-hole fall."
+    },
+    {
+      "scenario_id": "maya-belonging-pressure",
+      "reader_id": "demo-maya",
+      "current_cue": "Alice keeps adjusting how she talks and behaves so the creatures around her will accept her, even when it costs her own voice.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["maya-m4"],
+      "expected_connection": "Connect Alice's pressure to conform to what each creature expects with Maya's own memory of feeling pressured to become a different version of herself after changing schools."
+    },
+    {
+      "scenario_id": "theo-milk-privilege",
+      "reader_id": "demo-theo",
+      "current_cue": "The milk and apples turn administrative work into an excuse for privilege despite the rules about equality.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["theo-m3", "theo-m5"],
+      "expected_connection": "Connect the pigs' special treatment to Theo's earlier concern about written equality and management using coordination to control rewards."
+    },
+    {
+      "scenario_id": "theo-simple-enemy",
+      "reader_id": "demo-theo",
+      "current_cue": "The speech is persuasive because one shared enemy makes a complicated system sound simple.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["theo-m1", "theo-m2"],
+      "expected_connection": "Recall Theo's suspicion of arguments that create solidarity by reducing complexity to one villain."
+    },
+    {
+      "scenario_id": "theo-rule-reinterpreted",
+      "reader_id": "demo-theo",
+      "current_cue": "The rule about equal rations keeps getting reinterpreted in a way that always leaves the pigs better off.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["theo-m4"],
+      "expected_connection": "Connect the reinterpreted rationing rule to Theo's own observation that workplace principles can promise equality while quiet exceptions favour people with more influence."
+    },
+    {
+      "scenario_id": "noor-visual-identity",
+      "reader_id": "demo-noor",
+      "current_cue": "Could an artwork make the contrast between the Caterpillar's stillness and Alice's changing identity memorable?",
+      "target_type": "artwork",
+      "expected_memory_ids": ["noor-m1", "noor-m2", "noor-m6"],
+      "expected_connection": "Use Noor's preference for visual anchors and prior interpretations of unstable identity and authoritative stillness to guide a specific artwork search."
+    },
+    {
+      "scenario_id": "noor-rules-cross-book",
+      "reader_id": "demo-noor",
+      "current_cue": "Why do written rules and ceremony make arbitrary authority look permanent and natural?",
+      "target_type": "cross_book",
+      "expected_memory_ids": ["noor-m3", "noor-m5"],
+      "expected_connection": "Connect Wonderland's ceremonial rules to Animal Farm's painted commandments without collapsing their meaningful differences."
+    },
+    {
+      "scenario_id": "noor-selective-account",
+      "reader_id": "demo-noor",
+      "current_cue": "The trial only shows the parts of the story the King wants heard, like a record that leaves out what actually happened.",
+      "target_type": "reader_memory",
+      "expected_memory_ids": ["noor-m4"],
+      "expected_connection": "Connect the selectively curated trial account to Noor's association between photographs and evidence that looks complete even though framing decides what is excluded."
+    }
+  ]
+}
+

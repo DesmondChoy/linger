@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "case_id": "serendipity-insufficient-evidence-v2",
+  "owner": "serendipity",
+  "primary_behavior": "insufficient_evidence_decline",
+  "description": "One passage cannot establish both sides of a connection.",
+  "input": {
+    "request_id": "eval-insufficient-evidence",
+    "cue": "Does this connect to an earlier change in Alice?",
+    "intent": "find_connection",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": ["book_corpus"],
+      "book_scopes": [{
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_max": 2
+      }]
+    }
+  },
+  "tool_evidence": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch2-identity",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter": 2,
+        "location": "Chapter 2",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [412, 420],
+        "excerpt": "Alice wonders whether she has changed in the night and asks who in the world she is."
+      }
+  ],
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": ["insufficient_evidence"]
+  },
+  "invariants": {
+    "no_storage_authority": true,
+    "no_release_authority": true,
+    "run_evidence_only": true,
+    "search_before_proposal": true,
+    "shortlist_compared": true
+  }
+}

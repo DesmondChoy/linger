@@ -41,10 +41,10 @@ class MuseEvalCaseTests(unittest.TestCase):
                 "with. Am I right that you're reading Alice's Adventures in "
                 "Wonderland? Once I know, I can look at the scene with you."
             ),
-            "probe_vague_message": (
-                "Strange can be a rich place to start — sometimes a chapter "
-                "unsettles us before we know why. Which book are you reading, "
-                "and where in it are you right now?"
+            "reflect_without_book_context": (
+                "That tension is worth noticing: you wanted to make room for "
+                "other people, but discomfort pulled you toward filling it. "
+                "What did the silence seem to demand from you in that moment?"
             ),
             "confirm_chapter_boundary": (
                 "Happy to sit with that chapter together. Before I say "
@@ -92,14 +92,14 @@ class MuseEvalCaseTests(unittest.TestCase):
         self.assertFalse(invented_quote.hard_pass)
         self.assertIn("unsupported_exact_quotation", invented_quote.failures)
 
-        vague = self.by_behavior["probe_vague_message"]
-        named_book_anyway = grade_muse_response(
-            vague,
-            "That sounds like Alice in Wonderland — shall we dig into the "
-            "chapter together?",
+        reflection = self.by_behavior["reflect_without_book_context"]
+        unnecessary_book_probe = grade_muse_response(
+            reflection,
+            "Which book are you reading, and have you finished the chapter?",
         )
-        self.assertFalse(named_book_anyway.hard_pass)
-        self.assertIn("forbidden_term:Alice", named_book_anyway.failures)
+        self.assertFalse(unnecessary_book_probe.hard_pass)
+        self.assertIn("forbidden_term:book", unnecessary_book_probe.failures)
+        self.assertIn("forbidden_term:chapter", unnecessary_book_probe.failures)
 
         over_limit = grade_muse_response(
             self.by_behavior["confirm_chapter_boundary"],
@@ -118,16 +118,16 @@ class MuseEvalCaseTests(unittest.TestCase):
 
     def test_quoting_the_reader_back_is_supported(self) -> None:
         result = grade_muse_response(
-            self.by_behavior["probe_vague_message"],
-            'You said it left you "feeling strange and I can\'t say why" — '
-            "which book are you reading?",
+            self.by_behavior["reflect_without_book_context"],
+            'You said you "want other people to have time to think" — that '
+            "makes the urge to fill the silence worth noticing.",
         )
         self.assertTrue(result.hard_pass, result.failures)
 
     def test_forbidden_terms_match_whole_words_only(self) -> None:
         result = grade_muse_response(
-            self.by_behavior["probe_vague_message"],
-            "There is no malice in a book unsettling you. Which one is it?",
+            self.by_behavior["reflect_without_book_context"],
+            "There is no malice in noticing your impulse to fill a silence.",
         )
         self.assertTrue(result.hard_pass, result.failures)
 
@@ -159,8 +159,8 @@ class MuseEvalCaseTests(unittest.TestCase):
     def test_case_schema_rejects_forbidden_term_inside_the_reader_message(
         self,
     ) -> None:
-        raw_case = self.by_behavior["probe_vague_message"].model_dump(mode="json")
-        raw_case["expected"]["forbidden_terms"] = ["chapter"]
+        raw_case = self.by_behavior["reflect_without_book_context"].model_dump(mode="json")
+        raw_case["expected"]["forbidden_terms"] = ["silence"]
 
         with self.assertRaisesRegex(
             ValidationError, "forbidden term appears in the reader message"
