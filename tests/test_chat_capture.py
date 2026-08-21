@@ -129,7 +129,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([nominated], [memory.text for memory in memories])
         self.assertEqual("turn-capture-allowed", memories[0].source_event_id)
         self.assertEqual("committed", response.inspection.release.capture.storage)
-        self.assertEqual(memories[0].memory_id, response.memory_capture.memory_id)
+        self.assertEqual("Saved to your memories.", response.memory_capture.notice)
         payload = provenance.run.await_args.args[0]
         self.assertIn(nominated, payload)
         self.assertIn(source, payload)

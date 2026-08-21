@@ -8,7 +8,7 @@ from time import perf_counter
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Configure the exporter before application-owned spans can be created.
@@ -26,12 +26,10 @@ from src.linger.orchestration.turn_context import reset_confirmed_reading, set_c
 from src.linger.services.memory import (
     AccountContext,
     MemoryConflictError,
-    MemoryNotFoundError,
     MemoryPolicyError,
     MemoryPolicyService,
     MemoryRecord,
     MemoryServiceError,
-    MemoryStorageError,
 )
 
 from . import sessions
@@ -45,16 +43,10 @@ from .contracts import (
 from .hybrid_librarian import HybridLibrarian
 from .logger import ROOT_NAME, configure_logging
 from .schemas import (
-    CapturePreferenceRequest,
-    CapturePreferenceResponse,
     CaptureInspection,
     ChatRequest,
     ChatResponse,
     MemoryCaptureNotice,
-    MemoryResponse,
-    MemorySaveResponse,
-    MemoryStateResponse,
-    MemoryWriteRequest,
     ReleaseInspection,
     TurnInspection,
 )
@@ -288,17 +280,6 @@ MemoryServiceDependency = Annotated[MemoryPolicyService, Depends(get_memory_serv
 MemoryContextDependency = Annotated[AccountContext, Depends(get_memory_context)]
 
 
-def _memory_response(record: MemoryRecord) -> MemoryResponse:
-    return MemoryResponse(
-        memory_id=record.memory_id,
-        text=record.text,
-        capture_type=record.capture_type,
-        evidence_ids=list(record.evidence_ids),
-        created_at=record.created_at,
-        updated_at=record.updated_at,
-    )
-
-
 @dataclass(frozen=True)
 class AutomaticCaptureExecution:
     """Internal storage outcome; candidate text never enters inspection."""
@@ -378,27 +359,6 @@ def _commit_automatic_capture(
         ),
         record=result.record,
     )
-
-
-def _memory_http_error(error: MemoryServiceError) -> HTTPException:
-    if isinstance(error, MemoryNotFoundError):
-        return HTTPException(status_code=404, detail="Memory not found.")
-    if isinstance(error, MemoryConflictError):
-        return HTTPException(
-            status_code=409,
-            detail="This memory operation conflicts with an earlier request.",
-        )
-    if isinstance(error, MemoryStorageError):
-        logger.error(
-            "Memory storage failed failure_stage=memory_storage "
-            "failure_code=storage_unavailable retryable=true"
-        )
-        return HTTPException(status_code=500, detail="Memory storage is unavailable.")
-    logger.error(
-        "Memory operation failed failure_stage=memory_operation "
-        "failure_code=operation_failed retryable=false"
-    )
-    return HTTPException(status_code=400, detail="Memory operation failed.")
 
 
 @app.get("/api/health")
@@ -613,7 +573,7 @@ async def chat(
         }
     )
     notice = (
-        MemoryCaptureNotice(memory_id=capture.record.memory_id)
+        MemoryCaptureNotice()
         if capture.record is not None and capture.inspection.storage == "committed"
         else None
     )
@@ -627,100 +587,3 @@ async def chat(
 @app.delete("/api/sessions/{session_id}", status_code=204)
 async def reset_session(session_id: str) -> None:
     sessions.clear(session_id)
-
-
-@app.get("/api/memories", response_model=MemoryStateResponse)
-async def list_memories(
-    service: MemoryServiceDependency,
-    context: MemoryContextDependency,
-) -> MemoryStateResponse:
-    """Return this account's preference and active memory versions."""
-    try:
-        return MemoryStateResponse(
-            capture_enabled=service.capture_enabled(context),
-            memories=[_memory_response(record) for record in service.list_active(context)],
-        )
-    except MemoryServiceError as error:
-        raise _memory_http_error(error) from None
-
-
-@app.put(
-    "/api/memory-capture-preference",
-    response_model=CapturePreferenceResponse,
-)
-async def set_memory_capture_preference(
-    request: CapturePreferenceRequest,
-    service: MemoryServiceDependency,
-    context: MemoryContextDependency,
-) -> CapturePreferenceResponse:
-    """Persist an explicit user opt-in or pause action without a model."""
-    try:
-        service.set_capture_enabled(context, request.enabled)
-        return CapturePreferenceResponse(enabled=service.capture_enabled(context))
-    except MemoryServiceError as error:
-        raise _memory_http_error(error) from None
-
-
-@app.post(
-    "/api/memories",
-    response_model=MemorySaveResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def save_memory(
-    request: MemoryWriteRequest,
-    service: MemoryServiceDependency,
-    context: MemoryContextDependency,
-) -> MemorySaveResponse:
-    """Save words the user explicitly chose, bypassing every agent."""
-    try:
-        result = service.save_explicit(
-            context,
-            text=request.text,
-            source_event_id=f"ui-save:{request.operation_id}",
-        )
-        return MemorySaveResponse(
-            memory=_memory_response(result.record),
-            created=result.created,
-        )
-    except MemoryServiceError as error:
-        raise _memory_http_error(error) from None
-
-
-@app.put(
-    "/api/memories/{memory_id}",
-    response_model=MemorySaveResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def correct_memory(
-    memory_id: str,
-    request: MemoryWriteRequest,
-    service: MemoryServiceDependency,
-    context: MemoryContextDependency,
-) -> MemorySaveResponse:
-    """Create a linked correction while preserving the original record."""
-    try:
-        result = service.correct(
-            context,
-            memory_id,
-            text=request.text,
-            source_event_id=f"ui-correction:{request.operation_id}",
-        )
-        return MemorySaveResponse(
-            memory=_memory_response(result.record),
-            created=result.created,
-        )
-    except MemoryServiceError as error:
-        raise _memory_http_error(error) from None
-
-
-@app.delete("/api/memories/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_memory(
-    memory_id: str,
-    service: MemoryServiceDependency,
-    context: MemoryContextDependency,
-) -> None:
-    """Delete every stored version in the selected memory family."""
-    try:
-        service.delete(context, memory_id)
-    except MemoryServiceError as error:
-        raise _memory_http_error(error) from None

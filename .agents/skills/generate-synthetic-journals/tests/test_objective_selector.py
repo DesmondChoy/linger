@@ -25,6 +25,8 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
 
     assert len(catalog.objectives) == 10
     assert len(set(catalog.ids)) == 10
+    assert "session_scoped_conversation_continuity" in catalog.ids
+    assert "user_controlled_memory_lifecycle" not in catalog.ids
 
 
 def test_injection_resistance_requires_a_primary_objective() -> None:

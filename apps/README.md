@@ -59,7 +59,7 @@ apps/
 │   └── sessions.py   # in-memory conversation history
 └── frontend/
     └── src/
-        ├── api.ts            # the single fetch call
+        ├── api.ts            # chat and session-reset calls
         ├── types.ts
         └── components/       # Chat, MessageList, Composer
 ```
@@ -68,6 +68,8 @@ apps/
 
 - The frontend mints a `session_id` with `crypto.randomUUID()` per page load.
   Reloading, or pressing "New chat", starts a fresh conversation.
+- The interactive POC exposes no memory drawer or public save, correction, and
+  deletion API. Automatic capture remains a server-controlled evaluation path.
 - Replies are returned whole only after an isolated Provenance call approves
   the complete Muse candidate. Rejected or failed reviews return an
   application-authored safe decline instead.

@@ -1,13 +1,13 @@
 # Memory Format Design
 
-Status: **Adopted target contract; implementation pending**
+Status: **Deferred design; outside the current POC**
 
-Progress: **schema design complete; service migration ready** (`linger-5gj` →
-`linger-4sp`).
+Progress: **Deferred.** No implementation work is planned for the current POC.
 
-This document defines Linger's durable product memory. It is separate from
-transient conversation context, provider conversation state, telemetry, and the
-book corpus.
+This document preserves a possible future durable-memory design. The current
+POC exposes no memory-management interface and implements only reviewed
+automatic capture. The canonical current scope is in
+[`docs/specification.md`](../specification.md).
 
 ## 1. Design position
 

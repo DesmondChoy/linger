@@ -1,0 +1,98 @@
+# Pre-generation plan: memory lifecycle and bounded curation
+
+> **Verdict: Not ready.** Linger has not adopted an output format, file layout,
+> or record schema. Adopt the smallest contract that represents the fictional
+> context, source records, ordered controls, curation tests, and later labels.
+> Then rerun this plan. Otherwise, a generator must invent project structure.
+
+## Selected plan
+
+The [canonical vocabulary](../../docs/specification.md#721-canonical-vocabulary)
+defines how this report describes the plan:
+
+| Noun | Role in this plan |
+|---|---|
+| **Objective** | **User-controlled memory lifecycle** (`user_controlled_memory_lifecycle`) and **Bounded memory curation** (`bounded_memory_curation`). |
+| **Set** | One memory-only fictional person and backstory. Neither Objective needs book evidence. |
+| **Prop** | Separately generated source memories supplied to curation Scenes. Memories created by lifecycle controls are outcomes, not Props. |
+| **Scene** | Six catalog-backed minimums: save, correction, deletion, duplicate curation, related-memory curation, and no-change curation. |
+| **Line** | None. Lifecycle intentions use deterministic controls; curation Props go to offline Sculptor, not Muse. |
+| **Ground truth** | Assigned after generation and withheld from the generator. The success checks below are hypotheses only; assignment remains undefined. |
+
+One Set makes the plan coherent: its history supplies both the lifecycle sequence
+and the later curation Scenes.
+
+## Expected behavior and evaluation
+
+This plan contains no Lines. Its inputs are deterministic control intentions or
+curation Props:
+
+- **Lifecycle Scenes:** “Writing this down so I stop losing it: …” is saved.
+  “That is not quite what I meant—closer to …” creates a corrected immutable
+  version. “Delete that memory” removes both versions. Success means one active
+  version after correction and no remaining family after deletion.
+- **Duplicate Scene:** Two Props express the same durable memory. Sculptor
+  should cite only those records, link them, and preserve both originals.
+- **Related-memory Scene:** Several independently useful Props support a topic
+  group or summary. Every proposed claim should trace to supplied records.
+- **No-change Scene:** Superficially similar but unrelated Props should produce
+  an explicit no-change result.
+
+## Proposed generator prompt
+
+```text
+You have read-only access to the current Linger checkout. Inspect:
+  src/linger/services/memory.py
+  apps/backend/main.py
+  src/linger/agents/sculptor/models.py
+
+Write natural first-person journal material for one fictional person.
+
+A. Provide source text for an explicit save, later replacement text that
+corrects its meaning, and then an intention to delete that record and its earlier
+versions. Use the person's own words. Invent no account, event, or memory IDs.
+
+B. Provide accumulated reflections containing an exact duplicate pair, related
+but distinct records, a later refinement, unrelated noise, and one group that
+warrants no reorganization. Keep each reflection useful on its own. Use natural
+repetition, never evaluator labels.
+
+Do not substitute conversational phrases for executed controls or tell the
+curator how to organize the material.
+
+<<UNRESOLVED: output format, file layout, and record schema. Do not invent them.>>
+```
+
+## Architecture and academic relevance
+
+- The **Memory & Policy Service** alone saves, versions, and deletes memories.
+- **Sculptor** receives 2–12 records and returns one proposal or no change. It
+  has no tools or write authority.
+- **Muse, Librarian, Serendipity, and Provenance** do not participate. Their
+  absence tests that deterministic controls and offline curation gain no
+  conversational or release authority.
+
+These Scenes provide testing evidence for traceable memory changes and bounded
+agent authority, supporting the module's architecture and testing artifacts
+(briefing pp. 9, 11, and 13).
+
+## Risks and opportunity
+
+- **Blocking:** No contract represents the Set, Props, Scenes, lifecycle
+  outcomes, or later Ground truth. Lines do not apply to this plan.
+- **Non-blocking gaps:** No backend caller schedules curation, and the service
+  cannot yet apply Sculptor's derived proposals.
+- **Developer inspiration, not adopted scope:** Correct and delete a memory after
+  curation groups it. Persist derived changes with source references, then remove
+  them when their source family is deleted.
+
+## Provenance
+
+- Generated 2026-08-21 at 11:34:46 +08:00 from `main` at `0385d89`.
+- The tree was dirty: the revised skill and prior comparison report are not in
+  `HEAD`, so `HEAD` alone cannot reproduce this report.
+- Inspected the catalog, specification, briefing, relevant runtime code, and
+  focused tests. Combined SHA-256: `bfd0a4f…ff176`.
+
+> **Human decision required:** adopt the minimal output contract (recommended),
+> revise the selected plan, or abandon it. Do not approve it unchanged.

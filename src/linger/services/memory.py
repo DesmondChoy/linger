@@ -7,21 +7,16 @@ import json
 import os
 import tempfile
 import threading
-from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
-CaptureType = Literal["explicit", "automatic", "correction"]
+CaptureType = Literal["automatic"]
 
 
 class MemoryServiceError(Exception):
     """Base class for deterministic memory service failures."""
-
-
-class MemoryNotFoundError(MemoryServiceError):
-    """Raised when an active memory is unavailable to the requesting account."""
 
 
 class MemoryConflictError(MemoryServiceError):
@@ -63,7 +58,7 @@ class AutomaticMemoryCandidate:
 
 @dataclass(frozen=True)
 class MemoryRecord:
-    """One immutable version of a stored memory."""
+    """One immutable automatic capture."""
 
     memory_id: str
     account_key: str
@@ -71,8 +66,6 @@ class MemoryRecord:
     capture_type: CaptureType
     source_event_id: str
     idempotency_key: str
-    root_memory_id: str
-    supersedes_memory_id: str | None
     evidence_ids: tuple[str, ...]
     created_at: str
     updated_at: str
@@ -116,7 +109,7 @@ class MemoryPolicyService:
         context: AccountContext,
         enabled: bool,
     ) -> None:
-        """Persist this account's automatic-capture preference atomically."""
+        """Persist server-controlled capture policy for one evaluation account."""
         if not isinstance(enabled, bool):
             raise ValueError("enabled must be a boolean")
         with self._lock:
@@ -127,23 +120,6 @@ class MemoryPolicyService:
                 sort_keys=True,
             )
             _replace_atomically(account_dir / "policy.json", payload + "\n")
-
-    def save_explicit(
-        self,
-        context: AccountContext,
-        *,
-        text: str,
-        source_event_id: str,
-        evidence_ids: tuple[str, ...] = (),
-    ) -> SaveResult:
-        """Save a user-requested memory without automatic-capture policy."""
-        return self._save_root(
-            context,
-            text=text,
-            source_event_id=source_event_id,
-            capture_type="explicit",
-            evidence_ids=evidence_ids,
-        )
 
     def save_automatic(
         self,
@@ -157,113 +133,29 @@ class MemoryPolicyService:
             if not candidate.review_allows_capture:
                 raise MemoryPolicyError("upstream_review_rejected_capture")
             if candidate.contains_sensitive_content:
-                raise MemoryPolicyError("sensitive_content_requires_explicit_save")
-            return self._save_root(
+                raise MemoryPolicyError("sensitive_content_not_allowed")
+            return self._save(
                 context,
                 text=candidate.text,
                 source_event_id=candidate.source_event_id,
-                capture_type="automatic",
                 evidence_ids=candidate.evidence_ids,
             )
 
-    def correct(
-        self,
-        context: AccountContext,
-        memory_id: str,
-        *,
-        text: str,
-        source_event_id: str,
-    ) -> SaveResult:
-        """Create an immutable version linked to one active memory."""
-        _require_text(text, "text")
-        _require_text(source_event_id, "source_event_id")
-        with self._lock:
-            records = self._records_by_id(context)
-            target = records.get(memory_id)
-            if target is None:
-                raise MemoryNotFoundError(memory_id)
-
-            idempotency_key = _idempotency_key(
-                context.account_id,
-                source_event_id,
-                "correction",
-            )
-            correction = self._existing_idempotent(context, idempotency_key)
-            if correction is not None:
-                self._require_matching_retry(
-                    correction,
-                    text=text,
-                    source_event_id=source_event_id,
-                    capture_type="correction",
-                    evidence_ids=target.evidence_ids,
-                    root_memory_id=target.root_memory_id,
-                    supersedes_memory_id=target.memory_id,
-                )
-                return SaveResult(record=correction, created=False)
-
-            if target.memory_id not in _active_ids(records.values()):
-                raise MemoryNotFoundError(memory_id)
-
-            record = _new_record(
-                account_key=_account_key(context.account_id),
-                text=text,
-                capture_type="correction",
-                source_event_id=source_event_id,
-                idempotency_key=idempotency_key,
-                evidence_ids=target.evidence_ids,
-                root_memory_id=target.root_memory_id,
-                supersedes_memory_id=target.memory_id,
-            )
-            return self._commit(context, record)
-
     def list_active(self, context: AccountContext) -> list[MemoryRecord]:
-        """List only current memory versions owned by this account."""
+        """List automatic captures owned by this account."""
         with self._lock:
             records = self._records_by_id(context)
-            active_ids = _active_ids(records.values())
             return sorted(
-                (record for key, record in records.items() if key in active_ids),
+                records.values(),
                 key=lambda record: (record.created_at, record.memory_id),
             )
 
-    def get_active(
-        self,
-        context: AccountContext,
-        memory_id: str,
-    ) -> MemoryRecord:
-        """Return an active account-owned memory without leaking its existence."""
-        for record in self.list_active(context):
-            if record.memory_id == memory_id:
-                return record
-        raise MemoryNotFoundError(memory_id)
-
-    def delete(self, context: AccountContext, memory_id: str) -> int:
-        """Delete every stored version belonging to one active memory family."""
-        with self._lock:
-            records = self._records_by_id(context)
-            target = records.get(memory_id)
-            if target is None or target.memory_id not in _active_ids(records.values()):
-                raise MemoryNotFoundError(memory_id)
-
-            family = [
-                record
-                for record in records.values()
-                if record.root_memory_id == target.root_memory_id
-            ]
-            account_dir = self._account_dir(context)
-            for record in family:
-                (account_dir / f"{record.idempotency_key}.md").unlink(
-                    missing_ok=True
-                )
-            return len(family)
-
-    def _save_root(
+    def _save(
         self,
         context: AccountContext,
         *,
         text: str,
         source_event_id: str,
-        capture_type: Literal["explicit", "automatic"],
         evidence_ids: tuple[str, ...],
     ) -> SaveResult:
         _require_text(text, "text")
@@ -272,7 +164,6 @@ class MemoryPolicyService:
             idempotency_key = _idempotency_key(
                 context.account_id,
                 source_event_id,
-                capture_type,
             )
             existing = self._existing_idempotent(context, idempotency_key)
             if existing is not None:
@@ -280,23 +171,16 @@ class MemoryPolicyService:
                     existing,
                     text=text,
                     source_event_id=source_event_id,
-                    capture_type=capture_type,
                     evidence_ids=evidence_ids,
-                    root_memory_id=existing.memory_id,
-                    supersedes_memory_id=None,
                 )
                 return SaveResult(record=existing, created=False)
 
-            memory_id = _memory_id(idempotency_key)
             record = _new_record(
                 account_key=_account_key(context.account_id),
                 text=text,
-                capture_type=capture_type,
                 source_event_id=source_event_id,
                 idempotency_key=idempotency_key,
                 evidence_ids=evidence_ids,
-                root_memory_id=memory_id,
-                supersedes_memory_id=None,
             )
             return self._commit(context, record)
 
@@ -312,10 +196,7 @@ class MemoryPolicyService:
                 existing,
                 text=record.text,
                 source_event_id=record.source_event_id,
-                capture_type=record.capture_type,
                 evidence_ids=record.evidence_ids,
-                root_memory_id=record.root_memory_id,
-                supersedes_memory_id=record.supersedes_memory_id,
             )
             return SaveResult(record=existing, created=False)
 
@@ -340,26 +221,17 @@ class MemoryPolicyService:
         *,
         text: str,
         source_event_id: str,
-        capture_type: CaptureType,
         evidence_ids: tuple[str, ...],
-        root_memory_id: str,
-        supersedes_memory_id: str | None,
     ) -> None:
         expected = (
             text,
             source_event_id,
-            capture_type,
             evidence_ids,
-            root_memory_id,
-            supersedes_memory_id,
         )
         actual = (
             record.text,
             record.source_event_id,
-            record.capture_type,
             record.evidence_ids,
-            record.root_memory_id,
-            record.supersedes_memory_id,
         )
         if actual != expected:
             raise MemoryConflictError(
@@ -387,9 +259,8 @@ def _account_key(account_id: str) -> str:
 def _idempotency_key(
     account_id: str,
     source_event_id: str,
-    capture_type: CaptureType,
 ) -> str:
-    material = "\0".join((account_id, source_event_id, capture_type))
+    material = "\0".join((account_id, source_event_id, "automatic"))
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
@@ -401,37 +272,22 @@ def _new_record(
     *,
     account_key: str,
     text: str,
-    capture_type: CaptureType,
     source_event_id: str,
     idempotency_key: str,
     evidence_ids: tuple[str, ...],
-    root_memory_id: str,
-    supersedes_memory_id: str | None,
 ) -> MemoryRecord:
     timestamp = datetime.now(UTC).isoformat()
     return MemoryRecord(
         memory_id=_memory_id(idempotency_key),
         account_key=account_key,
         text=text,
-        capture_type=capture_type,
+        capture_type="automatic",
         source_event_id=source_event_id,
         idempotency_key=idempotency_key,
-        root_memory_id=root_memory_id,
-        supersedes_memory_id=supersedes_memory_id,
         evidence_ids=tuple(evidence_ids),
         created_at=timestamp,
         updated_at=timestamp,
     )
-
-
-def _active_ids(records: Iterable[MemoryRecord]) -> set[str]:
-    record_list = list(records)
-    superseded = {
-        record.supersedes_memory_id
-        for record in record_list
-        if record.supersedes_memory_id is not None
-    }
-    return {record.memory_id for record in record_list} - superseded
 
 
 def _serialize(record: MemoryRecord) -> str:
@@ -442,8 +298,6 @@ def _serialize(record: MemoryRecord) -> str:
         "capture_type": record.capture_type,
         "source_event_id": record.source_event_id,
         "idempotency_key": record.idempotency_key,
-        "root_memory_id": record.root_memory_id,
-        "supersedes_memory_id": record.supersedes_memory_id,
         "evidence_ids": list(record.evidence_ids),
         "created_at": record.created_at,
         "updated_at": record.updated_at,
@@ -461,11 +315,7 @@ def _read_record(path: Path) -> MemoryRecord:
         metadata = json.loads(front_matter)
         if metadata.get("schema_version") != 1:
             raise ValueError("unsupported schema")
-        if metadata.get("capture_type") not in {
-            "explicit",
-            "automatic",
-            "correction",
-        }:
+        if metadata.get("capture_type") != "automatic":
             raise ValueError("invalid capture type")
         record = MemoryRecord(
             memory_id=metadata["memory_id"],
@@ -474,8 +324,6 @@ def _read_record(path: Path) -> MemoryRecord:
             capture_type=metadata["capture_type"],
             source_event_id=metadata["source_event_id"],
             idempotency_key=metadata["idempotency_key"],
-            root_memory_id=metadata["root_memory_id"],
-            supersedes_memory_id=metadata["supersedes_memory_id"],
             evidence_ids=tuple(metadata["evidence_ids"]),
             created_at=metadata["created_at"],
             updated_at=metadata["updated_at"],

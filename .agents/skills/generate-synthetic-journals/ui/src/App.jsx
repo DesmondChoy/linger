@@ -16,11 +16,9 @@ const objectiveIconPaths = {
     'M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z',
     'm9 9 2 2 4-4',
   ],
-  user_controlled_memory_lifecycle: [
-    'M20 7h-5V2',
-    'M4.6 9A8 8 0 0 1 18 5l2 2',
-    'M4 17h5v5',
-    'M19.4 15A8 8 0 0 1 6 19l-2-2',
+  session_scoped_conversation_continuity: [
+    'M4 5h16v11H8l-4 3z',
+    'M8 9h8M8 12h6',
   ],
   longitudinal_memory_retrieval_with_isolation: [
     'M11 19a8 8 0 1 1 5.65-2.35L22 22',

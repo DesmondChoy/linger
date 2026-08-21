@@ -673,6 +673,10 @@ passes with the selected retrieval strategy.
 
 ### 7.2 Separate memory implementation
 
+> **Deferred:** This design is outside the current POC. The interactive product
+> exposes no memory-management interface; see the canonical
+> [system specification](../specification.md).
+
 Linger adopts the public Anthropic Managed Agents memory pattern while keeping
 memory outside Librarian. The complete contract is in
 [`memory-format.md`](memory-format.md); its core records are:

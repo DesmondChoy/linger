@@ -40,10 +40,13 @@ The core journey is:
 |---|---|
 | **Reflect** | Muse drafts responses to text or a photograph and asks a small number of useful follow-up questions. Provenance reviews every complete draft before display, including drafts with no declared factual claims. |
 | **Ground** | Librarian retrieves authorised book passages and memories. Muse drafts a response separating quotations, user statements, and generated interpretation; Provenance checks the complete draft and its claimed support. |
-| **Preserve** | The user may save a memory explicitly, or, after explicit onboarding opt-in, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe automatic candidate, and the deterministic Memory & Policy Service alone validates and commits every save. Each save is disclosed with immediate undo; the user may pause, review, correct, or delete memories. Sculptor later curates existing memories for retrieval. |
+| **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. Sculptor may later curate existing memories for retrieval. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
-Automatic capture does not require per-memory approval once enabled, but it does require a Muse nomination, no Provenance veto, and deterministic policy approval. Content about sensitive traits is excluded from automatic capture and may be saved only through an explicit user action.
+Automatic capture is disabled by default in the interactive POC. Controlled
+evaluation may enable it as server-side workflow state; every capture still
+requires a Muse nomination, no Provenance veto, and deterministic policy
+approval. Content about sensitive traits is never captured.
 
 ## 3. Prototype scope
 
@@ -53,7 +56,7 @@ Automatic capture does not require per-memory approval once enabled, but it does
 - cited retrieval across the initial *Alice's Adventures in Wonderland* corpus and structured memories, followed by expansion to a total of 3–5 Project Gutenberg books;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
-- opt-in automatic memory capture with notice, undo, pause, review, correction, and cascading deletion;
+- reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
 - original memories, generated summaries, duplicate links, topic groups, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
@@ -76,6 +79,7 @@ Automatic capture does not require per-memory approval once enabled, but it does
 - copyrighted books, lyrics, or copyrighted-audio analysis without permission;
 - general shell, browser-control, or external-action capabilities;
 - continuous monitoring or unsolicited resurfacing;
+- end-user memory-management settings and explicit save, review, correction, or deletion controls;
 - mental-health profiling, diagnosis, or crisis-resource routing;
 - autonomous prompt or skill self-modification — the self-improvement loops in Section 9 produce human-reviewed proposals only and never apply changes themselves;
 - production scale, availability, compliance, or regulatory claims; and
@@ -92,9 +96,13 @@ The system contains five reasoning agents and one deterministic service:
 | **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summary or formatting updates, duplicate links, and topic groups while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
-| **Memory & Policy Service** | Authenticates account scope and deterministically enforces capture opt-in, access, storage, idempotency, versioning, review, and cascading deletion. It accepts explicit user saves directly and automatic candidates only after the required review. | Commits validated writes |
+| **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture policy, access, storage, idempotency, and review. It accepts automatic candidates only after the required review. | Commits validated writes |
 
-The Memory & Policy Service derives account identity from authenticated request context and never accepts it from model output; agents cannot choose or widen account scope. Explicit saves, review, correction, and deletion actions go directly from the web interface to the service and are not mediated by a model.
+The Memory & Policy Service derives account identity from authenticated request
+context and never accepts it from model output; agents cannot choose or widen
+account scope. The interactive web application exposes only Muse conversation
+and session reset. It provides no memory-management UI or public memory CRUD
+API.
 
 **Tool implementation policy.** Pydantic AI's maintained tools, capabilities, and toolsets are the default implementation, not examples to recreate locally. The implementation must first use an [official Pydantic AI tool or capability](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/), a provider-native tool supported by Pydantic AI, or a supported external toolset such as MCP. A custom Pydantic AI function tool is permitted only for Linger-specific domain operations for which no maintained implementation exists, such as enforcing account-scoped memory retrieval or the book spoiler boundary. Such tools must be thin adapters over application services; they must not reimplement generic search clients, page fetching, tool schema generation, dispatch, or retries already supplied by Pydantic AI.
 
@@ -134,13 +142,16 @@ Muse asks Librarian for evidence only when grounding is needed, but every path p
 
 ![Reflection and grounding flow](images/reflection-and-grounding.png)
 
-#### 4.2.2 Opt-in memory capture and control
+#### 4.2.2 Reviewed automatic memory capture
 
-Explicit user saves go directly from the web interface to the Memory & Policy Service without an agent. For automatic capture, Muse may nominate one typed `MemoryCandidate`; Provenance may veto it for privacy, sensitive inference, unsupported provenance, or injection risk. The Memory & Policy Service then derives account scope, checks opt-in and idempotency, validates the request, and owns every write. The application-generated save notice reports only a committed operation and provides immediate undo.
+During controlled evaluation, Muse may nominate one typed `MemoryCandidate`;
+Provenance may veto it for privacy, sensitive inference, unsupported provenance,
+or injection risk. The Memory & Policy Service derives account scope, checks the
+server-side evaluation policy and idempotency, validates the request, and owns
+every write. The application reports a committed capture but offers no
+memory-management action.
 
 Sculptor is not part of capture. It later receives a bounded, account-scoped set of existing memories and may return a `CurationProposal | NoCurationProposal`; the Memory & Policy Service validates and applies permitted derived changes without modifying originals.
-
-![Opt-in memory capture and control flow](images/opt-in-memory-capture-and-control.png)
 
 #### 4.2.3 Connection discovery and verification
 
@@ -168,7 +179,8 @@ spoiler boundary anew for each book-related request.
 
 ### 5.2 Memory record
 
-An active memory belongs to the requesting account and has not been deleted. It may have been captured automatically while memory capture was enabled or saved explicitly by the user.
+An active memory belongs to the requesting account and was captured through the
+reviewed automatic-capture path.
 
 Each active memory contains:
 
@@ -179,13 +191,19 @@ Each active memory contains:
 - provenance linking the originating conversation or photograph;
 - links to related, duplicate, or parent memories;
 - an idempotency key derived from account, source event, and capture type;
-- version and derivation metadata for generated records;
-- created and updated timestamps; and
-- active or deleted status.
+- derivation metadata for generated records; and
+- created and updated timestamps.
 
-Original user records are immutable. A user correction creates a linked active version while preserving the prior record for provenance. Sculptor may add or replace versioned derived summaries and links but cannot delete an original. User deletion cascades through all versions and any derived storage that Linger actually controls.
+Original captured records are immutable. Sculptor may add or replace versioned
+derived summaries and links but cannot modify an original. The interactive POC
+does not expose correction or deletion.
 
-For the prototype, the Memory & Policy Service stores each immutable version as a Markdown file with JSON front matter under a Git-ignored `memories/<hashed-account-id>/` directory. Account capture preference lives beside those files in `policy.json`. No embedding, search-index, telemetry-memory, or vector-database layer is created until retrieval requires one; deletion covers only storage that actually exists.
+For the prototype, the Memory & Policy Service stores each immutable capture as
+a Markdown file with JSON front matter under a Git-ignored
+`memories/<hashed-account-id>/` directory. Controlled evaluation may set capture
+policy server-side; the interactive UI cannot change it. No embedding,
+search-index, telemetry-memory, or vector-database layer is created until
+retrieval requires one.
 
 ### 5.3 Evidence record
 
@@ -220,7 +238,9 @@ An automatic `MemoryCandidate` contains only:
 - a concise nomination reason; and
 - sensitive-inference and policy flags.
 
-`NoMemoryCandidate` contains a machine-checkable reason code. Neither type contains account scope or write authority. Explicit user saves bypass this agent contract and go directly to the Memory & Policy Service.
+`NoMemoryCandidate` contains a machine-checkable reason code. Neither type
+contains account scope or write authority. The POC has no separate explicit-save
+path.
 
 ### 5.6 Connection proposal
 
@@ -266,12 +286,12 @@ Whenever an exact quotation is displayed or stored, application code verifies it
 
 ### 6.3 Memory and media control
 
-- Automatic capture requires explicit onboarding opt-in.
-- Every capture produces a visible notice and immediate undo.
-- Before a long opted-in conversation is compacted or closed, Muse may make one final memory nomination through the same Provenance review and deterministic capture path.
-- Explicit saves go directly to the Memory & Policy Service; no agent mediates user control actions.
-- Raw photographs remain transient unless the user explicitly saves them.
-- Derived memories from photographs may be captured only while opt-in remains active.
+- Automatic capture is disabled by default in the interactive POC and may be enabled only as controlled server-side evaluation state.
+- Every committed capture produces a visible notice without exposing a management action.
+- Before a long capture-enabled evaluation conversation is compacted or closed, Muse may make one final memory nomination through the same Provenance review and deterministic capture path.
+- The interactive application exposes no explicit save, review, correction, or deletion controls.
+- Raw photographs remain transient.
+- Derived memories from photographs may be captured only while controlled capture policy is enabled.
 - Sensitive-trait content is never captured automatically.
 - Logs and telemetry follow the canonical [telemetry data contract](telemetry.md).
 
@@ -286,7 +306,7 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - cited evidence is missing or unresolved;
 - attribution is incorrect;
 - the spoiler boundary is unclear;
-- evidence crosses account or deletion boundaries;
+- evidence crosses account boundaries;
 - a factual web claim lacks a retrievable citation;
 - the candidate contains an unsupported claim or sensitive inference;
 - retrieved content attempts to redirect agent behaviour.
@@ -320,7 +340,7 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 |---|---|
 | **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
 | **Set** | The generated persona and backstory, plus reading history only when relevant, that make scenes coherent. The set informs generation only; the running system never receives it. |
-| **Prop** | A generated memory record inserted into Linger's storage before a scene runs. Each prop carries a lifecycle role: active, deleted, superseded, or other-account. |
+| **Prop** | A generated memory record inserted into Linger's storage before a scene runs. Each prop carries an evaluation role, such as active or other-account. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
 | **Ground truth** | Labels assigned after generation and withheld from the generator: expected outcomes, permitted evidence identifiers, exact spans, and failure conditions that a scene's recorded behavior is graded against. |
@@ -329,7 +349,7 @@ The vocabulary encodes three boundaries:
 
 - The set never enters the running system, and no set content becomes a prop by copying. A prop whose exposure or isolation is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
-- Lines are conversational input only. Explicit save, correction, and deletion remain deterministic control events outside this vocabulary. The `user_controlled_memory_lifecycle` objective generates the user's intent text for those events; that text is not a line.
+- Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
 
 A Set may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
@@ -367,7 +387,7 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, deletion, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
 ### 8.1 Agent telemetry and debugging
 

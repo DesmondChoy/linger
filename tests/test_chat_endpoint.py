@@ -50,6 +50,18 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
 
+    def test_direct_memory_controls_are_not_exposed(self) -> None:
+        with TestClient(main.app) as client:
+            requests = (
+                client.get("/api/memories"),
+                client.put("/api/memory-capture-preference", json={"enabled": True}),
+                client.post("/api/memories", json={"text": "Save this"}),
+                client.put("/api/memories/mem-1", json={"text": "Correct this"}),
+                client.delete("/api/memories/mem-1"),
+            )
+
+        self.assertTrue(all(response.status_code == 404 for response in requests))
+
     def test_http_and_file_telemetry_exclude_request_content(self) -> None:
         exporter = TestExporter()
         logfire.configure(

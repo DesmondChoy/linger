@@ -11,7 +11,11 @@ from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration import connection
 from src.linger.orchestration.connection import build_brief, connection_proposal, web_reach_permitted
 from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import (
+    AccountContext,
+    AutomaticMemoryCandidate,
+    MemoryPolicyService,
+)
 
 WORK_ID = "pg11"
 
@@ -160,13 +164,24 @@ class EgressGuardTests(unittest.IsolatedAsyncioTestCase):
         self._tempdir = tempfile.TemporaryDirectory()
         self._service = MemoryPolicyService(self._tempdir.name)
         self._account = AccountContext(account_id="local-prototype-user")
-        self._service.save_explicit(
-            self._account,
-            text="I was devastated when my grandmother passed away last spring",
-            source_event_id="evt-1",
+        self._service.set_capture_enabled(self._account, True)
+        self._capture(
+            "I was devastated when my grandmother passed away last spring",
+            "evt-1",
         )
         self._patcher = patch("src.linger.orchestration.connection.memory_service", self._service)
         self._patcher.start()
+
+    def _capture(self, text: str, source_event_id: str) -> None:
+        self._service.save_automatic(
+            self._account,
+            AutomaticMemoryCandidate(
+                text=text,
+                source_event_id=source_event_id,
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
 
     def tearDown(self) -> None:
         self._patcher.stop()
@@ -184,7 +199,7 @@ class EgressGuardTests(unittest.IsolatedAsyncioTestCase):
         explorer.assert_not_called()
 
     async def test_short_memory_is_still_blocked_verbatim(self) -> None:
-        self._service.save_explicit(self._account, text="sexual abuse", source_event_id="evt-2")
+        self._capture("sexual abuse", "evt-2")
         explorer = MagicMock()
         brief = build_brief("does the story say anything about sexual abuse")
 
@@ -195,7 +210,7 @@ class EgressGuardTests(unittest.IsolatedAsyncioTestCase):
         explorer.assert_not_called()
 
     async def test_memory_without_word_characters_blocks_nothing(self) -> None:
-        self._service.save_explicit(self._account, text="...", source_event_id="evt-3")
+        self._capture("...", "evt-3")
         explorer = MagicMock()
         explorer.return_value = ConnectionDecline(reason="unsupported_cue", safe_next_step="n/a")
         brief = build_brief("growing caterpillar")

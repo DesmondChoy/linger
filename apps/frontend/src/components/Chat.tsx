@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { deleteMemory, resetSession, sendMessage } from '../api'
+import { resetSession, sendMessage } from '../api'
 import type { MemoryCaptureNotice, Message, TurnInspection, TurnTimeline } from '../types'
 import { Composer } from './Composer'
-import { MemoryDrawer } from './MemoryDrawer'
 import { MessageList } from './MessageList'
 import { Inspector } from './Inspector'
 import { Reader } from './Reader'
@@ -15,7 +14,6 @@ export function Chat() {
   const [view, setView] = useState<'chat' | 'inspect'>('chat')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [memoryOpen, setMemoryOpen] = useState(false)
   const [captureNotice, setCaptureNotice] = useState<MemoryCaptureNotice | null>(null)
 
   async function handleSend(text: string) {
@@ -55,18 +53,8 @@ export function Chat() {
     setCaptureNotice(null)
   }
 
-  async function handleUndoCapture() {
-    if (!captureNotice) return
-    try {
-      await deleteMemory(captureNotice.memory_id)
-      setCaptureNotice(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not undo the memory save.')
-    }
-  }
-
   return (
-    <main className={`workspace${memoryOpen ? ' drawer-open' : ''}`}>
+    <main className="workspace">
       <Reader disabled={pending} />
       <section className="chat" aria-label="Reflection chat">
         <header className="chat-header">
@@ -83,14 +71,6 @@ export function Chat() {
               <button type="button" role="tab" aria-selected={view === 'inspect'} onClick={() => setView('inspect')}>Inspect</button>
             </div>
             <button
-              className="quiet-button memory-button"
-              type="button"
-              onClick={() => setMemoryOpen((open) => !open)}
-              aria-expanded={memoryOpen}
-            >
-              Memories
-            </button>
-            <button
               className="quiet-button"
               type="button"
               onClick={handleReset}
@@ -106,15 +86,12 @@ export function Chat() {
           {captureNotice && (
             <p className="notice">
               <span>{captureNotice.notice}</span>
-              <button type="button" onClick={handleUndoCapture}>Undo</button>
             </p>
           )}
           {error && <p className="error">{error}</p>}
           <Composer disabled={pending} onSend={handleSend} />
         </> : <Inspector timeline={timeline} />}
       </section>
-
-      {memoryOpen && <MemoryDrawer onClose={() => setMemoryOpen(false)} />}
     </main>
   )
 }

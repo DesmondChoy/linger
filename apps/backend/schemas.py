@@ -1,8 +1,6 @@
 """Request and response bodies for the application API."""
 
 from typing import Any, Literal
-from uuid import UUID
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.linger.agents.provenance.models import RiskCode
@@ -69,7 +67,6 @@ class TurnInspection(BaseModel):
 class MemoryCaptureNotice(BaseModel):
     """Application-authored disclosure for one committed automatic capture."""
 
-    memory_id: str
     notice: Literal["Saved to your memories."] = "Saved to your memories."
 
 
@@ -77,35 +74,3 @@ class ChatResponse(BaseModel):
     reply: str
     inspection: TurnInspection
     memory_capture: MemoryCaptureNotice | None = None
-
-
-class MemoryWriteRequest(RequestBody):
-    text: str = Field(min_length=1, max_length=8000)
-    operation_id: UUID
-
-
-class CapturePreferenceRequest(RequestBody):
-    enabled: bool
-
-
-class CapturePreferenceResponse(BaseModel):
-    enabled: bool
-
-
-class MemoryResponse(BaseModel):
-    memory_id: str
-    text: str
-    capture_type: Literal["explicit", "automatic", "correction"]
-    evidence_ids: list[str]
-    created_at: str
-    updated_at: str
-
-
-class MemorySaveResponse(BaseModel):
-    memory: MemoryResponse
-    created: bool
-
-
-class MemoryStateResponse(BaseModel):
-    capture_enabled: bool
-    memories: list[MemoryResponse]

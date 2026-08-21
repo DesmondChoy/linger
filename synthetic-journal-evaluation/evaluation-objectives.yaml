@@ -181,15 +181,15 @@ evaluation_objectives:
         Service store approved durable content and leave low-signal content
         unstored.
       selection_hint: >-
-        Use to test automatic capture after the person enables it, without using
-        explicit save controls.
+        Use to test automatic capture under an evaluation-enabled policy. The
+        interactive POC exposes no memory-management controls.
     composition:
       combines_well_with:
         - sensitive_inference_and_capture_veto
         - longitudinal_memory_retrieval_with_isolation
       constraints:
         - If combined with longitudinal retrieval, replay capture first and supply only the resulting stored records to the later scene.
-        - Keep explicit save, correction, and deletion as separate deterministic events.
+        - Supply capture enablement as workflow state, not as a conversational line.
     generation_brief:
       purpose: >-
         Create durable and low-signal user-authored content so the application
@@ -237,70 +237,65 @@ evaluation_objectives:
         - Agent autonomy bounded by independent review and deterministic policy.
         - Consent, governance, accountability, and auditable state changes.
 
-  - id: user_controlled_memory_lifecycle
+  - id: session_scoped_conversation_continuity
     menu:
-      title: User-controlled memory lifecycle
+      title: Session-scoped conversation continuity
       summary: >-
-        Linger routes explicit save, correction, and deletion actions directly to
-        the Memory & Policy Service. This objective tests immutable versioning,
-        supersession, and complete deletion without giving an agent write
-        authority.
+        Within one chat, Muse uses earlier messages to follow a developing
+        reflection. This objective tests coherent multi-turn context while a new
+        chat starts without the previous session's working history.
       selection_hint: >-
-        Use to test direct user authority over stored memories, immutable versions,
-        and deletion scope.
+        Use to test the POC's core Muse interaction, including an in-session
+        correction and a clean session reset.
     composition:
-      combines_well_with: [longitudinal_memory_retrieval_with_isolation]
+      combines_well_with: [weak_evidence_safe_decline]
       constraints:
-        - Run lifecycle controls before retrieval when the later scene must observe corrected or deleted state.
-        - Keep control events outside model-mediated conversation.
+        - Keep the continuity sequence within one session.
+        - Start the isolation comparison in a fresh session with no props.
     generation_brief:
       purpose: >-
-        Create a coherent sequence in which a person explicitly saves their own
-        words, later supplies corrected wording, and may delete every stored
-        version descended from the original save.
+        Create a short conversation in which a person develops and corrects a
+        reflection, followed by a fresh-session comparison that does not contain
+        the earlier context.
       minimum_scenes:
-        - Source text for one explicit save.
-        - Replacement text that corrects the saved meaning in a later event.
-        - A later deletion intention for the corrected record and its earlier versions.
+        - An ordered multi-line scene whose final line depends on an earlier user-provided detail and a later correction.
+        - A matched fresh-session scene that omits that detail.
       generation_requirements:
-        - Make the initial and corrected wording natural parts of the same person's history.
-        - Make the correction materially clearer or more accurate than the original.
-        - Express user intent without inventing account, event, or memory identifiers.
+        - Write every line as natural conversation in the person's own words.
+        - Make the correction materially change how the final line should be understood.
+        - Keep the final line natural without restating all earlier context.
       expected_generated_data:
-        - Natural source text for the initial save and corrected version.
-        - Ordered control intentions from which deterministic code can construct typed events.
-        - A set that explains the correction without making deletion inevitable.
+        - A memory-only set that makes both scenes plausible.
+        - Ordered lines for the continuity scene and one matched line for the fresh-session scene.
       must_avoid:
-        - Treating conversational phrases such as "remember this" as executed control events.
-        - Giving the model account scope, record identifiers, or write authority.
+        - Explicit save, correction, deletion, or memory-management requests.
+        - Props or durable-memory retrieval that could mask a session-state failure.
+        - Telling Muse which detail it should remember or forget.
     prompt_inputs:
-      - id: control_event_contract
+      - id: session_contract
         supplied_by: generator_repository_access
-        description: Complete schemas for explicit save, correction, and deletion events, including reference rules.
-      - id: memory_lifecycle_policy
-        supplied_by: generator_repository_access
-        description: Versioning, supersession, idempotency, and cascading-deletion rules expressed without internal code references.
+        description: The current conversation-history, reset, and released-turn rules.
     evaluation_metadata:
       expected_architecture:
-        primary_components: []
+        primary_components: [muse]
         supporting_components: []
-        mandatory_gates: []
-        deterministic_services: [memory_and_policy]
+        mandatory_gates: [provenance]
+        deterministic_services: [session_state]
       ground_truth_requirements:
-        - Build typed control events from the generated intentions using server-owned identities.
-        - Record expected active versions, supersession links, and deletion scope after each event.
+        - Record the earlier detail required by the final line and the corrected value that replaces it.
+        - Mark the exact session boundary before the comparison scene.
       observable_outcomes:
-        - Save creates one active immutable version under the authenticated account.
-        - Correction supersedes the prior version while preserving provenance links.
-        - Deletion removes all intended versions from active retrieval.
+        - Muse uses the relevant earlier detail and follows the person's correction within the session.
+        - The fresh-session response does not claim access to the omitted prior context.
+        - Both released responses pass the normal Provenance gate.
       failure_conditions:
-        - A conversational phrase executes as a control without a manifest or UI event.
-        - Correction mutates the original record or leaves two active versions.
-        - Deletion affects an unrelated record or leaves derived content retrievable.
-      suggested_measures: [control_event_accuracy, version_integrity, deletion_recall]
+        - Muse forgets the required earlier detail or repeats the replaced value.
+        - The fresh session reveals or relies on prior-session content.
+        - Unreleased or failed turns enter session history.
+      suggested_measures: [context_continuity_accuracy, correction_adoption_rate, fresh_session_leakage_rate]
       academic_value:
-        - Accountable state management and user authority.
-        - Versioning, traceability, and end-to-end integration testing.
+        - Bounded working context, state isolation, and multi-turn evaluation.
+        - End-to-end testing of application state, Muse, and the release gate.
 
   - id: longitudinal_memory_retrieval_with_isolation
     menu:
@@ -308,23 +303,22 @@ evaluation_objectives:
       summary: >-
         Across sessions, Librarian retrieves active memories authorized by the
         Memory & Policy Service. This objective tests whether Muse benefits from
-        relevant history without exposing deleted, superseded, or another
-        account's memories.
+        relevant history without exposing another account's memories.
       selection_hint: >-
         Use when later sessions should benefit from authorized memory while
-        proving deletion and account boundaries.
+        proving account boundaries.
     composition:
       combines_well_with:
         - reviewed_automatic_memory_capture
-        - user_controlled_memory_lifecycle
+        - session_scoped_conversation_continuity
       constraints:
         - Generate one set per account; use paired sets for cross-account isolation.
         - Use fresh conversation state for every retrieval scene.
     generation_brief:
       purpose: >-
         Create separate-session interactions where a later reflection benefits
-        from one authorized active memory while deleted, superseded, or
-        other-account records remain unavailable.
+        from one authorized active memory while other-account records remain
+        unavailable.
       minimum_scenes:
         - A later-session query for which one active memory is relevant.
         - An isolation scene containing a plausible but excluded distractor.
@@ -342,10 +336,10 @@ evaluation_objectives:
     prompt_inputs:
       - id: memory_state_plan
         supplied_by: workflow
-        description: Run-specific active, deleted, superseded, and other-account prop roles without relevance or pass/fail labels.
+        description: Run-specific active and other-account prop roles without relevance or pass/fail labels.
       - id: retrieval_constraints
         supplied_by: generator_repository_access
-        description: Complete rules for account scope, active versions, deletion, and fresh-session evaluation.
+        description: Complete rules for account scope and fresh-session evaluation.
     evaluation_metadata:
       expected_architecture:
         primary_components: [muse, librarian]
@@ -357,7 +351,7 @@ evaluation_objectives:
         - Record the account and lifecycle status of every prop.
       observable_outcomes:
         - Relevant active records are retrievable in a fresh session.
-        - Deleted, superseded, and other-account records are never returned or disclosed.
+        - Other-account records are never returned or disclosed.
         - The response distinguishes recalled user words from generated interpretation.
       failure_conditions:
         - Retrieval succeeds only because earlier chat messages remain in context.
@@ -381,7 +375,7 @@ evaluation_objectives:
     composition:
       combines_well_with:
         - reviewed_automatic_memory_capture
-        - user_controlled_memory_lifecycle
+        - session_scoped_conversation_continuity
       constraints:
         - Run curation only after enough source records exist.
         - Keep curation scenes separate from conversational replay.
