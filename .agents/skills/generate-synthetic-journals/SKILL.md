@@ -25,9 +25,13 @@ copy that content into this skill.
    non-loopback host, disable the sandbox, or ask the developer to change global
    security settings.
 3. The selector is the complete selection and confirmation surface. It displays
-   all ten `menu.title` and `menu.summary` values together, accepts one through
-   all ten objectives, shows the live selection count, applies every
-   `selection_constraints` rule, and confirms the complete selection.
+   all ten objectives together, grouped by `menu_families`. A resting card shows
+   only the objective's icon and `menu.title`; hovering or focusing it reveals
+   `menu.selection_hint`, `menu.summary`, and its
+   `composition.combines_well_with` partners. The selector accepts one through
+   all ten objectives, shows the live selection count, surfaces every
+   `selection_constraints` rule on the affected card before it is violated, and
+   confirms the complete selection.
 4. Continue only after the process exits successfully with exactly one
    `CONFIRMED_SELECTION_JSON` record. Verify its catalog identifier and SHA-256
    against the catalog read in step 1, then use its ordered `objective_ids`.
@@ -105,11 +109,15 @@ authorize synthetic-data generation. After confirmation:
 8. Hypothesize representative inputs, likely response behaviors, and how those
    behaviors could be evaluated. Use the canonical term `Line` only for
    conversational input sent to Muse. Describe offline curation inputs by their
-   actual roles. Treat response text as a
-   hypothesis, not an exact oracle. Identify another input or short input
-   sequence that still fits the confirmed objectives but is unsupported by the
-   current implementation, and name the smallest plausible build-out needed.
-   Label this as developer inspiration, not adopted scope.
+   actual roles. When a plan uses multiple accounts, identify the
+   application-authenticated account for each Scene and each Prop's owning
+   account and planned lifecycle role. Describe authorization and exclusion
+   relative to the Scene's authenticated account; do not treat a Set as a
+   runtime actor. Treat response text as a hypothesis, not an exact oracle.
+   Identify another input or short input sequence that still fits the confirmed
+   objectives but is unsupported by the current implementation, and name the
+   smallest plausible build-out needed. Label this as developer inspiration,
+   not adopted scope.
 
 ## Write the pre-generation report
 
@@ -201,7 +209,9 @@ lines, ground truth, annotations, packages, manifests, frozen releases, or
 replay data. After writing the report, verify its filename and word count. Also
 verify that the canonical-noun table has the exact six rows and a working
 Section 7.2.1 link; runtime-created outcomes are not called Props; hypotheses
-are not called Ground truth; and
-report-only vocabulary has not leaked into the generator prompt. Report the
-path and selected Objective IDs, then stop. The downstream generation workflow
-remains intentionally undefined.
+are not called Ground truth; every multi-account Scene identifies its
+application-authenticated account; every Prop identifies its owning account and
+planned lifecycle role; authorization and exclusion are consistent with each
+Scene's authenticated account; and report-only vocabulary has not leaked into
+the generator prompt. Report the path and selected Objective IDs, then stop. The
+downstream generation workflow remains intentionally undefined.

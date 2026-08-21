@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { selectionError } from './selection.js'
+import { selectionError, suggestedObjectiveIds } from './selection.js'
 
 function tokenFromLocation() {
   return new URLSearchParams(window.location.hash.slice(1)).get('token') ?? ''
@@ -77,16 +77,60 @@ async function api(path, options = {}) {
   return body
 }
 
-function SelectionMeter({ count, total }) {
+function SelectionCount({ count }) {
   return (
-    <div className="selection-meter" aria-label={`${count} of ${total} objectives selected`}>
-      <span className="selection-count"><strong>{count}</strong> selected</span>
-      <span className="meter-cells" aria-hidden="true">
-        {Array.from({ length: total }, (_, index) => (
-          <span className={index < count ? 'meter-cell is-filled' : 'meter-cell'} key={index} />
-        ))}
-      </span>
+    <div className="selection-count" role="status">
+      <p className="count-value"><strong>{count}</strong> selected</p>
+      <p className="count-note">Fewer objectives make a more coherent set.</p>
     </div>
+  )
+}
+
+function ObjectiveCard({ objective, isSelected, badge, titlesById, onToggle, detailsPlacement }) {
+  const detailsId = `${objective.id}-details`
+  const partners = objective.combinesWellWith
+    .map((partnerId) => titlesById[partnerId])
+    .filter(Boolean)
+
+  const className = [
+    'objective-card',
+    isSelected ? 'is-selected' : '',
+    badge ? `has-badge is-${badge.tone}` : '',
+  ].filter(Boolean).join(' ')
+
+  return (
+    <label className={className}>
+      <input
+        aria-describedby={detailsId}
+        checked={isSelected}
+        onChange={() => onToggle(objective.id)}
+        type="checkbox"
+      />
+      <span className="checkbox" aria-hidden="true">{isSelected ? '✓' : ''}</span>
+      <ObjectiveIcon objectiveId={objective.id} />
+      <span className="objective-copy">
+        <strong>{objective.title}</strong>
+        {badge ? <span className="card-badge">{badge.label}</span> : null}
+      </span>
+
+      <span
+        className={`objective-details is-${detailsPlacement}`}
+        id={detailsId}
+        role="tooltip"
+      >
+        <span className="details-hint">{objective.selectionHint}</span>
+        <span className="details-summary">{objective.summary}</span>
+        {badge ? <span className="details-note">{badge.detail}</span> : null}
+        {partners.length > 0 ? (
+          <span className="details-partners">
+            <span className="details-label">Combines well with</span>
+            <span className="partner-chips">
+              {partners.map((title) => <span className="partner-chip" key={title}>{title}</span>)}
+            </span>
+          </span>
+        ) : null}
+      </span>
+    </label>
   )
 }
 
@@ -106,6 +150,14 @@ function App() {
     () => catalog ? selectionError(selected, catalog.constraints) : null,
     [catalog, selected],
   )
+  const suggested = useMemo(
+    () => catalog ? suggestedObjectiveIds(selected, catalog.objectives) : new Set(),
+    [catalog, selected],
+  )
+  const titlesById = useMemo(
+    () => Object.fromEntries((catalog?.objectives ?? []).map((objective) => [objective.id, objective.title])),
+    [catalog],
+  )
   const messageIsError = Boolean(submitError || (selected.length > 0 && validationError))
 
   function toggle(objectiveId) {
@@ -113,6 +165,23 @@ function App() {
     setSelected((current) => current.includes(objectiveId)
       ? current.filter((id) => id !== objectiveId)
       : [...current, objectiveId])
+  }
+
+  function badgeFor(objective) {
+    const constraint = (catalog.constraints ?? []).find(
+      (entry) => entry.objectiveId === objective.id && entry.requiresAnyOtherObjective,
+    )
+    if (constraint) {
+      return { tone: 'required', label: 'Needs a partner', detail: constraint.reason }
+    }
+    if (suggested.has(objective.id)) {
+      return {
+        tone: 'suggested',
+        label: 'Pairs with your selection',
+        detail: 'The catalog marks this objective as a good companion for what you already selected.',
+      }
+    }
+    return null
   }
 
   async function confirmSelection() {
@@ -162,31 +231,43 @@ function App() {
         <div>
           <p className="eyebrow">Linger · synthetic journal evaluation</p>
           <h1>Choose what the evaluation should prove.</h1>
-          <p className="intro">Select the fewest objectives that cover the behavior you want to examine.</p>
+          <p className="intro">
+            Select the fewest objectives that cover the behavior you want to examine.
+            Hover an objective for details.
+          </p>
         </div>
-        <SelectionMeter count={selected.length} total={catalog.objectives.length} />
+        <SelectionCount count={selected.length} />
       </header>
 
-      <section className="objective-grid" aria-label="Evaluation objectives">
-        {catalog.objectives.map((objective) => {
-          const isSelected = selected.includes(objective.id)
+      <div className="objective-board">
+        {catalog.families.map((family, familyIndex) => {
+          const objectives = catalog.objectives.filter((objective) => objective.family === family.id)
+          if (objectives.length === 0) return null
+          // Only the first family has room to open downward.
+          const detailsPlacement = familyIndex === 0 ? 'below' : 'above'
           return (
-            <label className={isSelected ? 'objective-card is-selected' : 'objective-card'} key={objective.id}>
-              <input
-                checked={isSelected}
-                onChange={() => toggle(objective.id)}
-                type="checkbox"
-              />
-              <ObjectiveIcon objectiveId={objective.id} />
-              <span className="objective-copy">
-                <strong>{objective.title}</strong>
-                <span>{objective.summary}</span>
-              </span>
-              <span className="checkbox" aria-hidden="true">{isSelected ? '✓' : ''}</span>
-            </label>
+            <section aria-labelledby={`${family.id}-label`} className="objective-family" key={family.id}>
+              <h2 className="family-heading" id={`${family.id}-label`}>
+                <span className="family-label">{family.label}</span>
+                <span className="family-summary">{family.summary}</span>
+              </h2>
+              <div className="family-grid">
+                {objectives.map((objective) => (
+                  <ObjectiveCard
+                    badge={badgeFor(objective)}
+                    detailsPlacement={detailsPlacement}
+                    isSelected={selected.includes(objective.id)}
+                    key={objective.id}
+                    objective={objective}
+                    onToggle={toggle}
+                    titlesById={titlesById}
+                  />
+                ))}
+              </div>
+            </section>
           )
         })}
-      </section>
+      </div>
 
       <footer className="action-rail">
         <div className={messageIsError ? 'selection-message is-error' : 'selection-message'} role="status">

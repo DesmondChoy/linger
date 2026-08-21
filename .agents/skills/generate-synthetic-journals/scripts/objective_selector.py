@@ -35,7 +35,8 @@ class SelectorError(ValueError):
 class Catalog:
     catalog_id: str
     digest: str
-    objectives: tuple[dict[str, str], ...]
+    families: tuple[dict[str, str], ...]
+    objectives: tuple[dict[str, Any], ...]
     constraint_reason: str
 
     @property
@@ -53,20 +54,50 @@ def load_catalog(path: Path) -> Catalog:
     if not isinstance(entries, list) or len(entries) != 10:
         raise SelectorError("The catalog must contain exactly ten evaluation objectives.")
 
-    objectives: list[dict[str, str]] = []
+    families = load_families(document)
+    family_ids = {family["id"] for family in families}
+
+    objectives: list[dict[str, Any]] = []
     for entry in entries:
         if not isinstance(entry, dict) or not isinstance(entry.get("menu"), dict):
             raise SelectorError("Every objective must contain an id and menu.")
         objective_id = entry.get("id")
-        title = entry["menu"].get("title")
-        summary = entry["menu"].get("summary")
-        if not all(isinstance(value, str) and value.strip() for value in (objective_id, title, summary)):
-            raise SelectorError("Every objective id, title, and summary must be non-empty text.")
-        objectives.append({"id": objective_id, "title": title, "summary": summary})
+        menu = entry["menu"]
+        title = menu.get("title")
+        summary = menu.get("summary")
+        selection_hint = menu.get("selection_hint")
+        family = menu.get("family")
+        if not all(
+            isinstance(value, str) and value.strip()
+            for value in (objective_id, title, summary, selection_hint, family)
+        ):
+            raise SelectorError(
+                "Every objective needs a non-empty id, title, summary, selection hint, and family."
+            )
+        if family not in family_ids:
+            raise SelectorError(f"Objective {objective_id} names an unknown menu family: {family}")
+        combines = entry.get("composition", {}).get("combines_well_with", [])
+        if not isinstance(combines, list) or not all(isinstance(value, str) for value in combines):
+            raise SelectorError(f"Objective {objective_id} has an invalid combines_well_with list.")
+        objectives.append(
+            {
+                "id": objective_id,
+                "title": title,
+                "summary": " ".join(summary.split()),
+                "selectionHint": " ".join(selection_hint.split()),
+                "family": family,
+                "combinesWellWith": list(combines),
+            }
+        )
 
     ids = [objective["id"] for objective in objectives]
     if len(ids) != len(set(ids)):
         raise SelectorError("Evaluation objective IDs must be unique.")
+    for objective in objectives:
+        if unknown := [value for value in objective["combinesWellWith"] if value not in set(ids)]:
+            raise SelectorError(
+                f"Objective {objective['id']} combines with an unknown objective: {unknown[0]}"
+            )
 
     constraint = document.get("selection_constraints", {}).get(INJECTION_OBJECTIVE, {})
     if constraint.get("requires_any_other_objective") is not True:
@@ -82,9 +113,31 @@ def load_catalog(path: Path) -> Catalog:
     return Catalog(
         catalog_id=catalog_id,
         digest=hashlib.sha256(raw).hexdigest(),
+        families=families,
         objectives=tuple(objectives),
         constraint_reason=reason,
     )
+
+
+def load_families(document: dict[str, Any]) -> tuple[dict[str, str], ...]:
+    entries = document.get("menu_families")
+    if not isinstance(entries, list) or not entries:
+        raise SelectorError("The catalog must define menu_families.")
+
+    families: list[dict[str, str]] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise SelectorError("Every menu family must be a mapping.")
+        family_id = entry.get("id")
+        label = entry.get("label")
+        summary = entry.get("summary")
+        if not all(isinstance(value, str) and value.strip() for value in (family_id, label, summary)):
+            raise SelectorError("Every menu family needs a non-empty id, label, and summary.")
+        families.append({"id": family_id, "label": label, "summary": " ".join(summary.split())})
+
+    if len({family["id"] for family in families}) != len(families):
+        raise SelectorError("Menu family IDs must be unique.")
+    return tuple(families)
 
 
 def validate_selection(catalog: Catalog, selected_ids: Any) -> tuple[str, ...]:
@@ -193,6 +246,7 @@ class SelectorHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 {
                     "catalogId": catalog.catalog_id,
+                    "families": list(catalog.families),
                     "objectives": list(catalog.objectives),
                     "constraints": [
                         {

@@ -10,6 +10,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 import pytest
+import yaml
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "objective_selector.py"
@@ -27,6 +28,36 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
     assert len(set(catalog.ids)) == 10
     assert "session_scoped_conversation_continuity" in catalog.ids
     assert "user_controlled_memory_lifecycle" not in catalog.ids
+
+
+def test_catalog_exposes_grouping_and_choosing_aids() -> None:
+    catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
+
+    family_ids = {family["id"] for family in catalog.families}
+    assert family_ids == {
+        "conversation_and_memory",
+        "retrieval_and_grounding",
+        "safety_and_security",
+    }
+    for objective in catalog.objectives:
+        assert objective["family"] in family_ids
+        assert objective["selectionHint"].strip()
+        assert isinstance(objective["combinesWellWith"], list)
+        assert set(objective["combinesWellWith"]) <= set(catalog.ids)
+
+    injection = next(o for o in catalog.objectives if o["id"] == selector.INJECTION_OBJECTIVE)
+    assert injection["family"] == "safety_and_security"
+    assert injection["combinesWellWith"]
+
+
+def test_catalog_rejects_an_unknown_family(tmp_path: Path) -> None:
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    document["evaluation_objectives"][0]["menu"]["family"] = "invented_family"
+    broken = tmp_path / "catalog.yaml"
+    broken.write_text(yaml.safe_dump(document), encoding="utf-8")
+
+    with pytest.raises(selector.SelectorError, match="unknown menu family"):
+        selector.load_catalog(broken)
 
 
 def test_injection_resistance_requires_a_primary_objective() -> None:
@@ -88,6 +119,8 @@ def test_server_returns_catalog_and_confirmed_selection(tmp_path: Path) -> None:
         with urlopen(request) as response:
             payload = json.load(response)
         assert len(payload["objectives"]) == 10
+        assert len(payload["families"]) == 3
+        assert {"selectionHint", "family", "combinesWellWith"} <= set(payload["objectives"][0])
 
         body = json.dumps({"objectiveIds": ["grounded_book_reflection"]}).encode()
         request = Request(

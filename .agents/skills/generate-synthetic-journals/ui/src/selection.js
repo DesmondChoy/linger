@@ -13,3 +13,24 @@ export function selectionError(selectedIds, constraints) {
 
   return null
 }
+
+// A pairing counts in both directions: the catalog records it on one objective,
+// on the other, or on both.
+export function suggestedObjectiveIds(selectedIds, objectives) {
+  const selected = new Set(selectedIds)
+  const suggested = new Set()
+
+  for (const objective of objectives) {
+    if (selected.has(objective.id)) {
+      for (const partnerId of objective.combinesWellWith) {
+        if (!selected.has(partnerId)) suggested.add(partnerId)
+      }
+      continue
+    }
+    if (objective.combinesWellWith.some((partnerId) => selected.has(partnerId))) {
+      suggested.add(objective.id)
+    }
+  }
+
+  return suggested
+}

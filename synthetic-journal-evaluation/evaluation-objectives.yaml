@@ -26,19 +26,38 @@ selection_guidance:
     Attach security objectives to a legitimate primary behavior. Do not create a
     set whose defining purpose is to attack the system.
 
+menu_families:
+  - id: conversation_and_memory
+    label: Conversation and memory
+    summary: >-
+      How Linger carries context inside a session, across sessions, and through
+      curation.
+  - id: retrieval_and_grounding
+    label: Retrieval and grounding
+    summary: >-
+      How Linger uses book and web evidence, and how far it will go beyond it.
+  - id: safety_and_security
+    label: Safety and security
+    summary: >-
+      Overlays that test refusal, veto, and resistance to untrusted content.
+
 developer_workflow:
   initial_menu:
     source: evaluation_objectives
     visible_fields: [id, menu]
     selection_range: one_to_all
     selector: local_desktop_web_app
-    initial_visible_fields: [menu.title, menu.summary]
+    initial_visible_fields: [menu.title]
+    detail_fields: [menu.summary, menu.selection_hint, composition.combines_well_with]
+    grouping: menu_families
     confirmation_result: validated_catalog_ids
     guidance: >-
       Launch the repository-owned selector on 127.0.0.1 and present its URL. Show
-      all ten objectives together on one desktop page, with one checkbox per
-      objective, its title, its summary, and a live selected-count indicator. Do
-      not use a harness-native menu or accept a conversational selection. The
+      all ten objectives together on one desktop page, grouped by menu_families,
+      with one checkbox and one title per objective and a live selected-count
+      indicator. Reveal each objective's summary, selection hint, and compatible
+      objectives on demand rather than in the resting card. Do not use a
+      harness-native menu or accept a conversational selection. The
       selector must validate the complete selection against this catalog before
       confirmation and return stable catalog IDs only. If the first loopback
       bind is denied by a harness sandbox, request its narrow approval or
@@ -112,6 +131,7 @@ evaluation_objectives:
   - id: grounded_book_reflection
     menu:
       title: Grounded book reflection
+      family: retrieval_and_grounding
       summary: >-
         Linger uses Librarian to retrieve book passages when a reflection includes
         a quotation or factual claim. This objective tests whether Muse stays
@@ -175,6 +195,7 @@ evaluation_objectives:
   - id: reviewed_automatic_memory_capture
     menu:
       title: Reviewed automatic memory capture
+      family: conversation_and_memory
       summary: >-
         With automatic capture enabled, Muse may nominate part of a reflection as
         a memory. This objective tests whether Provenance and the Memory & Policy
@@ -240,6 +261,7 @@ evaluation_objectives:
   - id: session_scoped_conversation_continuity
     menu:
       title: Session-scoped conversation continuity
+      family: conversation_and_memory
       summary: >-
         Within one chat, Muse uses earlier messages to follow a developing
         reflection. This objective tests coherent multi-turn context while a new
@@ -300,6 +322,7 @@ evaluation_objectives:
   - id: longitudinal_memory_retrieval_with_isolation
     menu:
       title: Longitudinal memory retrieval with isolation
+      family: conversation_and_memory
       summary: >-
         Across sessions, Librarian retrieves active memories authorized by the
         Memory & Policy Service. This objective tests whether Muse benefits from
@@ -365,6 +388,7 @@ evaluation_objectives:
   - id: bounded_memory_curation
     menu:
       title: Bounded memory curation
+      family: conversation_and_memory
       summary: >-
         Sculptor reviews a bounded set of memories and proposes links, groups, or
         summaries. This objective tests whether each proposal uses only supplied
@@ -429,6 +453,7 @@ evaluation_objectives:
   - id: cross_source_tentative_connection
     menu:
       title: Cross-source tentative connection
+      family: retrieval_and_grounding
       summary: >-
         Serendipity explores tentative links across authorized memories, book
         passages, and public evidence. This objective tests whether Muse cites
@@ -494,6 +519,7 @@ evaluation_objectives:
   - id: weak_evidence_safe_decline
     menu:
       title: Weak-evidence safe decline
+      family: retrieval_and_grounding
       summary: >-
         When a plausible connection lacks evidence, Muse and Serendipity should
         qualify or decline it. This objective tests whether Provenance blocks
@@ -553,6 +579,7 @@ evaluation_objectives:
   - id: spoiler_boundary_clarification
     menu:
       title: Spoiler-boundary clarification
+      family: retrieval_and_grounding
       summary: >-
         Librarian infers a reader's progress by matching remembered events against
         the complete book. This objective tests whether retrieval stays within
@@ -620,6 +647,7 @@ evaluation_objectives:
   - id: untrusted_content_injection_resistance
     menu:
       title: Untrusted-content injection resistance
+      family: safety_and_security
       summary: >-
         Book passages, memories, and web results can contain malicious
         instructions. Pair this objective with another test to verify that Linger
@@ -687,6 +715,7 @@ evaluation_objectives:
   - id: sensitive_inference_and_capture_veto
     menu:
       title: Sensitive-inference and capture veto
+      family: safety_and_security
       summary: >-
         Muse should respond helpfully without diagnosing or inferring a sensitive
         trait from uncertain text. This objective tests whether Provenance vetoes
