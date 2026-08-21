@@ -22,7 +22,7 @@ defines this plan:
 | Noun | Role in this plan |
 |---|---|
 | **Objective** | **User-controlled memory lifecycle** (`user_controlled_memory_lifecycle`) and **Bounded memory curation** (`bounded_memory_curation`). One person's history supports both. |
-| **Set** | One memory-only fictional person and backstory. Neither Objective needs book evidence. |
+| **Backstory** | One memory-only fictional person's history. Neither Objective needs book evidence. |
 | **Prop** | Separately generated source memories supplied to curation Scenes. Memories created by lifecycle controls are outcomes, not Props. |
 | **Scene** | Six minimum Scenes: save, correction, deletion, duplicate curation, related-memory curation, and no-change curation. |
 | **Line** | None. Lifecycle intentions use deterministic controls; curation Props go to offline Sculptor, not Muse. |
@@ -83,7 +83,7 @@ pp. 9, 11, and 13).
 
 ## Risks and opportunity
 
-- **Blocking:** No output contract represents the Set, curation Props, or six
+- **Blocking:** No output contract represents the Backstory, curation Props, or six
   Scenes. This plan has no Lines.
 - **Separate downstream decision:** Ground truth assignment remains undefined
   and must stay outside the generator prompt.

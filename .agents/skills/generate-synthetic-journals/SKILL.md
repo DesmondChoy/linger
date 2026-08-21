@@ -60,9 +60,9 @@ authorize synthetic-data generation. After confirmation:
    observable outcomes. Also inspect the five-agent architecture and shared
    authority boundaries in `docs/specification.md`; distinguish implemented,
    partial, missing, and merely proposed behavior. Read Section 7.2.1 completely
-   and use its six canonical nouns exactly: `Objective`, `Set`, `Prop`, `Scene`,
-   `Line`, and `Ground truth`. Use implementation terms such as `batch` only for
-   the actual runtime object, never as a replacement for `Scene`. The report
+   and use its six canonical nouns exactly: `Objective`, `Backstory`, `Prop`,
+   `Scene`, `Line`, and `Ground truth`. Use implementation terms such as `batch`
+   only for the actual runtime object, never as a replacement for `Scene`. The report
    author and future generator both have read-only access to the current
    repository; never assume they need a frozen copy of repository content
    embedded in the prompt.
@@ -72,14 +72,15 @@ authorize synthetic-data generation. After confirmation:
    responsible AI, AI security, modular design, testing, traceability, and
    MLSecOps/LLMSecOps—to assess why the selected scenarios matter. Do not invent
    a professor requirement or imply that a suggested opportunity is mandatory.
-5. Decide whether each proposed Set should be corpus-backed or memory-only from
-   the confirmed objectives and current implementation. Book use is optional
-   unless an objective requires it. If book material is useful, point the future
+5. Decide whether the proposed Backstory should be corpus-backed or memory-only
+   from the confirmed objectives and current implementation. Book use is
+   optional unless an objective requires it. If book material is useful, point the future
    generator to the current `data/corpus/` directory and require it to discover
    the available work, immutable version, structure, and evidence there. Never
    hardcode a title, work ID, version, chapter, or evidence record in this skill
    or merely because it appeared in an earlier report. If book material is not
-   useful, keep the Set memory-only and do not make corpus inspection busywork.
+   useful, keep the Backstory memory-only and do not make corpus inspection
+   busywork.
 6. Draft the exact prompt proposed for a future generator. Build it from the
    selected objectives' `generation_brief`, the permitted repository paths, and
    concrete workflow inputs. State that the generator has read-only access to
@@ -109,10 +110,9 @@ authorize synthetic-data generation. After confirmation:
 8. Hypothesize representative inputs, likely response behaviors, and how those
    behaviors could be evaluated. Use the canonical term `Line` only for
    conversational input sent to Muse. Describe offline curation inputs by their
-   actual roles. When a plan uses multiple accounts, identify the
-   application-authenticated account for each Scene and each Prop's owning
-   account and planned lifecycle role. Describe authorization and exclusion
-   relative to the Scene's authenticated account; do not treat a Set as a
+   actual roles. Keep every plan to one Backstory representing one person and one
+   evaluation account. Every Prop, Scene, and Line must belong to that Backstory;
+   identify each Prop's planned lifecycle role. Do not treat a Backstory as a
    runtime actor. Treat response text as a hypothesis, not an exact oracle.
    Identify another input or short input sequence that still fits the confirmed
    objectives but is unsupported by the current implementation, and name the
@@ -157,13 +157,13 @@ Use the following sections in this order:
 3. **Selected plan.** Cite and link `docs/specification.md` Section 7.2.1 at the
    first canonical-noun reference, using a path that resolves from the report's
    output directory. Follow the citation with a compact two-column Markdown
-   table whose body contains exactly six rows in this order: `Objective`, `Set`,
-   `Prop`, `Scene`, `Line`, and `Ground truth`. The second column must explain how
-   the selected plan uses each noun or why it does not apply. Use the Objectives'
+   table whose body contains exactly six rows in this order: `Objective`,
+   `Backstory`, `Prop`, `Scene`, `Line`, and `Ground truth`. The second column
+   must explain how the selected plan uses each noun or why it does not apply. Use the Objectives'
    human-readable titles and IDs; explain why they form one coherent plan; state
-   whether each Set is corpus-backed or memory-only; distinguish pre-Scene Props
-   from records created as runtime outcomes; derive minimum Scene counts only
-   from the catalog; state whether any Lines exist; and distinguish evaluation
+   whether the single Backstory is corpus-backed or memory-only; distinguish
+   pre-Scene Props from records created as runtime outcomes; derive minimum
+   Scene counts only from the catalog; state whether any Lines exist; and distinguish evaluation
    hypotheses from Ground truth assigned after generation and withheld from the
    generator. Do not invent counts, schemas, or file layouts.
 4. **Expected behavior and evaluation.** Start by stating whether the selected
@@ -176,9 +176,9 @@ Use the following sections in this order:
    not an exact oracle.
 5. **Proposed generator prompt.** Include the exact proposed prompt in a fenced
    code block. Make every unresolved slot visually clear and connect it to the
-   decision callout. Do not insert `Objective`, `Set`, `Prop`, `Scene`, `Line`,
-   or `Ground truth` merely for vocabulary coverage. Include a canonical noun
-   only when an adopted output contract requires it and `prompt_boundary`
+   decision callout. Do not insert `Objective`, `Backstory`, `Prop`, `Scene`,
+   `Line`, or `Ground truth` merely for vocabulary coverage. Include a canonical
+   noun only when an adopted output contract requires it and `prompt_boundary`
    permits it; never include Ground truth.
 6. **Architecture and academic relevance.** Use bullets to identify participating
    agents, non-participating agents, and deterministic services. Explain why
@@ -204,14 +204,13 @@ the recommended unblock, revise, or abandon; do not offer approval of the plan
 unchanged.
 
 The report is only for the human or developer and must never be sent to a
-generator. Do not invoke a generation model or create sets, props, scenes,
+generator. Do not invoke a generation model or create backstories, props, scenes,
 lines, ground truth, annotations, packages, manifests, frozen releases, or
 replay data. After writing the report, verify its filename and word count. Also
 verify that the canonical-noun table has the exact six rows and a working
 Section 7.2.1 link; runtime-created outcomes are not called Props; hypotheses
-are not called Ground truth; every multi-account Scene identifies its
-application-authenticated account; every Prop identifies its owning account and
-planned lifecycle role; authorization and exclusion are consistent with each
-Scene's authenticated account; and report-only vocabulary has not leaked into
-the generator prompt. Report the path and selected Objective IDs, then stop. The
+are not called Ground truth; the report uses exactly one Backstory, person, and
+evaluation account; every Prop, Scene, and Line belongs to that Backstory; every
+Prop identifies its planned lifecycle role; and report-only vocabulary has not
+leaked into the generator prompt. Report the path and selected Objective IDs, then stop. The
 downstream generation workflow remains intentionally undefined.

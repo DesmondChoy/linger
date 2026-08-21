@@ -13,13 +13,13 @@ defines how this report describes the plan:
 | Noun | Role in this plan |
 |---|---|
 | **Objective** | **User-controlled memory lifecycle** (`user_controlled_memory_lifecycle`) and **Bounded memory curation** (`bounded_memory_curation`). |
-| **Set** | One memory-only fictional person and backstory. Neither Objective needs book evidence. |
+| **Backstory** | One memory-only fictional person's history. Neither Objective needs book evidence. |
 | **Prop** | Separately generated source memories supplied to curation Scenes. Memories created by lifecycle controls are outcomes, not Props. |
 | **Scene** | Six catalog-backed minimums: save, correction, deletion, duplicate curation, related-memory curation, and no-change curation. |
 | **Line** | None. Lifecycle intentions use deterministic controls; curation Props go to offline Sculptor, not Muse. |
 | **Ground truth** | Assigned after generation and withheld from the generator. The success checks below are hypotheses only; assignment remains undefined. |
 
-One Set makes the plan coherent: its history supplies both the lifecycle sequence
+One Backstory makes the plan coherent: its history supplies both the lifecycle sequence
 and the later curation Scenes.
 
 ## Expected behavior and evaluation
@@ -78,7 +78,7 @@ agent authority, supporting the module's architecture and testing artifacts
 
 ## Risks and opportunity
 
-- **Blocking:** No contract represents the Set, Props, Scenes, lifecycle
+- **Blocking:** No contract represents the Backstory, Props, Scenes, lifecycle
   outcomes, or later Ground truth. Lines do not apply to this plan.
 - **Non-blocking gaps:** No backend caller schedules curation, and the service
   cannot yet apply Sculptor's derived proposals.

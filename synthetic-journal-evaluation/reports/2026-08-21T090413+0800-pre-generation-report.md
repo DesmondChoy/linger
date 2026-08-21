@@ -2,13 +2,13 @@
 
 > **Verdict: Not ready.** The selected objectives form a coherent plan, but
 > Linger has not adopted an output format, file layout, or record schema. Adopt
-> the smallest contract that represents a Set, its source reflections, ordered
+> the smallest contract that represents a Backstory, its source reflections, ordered
 > control intentions, and curation inputs. Then rerun this plan. Until then, a
 > generator would have to invent project structure.
 
 ## Selected plan
 
-This memory-only plan uses one **Set**—the fictional person and backstory that
+This memory-only plan uses one **Backstory**—the fictional person's history that
 keeps the generated material coherent. It combines:
 
 - **User-controlled memory lifecycle** (`user_controlled_memory_lifecycle`):

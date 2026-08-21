@@ -20,7 +20,7 @@ const objectiveIconPaths = {
     'M4 5h16v11H8l-4 3z',
     'M8 9h8M8 12h6',
   ],
-  longitudinal_memory_retrieval_with_isolation: [
+  longitudinal_memory_retrieval: [
     'M11 19a8 8 0 1 1 5.65-2.35L22 22',
     'M11 7v4l2.5 2.5',
   ],
@@ -81,7 +81,7 @@ function SelectionCount({ count }) {
   return (
     <div className="selection-count" role="status">
       <p className="count-value"><strong>{count}</strong> selected</p>
-      <p className="count-note">Fewer objectives make a more coherent set.</p>
+      <p className="count-note">Fewer objectives make a more coherent backstory.</p>
     </div>
   )
 }

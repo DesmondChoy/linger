@@ -339,22 +339,23 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 | Term | Definition |
 |---|---|
 | **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
-| **Set** | The generated persona and backstory, plus reading history only when relevant, that make scenes coherent. The set informs generation only; the running system never receives it. |
-| **Prop** | A generated memory record inserted into Linger's storage before a scene runs. Each prop carries an evaluation role, such as active or other-account. |
+| **Backstory** | The generated persona history, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
+| **Prop** | A generated memory record pre-positioned in Linger's storage and available to the evaluation before a scene runs. Each prop belongs to the backstory's person and evaluation account. When lines are fed to Muse, a prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
 | **Ground truth** | Labels assigned after generation and withheld from the generator: expected outcomes, permitted evidence identifiers, exact spans, and failure conditions that a scene's recorded behavior is graded against. |
 
-The vocabulary encodes three boundaries:
+The vocabulary encodes four boundaries:
 
-- The set never enters the running system, and no set content becomes a prop by copying. A prop whose exposure or isolation is under evaluation must be generated as separate source text.
+- One backstory represents one person and one evaluation account. Every prop, scene, and line belongs to that backstory.
+- The backstory never enters the running system, and no backstory content becomes a prop by copying. A prop whose use or non-use is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
 
-A Set may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
+A Backstory may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
 the corresponding corpus position becomes Ground truth for grading Librarian's
-boundary inference. Memory-only Sets do not inspect or depend on the book corpus.
+boundary inference. Memory-only Backstories do not inspect or depend on the book corpus.
 
 Everything after a line is handed to Muse — routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
 
@@ -366,7 +367,7 @@ The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journal
 
 Human approval of the report and the downstream workflow remain intentionally undefined. The project has not adopted decisions for:
 
-- set generation;
+- backstory generation;
 - prop generation;
 - scene composition;
 - line generation;

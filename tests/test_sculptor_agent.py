@@ -140,7 +140,7 @@ class SculptorAgentTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(InvalidCurationProposal, "malformed output"):
             await propose_curation(_batch(case), agent=agent)
 
-    async def test_rejects_sources_outside_the_account_scoped_batch(self) -> None:
+    async def test_rejects_sources_outside_the_bounded_batch(self) -> None:
         case = self.cases[0]
         agent = AsyncMock()
         agent.run.return_value = SimpleNamespace(
@@ -150,7 +150,7 @@ class SculptorAgentTests(unittest.IsolatedAsyncioTestCase):
                     action="link_duplicates",
                     source_memory_ids=(
                         case.input.memories[0].memory_id,
-                        "memory-from-another-account",
+                        "memory-outside-batch",
                     ),
                 ),
             )

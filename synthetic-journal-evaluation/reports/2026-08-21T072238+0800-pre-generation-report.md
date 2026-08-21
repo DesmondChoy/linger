@@ -18,7 +18,7 @@ Neither objective requires book evidence; every declared input resolves from
 repository contracts or run state. Inspecting `data/corpus/` would be busywork.
 
 ## Verdict — **not ready**
-Decisive reason: the project has adopted **no output contract** for sets, props,
+Decisive reason: the project has adopted **no output contract** for backstories, props,
 scenes, or lines. `synthetic-journal-coverage/` is empty and no schema exists in
 `src/` or `apps/`. The prompt below carries a marked unresolved slot.
 

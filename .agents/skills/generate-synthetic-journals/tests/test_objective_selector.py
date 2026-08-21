@@ -23,11 +23,19 @@ SPEC.loader.exec_module(selector)
 
 def test_current_catalog_has_ten_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
     assert len(catalog.objectives) == 10
     assert len(set(catalog.ids)) == 10
     assert "session_scoped_conversation_continuity" in catalog.ids
+    assert "longitudinal_memory_retrieval" in catalog.ids
     assert "user_controlled_memory_lifecycle" not in catalog.ids
+    assert "objective, backstory, prop, scene, line, ground truth" in document[
+        "canonical_vocabulary"
+    ]
+    assert "backstory_generation" in document["developer_workflow"]["handoff_boundary"][
+        "decisions_not_adopted"
+    ]
 
 
 def test_catalog_exposes_grouping_and_choosing_aids() -> None:
