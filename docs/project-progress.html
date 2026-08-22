@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Linger project progress snapshot against the canonical implementation specification.">
+  <title>Linger — Project Progress · 22 August 2026</title>
+  <style>
+    :root {
+      --ink: #15201d;
+      --ink-2: #24322e;
+      --paper: #f4f0e6;
+      --paper-2: #ebe4d5;
+      --white: #fffdf7;
+      --muted: #66716c;
+      --line: #cfc8b9;
+      --lime: #c8dc76;
+      --lime-deep: #526d21;
+      --aqua: #8fcac3;
+      --aqua-deep: #1e6560;
+      --amber: #e5aa61;
+      --amber-deep: #83501c;
+      --red: #d97662;
+      --red-deep: #8a3227;
+      --blue: #7ea6c8;
+      --shadow: 0 18px 44px rgba(32, 39, 35, 0.10);
+      --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --serif: Iowan Old Style, Baskerville, "Times New Roman", serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; }
+
+    button { font: inherit; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      background: var(--lime);
+      color: var(--ink);
+      transform: translateY(-180%);
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .masthead {
+      position: relative;
+      overflow: hidden;
+      padding: 28px 0 80px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 88% 0%, rgba(143, 202, 195, 0.18), transparent 30%),
+        var(--ink);
+    }
+
+    .masthead::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      right: -190px;
+      bottom: -300px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow: 0 0 0 42px rgba(255,255,255,.035), 0 0 0 84px rgba(255,255,255,.025);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 760;
+    }
+
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      color: var(--ink);
+      background: var(--lime);
+      border-radius: 50%;
+      font-family: var(--serif);
+      font-size: 19px;
+      font-style: italic;
+      letter-spacing: 0;
+    }
+
+    .nav-meta {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: rgba(255,255,255,.72);
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .print-button {
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 2px;
+      color: var(--white);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .print-button:hover,
+    .print-button:focus-visible {
+      border-color: var(--lime);
+      color: var(--lime);
+      outline: none;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+      gap: clamp(48px, 8vw, 110px);
+      align-items: end;
+      padding-top: 68px;
+    }
+
+    .eyebrow {
+      margin: 0 0 20px;
+      color: var(--lime);
+      font-family: var(--mono);
+      font-size: .76rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 24px;
+      font-family: var(--serif);
+      font-size: clamp(3.1rem, 8vw, 6.9rem);
+      font-weight: 400;
+      letter-spacing: -.055em;
+      line-height: .86;
+    }
+
+    h1 em {
+      color: var(--aqua);
+      font-weight: 400;
+    }
+
+    .hero-copy {
+      max-width: 700px;
+      margin: 0;
+      color: rgba(255,255,255,.75);
+      font-size: clamp(1rem, 1.5vw, 1.16rem);
+      line-height: 1.7;
+    }
+
+    .hero-status {
+      padding-left: 28px;
+      border-left: 1px solid rgba(255,255,255,.2);
+    }
+
+    .status-kicker {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 14px;
+      color: rgba(255,255,255,.62);
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 0 5px rgba(200,220,118,.12);
+    }
+
+    .status-line {
+      margin-bottom: 12px;
+      font-family: var(--serif);
+      font-size: 1.55rem;
+      line-height: 1.18;
+    }
+
+    .status-note {
+      margin: 0;
+      color: rgba(255,255,255,.6);
+      font-size: .86rem;
+    }
+
+    main { padding-bottom: 100px; }
+
+    .hub-switch {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-top: -34px;
+      padding: 14px 16px 14px 22px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .hub-switch p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .view-tabs {
+      display: inline-flex;
+      flex: 0 0 auto;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .view-tab {
+      min-width: 112px;
+      padding: 10px 15px;
+      border: 0;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .view-tab:hover,
+    .view-tab:focus-visible {
+      color: var(--ink);
+      outline: 2px solid var(--aqua-deep);
+      outline-offset: 2px;
+    }
+
+    .view-tab[aria-selected="true"] {
+      color: var(--white);
+      background: var(--ink);
+    }
+
+    .view-panel:focus { outline: none; }
+
+    .score-strip {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      margin-top: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .issue-score,
+    .score {
+      min-height: 170px;
+      padding: 28px;
+    }
+
+    .score {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 1px solid var(--line);
+    }
+
+    .issue-score {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      background: var(--ink-2);
+      color: var(--white);
+    }
+
+    .ring {
+      flex: 0 0 96px;
+      width: 96px;
+      height: 96px;
+      transform: rotate(-90deg);
+    }
+
+    .ring .track,
+    .ring .value {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .ring .track { stroke: rgba(255,255,255,.12); }
+    .ring .value {
+      stroke: var(--lime);
+      stroke-linecap: round;
+      stroke-dasharray: 90.9 100;
+    }
+
+    .ring-copy strong {
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 400;
+    }
+
+    .ring-copy span,
+    .score-label {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .ring-copy span { color: rgba(255,255,255,.58); }
+
+    .score strong {
+      display: block;
+      font-family: var(--serif);
+      font-size: 2.65rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .score small {
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .section {
+      padding-top: 92px;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 56px;
+      align-items: end;
+      margin-bottom: 38px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .section-index {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .7rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-family: var(--serif);
+      font-size: clamp(2.3rem, 5vw, 4.1rem);
+      font-weight: 400;
+      letter-spacing: -.04em;
+      line-height: .95;
+    }
+
+    .section-summary {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .journey-step {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: 25px 24px 28px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,253,247,.45);
+    }
+
+    .journey-step::before {
+      content: attr(data-step);
+      display: block;
+      margin-bottom: 46px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .12em;
+    }
+
+    .journey-step h3 {
+      margin-bottom: 9px;
+      font-family: var(--serif);
+      font-size: 1.75rem;
+      font-weight: 400;
+    }
+
+    .journey-step p {
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status-tag::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--tag-color, var(--muted));
+    }
+
+    .working { --tag-color: var(--lime-deep); }
+    .partial { --tag-color: var(--amber); }
+    .blocked { --tag-color: var(--red); }
+    .planned { --tag-color: var(--blue); }
+
+    .journey-body {
+      min-width: 0;
+    }
+
+    .journey-footer {
+      align-self: end;
+      min-width: 0;
+      padding-top: 18px;
+    }
+
+    .journey-step .remaining {
+      margin: 0;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-size: .78rem;
+      line-height: 1.45;
+    }
+
+    .role-board {
+      border-top: 1px solid var(--ink);
+    }
+
+    .role-progress {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1.3fr) minmax(170px, .62fr) minmax(210px, .78fr);
+      gap: 28px;
+      align-items: start;
+      padding: 30px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .role-lead {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .role-code {
+      display: grid;
+      place-items: center;
+      flex: 0 0 54px;
+      width: 54px;
+      height: 54px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-style: italic;
+    }
+
+    .role-name {
+      margin: 0 0 5px;
+      font-family: var(--serif);
+      font-size: 1.28rem;
+      font-weight: 400;
+      line-height: 1.05;
+    }
+
+    .role-built h3,
+    .role-next h3 {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .66rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .role-built p,
+    .role-next p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.62;
+    }
+
+    .role-proof {
+      padding: 14px 16px;
+      border-left: 3px solid var(--aqua-deep);
+      background: rgba(143, 202, 195, .12);
+    }
+
+    .role-proof strong {
+      display: block;
+      margin-bottom: 3px;
+      font-family: var(--serif);
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .role-proof span {
+      display: block;
+      color: var(--muted);
+      font-size: .73rem;
+      line-height: 1.45;
+    }
+
+    .role-next {
+      padding-left: 24px;
+      border-left: 1px solid var(--line);
+    }
+
+    .role-link {
+      display: inline-block;
+      margin-top: 11px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--ink);
+      color: var(--ink);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .role-link:hover,
+    .role-link:focus-visible {
+      color: var(--aqua-deep);
+      border-color: var(--aqua-deep);
+      outline: none;
+    }
+
+    .proof-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .proof-stat {
+      min-height: 150px;
+      padding: 24px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 247, .46);
+    }
+
+    .proof-stat span {
+      display: block;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .proof-stat strong {
+      display: block;
+      margin-bottom: 7px;
+      font-family: var(--serif);
+      font-size: 2.2rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .proof-stat small {
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .coverage-wrap {
+      margin-top: 34px;
+      overflow-x: auto;
+      border-top: 1px solid var(--ink);
+    }
+
+    .coverage-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .coverage-table th,
+    .coverage-table td {
+      padding: 16px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .coverage-table th {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .66rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .coverage-table td {
+      font-size: .82rem;
+    }
+
+    .coverage-table td:first-child {
+      font-family: var(--serif);
+      font-size: 1.02rem;
+    }
+
+    .coverage-table .none {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .evidence-notes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    .evidence-note {
+      padding: 19px 20px;
+      border-left: 3px solid var(--amber);
+      background: rgba(229, 170, 97, .10);
+      color: var(--amber-deep);
+      font-size: .8rem;
+    }
+
+    .evidence-note:last-child {
+      border-color: var(--aqua-deep);
+      background: rgba(143, 202, 195, .11);
+      color: var(--aqua-deep);
+    }
+
+    .evaluation-overview {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+      gap: 20px;
+    }
+
+    .evaluation-spotlight {
+      padding: 30px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 100% 0, rgba(200,220,118,.18), transparent 42%),
+        var(--ink-2);
+    }
+
+    .evaluation-spotlight .section-index { color: var(--lime); }
+
+    .evaluation-spotlight h3 {
+      max-width: 600px;
+      margin-bottom: 15px;
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400;
+      letter-spacing: -.035em;
+      line-height: 1;
+    }
+
+    .evaluation-spotlight > p {
+      max-width: 680px;
+      color: rgba(255,255,255,.7);
+      font-size: .88rem;
+    }
+
+    .evaluation-links {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 18px;
+      margin: 26px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .evaluation-links a {
+      display: block;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,.22);
+      color: var(--white);
+      text-decoration: none;
+      font-size: .75rem;
+    }
+
+    .evaluation-links a:hover,
+    .evaluation-links a:focus-visible {
+      color: var(--lime);
+      border-color: var(--lime);
+      outline: none;
+    }
+
+    .evaluation-assets {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .evaluation-asset {
+      display: flex;
+      flex-direction: column;
+      min-height: 190px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,253,247,.56);
+    }
+
+    .evaluation-asset span {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .64rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .evaluation-asset strong {
+      display: block;
+      margin: auto 0 8px;
+      font-family: var(--serif);
+      font-size: 2.55rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .evaluation-asset p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .evaluation-asset a {
+      align-self: flex-start;
+      margin-top: 12px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--ink);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: .63rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .evaluation-asset a:hover,
+    .evaluation-asset a:focus-visible {
+      color: var(--aqua-deep);
+      border-color: var(--aqua-deep);
+      outline: none;
+    }
+
+    .evaluation-subhead {
+      margin: 36px 0 16px;
+      font-family: var(--serif);
+      font-size: 1.65rem;
+      font-weight: 400;
+    }
+
+    .evaluation-pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .evaluation-stage {
+      display: flex;
+      flex-direction: column;
+      min-height: 235px;
+      padding: 20px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--white);
+    }
+
+    .evaluation-stage .status-tag { margin-bottom: 28px; }
+
+    .evaluation-stage h3 {
+      margin-bottom: 8px;
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 400;
+      line-height: 1.08;
+    }
+
+    .evaluation-stage p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .75rem;
+      line-height: 1.5;
+    }
+
+    .evaluation-caveat {
+      margin: 18px 0 0;
+      padding: 16px 18px;
+      border-left: 3px solid var(--amber);
+      color: var(--amber-deep);
+      background: rgba(229,170,97,.10);
+      font-size: .8rem;
+    }
+
+    .ledger-tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-button {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .filter-button:hover,
+    .filter-button:focus-visible,
+    .filter-button[aria-pressed="true"] {
+      color: var(--white);
+      border-color: var(--ink);
+      background: var(--ink);
+      outline: none;
+    }
+
+    .ledger-count {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .72rem;
+    }
+
+    .ledger {
+      border-top: 1px solid var(--ink);
+    }
+
+    .issue {
+      display: grid;
+      grid-template-columns: 118px 1fr 132px;
+      gap: 24px;
+      align-items: start;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .issue[hidden] { display: none; }
+
+    .issue-id {
+      padding-top: 3px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .7rem;
+    }
+
+    .issue h3 {
+      margin-bottom: 5px;
+      font-size: .98rem;
+      font-weight: 700;
+    }
+
+    .issue p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .issue-state {
+      justify-self: end;
+      padding-top: 3px;
+    }
+
+    .horizon {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .horizon-col {
+      padding: 26px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,253,247,.46);
+    }
+
+    .horizon-col .phase {
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .horizon-col h3 {
+      margin-bottom: 16px;
+      font-family: var(--serif);
+      font-size: 1.45rem;
+      font-weight: 400;
+    }
+
+    .horizon-col ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .horizon-col li {
+      position: relative;
+      padding: 10px 0 10px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .horizon-col li::before {
+      content: "↳";
+      position: absolute;
+      left: 0;
+      color: var(--ink);
+    }
+
+    .sources {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 56px;
+      margin-top: 78px;
+      padding: 34px 0;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .sources h2 {
+      font-size: 2rem;
+    }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 26px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list a {
+      display: block;
+      padding: 8px 0;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+      font-size: .78rem;
+    }
+
+    .source-list a:hover,
+    .source-list a:focus-visible {
+      color: var(--ink);
+      border-color: var(--ink);
+      outline: none;
+    }
+
+    .footer {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 28px;
+      padding-top: 28px;
+      color: var(--muted);
+      font-size: .74rem;
+    }
+
+    .footer p { max-width: 720px; }
+    .footer-code {
+      flex: 0 0 auto;
+      font-family: var(--mono);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .section-head,
+      .sources { grid-template-columns: 1fr; }
+      .hero-status { padding-left: 0; border-left: 0; }
+      .score-strip { grid-template-columns: repeat(2, 1fr); }
+      .score:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+      .score:nth-child(4) { border-top: 1px solid var(--line); }
+      .journey { grid-template-columns: repeat(2, 1fr); }
+      .role-progress { grid-template-columns: 130px 1fr; }
+      .role-proof,
+      .role-next { grid-column: 2; }
+      .role-next { padding-left: 0; border-left: 0; }
+      .proof-strip { grid-template-columns: repeat(2, 1fr); }
+      .evidence-notes { grid-template-columns: 1fr; }
+      .evaluation-overview { grid-template-columns: 1fr; }
+      .evaluation-pipeline { grid-template-columns: repeat(3, 1fr); }
+      .horizon { grid-template-columns: 1fr; }
+      .source-list { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 660px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .masthead { padding-top: 18px; }
+      .nav { align-items: flex-start; padding-bottom: 30px; }
+      .nav-meta { align-items: flex-end; flex-direction: column; gap: 8px; }
+      .hero { padding-top: 48px; }
+      .hub-switch { align-items: stretch; flex-direction: column; margin-top: -22px; padding: 14px; }
+      .view-tabs { display: grid; grid-template-columns: repeat(2, 1fr); width: 100%; }
+      .view-tab { min-width: 0; }
+      .score-strip { grid-template-columns: 1fr; margin-top: 18px; }
+      .score { min-height: 132px; border-top: 1px solid var(--line); border-left: 0; }
+      .issue-score { min-height: 150px; }
+      .section { padding-top: 72px; }
+      .section-head { gap: 20px; }
+      .journey { grid-template-columns: 1fr; }
+      .role-progress { grid-template-columns: 1fr; gap: 16px; }
+      .role-proof,
+      .role-next { grid-column: auto; }
+      .proof-strip { grid-template-columns: 1fr; }
+      .proof-stat { min-height: 124px; }
+      .evaluation-links,
+      .evaluation-assets { grid-template-columns: 1fr; }
+      .evaluation-asset { min-height: 145px; }
+      .evaluation-pipeline { grid-template-columns: 1fr; }
+      .evaluation-stage { min-height: 0; }
+      .evaluation-stage .status-tag { margin-bottom: 18px; }
+      .coverage-wrap { overflow: visible; }
+      .coverage-table thead { display: none; }
+      .coverage-table,
+      .coverage-table tbody,
+      .coverage-table tr,
+      .coverage-table td { display: block; width: 100%; }
+      .coverage-table tr { padding: 14px 0; border-bottom: 1px solid var(--line); }
+      .coverage-table td { display: grid; grid-template-columns: 125px 1fr; gap: 12px; padding: 5px 0; border: 0; }
+      .coverage-table td::before { content: attr(data-label); color: var(--muted); font-family: var(--mono); font-size: .62rem; letter-spacing: .05em; text-transform: uppercase; }
+      .coverage-table td:first-child { font-size: .9rem; font-weight: 700; }
+      .issue { grid-template-columns: 1fr; gap: 7px; }
+      .issue-state { justify-self: start; }
+      .sources { gap: 24px; }
+      .footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: white; font-size: 10pt; }
+      .shell { width: 100%; }
+      .masthead { padding: 18px 0 34px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .nav { padding-bottom: 18px; }
+      .hero { padding-top: 28px; }
+      h1 { font-size: 50pt; }
+      .print-button, .ledger-tools, .hub-switch { display: none; }
+      .view-panel[hidden] { display: block !important; }
+      .score-strip { margin-top: 12px; box-shadow: none; }
+      .section { padding-top: 36px; break-inside: avoid; }
+      .journey-step::before { margin-bottom: 20px; }
+      .role-progress { break-inside: avoid; }
+      .issue[hidden] { display: grid; }
+      .sources { margin-top: 38px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to progress report</a>
+
+  <header class="masthead">
+    <div class="shell">
+      <nav class="nav" aria-label="Report controls">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">L</span> Linger</div>
+        <div class="nav-meta">
+          <span>Snapshot · 22 Aug 2026</span>
+          <button class="print-button" id="printProgress" type="button">Print / save PDF</button>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Project progress · Specification-led</p>
+          <h1>A working slice, <em>not yet the whole promise.</em></h1>
+          <p class="hero-copy">Linger’s narrow Alice-first path is functioning end to end: a typed Muse draft, spoiler-bounded retrieval, independent Provenance review, deterministic release checks, and a usable chat interface. Alongside it, the project now has fixed, live, manual, and synthetic-planning evaluation assets; the next phase is turning that planning layer into reviewed replayable data while closing the remaining authority gates.</p>
+        </div>
+        <aside class="hero-status" aria-label="Current delivery state">
+          <div class="status-kicker"><span class="pulse" aria-hidden="true"></span> Current stage</div>
+          <p class="status-line">Integration &amp; hardening</p>
+          <p class="status-note">High issue throughput; material specification gates remain.</p>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="shell">
+    <div class="hub-switch">
+      <p>Choose the executive snapshot or inspect implementation evidence role by role.</p>
+      <div class="view-tabs" role="tablist" aria-label="Progress view">
+        <button class="view-tab" id="overall-tab" type="button" role="tab" aria-selected="true" aria-controls="overall-panel" tabindex="0">Overall</button>
+        <button class="view-tab" id="roles-tab" type="button" role="tab" aria-selected="false" aria-controls="roles-panel" tabindex="-1">By role</button>
+      </div>
+    </div>
+
+    <div class="view-panel" id="overall-panel" role="tabpanel" aria-labelledby="overall-tab" tabindex="-1">
+      <section class="score-strip" aria-label="Project snapshot metrics">
+        <div class="issue-score">
+          <svg class="ring" viewBox="0 0 42 42" role="img" aria-label="90.9 percent of tracked issues closed">
+            <circle class="track" cx="21" cy="21" r="15.9155"></circle>
+            <circle class="value" cx="21" cy="21" r="15.9155" pathLength="100"></circle>
+          </svg>
+          <div class="ring-copy"><strong>140 / 154</strong><span>tracked issues closed</span></div>
+        </div>
+        <div class="score"><span class="score-label">Verified backend</span><strong>235</strong><small>tests + 239 subtests passing</small></div>
+        <div class="score"><span class="score-label">Synthetic objectives</span><strong>10</strong><small>catalogued · generation not started</small></div>
+        <div class="score"><span class="score-label">Canonical corpus</span><strong>12</strong><small>Alice chapters validated</small></div>
+      </section>
+
+      <section class="section" aria-labelledby="journey-title">
+        <header class="section-head">
+          <div><span class="section-index">01 · Product journey</span><h2 id="journey-title">What works today</h2></div>
+          <p class="section-summary">Status is judged against the four stages in the canonical specification. “Working” means the current narrow slice is exercised; “partial” means important target behavior is still deliberately absent.</p>
+        </header>
+        <div class="journey">
+          <article class="journey-step" data-step="01 / REFLECT">
+            <div class="journey-body"><h3>Reflect</h3><p>Muse produces a typed complete reply and every response passes through an isolated Provenance review before display.</p></div>
+            <div class="journey-footer"><span class="status-tag working">Working slice</span><p class="remaining">Still needed: photograph input and the fuller target claim / sensitive-inference declarations.</p></div>
+          </article>
+          <article class="journey-step" data-step="02 / GROUND">
+            <div class="journey-body"><h3>Ground</h3><p>Alice retrieval supports direct, BM25, semantic, hybrid, and reranked strategies with exact citation validation.</p></div>
+            <div class="journey-footer"><span class="status-tag partial">Boundary-limited</span><p class="remaining">Still needed: Muse-owned typed boundary inference, memory retrieval, and the planned 3–5 book corpus.</p></div>
+          </article>
+          <article class="journey-step" data-step="03 / PRESERVE">
+            <div class="journey-body"><h3>Preserve</h3><p>The deterministic memory service and proposal-only Sculptor slice exist with focused policy and curation tests.</p></div>
+            <div class="journey-footer"><span class="status-tag partial">Gated</span><p class="remaining">Still needed: adopted memory schema, exact reviewed-candidate binding, and automatic save notices.</p></div>
+          </article>
+          <article class="journey-step" data-step="04 / RECONNECT">
+            <div class="journey-body"><h3>Reconnect</h3><p>Serendipity can propose or decline evidence-backed connections from the confirmed Alice reading scope.</p></div>
+            <div class="journey-footer"><span class="status-tag partial">Book-only path</span><p class="remaining">Still needed: safe memory, photograph, and optional Exa web evidence paths.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="verification-title">
+        <header class="section-head">
+          <div><span class="section-index">02 · Shared verification</span><h2 id="verification-title">Evidence across the slice</h2></div>
+          <p class="section-summary">The current snapshot combines deterministic suites, fixed role eval cases, corpus integrity checks, and frontend verification. Role-specific confidence and missing evidence are separated in the role view.</p>
+        </header>
+        <div class="proof-strip" aria-label="Shared verification metrics">
+          <div class="proof-stat"><span>Python suite</span><strong>235 + 239</strong><small>tests · subtests passing</small></div>
+          <div class="proof-stat"><span>Frontend</span><strong>2</strong><small>tests + lint + production build</small></div>
+          <div class="proof-stat"><span>Fixed eval cases</span><strong>22</strong><small>across Muse, Librarian, Sculptor</small></div>
+          <div class="proof-stat"><span>Corpus integrity</span><strong>12 / 12</strong><small>canonical Alice chapters valid</small></div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="evaluation-program-title">
+        <header class="section-head">
+          <div><span class="section-index">03 · Evaluation programme</span><h2 id="evaluation-program-title">Evaluation is its own delivery stream.</h2></div>
+          <p class="section-summary">The project now has four complementary proof layers: deterministic suites, fixed role cases, a provider-backed live vertical slice, and a scenario-first synthetic programme. The last of these is deliberately still at planning and human-review stage.</p>
+        </header>
+
+        <div class="evaluation-overview">
+          <article class="evaluation-spotlight">
+            <span class="section-index">Synthetic journal evaluation</span>
+            <h3>10 objectives. Four pre-generation reports. No dataset yet.</h3>
+            <p>The catalog covers conversation and memory, retrieval and grounding, and safety and security. A repository-owned selector and planning skill can confirm objectives and write a one-page report for human review. Every current report concludes that generation is not ready because no output contract, file layout, or record schema has been adopted.</p>
+            <ul class="evaluation-links">
+              <li><a href="evaluation/evaluation-worlds.html">Explore the 10-objective evaluation brief</a></li>
+              <li><a href="../synthetic-journal-evaluation/evaluation-objectives.yaml">Read the canonical objective catalog</a></li>
+              <li><a href="../.agents/skills/generate-synthetic-journals/SKILL.md">Inspect the selection and review workflow</a></li>
+              <li><a href="../synthetic-journal-evaluation/reports/2026-08-21T072238+0800-pre-generation-report.md">Pre-generation report · 07:22</a></li>
+              <li><a href="../synthetic-journal-evaluation/reports/2026-08-21T090413+0800-pre-generation-report.md">Pre-generation report · 09:04</a></li>
+              <li><a href="../synthetic-journal-evaluation/reports/2026-08-21T113446+0800-pre-generation-report.md">Pre-generation report · 11:34</a></li>
+              <li><a href="../synthetic-journal-evaluation/reports/2026-08-21T113711+0800-pre-generation-report.md">Pre-generation report · 11:37</a></li>
+            </ul>
+          </article>
+
+          <div class="evaluation-assets" aria-label="Current evaluation assets">
+            <article class="evaluation-asset"><span>Fixed role evaluations</span><strong>22</strong><p>5 Muse instruction cases, 12 Librarian retrieval cases, and 5 Sculptor curation cases.</p><a href="../evals/">Open evaluation packs</a></article>
+            <article class="evaluation-asset"><span>Live vertical slice</span><strong>12</strong><p>Provider-backed Librarian → Muse → Provenance cases with recall, citation, strength, spoiler, and latency results.</p><a href="../evals/librarian/live-report.json">Open live report</a></article>
+            <article class="evaluation-asset"><span>Manual end-to-end routes</span><strong>2</strong><p>Independent notebook routes for the complete release path and the internal retrieval/evaluation stages.</p><a href="../notebooks/librarian_manual_evaluation.ipynb">Open evaluation notebook</a></article>
+            <article class="evaluation-asset"><span>Deterministic verification</span><strong>235</strong><p>Python tests plus 239 subtests, with frontend tests, lint, TypeScript, and production build.</p><a href="../tests/test_librarian_end_to_end.py">Open end-to-end tests</a></article>
+          </div>
+        </div>
+
+        <h3 class="evaluation-subhead">Synthetic delivery pipeline</h3>
+        <div class="evaluation-pipeline">
+          <article class="evaluation-stage"><span class="status-tag working">Complete</span><h3>Objective catalog</h3><p>Ten canonical objectives with composition rules, prompt boundaries, expected architecture, and suggested measures.</p></article>
+          <article class="evaluation-stage"><span class="status-tag working">Complete</span><h3>Select and review</h3><p>Local selector, repository-aware planning skill, interactive brief, and four timestamped reports awaiting human decision.</p></article>
+          <article class="evaluation-stage"><span class="status-tag planned">Not started</span><h3>Output contract</h3><p>Adopt the minimum backstory, prop, scene, line, and ground-truth schemas plus file layout.</p></article>
+          <article class="evaluation-stage"><span class="status-tag planned">Not started</span><h3>Pilot generation</h3><p>Generate a small approved pilot only after the contract and prompt boundary receive human approval.</p></article>
+          <article class="evaluation-stage"><span class="status-tag planned">Not started</span><h3>Ground truth &amp; review</h3><p>Assign labels outside generation, resolve evidence, review privacy and quality, and record provenance.</p></article>
+          <article class="evaluation-stage"><span class="status-tag planned">Not started</span><h3>Freeze &amp; replay</h3><p>Version accepted scenarios, replay them against the running system, and define comparison and release gates.</p></article>
+        </div>
+        <p class="evaluation-caveat"><strong>Important boundary:</strong> the checked-in reports are planning artifacts, not generator inputs or synthetic evaluation data. The specification intentionally leaves generation, packaging, review, freezing, and replay undefined until a human adopts the downstream contract.</p>
+      </section>
+
+      <section class="section" aria-labelledby="ledger-title">
+      <header class="section-head">
+        <div>
+          <span class="section-index">04 · Delivery ledger</span>
+          <h2 id="ledger-title">Fourteen unfinished issues</h2>
+        </div>
+        <p class="section-summary">Beads records fourteen open issues: two P1 automatic-capture gates, ten P2 correctness and contract items, and two P3 operational items. No issue is currently marked in progress or blocked.</p>
+      </header>
+
+      <div class="ledger-tools">
+        <div class="filters" role="group" aria-label="Filter unfinished issues">
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All · 14</button>
+          <button class="filter-button" type="button" data-filter="open" aria-pressed="false">Open · 14</button>
+        </div>
+        <span class="ledger-count" id="ledgerCount" aria-live="polite">Showing 14 issues</span>
+      </div>
+
+      <div class="ledger" id="issueLedger">
+        <article class="issue" id="issue-linger-6tt" data-status="open">
+          <span class="issue-id">linger-6tt</span>
+          <div><h3>Harden automatic memory capture runtime</h3><p>Resolve the remaining product-level capture, retry, identity, refusal, and policy decisions without reviving the retired synthetic replay pipeline.</p></div>
+          <span class="issue-state status-tag blocked">Open · P1</span>
+        </article>
+        <article class="issue" id="issue-linger-gmr-11" data-status="open">
+          <span class="issue-id">linger-gmr.11</span>
+          <div><h3>Define capture behavior for safe-declined replies</h3><p>Adopt and enforce a fail-closed product matrix for automatic writes when the visible reply is an application-authored safe decline.</p></div>
+          <span class="issue-state status-tag blocked">Open · P1</span>
+        </article>
+        <article class="issue" id="issue-linger-kow" data-status="open">
+          <span class="issue-id">linger-kow</span>
+          <div><h3>Reconcile synthetic boundary schema with runtime contracts</h3><p>Define whether future synthetic outputs map to or remain separate from the active work, version, and chapter-boundary fields.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-0yd" data-status="open">
+          <span class="issue-id">linger-0yd</span>
+          <div><h3>Require meaningful private-memory matches</h3><p>Keep genuine private-content egress blocked without suppressing ordinary Serendipity cues that share only a generic token.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-dj6" data-status="open">
+          <span class="issue-id">linger-dj6</span>
+          <div><h3>Canonicalise hybrid chapter ceilings</h3><p>Clamp equivalent out-of-range scopes before cache lookup so identical Librarian evidence scopes reuse one index.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-gmr-9" data-status="open">
+          <span class="issue-id">linger-gmr.9</span>
+          <div><h3>Reject blank automatic-memory nominations</h3><p>Return a typed refusal with no storage attempt when a nomination contains only empty or whitespace text.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-gmr-8" data-status="open">
+          <span class="issue-id">linger-gmr.8</span>
+          <div><h3>Separate retry keys from server source-event IDs</h3><p>Keep durable capture identity server-owned while preserving narrowly scoped, authenticated retry behavior.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-lfh" data-status="open">
+          <span class="issue-id">linger-lfh</span>
+          <div><h3>Replace interim parser with Muse-owned typed boundary</h3><p>Move spoiler-boundary inference into the canonical typed hand-off and keep application code purely validating.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-4sp" data-status="open">
+          <span class="issue-id">linger-4sp</span>
+          <div><h3>Migrate Memory &amp; Policy to the adopted schema</h3><p>Add stable memory identity, immutable versions, content hashes, derivations, and concurrency preconditions.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-2c1" data-status="open">
+          <span class="issue-id">linger-2c1</span>
+          <div><h3>Expose actual Muse tool hand-offs in Inspect</h3><p>Replace “not wired” placeholders with privacy-safe Librarian and Serendipity results from the real turn.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-gif" data-status="open">
+          <span class="issue-id">linger-gif</span>
+          <div><h3>Remove out-of-scope Reader and connection promises</h3><p>Return the product surface to the Alice-first gate; remove premature Animal Farm, upload, and song affordances.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-a1a" data-status="open">
+          <span class="issue-id">linger-a1a</span>
+          <div><h3>Document Reader and Inspect contracts</h3><p>Specify non-authoritative navigation, explicit spoiler reveal, evidence hand-offs, and release-decision inspection.</p></div>
+          <span class="issue-state status-tag partial">Open · P2</span>
+        </article>
+        <article class="issue" id="issue-linger-cnx" data-status="open">
+          <span class="issue-id">linger-cnx</span>
+          <div><h3>Set Librarian latency and cost budgets</h3><p>Turn the measured 13.7 s mean / 27.9 s p95 into approved operational thresholds and resolve unavailable usage data.</p></div>
+          <span class="issue-state status-tag planned">Open · P3</span>
+        </article>
+        <article class="issue" id="issue-linger-124" data-status="open">
+          <span class="issue-id">linger-124</span>
+          <div><h3>Add scheduled Sculptor playbook proposals</h3><p>Run bounded operational curation outside conversations and produce human-reviewed repository proposals only.</p></div>
+          <span class="issue-state status-tag planned">Open · P3</span>
+        </article>
+      </div>
+      </section>
+
+      <section class="section" aria-labelledby="horizon-title">
+      <header class="section-head">
+        <div>
+          <span class="section-index">05 · Delivery horizon</span>
+          <h2 id="horizon-title">The path from slice to prototype</h2>
+        </div>
+        <p class="section-summary">The next work should protect the working path while completing the missing authority contracts. Wider corpus and operations work belongs after those foundations settle.</p>
+      </header>
+
+      <div class="horizon">
+        <article class="horizon-col">
+          <p class="phase">Now · Stabilise</p>
+          <h3>Make the current slice honest</h3>
+          <ul>
+            <li>Expose actual Librarian and Serendipity hand-offs in Inspect.</li>
+            <li>Resolve the two P1 automatic-capture policy and runtime gates.</li>
+            <li>Align Reader and Inspect with shipped behavior.</li>
+          </ul>
+        </article>
+        <article class="horizon-col">
+          <p class="phase">Next · Canonicalise</p>
+          <h3>Close the authority gaps</h3>
+          <ul>
+            <li>Ship the typed Muse-owned spoiler boundary.</li>
+            <li>Migrate the adopted stable memory schema.</li>
+            <li>Bind review to the exact automatic capture.</li>
+          </ul>
+        </article>
+        <article class="horizon-col">
+          <p class="phase">Then · Complete target</p>
+          <h3>Expand and evaluate</h3>
+          <ul>
+            <li>Grow from one book to the planned 3–5.</li>
+            <li>Add memory, photo, and optional Exa evidence paths.</li>
+            <li>Adopt the synthetic output contract, generate a reviewed pilot, then define freeze and replay gates.</li>
+          </ul>
+        </article>
+      </div>
+      </section>
+
+      <section class="sources" aria-labelledby="sources-title">
+      <div>
+        <span class="section-index">Evidence base</span>
+        <h2 id="sources-title">Snapshot sources</h2>
+      </div>
+      <ul class="source-list">
+        <li><a href="specification.md">Canonical system specification · 441 lines</a></li>
+        <li><a href="design/librarian-design.md">Librarian subsystem design</a></li>
+        <li><a href="design/memory-format.md">Adopted memory format</a></li>
+        <li><a href="../evals/librarian/live-report.json">12-case live Librarian report</a></li>
+        <li><a href="../evals/librarian/report.json">Offline retrieval benchmark</a></li>
+        <li><a href="../notebooks/librarian_manual_evaluation.ipynb">Manual Librarian evaluation notebook</a></li>
+        <li><a href="../synthetic-journal-evaluation/evaluation-objectives.yaml">Synthetic evaluation objectives</a></li>
+        <li><a href="evaluation/evaluation-worlds.html">Interactive evaluation objective brief</a></li>
+        <li><a href="../synthetic-journal-evaluation/reports/2026-08-21T113711+0800-pre-generation-report.md">Latest synthetic pre-generation report</a></li>
+      </ul>
+      </section>
+    </div>
+
+    <div class="view-panel" id="roles-panel" role="tabpanel" aria-labelledby="roles-tab" tabindex="-1" hidden>
+      <section class="section" aria-labelledby="architecture-title">
+        <header class="section-head">
+          <div><span class="section-index">01 · Role progress</span><h2 id="architecture-title">Progress by role</h2></div>
+          <p class="section-summary">Each row separates the working slice from its evidence and its next specification gate. The five reasoning roles and deterministic Memory &amp; Policy service each link to implementation-level detail.</p>
+        </header>
+        <div class="role-board">
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">Mu</div><div><h3 class="role-name">Muse</h3><span class="status-tag working">Operational slice</span><br><a class="role-link" href="design/muse-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Typed complete replies, Librarian and Serendipity tool calls, one reviewed revision, and application-authored safe declines.</p></div>
+            <div class="role-proof"><strong>44 + 5</strong><span>focused tests · fixed eval cases</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Muse-owned typed spoiler boundary, fuller claim and sensitive-inference fields, and photograph input. <strong>linger-lfh</strong></p></div>
+          </article>
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">Li</div><div><h3 class="role-name">Librarian</h3><span class="status-tag partial">Strong Alice slice</span><br><a class="role-link" href="design/librarian-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Confirmed-ceiling Alice retrieval across five strategies, hybrid reranking, exact evidence resolution, and a reproducible manual notebook.</p></div>
+            <div class="role-proof"><strong>49 + 12</strong><span>focused tests · frozen cases</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Full-work boundary inference, authorised memory retrieval, 3–5 books, and approved latency/cost budgets. <strong>linger-cnx</strong></p></div>
+          </article>
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">Pr</div><div><h3 class="role-name">Provenance</h3><span class="status-tag working">Mandatory gate</span><br><a class="role-link" href="design/provenance-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Independent pass, revise, or reject verdicts; separate capture review; deterministic post-checks; rejected-draft leak suppression.</p></div>
+            <div class="role-proof"><strong>16</strong><span>focused tests · no fixed case pack yet</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Richer target declarations and sensitive flags, plus explicit review evidence for private-memory, web, and image authority.</p></div>
+          </article>
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">Se</div><div><h3 class="role-name">Serendipity</h3><span class="status-tag partial">Book-only slice</span><br><a class="role-link" href="design/serendipity-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Proposal-or-decline connections from the confirmed Alice scope, with evidence hand-off and private-memory egress protection.</p></div>
+            <div class="role-proof"><strong>24</strong><span>focused tests · no fixed case pack yet</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Require meaningful private overlap, expose actual Inspect results, then add safe memory, photograph, and optional Exa sources. <strong>linger-0yd · linger-2c1</strong></p></div>
+          </article>
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">Sc</div><div><h3 class="role-name">Sculptor</h3><span class="status-tag partial">Proposal slice</span><br><a class="role-link" href="design/sculptor-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Bounded, no-tool curation proposals for summaries, duplicate links, and topic groups while preserving original memories.</p></div>
+            <div class="role-proof"><strong>10 + 5</strong><span>focused tests · fixed eval cases</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Validated application of derived changes and scheduled, human-reviewed system-playbook proposals. <strong>linger-124</strong></p></div>
+          </article>
+          <article class="role-progress">
+            <div class="role-lead"><div class="role-code" aria-hidden="true">M·P</div><div><h3 class="role-name">Memory &amp; Policy</h3><span class="status-tag partial">Interim service</span><br><a class="role-link" href="design/memory-policy-design.html">View detailed progress</a></div></div>
+            <div class="role-built"><h3>Working now</h3><p>Server-derived account scope, filesystem storage, policy enforcement, atomic writes, and idempotency in a deterministic service.</p></div>
+            <div class="role-proof"><strong>21</strong><span>focused tests · no fixed case pack yet</span></div>
+            <div class="role-next"><h3>Next gate</h3><p>Stable live-memory schema, server-owned event identity, deterministic nomination refusal, and an explicit safe-decline capture policy. <strong>linger-4sp · linger-6tt</strong></p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="evidence-title">
+        <header class="section-head">
+          <div><span class="section-index">02 · Evidence coverage</span><h2 id="evidence-title">Proof by role</h2></div>
+          <p class="section-summary">A mature Librarian evaluation does not stand in for whole-system readiness. Every role has focused tests; only three roles currently have fixed eval case packs, and Librarian is the only role with a checked-in live report.</p>
+        </header>
+        <div class="coverage-wrap">
+          <table class="coverage-table">
+            <thead><tr><th>Role</th><th>Focused tests</th><th>Fixed eval cases</th><th>Checked-in live evidence</th><th>Evidence maturity</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Role">Muse</td><td data-label="Focused tests">44</td><td data-label="Fixed eval cases">5</td><td data-label="Live evidence" class="none">None yet</td><td data-label="Maturity">Mocked agent and release-path coverage</td></tr>
+              <tr><td data-label="Role">Librarian</td><td data-label="Focused tests">49</td><td data-label="Fixed eval cases">12</td><td data-label="Live evidence">12-case report</td><td data-label="Maturity">Strongest evidence set; latency measured</td></tr>
+              <tr><td data-label="Role">Provenance</td><td data-label="Focused tests">16</td><td data-label="Fixed eval cases" class="none">None yet</td><td data-label="Live evidence" class="none">None yet</td><td data-label="Maturity">Contract and leak-prevention coverage</td></tr>
+              <tr><td data-label="Role">Serendipity</td><td data-label="Focused tests">24</td><td data-label="Fixed eval cases" class="none">None yet</td><td data-label="Live evidence" class="none">None yet</td><td data-label="Maturity">Local proposal/decline coverage</td></tr>
+              <tr><td data-label="Role">Sculptor</td><td data-label="Focused tests">10</td><td data-label="Fixed eval cases">5</td><td data-label="Live evidence" class="none">None yet</td><td data-label="Maturity">Fixed proposal-quality cases</td></tr>
+              <tr><td data-label="Role">Memory &amp; Policy</td><td data-label="Focused tests">21</td><td data-label="Fixed eval cases" class="none">None yet</td><td data-label="Live evidence" class="none">None yet</td><td data-label="Maturity">Policy, storage, and capture contracts</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="evidence-notes">
+          <p class="evidence-note"><strong>Evaluation gap:</strong> Provenance, Serendipity, and Memory &amp; Policy do not yet have dedicated fixed case packs or checked-in live reports. Their current confidence comes from focused contract and integration tests.</p>
+          <p class="evidence-note"><strong>Librarian detail:</strong> the 12-case live run records 91.67% recall, 100% citation precision, zero spoiler exposures, 13.7 s mean latency, and 27.9 s p95. Usage and cost remain unavailable.</p>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <p>This is a dated evidence snapshot, not a live tracker. Issue closure measures delivery throughput; it does not imply equivalent coverage of the target specification. Refresh the file when requirements, implementation, evaluations, or Beads state materially change.</p>
+      <span class="footer-code">Linger · Progress 2026-08-22</span>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const printButton = document.getElementById('printProgress');
+      const ledger = document.getElementById('issueLedger');
+      const count = document.getElementById('ledgerCount');
+      const filterButtons = Array.from(document.querySelectorAll('[data-filter]'));
+      const issues = Array.from(ledger.querySelectorAll('[data-status]'));
+      const tabs = {
+        overall: document.getElementById('overall-tab'),
+        roles: document.getElementById('roles-tab')
+      };
+      const panels = {
+        overall: document.getElementById('overall-panel'),
+        roles: document.getElementById('roles-panel')
+      };
+
+      const viewFromHash = () => window.location.hash === '#roles' ? 'roles' : 'overall';
+
+      const activateView = (view, options = {}) => {
+        Object.keys(tabs).forEach((name) => {
+          const selected = name === view;
+          tabs[name].setAttribute('aria-selected', String(selected));
+          tabs[name].tabIndex = selected ? 0 : -1;
+          panels[name].hidden = !selected;
+        });
+
+        if (options.writeHistory) {
+          const method = options.replace ? 'replaceState' : 'pushState';
+          window.history[method]({ progressView: view }, '', `#${view}`);
+        }
+      };
+
+      Object.entries(tabs).forEach(([view, tab]) => {
+        tab.addEventListener('click', () => {
+          if (viewFromHash() !== view) {
+            activateView(view, { writeHistory: true });
+          } else {
+            activateView(view);
+          }
+        });
+
+        tab.addEventListener('keydown', (event) => {
+          const order = ['overall', 'roles'];
+          const current = order.indexOf(view);
+          let next = null;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = order[(current + 1) % order.length];
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = order[(current - 1 + order.length) % order.length];
+          if (event.key === 'Home') next = order[0];
+          if (event.key === 'End') next = order[order.length - 1];
+          if (next) {
+            event.preventDefault();
+            tabs[next].focus();
+            tabs[next].click();
+          }
+        });
+      });
+
+      const initialView = viewFromHash();
+      activateView(initialView, {
+        writeHistory: !['#overall', '#roles'].includes(window.location.hash),
+        replace: true
+      });
+      window.addEventListener('popstate', () => activateView(viewFromHash()));
+      window.addEventListener('hashchange', () => activateView(viewFromHash()));
+
+      printButton.addEventListener('click', () => window.print());
+
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const filter = button.dataset.filter;
+          filterButtons.forEach((candidate) => {
+            candidate.setAttribute('aria-pressed', String(candidate === button));
+          });
+
+          let visible = 0;
+          issues.forEach((issue) => {
+            const show = filter === 'all' || issue.dataset.status === filter;
+            issue.hidden = !show;
+            if (show) visible += 1;
+          });
+          count.textContent = `Showing ${visible} ${visible === 1 ? 'issue' : 'issues'}`;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
