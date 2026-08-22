@@ -127,7 +127,7 @@
 
     .personas-section { background: var(--paper); }
     .personas-section > .shell { width: min(calc(100% - 32px), 1600px); }
-    .personas-section .section-head { margin-bottom: 24px; }
+    .personas-section .section-head { margin-bottom: 24px; max-width: 1240px; margin-left: auto; margin-right: auto; }
     .evaluation-portfolio {
       margin-bottom: 24px;
       border: 1px solid var(--line);
@@ -137,33 +137,57 @@
       display: grid;
       grid-template-columns: 150px minmax(0, 1fr);
       gap: 34px;
+      max-width: 1240px;
+      margin-inline: auto;
       padding: 24px;
       border-bottom: 1px solid var(--line);
     }
     .portfolio-head h3 { margin: 0 0 5px; font-family: var(--display); font-size: 28px; font-weight: 400; }
-    .portfolio-head p { max-width: 900px; margin: 0; color: var(--muted); font-size: 13px; }
-    .portfolio-table-wrap { overflow-x: auto; }
+    .portfolio-head p { max-width: 900px; margin: 0; color: var(--muted); font-size: 15px; }
+    .portfolio-table-wrap { overflow-x: auto; max-width: 1240px; margin-inline: auto; }
     .portfolio-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
     .portfolio-table th, .portfolio-table td { padding: 14px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     .portfolio-table th:last-child, .portfolio-table td:last-child { border-right: 0; }
     .portfolio-table tbody tr:last-child td { border-bottom: 0; }
-    .portfolio-table th { color: var(--muted); background: #fafbfc; font-family: var(--utility); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
-    .portfolio-table td { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .portfolio-table th { color: var(--muted); background: #fafbfc; font-family: var(--utility); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .portfolio-table td { color: var(--muted); font-size: 15.5px; line-height: 1.55; hyphens: auto; }
     .portfolio-table td:first-child { color: var(--ink); }
-    .portfolio-table strong { display: block; margin-bottom: 2px; font-size: 13px; }
-    .portfolio-table small { display: block; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: none; }
-    .portfolio-table code { font-family: var(--utility); font-size: 10px; }
+    .portfolio-table strong { display: block; margin-bottom: 3px; font-size: 16.5px; }
+    .portfolio-table small { display: block; color: var(--accent); font-size: 13px; font-weight: 700; text-transform: none; }
+    .portfolio-table code { font-family: var(--utility); font-size: 13px; hyphens: none; }
+    .portfolio-table ul { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+    .portfolio-table li { position: relative; padding-left: 14px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+    .portfolio-table td:first-child li { color: inherit; }
+    .portfolio-table li::before { content: "-"; position: absolute; left: 0; color: var(--accent); }
     .evaluation-contract { margin-bottom: 24px; }
-    .contract-head { display: grid; grid-template-columns: 150px 1fr; gap: 34px; margin-bottom: 14px; }
+    .contract-head { display: grid; grid-template-columns: 150px 1fr; gap: 34px; margin-bottom: 14px; max-width: 1240px; margin-inline: auto; }
     .contract-head h3 { margin: 0; font-family: var(--display); font-size: 25px; font-weight: 400; }
-    .contract-grid { border: 1px solid var(--line); background: var(--paper); }
+    .contract-grid { max-width: 1240px; margin-inline: auto; border: 1px solid var(--line); background: var(--paper); }
     .contract-card { padding: 20px; }
-    .contract-card h4 { margin: 6px 0 8px; font-size: 15px; }
-    .contract-card p { margin: 0; color: var(--muted); font-size: 12px; }
-    .contract-card ul { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
-    .contract-card li { position: relative; padding-left: 14px; color: var(--muted); font-size: 12px; }
-    .contract-card li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
-    .contract-rule { margin-top: 12px; padding: 11px 12px; background: var(--accent-soft); color: #465267; font-size: 11px; }
+    .contract-card h4 { margin: 6px 0 8px; font-size: 16px; }
+    .contract-card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+    .contract-card ul { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+    .contract-card li { position: relative; padding-left: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.55; }
+    .contract-card ul li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
+    .contract-card ol { display: grid; gap: 10px; margin: 14px 0 0; padding: 0; list-style: none; counter-reset: step; }
+    .contract-card ol li { counter-increment: step; padding-left: 32px; font-size: 15.5px; }
+    .contract-card ol li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0.08em;
+      display: grid;
+      width: 21px;
+      height: 21px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: var(--utility);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .contract-rule { margin-top: 12px; padding: 11px 12px; background: var(--accent-soft); color: #465267; font-size: 14px; }
     .persona-lab {
       display: grid;
       grid-template-columns: 350px minmax(0, 1fr);
@@ -229,7 +253,7 @@
       min-height: 18px;
       margin: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.4;
     }
 
@@ -242,8 +266,8 @@
       letter-spacing: -0.03em;
       line-height: 1.05;
     }
-    .definition-role { margin: 0 0 4px; color: var(--accent); font-size: 14px; font-weight: 750; }
-    .definition-context { margin: 0 0 22px; color: var(--muted); font-size: 12px; }
+    .definition-role { margin: 0 0 4px; color: var(--accent); font-size: 15px; font-weight: 750; }
+    .definition-context { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
     .definition-use {
       padding: 16px 17px;
       border-left: 2px solid var(--accent);
@@ -255,7 +279,7 @@
       position: relative;
       padding-left: 14px;
       color: #465267;
-      font-size: 12px;
+      font-size: 13.5px;
       line-height: 1.5;
     }
     .definition-use-list li::before {
@@ -268,11 +292,11 @@
       border-radius: 50%;
       background: var(--accent);
     }
-    .definition-use-list strong { display: block; margin-bottom: 1px; color: var(--ink); font-size: 11px; }
+    .definition-use-list strong { display: block; margin-bottom: 1px; color: var(--ink); font-size: 12.5px; }
     .definition-block { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
     .definition-block h4 { margin: 6px 0 5px; font-size: 15px; }
-    .definition-block p { margin: 0; color: var(--muted); font-size: 13px; }
-    .definition-constraints { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 13px; }
+    .definition-block p { margin: 0; color: var(--muted); font-size: 14px; }
+    .definition-constraints { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 14px; }
 
     .runtime { position: relative; min-width: 0; padding: 14px 20px; outline: none; overflow: visible; }
     .runtime::before {
@@ -310,7 +334,7 @@
       font-size: 20px;
     }
     .runtime-title h3 { margin: 0; font-size: 17px; }
-    .runtime-title p { margin: 0; color: var(--muted); font-size: 12px; }
+    .runtime-title p { margin: 0; color: var(--muted); font-size: 13px; }
     .loaded-persona {
       padding: 7px 11px;
       border: 1px solid var(--line);
@@ -329,7 +353,7 @@
       padding: 10px 15px;
       border: 1px solid var(--line);
       background: var(--paper);
-      font-size: 13px;
+      font-size: 14px;
     }
     .scenario-line strong { color: var(--accent); }
     .scenario-line span { color: var(--muted); }
@@ -461,9 +485,9 @@
     @keyframes panel-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
     .eval-list, .value-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
     #eval-output .eval-list { grid-template-columns: minmax(0, 1fr); }
-    .eval-list li { min-width: 0; padding: 8px 9px; background: var(--accent-soft); color: #3e4a5e; font-size: 12px; font-weight: 700; }
+    .eval-list li { min-width: 0; padding: 8px 9px; background: var(--accent-soft); color: #3e4a5e; font-size: 13.5px; font-weight: 700; }
     .eval-list code { overflow-wrap: anywhere; }
-    .value-list li { display: grid; grid-template-columns: 13px 1fr; gap: 8px; color: var(--muted); font-size: 12px; }
+    .value-list li { display: grid; grid-template-columns: 13px 1fr; gap: 8px; color: var(--muted); font-size: 13.5px; }
     .value-list li::before { content: "✓"; color: var(--good); font-weight: 800; }
     .ask {
       display: grid;
@@ -510,7 +534,7 @@
       .content-section { padding-block: 30px; }
       .persona-lab { display: none; }
       .portfolio-table { min-width: 0; }
-      .portfolio-table th, .portfolio-table td { padding: 6px; font-size: 7.5pt; }
+      .portfolio-table th, .portfolio-table td { padding: 6px; font-size: 8.5pt; }
       .contract-card { break-inside: avoid; }
       .ask { margin-top: 28px; }
       .footer-inner { display: grid; gap: 4px; }
@@ -561,40 +585,35 @@
             <table class="portfolio-table">
               <thead><tr><th>Evaluation objective</th><th>What it exercises</th><th>Expected components and gates</th><th>Suggested measures</th></tr></thead>
               <tbody>
-                <tr><td><strong>Grounded book reflection</strong><small><code>grounded_book_reflection</code></small></td><td>Linger uses Librarian to retrieve book passages when a reflection includes a quotation or factual claim. This objective tests whether Muse stays grounded, Provenance verifies the evidence, and personal reflection proceeds without unnecessary retrieval.</td><td>Muse, Librarian · gate: Provenance</td><td><code>evidence_recall</code>, <code>citation_precision</code>, <code>exact_quotation_accuracy</code></td></tr>
-                <tr><td><strong>Reviewed automatic memory capture</strong><small><code>reviewed_automatic_memory_capture</code></small></td><td>With automatic capture enabled, Muse may nominate part of a reflection as a memory. This objective tests whether Provenance and the Memory &amp; Policy Service store approved durable content and leave low-signal content unstored.</td><td>Muse · gate: Provenance · service: Memory &amp; Policy</td><td><code>memory_capture_precision</code>, <code>memory_capture_recall</code>, <code>veto_coverage</code></td></tr>
-                <tr><td><strong>Session-scoped conversation continuity</strong><small><code>session_scoped_conversation_continuity</code></small></td><td>Within one chat, Muse uses earlier messages to follow a developing reflection. This objective tests coherent multi-turn context while a new chat starts without the previous session's working history.</td><td>Muse · gate: Provenance · service: Session state</td><td><code>context_continuity_accuracy</code>, <code>correction_adoption_rate</code>, <code>fresh_session_leakage_rate</code></td></tr>
-                <tr><td><strong>Longitudinal memory retrieval</strong><small><code>longitudinal_memory_retrieval</code></small></td><td>Across sessions, Librarian retrieves active memories authorized by the Memory &amp; Policy Service. This objective tests whether Muse benefits from one person's relevant history without relying on prior chat context or forcing unrelated memories into the response.</td><td>Muse, Librarian · gate: Provenance · service: Memory &amp; Policy</td><td><code>recall_at_5</code>, <code>ndcg_at_5</code>, <code>precision_at_5</code></td></tr>
-                <tr><td><strong>Bounded memory curation</strong><small><code>bounded_memory_curation</code></small></td><td>Sculptor reviews a bounded collection of memories and proposes links, groups, or summaries. This objective tests whether each proposal uses only supplied records, preserves every original, and leaves unrelated records alone.</td><td>Sculptor · service: Memory &amp; Policy</td><td><code>curation_precision</code>, <code>no_change_accuracy</code>, <code>provenance_resolution</code></td></tr>
-                <tr><td><strong>Cross-source tentative connection</strong><small><code>cross_source_tentative_connection</code></small></td><td>Serendipity explores tentative links across authorized memories, book passages, and public evidence. This objective tests whether Muse cites its support, protects private wording during web search, and whether Provenance blocks unsupported certainty.</td><td>Muse, Serendipity · supporting: Librarian · gate: Provenance · service: Memory &amp; Policy</td><td><code>target_connection_hit_rate</code>, <code>evidence_recall</code>, <code>citation_precision</code></td></tr>
-                <tr><td><strong>Weak-evidence safe decline</strong><small><code>weak_evidence_safe_decline</code></small></td><td>When a plausible connection lacks evidence, Muse and Serendipity should qualify or decline it. This objective tests whether Provenance blocks invented support while allowing a helpful, non-factual reflection.</td><td>Muse, Serendipity · supporting: Librarian · gate: Provenance</td><td><code>weak_evidence_decline_rate</code>, <code>unsupported_claim_block_rate</code>, <code>non_factual_pass_rate</code></td></tr>
-                <tr><td><strong>Spoiler-boundary clarification</strong><small><code>spoiler_boundary_clarification</code></small></td><td>Librarian infers a reader's progress by matching remembered events against the complete book. This objective tests whether retrieval stays within that boundary and Muse requests clarification instead of risking a spoiler.</td><td>Muse, Librarian · gate: Provenance · service: Memory &amp; Policy</td><td><code>boundary_localization_accuracy</code>, <code>clarification_accuracy</code>, <code>post_boundary_retrieval_count</code>, <code>post_boundary_disclosure_count</code></td></tr>
-                <tr><td><strong>Untrusted-content injection resistance</strong><small><code>untrusted_content_injection_resistance</code></small></td><td>Book passages, memories, and web results can contain malicious instructions. Pair this objective with another test to verify that Linger ignores the attack, Provenance blocks unsafe output, and the legitimate task still succeeds.</td><td>Muse · supporting: Librarian, Serendipity · gate: Provenance · service: Memory &amp; Policy</td><td><code>injection_block_rate</code>, <code>benign_task_completion_rate</code>, <code>unauthorized_effect_count</code></td></tr>
-                <tr><td><strong>Sensitive-inference and capture veto</strong><small><code>sensitive_inference_and_capture_veto</code></small></td><td>Muse should respond helpfully without diagnosing or inferring a sensitive trait from uncertain text. This objective tests whether Provenance vetoes the unsafe inference and the Memory &amp; Policy Service prevents automatic capture.</td><td>Muse · gate: Provenance · service: Memory &amp; Policy</td><td><code>sensitive_inference_recall</code>, <code>unsafe_capture_count</code>, <code>non_factual_pass_rate</code></td></tr>
+                <tr><td><strong>Grounded book reflection</strong><small><code>grounded_book_reflection</code></small></td><td>Muse retrieves book passages via Librarian only when a reflection makes a quotation or factual claim, and Provenance verifies the evidence.</td><td><ul><li>Muse</li><li>Librarian</li><li>Gate: Provenance</li></ul></td><td><ul><li><code>evidence_recall</code></li><li><code>citation_precision</code></li><li><code>exact_quotation_accuracy</code></li></ul></td></tr>
+                <tr><td><strong>Reviewed automatic memory capture</strong><small><code>reviewed_automatic_memory_capture</code></small></td><td>Muse may nominate part of a reflection as a memory, and Provenance with the Memory &amp; Policy Service store only approved durable content.</td><td><ul><li>Muse</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>memory_capture_precision</code></li><li><code>memory_capture_recall</code></li><li><code>veto_coverage</code></li></ul></td></tr>
+                <tr><td><strong>Session-scoped conversation continuity</strong><small><code>session_scoped_conversation_continuity</code></small></td><td>Muse uses earlier messages to follow a developing reflection within one chat, while a new chat starts without the previous session's history.</td><td><ul><li>Muse</li><li>Gate: Provenance</li><li>Service: Session state</li></ul></td><td><ul><li><code>context_continuity_accuracy</code></li><li><code>correction_adoption_rate</code></li><li><code>fresh_session_leakage_rate</code></li></ul></td></tr>
+                <tr><td><strong>Longitudinal memory retrieval</strong><small><code>longitudinal_memory_retrieval</code></small></td><td>Across sessions, Librarian retrieves memories authorized by the Memory &amp; Policy Service so Muse benefits from relevant history without forcing unrelated memories in.</td><td><ul><li>Muse</li><li>Librarian</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>recall_at_5</code></li><li><code>ndcg_at_5</code></li><li><code>precision_at_5</code></li></ul></td></tr>
+                <tr><td><strong>Bounded memory curation</strong><small><code>bounded_memory_curation</code></small></td><td>Sculptor proposes links, groups, or summaries using only supplied records while preserving every original and leaving unrelated records alone.</td><td><ul><li>Sculptor</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>curation_precision</code></li><li><code>no_change_accuracy</code></li><li><code>provenance_resolution</code></li></ul></td></tr>
+                <tr><td><strong>Cross-source tentative connection</strong><small><code>cross_source_tentative_connection</code></small></td><td>Serendipity explores tentative links across memories, book passages, and public evidence while Muse cites its support and Provenance blocks unsupported certainty.</td><td><ul><li>Muse</li><li>Serendipity</li><li>Supporting: Librarian</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>target_connection_hit_rate</code></li><li><code>evidence_recall</code></li><li><code>citation_precision</code></li></ul></td></tr>
+                <tr><td><strong>Weak-evidence safe decline</strong><small><code>weak_evidence_safe_decline</code></small></td><td>When a plausible connection lacks evidence, Muse and Serendipity qualify or decline it while Provenance blocks invented support.</td><td><ul><li>Muse</li><li>Serendipity</li><li>Supporting: Librarian</li><li>Gate: Provenance</li></ul></td><td><ul><li><code>weak_evidence_decline_rate</code></li><li><code>unsupported_claim_block_rate</code></li><li><code>non_factual_pass_rate</code></li></ul></td></tr>
+                <tr><td><strong>Spoiler-boundary clarification</strong><small><code>spoiler_boundary_clarification</code></small></td><td>Librarian infers a reader's progress so retrieval stays within the spoiler boundary and Muse requests clarification instead of risking a spoiler.</td><td><ul><li>Muse</li><li>Librarian</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>boundary_localization_accuracy</code></li><li><code>clarification_accuracy</code></li><li><code>post_boundary_retrieval_count</code></li><li><code>post_boundary_disclosure_count</code></li></ul></td></tr>
+                <tr><td><strong>Untrusted-content injection resistance</strong><small><code>untrusted_content_injection_resistance</code></small></td><td>Book passages, memories, and web results can carry malicious instructions that Linger must ignore while the legitimate task still succeeds.</td><td><ul><li>Muse</li><li>Supporting: Librarian</li><li>Supporting: Serendipity</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>injection_block_rate</code></li><li><code>benign_task_completion_rate</code></li><li><code>unauthorized_effect_count</code></li></ul></td></tr>
+                <tr><td><strong>Sensitive-inference and capture veto</strong><small><code>sensitive_inference_and_capture_veto</code></small></td><td>Muse responds helpfully without inferring sensitive traits from uncertain text, while Provenance vetoes the unsafe inference and automatic capture is prevented.</td><td><ul><li>Muse</li><li>Gate: Provenance</li><li>Service: Memory &amp; Policy</li></ul></td><td><ul><li><code>sensitive_inference_recall</code></li><li><code>unsafe_capture_count</code></li><li><code>non_factual_pass_rate</code></li></ul></td></tr>
               </tbody>
             </table>
           </div>
         </section>
 
         <section class="evaluation-contract" aria-labelledby="contract-title">
-          <header class="contract-head"><span class="label">Workflow boundary</span><h3 id="contract-title">Confirmation produces a human-only planning report.</h3></header>
+          <header class="contract-head"><span class="label">How it works</span><h3 id="contract-title">Confirmation produces a human-only planning report.</h3></header>
           <div class="contract-grid">
             <article class="contract-card">
               <span class="micro">Report, then stop</span>
               <h4>Inspect the current repository before generating data</h4>
               <p>The repository’s <code>generate-synthetic-journals</code> skill launches a local selector, validates the confirmed catalog IDs, then writes one timestamped implementation-oriented Markdown report for human review.</p>
-              <ul>
-                <li>The selector runs on <code>127.0.0.1</code>, groups all ten objectives by the catalog’s three menu families, accepts one through ten objectives, surfaces hard selection rules, and returns the complete confirmed selection. The explorer below is not that selector.</li>
-                <li>The report assesses each Scene against the current implementation, proposes the complete target design, and names the smallest required build-out.</li>
-                <li>Its generator prompt covers one Backstory, Props or no Props, Scenes, Lines or offline inputs, and a separate authoring manifest containing proposed Ground truth.</li>
-                <li>Deterministic validation checks objective facts before an independent reviewer can adopt, revise, or reject Ground truth. Neither the manifest nor adopted Ground truth reaches the system under evaluation.</li>
-                <li>It decides whether the proposed Backstory is corpus-backed or memory-only; book-backed prompts point to the current <code>data/corpus/</code> directory instead of hardcoding a work.</li>
-                <li>For spoiler tests, Librarian searches the complete work to infer a ceiling, but only bounded evidence may reach Muse.</li>
-                <li>The report is for the developer only and is never passed to a generator.</li>
-                <li>Confirmation creates no backstories, props, scenes, lines, authoring manifests, proposed or adopted Ground truth, annotations, packages, review records, frozen releases, or replay data.</li>
-                <li>Target-state contracts remain proposals until a human approves them.</li>
-                <li>The skill writes the report under <code>synthetic-journal-evaluation/reports/</code>, validates it deterministically, reports its path and Objective IDs, then stops.</li>
-              </ul>
+              <ol>
+                <li><strong>Select objectives.</strong> Run the <code>generate-synthetic-journals</code> skill. Its local selector groups all ten objectives by the catalog's menu families and accepts one through ten. The explorer on this page is not that selector.</li>
+                <li><strong>Inspect the repository.</strong> The skill assesses each confirmed Scene against the current implementation and proposes target designs with the smallest required build-out.</li>
+                <li><strong>Write one report.</strong> A timestamped Markdown report lands under <code>synthetic-journal-evaluation/reports/</code>, covering each scene's design plus a separate authoring manifest of proposed Ground truth. Book-backed prompts point to <code>data/corpus/</code>; for spoiler tests only bounded evidence reaches Muse.</li>
+                <li><strong>Validate, then review.</strong> Deterministic checks verify objective facts before you adopt, revise, or reject proposed Ground truth. The report is developer-only and never reaches a generator or the system under evaluation.</li>
+                <li><strong>Stop.</strong> Confirmation creates no evaluation data — no backstories, props, scenes, lines, manifests, annotations, or releases. Target designs remain proposals until a human approves them.</li>
+              </ol>
               <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the Ground truth lifecycle is defined; schemas, tooling, and the remaining workflow are not.</div>
             </article>
           </div>
