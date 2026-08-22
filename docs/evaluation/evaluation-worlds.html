@@ -558,16 +558,18 @@
             <article class="contract-card">
               <span class="micro">Report, then stop</span>
               <h4>Inspect the current repository before generating data</h4>
-              <p>The repository’s <code>generate-synthetic-journals</code> skill selects objectives, confirms them, then writes a timestamped one-page Markdown report for human review.</p>
+              <p>The repository’s <code>generate-synthetic-journals</code> skill selects objectives, confirms them, then writes a timestamped implementation-oriented Markdown report for human review.</p>
               <ul>
-                <li>The report snapshots the implementation, proposes the generator prompt, and summarizes Line, evaluation, architecture, and academic implications.</li>
+                <li>The report assesses each Scene against the current implementation, proposes the complete target design, and names the smallest required build-out.</li>
+                <li>Its generator prompt covers Backstories, Props, Scenes, Lines, and a separate authoring manifest containing proposed Ground truth.</li>
+                <li>Deterministic validation checks objective facts before an independent reviewer can adopt, revise, or reject Ground truth. Neither the manifest nor adopted Ground truth reaches the system under evaluation.</li>
                 <li>It decides whether the proposed Backstory is corpus-backed or memory-only; book-backed prompts point to the current <code>data/corpus/</code> directory instead of hardcoding a work.</li>
                 <li>For spoiler tests, Librarian searches the complete work to infer a ceiling, but only bounded evidence may reach Muse.</li>
                 <li>The report is for the developer only and is never passed to a generator.</li>
-                <li>Confirmation creates no backstories, props, scenes, lines, ground truth, annotations, packages, review records, frozen releases, or replay data.</li>
-                <li>No downstream workflow defaults are defined.</li>
+                <li>Confirmation creates no backstories, props, scenes, lines, authoring manifests, proposed or adopted Ground truth, annotations, packages, review records, frozen releases, or replay data.</li>
+                <li>Target-state contracts remain proposals until a human approves them.</li>
               </ul>
-              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the downstream workflow is intentionally undefined.</div>
+              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the Ground truth lifecycle is defined; schemas, tooling, and the remaining workflow are not.</div>
             </article>
           </div>
         </section>
