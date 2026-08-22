@@ -5,6 +5,37 @@ configurations on the same Alice query set. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
+## Manual notebook
+
+[`../../notebooks/librarian_manual_evaluation.ipynb`](../../notebooks/librarian_manual_evaluation.ipynb)
+provides an editable, beginner-friendly, step-by-step path for developers who
+want to:
+
+1. Run the production Librarian end to end on one query and reading boundary.
+2. Inspect the clarification, failure, or result contract.
+3. Follow one frozen case through boundary filtering, BM25, semantic search,
+   fusion, deduplication, reranking, candidate measurement, and the final
+   evidence-strength decision.
+4. Compare all five retrieval configurations for that case.
+5. Optionally evaluate the Librarian across the complete frozen case set.
+
+The notebook presents the end-to-end manual run and the internal step-by-step
+walkthrough as two independent routes after one shared setup; neither route is
+a prerequisite for the other.
+
+From the repository root:
+
+```bash
+uv run jupyter lab notebooks/librarian_manual_evaluation.ipynb
+```
+
+Run the cells from top to bottom. Full Librarian cells use `LINGER_MODEL` and
+the matching API key from `.env`. The first local retrieval run may download
+the embedding and reranking models. The notebook keeps results in memory and
+does not overwrite either checked-in report.
+
+## Reproducible aggregate benchmark
+
 Run it with:
 
 ```bash

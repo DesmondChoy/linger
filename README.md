@@ -82,7 +82,7 @@ Alice supplies a small Gutenberg-specific adapter for its wrapper, contents,
 headings, and boundaries. Each future book supplies its own source-specific
 adapter while reusing the same renderer, catalogue builder, and integrity
 checks. BM25 paragraph windows, embeddings, and hybrid indexes may be generated
-later; none is a source of truth or a publication requirement.
+as derived artifacts; none is a source of truth or a publication requirement.
 
 Verify the checked-in corpus or rebuild its derived catalogue with:
 
@@ -91,9 +91,25 @@ uv run python -m src.linger.corpus.book src.linger.corpus.alice check
 uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 ```
 
-This milestone establishes ingestion and a retrieval-neutral corpus. Librarian's
-exact retrieval implementation and its end-to-end citation evaluation remain
-future work.
+The Librarian applies the confirmed chapter boundary before BM25 and semantic
+retrieval, fuses and reranks candidates locally, resolves exact canonical
+evidence, and uses a set-level evidence-strength judgment before returning a
+typed result to Muse.
+
+## Librarian notebook
+
+[`notebooks/librarian_manual_evaluation.ipynb`](notebooks/librarian_manual_evaluation.ipynb)
+supports an editable end-to-end Librarian run and a step-by-step evaluation of
+boundary filtering, keyword and semantic retrieval, fusion, reranking,
+evidence strength, spoiler safety, and citation resolution.
+
+Launch it from the repository root after installing development dependencies:
+
+```bash
+uv run jupyter lab notebooks/librarian_manual_evaluation.ipynb
+```
+
+Full Librarian cells use the model and matching API key configured in `.env`.
 
 ## Project Gutenberg notebook
 

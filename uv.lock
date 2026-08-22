@@ -1447,7 +1447,9 @@ dependencies = [
     { name = "fastapi" },
     { name = "fastembed" },
     { name = "logfire", extra = ["fastapi"] },
+    { name = "numpy" },
     { name = "polars" },
+    { name = "pydantic" },
     { name = "pydantic-ai" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
@@ -1459,6 +1461,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
+    { name = "ipython" },
     { name = "jupyterlab" },
     { name = "pytest" },
 ]
@@ -1469,7 +1472,9 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "fastembed", specifier = ">=0.8.0" },
     { name = "logfire", extras = ["fastapi"], specifier = ">=4.40.0" },
+    { name = "numpy", specifier = ">=2.0.0" },
     { name = "polars", specifier = ">=1.43.2" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-ai", specifier = ">=2.26.0" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
@@ -1481,6 +1486,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "ipykernel", specifier = ">=7.3.0" },
+    { name = "ipython", specifier = ">=9.0.0" },
     { name = "jupyterlab", specifier = ">=4.6.2" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
