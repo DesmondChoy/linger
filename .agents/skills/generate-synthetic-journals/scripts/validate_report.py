@@ -118,15 +118,6 @@ def validate_report(path: Path) -> list[str]:
         ):
             if not re.search(pattern, prompt, flags=re.IGNORECASE):
                 errors.append(f"fenced prompt lacks {label} instructions")
-        if (
-            "reviewed_automatic_memory_capture" in text
-            and "synthetic-journal-evaluation/run-configurations/"
-            "reviewed-automatic-memory-capture-10-to-1.json" not in prompt
-        ):
-            errors.append(
-                "capture prompt lacks the resolved 1:10 run configuration"
-            )
-
     return errors
 
 

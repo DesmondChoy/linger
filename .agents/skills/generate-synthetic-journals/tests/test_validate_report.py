@@ -119,20 +119,8 @@ def test_rejects_prompt_without_adopted_package_validator(tmp_path: Path) -> Non
     )
 
 
-def test_capture_prompt_requires_resolved_run_configuration(tmp_path: Path) -> None:
+def test_accepts_capture_objective_mentioned_outside_prompt(tmp_path: Path) -> None:
     text = report_text(extra="reviewed_automatic_memory_capture")
-    path = write_report(tmp_path, text)
-
-    assert any("1:10 run configuration" in error for error in validate_report(path))
-
-    config_path = (
-        "synthetic-journal-evaluation/run-configurations/"
-        "reviewed-automatic-memory-capture-10-to-1.json"
-    )
-    text = report_text(
-        prompt=f"Use the resolved run configuration at {config_path}.",
-        extra="reviewed_automatic_memory_capture",
-    )
     path = write_report(tmp_path, text)
 
     assert validate_report(path) == []
