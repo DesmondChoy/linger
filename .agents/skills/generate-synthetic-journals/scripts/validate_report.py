@@ -110,9 +110,22 @@ def validate_report(path: Path) -> list[str]:
             ("Lines or offline inputs", r"\bLines?\b|\boffline inputs?\b"),
             ("authoring manifest", r"\bauthoring manifest\b"),
             ("proposed Ground truth", r"\bproposed Ground truth\b"),
+            ("adopted v1 models", r"evals/synthetic_journals/models\.py"),
+            (
+                "deterministic package validator",
+                r"evals/synthetic_journals/validate_package\.py",
+            ),
         ):
             if not re.search(pattern, prompt, flags=re.IGNORECASE):
                 errors.append(f"fenced prompt lacks {label} instructions")
+        if (
+            "reviewed_automatic_memory_capture" in text
+            and "synthetic-journal-evaluation/run-configurations/"
+            "reviewed-automatic-memory-capture-10-to-1.json" not in prompt
+        ):
+            errors.append(
+                "capture prompt lacks the resolved 1:10 run configuration"
+            )
 
     return errors
 

@@ -1,11 +1,13 @@
-schema_version: 2
+schema_version: 3
 catalog_id: synthetic-journal-evaluation-objectives
 title: Synthetic journal evaluation objectives
 purpose: >-
   Let developers select one or more evaluation objectives and review their
   scenarios before the project adopts a complete downstream workflow. The
   catalog defines what future evaluation data must exercise and the Ground
-  truth authority lifecycle, not concrete generation or packaging tooling.
+  truth authority lifecycle. The repository-owned v1 content and authoring-
+  manifest contracts define package structure; generation, adoption, freezing,
+  and replay tooling remain separate decisions.
 
 canonical_vocabulary: >-
   The canonical vocabulary for this pipeline (objective, backstory, prop, scene,
@@ -87,19 +89,19 @@ developer_workflow:
     report_is_generator_input: false
     dataset_generation_authorized: false
     downstream_workflow: ground_truth_lifecycle_defined_other_stages_intentionally_undefined
-    report_may_propose_target_state_contracts: true
+    package_contract: evals/synthetic_journals/models.py
+    package_validator: evals/synthetic_journals/validate_package.py
+    run_configuration_directory: synthetic-journal-evaluation/run-configurations
+    report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true
     decisions_not_adopted:
       - backstory_generation
       - prop_generation
       - scene_composition
       - line_generation
-      - authoring_manifest_schema_and_file_layout
       - ground_truth_review_ownership
       - ground_truth_adoption_tooling
-      - schemas
-      - packaging
-      - review
+      - package_directory_and_dataset_layout
       - freezing
       - replay
 
@@ -122,26 +124,28 @@ prompt_boundary:
     - generation_brief
     - permitted_repository_paths
     - resolved_workflow_inputs
-    - proposed_authoring_manifest_contract
+    - resolved_run_configuration
+    - adopted_package_contract
     - proposed_ground_truth_requirements
   generator_does_not_receive:
     - prompt_inputs
     - composition
     - evaluation_metadata
-  target_state_prompt_may_propose:
-    - canonical_entity_output_contract
-    - authoring_manifest_output_contract
+  target_state_prompt_uses:
+    - adopted_content_contract
+    - adopted_authoring_manifest_contract
+    - deterministic_package_validator
     - workflow_preconditions
   reason: >-
     The generator reads current repository-backed context from explicitly
-    permitted paths and receives concrete run-specific inputs plus a proposed
-    authoring-manifest contract. The renderer translates only the selected
+    permitted paths and receives concrete run-specific inputs plus the adopted
+    package contract. The renderer translates only the selected
     Ground truth requirements needed to create coherent candidate labels; it
     does not expose raw evaluation metadata, internal component routes, numeric
-    thresholds, judge rubrics, or developer selection advice. A pre-generation
-    report may propose concrete content and authoring-manifest contracts and the
-    preconditions for running them, but those proposals are not adopted until a
-    human approves them.
+    thresholds, judge rubrics, or developer selection advice. Evaluation-aware
+    authoring is intentional: the generator writes proposed Ground truth to
+    preserve the selected design, but it neither grades Linger output nor adopts
+    its own labels.
 
 ground_truth_lifecycle:
   generation: >-
@@ -266,6 +270,7 @@ evaluation_objectives:
       generation_requirements:
         - Write every line as natural journal or conversation input in the person's own words.
         - Make the durable scene specific enough to remain useful outside its immediate conversation.
+        - Vary low-signal scenes across temporary logistics, conversational filler, short-lived observations, and routine updates rather than repeating one template.
         - Do not express either scene as an explicit save control event.
       expected_generated_data:
         - A coherent backstory that makes both scenes plausible.
@@ -280,6 +285,12 @@ evaluation_objectives:
       - id: capture_preference
         supplied_by: workflow
         description: A run-specific statement that automatic capture is enabled for the application-authenticated account.
+      - id: capture_scene_mix
+        supplied_by: workflow
+        description: >-
+          Run-specific counts of capture-candidate and no-candidate Scenes. A
+          workflow may deliberately imbalance this mix; it is not a universal
+          Objective rule.
     evaluation_metadata:
       expected_architecture:
         primary_components: [muse]

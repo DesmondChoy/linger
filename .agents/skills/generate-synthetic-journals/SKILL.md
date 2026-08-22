@@ -84,43 +84,54 @@ authorize synthetic-data generation.
    and focused tests or an eval harness prove the relevant contract. Mark a Scene
    **partially runnable** when a named adapter or grading path is missing. Mark it
    **blocked** when a required capability or source is missing. Missing downstream
-   packaging alone does not weaken the target design; the report proposes it.
-9. Propose the smallest concrete output contracts for both the target content
-   and its separate authoring manifest. The content contract represents the
-   Backstory, Props, Scenes, and Lines or offline inputs. The manifest contract
-   contains proposed Ground truth anchored to those identifiers, relationships,
-   exact spans, Scene pairings, and intended expected or prohibited outcomes.
-   Label both contracts **Proposed**. Do not claim either exists or has been
-   adopted. Prefer patterns already used by repository eval harnesses when they
-   fit; identify what is reused and what is new.
-10. Draft the exact target-state prompt for a future generator. Build it from the
+   freezing or replay alone does not weaken the target design; report the gap.
+9. Inspect the adopted v1 package models in
+   `evals/synthetic_journals/models.py` and deterministic validator in
+   `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
+   content JSON represents one Backstory, Props, Scenes, Lines, and offline
+   inputs. The separate authoring-manifest JSON contains proposed Ground truth
+   anchored to those identifiers, exact spans, evidence, and Scene pairings.
+   Do not propose a parallel schema or claim that validation adopts Ground truth.
+   If the selected Objectives cannot be represented, report a contract gap and
+   stop the fenced prompt from authorizing generation.
+10. Resolve run-specific workflow inputs. When
+    `reviewed_automatic_memory_capture` is selected, use
+    `synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json`
+    unless the developer explicitly supplied another adopted configuration.
+    Treat its 1:10 capture mix as this run's configuration, not a catalog-wide
+    minimum. The package contains one Backstory; a full capture dataset repeats
+    the 11-Scene pattern in separately validated packages with different
+    Backstories.
+11. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
-    workflow inputs, translated Ground truth requirements, and the two proposed
+    workflow inputs, translated Ground truth requirements, and the adopted v1
     output contracts. The prompt must explicitly instruct the generator how to
     produce the Backstory, Props or no Props, Scenes, Lines or offline inputs,
     and separate authoring manifest required by the plan. Do not weaken or
     descope a confirmed Objective because current code is incomplete.
-11. Put a precondition header inside the fenced prompt. If every Scene is
-    runnable, label the prompt **Runnable after human approval of the proposed
-    contract**. Otherwise label it **Target state — do not run** and name every
-    capability or source that must exist first. The detached prompt must remain
+12. Put a precondition header inside the fenced prompt. If every Scene is
+    runnable, label the prompt **Runnable after human approval**. Otherwise
+    label it **Target state — do not run** and name every capability or source
+    that must exist first. The detached prompt must remain
     self-invalidating when its prerequisites are unmet.
-12. Obey `prompt_boundary`: do not send raw `composition`, `prompt_inputs`, or
+13. Obey `prompt_boundary`: do not send raw `composition`, `prompt_inputs`, or
     `evaluation_metadata`, numeric thresholds, judge rubrics, component routes,
-    or the report itself to the generator. Translate only the selected Ground
-    truth requirements needed for coherent candidate labels. State that the
-    generator has read-only access to the current checkout and must inspect
-    permitted paths at invocation time.
-13. Preserve the three-stage Ground truth lifecycle. First, require the generator
+    or the report itself to the generator. Evaluation-aware generation is
+    intentional: translate the selected requirements needed to create coherent
+    content and proposed Ground truth, while keeping grading and label adoption
+    outside the generator. State that the generator has read-only access to the
+    current checkout and must inspect permitted paths at invocation time.
+14. Preserve the three-stage Ground truth lifecycle. First, require the generator
     to write proposed Ground truth in an authoring manifest stored separately
-    from generated content. Second, define deterministic checks for objective
-    facts such as schema conformance, reference and span resolution, ordering,
-    permitted identifiers, and matched-Scene differences; these checks do not
+    from generated content. Second, run the adopted package validator for
+    objective facts including schema conformance, content hashing, reference and
+    span resolution, ordering, permitted evidence, declared matched-Scene
+    differences, and resolved run-configuration counts; these checks do not
     judge Linger's recorded behavior. Third, require a reviewer independent of
     the generator to adopt, revise, or reject each candidate label. Only adopted
     Ground truth may grade a run, and neither manifest nor adopted Ground truth
     may reach the system under evaluation.
-14. Hypothesize representative inputs, likely response behavior, and plain-
+15. Hypothesize representative inputs, likely response behavior, and plain-
     language success checks. Treat response text as a hypothesis, not an exact
     oracle.
 
@@ -161,14 +172,16 @@ in order:
    the first canonical-noun reference. Follow it with a compact two-column table
    containing exactly six body rows in this order: `Objective`, `Backstory`,
    `Prop`, `Scene`, `Line`, and `Ground truth`. Explain how each noun applies,
-   including minimum Scene counts derived only from the catalog. Label the
-   proposed content and authoring-manifest contracts and describe their concrete
-   structures. Explain proposed versus adopted Ground truth in the final row.
+   including catalog minimums and any separately resolved run configuration.
+   Label the content and authoring-manifest contracts **Adopted v1**, cite their
+   model and validator paths, and describe their concrete structures. Explain
+   proposed versus adopted Ground truth in the final row.
 4. **Current implementation and required work.** Use **Observed**, **Proposed**,
    and **Assumed** labels. Cite implementation and focused-test evidence. Name
-   reusable `evals/` assets and relevant Beads. For each gap, state whether it is
-   a contract, capability, adapter, grading, or source gap; give the smallest
-   high-level build-out and testable acceptance criteria. If no build-out is
+   reusable `evals/` assets, including the adopted package validator, and
+   relevant Beads. For each gap, state whether it is a contract, capability,
+   adapter, grading, or source gap; give the smallest high-level build-out and
+   testable acceptance criteria. If no build-out is
    required, say so. End this section with one compact repository snapshot line;
    do not create a separate Provenance section.
 5. **Expected behavior and evaluation.** State whether the plan contains Lines
@@ -176,25 +189,28 @@ in order:
    plain-language success check. Put metric names after the explanation only
    when useful.
 6. **Proposed generator prompt.** Include the exact prompt in a fenced code block.
-   It must contain its own status and preconditions, the complete proposed output
-   contracts, generation instructions for every generator-owned canonical
-   entity, and instructions for a separate authoring manifest containing
-   proposed Ground truth. It must not ask the generator to grade recorded system
+   It must contain its own status and preconditions, direct instructions to use
+   the adopted v1 output contracts and validator, generation instructions for
+   every generator-owned canonical entity, and instructions for a separate
+   authoring manifest containing proposed Ground truth. It must not ask the
+   generator to grade recorded system
    behavior or claim that its candidate labels are adopted.
 7. **Ground truth lifecycle.** Explain what the generator proposes, what
-   deterministic code validates, and who independently adopts, revises, or
-   rejects each label. Specify required evidence, exact spans, failure
-   conditions, and acceptance checks. If review ownership or tooling is not
-   adopted, label that gap and propose the smallest decision needed.
+   repository code validates, and who independently adopts, revises, or rejects
+   each label. Specify required evidence, exact spans, failure conditions, and
+   acceptance checks. State explicitly that semantic realism and label quality
+   are review judgments, not deterministic checks. If review ownership or
+   tooling is not adopted, label that gap and propose the smallest decision
+   needed.
 8. **Architecture and academic relevance.** Identify participating and non-
    participating agents and deterministic services. Explain one authority
    boundary that the plan tests and make one concrete briefing-backed claim.
 
 Do not add `Risks and opportunity` or `Provenance` sections. End with a **Human
 decision required** callout. If implementation is sufficient, offer approval of
-the proposed target design and prompt, revision, or abandonment. If insufficient,
-offer approval of the build target and target-state prompt, revision, or
-abandonment; never offer execution before the named preconditions are met.
+the target design and prompt, revision, or abandonment. If insufficient, offer
+approval of the build target and target-state prompt, revision, or abandonment;
+never offer execution before the named preconditions are met.
 
 The report is only for the human or developer and must never be sent wholesale
 to a generator. Do not invoke a generation model or create Backstories, Props,
@@ -209,8 +225,8 @@ script cannot prove:
 
 - Every required Scene has one current status with concrete evidence or a gap.
 - The target design satisfies every confirmed Objective without descoping.
-- The fenced prompt's proposed contract and entity instructions are concrete,
-  not merely named.
+- The fenced prompt uses the adopted v1 models and validator without inventing
+  another contract.
 - The fenced prompt creates proposed Ground truth in a separate authoring
   manifest without grading recorded behavior or claiming adoption.
 - Deterministic validation and independent Ground truth adoption are concrete in
@@ -219,6 +235,7 @@ script cannot prove:
   Scene, and Line belongs to that Backstory; and every Prop has a planned
   lifecycle role.
 
-Report the path and selected Objective IDs, then stop. The content contract,
-authoring-manifest contract, review ownership, and tooling remain unadopted until
-a human approves them.
+Report the path and selected Objective IDs, then stop. The v1 content and
+authoring-manifest contracts and deterministic validator are adopted. Generation,
+independent review ownership, adoption tooling, package freezing, and replay
+remain unadopted until separately approved.

@@ -25,7 +25,7 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
     document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
-    assert document["schema_version"] == 2
+    assert document["schema_version"] == 3
     assert len(catalog.objectives) == 10
     assert len(set(catalog.ids)) == 10
     assert "session_scoped_conversation_continuity" in catalog.ids
@@ -46,10 +46,18 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
         "independent_adoption",
         "exposure",
     }
-    assert "proposed_authoring_manifest_contract" in document["prompt_boundary"][
+    assert "adopted_package_contract" in document["prompt_boundary"][
         "generator_receives"
     ]
     assert "evaluation_metadata" in document["prompt_boundary"]["generator_does_not_receive"]
+    capture = next(
+        objective
+        for objective in document["evaluation_objectives"]
+        if objective["id"] == "reviewed_automatic_memory_capture"
+    )
+    assert "capture_scene_mix" in {
+        prompt_input["id"] for prompt_input in capture["prompt_inputs"]
+    }
 
 
 def test_catalog_exposes_grouping_and_choosing_aids() -> None:

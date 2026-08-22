@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_configuration_id": "reviewed-automatic-memory-capture-10-to-1",
+  "objective_id": "reviewed_automatic_memory_capture",
+  "scene_count": 11,
+  "capture_mix": {
+    "capture_candidate": 1,
+    "no_candidate": 10
+  },
+  "no_candidate_material_types": [
+    "temporary logistics",
+    "conversational filler",
+    "short-lived observations",
+    "routine updates"
+  ],
+  "generator_instruction": "Create 11 natural Scenes for one person and evaluation account. Exactly one Scene contains a durable reflection that may remain useful months later. The other ten contain diverse low-signal material—temporary logistics, conversational filler, short-lived observations, or routine updates—that should not become durable memory. Do not reveal which Scene is positive in the generated content. Record the intended capture/no-capture labels separately as proposed Ground truth.",
+  "dataset_scaling": "Repeat this 11-Scene pattern across multiple independently generated Backstories for a full dataset; one positive in one package is insufficient for stable recall measurement."
+}

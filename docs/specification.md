@@ -334,7 +334,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The vocabulary adopts the Ground truth authority lifecycle below. It does not adopt concrete schemas, file layouts, review tooling, or the remaining downstream workflow.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The vocabulary, v1 content and authoring-manifest contracts, and deterministic package validator adopt the Ground truth authority lifecycle below. Generation, independent adoption tooling, dataset freezing, and replay remain downstream decisions.
 
 | Term | Definition |
 |---|---|
@@ -355,6 +355,10 @@ The vocabulary encodes these boundaries:
 - Deterministic validation checks facts that can be resolved without judging Linger, such as identifiers, references, span boundaries, pairwise differences, and schema constraints. It does not adopt behavioral judgments.
 - An independent reviewer adopts, revises, or rejects the proposed Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth.
 
+Synthetic authoring is intentionally evaluation-aware. The generator receives the selected, resolved Objective requirements and writes both content and proposed Ground truth so that intended contrasts and exact source spans are preserved. This is authoring, not grading: the generator does not observe Linger's recorded output and cannot adopt its own labels. Raw developer metadata and judge rubrics remain outside the generator prompt, and an independent reviewer still owns adoption.
+
+The adopted v1 models are in [`evals/synthetic_journals/models.py`](../evals/synthetic_journals/models.py); [`evals/synthetic_journals/validate_package.py`](../evals/synthetic_journals/validate_package.py) validates the exact content-file hash, identifiers, references, ordering, spans, evidence, declared Scene differences, and resolved run-configuration counts. One validated package contains one Backstory, person, and evaluation account. A full dataset may combine multiple separately validated packages with different Backstories.
+
 A Backstory may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
 the corresponding corpus position becomes Ground truth for grading Librarian's
@@ -366,23 +370,22 @@ Everything after a line is handed to Muse — routing, agent hand-offs, telemetr
 
 The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
 
-The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped Markdown pre-generation report for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, proposes the smallest concrete output contracts needed for the generated content and separate authoring manifest, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. A deterministic validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
+The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped Markdown pre-generation report for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the adopted v1 content and authoring-manifest contracts, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
-Human approval of the report and implementation of the downstream workflow remain undefined. The project has adopted the three-stage Ground truth authority lifecycle, but not decisions for:
+Human approval of the report and implementation of the downstream workflow remain undefined. The project has adopted the three-stage Ground truth authority lifecycle, v1 package contracts, and deterministic package validation, but not decisions for:
 
 - backstory generation;
 - prop generation;
 - scene composition;
 - line generation;
-- authoring-manifest schema and file layout;
 - Ground truth review ownership and adoption tooling;
-- schemas;
-- packaging;
-- review;
+- package-directory and full-dataset layout;
 - freezing; or
 - replay.
 
-The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence, schema, file layout, or lifecycle when the selected Objectives require those decisions. Every proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, JSON or YAML scene format, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
+The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the adopted v1 package contract rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
+
+The resolved run configuration [`reviewed-automatic-memory-capture-10-to-1.json`](../synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json) applies an intentionally imbalanced 1:10 capture-candidate/no-candidate Scene mix to one `reviewed_automatic_memory_capture` package. It is not a universal Objective minimum. A full dataset repeats that 11-Scene pattern across multiple Backstories because one positive example cannot support stable recall measurement.
 
 ### 7.3 Deployment checks
 

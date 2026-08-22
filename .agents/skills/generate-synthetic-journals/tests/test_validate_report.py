@@ -52,6 +52,8 @@ STATUS: Target state — do not run.
 PRECONDITIONS: contract adopted.
 Create one Backstory, no Props, three Scenes, and one Line per Scene.
 Write a separate authoring manifest containing proposed Ground truth.
+Use evals/synthetic_journals/models.py and validate with
+evals/synthetic_journals/validate_package.py.
 {prompt}
 ```
 
@@ -102,6 +104,38 @@ def test_rejects_prompt_without_authoring_manifest(tmp_path: Path) -> None:
     errors = validate_report(path)
     assert any("authoring manifest" in error for error in errors)
     assert any("proposed Ground truth" in error for error in errors)
+
+
+def test_rejects_prompt_without_adopted_package_validator(tmp_path: Path) -> None:
+    text = report_text().replace(
+        "evals/synthetic_journals/validate_package.py.",
+        "an unspecified validator.",
+    )
+    path = write_report(tmp_path, text)
+
+    assert any(
+        "deterministic package validator" in error
+        for error in validate_report(path)
+    )
+
+
+def test_capture_prompt_requires_resolved_run_configuration(tmp_path: Path) -> None:
+    text = report_text(extra="reviewed_automatic_memory_capture")
+    path = write_report(tmp_path, text)
+
+    assert any("1:10 run configuration" in error for error in validate_report(path))
+
+    config_path = (
+        "synthetic-journal-evaluation/run-configurations/"
+        "reviewed-automatic-memory-capture-10-to-1.json"
+    )
+    text = report_text(
+        prompt=f"Use the resolved run configuration at {config_path}.",
+        extra="reviewed_automatic_memory_capture",
+    )
+    path = write_report(tmp_path, text)
+
+    assert validate_report(path) == []
 
 
 def test_accepts_offline_inputs_without_lines(tmp_path: Path) -> None:
