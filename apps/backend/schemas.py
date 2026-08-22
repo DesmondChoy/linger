@@ -70,7 +70,18 @@ class MemoryCaptureNotice(BaseModel):
     notice: Literal["Saved to your memories."] = "Saved to your memories."
 
 
+class TraceReference(BaseModel):
+    """Content-free correlation with the operational Logfire trace."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    root_span_id: str = Field(pattern=r"^[0-9a-f]{16}$")
+    exported: bool
+
+
 class ChatResponse(BaseModel):
     reply: str
     inspection: TurnInspection
+    trace: TraceReference
     memory_capture: MemoryCaptureNotice | None = None

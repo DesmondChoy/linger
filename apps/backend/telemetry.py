@@ -30,6 +30,7 @@ def configure_telemetry() -> None:
         service_name=SERVICE_NAME,
         console=False,
         inspect_arguments=False,
+        distributed_tracing=False,
     )
 
 

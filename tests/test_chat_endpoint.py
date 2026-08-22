@@ -108,6 +108,31 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("agent_pipeline_failed", payload)
         self.assertIn("agent_pipeline_failed", logs)
 
+    def test_stream_failure_returns_only_safe_trace_correlation(self) -> None:
+        gate = AsyncMock(side_effect=RuntimeError("private provider failure"))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = TestClient(main.app).post(
+                "/api/chat/stream",
+                json={
+                    "session_id": self.session_id,
+                    "turn_id": "failed-turn",
+                    "message": "Private reader message",
+                },
+            )
+
+        self.assertEqual(200, response.status_code)
+        error_frame = next(
+            frame for frame in response.text.split("\n\n") if frame.startswith("event: error")
+        )
+        payload = json.loads(error_frame.split("data: ", 1)[1])
+        self.assertEqual("The model call failed. Try again.", payload["detail"])
+        self.assertRegex(payload["trace"]["trace_id"], r"^[0-9a-f]{32}$")
+        self.assertRegex(payload["trace"]["root_span_id"], r"^[0-9a-f]{16}$")
+        self.assertEqual(main.settings.logfire_token is not None, payload["trace"]["exported"])
+        self.assertNotIn("Private reader message", response.text)
+        self.assertNotIn("private provider failure", response.text)
+
     async def test_success_stores_only_released_turn(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="Hello")
         gate = AsyncMock(return_value=ReflectionRelease(
@@ -120,6 +145,9 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             response = await self.call_chat(request)
 
         self.assertEqual("Approved reply", response.reply)
+        self.assertRegex(response.trace.trace_id, r"^[0-9a-f]{32}$")
+        self.assertRegex(response.trace.root_span_id, r"^[0-9a-f]{16}$")
+        self.assertEqual(main.settings.logfire_token is not None, response.trace.exported)
         history = sessions.history(self.session_id)
         self.assertEqual("Hello", history[0].parts[0].content)
         self.assertEqual("Approved reply", history[1].parts[0].content)

@@ -4,6 +4,46 @@ type Props = {
   timeline: TurnTimeline[]
 }
 
+const LOGFIRE_PROJECT_URL = import.meta.env.VITE_LOGFIRE_PROJECT_URL
+  ?? 'https://logfire.pydantic.dev'
+
+function TraceLink({ turn }: { turn: TurnTimeline }) {
+  if (!turn.trace) return null
+  const query = `trace_id = '${turn.trace.trace_id}'`
+
+  return (
+    <section className="operational-trace">
+      <h4>Operational trace</h4>
+      <p className="muted">
+        Server-generated correlation only. Reader messages, prompts, and responses are not sent to Logfire.
+      </p>
+      <code>{turn.trace.trace_id}</code>
+      <div className="trace-actions">
+        <button
+          className="quiet-button"
+          type="button"
+          onClick={() => void navigator.clipboard.writeText(query)}
+        >
+          Copy trace query
+        </button>
+        {LOGFIRE_PROJECT_URL && turn.trace.exported && (
+          <a
+            className="quiet-button"
+            href={LOGFIRE_PROJECT_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open Logfire
+          </a>
+        )}
+      </div>
+      {!turn.trace.exported && (
+        <p className="muted">Logfire export is disabled for this environment.</p>
+      )}
+    </section>
+  )
+}
+
 function boundarySummary(turn: TurnTimeline) {
   const resolution = turn.contextResolution
   if (!resolution) return 'Checking what Linger can safely use.'
@@ -228,6 +268,7 @@ export function Inspector({ timeline }: Props) {
                       <p className="muted">Safe metadata only—no prompt text, search terms, evidence, draft response, or review critique is streamed.</p>
                       <LiveProgress turn={turn} />
                     </section>
+                    <TraceLink turn={turn} />
                     <section>
                       <h4>What Linger knew</h4>
                       <p>{turn.contextResolution?.explanation ?? 'Waiting for the context check.'}</p>
