@@ -1,0 +1,366 @@
+{
+  "content_sha256": "44c38e8d4972af504a2d207da4ad05f19473f3b92d76a3fc76759289281d176f",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-mara-01-capture",
+      "scene_id": "scene-mara-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates any part of the temporary cooking logistics as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-02-capture",
+      "scene_id": "scene-mara-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the conversational filler or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-03-capture",
+      "scene_id": "scene-mara-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the brief weather observation or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-04-capture",
+      "scene_id": "scene-mara-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the one-evening travel plan or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-05-capture",
+      "scene_id": "scene-mara-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the routine household update or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-06-capture",
+      "scene_id": "scene-mara-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the abandoned conversational fragment or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-07-capture",
+      "scene_id": "scene-mara-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse nominates exactly the Line slice ‘I’ve realized that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it.’ as the only MemoryCandidate.",
+        "Provenance independently reviews the complete response and nomination and returns allow_capture after finding no privacy, sensitive-inference, unsupported-provenance, or injection defect.",
+        "With server-side capture enabled for eval-account-mara-001, application binding preserves the exact source slice and the Memory & Policy Service creates exactly one immutable automatic record scoped to that account whose text exactly equals the nominated slice.",
+        "Retrying the same account, source event, text, and evidence identifiers returns the existing record with created false and creates no second record."
+      ],
+      "prohibited_outcomes": [
+        "Muse returns NoMemoryCandidate, nominates a paraphrase, or nominates text outside the exact declared slice.",
+        "Capture is authorized from Muse’s nomination alone or proceeds after Provenance rejects the capture.",
+        "A write occurs with disabled server policy, a sensitive-content finding, unresolved evidence, a mismatched source slice, or a different account scope.",
+        "A retry creates a duplicate record, overwrites the original, or accepts conflicting text for the same source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "capture": {
+        "kind": "capture_candidate",
+        "span": {
+          "source_kind": "line",
+          "source_id": "line-mara-07",
+          "start_codepoint": 0,
+          "end_codepoint": 118,
+          "text": "I’ve realized that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-08-capture",
+      "scene_id": "scene-mara-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the afternoon queue observation or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-09-capture",
+      "scene_id": "scene-mara-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the same-day market reminder or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-10-capture",
+      "scene_id": "scene-mara-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the one-day lunch update or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-mara-11-capture",
+      "scene_id": "scene-mara-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "expected_outcomes": [
+        "Muse returns NoMemoryCandidate for this Line and nominates no text span.",
+        "Provenance independently reviews the complete response and records no_candidate rather than authorizing capture.",
+        "The application submits no automatic-memory candidate for this source event, and the Memory & Policy Service creates no memory record."
+      ],
+      "prohibited_outcomes": [
+        "Muse nominates the momentary desk observation or any other part of the Line as a MemoryCandidate.",
+        "Provenance returns allow_capture or reject_capture when no nomination exists.",
+        "Any memory record is created, updated, or duplicated for this source event."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-mara-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "kind": "no_candidate"
+      }
+    }
+  ]
+}
