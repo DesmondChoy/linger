@@ -159,7 +159,9 @@ class MuseEvalCaseTests(unittest.TestCase):
     def test_case_schema_rejects_forbidden_term_inside_the_reader_message(
         self,
     ) -> None:
-        raw_case = self.by_behavior["reflect_without_book_context"].model_dump(mode="json")
+        raw_case = self.by_behavior["reflect_without_book_context"].model_dump(
+            mode="json"
+        )
         raw_case["expected"]["forbidden_terms"] = ["silence"]
 
         with self.assertRaisesRegex(

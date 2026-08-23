@@ -227,6 +227,69 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             "evidence_found", grounding_call["response"]["outcome"]
         )
 
+    async def test_serendipity_proposal_fails_closed_after_semantic_pass(self) -> None:
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            "A web-backed connection that is not yet a releasable citation.",
+            ToolReturnPart(
+                "serendipity_explore",
+                {
+                    "decision": {"status": "proposal"},
+                    "evidence": [
+                        {
+                            "source_kind": "web",
+                            "evidence_id": "https://example.com/source",
+                        }
+                    ],
+                },
+            ),
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Find me an outside connection",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual("application_safe_decline", release.release_source)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_serendipity_decline_can_be_relayed_after_semantic_pass(self) -> None:
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            "I could not support a connection from the permitted sources.",
+            ToolReturnPart(
+                "serendipity_explore",
+                {
+                    "decision": {
+                        "status": "decline",
+                        "reason": "insufficient_evidence",
+                        "safe_next_step": "Try a more specific cue.",
+                    },
+                    "evidence": [],
+                },
+            ),
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Find a connection",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual(
+            "I could not support a connection from the permitted sources.",
+            release.reply,
+        )
+        self.assertEqual("muse_candidate", release.release_source)
+
     async def test_every_librarian_branch_reaches_provenance_unchanged(self) -> None:
         branches = (
             {

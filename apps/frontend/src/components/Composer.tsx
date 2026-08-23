@@ -1,18 +1,18 @@
-import type { FormEvent, KeyboardEvent } from 'react'
+import { useState, type FormEvent, type KeyboardEvent } from 'react'
 
 type Props = {
   disabled: boolean
-  value: string
-  onChange: (value: string) => void
   onSend: (message: string) => void
 }
 
-export function Composer({ disabled, value, onChange, onSend }: Props) {
+export function Composer({ disabled, onSend }: Props) {
+  const [value, setValue] = useState('')
+
   function submit() {
     const trimmed = value.trim()
     if (!trimmed || disabled) return
     onSend(trimmed)
-    onChange('')
+    setValue('')
   }
 
   function handleSubmit(event: FormEvent) {
@@ -32,7 +32,7 @@ export function Composer({ disabled, value, onChange, onSend }: Props) {
     <form className="composer" onSubmit={handleSubmit}>
       <textarea
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Tell Linger what you’re reading, watching, or thinking about…"
         rows={1}

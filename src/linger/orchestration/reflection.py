@@ -1,5 +1,6 @@
 """Application-owned Muse-to-Provenance release flow."""
 
+import asyncio
 import json
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping
@@ -210,7 +211,24 @@ def _validate_release(
     tool_results: list[dict[str, object]],
     release_scope: ReleaseScope | None,
 ) -> None:
-    """Validate declared book citations after semantic approval."""
+    """Validate the current book-only release contract after semantic approval."""
+    for result in tool_results:
+        if result["tool_name"] != "serendipity_explore":
+            continue
+        content = result["content"]
+        if not isinstance(content, dict):
+            raise ReleaseValidationError("Serendipity returned an invalid response")
+        decision = content.get("decision")
+        if not isinstance(decision, dict):
+            raise ReleaseValidationError("Serendipity returned an invalid response")
+        status = decision.get("status")
+        if status not in {"proposal", "decline"}:
+            raise ReleaseValidationError("Serendipity returned an invalid response")
+        if status == "proposal":
+            raise ReleaseValidationError(
+                "Serendipity proposals are not citation authorities in this release slice"
+            )
+
     evidence = _trusted_book_evidence(tool_results, release_scope)
     for declared in candidate.evidence_uses:
         if declared.source_kind != "book_corpus":
@@ -315,6 +333,7 @@ async def reflection_reply(
 ) -> ReflectionRelease:
     """Return an approved candidate or an application-authored safe decline."""
     review_context = review_context or {}
+    cancelled = False
     caught: Exception | None = None
     release: ReflectionRelease | None = None
     with logfire.span("reflection.release") as span:
@@ -330,6 +349,15 @@ async def reflection_reply(
                 source_event_id=source_event_id,
                 span=span,
             )
+        except asyncio.CancelledError:
+            cancelled = True
+            record_failure(
+                span,
+                stage="reflection_release",
+                code="request_cancelled",
+                retryable=False,
+                failure_type="application",
+            )
         except Exception as exc:
             caught = exc
             record_failure(
@@ -339,6 +367,8 @@ async def reflection_reply(
                 retryable=False,
                 failure_type="application",
             )
+    if cancelled:
+        raise asyncio.CancelledError
     if caught is not None:
         raise caught
     assert release is not None

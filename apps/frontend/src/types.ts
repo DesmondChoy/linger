@@ -1,30 +1,20 @@
-export type Connection = {
-  status: 'proposal'
-  tentative_claim: string
-  evidence_ids: string[]
-  interpretation: string
-  uncertainty: 'low' | 'medium' | 'high'
-  suggested_follow_up: string
-  cultural_suggestion?: {
-    kind: 'song'
-    title: string
-    creator: string
-    source_url: string
-    rationale: string
-  } | null
-}
-
-export type ConnectionBrief = {
-  cue: string
-  book_id: string | null
-  chapter_max: number | null
-  intent: 'find_connection' | 'get_recommendation'
-  allowed_sources: string[]
+export type ConnectionDecline = {
+  reason:
+    | 'no_permitted_evidence'
+    | 'insufficient_evidence'
+    | 'unsupported_cue'
+    | 'generic_theme_match'
+    | 'no_clear_winner'
+    | 'spoiler_boundary'
+    | 'source_scope_violation'
+    | 'unsafe_evidence'
+    | 'retrieval_unavailable'
+  failure_code: 'connection_discovery_failed' | null
 }
 
 export type AgentTrace = {
   agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Provenance' | 'Memory & Policy'
-  status: 'waiting' | 'running' | 'complete' | 'declined' | 'skipped' | 'not_wired' | 'failed'
+  status: 'complete' | 'declined' | 'skipped' | 'not_run' | 'failed'
   detail: string
 }
 
@@ -49,27 +39,10 @@ export type ContextResolution = {
   explanation: string
 }
 
-export type PromptInspection = {
-  dynamic_input: string
-}
-
-export type LibrarianRequest = {
-  query: string
-  book_scopes: { book_id: string; chapter_max: number }[]
-  purpose: 'connection_discovery'
-}
-
-export type EvidenceBundle = {
-  items: {
-    evidence_id: string
-    source_title: string
-    location: string
-    chapter: number | null
-    excerpt: string
-    relevance: number
-    source_kind: 'book_corpus'
-  }[]
-  retrieval_note: string
+export type LibrarianGroundingCall = {
+  request: Record<string, unknown>
+  outcome: string
+  response: Record<string, unknown>
 }
 
 export type RiskCode =
@@ -99,30 +72,16 @@ export type ReleaseInspection = {
   capture: CaptureInspection
 }
 
-export type TurnTimeline = {
-  id: string
-  userInput: string
-  response: string
-  traces: AgentTrace[]
-  contract?: MuseTurnContract
-  contextResolution?: ContextResolution
-  promptInspection?: PromptInspection
-  connectionBrief?: ConnectionBrief
-  librarianRequest?: LibrarianRequest
-  evidenceBundle?: EvidenceBundle
-  connection?: Connection
-  release?: ReleaseInspection
-  status: 'running' | 'complete' | 'failed'
+export type TraceReference = {
+  trace_id: string
 }
 
 export type TurnInspection = {
   muse_turn: MuseTurnContract
   context_resolution: ContextResolution
   traces: AgentTrace[]
-  connection_brief: ConnectionBrief | null
-  librarian_request: LibrarianRequest | null
-  evidence_bundle: EvidenceBundle | null
-  connection_proposal: Connection | null
+  connection_decline: ConnectionDecline | null
+  librarian_grounding: LibrarianGroundingCall[]
   prompt: string
   release: ReleaseInspection | null
 }
@@ -130,6 +89,7 @@ export type TurnInspection = {
 export type ChatResult = {
   reply: string
   inspection: TurnInspection
+  trace: TraceReference
   memory_capture: MemoryCaptureNotice | null
 }
 

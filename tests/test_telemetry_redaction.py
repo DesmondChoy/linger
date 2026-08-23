@@ -9,28 +9,32 @@ rather than against the projection functions in isolation, so an unredacted
 field added anywhere in the pipeline fails here.
 """
 
+import asyncio
 import json
 import logging
 import unittest
 from decimal import Decimal
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import logfire
 from logfire.testing import TestExporter
 from pydantic_ai import Agent
 from pydantic_ai.messages import ModelResponse, TextPart
 from pydantic_ai.models.function import FunctionModel
+from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RequestUsage
 
 from apps.backend.contracts import (
+    BookScope,
     ConnectionBrief,
     EvidenceBundle,
     EvidenceItem,
     LibrarianRequest,
 )
+from apps.backend.config import Settings
 from apps.backend.telemetry import (
-    brief_attrs,
+    connection_scope_attrs,
     evidence_attrs,
     librarian_request_attrs,
     review_attrs,
@@ -38,11 +42,21 @@ from apps.backend.telemetry import (
 )
 from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
+from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
+from src.linger.contracts.turn import ConfirmedReading
+from src.linger.orchestration import grounding as grounding_module
 from src.linger.orchestration.reflection import (
     SAFE_DECLINE,
     ReflectionRelease,
     reflection_reply,
 )
+from src.linger.orchestration.turn_context import (
+    reset_confirmed_reading,
+    set_confirmed_reading,
+)
+
+with patch("src.linger.agents.build.build_model", return_value=TestModel()):
+    from src.linger.orchestration.connection import connection_exploration
 
 # Distinctive strings that must never reach a span.
 SECRET_MESSAGE = "zqxjv my private reflection about the caterpillar zqxjv"
@@ -71,6 +85,16 @@ class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
     """Capture spans in memory; nothing is sent anywhere."""
 
     def setUp(self) -> None:
+        settings_patch = patch(
+            "apps.backend.telemetry.get_settings",
+            return_value=Settings(
+                _env_file=None,
+                linger_model="google:gemini-2.5-flash",
+                google_api_key="test-key",
+            ),
+        )
+        settings_patch.start()
+        self.addCleanup(settings_patch.stop)
         self.exporter = TestExporter()
         logfire.configure(
             send_to_logfire=False,
@@ -116,10 +140,24 @@ class ProjectionRedactionTests(TelemetryTestCase):
         self.assertNotIn("chapters", attrs)
 
     def test_brief_and_request_projections_drop_reader_text(self) -> None:
-        brief = ConnectionBrief(cue=SECRET_CUE, book_id="alice", chapter_max=3)
+        task = ConnectionDiscoveryInput(
+            cue=SECRET_CUE,
+            intent="find_connection",
+            presentation="ask_before_showing",
+            scope=ConnectionScope(
+                allowed_sources=("book_corpus",),
+                book_scopes=(
+                    BookScope(
+                        work_id="pg11",
+                        book_version_id="pg11-v01b38ea4",
+                        chapter_max=3,
+                    ),
+                ),
+            ),
+        )
         request = LibrarianRequest(query=SECRET_CUE)
 
-        brief_projection = brief_attrs(brief)
+        brief_projection = connection_scope_attrs(task)
         request_projection = librarian_request_attrs(request)
         self.assertNotIn(SECRET_CUE, json.dumps(brief_projection))
         self.assertNotIn(SECRET_CUE, json.dumps(request_projection))
@@ -206,8 +244,45 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertNotIn("RuntimeError", payload)
         self.assertIn("test_model_failed", payload)
 
+    async def test_agent_cancellation_uses_fixed_metadata_only(self) -> None:
+        agent = AsyncMock()
+        agent.run.side_effect = asyncio.CancelledError(SECRET_EXCEPTION)
+
+        with self.assertRaises(asyncio.CancelledError):
+            await run_agent_traced(
+                agent,
+                SECRET_MESSAGE,
+                span_name="test.agent",
+                role="Muse",
+                stage="test",
+                prompt_template_id="test.prompt",
+                failure_code="test_model_failed",
+            )
+
+        payload = self.exported_payload()
+        self.assertIn("request_cancelled", payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("CancelledError", payload)
+
 
 class ReflectionSpanTests(TelemetryTestCase):
+    async def test_reflection_cancellation_uses_fixed_metadata_only(self) -> None:
+        muse = AsyncMock()
+        muse.run.side_effect = asyncio.CancelledError(SECRET_EXCEPTION)
+
+        with self.assertRaises(asyncio.CancelledError):
+            await reflection_reply(
+                SECRET_MESSAGE,
+                [],
+                muse=muse,
+                provenance=AsyncMock(),
+            )
+
+        payload = self.exported_payload()
+        self.assertIn("request_cancelled", payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("CancelledError", payload)
+
     async def test_invalid_typed_candidate_does_not_leak_through_exception_span(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result(
@@ -357,6 +432,49 @@ class ReflectionSpanTests(TelemetryTestCase):
         self.assertIn("revision_count", payload)
         # The critique quotes the candidate verbatim and must not be exported.
         self.assertNotIn(SECRET_QUOTE, payload)
+
+
+class ManualToolSpanCancellationTests(TelemetryTestCase):
+    async def test_grounding_cancellation_uses_fixed_metadata_only(self) -> None:
+        cancelled_call = AsyncMock(
+            side_effect=asyncio.CancelledError(SECRET_EXCEPTION)
+        )
+        with patch.object(
+            grounding_module,
+            "_grounding_evidence",
+            new=cancelled_call,
+        ):
+            with self.assertRaises(asyncio.CancelledError):
+                await grounding_module.grounding_evidence(object())  # type: ignore[arg-type]
+
+        payload = self.exported_payload()
+        self.assertIn("request_cancelled", payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("CancelledError", payload)
+
+    async def test_connection_cancellation_uses_fixed_metadata_only(self) -> None:
+        reading_token = set_confirmed_reading(
+            ConfirmedReading(work_id="pg11", chapter_max=3)
+        )
+        explorer = AsyncMock(side_effect=asyncio.CancelledError(SECRET_EXCEPTION))
+        try:
+            with patch(
+                "src.linger.orchestration.connection.web_reach_permitted",
+                return_value=False,
+            ):
+                with self.assertRaises(asyncio.CancelledError):
+                    await connection_exploration(
+                        ConnectionBrief(cue=SECRET_CUE),
+                        explorer=explorer,
+                    )
+        finally:
+            reset_confirmed_reading(reading_token)
+
+        payload = self.exported_payload()
+        self.assertIn("request_cancelled", payload)
+        self.assertNotIn(SECRET_CUE, payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
+        self.assertNotIn("CancelledError", payload)
 
 
 class LogLineTests(unittest.TestCase):

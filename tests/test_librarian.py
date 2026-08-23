@@ -1,14 +1,12 @@
 """Regression tests for canonical, spoiler-bounded Librarian retrieval."""
 
 import unittest
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 from apps.backend.contracts import BookScope, LibrarianRequest
 from apps.backend.librarian import CorpusScopeError, Librarian
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
-from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
 def request(
@@ -85,37 +83,6 @@ class LibrarianTests(unittest.TestCase):
 
         with self.assertRaises(CorpusScopeError):
             self.librarian.retrieve(invalid)
-
-    def test_memory_search_is_account_scoped_and_excludes_exact_cue(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            service = MemoryPolicyService(directory)
-            account = AccountContext("reader-a")
-            other_account = AccountContext("reader-b")
-            service.save_explicit(
-                account,
-                text="When I feel rushed, I use certainty to replace process.",
-                source_event_id="event-a-1",
-            )
-            service.save_explicit(
-                account,
-                text="I keep filling silence before other people finish thinking.",
-                source_event_id="event-a-2",
-            )
-            service.save_explicit(
-                other_account,
-                text="This belongs to another reader.",
-                source_event_id="event-b-1",
-            )
-
-            results = self.librarian.retrieve_memories(
-                "When I feel rushed, I use certainty to replace process.",
-                memory_service=service,
-                account=account,
-            )
-
-        self.assertEqual(1, len(results))
-        self.assertIn("filling silence", results[0].excerpt)
-        self.assertNotIn("another reader", results[0].excerpt)
 
 
 if __name__ == "__main__":

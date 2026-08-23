@@ -4,19 +4,22 @@ from __future__ import annotations
 
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
+from typing import Literal
 
-from src.linger.agents.serendipity.models import ConnectionExplorationResult
+from src.linger.agents.serendipity.models import (
+    ConnectionIntent,
+    ConnectionExplorationResult,
+    DeclineReason,
+)
 
 
 @dataclass(frozen=True)
 class ConnectionRunInspection:
-    """Serializable contracts and evidence from one nested discovery run."""
+    """Content-free outcome metadata for one nested discovery run."""
 
-    brief: dict[str, object]
-    task: dict[str, object]
-    response: dict[str, object]
-    searches: tuple[dict[str, object], ...]
-    evidence: tuple[dict[str, object], ...]
+    status: Literal["proposal", "decline"]
+    reason: DeclineReason | None
+    book_search_outcomes: tuple[str, ...]
     failure_code: str | None = None
 
 
@@ -25,7 +28,7 @@ class ConnectionInspectionState:
     """One turn's serializable runs and reusable typed discovery result."""
 
     runs: list[ConnectionRunInspection]
-    result: ConnectionExplorationResult | None = None
+    cached: tuple[ConnectionIntent, ConnectionExplorationResult] | None = None
 
 
 _connection_state: ContextVar[ConnectionInspectionState | None] = ContextVar(
@@ -52,17 +55,21 @@ def connection_inspections() -> tuple[ConnectionRunInspection, ...]:
     return tuple(state.runs if state is not None else ())
 
 
-def cached_connection_result() -> ConnectionExplorationResult | None:
+def cached_connection_result(
+) -> tuple[ConnectionIntent, ConnectionExplorationResult] | None:
     """Return the first discovery decision for this request, when present."""
     state = _connection_state.get()
-    return state.result if state is not None else None
+    return state.cached if state is not None else None
 
 
-def cache_connection_result(result: ConnectionExplorationResult) -> None:
+def cache_connection_result(
+    intent: ConnectionIntent,
+    result: ConnectionExplorationResult,
+) -> None:
     """Retain exactly one typed result for repeated Muse tool calls this turn."""
     state = _connection_state.get()
-    if state is not None and state.result is None:
-        state.result = result
+    if state is not None and state.cached is None:
+        state.cached = (intent, result)
 
 
 def reset_connection_inspection(

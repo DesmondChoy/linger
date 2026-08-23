@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from uuid import uuid4
 
 import logfire
@@ -253,6 +254,7 @@ async def grounding_evidence(
     strength_judge: StrengthJudge | None = None,
 ) -> LibrarianResponse:
     """Trace the Librarian tool using validated scope and fixed outcomes only."""
+    cancelled = False
     caught: Exception | None = None
     response: LibrarianResponse | None = None
     with logfire.span(
@@ -269,6 +271,16 @@ async def grounding_evidence(
                 librarian=librarian,
                 strength_judge=strength_judge,
             )
+        except asyncio.CancelledError:
+            cancelled = True
+            record_failure(
+                span,
+                stage="librarian_search",
+                code="request_cancelled",
+                retryable=False,
+                failure_type="application",
+            )
+            span.set_attribute("tool.status", "failure")
         except BookVersionOutOfScope as exc:
             caught = exc
             record_failure(
@@ -325,6 +337,8 @@ async def grounding_evidence(
                     },
                 )
 
+    if cancelled:
+        raise asyncio.CancelledError
     if caught is not None:
         raise caught
     assert response is not None

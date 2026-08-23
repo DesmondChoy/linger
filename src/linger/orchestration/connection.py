@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from uuid import uuid4
 
 import logfire
 from exa_py import AsyncExa
 from pydantic import ValidationError
+from pydantic_ai import UsageLimits
 
-from apps.backend.config import REPO_ROOT, get_settings
-from apps.backend.contracts import ConnectionBrief
+from apps.backend.config import get_settings
+from apps.backend.contracts import BookScope, ConnectionBrief, EvidenceItem
 from apps.backend.librarian import Librarian
 from apps.backend.telemetry import (
-    brief_attrs,
+    connection_scope_attrs,
     record_failure,
     run_agent_traced,
     set_span_attrs,
@@ -22,8 +23,6 @@ from apps.backend.telemetry import (
 from src.linger.agents.serendipity.agent import serendipity_agent
 from src.linger.agents.serendipity.models import (
     SERENDIPITY_RESPONSE_ADAPTER,
-    BookConnectionEvidence,
-    BookEvidenceScope,
     ConnectionDecline,
     ConnectionDiscoveryInput,
     ConnectionEvidence,
@@ -38,18 +37,14 @@ from src.linger.agents.serendipity.tools import (
     SearchTrace,
     SerendipityDependencies,
 )
-from src.linger.orchestration.turn_context import confirmed_reading, synthetic_reader_id
+from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
     cache_connection_result,
     cached_connection_result,
     record_connection_inspection,
 )
-from src.linger.orchestration.progress_context import emit_progress
-from src.linger.services.memory import AccountContext, MemoryPolicyService
-
-memory_service = MemoryPolicyService(REPO_ROOT / "memories")
-librarian_service = Librarian()
+from src.linger.orchestration.turn_context import confirmed_reading
 
 
 @dataclass(frozen=True)
@@ -62,6 +57,8 @@ class ExplorationResult:
 
 
 Explorer = Callable[[ConnectionDiscoveryInput], Awaitable[ExplorationResult]]
+SERENDIPITY_REQUEST_LIMIT = 8
+SERENDIPITY_TOOL_CALL_LIMIT = 6
 
 
 class InvalidConnectionResponse(ValueError):
@@ -83,45 +80,25 @@ def web_reach_permitted() -> bool:
     )
 
 
-def build_brief(cue: str) -> ConnectionBrief:
-    """Attach application-owned source permissions to one Muse-supplied cue."""
-    allowed_sources: set[str] = {"authorised_memory"}
-    if web_reach_permitted():
-        allowed_sources.add("web")
-
-    reading = confirmed_reading()
-    if reading is None:
-        return ConnectionBrief(cue=cue, allowed_sources=allowed_sources)
-
-    allowed_sources.add("book_corpus")
-    return ConnectionBrief(
-        cue=cue,
-        book_id=reading.work_id,
-        chapter_max=reading.chapter_max,
-        allowed_sources=allowed_sources,
-    )
-
-
-def _build_task(brief: ConnectionBrief) -> ConnectionDiscoveryInput:
+def _build_task(
+    brief: ConnectionBrief,
+    *,
+    librarian: Librarian,
+) -> ConnectionDiscoveryInput:
     """Clamp a brief to current application grants without retrieving evidence."""
     reading = confirmed_reading()
-    allowed_sources: list[str] = ["authorised_memory"]
-    book_scopes: tuple[BookEvidenceScope, ...] = ()
+    allowed_sources: list[str] = []
+    book_scopes: tuple[BookScope, ...] = ()
 
     if reading is not None:
-        book_version_id = librarian_service.version_for(reading.work_id)
+        book_version_id = librarian.version_for(reading.work_id)
         if book_version_id is not None:
-            ceiling = (
-                min(brief.chapter_max, reading.chapter_max)
-                if brief.chapter_max is not None
-                else reading.chapter_max
-            )
             allowed_sources.append("book_corpus")
             book_scopes = (
-                BookEvidenceScope(
+                BookScope(
                     work_id=reading.work_id,
                     book_version_id=book_version_id,
-                    chapter_max=ceiling,
+                    chapter_max=reading.chapter_max,
                 ),
             )
 
@@ -129,7 +106,6 @@ def _build_task(brief: ConnectionBrief) -> ConnectionDiscoveryInput:
         allowed_sources.append("web")
 
     return ConnectionDiscoveryInput(
-        request_id=f"serendipity-{uuid4().hex}",
         cue=brief.cue,
         intent=brief.intent,
         presentation=(
@@ -160,14 +136,15 @@ def _web_capability() -> GuardedExaSearch:
     )
 
 
-async def _agent_explorer(task: ConnectionDiscoveryInput) -> ExplorationResult:
+async def _agent_explorer(
+    task: ConnectionDiscoveryInput,
+    *,
+    librarian: Librarian,
+) -> ExplorationResult:
     """Let Serendipity choose bounded Librarian and optional Exa searches."""
     deps = SerendipityDependencies(
         task=task,
-        librarian=librarian_service,
-        memory_service=memory_service,
-        account=AccountContext(account_id=get_settings().linger_account_id),
-        synthetic_reader_id=synthetic_reader_id(),
+        librarian=librarian,
     )
     capabilities = [_web_capability()] if "web" in task.scope.allowed_sources else []
     result = await run_agent_traced(
@@ -181,6 +158,10 @@ async def _agent_explorer(task: ConnectionDiscoveryInput) -> ExplorationResult:
         retryable=False,
         deps=deps,
         capabilities=capabilities,
+        usage_limits=UsageLimits(
+            request_limit=SERENDIPITY_REQUEST_LIMIT,
+            tool_calls_limit=SERENDIPITY_TOOL_CALL_LIMIT,
+        ),
     )
     try:
         response = SERENDIPITY_RESPONSE_ADAPTER.validate_python(result.output)
@@ -199,7 +180,7 @@ def _evidence_is_in_scope(
 ) -> bool:
     if evidence.source_kind not in task.scope.allowed_sources:
         return False
-    if not isinstance(evidence, BookConnectionEvidence):
+    if not isinstance(evidence, EvidenceItem):
         return True
     ceilings = {
         (scope.work_id, scope.book_version_id): scope.chapter_max
@@ -221,6 +202,11 @@ def _validate_response(
         raise InvalidConnectionResponse("search evidence exceeded its trusted grant")
 
     response = run.response
+    if isinstance(response, ConnectionDecline):
+        return _decline(
+            response.reason,
+            "No connection cleared the current evidence and safety checks.",
+        )
     candidates = response.shortlist
     cited_ids = {
         evidence_id
@@ -232,8 +218,6 @@ def _validate_response(
         raise InvalidConnectionResponse(
             f"Serendipity referenced unknown evidence: {sorted(unknown_ids)}"
         )
-    if isinstance(response, ConnectionDecline):
-        return response
     if response.presentation != task.presentation:
         raise InvalidConnectionResponse("Serendipity changed the presentation policy")
 
@@ -247,12 +231,6 @@ def _validate_response(
         for evidence_id in response.selected_candidate.evidence_ids
     }
     flags = set(response.policy_flags)
-    if ("authorised_memory" in winner_kinds) != (
-        "uses_authorised_memory" in flags
-    ):
-        raise InvalidConnectionResponse(
-            "Serendipity's memory flag does not match the selected evidence"
-        )
     if ("web" in winner_kinds) != ("contains_web_claim" in flags):
         raise InvalidConnectionResponse(
             "Serendipity's web flag does not match the selected evidence"
@@ -260,58 +238,64 @@ def _validate_response(
     return response
 
 
+def _book_search_outcomes(searches: tuple[SearchTrace, ...]) -> tuple[str, ...]:
+    return tuple(
+        search.outcome for search in searches if search.source == "book_corpus"
+    )
+
+
 async def connection_exploration(
     brief: ConnectionBrief,
     *,
-    explorer: Explorer = _agent_explorer,
+    explorer: Explorer | None = None,
+    librarian: Librarian = librarian_service,
 ) -> ConnectionExplorationResult:
     """Run discovery and return its validated decision with exact evidence."""
     cached = cached_connection_result()
     if cached is not None:
-        emit_progress(
-            "Serendipity",
-            "reuse_connection_decision",
-            "complete",
-            "The first request-scoped Serendipity decision is being reused.",
+        cached_intent, cached_result = cached
+        if cached_intent == brief.intent:
+            return cached_result
+        return ConnectionExplorationResult(
+            decision=_decline(
+                "retrieval_unavailable",
+                "A different connection request already ran for this turn.",
+            )
         )
-        return cached
 
-    task = _build_task(brief)
-    traced_brief = brief.model_copy(
-        update={
-            "book_id": (
-                task.scope.book_scopes[0].work_id
-                if task.scope.book_scopes
-                else None
-            ),
-            "chapter_max": (
-                task.scope.book_scopes[0].chapter_max
-                if task.scope.book_scopes
-                else None
-            ),
-            "allowed_sources": set(task.scope.allowed_sources),
-        }
-    )
-
-    with logfire.span("serendipity.connection", **brief_attrs(traced_brief)) as span:
+    task = _build_task(brief, librarian=librarian)
+    cancelled = False
+    with logfire.span(
+        "serendipity.connection", **connection_scope_attrs(task)
+    ) as span:
         span.set_attribute("search.allowed_sources", list(task.scope.allowed_sources))
         run: ExplorationResult | None = None
         try:
-            run = await explorer(task)
-            emit_progress(
-                "Serendipity",
-                "validate_connection",
-                "running",
-                "The application is validating evidence scope and the selected connection.",
-            )
+            if not task.scope.allowed_sources:
+                run = ExplorationResult(
+                    response=_decline(
+                        "no_permitted_evidence",
+                        "Confirm a book or enable bounded public-web search first.",
+                    ),
+                    evidence=(),
+                    searches=(),
+                )
+            elif explorer is not None:
+                run = await explorer(task)
+            else:
+                run = await _agent_explorer(task, librarian=librarian)
             result = _validate_response(run, task)
-        except Exception:
-            emit_progress(
-                "Serendipity",
-                "validate_connection",
-                "failed",
-                "Connection validation failed closed.",
+        except asyncio.CancelledError:
+            cancelled = True
+            record_failure(
+                span,
+                stage="serendipity_discovery",
+                code="request_cancelled",
+                retryable=False,
+                failure_type="application",
             )
+            span.set_attribute("tool.status", "failure")
+        except Exception:
             record_failure(
                 span,
                 stage="serendipity_discovery",
@@ -326,95 +310,59 @@ async def connection_exploration(
             )
             record_connection_inspection(
                 ConnectionRunInspection(
-                    brief=traced_brief.model_dump(mode="json"),
-                    task=task.model_dump(mode="json"),
-                    response=result.model_dump(mode="json"),
-                    searches=tuple(
-                        {
-                            "source": search.source,
-                            "tool": search.tool,
-                            "request": search.request,
-                            "outcome": search.outcome,
-                            "evidence_ids": list(search.evidence_ids),
-                        }
-                        for search in (run.searches if run else ())
-                    ),
-                    evidence=tuple(
-                        item.model_dump(mode="json")
-                        for item in (run.evidence if run else ())
+                    status="decline",
+                    reason=result.reason,
+                    book_search_outcomes=_book_search_outcomes(
+                        run.searches if run else ()
                     ),
                     failure_code="connection_discovery_failed",
                 )
             )
             exploration_result = ConnectionExplorationResult(decision=result)
-            cache_connection_result(exploration_result)
+            cache_connection_result(brief.intent, exploration_result)
             return exploration_result
 
-        emit_progress(
-            "Serendipity",
-            "connection_decision",
-            "complete" if result.status == "proposal" else "declined",
-            (
-                "Serendipity returned one validated proposal to Muse."
-                if result.status == "proposal"
-                else "Serendipity returned a validated decline to Muse."
-            ),
-        )
-
-        set_span_attrs(
-            span,
-            {
-                "status": "success" if result.status == "proposal" else "decline",
-                "tool.status": "success" if result.status == "proposal" else "decline",
-                "retrieval.outcome": result.status,
-                "retrieval.item_count": len(run.evidence),
-                "search.source_kinds": sorted(
-                    {search.source for search in run.searches}
-                ),
-                "serendipity.shortlist_size": len(result.shortlist),
-            },
-        )
-        record_connection_inspection(
-            ConnectionRunInspection(
-                brief=traced_brief.model_dump(mode="json"),
-                task=task.model_dump(mode="json"),
-                response=result.model_dump(mode="json"),
-                searches=tuple(
-                    {
-                        "source": search.source,
-                        "tool": search.tool,
-                        "request": search.request,
-                        "outcome": search.outcome,
-                        "evidence_ids": list(search.evidence_ids),
-                    }
-                    for search in run.searches
-                ),
+        if not cancelled:
+            set_span_attrs(
+                span,
+                {
+                    "status": "success" if result.status == "proposal" else "decline",
+                    "tool.status": "success" if result.status == "proposal" else "decline",
+                    "retrieval.outcome": result.status,
+                    "retrieval.item_count": len(run.evidence),
+                    "search.source_kinds": sorted(
+                        {search.source for search in run.searches}
+                    ),
+                    "serendipity.shortlist_size": (
+                        len(result.shortlist)
+                        if isinstance(result, ConnectionProposal)
+                        else 0
+                    ),
+                },
+            )
+            record_connection_inspection(
+                ConnectionRunInspection(
+                    status=result.status,
+                    reason=(
+                        result.reason if isinstance(result, ConnectionDecline) else None
+                    ),
+                    book_search_outcomes=_book_search_outcomes(run.searches),
+                )
+            )
+            selected_evidence_ids = (
+                set(result.selected_candidate.evidence_ids)
+                if isinstance(result, ConnectionProposal)
+                else set()
+            )
+            exploration_result = ConnectionExplorationResult(
+                decision=result,
                 evidence=tuple(
-                    item.model_dump(mode="json") for item in run.evidence
+                    item
+                    for item in run.evidence
+                    if item.evidence_id in selected_evidence_ids
                 ),
             )
-        )
-        selected_evidence_ids = (
-            set(result.selected_candidate.evidence_ids)
-            if isinstance(result, ConnectionProposal)
-            else set()
-        )
-        exploration_result = ConnectionExplorationResult(
-            decision=result,
-            evidence=tuple(
-                item
-                for item in run.evidence
-                if item.evidence_id in selected_evidence_ids
-            ),
-        )
-        cache_connection_result(exploration_result)
-        return exploration_result
+            cache_connection_result(brief.intent, exploration_result)
+            return exploration_result
 
-
-async def connection_proposal(
-    brief: ConnectionBrief,
-    *,
-    explorer: Explorer = _agent_explorer,
-) -> SerendipityResponse:
-    """Return only the typed Serendipity decision for direct callers."""
-    return (await connection_exploration(brief, explorer=explorer)).decision
+    raise asyncio.CancelledError

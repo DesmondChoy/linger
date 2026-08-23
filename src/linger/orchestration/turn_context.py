@@ -9,12 +9,12 @@ from src.linger.contracts.turn import ConfirmedReading
 _confirmed_reading: contextvars.ContextVar[ConfirmedReading | None] = contextvars.ContextVar(
     "confirmed_reading", default=None
 )
-_synthetic_reader_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "synthetic_reader_id", default=None
+_reader_message: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "reader_message", default=None
 )
 
 
-def set_confirmed_reading(value: ConfirmedReading) -> contextvars.Token:
+def set_confirmed_reading(value: ConfirmedReading | None) -> contextvars.Token:
     return _confirmed_reading.set(value)
 
 
@@ -26,14 +26,14 @@ def reset_confirmed_reading(token: contextvars.Token) -> None:
     _confirmed_reading.reset(token)
 
 
-def set_synthetic_reader_id(value: str | None) -> contextvars.Token:
-    """Expose one server-validated demo profile during a request only."""
-    return _synthetic_reader_id.set(value)
+def set_reader_message(value: str) -> contextvars.Token:
+    """Bind the application-owned current reader message for Muse tools."""
+    return _reader_message.set(value)
 
 
-def synthetic_reader_id() -> str | None:
-    return _synthetic_reader_id.get()
+def reader_message() -> str | None:
+    return _reader_message.get()
 
 
-def reset_synthetic_reader_id(token: contextvars.Token) -> None:
-    _synthetic_reader_id.reset(token)
+def reset_reader_message(token: contextvars.Token) -> None:
+    _reader_message.reset(token)

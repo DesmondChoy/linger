@@ -1,5 +1,6 @@
 """FastAPI entry point for the Linger chat prototype."""
 
+import asyncio
 import json
 import logging
 import re
@@ -10,6 +11,7 @@ from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from opentelemetry.trace import format_trace_id
 
 # Configure the exporter before application-owned spans can be created.
 from .telemetry import configure_telemetry, record_failure, set_span_attrs
@@ -21,8 +23,21 @@ import logfire  # noqa: E402  (import order is load-bearing, see above)
 from src.linger.agents.muse.agent import muse_chat_agent  # noqa: E402
 from src.linger.agents.provenance.agent import provenance_agent  # noqa: E402
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
+from src.linger.orchestration.connection import web_reach_permitted
+from src.linger.orchestration.grounding import librarian_service
+from src.linger.orchestration.inspection_context import (
+    ConnectionRunInspection,
+    begin_connection_inspection,
+    connection_inspections,
+    reset_connection_inspection,
+)
 from src.linger.orchestration.reflection import ReflectionRelease, reflection_reply
-from src.linger.orchestration.turn_context import reset_confirmed_reading, set_confirmed_reading
+from src.linger.orchestration.turn_context import (
+    reset_confirmed_reading,
+    reset_reader_message,
+    set_confirmed_reading,
+    set_reader_message,
+)
 from src.linger.services.memory import (
     AccountContext,
     MemoryConflictError,
@@ -40,14 +55,15 @@ from .contracts import (
     ReadingContext,
     TurnPolicy,
 )
-from .hybrid_librarian import HybridLibrarian
 from .logger import ROOT_NAME, configure_logging
 from .schemas import (
     CaptureInspection,
     ChatRequest,
     ChatResponse,
+    ConnectionDeclineInspection,
     MemoryCaptureNotice,
     ReleaseInspection,
+    TraceReference,
     TurnInspection,
 )
 
@@ -88,7 +104,6 @@ AFFIRMATION_PATTERN = re.compile(
     r"^\s*(?:yes|yeah|yep|correct|that(?:'s| is)\s+right)\b",
     re.IGNORECASE,
 )
-librarian = HybridLibrarian()
 
 
 def _title_before_chapter(message: str, chapter_start: int) -> str | None:
@@ -125,8 +140,6 @@ def _inferred_context(message: str) -> tuple[str, str, int] | None:
         return ("pg11", "Alice's Adventures in Wonderland", 5)
     if "ada" in text or "mabel" in text:
         return ("pg11", "Alice's Adventures in Wonderland", 2)
-    if any(cue in text for cue in ("milk", "apples")) and any(cue in text for cue in ("pigs", "animal farm", "equality", "power")):
-        return ("animal-farm", "Animal Farm", 3)
     return None
 
 
@@ -218,50 +231,44 @@ def _inspection_for(
         else None
     )
     turn_id = request.turn_id or str(uuid4())
+    book_connection_permitted = (
+        context is not None and librarian_service.has_corpus(context.work_id)
+    )
     muse_turn = MuseTurn(
         turn_id=turn_id,
         user_message=request.message,
         reading_context=context,
         policy=TurnPolicy(
             spoiler_ceiling=context.chapter_max if context else None,
-            allow_retrieval=context is not None and librarian.has_corpus(context.work_id),
-            allow_connection=context is not None and librarian.has_corpus(context.work_id),
+            allow_retrieval=book_connection_permitted,
+            allow_connection=book_connection_permitted or web_reach_permitted(),
             allow_memory_capture=allow_memory_capture,
         ),
     )
     traces = [{
         "agent": "Router",
-        "status": "complete" if context else "waiting",
+        "status": "complete",
         "detail": resolution.explanation,
     }]
-    brief_data = request_data = evidence_data = proposal_data = None
     traces.extend([
-        {"agent": "Librarian", "status": "not_wired", "detail": "Retrieval is delegated to Muse, which decides whether to call it. The router no longer observes this."},
-        {"agent": "Serendipity", "status": "not_wired", "detail": "Connection discovery is delegated to Muse. The router no longer observes this."},
+        {"agent": "Librarian", "status": "waiting", "detail": "Waiting to see whether Muse requests bounded retrieval."},
+        {"agent": "Serendipity", "status": "waiting", "detail": "Waiting to see whether Muse requests connection discovery."},
     ])
 
     muse_payload = {
         "muse_turn": muse_turn.model_dump(mode="json"),
         "context_resolution": resolution.model_dump(mode="json"),
-        "connection_proposal": proposal_data,
-        "supporting_evidence": evidence_data,
     }
     muse_input = json.dumps(muse_payload, ensure_ascii=False)
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
         "reading_context": context.model_dump(mode="json") if context else None,
-        "connection_proposal": proposal_data,
-        "cited_evidence": evidence_data,
     }
     traces.append({"agent": "Muse", "status": "running", "detail": "Drafting a candidate response."})
     return TurnInspection(
         muse_turn=muse_turn.model_dump(mode="json"),
         context_resolution=resolution.model_dump(mode="json"),
         traces=traces,
-        connection_brief=brief_data,
-        librarian_request=request_data,
-        evidence_bundle=evidence_data,
-        connection_proposal=proposal_data,
         prompt=muse_input,
     ), muse_input, review_context
 
@@ -366,6 +373,130 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "model": settings.linger_model}
 
 
+def _replace_trace(
+    inspection: TurnInspection,
+    agent: str,
+    *,
+    status: str,
+    detail: str,
+) -> None:
+    """Replace one preallocated agent trace with fixed application metadata."""
+    for index, trace in enumerate(inspection.traces):
+        if trace.get("agent") == agent:
+            inspection.traces[index] = {
+                "agent": agent,
+                "status": status,
+                "detail": detail,
+            }
+            return
+
+
+def _apply_connection_inspection(
+    inspection: TurnInspection,
+    run: ConnectionRunInspection,
+) -> tuple[str, ...]:
+    """Project one nested Serendipity run as fixed metadata only."""
+    book_outcomes = run.book_search_outcomes
+
+    if run.status != "proposal":
+        inspection.connection_decline = ConnectionDeclineInspection(
+            reason=run.reason or "retrieval_unavailable",
+            failure_code=(
+                "connection_discovery_failed" if run.failure_code else None
+            ),
+        )
+        _replace_trace(
+            inspection,
+            "Serendipity",
+            status="failed" if run.failure_code else "declined",
+            detail=(
+                "Connection discovery failed closed; no diagnostic content was exposed."
+                if run.failure_code
+                else "Serendipity returned a typed decline; no diagnostic content was exposed."
+            ),
+        )
+        return book_outcomes
+
+    _replace_trace(
+        inspection,
+        "Serendipity",
+        status="declined",
+        detail=(
+            "Serendipity returned a proposal, but the current release contract "
+            "does not authorise connection evidence."
+        ),
+    )
+    return book_outcomes
+
+
+def _mark_connection_skipped(inspection: TurnInspection) -> None:
+    _replace_trace(
+        inspection,
+        "Serendipity",
+        status="skipped",
+        detail="Muse did not call serendipity_explore for this turn.",
+    )
+
+
+def _finalize_librarian_inspection(
+    inspection: TurnInspection,
+    release: ReflectionRelease,
+    *,
+    connection_book_outcomes: tuple[str, ...],
+) -> None:
+    """Surface successful direct grounding without leaking rejected content."""
+    direct_calls = release.librarian_grounding_calls
+    direct_kinds = tuple(
+        response.get("kind")
+        for call in direct_calls
+        if isinstance((response := call.get("response")), dict)
+    )
+    connection_failed = "retrieval_unavailable" in connection_book_outcomes
+    direct_failed = any(
+        call.get("outcome") != "success" for call in direct_calls
+    ) or "failure" in direct_kinds
+    direct_clarified = "clarification" in direct_kinds
+    released = release.release_source == "muse_candidate"
+    inspection.librarian_grounding = (
+        list(direct_calls) if released else []
+    )
+
+    if not released and (connection_book_outcomes or direct_calls):
+        status = "declined"
+        detail = "Retrieval diagnostics were withheld because no Muse candidate was released."
+    elif connection_failed or direct_failed:
+        status = "failed"
+        detail = "A Librarian call failed; no failed-retrieval content was exposed."
+    elif connection_book_outcomes and direct_calls:
+        status = "complete"
+        detail = (
+            "Librarian completed bounded connection retrieval and direct Muse "
+            f"grounding ({len(direct_calls)} call(s))."
+        )
+    elif connection_book_outcomes:
+        status = "complete"
+        detail = "Librarian completed bounded book-corpus retrieval for Serendipity."
+    elif direct_clarified:
+        status = "declined"
+        detail = "Librarian requested clarification instead of searching the corpus."
+    elif direct_calls:
+        status = "complete"
+        detail = (
+            f"Muse called librarian_search directly {len(direct_calls)} time(s) for "
+            "book grounding."
+        )
+    else:
+        status = "skipped"
+        detail = "No Librarian retrieval was requested for this turn."
+
+    _replace_trace(
+        inspection,
+        "Librarian",
+        status=status,
+        detail=detail,
+    )
+
+
 async def _run_chat_pipeline(
     request: ChatRequest,
     reading_state: sessions.ReadingStateSnapshot,
@@ -378,7 +509,9 @@ async def _run_chat_pipeline(
         allow_memory_capture=service.capture_enabled(account),
     )
     context = inspection.muse_turn.get("reading_context")
-    book_version_id = librarian.version_for(context["work_id"]) if context else None
+    book_version_id = (
+        librarian_service.version_for(context["work_id"]) if context else None
+    )
     release_scope = (
         ReleaseScope(
             work_id=context["work_id"],
@@ -393,6 +526,8 @@ async def _run_chat_pipeline(
         if context
         else None
     )
+    reader_message_token = set_reader_message(request.message)
+    connection_token = begin_connection_inspection()
     try:
         release: ReflectionRelease = await reflection_reply(
             muse_input,
@@ -405,7 +540,23 @@ async def _run_chat_pipeline(
             source_event_id=inspection.muse_turn["turn_id"],
         )
     finally:
+        nested_connections = connection_inspections()
+        reset_connection_inspection(connection_token)
+        reset_reader_message(reader_message_token)
         reset_confirmed_reading(token)
+    connection_book_outcomes: tuple[str, ...] = ()
+    if nested_connections:
+        connection_book_outcomes = _apply_connection_inspection(
+            inspection,
+            nested_connections[-1],
+        )
+    else:
+        _mark_connection_skipped(inspection)
+    _finalize_librarian_inspection(
+        inspection,
+        release,
+        connection_book_outcomes=connection_book_outcomes,
+    )
     if release.release_source == "application_safe_decline":
         sessions.restore_reading_state(request.session_id, reading_state)
     capture = _commit_automatic_capture(release, service, account)
@@ -422,6 +573,7 @@ async def chat(
     """Run the complete output gate before releasing or storing a reply."""
     started = perf_counter()
     reading_state = sessions.snapshot_reading_state(request.session_id)
+    cancelled = False
     failure: Exception | None = None
     inspection: TurnInspection | None = None
     release: ReflectionRelease | None = None
@@ -434,12 +586,33 @@ async def chat(
             "status": "started",
         },
     ) as span:
+        span_context = span.get_span_context()
+        trace = TraceReference(
+            trace_id=format_trace_id(span_context.trace_id),
+        )
         try:
             inspection, release, capture = await _run_chat_pipeline(
                 request,
                 reading_state,
                 service,
                 context,
+            )
+        except asyncio.CancelledError:
+            cancelled = True
+            sessions.restore_reading_state(request.session_id, reading_state)
+            record_failure(
+                span,
+                stage="chat_request",
+                code="request_cancelled",
+                retryable=False,
+                failure_type="application",
+            )
+            set_span_attrs(
+                span,
+                {
+                    "http.response.status_code": 499,
+                    "request.outcome": "cancelled",
+                },
             )
         except Exception as exc:
             failure = exc
@@ -472,6 +645,14 @@ async def chat(
                 },
             )
 
+    if cancelled:
+        logger.info(
+            "Agent run cancelled elapsed=%.2fs failure_stage=chat_request "
+            "failure_code=request_cancelled retryable=false",
+            perf_counter() - started,
+        )
+        raise asyncio.CancelledError
+
     if failure is not None:
         logger.error(
             "Agent run failed elapsed=%.2fs failure_stage=chat_request "
@@ -480,7 +661,10 @@ async def chat(
         )
         raise HTTPException(
             status_code=502,
-            detail="The model call failed. Try again.",
+            detail={
+                "message": "The model call failed. Try again.",
+                "trace": trace.model_dump(mode="json"),
+            },
         ) from None
 
     assert inspection is not None and release is not None and capture is not None
@@ -580,6 +764,7 @@ async def chat(
     return ChatResponse(
         reply=release.reply,
         inspection=inspection,
+        trace=trace,
         memory_capture=notice,
     )
 

@@ -39,15 +39,10 @@ class MuseTurn(BaseModel):
 
 
 class ConnectionBrief(BaseModel):
-    """A reader cue plus the source kinds orchestration may search for it."""
+    """Muse's connection request before application-owned scope is attached."""
 
-    cue: str = Field(min_length=1, max_length=2000)
-    book_id: str | None = None
-    chapter_max: int | None = Field(default=None, ge=1)
+    cue: str = Field(min_length=1, max_length=8000)
     intent: Literal["find_connection", "get_recommendation"] = "find_connection"
-    allowed_sources: set[
-        Literal["authorised_memory", "book_corpus", "web"]
-    ] = {"authorised_memory"}
 
 
 class BookScope(BaseModel):
@@ -81,18 +76,9 @@ class EvidenceItem(BaseModel):
     excerpt: str
     relevance: float = Field(ge=0, le=1)
     source_kind: Literal["book_corpus"] = "book_corpus"
+    trust_level: Literal["canonical"] = "canonical"
 
 
 class EvidenceBundle(BaseModel):
     items: list[EvidenceItem]
     retrieval_note: str
-
-
-class MemoryEvidenceItem(BaseModel):
-    """One active account-owned memory returned by Librarian."""
-
-    evidence_id: str
-    excerpt: str
-    capture_type: Literal["explicit", "automatic", "correction"]
-    recorded_at: str
-    relevance: float = Field(ge=0, le=1)

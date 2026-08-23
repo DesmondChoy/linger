@@ -1,5 +1,6 @@
 """Tests for atomic chat history updates."""
 
+import asyncio
 import json
 import os
 import tempfile
@@ -32,6 +33,7 @@ with patch.dict(
         ReflectionRelease,
         reflection_reply as run_reflection_gate,
     )
+    from src.linger.orchestration.inspection_context import ConnectionRunInspection
     from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
@@ -108,12 +110,21 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("agent_pipeline_failed", payload)
         self.assertIn("agent_pipeline_failed", logs)
 
-    def test_stream_failure_returns_only_safe_trace_correlation(self) -> None:
+    def test_failure_returns_only_safe_trace_correlation(self) -> None:
+        exporter = TestExporter()
+        logfire.configure(
+            send_to_logfire=False,
+            console=False,
+            inspect_arguments=False,
+            additional_span_processors=[
+                logfire.testing.SimpleSpanProcessor(exporter)
+            ],
+        )
         gate = AsyncMock(side_effect=RuntimeError("private provider failure"))
 
         with patch.object(main, "reflection_reply", gate):
             response = TestClient(main.app).post(
-                "/api/chat/stream",
+                "/api/chat",
                 json={
                     "session_id": self.session_id,
                     "turn_id": "failed-turn",
@@ -121,17 +132,21 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 },
             )
 
-        self.assertEqual(200, response.status_code)
-        error_frame = next(
-            frame for frame in response.text.split("\n\n") if frame.startswith("event: error")
-        )
-        payload = json.loads(error_frame.split("data: ", 1)[1])
-        self.assertEqual("The model call failed. Try again.", payload["detail"])
+        self.assertEqual(502, response.status_code)
+        payload = response.json()["detail"]
+        self.assertEqual("The model call failed. Try again.", payload["message"])
         self.assertRegex(payload["trace"]["trace_id"], r"^[0-9a-f]{32}$")
-        self.assertRegex(payload["trace"]["root_span_id"], r"^[0-9a-f]{16}$")
-        self.assertEqual(main.settings.logfire_token is not None, payload["trace"]["exported"])
         self.assertNotIn("Private reader message", response.text)
         self.assertNotIn("private provider failure", response.text)
+        request_span = next(
+            span
+            for span in exporter.exported_spans_as_dict()
+            if span["name"] == "chat.request"
+        )
+        attributes = request_span["attributes"]
+        self.assertEqual("/api/chat", attributes["http.route"])
+        self.assertEqual(502, attributes["http.response.status_code"])
+        self.assertEqual("failed", attributes["request.outcome"])
 
     async def test_success_stores_only_released_turn(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="Hello")
@@ -146,8 +161,6 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("Approved reply", response.reply)
         self.assertRegex(response.trace.trace_id, r"^[0-9a-f]{32}$")
-        self.assertRegex(response.trace.root_span_id, r"^[0-9a-f]{16}$")
-        self.assertEqual(main.settings.logfire_token is not None, response.trace.exported)
         history = sessions.history(self.session_id)
         self.assertEqual("Hello", history[0].parts[0].content)
         self.assertEqual("Approved reply", history[1].parts[0].content)
@@ -155,9 +168,10 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(("pass",), response.inspection.release.provenance_verdicts)
         review_context = gate.await_args.kwargs["review_context"]
         self.assertIn("policy_constraints", review_context)
-        self.assertIn("cited_evidence", review_context)
         muse_payload = json.loads(gate.await_args.args[0])
+        self.assertEqual({"muse_turn", "context_resolution"}, set(muse_payload))
         self.assertEqual("Hello", muse_payload["muse_turn"]["user_message"])
+        self.assertFalse(muse_payload["muse_turn"]["policy"]["allow_connection"])
         self.assertIn("context_resolution", muse_payload)
         serendipity_trace = next(
             trace
@@ -172,6 +186,24 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("skipped", serendipity_trace["status"])
         self.assertIn("did not call", serendipity_trace["detail"])
         self.assertEqual("skipped", librarian_trace["status"])
+
+    async def test_web_grant_allows_bookless_connection_discovery(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ))
+
+        with patch.object(main, "web_reach_permitted", return_value=True):
+            with patch.object(main, "reflection_reply", gate):
+                response = await self.call_chat(
+                    ChatRequest(session_id=self.session_id, message="Recommend an essay")
+                )
+
+        policy = response.inspection.muse_turn["policy"]
+        self.assertTrue(policy["allow_connection"])
+        self.assertFalse(policy["allow_retrieval"])
+        self.assertIsNone(response.inspection.muse_turn["reading_context"])
 
     async def test_direct_grounding_calls_reach_the_inspector(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="What happens in chapter 2?")
@@ -199,48 +231,141 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("complete", librarian_trace["status"])
         self.assertIn("librarian_search directly", librarian_trace["detail"])
 
-    async def test_stream_sends_only_safe_progress_before_atomic_result(self) -> None:
-        request = ChatRequest(
-            session_id=self.session_id,
-            turn_id="stream-turn",
-            message="PRIVATE_READER_TEXT_must_not_enter_progress",
+    async def test_direct_grounding_failure_is_not_reported_complete(self) -> None:
+        grounding_call = {
+            "request": {"query": "chapter 2", "work_id": "pg11"},
+            "outcome": "success",
+            "response": {
+                "kind": "failure",
+                "error_code": "retrieval_unavailable",
+                "retryable": True,
+            },
+        }
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="I could not search the book safely just now.",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            librarian_grounding_calls=(grounding_call,),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Search chapter 2")
+            )
+
+        librarian_trace = next(
+            trace
+            for trace in response.inspection.traces
+            if trace["agent"] == "Librarian"
+        )
+        self.assertEqual("failed", librarian_trace["status"])
+        self.assertIn("failed", librarian_trace["detail"])
+
+    async def test_failed_connection_search_is_not_reported_complete(self) -> None:
+        run = ConnectionRunInspection(
+            status="decline",
+            reason="retrieval_unavailable",
+            book_search_outcomes=("retrieval_unavailable",),
         )
         gate = AsyncMock(return_value=ReflectionRelease(
-            reply="Reviewed final reply",
+            reply="I could not find a safe connection just now.",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ))
+
+        with patch.object(main, "reflection_reply", gate), patch.object(
+            main,
+            "connection_inspections",
+            return_value=(run,),
+        ):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Find a connection")
+            )
+
+        librarian_trace = next(
+            trace
+            for trace in response.inspection.traces
+            if trace["agent"] == "Librarian"
+        )
+        self.assertEqual("failed", librarian_trace["status"])
+        self.assertIn("failed", librarian_trace["detail"])
+
+    async def test_declined_connection_inspection_is_fixed_metadata_only(self) -> None:
+        private_marker = "PRIVATE_DECLINED_CONNECTION_CONTENT_6a4d"
+        run = ConnectionRunInspection(
+            status="decline",
+            reason="unsafe_evidence",
+            book_search_outcomes=("no_evidence",),
+        )
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved direct reflection",
             release_source="muse_candidate",
             provenance_verdicts=("pass",),
         ))
 
         with patch.object(main, "reflection_reply", gate):
-            response = await main.chat_stream(
-                request,
-                self.memory_service,
-                self.memory_context,
-            )
-            chunks = [chunk async for chunk in response.body_iterator]
+            with patch.object(main, "connection_inspections", return_value=(run,)):
+                response = await self.call_chat(
+                    ChatRequest(session_id=self.session_id, message="Hello")
+                )
 
-        body = "".join(
-            chunk.decode() if isinstance(chunk, bytes) else chunk for chunk in chunks
+        self.assertEqual(
+            {
+                "reason": "unsafe_evidence",
+                "failure_code": None,
+            },
+            response.inspection.connection_decline.model_dump(),
         )
-        frames = [frame for frame in body.split("\n\n") if frame]
-        progress_frames = [
-            frame for frame in frames if frame.startswith("event: progress")
-        ]
-        result_frames = [frame for frame in frames if frame.startswith("event: result")]
+        inspection_fields = response.inspection.model_dump()
+        for removed_field in (
+            "connection_brief",
+            "connection_discovery_input",
+            "serendipity_searches",
+            "librarian_request",
+            "evidence_bundle",
+            "connection_proposal",
+        ):
+            self.assertNotIn(removed_field, inspection_fields)
+        self.assertNotIn(private_marker, response.model_dump_json())
 
-        self.assertTrue(progress_frames)
-        self.assertEqual(1, len(result_frames))
-        self.assertLess(body.index("event: progress"), body.index("event: result"))
-        self.assertNotIn("PRIVATE_READER_TEXT_must_not_enter_progress", "\n".join(progress_frames))
-        self.assertNotIn("Reviewed final reply", "\n".join(progress_frames))
-        for sequence, frame in enumerate(progress_frames, start=1):
-            payload = json.loads(frame.split("data: ", 1)[1])
-            self.assertEqual(sequence, payload["sequence"])
-            self.assertGreaterEqual(payload["elapsed_ms"], 0)
-            self.assertEqual(
-                {"agent", "stage", "status", "detail", "sequence", "elapsed_ms"},
-                set(payload),
-            )
+    async def test_safe_decline_suppresses_nested_inspection_content(self) -> None:
+        private_marker = "PRIVATE_WITHHELD_RELEASE_CONTENT_91e2"
+        run = ConnectionRunInspection(
+            status="proposal",
+            reason=None,
+            book_search_outcomes=("evidence_found",),
+        )
+        grounding_call = {
+            "request": {"query": private_marker},
+            "outcome": "success",
+            "response": {"excerpt": private_marker},
+        }
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply=SAFE_DECLINE,
+            release_source="application_safe_decline",
+            provenance_verdicts=("pass",),
+            failure_stage="deterministic_validation",
+            librarian_grounding_calls=(grounding_call,),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            with patch.object(main, "connection_inspections", return_value=(run,)):
+                response = await self.call_chat(
+                    ChatRequest(session_id=self.session_id, message="Hello")
+                )
+
+        inspection_fields = response.inspection.model_dump()
+        for removed_field in (
+            "connection_brief",
+            "connection_discovery_input",
+            "serendipity_searches",
+            "librarian_request",
+            "evidence_bundle",
+            "connection_proposal",
+        ):
+            self.assertNotIn(removed_field, inspection_fields)
+        self.assertEqual([], response.inspection.librarian_grounding)
+        self.assertNotIn(private_marker, response.model_dump_json())
 
     async def test_failure_stores_nothing(self) -> None:
         request = ChatRequest(
@@ -255,6 +380,30 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(502, caught.exception.status_code)
         self.assertTrue(caught.exception.__suppress_context__)
+        self.assertEqual([], sessions.history(self.session_id))
+        self.assertIsNone(sessions.book_selection(self.session_id))
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
+
+    async def test_cancellation_rolls_back_tentative_reading_state(self) -> None:
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="Why does the Caterpillar ask who Alice is?",
+        )
+        entered = asyncio.Event()
+        blocker = asyncio.Event()
+
+        async def cancelled_gate(*args, **kwargs):
+            entered.set()
+            await blocker.wait()
+
+        with patch.object(main, "reflection_reply", cancelled_gate):
+            task = asyncio.create_task(self.call_chat(request))
+            await asyncio.wait_for(entered.wait(), timeout=1)
+            self.assertIsNotNone(sessions.reading_candidate(self.session_id))
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+
         self.assertEqual([], sessions.history(self.session_id))
         self.assertIsNone(sessions.book_selection(self.session_id))
         self.assertIsNone(sessions.reading_candidate(self.session_id))
@@ -279,8 +428,14 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         muse_payload = json.loads(gate.await_args.args[0])
         review_context = gate.await_args.kwargs["review_context"]
         self.assertEqual(3, muse_payload["muse_turn"]["policy"]["spoiler_ceiling"])
-        self.assertEqual(muse_payload["supporting_evidence"], review_context["cited_evidence"])
-        self.assertEqual(muse_payload["connection_proposal"], review_context["connection_proposal"])
+        self.assertEqual(
+            muse_payload["muse_turn"]["reading_context"],
+            review_context["reading_context"],
+        )
+        self.assertEqual(
+            muse_payload["muse_turn"]["policy"],
+            review_context["policy_constraints"],
+        )
 
     async def test_safe_decline_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(

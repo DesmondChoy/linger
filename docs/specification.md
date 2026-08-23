@@ -100,9 +100,11 @@ The system contains five reasoning agents and one deterministic service:
 
 The Memory & Policy Service derives account identity from authenticated request
 context and never accepts it from model output; agents cannot choose or widen
-account scope. The interactive web application exposes only Muse conversation
-and session reset. It provides no memory-management UI or public memory CRUD
-API.
+account scope. The interactive web application exposes Muse conversation,
+session reset, and a read-only per-turn Inspect view of the response workflow,
+released direct Librarian results, fixed Serendipity outcomes, and trace
+correlation. It exposes no Serendipity proposal, search, or evidence payloads,
+memory-management UI, or public memory CRUD API.
 
 **Tool implementation policy.** Pydantic AI's maintained tools, capabilities, and toolsets are the default implementation, not examples to recreate locally. The implementation must first use an [official Pydantic AI tool or capability](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/), a provider-native tool supported by Pydantic AI, or a supported external toolset such as MCP. A custom Pydantic AI function tool is permitted only for Linger-specific domain operations for which no maintained implementation exists, such as enforcing account-scoped memory retrieval or the book spoiler boundary. Such tools must be thin adapters over application services; they must not reimplement generic search clients, page fetching, tool schema generation, dispatch, or retries already supplied by Pydantic AI.
 
@@ -110,7 +112,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 
 | Agent | Allowed tools or capabilities | Implementation source |
 |---|---|---|
-| **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support; specialist calls and memory nomination are typed, application-controlled hand-offs rather than model-controlled tools. | Pydantic AI multimodal input and typed outputs; Linger orchestration |
+| **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
 | **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
@@ -157,7 +159,19 @@ Sculptor is not part of capture. It later receives a bounded, account-scoped set
 
 Serendipity supplies a proposed connection and evidence identifiers to Muse. Muse drafts the user-facing reply, which uses the same mandatory Provenance gate and deterministic checks as an ordinary reflection.
 
-![Connection discovery and verification flow](images/connection-discovery-and-verification.png)
+The implemented discovery slice keeps a narrower release boundary. Serendipity
+may search only application-granted book-corpus or Exa web sources and returns a
+typed proposal or decline with request-local evidence for deterministic
+validation. The application, not Muse, supplies the exact current reader
+message as the cue. Each run is limited to eight model requests and six total
+tool calls. Muse may relay a typed decline. A proposal remains internal, and every turn
+containing one fails closed before release because the current contract cannot
+deterministically distinguish reliance from non-use. Content-bearing diagnostics
+from that rejected turn are not returned by the application API. Public web or
+stored-memory connections can become releasable only after the Muse candidate
+contract declares those evidence uses and application code deterministically
+resolves them against the request-local records. Authorised-memory retrieval is
+not a current Serendipity grant.
 
 ## 5. Core records
 
@@ -244,13 +258,20 @@ path.
 
 ### 5.6 Connection proposal
 
-A connection proposal contains:
+The current `ConnectionProposal` is Serendipity's pre-review decision. It
+contains:
 
-- a tentative claim;
-- cited evidence identifiers;
-- an explanation that distinguishes evidence from interpretation;
-- uncertainty and policy flags; and
-- Provenance's decision and structured critique, if any.
+- a ranked shortlist of two or three eligible candidates;
+- for each candidate, a tentative claim, cited evidence identifiers, shared
+  structure, meaningful difference, interpretation, comparison note, and the
+  three-field `cue_fit`, `reflective_value`, and `safety` rubric;
+- the selected rank-one candidate identifier;
+- qualitative uncertainty and the unchanged presentation policy;
+- a suggested follow-up for Muse; and
+- a closed policy flag indicating whether the winner cites web evidence.
+
+The proposal contains no Provenance verdict or critique. Muse receives it as
+untrusted internal material; Provenance reviews the later complete Muse draft.
 
 ## 6. Safeguards
 
@@ -297,7 +318,7 @@ Whenever an exact quotation is displayed or stored, application code verifies it
 
 ### 6.4 Untrusted content and privacy
 
-Book text, web results, photographs, media descriptions, and candidate model responses are untrusted input. Private memory text is never copied verbatim into a web-search query. Evidence supplied to each agent is minimised, account-scoped, and labelled by trust level. Prompt instructions contained in evidence never gain tool authority.
+Book text, web results, photographs, media descriptions, and candidate model responses are untrusted input. Web-search queries use general concepts: maintained detectors reject shaped personal data and secrets, and a deterministic overlap guard rejects every multi-character term copied verbatim from the application-owned current cue. Private memory text is never copied into a web-search query. Evidence supplied to each agent is minimised, account-scoped where applicable, and labelled by trust level; application code owns its verification state. Prompt instructions contained in evidence never gain tool authority.
 
 ### 6.5 Verification
 

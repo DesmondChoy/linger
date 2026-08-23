@@ -4,6 +4,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.linger.agents.provenance.models import RiskCode
+from src.linger.agents.serendipity.models import DeclineReason
 
 
 class RequestBody(BaseModel):
@@ -50,16 +51,23 @@ class ReleaseInspection(BaseModel):
     capture: CaptureInspection
 
 
+class ConnectionDeclineInspection(BaseModel):
+    """Content-free outcome for a Serendipity decline or failed run."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    reason: DeclineReason
+    failure_code: Literal["connection_discovery_failed"] | None = None
+
+
 class TurnInspection(BaseModel):
     """Read-only record of the contracts used for one released response."""
 
     muse_turn: dict[str, Any]
     context_resolution: dict[str, Any]
     traces: list[dict[str, str]]
-    connection_brief: dict[str, Any] | None = None
-    librarian_request: dict[str, Any] | None = None
-    evidence_bundle: dict[str, Any] | None = None
-    connection_proposal: dict[str, Any] | None = None
+    connection_decline: ConnectionDeclineInspection | None = None
+    librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)
     prompt: str
     release: ReleaseInspection | None = None
 
@@ -76,8 +84,6 @@ class TraceReference(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
-    root_span_id: str = Field(pattern=r"^[0-9a-f]{16}$")
-    exported: bool
 
 
 class ChatResponse(BaseModel):

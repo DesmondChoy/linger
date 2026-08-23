@@ -21,7 +21,6 @@ from pydantic_ai.messages import (
 _sessions: dict[str, list[ModelMessage]] = {}
 _book_selections: dict[str, "BookSelection"] = {}
 _reading_candidates: dict[str, "ReadingCandidate"] = {}
-_synthetic_readers: dict[str, str] = {}
 
 
 class BookSelection(BaseModel):
@@ -60,7 +59,6 @@ def clear(session_id: str) -> bool:
     """Drop a session's history. Returns whether anything was there."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
-    _synthetic_readers.pop(session_id, None)
     return _sessions.pop(session_id, None) is not None
 
 
@@ -100,11 +98,3 @@ def set_reading_candidate(session_id: str, candidate: ReadingCandidate) -> None:
 
 def clear_reading_candidate(session_id: str) -> None:
     _reading_candidates.pop(session_id, None)
-
-
-def synthetic_reader(session_id: str) -> str | None:
-    return _synthetic_readers.get(session_id)
-
-
-def set_synthetic_reader(session_id: str, reader_id: str) -> None:
-    _synthetic_readers[session_id] = reader_id

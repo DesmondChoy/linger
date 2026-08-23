@@ -6,16 +6,17 @@ instructions, and exception messages. Linger therefore emits only explicit
 application-owned spans and attributes from this module.
 """
 
+import asyncio
 from collections.abc import Callable, Mapping
 from typing import Any
 
 import logfire
 
 from src.linger.agents.provenance.models import ProvenanceReview
-from src.linger.orchestration.progress_context import emit_progress
+from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
 
 from .config import get_settings
-from .contracts import ConnectionBrief, EvidenceBundle, LibrarianRequest
+from .contracts import EvidenceBundle, LibrarianRequest
 
 SERVICE_NAME = "linger-backend"
 PROMPT_VERSION = "1"
@@ -142,19 +143,9 @@ async def run_agent_traced(
     Exceptions are re-raised only after the span closes, so Logfire never
     receives their messages or stack traces.
     """
+    cancelled = False
     caught: Exception | None = None
     result: Any = None
-    emit_progress(
-        role,
-        stage,
-        "running",
-        {
-            "Muse": "Muse is deciding how to handle this message.",
-            "Serendipity": "Serendipity is choosing searches and comparing connections.",
-            "Provenance": "Provenance is reviewing the candidate before release.",
-            "Librarian": "Librarian is judging the retrieved evidence set.",
-        }.get(role, f"{role} is processing this stage."),
-    )
     with logfire.span(
         span_name,
         **agent_attrs(
@@ -167,6 +158,15 @@ async def run_agent_traced(
             result = await agent.run(prompt, **run_kwargs)
             if result_attrs is not None:
                 set_span_attrs(span, result_attrs(result))
+        except asyncio.CancelledError:
+            cancelled = True
+            record_failure(
+                span,
+                stage=stage,
+                code="request_cancelled",
+                retryable=False,
+                failure_type="application",
+            )
         except Exception as exc:
             caught = exc
             record_failure(
@@ -179,40 +179,24 @@ async def run_agent_traced(
         else:
             _record_agent_success(span, result)
 
+    if cancelled:
+        raise asyncio.CancelledError
     if caught is not None:
-        emit_progress(
-            role,
-            stage,
-            "failed",
-            f"{role} could not complete this stage safely.",
-        )
         raise caught
-    emit_progress(
-        role,
-        stage,
-        "complete",
-        {
-            "Muse": "Muse prepared a typed candidate.",
-            "Serendipity": (
-                "Serendipity finished its model pass; deterministic validation follows."
-            ),
-            "Provenance": "Provenance completed its release review.",
-            "Librarian": "Librarian completed its evidence judgment.",
-        }.get(role, f"{role} completed this stage."),
-    )
     return result
 
 
-def brief_attrs(brief: ConnectionBrief) -> dict[str, object]:
-    """Safe scope for Serendipity; the reader's cue is deliberately absent."""
+def connection_scope_attrs(task: ConnectionDiscoveryInput) -> dict[str, object]:
+    """Safe Serendipity scope; the reader's cue is deliberately absent."""
     attributes: dict[str, object] = {
         "tool.name": "serendipity_explore",
         "tool.retry_count": 0,
     }
-    if brief.book_id is not None:
-        attributes["scope.work_id"] = brief.book_id
-    if brief.chapter_max is not None:
-        attributes["scope.chapter_max"] = brief.chapter_max
+    if task.scope.book_scopes:
+        book_scope = task.scope.book_scopes[0]
+        attributes["scope.work_id"] = book_scope.work_id
+        attributes["scope.book_version_id"] = book_scope.book_version_id
+        attributes["scope.chapter_max"] = book_scope.chapter_max
     return attributes
 
 

@@ -1,14 +1,12 @@
 # Serendipity
 
 Serendipity is Linger's optional search-and-connection specialist. It searches
-multiple permitted sources, removes ineligible evidence, constructs possible
+permitted sources, removes ineligible evidence, constructs possible
 connections, compares the strongest two or three with an anchored rubric, and
 returns exactly one `ConnectionProposal` or one `ConnectionDecline`.
 
-Books are one internal source, not Serendipity's domain or entry condition.
-Linger is a personal reflection and memory companion. A current cue may connect
-to an authorised memory without any book context, or to public-web evidence
-without pretending that Librarian searches the web.
+The current slice permits spoiler-bounded book evidence and optional public-web
+discovery. Account-scoped stored-memory retrieval remains a later slice.
 
 Serendipity has no write or release authority. Muse owns the conversation,
 Librarian owns internal retrieval, Exa supplies public-web search, application
@@ -18,8 +16,7 @@ code owns access grants, and Provenance reviews every complete Muse draft.
 
 Application orchestration creates one `ConnectionDiscoveryInput` containing:
 
-- a request ID and the active reader cue;
-- an optional description of the current user-supplied photograph;
+- the active reader cue;
 - the connection intent and presentation policy; and
 - a trusted `ConnectionScope` granting selected sources and any book ceilings.
 
@@ -28,7 +25,7 @@ grant is:
 
 ```json
 {
-  "allowed_sources": ["authorised_memory", "book_corpus", "web"],
+  "allowed_sources": ["book_corpus", "web"],
   "book_scopes": [
     {
       "work_id": "pg11",
@@ -39,11 +36,10 @@ grant is:
 }
 ```
 
-Serendipity cannot add a source, choose an account, enable web access, change a
-book revision, raise a chapter ceiling, or change presentation policy. Account
-identity and service handles live in `SerendipityDependencies`, which tool code
-can access but the model cannot see or supply.
-
+Serendipity cannot add a source, enable web access, change a book revision,
+raise a chapter ceiling, or change presentation policy. The canonical Librarian
+service is supplied through `SerendipityDependencies`, which tool code can
+access but the model cannot see or supply.
 
 ## Search ownership
 
@@ -51,18 +47,21 @@ The ownership boundary is:
 
 | Component | Search responsibility |
 | --- | --- |
-| Librarian | Authorised reader memories and spoiler-bounded book corpora |
+| Application | Supplies the exact current reader message as the cue and owns source grants |
+| Librarian | Spoiler-bounded book corpora |
 | Serendipity | Chooses useful permitted searches and compares their results |
 | Exa | Public-web search and page retrieval for Serendipity |
-| Muse | Supplies the current conversational or photograph-derived cue |
+| Muse | Chooses whether to invoke connection discovery and supplies its intent |
 
-`search_librarian` is a thin Pydantic AI tool over Linger's Librarian service.
-The account comes from trusted dependencies, and every book query is clamped to
-the granted revision and chapter ceiling. The maintained
+`search_librarian` is a thin Pydantic AI tool over Linger's existing Librarian
+service. Every book query is clamped to the granted revision and chapter
+ceiling. The maintained
 `pydantic_ai_harness.exa.ExaSearch` capability supplies `web_search` and
 `get_page`; Linger wraps that capability only to enforce source permission,
-prevent private-memory wording from entering web queries, and record returned
-URLs in the search trace plus opened pages in the evidence ledger.
+bound query size, reject personal data and every multi-character term copied
+verbatim from the reader's cue, require
+`get_page` URLs to come from the current run's search results, and record opened
+pages in the evidence ledger.
 
 ## Search, shortlist, and selection flow
 
@@ -72,10 +71,10 @@ Application grants source permissions
 Static instructions + ConnectionDiscoveryInput
                 ↓
         Serendipity chooses permitted tools to conduct searches
-          ├─ Librarian: Internal evidence - spoiler-bounded book excerpts/authorised memories 
+          ├─ Librarian: Internal evidence - spoiler-bounded book excerpts
           └─ Exa: External evidence - public web (web_search, get_page)
                 ↓
-      Several evidence records returned 
+      Several evidence records returned
                 ↓
        Construct possible connections
                 ↓
@@ -100,7 +99,8 @@ Source grants are permissions, not mandatory search steps. Serendipity should
 search the permitted sources relevant to the cue and may compare source types
 when doing so could improve the result. It does not have to call Librarian or
 Exa merely because either is available. It may refine a query and search several
-records per source. A `web_search`
+records per source, within a hard run budget of eight model requests and six
+total tool calls. A `web_search`
 result is only a lead; Serendipity must use `get_page` to read a promising URL
 before that URL enters the citable evidence ledger.
 
@@ -111,11 +111,10 @@ not from the order of `allowed_sources`:
 
 | Cue or intent | Primary search | Expansion rule |
 | --- | --- | --- |
-| External recommendation: essay, artwork, song, thinker, public source, or outside idea | Exa | Add an internal source only when the reader explicitly asks for a personal/book comparison or the web result is insufficient and the internal comparison is materially useful. |
-| Recurrence in the reader's own life or prior reflections | Librarian: `authorised_memory` | Add Exa only when the reader also asks for an outside lens; add a book only when a confirmed work is part of the requested comparison. |
-| Relationship within a confirmed work | Librarian: `book_corpus` | Add memory or web only when the cue explicitly asks to cross that domain or the bounded book evidence is insufficient. |
+| External recommendation: essay, artwork, song, thinker, public source, or outside idea | Exa | Add the confirmed book only when the reader explicitly asks for that comparison or the web result is insufficient and the book comparison is materially useful. |
+| Relationship within a confirmed work | Librarian: `book_corpus` | Add web only when the cue explicitly asks to cross that domain or the bounded book evidence is insufficient. |
 | Explicit comparison across domains | Every named, permitted domain | Do not add unnamed domains merely because they are granted. |
-| Ambiguous reflective connection | Librarian: `authorised_memory` | Do not search the web just to manufacture novelty. Decline when internal evidence is weak. |
+| Ambiguous reflective connection | Confirmed book, when specifically relevant | Do not search the web just to manufacture novelty. Decline when no permitted evidence fits. |
 
 The execution sequence is primary search → sufficiency check → optional expansion
 → shortlist and compare. Expansion is justified only when the reader requested
@@ -126,25 +125,22 @@ searches both Librarian and Exa solely because both tools are available, to pad
 the shortlist, or to avoid a valid decline.
 
 If the requested primary source is unavailable or outside the application grant,
-Serendipity declines rather than silently substituting another domain. For
-example, an outside-essay request with no web grant does not become a memory
-search merely because authorised memories are available.
+Serendipity declines rather than silently substituting another domain.
 
 Concrete routing examples:
 
 | Reader cue | Expected calls |
 | --- | --- |
 | “Does the Caterpillar echo anything earlier in this book?” | Librarian book search only. |
-| “Does this resemble something I have said before?” | Librarian memory search only. |
 | “Recommend an essay or artwork that resonates with this feeling.” | Exa search and page retrieval only. |
-| “Connect this chapter to something I saved and then suggest an outside essay.” | Librarian book and memory searches plus Exa. |
+| “Connect this chapter to an outside essay.” | Librarian book search plus Exa. |
 
 ## Eligibility before ranking
 
 Hard gates run before comparison. Evidence and candidates are ineligible when
-they are out of scope, deleted or cross-account, past a spoiler ceiling,
-unresolved, unsafe, injection-bearing, unsupported, or merely a generic theme
-match. Ineligible material cannot win by scoring well elsewhere.
+they are out of scope, past a spoiler ceiling, unresolved, unsafe,
+injection-bearing, unsupported, or merely a generic theme match. Ineligible
+material cannot win by scoring well elsewhere.
 
 The application enforces structural boundaries. Serendipity performs the
 semantic filtering, and Provenance later checks the complete user-facing draft.
@@ -182,16 +178,16 @@ A `ConnectionProposal` contains:
 - qualitative uncertainty about the selected interpretation;
 - the unchanged presentation mode;
 - a follow-up for Muse; and
-- closed memory, web, and consent policy flags.
+- a closed web-claim policy flag.
 
 The selected candidate contains the tentative claim, cited evidence IDs, shared
 structure, meaningful difference, interpretation, rubric, and comparison note.
 Consumers resolve `selected_candidate_id` against the shortlist; the model does
 not duplicate the winner's content at the top level.
 
-A `ConnectionDecline` contains a machine-readable reason, safe next step, and
-up to three rejected candidates when retaining that comparison helps debugging.
-Declining is a successful outcome.
+A `ConnectionDecline` contains a machine-readable reason and safe next step.
+Declining is a successful outcome; rejected candidates do not leave the agent
+boundary.
 
 ## Deterministic validation
 
@@ -203,13 +199,15 @@ returns, orchestration verifies that:
 - every book record matches its revision and spoiler ceiling;
 - a proposal followed at least one recorded permitted search;
 - the selected candidate is the eligible rank-one candidate;
-- memory and web flags match the winner's actual cited sources; and
+- web flags match the winner's actual cited sources; and
 - presentation policy is unchanged.
 
-Exa URLs are their web evidence IDs. Search-result metadata records candidate
-URLs in the search trace, while only a successfully opened `get_page` result is
-stored as citable web evidence. A guarded wrapper rejects a web query that
-copies private memory wording. Web tools are absent entirely when web access or
+Exa URLs are their web evidence IDs. Search-result metadata supplies
+request-local page leads, while only a successfully opened `get_page` result is
+stored as citable web evidence. A guarded wrapper bounds each web query and
+requires it to use a general concept rather than personal data or any
+multi-character term copied verbatim from the reader's cue. It also rejects any page URL that was not returned by the
+current run's search. Web tools are absent entirely when web access or
 credentials are not granted.
 
 ## Where authority ends
@@ -218,20 +216,21 @@ A proposal is untrusted material for Muse, not a user-facing response. The
 Serendipity agent still returns only `ConnectionProposal | ConnectionDecline`.
 After deterministic validation, application orchestration wraps that decision
 with the exact evidence records cited by the selected candidate for the Muse
-tool handshake; losing-candidate evidence remains visible to inspection but is
-not added to Muse's prompt. Muse may use only the selected bridge and its cited records to draft natural
-language. Provenance receives the complete candidate, validated decision,
-evidence bundle, and release policy, then checks attribution, privacy, spoilers,
-sensitive inference, unsupported claims, and prompt injection. There is no
-Serendipity-to-reader bypass.
+tool handshake; losing-candidate evidence stays inside the Serendipity run and
+is discarded instead of being added to Muse's tool result or Inspect. In the current slice, Muse
+keeps proposals internal. Provenance receives the complete Muse candidate,
+validated tool result, and release policy, then checks attribution, privacy,
+spoilers, sensitive inference, unsupported claims, and prompt injection. There
+is no Serendipity-to-reader bypass.
 
-Serendipity cannot save or curate memory. Telemetry and the shortlist explain a
-decision but never authorise search, storage, or release.
+Serendipity cannot save or curate memory. Telemetry and fixed request-local
+outcome metadata report a decision but never authorise search, storage, or release.
 
-For local evaluation, selecting a synthetic reader in the UI adds only that
-reader's immutable fixture memories to Librarian's `authorised_memory` results.
-The fixture does not bypass source routing, candidate comparison, Muse, or
-Provenance, so the same handshakes remain visible in Inspect.
+In the current release slice, a Serendipity proposal cannot widen citation or
+public-release authority. Until typed deterministic citation validation covers
+these sources, application release logic fails every proposal-bearing turn
+closed; its content-bearing diagnostics are not returned by the API. A
+validated decline may still be relayed with fixed inspection metadata.
 
 ## Related
 
@@ -243,10 +242,8 @@ Provenance, so the same handshakes remain visible in Inspect.
   selection instructions.
 - `src/linger/orchestration/connection.py` — trusted dependency construction,
   run invocation, evidence ledger validation, and fail-closed behavior.
-- `src/linger/agents/muse/tools.py` — Muse invocation adapter and validated
+- `src/linger/agents/muse/tools.py` — Muse invocation tool and validated
   decision-plus-evidence handshake.
 - `src/linger/agents/provenance/` — mandatory review before display.
-- `docs/evaluation/synthetic-readers.md` — three isolated demo histories and
-  the sequential UI test flow.
 - `docs/specification.md` sections 2, 4, 4.2.3, 5.3, 5.6, 6.1, 6.4, 6.5, and
   7.2.

@@ -1,6 +1,5 @@
 """Tests for Muse's tool wiring and instruction invariants."""
 
-import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -21,11 +20,15 @@ from src.linger.contracts.librarian import (
 )
 
 
-def _sample_tool_names(agent) -> set[str]:
-    names: set[str] = set()
+def _sample_tools(agent) -> dict[str, object]:
+    tools: dict[str, object] = {}
     for toolset in agent.toolsets:
-        names.update(getattr(toolset, "tools", {}).keys())
-    return names
+        tools.update(getattr(toolset, "tools", {}))
+    return tools
+
+
+def _sample_tool_names(agent) -> set[str]:
+    return set(_sample_tools(agent))
 
 
 def _no_memory() -> NoMemoryCandidate:
@@ -67,8 +70,12 @@ class MuseAgentToolWiringTests(unittest.TestCase):
 
             importlib.reload(muse_agent_module)
             try:
-                names = _sample_tool_names(muse_agent_module.muse_chat_agent)
-                self.assertIn("serendipity_explore", names)
+                tools = _sample_tools(muse_agent_module.muse_chat_agent)
+                self.assertIn("serendipity_explore", tools)
+                tool = tools["serendipity_explore"]
+                self.assertTrue(getattr(tool, "sequential"))
+                schema = getattr(tool, "function_schema").json_schema
+                self.assertNotIn("cue", schema["properties"])
             finally:
                 importlib.reload(muse_agent_module)
 
@@ -118,7 +125,12 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("books are one optional source", lowered)
         self.assertIn("do not introduce character names", lowered)
         self.assertIn("never ask for a book or chapter merely", lowered)
-        self.assertIn("without a book", lowered)
+        self.assertIn("current slice does not grant stored-memory retrieval", lowered)
+        self.assertIn("keep proposals internal", lowered)
+        self.assertIn(
+            "not yet a deterministic citation authority",
+            " ".join(lowered.split()),
+        )
         self.assertIn("ask the reader that exact question", lowered)
         self.assertIn(
             "never present retrieved text as an exact quotation", lowered
@@ -259,134 +271,6 @@ class MuseOutputValidationTests(unittest.TestCase):
 
         with self.assertRaises(ModelRetry):
             validate_muse_output(self.context(record), output)
-
-    @staticmethod
-    def outside_request_context(*parts: object) -> SimpleNamespace:
-        payload = json.dumps(
-            {
-                "muse_turn": {
-                    "user_message": (
-                        "Does this connect to an essay or philosophical idea "
-                        "outside the book?"
-                    ),
-                    "policy": {"allow_connection": True},
-                }
-            }
-        )
-        return SimpleNamespace(
-            messages=[
-                SimpleNamespace(
-                    parts=[SimpleNamespace(content=payload), *parts],
-                )
-            ]
-        )
-
-    def test_explicit_outside_request_requires_serendipity_return(self) -> None:
-        from src.linger.agents.muse.agent import validate_muse_output
-
-        output = MuseCandidate(
-            reply="I could not safely search for an outside connection.",
-            memory=_no_memory(),
-        )
-
-        with self.assertRaisesRegex(ModelRetry, "explicitly requested"):
-            validate_muse_output(self.outside_request_context(), output)
-
-    def test_explicit_outside_request_accepts_serendipity_decline(self) -> None:
-        from src.linger.agents.muse.agent import validate_muse_output
-        from src.linger.agents.serendipity.models import (
-            ConnectionDecline,
-            ConnectionExplorationResult,
-        )
-
-        exploration = ConnectionExplorationResult(
-            decision=ConnectionDecline(
-                reason="insufficient_evidence",
-                safe_next_step="Name a source you would like to compare.",
-            )
-        )
-        tool_return = ToolReturnPart("serendipity_explore", exploration)
-        output = MuseCandidate(
-            reply="I could not support a strong outside connection from this search.",
-            memory=_no_memory(),
-        )
-
-        self.assertIs(
-            output,
-            validate_muse_output(
-                self.outside_request_context(tool_return),
-                output,
-            ),
-        )
-
-    def test_live_validator_requires_selected_web_url(self) -> None:
-        from src.linger.agents.muse.agent import validate_muse_output
-        from src.linger.agents.serendipity.models import ConnectionExplorationResult
-
-        url = "https://example.com/socratic-questioning"
-        rubric = {
-            "cue_fit": "direct",
-            "reflective_value": "high",
-            "safety": "clear",
-            "disqualifiers": [],
-        }
-        exploration = ConnectionExplorationResult.model_validate({
-            "decision": {
-                "status": "proposal",
-                "shortlist": [
-                    {
-                        "candidate_id": "candidate-socratic-first",
-                        "rank": 1,
-                        "tentative_claim": "The questions may resemble Socratic inquiry.",
-                        "evidence_ids": [url],
-                        "shared_structure": "Questions expose uncertain knowledge.",
-                        "meaningful_difference": "The fictional exchange is less collaborative.",
-                        "interpretation": "Confusion may begin inquiry.",
-                        "rubric": rubric,
-                        "comparison_note": "This is the most direct bridge.",
-                    },
-                    {
-                        "candidate_id": "candidate-socratic-second",
-                        "rank": 2,
-                        "tentative_claim": "The scene may also resemble an examination.",
-                        "evidence_ids": [url],
-                        "shared_structure": "Both exchanges test an answer.",
-                        "meaningful_difference": "One is literary and one philosophical.",
-                        "interpretation": "Calmness may intensify pressure.",
-                        "rubric": rubric,
-                        "comparison_note": "This is useful but less transformative.",
-                    },
-                ],
-                "selected_candidate_id": "candidate-socratic-first",
-                "uncertainty": "medium",
-                "presentation": "ask_before_showing",
-                "suggested_follow_up": "Would you like the connection?",
-                "policy_flags": ["contains_web_claim", "reader_consent_required"],
-            },
-            "evidence": [{
-                "source_kind": "web",
-                "evidence_id": url,
-                "title": "Socratic questioning",
-                "url": url,
-                "excerpt": "Socratic questions can expose uncertain knowledge.",
-            }],
-        })
-        context = SimpleNamespace(messages=[SimpleNamespace(parts=[
-            ToolReturnPart("serendipity_explore", exploration)
-        ])])
-        without_url = MuseCandidate(
-            reply="This may connect to Socratic inquiry.",
-            memory=_no_memory(),
-        )
-
-        with self.assertRaisesRegex(ModelRetry, "exact URL"):
-            validate_muse_output(context, without_url)
-
-        with_url = without_url.model_copy(
-            update={"reply": f"This may connect to Socratic inquiry: {url}"}
-        )
-        self.assertIs(with_url, validate_muse_output(context, with_url))
-
 
 if __name__ == "__main__":
     unittest.main()
