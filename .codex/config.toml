@@ -1,2 +1,6 @@
+model_reasoning_summary = "concise"
 [features]
 hooks = true
+
+[sandbox_workspace_write]
+network_access = false
