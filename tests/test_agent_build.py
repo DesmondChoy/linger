@@ -1,8 +1,10 @@
 """Tests for provider-independent agent construction."""
 
+import os
 import unittest
 from unittest.mock import patch
 
+from pydantic import ValidationError
 from pydantic_ai import Tool
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
@@ -25,6 +27,11 @@ def _example_tool(value: int) -> int:
 
 
 class BuildAgentTests(unittest.TestCase):
+    def test_requires_explicit_model_configuration(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(ValidationError):
+                Settings(_env_file=None)
+
     def test_builds_each_supported_provider(self) -> None:
         cases = (
             (

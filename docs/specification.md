@@ -334,7 +334,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, content and authoring-manifest structures, deterministic package validator, and Ground truth authority lifecycle below. Generation, independent adoption tooling, dataset freezing, and replay remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, content and authoring-manifest structures, deterministic package validator, and Ground truth authority lifecycle below. One capture-only package and its production-path Scene replay are implemented; reusable generation, independent adoption tooling, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 | Term | Definition |
 |---|---|
@@ -372,7 +372,9 @@ The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-ob
 
 The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped Markdown pre-generation report for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined content and authoring-manifest structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
-Human approval of the report and implementation of the downstream workflow remain undefined. The project defines the three-stage Ground truth authority lifecycle, package structures, and deterministic package validation, but has not decided:
+The first reviewed automatic-capture package can now be replayed without changing these authority boundaries. Its runner validates the content and authoring manifest, creates a temporary store and unique evaluation account, enables capture through the server-owned Memory & Policy Service, and sends exactly one Line in a fresh session for each Scene. It records observed replies, release decisions, capture metadata, and committed synthetic text. It never gives Muse the Backstory or proposed Ground truth, and it does not grade or adopt proposals.
+
+The project still has not defined reusable workflow for:
 
 - backstory generation;
 - prop generation;
@@ -381,7 +383,7 @@ Human approval of the report and implementation of the downstream workflow remai
 - Ground truth review ownership and adoption tooling;
 - package-directory and full-dataset layout;
 - freezing; or
-- replay.
+- replay of Props, offline inputs, continued-session Scenes, or other Objectives.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined package models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 

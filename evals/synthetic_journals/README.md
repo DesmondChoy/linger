@@ -20,6 +20,22 @@ It does not decide whether generated prose is realistic or whether a proposed
 behavioral label is correct. An independent reviewer must adopt, revise, or
 reject every proposal before it can grade Linger.
 
+Replay the validated capture-only package through the production Muse path:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.replay \
+  synthetic-journal-evaluation/reviewed-automatic-memory-capture-content.json \
+  synthetic-journal-evaluation/reviewed-automatic-memory-capture-authoring-manifest.json \
+  --output /tmp/reviewed-automatic-memory-capture-run.json
+```
+
+The runner creates a fresh temporary memory store and a unique evaluation
+account, enables capture through the server-owned Memory & Policy Service, and
+sends exactly one Line in a fresh session for each Scene. It records observed
+replies, release decisions, capture metadata, and committed synthetic text.
+The Backstory and proposed Ground truth never enter Muse, and the runner does
+not grade or adopt the proposals.
+
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene
 and ten no-candidate Scenes. Longitudinal retrieval uses two fresh-session

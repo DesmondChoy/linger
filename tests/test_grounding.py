@@ -26,11 +26,15 @@ from src.linger.orchestration.turn_context import (
 
 class SettingsGroundingFieldTests(unittest.TestCase):
     def test_default_allowed_book_version_ids(self) -> None:
-        settings = Settings(_env_file=None)
+        settings = Settings(_env_file=None, linger_model="openai:gpt-5.6-luna")
         self.assertEqual(("pg11-v01b38ea4",), settings.allowed_book_version_ids)
 
     def test_allowed_book_version_ids_overridable(self) -> None:
-        settings = Settings(_env_file=None, allowed_book_version_ids=("x",))
+        settings = Settings(
+            _env_file=None,
+            linger_model="openai:gpt-5.6-luna",
+            allowed_book_version_ids=("x",),
+        )
         self.assertEqual(("x",), settings.allowed_book_version_ids)
 
 
