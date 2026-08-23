@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     google_api_key: SecretStr | None = None
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
+    exa_api_key: SecretStr | None = None
     # A Logfire write token for deployed/CI environments. Local development can
     # instead use the project credentials created by `logfire projects use`.
     logfire_token: SecretStr | None = None

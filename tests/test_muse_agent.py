@@ -20,11 +20,15 @@ from src.linger.contracts.librarian import (
 )
 
 
-def _sample_tool_names(agent) -> set[str]:
-    names: set[str] = set()
+def _sample_tools(agent) -> dict[str, object]:
+    tools: dict[str, object] = {}
     for toolset in agent.toolsets:
-        names.update(getattr(toolset, "tools", {}).keys())
-    return names
+        tools.update(getattr(toolset, "tools", {}))
+    return tools
+
+
+def _sample_tool_names(agent) -> set[str]:
+    return set(_sample_tools(agent))
 
 
 def _no_memory() -> NoMemoryCandidate:
@@ -66,8 +70,12 @@ class MuseAgentToolWiringTests(unittest.TestCase):
 
             importlib.reload(muse_agent_module)
             try:
-                names = _sample_tool_names(muse_agent_module.muse_chat_agent)
-                self.assertIn("serendipity_explore", names)
+                tools = _sample_tools(muse_agent_module.muse_chat_agent)
+                self.assertIn("serendipity_explore", tools)
+                tool = tools["serendipity_explore"]
+                self.assertTrue(getattr(tool, "sequential"))
+                schema = getattr(tool, "function_schema").json_schema
+                self.assertNotIn("cue", schema["properties"])
             finally:
                 importlib.reload(muse_agent_module)
 
@@ -89,7 +97,7 @@ class MuseInstructionTests(unittest.TestCase):
             {
                 "# Typed candidate",
                 "# Context authority",
-                "# Book confirmation and spoilers",
+                "# Optional book grounding and spoilers",
                 "# Probe when context is insufficient",
                 "# Grounding with librarian_search",
                 "# Quotations and honesty",
@@ -100,9 +108,10 @@ class MuseInstructionTests(unittest.TestCase):
 
     def test_instructions_require_probing_when_context_is_insufficient(self) -> None:
         lowered = self.instructions.lower()
-        self.assertIn("insufficient context", lowered)
+        self.assertIn("missing information blocks", lowered)
         self.assertIn("follow-up question", lowered)
         self.assertIn("guessing", lowered)
+        self.assertIn("do not probe for book context", lowered)
 
     def test_instructions_keep_the_in_scope_identifiers(self) -> None:
         self.assertIn('"pg11"', self.instructions)
@@ -113,8 +122,15 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("safety authority", lowered)
         self.assertIn("never invent evidence", lowered)
         self.assertIn("spoiler boundary", lowered)
-        self.assertIn("until the reader confirms the book", lowered)
-        self.assertIn("character names, plot details", lowered)
+        self.assertIn("books are one optional source", lowered)
+        self.assertIn("do not introduce character names", lowered)
+        self.assertIn("never ask for a book or chapter merely", lowered)
+        self.assertIn("current slice does not grant stored-memory retrieval", lowered)
+        self.assertIn("keep proposals internal", lowered)
+        self.assertIn(
+            "not yet a deterministic citation authority",
+            " ".join(lowered.split()),
+        )
         self.assertIn("ask the reader that exact question", lowered)
         self.assertIn(
             "never present retrieved text as an exact quotation", lowered
@@ -255,7 +271,6 @@ class MuseOutputValidationTests(unittest.TestCase):
 
         with self.assertRaises(ModelRetry):
             validate_muse_output(self.context(record), output)
-
 
 if __name__ == "__main__":
     unittest.main()

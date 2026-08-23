@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-reflect-without-book-context-v1",
+  "owner": "muse",
+  "primary_behavior": "reflect_without_book_context",
+  "description": "A personal reflection with no book context should receive a useful response without being diverted into book or chapter confirmation.",
+  "input": {
+    "reader_message": "I keep rushing to fill silence even though I want other people to have time to think.",
+    "reader_context": {
+      "book_confirmed": false,
+      "chapter_state": null,
+      "candidate_book": null
+    },
+    "tools": {}
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": ["book", "chapter", "reading position", "finished"],
+    "max_words": 160,
+    "semantic_review": {
+      "criteria": [
+        "responds to the reader's stated tension without requiring book context",
+        "may invite further reflection or a connection search without assuming a diagnosis",
+        "stays warm, concise, and concrete"
+      ],
+      "forbidden_claims": [
+        "the reader must identify a book or chapter before Linger can respond",
+        "the current incident proves a fixed personality trait"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "unnecessary_book_probe",
+    "book_detail_before_confirmation",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}

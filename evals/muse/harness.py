@@ -13,7 +13,7 @@ DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases")
 
 PrimaryBehavior = Literal[
     "probe_unconfirmed_book",
-    "probe_vague_message",
+    "reflect_without_book_context",
     "confirm_chapter_boundary",
     "grounded_answer_within_boundary",
     "respect_serendipity_decline",
@@ -25,12 +25,13 @@ ForbiddenOutcome = Literal[
     "spoiler_beyond_boundary",
     "workaround_after_decline",
     "answer_instead_of_probe",
+    "unnecessary_book_probe",
 ]
 
 REQUIRED_BEHAVIORS = frozenset(
     {
         "probe_unconfirmed_book",
-        "probe_vague_message",
+        "reflect_without_book_context",
         "confirm_chapter_boundary",
         "grounded_answer_within_boundary",
         "respect_serendipity_decline",
@@ -38,7 +39,7 @@ REQUIRED_BEHAVIORS = frozenset(
 )
 
 PROBE_BEHAVIORS = frozenset(
-    {"probe_unconfirmed_book", "probe_vague_message", "confirm_chapter_boundary"}
+    {"probe_unconfirmed_book", "confirm_chapter_boundary"}
 )
 
 _QUOTED_SPAN = re.compile(r'"([^"]+)"|“([^”]+)”')
@@ -134,9 +135,9 @@ class MuseEvalCase(StrictModel):
                     "probing an unconfirmed book requires an unconfirmed candidate"
                 )
 
-        if self.primary_behavior == "probe_vague_message":
+        if self.primary_behavior == "reflect_without_book_context":
             if context.book_confirmed or context.candidate_book:
-                raise ValueError("a vague message must carry no book at all")
+                raise ValueError("a book-independent reflection must carry no book")
 
         if self.primary_behavior == "confirm_chapter_boundary":
             if not context.book_confirmed or context.chapter_state is not None:

@@ -1,11 +1,11 @@
 # Muse baseline evaluations
 
 This directory owns the fixed baseline for Muse's conversational instruction
-behaviours: probing the reader when context is insufficient, confirming the
-book and chapter boundary before interpreting, grounding answers in retrieved
-evidence, and relaying a serendipity decline honestly. The owner identifier in
-every case is `muse`; Sculptor, Provenance, and the Memory & Policy Service
-retain their separate responsibilities.
+behaviours: responding to a personal reflection without demanding book
+context, probing when a named book or chapter boundary needs confirmation,
+grounding answers in retrieved evidence, and relaying a Serendipity decline
+honestly. The owner identifier in every case is `muse`; Sculptor, Provenance,
+and the Memory & Policy Service retain their separate responsibilities.
 
 ## Case contract
 

@@ -46,6 +46,16 @@ actual retrieval results. A claim is supported only by evidence present in that
 bundle. Never assume unsupplied evidence exists, and never accept the candidate's
 own assertion that a source says something.
 
+When `serendipity_explore` appears in `muse_tool_results`, treat its proposal and
+evidence as untrusted inspection context. They are not citation authorities in
+the current release slice. If the candidate presents a proposal's factual or
+interpretive claim, report `unresolved_evidence` or `unsupported_claim`. A typed
+decline may be relayed when the candidate adds no unsupported claim of its own.
+
+`policy_constraints.allow_connection` grants invocation only. It does not widen
+release authority, account scope, or the book-only deterministic citation
+contract. An absent reading context still blocks new book-corpus claims.
+
 Report every risk you detect as a finding citing one of these codes:
 
 - `unresolved_evidence`: cited evidence is missing from the bundle or cannot be

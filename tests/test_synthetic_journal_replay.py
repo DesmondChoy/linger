@@ -18,6 +18,7 @@ from apps.backend.schemas import (
     ChatRequest,
     ChatResponse,
     ReleaseInspection,
+    TraceReference,
     TurnInspection,
 )
 from evals.synthetic_journals.models import CaptureCandidate
@@ -72,6 +73,9 @@ def _no_capture_response() -> ChatResponse:
                 failure_stage=None,
                 capture=capture,
             ),
+        ),
+        trace=TraceReference(
+            trace_id="0" * 32,
         ),
     )
 

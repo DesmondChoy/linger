@@ -1,19 +1,25 @@
 import { useState } from 'react'
-import { resetSession, sendMessage } from '../api'
-import type { MemoryCaptureNotice, Message, TurnInspection, TurnTimeline } from '../types'
+import { ChatRequestError, resetSession, sendMessage } from '../api'
+import type {
+  ChatResult,
+  MemoryCaptureNotice,
+  Message,
+  TraceReference,
+} from '../types'
 import { Composer } from './Composer'
-import { MessageList } from './MessageList'
 import { Inspector } from './Inspector'
+import { MessageList } from './MessageList'
 import { Reader } from './Reader'
 
 export function Chat() {
   // One session per page load. Reloading starts a fresh conversation.
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
   const [messages, setMessages] = useState<Message[]>([])
-  const [timeline, setTimeline] = useState<TurnTimeline[]>([])
+  const [timeline, setTimeline] = useState<ChatResult[]>([])
   const [view, setView] = useState<'chat' | 'inspect'>('chat')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorTrace, setErrorTrace] = useState<TraceReference | null>(null)
   const [captureNotice, setCaptureNotice] = useState<MemoryCaptureNotice | null>(null)
 
   async function handleSend(text: string) {
@@ -25,17 +31,19 @@ export function Chat() {
     ])
     setPending(true)
     setError(null)
+    setErrorTrace(null)
 
     try {
-      const result = await sendMessage(sessionId, text)
+      const result = await sendMessage(sessionId, text, turnId)
       setMessages((current) => [
         ...current.slice(0, -1),
         { ...current[current.length - 1], content: result.reply },
       ])
-      setTimeline((current) => [...current, timelineFromInspection(result.inspection, text, result.reply, turnId)])
+      setTimeline((current) => [...current, result])
       setCaptureNotice(result.memory_capture)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Something went wrong.')
+      setErrorTrace(caught instanceof ChatRequestError ? caught.trace ?? null : null)
       // The server stores nothing on a failed request, so roll back both local
       // messages and keep the two histories aligned.
       setMessages((current) => current.slice(0, -2))
@@ -50,6 +58,7 @@ export function Chat() {
     setMessages([])
     setTimeline([])
     setError(null)
+    setErrorTrace(null)
     setCaptureNotice(null)
   }
 
@@ -88,28 +97,15 @@ export function Chat() {
               <span>{captureNotice.notice}</span>
             </p>
           )}
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <p className="error">
+              {error}
+              {errorTrace && <> Reference: <code>{errorTrace.trace_id}</code></>}
+            </p>
+          )}
           <Composer disabled={pending} onSend={handleSend} />
         </> : <Inspector timeline={timeline} />}
       </section>
     </main>
   )
-}
-
-function timelineFromInspection(inspection: TurnInspection, userInput: string, response: string, fallbackId: string): TurnTimeline {
-  return {
-    id: inspection.muse_turn.turn_id ?? fallbackId,
-    userInput,
-    response,
-    traces: inspection.traces,
-    contract: inspection.muse_turn,
-    contextResolution: inspection.context_resolution,
-    promptInspection: { dynamic_input: inspection.prompt },
-    connectionBrief: inspection.connection_brief ?? undefined,
-    librarianRequest: inspection.librarian_request ?? undefined,
-    evidenceBundle: inspection.evidence_bundle ?? undefined,
-    connection: inspection.connection_proposal ?? undefined,
-    release: inspection.release ?? undefined,
-    status: inspection.release?.release_source === 'application_safe_decline' ? 'failed' : 'complete',
-  }
 }

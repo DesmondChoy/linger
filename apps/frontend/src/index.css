@@ -138,7 +138,7 @@ textarea::placeholder {
 .book-card p, .reader-author, .book-source, .chapter-summary small { color: var(--muted); font-size: 0.8rem; }
 .book-cover img { width: 3.5rem; height: 4.8rem; object-fit: cover; border-radius: 0.25rem; }
 .choose-book { grid-column: 1 / -1; }
-.upload-card, .chapter-summary { margin-top: 1rem; padding: 0.85rem; border: 1px dashed var(--border); border-radius: 0.7rem; }
+.chapter-summary { margin-top: 1rem; padding: 0.85rem; border: 1px dashed var(--border); border-radius: 0.7rem; }
 .reader-progress { display: grid; gap: 0.75rem; }
 .reader-progress h2 { margin: 0.2rem 0; font-size: 1.15rem; }
 .chapter-select { display: grid; width: 100%; min-width: 0; gap: 0.3rem; font-size: 0.78rem; }
