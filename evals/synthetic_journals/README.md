@@ -1,6 +1,6 @@
 # Synthetic journal package validation
 
-The v1 package has two JSON files: generated content and a separate authoring
+The package has two JSON files: generated content and a separate authoring
 manifest containing only proposed Ground truth. The manifest hashes the exact
 content-file bytes. One package contains one Backstory, person, and evaluation
 account; build a full dataset from multiple independently validated packages.

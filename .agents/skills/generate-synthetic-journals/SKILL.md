@@ -85,7 +85,7 @@ authorize synthetic-data generation.
    **partially runnable** when a named adapter or grading path is missing. Mark it
    **blocked** when a required capability or source is missing. Missing downstream
    freezing or replay alone does not weaken the target design; report the gap.
-9. Inspect the adopted v1 package models in
+9. Inspect the package models in
    `evals/synthetic_journals/models.py` and deterministic validator in
    `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
    content JSON represents one Backstory, Props, Scenes, Lines, and offline
@@ -115,11 +115,11 @@ authorize synthetic-data generation.
     confirmed selection.
 11. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
-    workflow inputs, translated Ground truth requirements, and the adopted v1
-    output contracts. The prompt must explicitly instruct the generator how to
-    produce the Backstory, Props or no Props, Scenes, Lines or offline inputs,
-    and separate authoring manifest required by the plan. Do not weaken or
-    descope a confirmed Objective because current code is incomplete.
+    workflow inputs, translated Ground truth requirements, and the content and
+    authoring-manifest contracts. The prompt must explicitly instruct the
+    generator how to produce the Backstory, Props or no Props, Scenes, Lines or
+    offline inputs, and separate authoring manifest required by the plan. Do not
+    weaken or descope a confirmed Objective because current code is incomplete.
 12. Put a precondition header inside the fenced prompt. If every Scene is
     runnable, label the prompt **Runnable after human approval**. Otherwise
     label it **Target state — do not run** and name every capability or source
@@ -186,8 +186,8 @@ in order:
    containing exactly six body rows in this order: `Objective`, `Backstory`,
    `Prop`, `Scene`, `Line`, and `Ground truth`. Explain how each noun applies,
    including catalog minimums and any separately resolved run configuration.
-   Label the content and authoring-manifest contracts **Adopted v1**, cite their
-   model and validator paths, and describe their concrete structures. Explain
+   Describe the content and authoring-manifest contracts directly, cite their
+   model and validator paths, and explain their concrete structures. Explain
    proposed versus adopted Ground truth in the final row.
 4. **Current implementation and required work.** Use **Observed**, **Proposed**,
    and **Assumed** labels. Cite implementation and focused-test evidence. Name
@@ -203,10 +203,10 @@ in order:
    when useful.
 6. **Proposed generator prompt.** Include the exact prompt in a fenced code block.
    It must contain its own status and preconditions, direct instructions to use
-   the adopted v1 output contracts and validator, generation instructions for
-   every generator-owned canonical entity, and instructions for a separate
-   authoring manifest containing proposed Ground truth. It must not ask the
-   generator to grade recorded system
+   the content and authoring-manifest contracts and validator, generation
+   instructions for every generator-owned canonical entity, and instructions
+   for a separate authoring manifest containing proposed Ground truth. It must
+   not ask the generator to grade recorded system
    behavior or claim that its candidate labels are adopted.
 7. **Ground truth lifecycle.** Explain what the generator proposes, what
    repository code validates, and who independently adopts, revises, or rejects
@@ -238,7 +238,7 @@ word count. Then verify the semantic requirements that the script cannot prove:
 
 - Every required Scene has one current status with concrete evidence or a gap.
 - The target design satisfies every confirmed Objective without descoping.
-- The fenced prompt uses the adopted v1 models and validator without inventing
+- The fenced prompt uses the package models and validator without inventing
   another contract.
 - The fenced prompt creates proposed Ground truth in a separate authoring
   manifest without grading recorded behavior or claiming adoption.
@@ -252,7 +252,7 @@ word count. Then verify the semantic requirements that the script cannot prove:
   fenced prompt. For longitudinal retrieval, both Scenes share the same 11
   active Props and proposed relevance covers all 11 Props in each Scene.
 
-Report the path and selected Objective IDs, then stop. The v1 content and
-authoring-manifest contracts and deterministic validator are adopted. Generation,
-independent review ownership, adoption tooling, package freezing, and replay
-remain unadopted until separately approved.
+Report the path and selected Objective IDs, then stop. The repository defines
+the content and authoring-manifest contracts and deterministic validator.
+Generation, independent review ownership, adoption tooling, package freezing,
+and replay remain unadopted until separately approved.

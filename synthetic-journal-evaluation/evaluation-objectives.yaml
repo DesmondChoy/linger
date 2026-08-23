@@ -1,11 +1,10 @@
-schema_version: 3
 catalog_id: synthetic-journal-evaluation-objectives
 title: Synthetic journal evaluation objectives
 purpose: >-
   Let developers select one or more evaluation objectives and review their
   scenarios before the project adopts a complete downstream workflow. The
   catalog defines what future evaluation data must exercise and the Ground
-  truth authority lifecycle. The repository-owned v1 content and authoring-
+  truth authority lifecycle. The repository-owned content and authoring-
   manifest contracts define package structure; generation, adoption, freezing,
   and replay tooling remain separate decisions.
 

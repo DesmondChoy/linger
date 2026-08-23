@@ -1,5 +1,4 @@
 {
-  "schema_version": 1,
   "run_configuration_id": "longitudinal-memory-retrieval-10-to-1",
   "objective_id": "longitudinal_memory_retrieval",
   "scene_count": 2,

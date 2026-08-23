@@ -49,7 +49,6 @@ def _content_document(*, shifted_comparison_bank: bool = False) -> dict[str, obj
             }
         )
     return {
-        "schema_version": 1,
         "objective_ids": [OBJECTIVE_ID],
         "run_configuration_ids": [RUN_CONFIGURATION_ID],
         "backstory": {
@@ -147,7 +146,6 @@ def _manifest_document(
             }
         )
     return {
-        "schema_version": 1,
         "content_sha256": hashlib.sha256(content_bytes).hexdigest(),
         "ground_truth_status": "proposed",
         "proposals": proposals,

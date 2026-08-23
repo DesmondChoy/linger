@@ -26,7 +26,7 @@ The design uses the six canonical nouns in [`docs/specification.md` Section 7.2.
 | **Line** | Two Lines, one per Scene. Lines are conversational input only. Session reset and memory state are workflow setup, not Lines. The plan uses no offline inputs. |
 | **Ground truth** | The generator writes **proposed** Ground truth in a separate authoring manifest: one `GroundTruthProposal` per Scene, each with a `prop_relevance` judgment for all 11 Props, `PropEvidence` matching exactly its relevant Props, expected and prohibited outcomes, and a `ScenePairing`. A reviewer independent of the generator turns proposals into **adopted** Ground truth. |
 
-Both contracts are **Adopted v1**, modeled in `evals/synthetic_journals/models.py` and checked by `evals/synthetic_journals/validate_package.py`. Content is one JSON document holding `schema_version`, `objective_ids`, `run_configuration_ids`, one `backstory`, `props` with per-Scene `lifecycle`, `scenes`, and `lines`. The manifest is a second JSON document holding `schema_version`, `content_sha256`, `ground_truth_status: "proposed"`, and `proposals`. They represent this Objective unchanged, so no contract gap blocks it.
+`evals/synthetic_journals/models.py` defines both contracts, and `evals/synthetic_journals/validate_package.py` checks them. Content is one JSON document holding `objective_ids`, `run_configuration_ids`, one `backstory`, `props` with per-Scene `lifecycle`, `scenes`, and `lines`. The manifest is a second JSON document holding `content_sha256`, `ground_truth_status: "proposed"`, and `proposals`. They represent this Objective unchanged, so no contract gap blocks it.
 
 ## Current implementation and required work
 
@@ -75,13 +75,13 @@ invocation time; do not rely on any summary of them:
 - synthetic-journal-evaluation/run-configurations/longitudinal-memory-retrieval-10-to-1.json
 
 TASK. Write two JSON files for the Objective longitudinal_memory_retrieval:
-a content file and a separate authoring manifest. Use the v1 models in
+a content file and a separate authoring manifest. Use the package models in
 evals/synthetic_journals/models.py exactly as written. Do not invent another
 schema, and do not add fields.
 
 CONTENT FILE.
-- Set schema_version to 1, objective_ids to ["longitudinal_memory_retrieval"],
-  and run_configuration_ids to ["longitudinal-memory-retrieval-10-to-1"].
+- Set objective_ids to ["longitudinal_memory_retrieval"] and
+  run_configuration_ids to ["longitudinal-memory-retrieval-10-to-1"].
 - Write exactly one Backstory for one person and one evaluation account. Give it
   a multi-session history containing an earlier memory-producing event and later
   returns to the same theme. This Backstory is memory-only: do not read or cite
@@ -107,8 +107,8 @@ CONTENT FILE.
 
 AUTHORING MANIFEST. Write it as a second file that records proposed Ground truth
 only. Never place manifest content in the content file.
-- Set schema_version to 1, ground_truth_status to "proposed", and content_sha256
-  to the SHA-256 of the exact content file bytes you wrote.
+- Set ground_truth_status to "proposed" and content_sha256 to the SHA-256 of
+  the exact content file bytes you wrote.
 - Write one GroundTruthProposal per Scene, both with objective_id
   longitudinal_memory_retrieval.
 - In each proposal, record one prop_relevance judgment for every one of the 11

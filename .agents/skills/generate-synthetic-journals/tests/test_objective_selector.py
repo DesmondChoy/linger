@@ -25,7 +25,7 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
     document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
-    assert document["schema_version"] == 3
+    assert "schema_version" not in document
     assert len(catalog.objectives) == 10
     assert len(set(catalog.ids)) == 10
     assert "session_scoped_conversation_continuity" in catalog.ids

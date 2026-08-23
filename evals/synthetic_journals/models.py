@@ -1,4 +1,4 @@
-"""Strict v1 authoring contracts for synthetic journal evaluation."""
+"""Strict authoring contracts for synthetic journal evaluation."""
 
 from __future__ import annotations
 
@@ -133,7 +133,6 @@ class Scene(StrictModel):
 class SyntheticContent(StrictModel):
     """Generated content for one Backstory, person, and account."""
 
-    schema_version: Literal[1]
     objective_ids: tuple[Identifier, ...] = Field(min_length=1)
     run_configuration_ids: tuple[Identifier, ...] = ()
     backstory: Backstory
@@ -447,7 +446,6 @@ class GroundTruthProposal(StrictModel):
 class AuthoringManifest(StrictModel):
     """Separate generator-authored proposed Ground truth for one content file."""
 
-    schema_version: Literal[1]
     content_sha256: Sha256
     ground_truth_status: Literal["proposed"]
     proposals: tuple[GroundTruthProposal, ...] = Field(min_length=1)
@@ -479,7 +477,6 @@ class RetrievalPropMix(StrictModel):
 class RunConfiguration(StrictModel):
     """Resolved per-run constraints kept outside the Objective catalog."""
 
-    schema_version: Literal[1]
     run_configuration_id: Identifier
     objective_id: Identifier
     scene_count: int = Field(ge=1)

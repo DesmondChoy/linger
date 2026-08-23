@@ -112,7 +112,7 @@ def validate_report(
             ("Lines or offline inputs", r"\bLines?\b|\boffline inputs?\b"),
             ("authoring manifest", r"\bauthoring manifest\b"),
             ("proposed Ground truth", r"\bproposed Ground truth\b"),
-            ("adopted v1 models", r"evals/synthetic_journals/models\.py"),
+            ("package models", r"evals/synthetic_journals/models\.py"),
             (
                 "deterministic package validator",
                 r"evals/synthetic_journals/validate_package\.py",

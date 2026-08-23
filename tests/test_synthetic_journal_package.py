@@ -60,7 +60,6 @@ def _content_document(
             }
         )
     return {
-        "schema_version": 1,
         "objective_ids": [OBJECTIVE_ID],
         "run_configuration_ids": (
             [RUN_CONFIGURATION_ID] if use_run_configuration else []
@@ -119,7 +118,6 @@ def _manifest_document(
             proposal["capture"] = {"kind": "no_candidate"}
         proposals.append(proposal)
     return {
-        "schema_version": 1,
         "content_sha256": hashlib.sha256(content_bytes).hexdigest(),
         "ground_truth_status": "proposed",
         "proposals": proposals,
@@ -184,7 +182,7 @@ def test_cli_reports_valid_package(tmp_path: Path, capsys: pytest.CaptureFixture
 
 def test_rejects_unknown_fields_without_coercion() -> None:
     content_document = _content_document()
-    content_document["unexpected"] = True
+    content_document["schema_version"] = 1
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
         SyntheticContent.model_validate_json(_json_bytes(content_document))
 
@@ -434,6 +432,8 @@ def test_json_schema_forbids_extra_fields_and_discriminates_capture() -> None:
     manifest_schema = AuthoringManifest.model_json_schema()
 
     assert content_schema["additionalProperties"] is False
+    assert "schema_version" not in content_schema["properties"]
+    assert "schema_version" not in manifest_schema["properties"]
     capture_schema = manifest_schema["$defs"]["GroundTruthProposal"]["properties"][
         "capture"
     ]["anyOf"][0]

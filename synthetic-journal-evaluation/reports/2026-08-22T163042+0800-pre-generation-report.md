@@ -29,7 +29,7 @@ The design uses the six canonical nouns in [specification Section 7.2.1](../../d
 | **Line** | The conversational inputs. S1 needs an ordered pair: one Line that establishes the reading position naturally, then one that makes the book claim. S2, S3, and S4 each carry one Line. Session reset and account state are workflow state, not Lines. |
 | **Ground truth** | The generator writes **proposed** labels only, in a separate authoring manifest: which Scene requires retrieval, permitted corpus evidence with exact locations, quotation spans, per-Prop relevance and lifecycle, and prohibited outcomes. Deterministic validation then checks facts; an independent reviewer adopts, revises, or rejects each label. Only **adopted** Ground truth grades a run. |
 
-Both contracts are **Adopted v1**, defined in `evals/synthetic_journals/models.py` and checked by `evals/synthetic_journals/validate_package.py`. `SyntheticContent` holds one `Backstory`, `Prop` records with per-Scene `lifecycle`, ordered `Scene` records, and `Line` records. `AuthoringManifest` holds `content_sha256`, `ground_truth_status: proposed`, and one `GroundTruthProposal` per Scene and Objective pair with outcomes, `exact_spans`, typed `evidence`, and `ScenePairing`.
+`evals/synthetic_journals/models.py` defines both contracts, and `evals/synthetic_journals/validate_package.py` checks them. `SyntheticContent` holds one `Backstory`, `Prop` records with per-Scene `lifecycle`, ordered `Scene` records, and `Line` records. `AuthoringManifest` holds `content_sha256`, `ground_truth_status: proposed`, and one `GroundTruthProposal` per Scene and Objective pair with outcomes, `exact_spans`, typed `evidence`, and `ScenePairing`.
 
 ## Current implementation and required work
 
@@ -126,8 +126,8 @@ coordinates in a Prop.
 
 OUTPUT CONTRACT. Write two JSON files.
 1. Content: conform exactly to `SyntheticContent` in
-   `evals/synthetic_journals/models.py` (schema_version 1). Extra fields are
-   rejected. Do not invent another schema, and do not add a run configuration
+   `evals/synthetic_journals/models.py`. Extra fields are rejected. Do not
+   invent another schema, and do not add a run configuration
    identifier: no resolved run configuration applies to these Objectives.
 2. Authoring manifest: conform exactly to `AuthoringManifest` in the same file.
    Set `ground_truth_status` to "proposed" and `content_sha256` to the SHA-256
