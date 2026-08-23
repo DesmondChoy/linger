@@ -19,7 +19,6 @@ NoMemoryCandidateReasonCode = Literal[
     "no_user_words",
     "automatic_capture_disabled",
 ]
-MuseReasonCode = MemoryCandidateReasonCode | NoMemoryCandidateReasonCode
 
 
 class EvidenceUse(StrictModel):

@@ -125,9 +125,9 @@
     }
     .section-intro { max-width: 720px; margin: 0; color: var(--muted); font-size: 17px; }
 
-    .personas-section { background: var(--paper); }
-    .personas-section > .shell { width: min(calc(100% - 32px), 1600px); }
-    .personas-section .section-head { margin-bottom: 24px; max-width: 1240px; margin-left: auto; margin-right: auto; }
+    .objectives-section { background: var(--paper); }
+    .objectives-section > .shell { width: min(calc(100% - 32px), 1600px); }
+    .objectives-section .section-head { margin-bottom: 24px; max-width: 1240px; margin-left: auto; margin-right: auto; }
     .evaluation-portfolio {
       margin-bottom: 24px;
       border: 1px solid var(--line);
@@ -188,19 +188,19 @@
       font-weight: 700;
     }
     .contract-rule { margin-top: 12px; padding: 11px 12px; background: var(--accent-soft); color: #465267; font-size: 14px; }
-    .persona-lab {
+    .objective-explorer {
       display: grid;
       grid-template-columns: 350px minmax(0, 1fr);
       scroll-margin-top: 62px;
       border: 1px solid var(--line);
       background: var(--canvas);
     }
-    .persona-sidebar {
+    .objective-sidebar {
       min-height: 100%;
       border-right: 1px solid var(--line);
       background: var(--paper);
     }
-    .lab-controls {
+    .explorer-controls {
       position: sticky;
       top: 62px;
       z-index: 4;
@@ -210,7 +210,7 @@
       border-bottom: 1px solid var(--line);
       background: var(--paper);
     }
-    .persona-lab .micro { font-size: 11px; }
+    .objective-explorer .micro { font-size: 11px; }
     .select-group { display: grid; gap: 8px; }
     .select-group label { font-size: 14px; font-weight: 750; }
     .select-wrap { position: relative; }
@@ -223,7 +223,7 @@
       pointer-events: none;
       transform: translateY(-54%);
     }
-    #persona-select {
+    #objective-select {
       width: 100%;
       min-height: 46px;
       padding: 10px 38px 10px 13px;
@@ -235,7 +235,7 @@
       font-size: 14px;
       font-weight: 650;
     }
-    .load-button {
+    .show-button {
       width: 100%;
       min-height: 46px;
       padding: 11px 18px;
@@ -247,9 +247,9 @@
       font-size: 14px;
       font-weight: 750;
     }
-    .load-button:hover { background: var(--accent); border-color: var(--accent); }
-    .load-button:disabled { cursor: wait; opacity: 0.65; }
-    .lab-status {
+    .show-button:hover { background: var(--accent); border-color: var(--accent); }
+    .show-button:disabled { cursor: wait; opacity: 0.65; }
+    .explorer-status {
       min-height: 18px;
       margin: 0;
       color: var(--muted);
@@ -266,7 +266,7 @@
       letter-spacing: -0.03em;
       line-height: 1.05;
     }
-    .definition-role { margin: 0 0 4px; color: var(--accent); font-size: 15px; font-weight: 750; }
+    .definition-summary { margin: 0 0 4px; color: var(--accent); font-size: 15px; font-weight: 750; }
     .definition-context { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
     .definition-use {
       padding: 16px 17px;
@@ -306,7 +306,7 @@
       border: 2px solid transparent;
       pointer-events: none;
     }
-    .runtime.loaded::before { animation: runtime-confirm 1500ms ease-out; }
+    .runtime.displayed::before { animation: runtime-confirm 1500ms ease-out; }
     @keyframes runtime-confirm {
       0% { border-color: var(--accent); background: rgba(77, 96, 129, 0.08); }
       100% { border-color: transparent; background: transparent; }
@@ -335,7 +335,7 @@
     }
     .runtime-title h3 { margin: 0; font-size: 17px; }
     .runtime-title p { margin: 0; color: var(--muted); font-size: 13px; }
-    .loaded-persona {
+    .displayed-objective {
       padding: 7px 11px;
       border: 1px solid var(--line);
       border-radius: 999px;
@@ -344,8 +344,8 @@
       font-size: 12px;
       font-weight: 700;
     }
-    .loaded .loaded-persona { border-color: #9cb6a8; color: var(--good); }
-    .scenario-line {
+    .displayed .displayed-objective { border-color: #9cb6a8; color: var(--good); }
+    .objective-summary-line {
       display: grid;
       grid-template-columns: 96px 1fr;
       gap: 12px;
@@ -355,8 +355,8 @@
       background: var(--paper);
       font-size: 14px;
     }
-    .scenario-line strong { color: var(--accent); }
-    .scenario-line span { color: var(--muted); }
+    .objective-summary-line strong { color: var(--accent); }
+    .objective-summary-line span { color: var(--muted); }
 
     .architecture-board { margin-top: 10px; }
     .architecture-head { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 9px; }
@@ -510,13 +510,13 @@
     }
 
     @media (max-width: 900px) {
-      .shell, .personas-section > .shell { width: min(calc(100% - 32px), var(--shell)); }
+      .shell, .objectives-section > .shell { width: min(calc(100% - 32px), var(--shell)); }
       .hero, .section-head, .portfolio-head, .contract-head, .ask { grid-template-columns: 1fr; gap: 18px; }
       .hero { padding-block: 58px 42px; }
       .hero h1 { font-size: clamp(40px, 12vw, 58px); }
-      .persona-lab { grid-template-columns: 1fr; }
-      .persona-sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
-      .lab-controls, .runtime-head { position: static; }
+      .objective-explorer { grid-template-columns: 1fr; }
+      .objective-sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+      .explorer-controls, .runtime-head { position: static; }
       .architecture-board { overflow-x: auto; }
       .architecture-head, .architecture-invariant, .architecture-summary { min-width: 1000px; }
       .architecture-canvas { min-width: 1000px; }
@@ -532,7 +532,7 @@
       .hero { padding-block: 18px 30px; }
       .hero h1 { font-size: 40pt; }
       .content-section { padding-block: 30px; }
-      .persona-lab { display: none; }
+      .objective-explorer { display: none; }
       .portfolio-table { min-width: 0; }
       .portfolio-table th, .portfolio-table td { padding: 6px; font-size: 8.5pt; }
       .contract-card { break-inside: avoid; }
@@ -566,7 +566,7 @@
       </aside>
     </div>
 
-    <section class="content-section personas-section" id="personas">
+    <section class="content-section objectives-section" id="objectives">
       <div class="shell">
         <header class="section-head">
           <span class="label">Evaluation objectives</span>
@@ -614,18 +614,18 @@
                 <li><strong>Validate, then review.</strong> Deterministic checks verify objective facts before you adopt, revise, or reject proposed Ground truth. The report is developer-only and never reaches a generator or the system under evaluation.</li>
                 <li><strong>Stop.</strong> Confirmation creates no evaluation data — no backstories, props, scenes, lines, manifests, annotations, or releases. Target designs remain proposals until a human approves them.</li>
               </ol>
-              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the Ground truth lifecycle is defined; schemas, tooling, and the remaining workflow are not.</div>
+              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the v1 content and authoring-manifest contracts and deterministic validator are adopted; generation, independent adoption tooling, full-dataset layout, freezing, and replay are not.</div>
             </article>
           </div>
         </section>
 
-        <div class="persona-lab" id="persona-lab">
-          <aside class="persona-sidebar" aria-label="Evaluation objective selection and profile">
-          <div class="lab-controls">
+        <div class="objective-explorer" id="objective-explorer">
+          <aside class="objective-sidebar" aria-label="Evaluation objective explorer controls">
+          <div class="explorer-controls">
             <div class="select-group">
-              <label for="persona-select">Explore an evaluation objective</label>
+              <label for="objective-select">Explore an evaluation objective</label>
               <div class="select-wrap">
-                <select id="persona-select" aria-describedby="lab-status">
+                <select id="objective-select" aria-describedby="explorer-status">
                   <optgroup label="Conversation and memory">
                     <option value="reviewed_automatic_memory_capture">Reviewed automatic memory capture</option>
                     <option value="session_scoped_conversation_continuity">Session-scoped conversation continuity</option>
@@ -645,14 +645,14 @@
                 </select>
               </div>
             </div>
-            <button class="load-button" id="load-persona" type="button">Show Grounded book reflection</button>
-            <p class="lab-status" id="lab-status" aria-live="polite">Review the objective, then show the components and gates it records.</p>
+            <button class="show-button" id="show-objective" type="button">Show Grounded book reflection</button>
+            <p class="explorer-status" id="explorer-status" aria-live="polite">Review the objective, then show the components and gates it records.</p>
           </div>
 
             <div class="definition-card" aria-label="Selected evaluation objective">
               <span class="micro" id="definition-number">Objective 01 / 10</span>
               <h3 id="definition-name">Grounded book reflection</h3>
-              <p class="definition-role" id="definition-role">Create a reflection that requires verified evidence from a book.</p>
+              <p class="definition-summary" id="definition-summary">Create a reflection that requires verified evidence from a book.</p>
               <p class="definition-context" id="definition-context">grounded_book_reflection</p>
               <div class="definition-use">
                 <span class="micro">Selection</span>
@@ -664,21 +664,21 @@
               </div>
               <div class="definition-block">
                 <span class="micro">Composition</span>
-                <h4 id="definition-moment-title">Constraints</h4>
-                <ul class="definition-constraints" id="definition-moment">
+                <h4 id="definition-constraints-title">Constraints</h4>
+                <ul class="definition-constraints" id="definition-constraints">
                   <li>Keep the personal reflection useful even if no book claim is ultimately made.</li>
                 </ul>
               </div>
             </div>
           </aside>
 
-          <div class="runtime" id="runtime" role="region" tabindex="-1" aria-label="Linger evaluation profile">
+          <div class="runtime" id="runtime" role="region" tabindex="-1" aria-label="Linger objective architecture">
               <div class="runtime-head">
-                <div class="runtime-title"><span class="runtime-mark">L</span><div><h3>Linger evaluation profile</h3><p>Shows the components and gates one objective records</p></div></div>
-                <span class="loaded-persona" id="loaded-persona">No objective selected</span>
+                <div class="runtime-title"><span class="runtime-mark">L</span><div><h3>Linger objective architecture</h3><p>Shows the components and gates one objective records</p></div></div>
+                <span class="displayed-objective" id="displayed-objective">No objective displayed</span>
               </div>
 
-              <div class="scenario-line"><strong>Objective</strong><span id="scenario-text">Choose an objective to show the components and gates it records.</span></div>
+              <div class="objective-summary-line"><strong>Objective</strong><span id="objective-summary">Choose an objective to show the components and gates it records.</span></div>
 
               <div class="architecture-board">
                 <div class="architecture-head">
@@ -742,7 +742,7 @@
             </div>
         </div>
 
-        <noscript><p>This interactive profile requires JavaScript. The portfolio matrix and evaluation contract above remain complete without it.</p></noscript>
+        <noscript><p>This interactive explorer requires JavaScript. The portfolio matrix and evaluation contract above remain complete without it.</p></noscript>
 
         <aside class="ask">
           <span class="label">Next step</span>
@@ -760,7 +760,7 @@
   </footer>
 
   <script>
-    const personaData = {
+    const objectiveData = {
       grounded_book_reflection: {
         number: "Objective 01 / 10",
         title: "Grounded book reflection",
@@ -914,12 +914,12 @@
       }
     };
 
-    const select = document.querySelector("#persona-select");
-    const loadButton = document.querySelector("#load-persona");
-    const status = document.querySelector("#lab-status");
+    const objectiveSelect = document.querySelector("#objective-select");
+    const showButton = document.querySelector("#show-objective");
+    const explorerStatus = document.querySelector("#explorer-status");
     const runtime = document.querySelector("#runtime");
-    const loadedPersona = document.querySelector("#loaded-persona");
-    const scenarioText = document.querySelector("#scenario-text");
+    const displayedObjective = document.querySelector("#displayed-objective");
+    const objectiveSummary = document.querySelector("#objective-summary");
     const architectureSummary = document.querySelector("#architecture-summary");
     const evalOutput = document.querySelector("#eval-output");
     const valueOutput = document.querySelector("#value-output");
@@ -931,9 +931,9 @@
       session: "Session state"
     };
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const firstObjective = select.value;
-    let personaLoading = false;
-    let loadVersion = 0;
+    const firstObjective = objectiveSelect.value;
+    let isDisplaying = false;
+    let displayVersion = 0;
 
     function setText(id, value) {
       document.querySelector(`#${id}`).textContent = value;
@@ -948,12 +948,12 @@
     }
 
     function renderDefinition(key) {
-      const objective = personaData[key];
+      const objective = objectiveData[key];
       setText("definition-number", objective.number);
       setText("definition-name", objective.title);
-      setText("definition-role", objective.summary);
+      setText("definition-summary", objective.summary);
       setText("definition-context", `${objective.family} · ${key}`);
-      const combines = objective.combines.map(id => personaData[id].title).join(", ") || "No listed pairings";
+      const combines = objective.combines.map(id => objectiveData[id].title).join(", ") || "No listed pairings";
       const useList = document.querySelector("#definition-use-list");
       const guidance = [
         {label: "Selection hint", text: objective.hint},
@@ -967,22 +967,22 @@
         listItem.append(label, item.text);
         return listItem;
       }));
-      replaceList("definition-moment", objective.constraints);
-      loadButton.textContent = `Show ${objective.title}`;
-      status.textContent = "Review the objective, then show the components and gates it records.";
+      replaceList("definition-constraints", objective.constraints);
+      showButton.textContent = `Show ${objective.title}`;
+      explorerStatus.textContent = "Review the objective, then show the components and gates it records.";
     }
 
     function resetRuntime() {
-      loadVersion += 1;
-      personaLoading = false;
-      select.disabled = false;
-      loadButton.disabled = false;
-      loadButton.setAttribute("aria-disabled", "false");
-      runtime.classList.remove("loaded");
+      displayVersion += 1;
+      isDisplaying = false;
+      objectiveSelect.disabled = false;
+      showButton.disabled = false;
+      showButton.setAttribute("aria-disabled", "false");
+      runtime.classList.remove("displayed");
       runtime.removeAttribute("aria-busy");
       clearStressMap();
-      loadedPersona.textContent = "No objective selected";
-      scenarioText.textContent = "Choose an objective to show the components and gates it records.";
+      displayedObjective.textContent = "No objective displayed";
+      objectiveSummary.textContent = "Choose an objective to show the components and gates it records.";
       architectureSummary.textContent = "Explore an objective to read its catalog-recorded architecture as text.";
       evalOutput.className = "output-panel";
       valueOutput.className = "output-panel";
@@ -1024,30 +1024,30 @@
       return `Catalog architecture — Primary: ${names(objective.architecture.primary)}; Supporting: ${names(objective.architecture.supporting)}; Gates: ${names(objective.architecture.gates)}; Services: ${names(objective.architecture.services)}.`;
     }
 
-    async function loadPersona() {
-      if (personaLoading) return;
-      personaLoading = true;
-      const version = ++loadVersion;
-      const objective = personaData[select.value];
-      select.disabled = true;
-      loadButton.disabled = true;
-      loadButton.setAttribute("aria-disabled", "true");
-      loadButton.textContent = "Loading profile…";
-      runtime.classList.remove("loaded");
+    async function showObjective() {
+      if (isDisplaying) return;
+      isDisplaying = true;
+      const version = ++displayVersion;
+      const objective = objectiveData[objectiveSelect.value];
+      objectiveSelect.disabled = true;
+      showButton.disabled = true;
+      showButton.setAttribute("aria-disabled", "true");
+      showButton.textContent = "Displaying objective…";
+      runtime.classList.remove("displayed");
       runtime.setAttribute("aria-busy", "true");
       clearStressMap();
-      status.textContent = `Loading the ${objective.title} profile…`;
-      loadedPersona.textContent = "Loading…";
-      scenarioText.textContent = `${objective.title}: ${objective.summary}`;
+      explorerStatus.textContent = `Displaying ${objective.title}…`;
+      displayedObjective.textContent = "Displaying…";
+      objectiveSummary.textContent = `${objective.title}: ${objective.summary}`;
 
       await wait(80);
-      if (version !== loadVersion) return;
+      if (version !== displayVersion) return;
       for (const path of architecturePaths) {
         if (objective.paths.includes(path.dataset.path)) {
           path.classList.add("active");
           if (objective.corePaths.includes(path.dataset.path)) path.classList.add("stress-3");
           await wait(25);
-          if (version !== loadVersion) return;
+          if (version !== displayVersion) return;
         }
       }
       for (const node of architectureNodes) {
@@ -1057,31 +1057,31 @@
           node.dataset.level = String(state.score);
           node.dataset.stressLabel = state.label;
           await wait(state.score === 3 ? 45 : 30);
-          if (version !== loadVersion) return;
+          if (version !== displayVersion) return;
         }
       }
 
       renderOutputs(objective);
       architectureSummary.textContent = architectureText(objective);
-      runtime.classList.add("loaded");
+      runtime.classList.add("displayed");
       runtime.removeAttribute("aria-busy");
-      loadedPersona.textContent = `${objective.title} loaded`;
+      displayedObjective.textContent = `${objective.title} displayed`;
       const primaryComponents = objective.architecture.primary.length;
       const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
-      status.textContent = `${objective.title}: ${plural(primaryComponents, "primary component")} and ${plural(objective.measures.length, "suggested measure")}.`;
-      loadButton.textContent = `Show ${objective.title} again`;
-      loadButton.disabled = false;
-      loadButton.setAttribute("aria-disabled", "false");
-      select.disabled = false;
-      personaLoading = false;
+      explorerStatus.textContent = `${objective.title}: ${plural(primaryComponents, "primary component")} and ${plural(objective.measures.length, "suggested measure")}.`;
+      showButton.textContent = `Show ${objective.title} again`;
+      showButton.disabled = false;
+      showButton.setAttribute("aria-disabled", "false");
+      objectiveSelect.disabled = false;
+      isDisplaying = false;
       runtime.focus({preventScroll: true});
     }
 
-    select.addEventListener("change", () => {
+    objectiveSelect.addEventListener("change", () => {
       resetRuntime();
-      renderDefinition(select.value);
+      renderDefinition(objectiveSelect.value);
     });
-    loadButton.addEventListener("click", loadPersona);
+    showButton.addEventListener("click", showObjective);
     renderDefinition(firstObjective);
     resetRuntime();
   </script>

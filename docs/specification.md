@@ -339,7 +339,7 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 | Term | Definition |
 |---|---|
 | **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
-| **Backstory** | The generated persona history, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
+| **Backstory** | The generated history for one person, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
 | **Prop** | A generated memory record pre-positioned in Linger's storage and available to the evaluation before a scene runs. Each prop belongs to the backstory's person and evaluation account. When lines are fed to Muse, a prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
@@ -411,7 +411,7 @@ Two loops are in scope.
 
 **Pain point.** Observed failures, including blocked prompt-injection attempts, Provenance rejections, and failed deterministic post-checks, can reveal gaps in regression coverage.
 
-**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. The project has not adopted a scene format, generation mechanism, data lifecycle, review process, or promotion workflow. Section 7.2 governs those open decisions.
+**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. Section 7.2 defines the adopted v1 Scene contract and deterministic package validation. The project has not adopted a mechanism for turning a live failure into synthetic content, a review and adoption process for that content, or a promotion workflow.
 
 **Agents involved.** Provenance and the deterministic post-check layer act only as detectors. They cannot create, write, freeze, or promote evaluation data.
 
