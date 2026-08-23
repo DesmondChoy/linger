@@ -44,6 +44,16 @@ provider's key is needed:
 - `openai:gpt-5` → `OPENAI_API_KEY`
 - `anthropic:claude-sonnet-4-5` → `ANTHROPIC_API_KEY`
 
+To send the existing metadata-only telemetry to the Linger Logfire project:
+
+```bash
+uv run logfire --region us auth
+uv run logfire --region us projects use --org desmond-choy linger
+```
+
+Use `LOGFIRE_TOKEN` instead in deployed or CI environments. The telemetry
+allowlist and privacy constraints are defined in [`docs/telemetry.md`](docs/telemetry.md).
+
 ### Start the app
 
 Run these commands in two terminals from the repository root:

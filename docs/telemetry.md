@@ -82,8 +82,10 @@ The contract is enforced by construction:
 5. Exported-payload tests inject distinctive secret markers into every
    prohibited source and assert that no span, log, event, or resource attribute
    contains them.
-6. `LOGFIRE_TOKEN` selects the destination; without it Linger exports nothing
-   to Logfire, and console export remains disabled.
+6. Local development uses the project credentials created by
+   `logfire projects use`; deployed and CI environments use `LOGFIRE_TOKEN`.
+   Without either credential source Linger exports nothing to Logfire, and
+   console export remains disabled.
 
 Logfire's built-in scrubbing may remain enabled as defence in depth, but it
 does not replace allowlisting. Adding a telemetry field requires the contract,
