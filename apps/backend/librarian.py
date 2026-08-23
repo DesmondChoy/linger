@@ -9,11 +9,16 @@ from pathlib import Path
 
 from src.linger.corpus.alice import BOOK
 from src.linger.corpus.book import BookCorpus, ChapterFrontMatter, parse_chapter_markdown
+from src.linger.contracts.librarian import EvidenceRecord
 
 from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
 
 
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
+EVIDENCE_ID = re.compile(
+    r"^(?P<chapter_id>[a-z0-9]+(?:-[a-z0-9]+)*-ch\d+)-ln"
+    r"(?P<start>\d+)-(?P<end>\d+)$"
+)
 STOP_WORDS = {
     "a", "about", "after", "again", "all", "also", "am", "an", "and",
     "are", "as", "at", "be", "because", "been", "before", "being", "but",
@@ -116,6 +121,95 @@ class Librarian:
     def version_for(self, work_id: str) -> str | None:
         registration = CORPORA.get(work_id)
         return registration.book.book_version_id if registration else None
+
+    def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
+        """Resolve one released handle without running retrieval again."""
+        match = EVIDENCE_ID.fullmatch(evidence_id)
+        if match is None:
+            return None
+
+        chapter_id = match.group("chapter_id")
+        start = int(match.group("start"))
+        end = int(match.group("end"))
+        if (
+            start < 1
+            or end < start
+            or evidence_id != f"{chapter_id}-ln{start:04d}-{end:04d}"
+        ):
+            return None
+
+        matches: list[tuple[CorpusRegistration, dict[str, object]]] = []
+        for registration in CORPORA.values():
+            catalog = _load_catalog(registration)
+            chapters = catalog.get("chapters")
+            if not isinstance(chapters, list):
+                raise CorpusScopeError("catalog chapters must be a list")
+            matches.extend(
+                (registration, chapter)
+                for chapter in chapters
+                if isinstance(chapter, dict) and chapter.get("chapter_id") == chapter_id
+            )
+
+        if not matches:
+            return None
+        if len(matches) != 1:
+            raise CorpusScopeError("evidence chapter identifier is ambiguous")
+
+        registration, chapter = matches[0]
+        relative_path = chapter.get("path")
+        chapter_number = chapter.get("chapter_number")
+        if not isinstance(relative_path, str) or not isinstance(chapter_number, int):
+            raise CorpusScopeError("catalog chapter metadata is invalid")
+
+        metadata, markdown_body = parse_chapter_markdown(
+            (registration.root / relative_path).read_text(encoding="utf-8")
+        )
+        if (
+            metadata.work_id != registration.book.work_id
+            or metadata.book_version_id != registration.book.book_version_id
+            or metadata.chapter_id != chapter_id
+            or metadata.chapter_number != chapter_number
+            or metadata.source_sha256 != registration.book.source_sha256
+        ):
+            raise CorpusScopeError("chapter identity does not match its registered corpus")
+
+        paragraphs = _paragraphs(metadata, markdown_body)
+        first = next(
+            (
+                index
+                for index, paragraph in enumerate(paragraphs)
+                if paragraph.source_lines[0] == start
+            ),
+            None,
+        )
+        if first is None:
+            return None
+
+        selected: list[Paragraph] = []
+        for paragraph in paragraphs[first:]:
+            selected.append(paragraph)
+            paragraph_end = paragraph.source_lines[1]
+            if paragraph_end == end:
+                break
+            if paragraph_end > end:
+                return None
+        if not selected or selected[-1].source_lines[1] != end:
+            return None
+
+        return EvidenceRecord(
+            evidence_id=evidence_id,
+            work_id=metadata.work_id,
+            book_version_id=metadata.book_version_id,
+            chapter_id=metadata.chapter_id,
+            chapter_number=metadata.chapter_number,
+            location=(
+                f"Chapter {metadata.chapter_number} — {metadata.title}, "
+                f"source lines {start}-{end}"
+            ),
+            source_sha256=metadata.source_sha256,
+            source_lines=(start, end),
+            text="\n\n".join(paragraph.text for paragraph in selected),
+        )
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
         """Search eligible chapter bodies without opening a forbidden chapter."""

@@ -23,7 +23,7 @@ from pydantic_ai.messages import ToolCallPart
 
 from apps.backend import sessions
 from apps.backend.config import get_settings
-from apps.backend.main import _inspection_for, librarian
+from apps.backend.main import _inspection_for
 from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.muse.models import MuseCandidate
@@ -34,9 +34,12 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import _tool_results, reflection_reply
+from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import (
     reset_confirmed_reading,
+    reset_turn_evidence,
     set_confirmed_reading,
+    set_turn_evidence,
 )
 
 from evals.librarian.benchmark import (
@@ -147,12 +150,15 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     session_id = f"librarian-live-eval-{case.case_id}"
     sessions.clear(session_id)
     request = ChatRequest(session_id=session_id, message=_chat_message(case))
-    inspection, muse_input, review_context = _inspection_for(request)
+    inspection, muse_input, review_context = _inspection_for(
+        request,
+        allow_memory_capture=False,
+    )
     context = inspection.muse_turn.get("reading_context")
     if not isinstance(context, dict):
         raise RuntimeError(f"{case.case_id}: application did not confirm reading context")
 
-    book_version_id = librarian.version_for(str(context["work_id"]))
+    book_version_id = librarian_service.version_for(str(context["work_id"]))
     if book_version_id is None:
         raise RuntimeError(f"{case.case_id}: no corpus revision for confirmed work")
     release_scope = ReleaseScope(
@@ -169,6 +175,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
             chapter_max=release_scope.chapter_max,
         )
     )
+    evidence_token = set_turn_evidence(())
     started = time.perf_counter()
     try:
         release = await reflection_reply(
@@ -180,6 +187,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
             release_scope=release_scope,
         )
     finally:
+        reset_turn_evidence(evidence_token)
         reset_confirmed_reading(token)
         sessions.clear(session_id)
     latency_ms = (time.perf_counter() - started) * 1_000

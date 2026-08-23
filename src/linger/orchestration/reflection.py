@@ -16,8 +16,13 @@ from apps.backend.telemetry import (
     run_agent_traced,
     set_span_attrs,
 )
+from apps.backend.contracts import EvidenceItem
 from src.linger.agents.muse.models import MemoryCandidate, MuseCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskCode
+from src.linger.agents.serendipity.models import (
+    ConnectionExplorationResult,
+    ConnectionProposal,
+)
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     EvidenceRecord,
@@ -25,6 +30,8 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
+from src.linger.orchestration.grounding import evidence_record_from_item
+from src.linger.orchestration.turn_context import turn_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
@@ -61,6 +68,9 @@ class ReflectionRelease:
     # Muse's direct librarian_search calls, outside connection discovery.
     # Inspection-only: request args plus the validated LibrarianResponse.
     librarian_grounding_calls: tuple[dict[str, object], ...] = ()
+    # Content-free handles only. Rejected candidate text never crosses this boundary.
+    evidence_ids: tuple[str, ...] = ()
+    review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -70,6 +80,16 @@ def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
         for finding in review.findings:
             seen.setdefault(finding.code, None)
     return tuple(seen)
+
+
+def _review_codes(*reviews: ProvenanceReview) -> tuple[tuple[RiskCode, ...], ...]:
+    """Keep finding codes attached to the review call that produced them."""
+    return tuple(tuple(finding.code for finding in review.findings) for review in reviews)
+
+
+def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
+    """Keep declared evidence handles without persisting candidate content."""
+    return tuple(dict.fromkeys(use.evidence_id for use in candidate.evidence_uses))
 
 
 def _nomination(candidate: MuseCandidate) -> CaptureNomination:
@@ -90,6 +110,8 @@ def _safe_decline(
     automatic_capture_candidate: AutomaticMemoryCandidate | None = None,
     capture_failure: CaptureFailure | None = None,
     librarian_grounding_calls: tuple[dict[str, object], ...] = (),
+    evidence_ids: tuple[str, ...] = (),
+    review_finding_codes: tuple[tuple[RiskCode, ...], ...] = (),
 ) -> ReflectionRelease:
     return ReflectionRelease(
         reply=SAFE_DECLINE,
@@ -103,6 +125,8 @@ def _safe_decline(
         automatic_capture_candidate=automatic_capture_candidate,
         capture_failure=capture_failure,
         librarian_grounding_calls=librarian_grounding_calls,
+        evidence_ids=evidence_ids,
+        review_finding_codes=review_finding_codes,
     )
 
 
@@ -163,46 +187,118 @@ def _candidate(output: object) -> MuseCandidate:
     return candidate.model_copy(update={"reply": reply})
 
 
+def _validate_record_scope(
+    record: EvidenceRecord,
+    release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
+) -> None:
+    start_line, end_line = record.source_lines
+    if start_line < 1 or end_line < start_line:
+        raise ReleaseValidationError("Book evidence has invalid source lines")
+    if record.evidence_id in previously_released_evidence_ids:
+        return
+    if release_scope is None or (
+        record.work_id != release_scope.work_id
+        or record.book_version_id != release_scope.book_version_id
+        or record.chapter_number > release_scope.chapter_max
+    ):
+        raise ReleaseValidationError("Book evidence exceeds the release scope")
+
+
 def _trusted_book_evidence(
+    release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
+) -> dict[str, EvidenceRecord]:
+    """Read the application-owned evidence index, never model message history."""
+    evidence = dict(turn_evidence())
+    for record in evidence.values():
+        _validate_record_scope(
+            record,
+            release_scope,
+            previously_released_evidence_ids,
+        )
+    return evidence
+
+
+def _validated_book_evidence(
     tool_results: list[dict[str, object]],
     release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
 ) -> dict[str, EvidenceRecord]:
-    """Build a turn-local index from typed Librarian results only."""
-    evidence: dict[str, EvidenceRecord] = {}
+    """Validate current tool handoffs against the shared trusted index."""
+    evidence = _trusted_book_evidence(
+        release_scope,
+        previously_released_evidence_ids,
+    )
     for tool_result in tool_results:
-        if tool_result["tool_name"] != "librarian_search":
+        if tool_result["tool_name"] == "librarian_search":
+            try:
+                response = LIBRARIAN_RESPONSE_ADAPTER.validate_python(
+                    tool_result["content"]
+                )
+            except Exception:
+                raise ReleaseValidationError(
+                    "Librarian returned an invalid response"
+                ) from None
+            if not isinstance(response, RetrievalResult):
+                continue
+            if release_scope is None:
+                raise ReleaseValidationError(
+                    "Librarian result has no trusted release scope"
+                )
+            searched = response.searched_scope
+            if (
+                searched.work_id != release_scope.work_id
+                or searched.book_version_id != release_scope.book_version_id
+                or searched.max_chapter_inclusive > release_scope.chapter_max
+            ):
+                raise ReleaseValidationError("Librarian result exceeds the release scope")
+            for record in response.evidence:
+                if (
+                    record.work_id != searched.work_id
+                    or record.book_version_id != searched.book_version_id
+                    or record.chapter_number > searched.max_chapter_inclusive
+                    or evidence.get(record.evidence_id) != record
+                ):
+                    raise ReleaseValidationError(
+                        "Librarian result is not registered in the turn evidence"
+                    )
+            continue
+
+        if tool_result["tool_name"] != "serendipity_explore":
             continue
         try:
-            response = LIBRARIAN_RESPONSE_ADAPTER.validate_python(tool_result["content"])
+            exploration = ConnectionExplorationResult.model_validate(
+                tool_result["content"]
+            )
         except Exception:
-            raise ReleaseValidationError("Librarian returned an invalid response") from None
-        if not isinstance(response, RetrievalResult):
+            raise ReleaseValidationError(
+                "Serendipity returned an invalid response"
+            ) from None
+        if not isinstance(exploration.decision, ConnectionProposal):
+            if exploration.evidence:
+                raise ReleaseValidationError(
+                    "A Serendipity decline returned unexpected evidence"
+                )
             continue
-        if release_scope is None:
-            raise ReleaseValidationError("Librarian result has no trusted release scope")
 
-        searched = response.searched_scope
-        if (
-            searched.work_id != release_scope.work_id
-            or searched.book_version_id != release_scope.book_version_id
-            or searched.max_chapter_inclusive > release_scope.chapter_max
-        ):
-            raise ReleaseValidationError("Librarian result exceeds the release scope")
-
-        for record in response.evidence:
-            start_line, end_line = record.source_lines
-            if (
-                record.work_id != searched.work_id
-                or record.book_version_id != searched.book_version_id
-                or record.chapter_number > searched.max_chapter_inclusive
-                or start_line < 1
-                or end_line < start_line
-            ):
-                raise ReleaseValidationError("Librarian evidence exceeds its searched scope")
-            existing = evidence.get(record.evidence_id)
-            if existing is not None and existing != record:
-                raise ReleaseValidationError("Librarian evidence identifier is ambiguous")
-            evidence[record.evidence_id] = record
+        selected_ids = set(exploration.decision.selected_candidate.evidence_ids)
+        returned_ids = {item.evidence_id for item in exploration.evidence}
+        if selected_ids != returned_ids:
+            raise ReleaseValidationError(
+                "Serendipity proposal evidence does not match its selected candidate"
+            )
+        for item in exploration.evidence:
+            if not isinstance(item, EvidenceItem):
+                raise ReleaseValidationError(
+                    "Serendipity web evidence is not a citation authority"
+                )
+            record = evidence_record_from_item(item)
+            _validate_record_scope(record, release_scope, frozenset())
+            if evidence.get(record.evidence_id) != record:
+                raise ReleaseValidationError(
+                    "Serendipity evidence is not registered in the turn evidence"
+                )
     return evidence
 
 
@@ -210,26 +306,14 @@ def _validate_release(
     candidate: MuseCandidate,
     tool_results: list[dict[str, object]],
     release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
 ) -> None:
-    """Validate the current book-only release contract after semantic approval."""
-    for result in tool_results:
-        if result["tool_name"] != "serendipity_explore":
-            continue
-        content = result["content"]
-        if not isinstance(content, dict):
-            raise ReleaseValidationError("Serendipity returned an invalid response")
-        decision = content.get("decision")
-        if not isinstance(decision, dict):
-            raise ReleaseValidationError("Serendipity returned an invalid response")
-        status = decision.get("status")
-        if status not in {"proposal", "decline"}:
-            raise ReleaseValidationError("Serendipity returned an invalid response")
-        if status == "proposal":
-            raise ReleaseValidationError(
-                "Serendipity proposals are not citation authorities in this release slice"
-            )
-
-    evidence = _trusted_book_evidence(tool_results, release_scope)
+    """Validate declared book citations after semantic approval."""
+    evidence = _validated_book_evidence(
+        tool_results,
+        release_scope,
+        previously_released_evidence_ids,
+    )
     for declared in candidate.evidence_uses:
         if declared.source_kind != "book_corpus":
             raise ReleaseValidationError("Candidate uses an unsupported evidence source")
@@ -252,6 +336,11 @@ def _context_with_tool_results(
     """Attach evidence from Muse's real tool calls without trusting its claims."""
     context = dict(review_context)
     context["muse_tool_results"] = tool_results
+    trusted = [
+        record.model_dump(mode="json") for record in turn_evidence().values()
+    ]
+    if trusted:
+        context["trusted_book_evidence"] = trusted
     cited_evidence = [
         result["content"] for result in tool_results if result["tool_name"] == "librarian_search"
     ]
@@ -304,10 +393,17 @@ def _reviewed_capture(
     source_event_id: str,
     tool_results: list[dict[str, object]],
     release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
 ) -> tuple[AutomaticMemoryCandidate | None, CaptureFailure | None]:
     """Bind one reviewed nomination to exact user words and trusted evidence."""
     try:
-        evidence_ids = frozenset(_trusted_book_evidence(tool_results, release_scope))
+        evidence_ids = frozenset(
+            _validated_book_evidence(
+                tool_results,
+                release_scope,
+                previously_released_evidence_ids,
+            )
+        )
         bound = candidate_from_review(
             review,
             nomination=candidate.memory,
@@ -328,6 +424,7 @@ async def reflection_reply(
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object] | None = None,
     release_scope: ReleaseScope | None = None,
+    previously_released_evidence_ids: frozenset[str] = frozenset(),
     capture_source_text: str = "",
     source_event_id: str = "",
 ) -> ReflectionRelease:
@@ -345,6 +442,7 @@ async def reflection_reply(
                 provenance=provenance,
                 review_context=review_context,
                 release_scope=release_scope,
+                previously_released_evidence_ids=previously_released_evidence_ids,
                 capture_source_text=capture_source_text,
                 source_event_id=source_event_id,
                 span=span,
@@ -432,6 +530,7 @@ async def _reflection_reply(
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
     release_scope: ReleaseScope | None,
+    previously_released_evidence_ids: frozenset[str],
     capture_source_text: str,
     source_event_id: str,
     span: Any,
@@ -469,6 +568,7 @@ async def _reflection_reply(
                 failure_stage="provenance_review",
                 capture_nomination=draft_nomination,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
             ),
         )
 
@@ -480,11 +580,17 @@ async def _reflection_reply(
             source_event_id=source_event_id,
             tool_results=draft_tool_results,
             release_scope=release_scope,
+            previously_released_evidence_ids=previously_released_evidence_ids,
         )
 
     if review.response_decision == "pass":
         try:
-            _validate_release(candidate, draft_tool_results, release_scope)
+            _validate_release(
+                candidate,
+                draft_tool_results,
+                release_scope,
+                previously_released_evidence_ids,
+            )
         except ReleaseValidationError:
             return _record_release(
                 span,
@@ -497,6 +603,8 @@ async def _reflection_reply(
                     automatic_capture_candidate=capture,
                     capture_failure=capture_failure,
                     librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                    evidence_ids=_evidence_ids(candidate),
+                    review_finding_codes=_review_codes(review),
                 ),
             )
         return _record_release(
@@ -511,6 +619,8 @@ async def _reflection_reply(
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
             ),
         )
     if review.response_decision != "revise":
@@ -524,24 +634,28 @@ async def _reflection_reply(
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
             ),
         )
 
-    revision_critique = review.critique()
-    revision_request = json.dumps(
-        {
-            "task": "Revise the candidate once to address the review critique.",
-            "original_muse_input": message,
-            "candidate_response": candidate.reply,
-            "candidate_evidence_uses": [
-                evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
-            ],
-            "candidate_memory": candidate.memory.model_dump(mode="json"),
-            "muse_tool_results": draft_tool_results,
-            "review_critique": revision_critique,
-        },
-        ensure_ascii=False,
-    )
+    try:
+        revision_payload = json.loads(message)
+    except json.JSONDecodeError:
+        revision_payload = {
+            "muse_turn": {"user_message": message},
+            "context_resolution": None,
+        }
+    if not isinstance(revision_payload, dict):
+        revision_payload = {
+            "muse_turn": {"user_message": message},
+            "context_resolution": None,
+        }
+    revision_payload["revision"] = {
+        "task": "Revise the previous candidate once to address this review.",
+        "findings": [finding.model_dump(mode="json") for finding in review.findings],
+    }
+    revision_request = json.dumps(revision_payload, ensure_ascii=False)
     try:
         revision_result = await run_agent_traced(
             muse,
@@ -551,7 +665,7 @@ async def _reflection_reply(
             stage="revision",
             prompt_template_id="muse.revision",
             failure_code="muse_revision_model_failed",
-            message_history=history,
+            message_history=[*history, *draft_result.new_messages()],
         )
         revised_candidate = _candidate(revision_result.output)
     except Exception:
@@ -564,6 +678,8 @@ async def _reflection_reply(
                 finding_codes=_codes(review),
                 capture_nomination=draft_nomination,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
             ),
         )
 
@@ -587,6 +703,8 @@ async def _reflection_reply(
                 finding_codes=_codes(review),
                 capture_nomination=revised_nomination,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(revised_candidate),
+                review_finding_codes=_review_codes(review),
             ),
         )
 
@@ -597,11 +715,17 @@ async def _reflection_reply(
         source_event_id=source_event_id,
         tool_results=revised_tool_results,
         release_scope=release_scope,
+        previously_released_evidence_ids=previously_released_evidence_ids,
     )
 
     if revised_review.response_decision == "pass":
         try:
-            _validate_release(revised_candidate, revised_tool_results, release_scope)
+            _validate_release(
+                revised_candidate,
+                revised_tool_results,
+                release_scope,
+                previously_released_evidence_ids,
+            )
         except ReleaseValidationError:
             return _record_release(
                 span,
@@ -615,6 +739,8 @@ async def _reflection_reply(
                     automatic_capture_candidate=capture,
                     capture_failure=capture_failure,
                     librarian_grounding_calls=_librarian_grounding(revised_tool_results),
+                    evidence_ids=_evidence_ids(revised_candidate),
+                    review_finding_codes=_review_codes(review, revised_review),
                 ),
             )
         return _record_release(
@@ -630,6 +756,8 @@ async def _reflection_reply(
                 automatic_capture_candidate=capture,
                 capture_failure=capture_failure,
                 librarian_grounding_calls=_librarian_grounding(revised_tool_results),
+                evidence_ids=_evidence_ids(revised_candidate),
+                review_finding_codes=_review_codes(review, revised_review),
             ),
         )
     return _record_release(
@@ -643,5 +771,7 @@ async def _reflection_reply(
             automatic_capture_candidate=capture,
             capture_failure=capture_failure,
             librarian_grounding_calls=_librarian_grounding(revised_tool_results),
+            evidence_ids=_evidence_ids(revised_candidate),
+            review_finding_codes=_review_codes(review, revised_review),
         ),
     )

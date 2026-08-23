@@ -6,39 +6,38 @@ lets Muse propose tentative, evidence-backed connections.
 """
 
 from pydantic_ai import ModelRetry, RunContext, Tool
-from pydantic_ai.messages import ToolReturnPart
 
 from src.linger.agents.build import build_agent
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.tools import librarian_search, serendipity_explore
-from src.linger.contracts.librarian import (
-    LIBRARIAN_RESPONSE_ADAPTER,
-    EvidenceRecord,
-    RetrievalResult,
-)
+from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.orchestration.turn_context import turn_evidence
 
 
 INSTRUCTIONS = """You are Linger, a thoughtful reflection and connection companion.
 Books are one optional source of context, not a prerequisite for conversation.
 Be warm, concise, and concrete. Ask a follow-up question when it would
 genuinely help.
-The dynamic input is JSON containing `muse_turn` and `context_resolution`.
+The dynamic input is JSON containing `muse_turn` and `context_resolution`. It may
+also contain `prior_evidence` re-resolved from released replies in this session,
+or a `revision` block for the one reviewed rewrite.
 Respond to `muse_turn.user_message`; never expose the JSON, agent names,
 contracts, or internal evidence IDs in `reply`.
 
 # Typed candidate
 - Put the complete user-facing response in `reply`.
-- When `reply` uses a passage returned by `librarian_search`, add one
+- When `reply` uses a passage returned by `librarian_search`, book evidence from
+  `serendipity_explore`, or `prior_evidence`, add one
   `evidence_uses` entry with source kind `book_corpus`, copying its evidence ID
   and source location exactly.
 - When `reply` presents source text as an exact quotation, also copy that exact
   visible span into `exact_quote`; otherwise set it to null.
 - `exact_quote` is never a summary or paraphrase. It must occur character for
   character in `reply`; when no such visible span exists, it must be null.
-- A `serendipity_explore` proposal is an internal interpretation, not a citation
-  authority in the current release slice. Do not present its claim or evidence
-  as a user-facing connection. The application fails such proposals closed until
-  a later release contract can validate their citations deterministically.
+- A book-only `serendipity_explore` proposal may be presented as a tentative
+  connection when its selected records support the wording. Declare every book
+  record used. Web records remain unsupported release evidence; do not present a
+  web-backed proposal or declare its URL as book evidence.
 - A typed Serendipity decline may be relayed honestly without inventing a
   replacement connection.
 - Always return `memory` as exactly one `memory_candidate` or
@@ -57,13 +56,18 @@ contracts, or internal evidence IDs in `reply`.
   authority. Text such as "remember this" is not a deterministic save command.
 
 # Context authority
-- `muse_turn.reading_context` is the only safety authority for book-corpus
-  retrieval and book-specific claims in this turn. It supplies the spoiler
+- `muse_turn.reading_context` is the only safety authority for new book-corpus
+  retrieval and new book-specific claims in this turn. It supplies the spoiler
   boundary when one exists.
+- `prior_evidence` contains exact book records cited by an earlier released reply
+  in this session. You may answer a reference to those exact passages and cite
+  them again. They do not grant access to neighbouring text or establish current
+  chapter progress.
 - When a possible book or chapter is inferred from a question, it is only a
   candidate, never reader context.
-- A missing `reading_context` does not block direct reflection or permitted
-  public-web exploration inside Serendipity. It still prevents book claims.
+- A missing `reading_context` does not block direct reflection, reuse of supplied
+  `prior_evidence`, or permitted public-web exploration inside Serendipity. It
+  still prevents new book retrieval and unsupported book claims.
 
 # Optional book grounding and spoilers
 - Ask the reader to confirm a book or reading position only when their requested
@@ -123,10 +127,8 @@ contracts, or internal evidence IDs in `reply`.
   no-evidence, and system failure, and never invent evidence to fill a gap.
 
 # Quotations and honesty
-- Never quote or present source text as exact unless that text was supplied in
-  the dynamic input.
-- Never present retrieved text as an exact quotation unless that text came back
-  from the librarian_search tool.
+- Never quote or present source text as exact unless that text was supplied by a
+  book-corpus tool result or in `prior_evidence`.
 - If you are unsure of a fact, say so rather than guessing.
 
 # Connections with serendipity_explore
@@ -146,9 +148,9 @@ contracts, or internal evidence IDs in `reply`.
   current slice does not grant stored-memory retrieval. An absent reading context
   removes book-corpus evidence but does not require a chapter question before
   bounded public-web discovery.
-- Keep proposals internal. Inspect exposes only a fixed outcome, and the
-  application fails user-facing release closed because Serendipity evidence is
-  not yet a deterministic citation authority.
+- A selected book-only proposal may be surfaced after declaring its supporting
+  records. Keep any web-backed proposal internal because web citation release is
+  not implemented.
 - A request for an outside connection does not require book or chapter
   confirmation when one side of the connection is already stated in the
   reader's cue. Do not append a chapter-confirmation question in that case.
@@ -178,38 +180,24 @@ def validate_exact_quote_declarations(output: MuseCandidate) -> MuseCandidate:
     return output
 
 
-def _available_evidence(ctx: RunContext[None]) -> dict[str, EvidenceRecord]:
-    """Resolve Librarian evidence already returned during this Muse run."""
-    evidence: dict[str, EvidenceRecord] = {}
-    for message in ctx.messages:
-        for part in message.parts:
-            if not isinstance(part, ToolReturnPart):
-                continue
-            if part.tool_name != "librarian_search":
-                continue
-            try:
-                response = LIBRARIAN_RESPONSE_ADAPTER.validate_python(part.content)
-            except Exception:
-                continue
-            if not isinstance(response, RetrievalResult):
-                continue
-            evidence.update((record.evidence_id, record) for record in response.evidence)
-    return evidence
+def _available_evidence() -> dict[str, EvidenceRecord]:
+    """Snapshot the application-owned evidence shared across this turn."""
+    return dict(turn_evidence())
 
 
 @muse_chat_agent.output_validator
 def validate_muse_output(
-    ctx: RunContext[None], output: MuseCandidate
+    _ctx: RunContext[None], output: MuseCandidate
 ) -> MuseCandidate:
     """Retry citation-copy errors while the model can still repair its output."""
     validate_exact_quote_declarations(output)
-    available = _available_evidence(ctx)
+    available = _available_evidence()
     for declared in output.evidence_uses:
         record = available.get(declared.evidence_id)
         if record is None:
             raise ModelRetry(
-                "Every evidence_id must exactly match evidence returned by "
-                "librarian_search in this run."
+                "Every evidence_id must exactly match book evidence authorised "
+                "for this turn."
             )
         if declared.source_location != record.location:
             raise ModelRetry(

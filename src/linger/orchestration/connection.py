@@ -37,14 +37,17 @@ from src.linger.agents.serendipity.tools import (
     SearchTrace,
     SerendipityDependencies,
 )
-from src.linger.orchestration.grounding import librarian_service
+from src.linger.orchestration.grounding import (
+    evidence_record_from_item,
+    librarian_service,
+)
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
     cache_connection_result,
     cached_connection_result,
     record_connection_inspection,
 )
-from src.linger.orchestration.turn_context import confirmed_reading
+from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading
 
 
 @dataclass(frozen=True)
@@ -285,6 +288,21 @@ async def connection_exploration(
             else:
                 run = await _agent_explorer(task, librarian=librarian)
             result = _validate_response(run, task)
+            selected_evidence_ids = (
+                set(result.selected_candidate.evidence_ids)
+                if isinstance(result, ConnectionProposal)
+                else set()
+            )
+            selected_evidence = tuple(
+                item
+                for item in run.evidence
+                if item.evidence_id in selected_evidence_ids
+            )
+            add_turn_evidence(
+                evidence_record_from_item(item)
+                for item in selected_evidence
+                if isinstance(item, EvidenceItem)
+            )
         except asyncio.CancelledError:
             cancelled = True
             record_failure(
@@ -349,18 +367,9 @@ async def connection_exploration(
                     book_search_outcomes=_book_search_outcomes(run.searches),
                 )
             )
-            selected_evidence_ids = (
-                set(result.selected_candidate.evidence_ids)
-                if isinstance(result, ConnectionProposal)
-                else set()
-            )
             exploration_result = ConnectionExplorationResult(
                 decision=result,
-                evidence=tuple(
-                    item
-                    for item in run.evidence
-                    if item.evidence_id in selected_evidence_ids
-                ),
+                evidence=selected_evidence,
             )
             cache_connection_result(brief.intent, exploration_result)
             return exploration_result

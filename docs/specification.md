@@ -11,11 +11,14 @@ Delivery is staged: the current output-release slice uses a typed Muse candidate
 containing the complete reply, declared book-corpus evidence uses, and
 `MemoryCandidate | NoMemoryCandidate`. Provenance reviews both response and
 nomination; application code binds a nomination to an exact source-turn span,
-validates book evidence against trusted Librarian results, and lets the
-deterministic Memory & Policy Service enforce automatic capture. Serendipity-
-only, stored-memory, web, and image evidence are not citation authorities in
-this slice and therefore fail closed. Declared claims, richer sensitive-
-inference flags, and account-scoped memory retrieval remain later slices.
+validates book evidence against one request-scoped index, and lets the
+deterministic Memory & Policy Service enforce automatic capture. That index may
+contain direct Librarian results, the selected records from a book-only
+Serendipity proposal, or exact records re-resolved from evidence identifiers
+cited by an earlier released reply in the same session. Stored-memory, web, and
+image evidence are not citation authorities in this slice and therefore fail
+closed. Declared claims, richer sensitive-inference flags, and account-scoped
+memory retrieval remain later slices.
 
 ## 1. Purpose and positioning
 
@@ -132,9 +135,24 @@ Provenance is a separate model call that shares no working context with the othe
 
 At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
-The current book-corpus slice implements the smallest release contract needed by its active consumer: the complete response text plus declared evidence identifiers, exact quotations, and source locations. After each passing original or revised Provenance verdict, application code resolves every declaration against Librarian results from the current Muse invocation and validates the trusted work, book version, chapter ceiling, source lines, and exact quotation before release. Unsupported or unverifiable evidence fails closed to the application-authored safe decline. This staged contract does not remove the remaining target fields above.
+The current book-corpus slice implements the smallest release contract needed by
+its active consumer: the complete response text plus declared evidence
+identifiers, exact quotations, and source locations. After each passing original
+or revised Provenance verdict, application code resolves every declaration
+against one application-owned, request-scoped evidence index. The index accepts
+only exact book records from the current direct Librarian result, the selected
+records from a current book-only Serendipity proposal, or records that Librarian
+re-resolved from identifiers cited by an earlier successfully released reply in
+the same session. New retrieval and Serendipity records must match the current
+trusted work, book version, and chapter ceiling. A re-resolved session record
+authorises only that exact previously released passage; it does not establish
+current reading progress or grant neighbouring text. Application code also
+validates source lines, source location, and any exact quotation before release.
+Unsupported, ambiguous, web-backed, or otherwise unverifiable evidence fails
+closed to the application-authored safe decline. This staged contract does not
+remove the remaining target fields above.
 
-Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision, which returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
+Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision with the draft run's tool messages and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
 ### 4.2 End-to-end flows
 
@@ -159,19 +177,20 @@ Sculptor is not part of capture. It later receives a bounded, account-scoped set
 
 Serendipity supplies a proposed connection and evidence identifiers to Muse. Muse drafts the user-facing reply, which uses the same mandatory Provenance gate and deterministic checks as an ordinary reflection.
 
-The implemented discovery slice keeps a narrower release boundary. Serendipity
-may search only application-granted book-corpus or Exa web sources and returns a
+The implemented discovery slice keeps a narrow release boundary. Serendipity may
+search only application-granted book-corpus or Exa web sources and returns a
 typed proposal or decline with request-local evidence for deterministic
-validation. The application, not Muse, supplies the exact current reader
-message as the cue. Each run is limited to eight model requests and six total
-tool calls. Muse may relay a typed decline. A proposal remains internal, and every turn
-containing one fails closed before release because the current contract cannot
-deterministically distinguish reliance from non-use. Content-bearing diagnostics
-from that rejected turn are not returned by the application API. Public web or
-stored-memory connections can become releasable only after the Muse candidate
-contract declares those evidence uses and application code deterministically
-resolves them against the request-local records. Authorised-memory retrieval is
-not a current Serendipity grant.
+validation. The application, not Muse, supplies the exact current reader message
+as the cue. Each run is limited to eight model requests and six total tool calls.
+Muse may relay a typed decline. When every record cited by the selected candidate
+is book-corpus evidence, application code validates those exact selected records,
+adds them to the shared request-scoped evidence index, and allows Muse to draft a
+tentative connection for the ordinary Provenance and deterministic release path.
+Losing-candidate evidence is discarded. A selected candidate containing web
+evidence remains internal and fails closed; its content-bearing diagnostics are
+not returned by the application API. Stored-memory and image evidence also remain
+non-authoritative, and authorised-memory retrieval is not a current Serendipity
+grant.
 
 ## 5. Core records
 
@@ -184,12 +203,20 @@ Working context contains only:
 - the request-scoped `spoiler_boundary` inferred by Librarian from authorised
   memories, the current message, and the complete immutable work, or established
   through clarification;
+- exact book records re-resolved from identifiers cited by earlier released
+  replies in this session, when present;
 - the active topic; and
 - a compact conversation summary.
 
 The complete memory archive is never injected into every prompt. Reading
 progress is not stored as durable user state; Librarian resolves a temporary
 spoiler boundary anew for each book-related request.
+
+For evidence continuity, the session keeps one content-free record per turn:
+the turn identifier, release source, cited evidence identifiers, and review
+finding codes. This record never stores passage text or reading progress.
+Only identifiers from successfully released Muse replies may be re-resolved on
+a later turn, and session reset removes these handles with the conversation.
 
 ### 5.2 Memory record
 
@@ -229,6 +256,13 @@ Every retrieved item carries:
 - trust level and verification state;
 - spoiler position for book evidence; and
 - the minimum excerpt required for the current task.
+
+During one request, exact book records live in a read-only map keyed by evidence
+identifier. Direct Librarian retrieval, selected book-only Serendipity evidence,
+and exact re-resolution of identifiers from earlier released replies all feed
+this same map. Conflicting records for one identifier fail closed. The map is
+discarded after the request; session state retains only the released handles,
+never the passage text.
 
 ### 5.4 Muse candidate response
 
@@ -303,7 +337,12 @@ is the next implementation gap, not shipped behavior.
 
 ### 6.2 Citations and attribution
 
-Whenever an exact quotation is displayed or stored, application code verifies its text, source, and location against the corpus. Muse separates evidence from interpretation; Provenance reviews every complete draft for undeclared or mislabelled quotations and factual claims and checks their semantic support.
+Whenever an exact quotation is displayed or stored, application code verifies
+its text, source, and location against the canonical book record in the shared
+request-scoped index. Muse separates evidence from interpretation; Provenance
+reviews every complete draft for undeclared or mislabelled quotations and
+factual claims and checks their semantic support. Web, stored-memory, and image
+records never enter this book-citation authority and therefore fail closed.
 
 ### 6.3 Memory and media control
 

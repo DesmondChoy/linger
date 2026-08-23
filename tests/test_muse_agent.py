@@ -18,6 +18,11 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
+from src.linger.orchestration.turn_context import (
+    add_turn_evidence,
+    reset_turn_evidence,
+    set_turn_evidence,
+)
 
 
 def _sample_tools(agent) -> dict[str, object]:
@@ -126,15 +131,10 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("do not introduce character names", lowered)
         self.assertIn("never ask for a book or chapter merely", lowered)
         self.assertIn("current slice does not grant stored-memory retrieval", lowered)
-        self.assertIn("keep proposals internal", lowered)
-        self.assertIn(
-            "not yet a deterministic citation authority",
-            " ".join(lowered.split()),
-        )
+        self.assertIn("book-only proposal may", lowered)
+        self.assertIn("web-backed proposal internal", lowered)
         self.assertIn("ask the reader that exact question", lowered)
-        self.assertIn(
-            "never present retrieved text as an exact quotation", lowered
-        )
+        self.assertIn("never quote or present source text as exact", lowered)
         self.assertIn("relay that honestly", lowered)
 
     def test_instructions_distinguish_every_librarian_response_branch(self) -> None:
@@ -159,6 +159,12 @@ class MuseInstructionTests(unittest.TestCase):
 
 
 class MuseOutputValidationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._evidence_token = set_turn_evidence(())
+
+    def tearDown(self) -> None:
+        reset_turn_evidence(self._evidence_token)
+
     @staticmethod
     def context(record: EvidenceRecord) -> SimpleNamespace:
         result = RetrievalResult(
@@ -238,6 +244,7 @@ class MuseOutputValidationTests(unittest.TestCase):
         from src.linger.agents.muse.agent import validate_muse_output
 
         record = self.record()
+        add_turn_evidence((record,))
         output = MuseCandidate(
             reply='The Caterpillar asks, "Who are you?"',
             memory=_no_memory(),
@@ -257,6 +264,7 @@ class MuseOutputValidationTests(unittest.TestCase):
         from src.linger.agents.muse.agent import validate_muse_output
 
         record = self.record()
+        add_turn_evidence((record,))
         output = MuseCandidate(
             reply="A supported paraphrase.",
             memory=_no_memory(),
@@ -264,6 +272,25 @@ class MuseOutputValidationTests(unittest.TestCase):
                 EvidenceUse(
                     source_kind="book_corpus",
                     evidence_id="unknown-evidence",
+                    source_location=record.location,
+                ),
+            ),
+        )
+
+        with self.assertRaises(ModelRetry):
+            validate_muse_output(self.context(record), output)
+
+    def test_message_history_tool_result_does_not_replace_the_shared_index(self) -> None:
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record()
+        output = MuseCandidate(
+            reply="A supported paraphrase.",
+            memory=_no_memory(),
+            evidence_uses=(
+                EvidenceUse(
+                    source_kind="book_corpus",
+                    evidence_id=record.evidence_id,
                     source_location=record.location,
                 ),
             ),

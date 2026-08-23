@@ -22,6 +22,7 @@ import logfire  # noqa: E402  (import order is load-bearing, see above)
 
 from src.linger.agents.muse.agent import muse_chat_agent  # noqa: E402
 from src.linger.agents.provenance.agent import provenance_agent  # noqa: E402
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.connection import web_reach_permitted
 from src.linger.orchestration.grounding import librarian_service
@@ -35,8 +36,10 @@ from src.linger.orchestration.reflection import ReflectionRelease, reflection_re
 from src.linger.orchestration.turn_context import (
     reset_confirmed_reading,
     reset_reader_message,
+    reset_turn_evidence,
     set_confirmed_reading,
     set_reader_message,
+    set_turn_evidence,
 )
 from src.linger.services.memory import (
     AccountContext,
@@ -222,6 +225,7 @@ def _inspection_for(
     request: ChatRequest,
     *,
     allow_memory_capture: bool,
+    prior_evidence: tuple[EvidenceRecord, ...] = (),
 ) -> tuple[TurnInspection, str, dict[str, object]]:
     """Build the request-scoped Muse input and Provenance policy context."""
     resolution = resolve_reading_context(request)
@@ -259,6 +263,11 @@ def _inspection_for(
         "muse_turn": muse_turn.model_dump(mode="json"),
         "context_resolution": resolution.model_dump(mode="json"),
     }
+    inspection_prompt = json.dumps(muse_payload, ensure_ascii=False)
+    if prior_evidence:
+        muse_payload["prior_evidence"] = [
+            record.model_dump(mode="json") for record in prior_evidence
+        ]
     muse_input = json.dumps(muse_payload, ensure_ascii=False)
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
@@ -269,7 +278,9 @@ def _inspection_for(
         muse_turn=muse_turn.model_dump(mode="json"),
         context_resolution=resolution.model_dump(mode="json"),
         traces=traces,
-        prompt=muse_input,
+        # Re-resolved passages are supplied to Muse but not duplicated into the
+        # user-facing Inspect payload.
+        prompt=inspection_prompt,
     ), muse_input, review_context
 
 
@@ -420,10 +431,10 @@ def _apply_connection_inspection(
     _replace_trace(
         inspection,
         "Serendipity",
-        status="declined",
+        status="complete",
         detail=(
-            "Serendipity returned a proposal, but the current release contract "
-            "does not authorise connection evidence."
+            "Serendipity returned a validated proposal; release still depends "
+            "on the shared evidence and Provenance gates."
         ),
     )
     return book_outcomes
@@ -497,6 +508,23 @@ def _finalize_librarian_inspection(
     )
 
 
+def _rehydrate_session_evidence(session_id: str) -> tuple[EvidenceRecord, ...]:
+    """Resolve exact IDs cited by earlier released replies; never persist text."""
+    records: dict[str, EvidenceRecord] = {}
+    for evidence_id in sessions.released_evidence_ids(session_id):
+        try:
+            record = librarian_service.fetch_by_id(evidence_id)
+        except Exception:
+            continue
+        if record is None:
+            continue
+        existing = records.get(record.evidence_id)
+        if existing is not None and existing != record:
+            raise ValueError("a released evidence ID resolved ambiguously")
+        records[record.evidence_id] = record
+    return tuple(records.values())
+
+
 async def _run_chat_pipeline(
     request: ChatRequest,
     reading_state: sessions.ReadingStateSnapshot,
@@ -504,9 +532,11 @@ async def _run_chat_pipeline(
     account: AccountContext,
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
+    prior_evidence = _rehydrate_session_evidence(request.session_id)
     inspection, muse_input, review_context = _inspection_for(
         request,
         allow_memory_capture=service.capture_enabled(account),
+        prior_evidence=prior_evidence,
     )
     context = inspection.muse_turn.get("reading_context")
     book_version_id = (
@@ -526,6 +556,7 @@ async def _run_chat_pipeline(
         if context
         else None
     )
+    evidence_token = set_turn_evidence(prior_evidence)
     reader_message_token = set_reader_message(request.message)
     connection_token = begin_connection_inspection()
     try:
@@ -536,6 +567,9 @@ async def _run_chat_pipeline(
             provenance=provenance_agent,
             review_context=review_context,
             release_scope=release_scope,
+            previously_released_evidence_ids=frozenset(
+                record.evidence_id for record in prior_evidence
+            ),
             capture_source_text=request.message,
             source_event_id=inspection.muse_turn["turn_id"],
         )
@@ -543,6 +577,7 @@ async def _run_chat_pipeline(
         nested_connections = connection_inspections()
         reset_connection_inspection(connection_token)
         reset_reader_message(reader_message_token)
+        reset_turn_evidence(evidence_token)
         reset_confirmed_reading(token)
     connection_book_outcomes: tuple[str, ...] = ()
     if nested_connections:
@@ -560,7 +595,15 @@ async def _run_chat_pipeline(
     if release.release_source == "application_safe_decline":
         sessions.restore_reading_state(request.session_id, reading_state)
     capture = _commit_automatic_capture(release, service, account)
-    sessions.append_turn(request.session_id, request.message, release.reply)
+    sessions.append_turn(
+        request.session_id,
+        request.message,
+        release.reply,
+        turn_id=inspection.muse_turn["turn_id"],
+        release_source=release.release_source,
+        evidence_ids=release.evidence_ids,
+        review_finding_codes=release.review_finding_codes,
+    )
     return inspection, release, capture
 
 

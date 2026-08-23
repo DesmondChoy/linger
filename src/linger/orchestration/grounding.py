@@ -8,7 +8,7 @@ from uuid import uuid4
 import logfire
 
 from apps.backend.config import get_settings
-from apps.backend.contracts import BookScope
+from apps.backend.contracts import BookScope, EvidenceItem
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
 from apps.backend.librarian import Librarian
 from apps.backend.hybrid_librarian import HybridLibrarian
@@ -30,7 +30,7 @@ from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
     judge_evidence_strength,
 )
-from src.linger.orchestration.turn_context import confirmed_reading
+from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading
 
 MAX_FINAL_EVIDENCE = 5
 
@@ -43,6 +43,21 @@ class BookVersionOutOfScope(ValueError):
 
 def _clamp_max_final_evidence(value: int) -> int:
     return max(1, min(value, MAX_FINAL_EVIDENCE))
+
+
+def evidence_record_from_item(item: EvidenceItem) -> EvidenceRecord:
+    """Convert one shipped Librarian item to the canonical frozen record."""
+    return EvidenceRecord(
+        evidence_id=item.evidence_id,
+        work_id=item.work_id,
+        book_version_id=item.book_version_id,
+        chapter_id=item.chapter_id,
+        chapter_number=item.chapter,
+        location=item.location,
+        source_sha256=item.source_sha256,
+        source_lines=item.source_lines,
+        text=item.excerpt,
+    )
 
 
 def build_request(
@@ -173,17 +188,7 @@ async def _grounding_evidence(
         return failure
 
     records = [
-        EvidenceRecord(
-            evidence_id=item.evidence_id,
-            work_id=item.work_id,
-            book_version_id=item.book_version_id,
-            chapter_id=item.chapter_id,
-            chapter_number=item.chapter,
-            location=item.location,
-            source_sha256=item.source_sha256,
-            source_lines=item.source_lines,
-            text=item.excerpt,
-        )
+        evidence_record_from_item(item)
         for item in bundle.items
         if (
             item.work_id == reading.work_id
@@ -235,7 +240,7 @@ async def _grounding_evidence(
             limitations=decision.limitations,
         )
 
-    return RetrievalResult(
+    response = RetrievalResult(
         kind="result",
         request_id=request.request_id,
         outcome="evidence_found",
@@ -245,6 +250,8 @@ async def _grounding_evidence(
         evidence=selected_records,
         limitations=decision.limitations,
     )
+    add_turn_evidence(response.evidence)
+    return response
 
 
 async def grounding_evidence(

@@ -8,6 +8,7 @@ database means changing this module and nothing else.
 """
 
 from dataclasses import dataclass
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_ai.messages import (
@@ -21,6 +22,7 @@ from pydantic_ai.messages import (
 _sessions: dict[str, list[ModelMessage]] = {}
 _book_selections: dict[str, "BookSelection"] = {}
 _reading_candidates: dict[str, "ReadingCandidate"] = {}
+_turn_records: dict[str, list["TurnRecord"]] = {}
 
 
 class BookSelection(BaseModel):
@@ -42,23 +44,67 @@ class ReadingStateSnapshot:
     reading_candidate: ReadingCandidate | None
 
 
+@dataclass(frozen=True)
+class TurnRecord:
+    """Content-free evidence and review handles for one released turn."""
+
+    turn_id: str
+    release_source: Literal["muse_candidate", "application_safe_decline"]
+    evidence_ids: tuple[str, ...]
+    review_finding_codes: tuple[tuple[str, ...], ...]
+
+
 def history(session_id: str) -> list[ModelMessage]:
     return _sessions.get(session_id, [])
 
 
-def append_turn(session_id: str, user_message: str, assistant_message: str) -> None:
-    """Store exactly the user-visible turn, never an unreleased candidate."""
+def append_turn(
+    session_id: str,
+    user_message: str,
+    assistant_message: str,
+    *,
+    turn_id: str,
+    release_source: Literal["muse_candidate", "application_safe_decline"],
+    evidence_ids: tuple[str, ...] = (),
+    review_finding_codes: tuple[tuple[str, ...], ...] = (),
+) -> None:
+    """Store the released chat plus content-free evidence and review handles."""
     messages: list[ModelMessage] = [
         ModelRequest(parts=[UserPromptPart(content=user_message)]),
         ModelResponse(parts=[TextPart(content=assistant_message)]),
     ]
     _sessions.setdefault(session_id, []).extend(messages)
+    _turn_records.setdefault(session_id, []).append(
+        TurnRecord(
+            turn_id=turn_id,
+            release_source=release_source,
+            evidence_ids=tuple(dict.fromkeys(evidence_ids)),
+            review_finding_codes=review_finding_codes,
+        )
+    )
+
+
+def turn_records(session_id: str) -> tuple[TurnRecord, ...]:
+    """Return content-free per-turn records for audit and evidence recovery."""
+    return tuple(_turn_records.get(session_id, ()))
+
+
+def released_evidence_ids(session_id: str) -> tuple[str, ...]:
+    """Return exact evidence handles cited by successfully released Muse replies."""
+    seen: dict[str, None] = {}
+    for record in _turn_records.get(session_id, ()):
+        if record.release_source != "muse_candidate":
+            continue
+        for evidence_id in record.evidence_ids:
+            seen.setdefault(evidence_id, None)
+    return tuple(seen)
 
 
 def clear(session_id: str) -> bool:
     """Drop a session's history. Returns whether anything was there."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
+    _turn_records.pop(session_id, None)
     return _sessions.pop(session_id, None) is not None
 
 

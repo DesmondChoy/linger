@@ -85,6 +85,34 @@ class HybridLibrarianTests(unittest.TestCase):
             [item.evidence_id for item in second.items],
         )
 
+    def test_fetch_by_id_inherits_exact_lookup_without_initializing_models(self) -> None:
+        librarian = HybridLibrarian()
+
+        with (
+            patch.object(
+                librarian,
+                "_embedding_model",
+                side_effect=AssertionError("fetch initialized embeddings"),
+            ),
+            patch.object(
+                librarian,
+                "_reranker_model",
+                side_effect=AssertionError("fetch initialized reranker"),
+            ),
+        ):
+            record = librarian.fetch_by_id(
+                "pg11-v01b38ea4-ch05-ln0960-1016"
+            )
+
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_lines = BOOK.default_source.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(
+            "\n".join(source_lines[record.source_lines[0] - 1 : record.source_lines[1]]),
+            record.text,
+        )
+        self.assertEqual({}, librarian._indexes)
+
     def test_forbidden_chapter_is_never_opened_or_returned(self) -> None:
         opened: list[Path] = []
         original = Path.read_text

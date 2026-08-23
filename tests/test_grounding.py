@@ -10,6 +10,7 @@ from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     ClarificationRequest,
+    EvidenceRecord,
     RetrievalFailure,
     RetrievalResult,
     SearchedScope,
@@ -18,9 +19,13 @@ from src.linger.contracts.reading import ReadingBoundary
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration.grounding import BookVersionOutOfScope, build_request, grounding_evidence
 from src.linger.orchestration.turn_context import (
+    add_turn_evidence,
     confirmed_reading,
     reset_confirmed_reading,
+    reset_turn_evidence,
     set_confirmed_reading,
+    set_turn_evidence,
+    turn_evidence,
 )
 
 
@@ -84,6 +89,24 @@ class ConcurrentTurnIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("pg11", results["a"].work_id)
         self.assertEqual("animal-farm", results["b"].work_id)
 
+    async def test_gathered_tasks_keep_separate_evidence_ledgers(self) -> None:
+        results: dict[str, set[str]] = {}
+
+        async def run_turn(name: str) -> None:
+            token = set_turn_evidence(())
+            try:
+                await asyncio.sleep(0)
+                add_turn_evidence((evidence_record(name),))
+                await asyncio.sleep(0)
+                results[name] = set(turn_evidence())
+            finally:
+                reset_turn_evidence(token)
+
+        await asyncio.gather(run_turn("e1"), run_turn("e2"))
+
+        self.assertEqual({"e1"}, results["e1"])
+        self.assertEqual({"e2"}, results["e2"])
+
 
 WORK_ID = "pg11"
 VALID_VERSION = get_settings().allowed_book_version_ids[0]
@@ -106,9 +129,76 @@ def evidence_item(evidence_id: str, chapter: int, excerpt: str = "text") -> Evid
     )
 
 
+def evidence_record(evidence_id: str, *, text: str = "text") -> EvidenceRecord:
+    return EvidenceRecord(
+        evidence_id=evidence_id,
+        work_id=WORK_ID,
+        book_version_id=VALID_VERSION,
+        chapter_id=f"{VALID_VERSION}-ch02",
+        chapter_number=2,
+        location="Chapter 2",
+        source_sha256=SOURCE_SHA256,
+        source_lines=(2, 2),
+        text=text,
+    )
+
+
+class TurnEvidenceContextTests(unittest.TestCase):
+    def test_index_exposes_read_only_snapshots(self) -> None:
+        first = evidence_record("e1")
+        second = evidence_record("e2")
+        previous = dict(turn_evidence())
+        token = set_turn_evidence((first,))
+        try:
+            before = turn_evidence()
+            with self.assertRaises(TypeError):
+                before["e2"] = second  # type: ignore[index]
+
+            add_turn_evidence((second,))
+            after = turn_evidence()
+
+            self.assertIsNot(before, after)
+            self.assertEqual({"e1"}, set(before))
+            self.assertEqual({"e1", "e2"}, set(after))
+        finally:
+            reset_turn_evidence(token)
+        self.assertEqual(previous, dict(turn_evidence()))
+
+    def test_conflicting_duplicate_id_is_rejected_without_mutation(self) -> None:
+        original = evidence_record("e1")
+        conflict = evidence_record("e1", text="different text")
+        token = set_turn_evidence((original,))
+        try:
+            with self.assertRaisesRegex(ValueError, "conflicting records"):
+                add_turn_evidence((conflict,))
+            self.assertEqual(original, turn_evidence()["e1"])
+        finally:
+            reset_turn_evidence(token)
+
+        with self.assertRaisesRegex(ValueError, "conflicting records"):
+            set_turn_evidence((original, conflict))
+
+    def test_nested_tool_task_updates_the_parent_turn_ledger(self) -> None:
+        record = evidence_record("e1")
+        token = set_turn_evidence(())
+
+        async def nested_tool() -> None:
+            add_turn_evidence((record,))
+
+        async def run_nested_tool() -> None:
+            await asyncio.create_task(nested_tool())
+
+        try:
+            asyncio.run(run_nested_tool())
+            self.assertEqual(record, turn_evidence()["e1"])
+        finally:
+            reset_turn_evidence(token)
+
+
 class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self._token = None
+        self._evidence_token = set_turn_evidence(())
 
     def _confirm(self, work_id: str = WORK_ID, chapter_max: int = 5) -> None:
         self._token = set_confirmed_reading(ConfirmedReading(work_id=work_id, chapter_max=chapter_max))
@@ -133,6 +223,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         if self._token is not None:
             reset_confirmed_reading(self._token)
+        reset_turn_evidence(self._evidence_token)
 
     async def test_out_of_scope_book_version_raises_and_never_dispatches(self) -> None:
         self._confirm()
@@ -253,6 +344,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         evidence_ids = {record.evidence_id for record in response.evidence}
         self.assertIn("e1", evidence_ids)
         self.assertNotIn("e2", evidence_ids)
+        self.assertEqual({"e1"}, set(turn_evidence()))
         judged_records = judge.await_args.args[1]
         self.assertEqual(("e1",), tuple(record.evidence_id for record in judged_records))
 

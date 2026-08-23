@@ -6,7 +6,10 @@ connections, compares the strongest two or three with an anchored rubric, and
 returns exactly one `ConnectionProposal` or one `ConnectionDecline`.
 
 The current slice permits spoiler-bounded book evidence and optional public-web
-discovery. Account-scoped stored-memory retrieval remains a later slice.
+discovery. A selected book-only proposal may enter the ordinary Muse,
+Provenance, and deterministic release path. Web-backed proposals remain
+internal and fail closed. Account-scoped stored-memory and image evidence remain
+later slices.
 
 Serendipity has no write or release authority. Muse owns the conversation,
 Librarian owns internal retrieval, Exa supplies public-web search, application
@@ -93,6 +96,8 @@ Static instructions + ConnectionDiscoveryInput
          Provenance reviews it
                 ↓
     Deterministic release validation
+       ├─ selected book records: eligible for release
+       └─ any web record: fail closed
 ```
 
 Source grants are permissions, not mandatory search steps. Serendipity should
@@ -102,7 +107,8 @@ Exa merely because either is available. It may refine a query and search several
 records per source, within a hard run budget of eight model requests and six
 total tool calls. A `web_search`
 result is only a lead; Serendipity must use `get_page` to read a promising URL
-before that URL enters the citable evidence ledger.
+before that URL enters the Serendipity evidence ledger. Entry in that ledger
+does not grant public-release authority.
 
 ### Source-routing policy
 
@@ -202,13 +208,38 @@ returns, orchestration verifies that:
 - web flags match the winner's actual cited sources; and
 - presentation policy is unchanged.
 
+Only the exact records cited by the selected candidate leave this ledger. If
+they are all book-corpus records, orchestration converts them to the canonical
+frozen `EvidenceRecord` contract and adds them to the request-scoped book-
+evidence index. A selected web record is validated as Serendipity input but is
+not added to that trusted release index.
+
 Exa URLs are their web evidence IDs. Search-result metadata supplies
 request-local page leads, while only a successfully opened `get_page` result is
-stored as citable web evidence. A guarded wrapper bounds each web query and
+stored as Serendipity-citable web evidence. A guarded wrapper bounds each web
+query and
 requires it to use a general concept rather than personal data or any
 multi-character term copied verbatim from the reader's cue. It also rejects any page URL that was not returned by the
 current run's search. Web tools are absent entirely when web access or
 credentials are not granted.
+
+## Shared book-evidence boundary
+
+Muse, Provenance, and deterministic release validation read one application-
+owned, request-scoped map of exact book records. It has only three inputs:
+
+- direct Librarian results from the current Muse run;
+- the exact selected records from a current book-only Serendipity proposal; and
+- records Librarian re-resolved from identifiers cited by an earlier
+  successfully released reply in the same session.
+
+The single reviewed revision receives the draft tool messages and reads this
+same map, so it does not reconstruct passages from the draft's prose. For
+cross-turn continuity, the session stores only the turn identifier, release
+source, cited evidence identifiers, and review finding codes. It
+stores neither passage text nor reading progress. A re-resolved identifier
+grants only that exact earlier passage, not neighbouring text or a current
+spoiler boundary. Web, stored-memory, and image evidence never enter this map.
 
 ## Where authority ends
 
@@ -217,20 +248,23 @@ Serendipity agent still returns only `ConnectionProposal | ConnectionDecline`.
 After deterministic validation, application orchestration wraps that decision
 with the exact evidence records cited by the selected candidate for the Muse
 tool handshake; losing-candidate evidence stays inside the Serendipity run and
-is discarded instead of being added to Muse's tool result or Inspect. In the current slice, Muse
-keeps proposals internal. Provenance receives the complete Muse candidate,
-validated tool result, and release policy, then checks attribution, privacy,
-spoilers, sensitive inference, unsupported claims, and prompt injection. There
-is no Serendipity-to-reader bypass.
+is discarded instead of being added to Muse's tool result or Inspect. Muse may
+surface a selected book-only proposal only by declaring every book record it
+uses. Provenance receives the complete Muse candidate, validated tool result,
+shared trusted book evidence, and release policy, then checks attribution,
+privacy, spoilers, sensitive inference, unsupported claims, and prompt
+injection. Application code resolves every declaration against the same records
+after a semantic pass. There is no Serendipity-to-reader bypass.
 
 Serendipity cannot save or curate memory. Telemetry and fixed request-local
 outcome metadata report a decision but never authorise search, storage, or release.
 
-In the current release slice, a Serendipity proposal cannot widen citation or
-public-release authority. Until typed deterministic citation validation covers
-these sources, application release logic fails every proposal-bearing turn
-closed; its content-bearing diagnostics are not returned by the API. A
-validated decline may still be relayed with fixed inspection metadata.
+In the current release slice, Serendipity cannot widen citation or public-
+release authority. A book-only proposal uses the existing book contract; a
+proposal containing web evidence fails closed, and its content-bearing
+diagnostics are not returned by the API. Stored-memory and image evidence remain
+unsupported. A validated decline may still be relayed with fixed inspection
+metadata.
 
 ## Related
 
@@ -242,6 +276,9 @@ validated decline may still be relayed with fixed inspection metadata.
   selection instructions.
 - `src/linger/orchestration/connection.py` — trusted dependency construction,
   run invocation, evidence ledger validation, and fail-closed behavior.
+- `src/linger/orchestration/turn_context.py` — shared request-scoped book-
+  evidence index.
+- `apps/backend/sessions.py` — released evidence handles without passage text.
 - `src/linger/agents/muse/tools.py` — Muse invocation tool and validated
   decision-plus-evidence handshake.
 - `src/linger/agents/provenance/` — mandatory review before display.

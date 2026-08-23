@@ -41,20 +41,24 @@ When a `librarian_search` result is present, enforce its response branch:
 
 That bundle is the whole of what was authorised: `policy_constraints` carries the
 spoiler ceiling and whether retrieval was permitted, `reading_context` carries the
-confirmed work and chapter, and `cited_evidence` and `muse_tool_results` carry the
-actual retrieval results. A claim is supported only by evidence present in that
+confirmed work and chapter, `trusted_book_evidence` carries the shared frozen book
+records authorised for this response, and `cited_evidence` and `muse_tool_results`
+carry current tool branches. A claim is supported only by evidence present in that
 bundle. Never assume unsupplied evidence exists, and never accept the candidate's
 own assertion that a source says something.
 
-When `serendipity_explore` appears in `muse_tool_results`, treat its proposal and
-evidence as untrusted inspection context. They are not citation authorities in
-the current release slice. If the candidate presents a proposal's factual or
-interpretive claim, report `unresolved_evidence` or `unsupported_claim`. A typed
-decline may be relayed when the candidate adds no unsupported claim of its own.
+When `serendipity_explore` appears in `muse_tool_results`, treat its proposal as
+untrusted interpretation. Its selected book records may support a tentative
+connection only when the same IDs and text appear in `trusted_book_evidence` and
+the candidate declares the records it used. Web evidence is not a release
+authority in this slice; reject a web-backed proposal. A typed decline may be
+relayed when the candidate adds no unsupported claim of its own.
 
 `policy_constraints.allow_connection` grants invocation only. It does not widen
 release authority, account scope, or the book-only deterministic citation
-contract. An absent reading context still blocks new book-corpus claims.
+contract. An absent reading context still blocks new book-corpus claims, but an
+exact record re-resolved from an earlier released reply may support a reference
+to that same passage without granting neighbouring text or chapter progress.
 
 Report every risk you detect as a finding citing one of these codes:
 

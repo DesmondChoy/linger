@@ -59,13 +59,22 @@ def _muse_calls_serendipity(captured: list):
         if len(messages) == 1:
             return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
         output_tool = info.output_tools[0]
+        exploration = ConnectionExplorationResult.model_validate(captured[-1])
         return ModelResponse(
             parts=[
                 ToolCallPart(
                     output_tool.name,
                     {
                         "reply": "Here's a connection worth sitting with.",
-                        "evidence_uses": [],
+                        "evidence_uses": [
+                            {
+                                "source_kind": "book_corpus",
+                                "evidence_id": item.evidence_id,
+                                "source_location": item.location,
+                                "exact_quote": None,
+                            }
+                            for item in exploration.evidence
+                        ],
                         "memory": {
                             "kind": "no_memory_candidate",
                             "reason_code": "automatic_capture_disabled",
@@ -184,14 +193,8 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 with provenance_agent.override(model=FunctionModel(_provenance_pass)):
                     response = await main.chat(request, self.service, self.account)
 
-        self.assertEqual(
-            "application_safe_decline",
-            response.inspection.release.release_source,
-        )
-        self.assertEqual(
-            "deterministic_validation",
-            response.inspection.release.failure_stage,
-        )
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIsNone(response.inspection.release.failure_stage)
         self.assertTrue(captured)
         self.assertIsInstance(captured[0], ConnectionExplorationResult)
         self.assertIsInstance(captured[0].decision, ConnectionProposal)
@@ -216,13 +219,13 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             for trace in response.inspection.traces
             if trace["agent"] == "Serendipity"
         )
-        self.assertEqual("declined", serendipity_trace["status"])
+        self.assertEqual("complete", serendipity_trace["status"])
         librarian_trace = next(
             trace
             for trace in response.inspection.traces
             if trace["agent"] == "Librarian"
         )
-        self.assertEqual("declined", librarian_trace["status"])
+        self.assertEqual("complete", librarian_trace["status"])
 
     async def test_slug_variance_still_reaches_corpus_and_yields_proposal(self) -> None:
         captured: list = []
@@ -236,10 +239,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 with provenance_agent.override(model=FunctionModel(_provenance_pass)):
                     response = await main.chat(request, self.service, self.account)
 
-        self.assertEqual(
-            "application_safe_decline",
-            response.inspection.release.release_source,
-        )
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
         self.assertTrue(captured)
         self.assertIsInstance(captured[0], ConnectionExplorationResult)
         self.assertIsInstance(captured[0].decision, ConnectionProposal)

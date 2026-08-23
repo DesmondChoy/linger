@@ -39,10 +39,13 @@ from src.linger.orchestration.inspection_context import (
     reset_connection_inspection,
 )
 from src.linger.orchestration.turn_context import (
+    reset_turn_evidence,
     reset_reader_message,
     reset_confirmed_reading,
+    set_turn_evidence,
     set_reader_message,
     set_confirmed_reading,
+    turn_evidence,
 )
 
 with patch("src.linger.agents.build.build_model", return_value=TestModel()):
@@ -718,6 +721,78 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(explorer_called)
         self.assertEqual("no_permitted_evidence", result.decision.reason)
+
+    async def test_only_selected_book_evidence_enters_the_turn_index(self) -> None:
+        reading_token = set_confirmed_reading(
+            ConfirmedReading(work_id="pg11", chapter_max=5)
+        )
+        inspection_token = begin_connection_inspection()
+        evidence_token = set_turn_evidence(())
+        try:
+            async def explorer(
+                active_task: ConnectionDiscoveryInput,
+            ) -> ExplorationResult:
+                scope = active_task.scope.book_scopes[0]
+
+                def item(evidence_id: str, chapter: int) -> EvidenceItem:
+                    return EvidenceItem(
+                        evidence_id=evidence_id,
+                        source_title="Alice's Adventures in Wonderland",
+                        work_id=scope.work_id,
+                        book_version_id=scope.book_version_id,
+                        chapter_id=f"chapter-{chapter}",
+                        chapter=chapter,
+                        location=f"Chapter {chapter}",
+                        source_sha256="a" * 64,
+                        source_lines=(chapter, chapter),
+                        excerpt=f"Evidence from Chapter {chapter}.",
+                        relevance=1.0,
+                    )
+
+                decision = proposal(
+                    shortlist=(
+                        candidate(
+                            "candidate-identity",
+                            1,
+                            evidence_ids=("chapter-4",),
+                        ),
+                        candidate(
+                            "candidate-authority",
+                            2,
+                            evidence_ids=("chapter-5",),
+                        ),
+                    )
+                )
+                return ExplorationResult(
+                    response=decision,
+                    evidence=(item("chapter-4", 4), item("chapter-5", 5)),
+                    searches=(
+                        SearchTrace(source="book_corpus", outcome="evidence_found"),
+                    ),
+                )
+
+            with patch(
+                "src.linger.orchestration.connection.web_reach_permitted",
+                return_value=False,
+            ):
+                result = await connection_exploration(
+                    ConnectionBrief(cue="identity"),
+                    explorer=explorer,
+                    librarian=Librarian(),
+                )
+
+            self.assertEqual(("chapter-4",), tuple(turn_evidence()))
+            self.assertEqual(
+                ("chapter-4",),
+                tuple(item.evidence_id for item in result.evidence),
+            )
+            record = turn_evidence()["chapter-4"]
+            self.assertEqual("Evidence from Chapter 4.", record.text)
+            self.assertEqual(4, record.chapter_number)
+        finally:
+            reset_turn_evidence(evidence_token)
+            reset_connection_inspection(inspection_token)
+            reset_confirmed_reading(reading_token)
 
     async def test_failed_scope_validation_keeps_inspection_content_free(self) -> None:
         reading_token = set_confirmed_reading(
