@@ -433,6 +433,110 @@ def _validate_run_configurations(
                         f"capture candidate {proposal.proposal_id} must use an "
                         "exact Line span"
                     )
+        if configuration.retrieval_prop_mix is not None:
+            failures.extend(
+                _validate_retrieval_prop_mix(
+                    configuration,
+                    scenes,
+                    content,
+                    manifest,
+                )
+            )
+    return failures
+
+
+def _validate_retrieval_prop_mix(
+    configuration: RunConfiguration,
+    scenes: list[Scene],
+    content: SyntheticContent,
+    manifest: AuthoringManifest,
+) -> list[str]:
+    mix = configuration.retrieval_prop_mix
+    assert mix is not None
+    if len(scenes) != configuration.scene_count:
+        return []
+
+    failures: list[str] = []
+    expected_prop_count = mix.relevant + mix.distractor
+    expected_prop_ids = set(scenes[0].prop_ids)
+    if len(expected_prop_ids) != expected_prop_count:
+        failures.append(
+            f"run configuration {configuration.run_configuration_id} requires "
+            f"{expected_prop_count} Props per retrieval Scene, found "
+            f"{len(expected_prop_ids)} in {scenes[0].scene_id}"
+        )
+    for scene in scenes[1:]:
+        if set(scene.prop_ids) != expected_prop_ids:
+            failures.append(
+                f"run configuration {configuration.run_configuration_id} requires "
+                "all retrieval Scenes to share the same Prop bank"
+            )
+
+    props = {prop.prop_id: prop for prop in content.props}
+    for scene in scenes:
+        for prop_id in scene.prop_ids:
+            prop = props[prop_id]
+            lifecycle = next(
+                item for item in prop.lifecycle if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"run configuration {configuration.run_configuration_id} "
+                    f"requires Prop {prop_id} to be active for {scene.scene_id}"
+                )
+
+    scene_ids = {scene.scene_id for scene in scenes}
+    proposals = {
+        proposal.scene_id: proposal
+        for proposal in manifest.proposals
+        if proposal.objective_id == configuration.objective_id
+        and proposal.scene_id in scene_ids
+    }
+    observed_mixes: list[tuple[int, int]] = []
+    for scene in scenes:
+        proposal = proposals.get(scene.scene_id)
+        if proposal is None:
+            continue
+        judgments = {item.prop_id: item.relevance for item in proposal.prop_relevance}
+        if set(judgments) != set(scene.prop_ids):
+            failures.append(
+                f"run configuration {configuration.run_configuration_id} requires "
+                f"one Prop relevance judgment for every Prop in {scene.scene_id}"
+            )
+            continue
+        relevant_ids = {
+            prop_id
+            for prop_id, relevance in judgments.items()
+            if relevance == "relevant"
+        }
+        distractor_ids = set(judgments) - relevant_ids
+        observed_mixes.append((len(relevant_ids), len(distractor_ids)))
+        evidence_prop_ids = [
+            evidence.prop_id
+            for evidence in proposal.evidence
+            if isinstance(evidence, PropEvidence)
+        ]
+        if len(evidence_prop_ids) != len(set(evidence_prop_ids)):
+            failures.append(
+                f"proposal {proposal.proposal_id} repeats Prop evidence"
+            )
+        if set(evidence_prop_ids) != relevant_ids:
+            failures.append(
+                f"proposal {proposal.proposal_id} Prop evidence must exactly match "
+                "its relevant Prop judgments"
+            )
+
+    required_mixes = sorted(
+        [
+            (mix.relevant, mix.distractor),
+            (0, expected_prop_count),
+        ]
+    )
+    if sorted(observed_mixes) != required_mixes:
+        failures.append(
+            f"run configuration {configuration.run_configuration_id} requires "
+            f"retrieval Prop mixes {required_mixes}, found {sorted(observed_mixes)}"
+        )
     return failures
 
 

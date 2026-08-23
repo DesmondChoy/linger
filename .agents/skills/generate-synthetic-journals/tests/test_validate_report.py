@@ -126,6 +126,39 @@ def test_accepts_capture_objective_mentioned_outside_prompt(tmp_path: Path) -> N
     assert validate_report(path) == []
 
 
+def test_requires_capture_configuration_only_when_selected(tmp_path: Path) -> None:
+    path = write_report(tmp_path, report_text())
+
+    errors = validate_report(path, ("reviewed_automatic_memory_capture",))
+
+    assert any("automatic capture run configuration" in error for error in errors)
+
+
+def test_requires_retrieval_configuration_for_selected_objective(
+    tmp_path: Path,
+) -> None:
+    path = write_report(tmp_path, report_text())
+
+    errors = validate_report(path, ("longitudinal_memory_retrieval",))
+
+    assert any("longitudinal retrieval run configuration" in error for error in errors)
+    assert any("ten distractor Props" in error for error in errors)
+
+
+def test_accepts_complete_retrieval_configuration_prompt(tmp_path: Path) -> None:
+    prompt = """
+Use synthetic-journal-evaluation/run-configurations/longitudinal-memory-retrieval-10-to-1.json
+and include its ID in
+run_configuration_ids. Make the two retrieval Scenes share the same 11 active
+Props. In the target Scene, exactly one relevant Prop and ten distractor Props
+are available. In the comparison Scene, none of the Props is relevant. Record
+every proposed judgment in GroundTruthProposal.prop_relevance.
+"""
+    path = write_report(tmp_path, report_text(prompt=prompt))
+
+    assert validate_report(path, ("longitudinal_memory_retrieval",)) == []
+
+
 def test_accepts_offline_inputs_without_lines(tmp_path: Path) -> None:
     text = report_text().replace(
         "Create one Backstory, no Props, three Scenes, and one Line per Scene.",

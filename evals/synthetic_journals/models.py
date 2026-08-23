@@ -338,6 +338,13 @@ class PropEvidence(StrictModel):
     prop_id: Identifier
 
 
+class PropRelevanceJudgment(StrictModel):
+    """Proposed relevance of one available Prop for one Scene."""
+
+    prop_id: Identifier
+    relevance: Literal["relevant", "distractor"]
+
+
 class OfflineInputEvidence(StrictModel):
     kind: Literal["offline_input"]
     evidence_id: Identifier
@@ -420,6 +427,7 @@ class GroundTruthProposal(StrictModel):
     prohibited_outcomes: tuple[Text, ...] = Field(min_length=1)
     exact_spans: tuple[ExactSpan, ...] = ()
     evidence: tuple[EvidenceReference, ...] = ()
+    prop_relevance: tuple[PropRelevanceJudgment, ...] = ()
     pairing: ScenePairing | None = None
     capture: CaptureExpectation | None = None
 
@@ -428,6 +436,10 @@ class GroundTruthProposal(StrictModel):
         _require_unique(
             "GroundTruthProposal evidence IDs",
             tuple(item.evidence_id for item in self.evidence),
+        )
+        _require_unique(
+            "GroundTruthProposal Prop relevance IDs",
+            tuple(item.prop_id for item in self.prop_relevance),
         )
         return self
 
@@ -459,6 +471,11 @@ class CaptureMix(StrictModel):
     no_candidate: int = Field(ge=1)
 
 
+class RetrievalPropMix(StrictModel):
+    relevant: int = Field(ge=1)
+    distractor: int = Field(ge=1)
+
+
 class RunConfiguration(StrictModel):
     """Resolved per-run constraints kept outside the Objective catalog."""
 
@@ -467,6 +484,7 @@ class RunConfiguration(StrictModel):
     objective_id: Identifier
     scene_count: int = Field(ge=1)
     capture_mix: CaptureMix | None = None
+    retrieval_prop_mix: RetrievalPropMix | None = None
     no_candidate_material_types: tuple[Text, ...] = ()
     generator_instruction: Text
     dataset_scaling: Text
@@ -477,6 +495,11 @@ class RunConfiguration(StrictModel):
             "no_candidate_material_types",
             self.no_candidate_material_types,
         )
+        configured_mixes = sum(
+            mix is not None for mix in (self.capture_mix, self.retrieval_prop_mix)
+        )
+        if configured_mixes != 1:
+            raise ValueError("RunConfiguration requires exactly one mix")
         if self.capture_mix is not None:
             total = (
                 self.capture_mix.capture_candidate

@@ -20,6 +20,15 @@ It does not decide whether generated prose is realistic or whether a proposed
 behavioral label is correct. An independent reviewer must adopt, revise, or
 reject every proposal before it can grade Linger.
 
+The adopted run configurations keep imbalanced tests explicit and scoped to
+their Objective. Reviewed automatic capture uses one capture-candidate Scene
+and ten no-candidate Scenes. Longitudinal retrieval uses two fresh-session
+Scenes sharing the same eleven active Props: the target Scene has one relevant
+Prop and ten distractors, while the comparison Scene has no relevant Props.
+The authoring manifest records a typed proposed relevance judgment for every
+available Prop. Validation checks coverage and counts; independent review
+decides whether the proposed relevance and distractors are semantically sound.
+
 Generate JSON Schema for external tooling with Pydantic's public API:
 
 ```python

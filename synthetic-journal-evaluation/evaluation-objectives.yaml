@@ -415,6 +415,9 @@ evaluation_objectives:
       - id: memory_state_plan
         supplied_by: workflow
         description: Run-specific prop lifecycle states without relevance or pass/fail labels.
+      - id: retrieval_prop_mix
+        supplied_by: workflow
+        description: Run-specific counts for relevant and plausible distractor props in the paired retrieval scenes.
       - id: retrieval_constraints
         supplied_by: generator_repository_access
         description: Complete rules for active-memory eligibility and fresh-session evaluation.

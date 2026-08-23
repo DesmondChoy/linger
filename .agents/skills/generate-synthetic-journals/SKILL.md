@@ -90,7 +90,8 @@ authorize synthetic-data generation.
    `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
    content JSON represents one Backstory, Props, Scenes, Lines, and offline
    inputs. The separate authoring-manifest JSON contains proposed Ground truth
-   anchored to those identifiers, exact spans, evidence, and Scene pairings.
+   anchored to those identifiers, exact spans, evidence, per-Scene Prop
+   relevance judgments, and Scene pairings.
    Do not propose a parallel schema or claim that validation adopts Ground truth.
    If the selected Objectives cannot be represented, report a contract gap and
    stop the fenced prompt from authorizing generation.
@@ -102,6 +103,16 @@ authorize synthetic-data generation.
     minimum. The package contains one Backstory; a full capture dataset repeats
     the 11-Scene pattern in separately validated packages with different
     Backstories.
+    When `longitudinal_memory_retrieval` is selected, use
+    `synthetic-journal-evaluation/run-configurations/longitudinal-memory-retrieval-10-to-1.json`
+    unless the developer explicitly supplied another adopted configuration.
+    Treat its 1:10 mix as a retrieval Prop constraint, not a Scene ratio or a
+    universal requirement. The two retrieval Scenes share the same 11 active
+    Props. Proposed Ground truth marks exactly one as relevant in the target
+    Scene and all 11 as distractors in the comparison Scene, using one
+    `GroundTruthProposal.prop_relevance` entry for every available Prop in each
+    Scene. Without this Objective, create only the Props required by the
+    confirmed selection.
 11. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
     workflow inputs, translated Ground truth requirements, and the adopted v1
@@ -126,8 +137,10 @@ authorize synthetic-data generation.
     from generated content. Second, run the adopted package validator for
     objective facts including schema conformance, content hashing, reference and
     span resolution, ordering, permitted evidence, declared matched-Scene
-    differences, and resolved run-configuration counts; these checks do not
-    judge Linger's recorded behavior. Third, require a reviewer independent of
+    differences, complete Prop relevance judgments, and resolved
+    run-configuration counts; these checks do not judge whether the proposed
+    relevance is semantically correct or assess Linger's recorded behavior.
+    Third, require a reviewer independent of
     the generator to adopt, revise, or reject each candidate label. Only adopted
     Ground truth may grade a run, and neither manifest nor adopted Ground truth
     may reach the system under evaluation.
@@ -218,10 +231,10 @@ Scenes, Lines, offline inputs, authoring manifests, proposed or adopted Ground
 truth, annotations, packages, frozen releases, or replay data.
 
 After writing the report, resolve `scripts/validate_report.py` relative to this
-`SKILL.md` and run it with the repository's Python environment. If it reports an
-error, revise the report and rerun the validator until it exits successfully.
-Do not estimate the word count. Then verify the semantic requirements that the
-script cannot prove:
+`SKILL.md` and run it with the repository's Python environment, passing every
+confirmed ID as a separate `--objective-id`. If it reports an error, revise the
+report and rerun the validator until it exits successfully. Do not estimate the
+word count. Then verify the semantic requirements that the script cannot prove:
 
 - Every required Scene has one current status with concrete evidence or a gap.
 - The target design satisfies every confirmed Objective without descoping.
@@ -234,6 +247,10 @@ script cannot prove:
 - Exactly one Backstory, person, and evaluation account are used; every Prop,
   Scene, and Line belongs to that Backstory; and every Prop has a planned
   lifecycle role.
+- Every adopted run configuration for the confirmed Objectives appears in
+  `run_configuration_ids` and its exact entity counts are translated into the
+  fenced prompt. For longitudinal retrieval, both Scenes share the same 11
+  active Props and proposed relevance covers all 11 Props in each Scene.
 
 Report the path and selected Objective IDs, then stop. The v1 content and
 authoring-manifest contracts and deterministic validator are adopted. Generation,

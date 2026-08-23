@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "run_configuration_id": "longitudinal-memory-retrieval-10-to-1",
+  "objective_id": "longitudinal_memory_retrieval",
+  "scene_count": 2,
+  "retrieval_prop_mix": {
+    "relevant": 1,
+    "distractor": 10
+  },
+  "generator_instruction": "Create two fresh-session retrieval Scenes that share the same 11 active Props from one person and evaluation account. For the target Scene, exactly one Prop is relevant and the other ten are plausible but unhelpful distractors. For the comparison Scene, none of the 11 Props is relevant. Keep distractors close enough in topic and wording to make selective retrieval non-trivial. Record one proposed relevance judgment for every available Prop in each Scene using GroundTruthProposal.prop_relevance, without exposing those judgments to Linger.",
+  "dataset_scaling": "Repeat this paired-Scene pattern across multiple independently generated Backstories for a full retrieval dataset; vary which Prop is relevant and how the distractors are topically adjacent."
+}

@@ -58,7 +58,9 @@ def narrative_word_count(text: str) -> int:
     return len(re.findall(r"\b[\w'-]+\b", "\n".join(lines)))
 
 
-def validate_report(path: Path) -> list[str]:
+def validate_report(
+    path: Path, selected_objective_ids: tuple[str, ...] = ()
+) -> list[str]:
     errors: list[str] = []
     if not FILENAME_PATTERN.fullmatch(path.name):
         errors.append("filename does not match the timestamped report contract")
@@ -118,14 +120,48 @@ def validate_report(path: Path) -> list[str]:
         ):
             if not re.search(pattern, prompt, flags=re.IGNORECASE):
                 errors.append(f"fenced prompt lacks {label} instructions")
+        if "longitudinal_memory_retrieval" in selected_objective_ids:
+            retrieval_requirements = (
+                (
+                    "longitudinal retrieval run configuration",
+                    r"synthetic-journal-evaluation/run-configurations/"
+                    r"longitudinal-memory-retrieval-10-to-1\.json",
+                ),
+                ("one relevant Prop", r"exactly one\b.*\brelevant\b.*\bProp"),
+                ("ten distractor Props", r"\bten\b.*\bdistractor"),
+                (
+                    "shared 11-Prop bank",
+                    r"\bshare\w*\b.*\b(?:same\b.*)?11\b.*\bProps?",
+                ),
+                (
+                    "comparison with no relevant Props",
+                    r"\bcomparison\b.*\bnone\b.*\brelevant",
+                ),
+                ("typed Prop relevance judgments", r"\bprop_relevance\b"),
+            )
+            for label, pattern in retrieval_requirements:
+                if not re.search(
+                    pattern, prompt, flags=re.IGNORECASE | re.DOTALL
+                ):
+                    errors.append(f"fenced prompt lacks {label}")
+        if "reviewed_automatic_memory_capture" in selected_objective_ids:
+            capture_path = (
+                "synthetic-journal-evaluation/run-configurations/"
+                "reviewed-automatic-memory-capture-10-to-1.json"
+            )
+            if capture_path not in prompt:
+                errors.append(
+                    "fenced prompt lacks reviewed automatic capture run configuration"
+                )
     return errors
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
+    parser.add_argument("--objective-id", action="append", default=[])
     args = parser.parse_args()
-    errors = validate_report(args.report)
+    errors = validate_report(args.report, tuple(args.objective_id))
     if errors:
         for error in errors:
             print(f"REPORT_VALIDATION_ERROR={error}", file=sys.stderr)
