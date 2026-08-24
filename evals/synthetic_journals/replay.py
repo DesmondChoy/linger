@@ -47,7 +47,7 @@ from src.linger.agents.serendipity.prompt import (
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
-from .models import AuthoringManifest, StrictModel, SyntheticContent
+from .models import ProposedGroundTruth, StrictModel, SyntheticBackstory
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_package import PackageValidationError, validate_package_files
 
@@ -127,7 +127,7 @@ class EvaluationRun(StrictModel):
 
 
 class CaptureEvaluationInput(StrictModel):
-    """Synthetic content shown as one native Logfire evaluation case input."""
+    """Synthetic backstory shown as one native Logfire evaluation case input."""
 
     order: int = Field(ge=1)
     scene_id: str
@@ -197,14 +197,14 @@ class CaptureProposalComparison(
 
 
 async def replay_capture_scenes(
-    content: SyntheticContent,
-    manifest: AuthoringManifest,
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
     *,
     chat_handler: ChatHandler | None = None,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
-    scene_lines = _capture_scene_lines(content)
+    scene_lines = _capture_scene_lines(backstory)
     if chat_handler is None:
         handler = _production_chat_handler()
         configure_synthetic_evaluation_telemetry(_evaluation_agents())
@@ -213,9 +213,9 @@ async def replay_capture_scenes(
 
     run_id = uuid4().hex
     account = AccountContext(
-        f"synthetic-eval:{content.backstory.evaluation_account_id}:{run_id}"
+        f"synthetic-eval:{backstory.backstory.evaluation_account_id}:{run_id}"
     )
-    proposals = {proposal.scene_id: proposal for proposal in manifest.proposals}
+    proposals = {proposal.scene_id: proposal for proposal in ground_truth.proposals}
     cases: list[
         Case[
             CaptureEvaluationInput,
@@ -243,13 +243,13 @@ async def replay_capture_scenes(
                 ),
                 expected_output=CaptureEvaluationExpected(
                     capture_label=expected_label,
-                    ground_truth_status=manifest.ground_truth_status,
+                    ground_truth_status=ground_truth.ground_truth_status,
                 ),
                 metadata={
                     "objective_id": CAPTURE_OBJECTIVE_ID,
                     "line_id": line_id,
                     "scene_order": order,
-                    "ground_truth_status": manifest.ground_truth_status,
+                    "ground_truth_status": ground_truth.ground_truth_status,
                 },
             )
         )
@@ -308,9 +308,9 @@ async def replay_capture_scenes(
                 "content_classification": "synthetic",
                 "objective_id": CAPTURE_OBJECTIVE_ID,
                 "run_id": run_id,
-                "dataset_version": manifest.content_sha256,
+                "dataset_version": ground_truth.backstory_sha256,
                 "system_variant": RUNTIME_SYSTEM_VARIANT,
-                "ground_truth_status": manifest.ground_truth_status,
+                "ground_truth_status": ground_truth.ground_truth_status,
             },
         )
         if report.failures:
@@ -325,9 +325,9 @@ async def replay_capture_scenes(
         run_id=run_id,
         trace_id=report.trace_id or "0" * 32,
         objective_id=CAPTURE_OBJECTIVE_ID,
-        dataset_version=manifest.content_sha256,
+        dataset_version=ground_truth.backstory_sha256,
         system_variant=RUNTIME_SYSTEM_VARIANT,
-        ground_truth_status=manifest.ground_truth_status,
+        ground_truth_status=ground_truth.ground_truth_status,
         capture_enabled=True,
         runtime_prompt_fingerprints=RUNTIME_PROMPT_FINGERPRINTS,
         scenes=tuple(observations),
@@ -407,18 +407,18 @@ async def _replay_capture_scene(
 
 
 def _capture_scene_lines(
-    content: SyntheticContent,
+    backstory: SyntheticBackstory,
 ) -> tuple[tuple[str, str, str], ...]:
-    if content.objective_ids != (CAPTURE_OBJECTIVE_ID,):
+    if backstory.objective_ids != (CAPTURE_OBJECTIVE_ID,):
         raise ValueError(
             "capture replay requires only reviewed_automatic_memory_capture"
         )
-    if content.props or content.offline_inputs:
+    if backstory.props or backstory.offline_inputs:
         raise ValueError("capture replay does not accept Props or offline inputs")
 
-    lines = {line.line_id: line for line in content.lines}
+    lines = {line.line_id: line for line in backstory.lines}
     scene_lines: list[tuple[str, str, str]] = []
-    for scene in sorted(content.scenes, key=lambda item: item.order):
+    for scene in sorted(backstory.scenes, key=lambda item: item.order):
         if not scene.fresh_session:
             raise ValueError(f"Scene {scene.scene_id} must use a fresh session")
         if scene.prop_ids or scene.offline_input_ids:
@@ -476,16 +476,16 @@ def _evaluation_agents() -> tuple[Any, ...]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("content", type=Path)
-    parser.add_argument("authoring_manifest", type=Path)
+    parser.add_argument("backstory", type=Path)
+    parser.add_argument("ground_truth", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
 
     try:
-        content, manifest = validate_package_files(
-            args.content, args.authoring_manifest
+        backstory, ground_truth = validate_package_files(
+            args.backstory, args.ground_truth
         )
-        result = asyncio.run(replay_capture_scenes(content, manifest))
+        result = asyncio.run(replay_capture_scenes(backstory, ground_truth))
         rendered = result.model_dump_json(indent=2) + "\n"
         if args.output is None:
             print(rendered, end="")

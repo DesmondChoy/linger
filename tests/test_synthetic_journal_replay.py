@@ -50,15 +50,19 @@ from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTENT_PATH = (
+BACKSTORY_PATH = (
     ROOT
     / "synthetic-journal-evaluation"
-    / "reviewed-automatic-memory-capture-content.json"
+    / "packages"
+    / "2026-08-23T182725+0800"
+    / "backstory.json"
 )
-MANIFEST_PATH = (
+GROUND_TRUTH_PATH = (
     ROOT
     / "synthetic-journal-evaluation"
-    / "reviewed-automatic-memory-capture-authoring-manifest.json"
+    / "packages"
+    / "2026-08-23T182725+0800"
+    / "ground-truth.json"
 )
 
 
@@ -183,7 +187,7 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
 
 
 def test_replay_isolates_account_store_sessions_and_turns() -> None:
-    content, manifest = validate_package_files(CONTENT_PATH, MANIFEST_PATH)
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     requests: list[ChatRequest] = []
     accounts: set[str] = set()
     store_roots: set[Path] = set()
@@ -200,7 +204,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
         return _no_capture_response()
 
     result = asyncio.run(
-        replay_capture_scenes(content, manifest, chat_handler=chat_handler)
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
     )
 
     lines = {line.line_id: line for line in content.lines}
@@ -217,7 +221,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
     assert all(not sessions.history(item.session_id) for item in requests)
     assert result.capture_enabled is True
     assert result.runtime_prompt_fingerprints == RUNTIME_PROMPT_FINGERPRINTS
-    assert result.dataset_version == manifest.content_sha256
+    assert result.dataset_version == ground_truth.backstory_sha256
     assert result.ground_truth_status == "proposed"
     assert len(result.system_variant) == 64
     assert len(result.trace_id) == 32
@@ -238,7 +242,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
 
 
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
-    content, manifest = validate_package_files(CONTENT_PATH, MANIFEST_PATH)
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     first_scene = content.scenes[0].model_copy(
         update={"line_ids": (content.lines[0].line_id, content.lines[1].line_id)}
     )
@@ -250,14 +254,14 @@ def test_replay_rejects_more_than_one_line_per_scene() -> None:
         asyncio.run(
             replay_capture_scenes(
                 invalid,
-                manifest,
+                ground_truth,
                 chat_handler=lambda *args: None,  # type: ignore[arg-type]
             )
         )
 
 
-def test_replay_exports_native_evaluation_cases_with_synthetic_content() -> None:
-    content, manifest = validate_package_files(CONTENT_PATH, MANIFEST_PATH)
+def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     exporter = TestExporter()
     logfire.configure(
         send_to_logfire=False,
@@ -274,7 +278,7 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_content() -> None
         return _no_capture_response()
 
     result = asyncio.run(
-        replay_capture_scenes(content, manifest, chat_handler=chat_handler)
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
     )
     spans = exporter.exported_spans_as_dict()
     payload = json.dumps(spans, default=str)
@@ -284,7 +288,7 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_content() -> None
     assert experiment["attributes"]["gen_ai.operation.name"] == "experiment"
     assert experiment["attributes"]["dataset_name"] == CAPTURE_OBJECTIVE_ID
     assert result.run_id in experiment["attributes"]["metadata"]
-    assert manifest.content_sha256 in experiment["attributes"]["metadata"]
+    assert ground_truth.backstory_sha256 in experiment["attributes"]["metadata"]
     assert len(cases) == 11
     assert {span["attributes"]["case_name"] for span in cases} == {
         scene.scene_id for scene in content.scenes
@@ -310,8 +314,8 @@ def test_cli_returns_nonzero_for_an_invalid_package(
 ) -> None:
     result = replay_main(
         [
-            str(tmp_path / "missing-content.json"),
-            str(tmp_path / "missing-manifest.json"),
+            str(tmp_path / "missing-backstory.json"),
+            str(tmp_path / "missing-ground-truth.json"),
         ]
     )
 
@@ -320,12 +324,12 @@ def test_cli_returns_nonzero_for_an_invalid_package(
 
 
 def test_replay_uses_production_capture_path_without_handing_off_labels() -> None:
-    content, manifest = validate_package_files(CONTENT_PATH, MANIFEST_PATH)
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     lines = {line.line_id: line for line in content.lines}
     scenes_by_text = {
         lines[scene.line_ids[0]].text: scene.scene_id for scene in content.scenes
     }
-    proposals = {proposal.scene_id: proposal for proposal in manifest.proposals}
+    proposals = {proposal.scene_id: proposal for proposal in ground_truth.proposals}
     muse_payloads: list[dict[str, object]] = []
     histories: list[list[object]] = []
 
@@ -397,7 +401,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
                 result = asyncio.run(
                     replay_capture_scenes(
                         content,
-                        manifest,
+                        ground_truth,
                         chat_handler=main.chat,
                     )
                 )
@@ -407,7 +411,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
     committed = [scene for scene in result.scenes if scene.memory_id is not None]
     expected_span = next(
         proposal.capture.span
-        for proposal in manifest.proposals
+        for proposal in ground_truth.proposals
         if isinstance(proposal.capture, CaptureCandidate)
     )
     assert len(committed) == 1
@@ -439,4 +443,4 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
     assert content.backstory.context not in serialized_payloads
     assert "expected_outcomes" not in serialized_payloads
     assert "prohibited_outcomes" not in serialized_payloads
-    assert "runtime_prompt_fingerprints" not in manifest.model_dump(mode="json")
+    assert "runtime_prompt_fingerprints" not in ground_truth.model_dump(mode="json")

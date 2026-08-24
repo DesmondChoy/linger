@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from evals.synthetic_journals.models import AuthoringManifest, SyntheticContent
+from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from evals.synthetic_journals.validate_package import (
     DEFAULT_RUN_CONFIGURATION_DIRECTORY,
     PackageValidationError,
@@ -81,9 +81,9 @@ def _json_bytes(document: dict[str, object]) -> bytes:
     return json.dumps(document, ensure_ascii=False, sort_keys=True).encode("utf-8")
 
 
-def _manifest_document(
+def _ground_truth_document(
     content: dict[str, object],
-    content_bytes: bytes,
+    backstory_bytes: bytes,
 ) -> dict[str, object]:
     proposals = []
     lines = {line["line_id"]: line for line in content["lines"]}  # type: ignore[index]
@@ -118,7 +118,7 @@ def _manifest_document(
             proposal["capture"] = {"kind": "no_candidate"}
         proposals.append(proposal)
     return {
-        "content_sha256": hashlib.sha256(content_bytes).hexdigest(),
+        "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
         "ground_truth_status": "proposed",
         "proposals": proposals,
     }
@@ -126,11 +126,11 @@ def _manifest_document(
 
 def _validated_models(
     content_document: dict[str, object],
-    manifest_document: dict[str, object],
-) -> tuple[SyntheticContent, AuthoringManifest]:
+    ground_truth_document: dict[str, object],
+) -> tuple[SyntheticBackstory, ProposedGroundTruth]:
     return (
-        SyntheticContent.model_validate_json(_json_bytes(content_document)),
-        AuthoringManifest.model_validate_json(_json_bytes(manifest_document)),
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document)),
+        ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth_document)),
     )
 
 
@@ -140,43 +140,43 @@ def _run_configurations():
 
 def test_validates_one_positive_and_ten_no_candidates() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    content, manifest = _validated_models(content_document, manifest_document)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=_run_configurations(),
     )
 
 
-def test_file_entrypoint_uses_exact_content_bytes(tmp_path: Path) -> None:
+def test_file_entrypoint_uses_exact_backstory_bytes(tmp_path: Path) -> None:
     content_document = _content_document()
-    content_bytes = json.dumps(content_document, indent=2).encode("utf-8")
-    manifest_document = _manifest_document(content_document, content_bytes)
-    content_path = tmp_path / "content.json"
-    manifest_path = tmp_path / "authoring-manifest.json"
-    content_path.write_bytes(content_bytes)
-    manifest_path.write_bytes(_json_bytes(manifest_document))
+    backstory_bytes = json.dumps(content_document, indent=2).encode("utf-8")
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    backstory_path = tmp_path / "backstory.json"
+    ground_truth_path = tmp_path / "ground-truth.json"
+    backstory_path.write_bytes(backstory_bytes)
+    ground_truth_path.write_bytes(_json_bytes(ground_truth_document))
 
-    content, manifest = validate_package_files(content_path, manifest_path)
+    content, ground_truth = validate_package_files(backstory_path, ground_truth_path)
 
     assert len(content.scenes) == 11
-    assert len(manifest.proposals) == 11
+    assert len(ground_truth.proposals) == 11
 
 
 def test_cli_reports_valid_package(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    content_path = tmp_path / "content.json"
-    manifest_path = tmp_path / "authoring-manifest.json"
-    content_path.write_bytes(content_bytes)
-    manifest_path.write_bytes(_json_bytes(manifest_document))
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    backstory_path = tmp_path / "backstory.json"
+    ground_truth_path = tmp_path / "ground-truth.json"
+    backstory_path.write_bytes(backstory_bytes)
+    ground_truth_path.write_bytes(_json_bytes(ground_truth_document))
 
-    assert main([str(content_path), str(manifest_path)]) == 0
+    assert main([str(backstory_path), str(ground_truth_path)]) == 0
     assert "PACKAGE_VALIDATION_OK=11 scenes,11 proposals" in capsys.readouterr().out
 
 
@@ -184,19 +184,19 @@ def test_rejects_unknown_fields_without_coercion() -> None:
     content_document = _content_document()
     content_document["schema_version"] = 1
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
-        SyntheticContent.model_validate_json(_json_bytes(content_document))
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
     content_document = _content_document()
     content_document["scenes"][0]["order"] = "1"  # type: ignore[index]
     with pytest.raises(ValidationError, match="valid integer"):
-        SyntheticContent.model_validate_json(_json_bytes(content_document))
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
 
 def test_rejects_unknown_entity_reference() -> None:
     content_document = _content_document()
     content_document["scenes"][0]["line_ids"] = ["missing-line"]  # type: ignore[index]
     with pytest.raises(ValidationError, match="unknown Line IDs"):
-        SyntheticContent.model_validate_json(_json_bytes(content_document))
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
 
 def test_rejects_selected_objective_without_a_scene() -> None:
@@ -204,7 +204,7 @@ def test_rejects_selected_objective_without_a_scene() -> None:
     content_document["objective_ids"].append("unused_objective")  # type: ignore[union-attr]
 
     with pytest.raises(ValidationError, match="without a Scene"):
-        SyntheticContent.model_validate_json(_json_bytes(content_document))
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
 
 def test_prop_scope_and_lifecycle_must_match_assigned_scenes() -> None:
@@ -223,51 +223,53 @@ def test_prop_scope_and_lifecycle_must_match_assigned_scenes() -> None:
         }
     ]
     content_document["scenes"][0]["prop_ids"] = ["prop-01"]  # type: ignore[index]
-    SyntheticContent.model_validate_json(_json_bytes(content_document))
+    SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
     content_document["props"][0]["evaluation_account_id"] = "other-account"  # type: ignore[index]
     with pytest.raises(ValidationError, match="outside the package"):
-        SyntheticContent.model_validate_json(_json_bytes(content_document))
+        SyntheticBackstory.model_validate_json(_json_bytes(content_document))
 
 
 def test_rejects_content_hash_mismatch() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    manifest_document["content_sha256"] = "0" * 64
-    content, manifest = _validated_models(content_document, manifest_document)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    ground_truth_document["backstory_sha256"] = "0" * 64
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
-    with pytest.raises(PackageValidationError, match="content_sha256"):
+    with pytest.raises(PackageValidationError, match="backstory_sha256"):
         validate_package(
             content,
-            manifest,
-            content_bytes=content_bytes,
+            ground_truth,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
         )
 
 
-def test_manifest_can_only_contain_proposed_ground_truth() -> None:
+def test_ground_truth_can_only_be_proposed() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    manifest_document["ground_truth_status"] = "adopted"
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    ground_truth_document["ground_truth_status"] = "adopted"
 
     with pytest.raises(ValidationError, match="Input should be 'proposed'"):
-        AuthoringManifest.model_validate_json(_json_bytes(manifest_document))
+        ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth_document))
 
 
 def test_rejects_exact_span_text_mismatch() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    manifest_document["proposals"][0]["capture"]["span"]["text"] = "wrong"  # type: ignore[index]
-    content, manifest = _validated_models(content_document, manifest_document)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    ground_truth_document["proposals"][0]["capture"]["span"][  # type: ignore[index]
+        "text"
+    ] = "wrong"
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     with pytest.raises(PackageValidationError, match="span text mismatch"):
         validate_package(
             content,
-            manifest,
-            content_bytes=content_bytes,
+            ground_truth,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
         )
 
@@ -277,24 +279,24 @@ def test_exact_span_offsets_preserve_source_whitespace() -> None:
     content_document["lines"][0]["text"] = (  # type: ignore[index]
         "  I want to keep making a little time to sketch after work.  "
     )
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    content, manifest = _validated_models(content_document, manifest_document)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     assert content.lines[0].text.startswith("  ")
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=_run_configurations(),
     )
 
 
 def test_rejects_capture_mix_other_than_one_to_ten() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    second = manifest_document["proposals"][1]  # type: ignore[index]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    second = ground_truth_document["proposals"][1]  # type: ignore[index]
     second_line = content_document["lines"][1]  # type: ignore[index]
     second["capture"] = {
         "kind": "capture_candidate",
@@ -306,32 +308,34 @@ def test_rejects_capture_mix_other_than_one_to_ten() -> None:
             "text": second_line["text"],
         },
     }
-    content, manifest = _validated_models(content_document, manifest_document)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     with pytest.raises(PackageValidationError, match="1 capture_candidate"):
         validate_package(
             content,
-            manifest,
-            content_bytes=content_bytes,
+            ground_truth,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
         )
 
 
 def test_rejects_generic_spans_in_capture_run() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
     capture_span = deepcopy(
-        manifest_document["proposals"][0]["capture"]["span"]  # type: ignore[index]
+        ground_truth_document["proposals"][0]["capture"]["span"]  # type: ignore[index]
     )
-    manifest_document["proposals"][0]["exact_spans"] = [capture_span]  # type: ignore[index]
-    content, manifest = _validated_models(content_document, manifest_document)
+    ground_truth_document["proposals"][0][  # type: ignore[index]
+        "exact_spans"
+    ] = [capture_span]
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     with pytest.raises(PackageValidationError, match="generic exact_spans"):
         validate_package(
             content,
-            manifest,
-            content_bytes=content_bytes,
+            ground_truth,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
         )
 
@@ -341,47 +345,50 @@ def test_capture_ratio_is_not_a_universal_objective_rule() -> None:
         scene_count=2,
         use_run_configuration=False,
     )
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    content, manifest = _validated_models(content_document, manifest_document)
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=_run_configurations(),
     )
 
 
 def test_pairing_checks_declared_matches_and_differences() -> None:
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    manifest_document["proposals"][0]["pairing"] = {  # type: ignore[index]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    ground_truth_document["proposals"][0]["pairing"] = {  # type: ignore[index]
         "paired_scene_id": "scene-02",
         "match_fields": ["backstory_id", "fresh_session"],
         "difference_fields": ["line_text"],
     }
-    content, manifest = _validated_models(content_document, manifest_document)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=_run_configurations(),
     )
 
-    broken_manifest = deepcopy(manifest_document)
-    pairing = broken_manifest["proposals"][0]["pairing"]  # type: ignore[index]
+    broken_ground_truth = deepcopy(ground_truth_document)
+    pairing = broken_ground_truth["proposals"][0]["pairing"]  # type: ignore[index]
     pairing["match_fields"] = ["line_text"]
-    broken_manifest["proposals"][0]["pairing"]["difference_fields"] = [  # type: ignore[index]
+    broken_pairing = broken_ground_truth["proposals"][0][  # type: ignore[index]
+        "pairing"
+    ]
+    broken_pairing["difference_fields"] = [
         "fresh_session"
     ]
-    _, broken = _validated_models(content_document, broken_manifest)
+    _, broken = _validated_models(content_document, broken_ground_truth)
     with pytest.raises(PackageValidationError, match="must match on line_text"):
         validate_package(
             content,
             broken,
-            content_bytes=content_bytes,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
         )
 
@@ -391,9 +398,9 @@ def test_repository_evidence_resolves_hash_and_exact_span(tmp_path: Path) -> Non
     source_path = tmp_path / "source.md"
     source_path.write_bytes(source_bytes)
     content_document = _content_document()
-    content_bytes = _json_bytes(content_document)
-    manifest_document = _manifest_document(content_document, content_bytes)
-    manifest_document["proposals"][0]["evidence"] = [  # type: ignore[index]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    ground_truth_document["proposals"][0]["evidence"] = [  # type: ignore[index]
         {
             "kind": "repository_text",
             "evidence_id": "evidence-01",
@@ -404,37 +411,39 @@ def test_repository_evidence_resolves_hash_and_exact_span(tmp_path: Path) -> Non
             "text": "βeta",
         }
     ]
-    content, manifest = _validated_models(content_document, manifest_document)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=_run_configurations(),
         repository_root=tmp_path,
     )
 
-    broken_manifest = deepcopy(manifest_document)
-    broken_evidence = broken_manifest["proposals"][0]["evidence"][0]  # type: ignore[index]
+    broken_ground_truth = deepcopy(ground_truth_document)
+    broken_evidence = broken_ground_truth["proposals"][0][  # type: ignore[index]
+        "evidence"
+    ][0]
     broken_evidence["source_sha256"] = "0" * 64
-    _, broken = _validated_models(content_document, broken_manifest)
+    _, broken = _validated_models(content_document, broken_ground_truth)
     with pytest.raises(PackageValidationError, match="source_sha256"):
         validate_package(
             content,
             broken,
-            content_bytes=content_bytes,
+            backstory_bytes=backstory_bytes,
             run_configurations=_run_configurations(),
             repository_root=tmp_path,
         )
 
 
 def test_json_schema_forbids_extra_fields_and_discriminates_capture() -> None:
-    content_schema = SyntheticContent.model_json_schema()
-    manifest_schema = AuthoringManifest.model_json_schema()
+    backstory_schema = SyntheticBackstory.model_json_schema()
+    ground_truth_schema = ProposedGroundTruth.model_json_schema()
 
-    assert content_schema["additionalProperties"] is False
-    assert "schema_version" not in content_schema["properties"]
-    assert "schema_version" not in manifest_schema["properties"]
-    capture_schema = manifest_schema["$defs"]["GroundTruthProposal"]["properties"][
+    assert backstory_schema["additionalProperties"] is False
+    assert "schema_version" not in backstory_schema["properties"]
+    assert "schema_version" not in ground_truth_schema["properties"]
+    capture_schema = ground_truth_schema["$defs"]["GroundTruthProposal"]["properties"][
         "capture"
     ]["anyOf"][0]
     assert capture_schema["discriminator"]["propertyName"] == "kind"

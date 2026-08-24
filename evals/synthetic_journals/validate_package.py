@@ -1,4 +1,4 @@
-"""Validate synthetic content and proposed Ground truth deterministically."""
+"""Validate a synthetic Backstory and proposed Ground truth deterministically."""
 
 from __future__ import annotations
 
@@ -11,16 +11,16 @@ from typing import Any
 from pydantic import ValidationError
 
 from evals.synthetic_journals.models import (
-    AuthoringManifest,
     CaptureCandidate,
     ExactSpan,
     GroundTruthProposal,
     OfflineInputEvidence,
     PropEvidence,
+    ProposedGroundTruth,
     RepositoryTextEvidence,
     RunConfiguration,
     Scene,
-    SyntheticContent,
+    SyntheticBackstory,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -38,31 +38,31 @@ class PackageValidationError(ValueError):
 
 
 def validate_package_files(
-    content_path: Path,
-    manifest_path: Path,
+    backstory_path: Path,
+    ground_truth_path: Path,
     *,
     run_configuration_directory: Path = DEFAULT_RUN_CONFIGURATION_DIRECTORY,
     repository_root: Path = REPOSITORY_ROOT,
-) -> tuple[SyntheticContent, AuthoringManifest]:
+) -> tuple[SyntheticBackstory, ProposedGroundTruth]:
     """Load two JSON files and validate their complete package graph."""
 
-    content_bytes = content_path.read_bytes()
-    manifest_bytes = manifest_path.read_bytes()
+    backstory_bytes = backstory_path.read_bytes()
+    ground_truth_bytes = ground_truth_path.read_bytes()
     try:
-        content = SyntheticContent.model_validate_json(content_bytes)
-        manifest = AuthoringManifest.model_validate_json(manifest_bytes)
+        backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
+        ground_truth = ProposedGroundTruth.model_validate_json(ground_truth_bytes)
     except ValidationError as error:
         raise PackageValidationError([_format_pydantic_error(error)]) from error
 
     configurations = load_run_configurations(run_configuration_directory)
     validate_package(
-        content,
-        manifest,
-        content_bytes=content_bytes,
+        backstory,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=configurations,
         repository_root=repository_root,
     )
-    return content, manifest
+    return backstory, ground_truth
 
 
 def load_run_configurations(directory: Path) -> dict[str, RunConfiguration]:
@@ -90,36 +90,36 @@ def load_run_configurations(directory: Path) -> dict[str, RunConfiguration]:
 
 
 def validate_package(
-    content: SyntheticContent,
-    manifest: AuthoringManifest,
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
     *,
-    content_bytes: bytes,
+    backstory_bytes: bytes,
     run_configurations: dict[str, RunConfiguration],
     repository_root: Path = REPOSITORY_ROOT,
 ) -> None:
     """Check hash, graph, spans, evidence, pairings, and run configuration."""
 
     failures: list[str] = []
-    actual_hash = hashlib.sha256(content_bytes).hexdigest()
-    if manifest.content_sha256 != actual_hash:
+    actual_hash = hashlib.sha256(backstory_bytes).hexdigest()
+    if ground_truth.backstory_sha256 != actual_hash:
         failures.append(
-            "manifest content_sha256 does not match the exact content file bytes"
+            "backstory_sha256 does not match the exact backstory.json bytes"
         )
 
-    scenes = {scene.scene_id: scene for scene in content.scenes}
-    props = {prop.prop_id: prop for prop in content.props}
-    lines = {line.line_id: line for line in content.lines}
+    scenes = {scene.scene_id: scene for scene in backstory.scenes}
+    props = {prop.prop_id: prop for prop in backstory.props}
+    lines = {line.line_id: line for line in backstory.lines}
     offline_inputs = {
-        item.offline_input_id: item for item in content.offline_inputs
+        item.offline_input_id: item for item in backstory.offline_inputs
     }
     expected_proposals = {
         (scene.scene_id, objective_id)
-        for scene in content.scenes
+        for scene in backstory.scenes
         for objective_id in scene.objective_ids
     }
     actual_proposals = {
         (proposal.scene_id, proposal.objective_id)
-        for proposal in manifest.proposals
+        for proposal in ground_truth.proposals
     }
     missing_proposals = expected_proposals - actual_proposals
     extra_proposals = actual_proposals - expected_proposals
@@ -133,7 +133,7 @@ def validate_package(
         )
 
     evidence_ids: set[str] = set()
-    for proposal in manifest.proposals:
+    for proposal in ground_truth.proposals:
         scene = scenes.get(proposal.scene_id)
         if scene is None:
             continue
@@ -154,7 +154,7 @@ def validate_package(
         for evidence in proposal.evidence:
             if evidence.evidence_id in evidence_ids:
                 failures.append(
-                    f"duplicate evidence ID across manifest: {evidence.evidence_id}"
+                    f"duplicate evidence ID across Ground truth: {evidence.evidence_id}"
                 )
             evidence_ids.add(evidence.evidence_id)
             failures.extend(
@@ -178,7 +178,7 @@ def validate_package(
             )
 
     failures.extend(
-        _validate_run_configurations(content, manifest, run_configurations)
+        _validate_run_configurations(backstory, ground_truth, run_configurations)
     )
     if failures:
         raise PackageValidationError(failures)
@@ -347,17 +347,17 @@ def _pair_field(
 
 
 def _validate_run_configurations(
-    content: SyntheticContent,
-    manifest: AuthoringManifest,
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
     configurations: dict[str, RunConfiguration],
 ) -> list[str]:
     failures: list[str] = []
-    for configuration_id in content.run_configuration_ids:
+    for configuration_id in backstory.run_configuration_ids:
         configuration = configurations.get(configuration_id)
         if configuration is None:
             failures.append(f"unknown run configuration: {configuration_id}")
             continue
-        if configuration.objective_id not in content.objective_ids:
+        if configuration.objective_id not in backstory.objective_ids:
             failures.append(
                 f"run configuration {configuration_id} targets unselected Objective "
                 f"{configuration.objective_id}"
@@ -365,7 +365,7 @@ def _validate_run_configurations(
             continue
         scenes = [
             scene
-            for scene in content.scenes
+            for scene in backstory.scenes
             if configuration.objective_id in scene.objective_ids
         ]
         if len(scenes) != configuration.scene_count:
@@ -376,7 +376,7 @@ def _validate_run_configurations(
         if configuration.capture_mix is not None:
             proposals = [
                 proposal
-                for proposal in manifest.proposals
+                for proposal in ground_truth.proposals
                 if proposal.objective_id == configuration.objective_id
             ]
             capture_candidates = [
@@ -438,8 +438,8 @@ def _validate_run_configurations(
                 _validate_retrieval_prop_mix(
                     configuration,
                     scenes,
-                    content,
-                    manifest,
+                    backstory,
+                    ground_truth,
                 )
             )
     return failures
@@ -448,8 +448,8 @@ def _validate_run_configurations(
 def _validate_retrieval_prop_mix(
     configuration: RunConfiguration,
     scenes: list[Scene],
-    content: SyntheticContent,
-    manifest: AuthoringManifest,
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
 ) -> list[str]:
     mix = configuration.retrieval_prop_mix
     assert mix is not None
@@ -472,7 +472,7 @@ def _validate_retrieval_prop_mix(
                 "all retrieval Scenes to share the same Prop bank"
             )
 
-    props = {prop.prop_id: prop for prop in content.props}
+    props = {prop.prop_id: prop for prop in backstory.props}
     for scene in scenes:
         for prop_id in scene.prop_ids:
             prop = props[prop_id]
@@ -488,7 +488,7 @@ def _validate_retrieval_prop_mix(
     scene_ids = {scene.scene_id for scene in scenes}
     proposals = {
         proposal.scene_id: proposal
-        for proposal in manifest.proposals
+        for proposal in ground_truth.proposals
         if proposal.objective_id == configuration.objective_id
         and proposal.scene_id in scene_ids
     }
@@ -557,10 +557,10 @@ def _format_pairs(pairs: set[tuple[str, str]]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Validate synthetic content and its separate authoring manifest."
+        description="Validate backstory.json and ground-truth.json."
     )
-    parser.add_argument("content", type=Path)
-    parser.add_argument("manifest", type=Path)
+    parser.add_argument("backstory", type=Path)
+    parser.add_argument("ground_truth", type=Path)
     parser.add_argument(
         "--run-configuration-directory",
         type=Path,
@@ -568,9 +568,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        content, manifest = validate_package_files(
-            args.content,
-            args.manifest,
+        backstory, ground_truth = validate_package_files(
+            args.backstory,
+            args.ground_truth,
             run_configuration_directory=args.run_configuration_directory,
         )
     except (OSError, PackageValidationError) as error:
@@ -578,7 +578,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(
         "PACKAGE_VALIDATION_OK="
-        f"{len(content.scenes)} scenes,{len(manifest.proposals)} proposals"
+        f"{len(backstory.scenes)} scenes,{len(ground_truth.proposals)} proposals"
     )
     return 0
 

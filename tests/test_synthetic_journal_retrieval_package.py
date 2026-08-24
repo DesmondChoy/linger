@@ -8,7 +8,7 @@ from copy import deepcopy
 
 import pytest
 
-from evals.synthetic_journals.models import AuthoringManifest, SyntheticContent
+from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from evals.synthetic_journals.validate_package import (
     DEFAULT_RUN_CONFIGURATION_DIRECTORY,
     PackageValidationError,
@@ -102,8 +102,8 @@ def _json_bytes(document: dict[str, object]) -> bytes:
     return json.dumps(document, ensure_ascii=False, sort_keys=True).encode("utf-8")
 
 
-def _manifest_document(
-    content: dict[str, object], content_bytes: bytes
+def _ground_truth_document(
+    content: dict[str, object], backstory_bytes: bytes
 ) -> dict[str, object]:
     scenes = content["scenes"]
     assert isinstance(scenes, list)
@@ -146,22 +146,24 @@ def _manifest_document(
             }
         )
     return {
-        "content_sha256": hashlib.sha256(content_bytes).hexdigest(),
+        "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
         "ground_truth_status": "proposed",
         "proposals": proposals,
     }
 
 
 def _validate(
-    content_document: dict[str, object], manifest_document: dict[str, object]
+    content_document: dict[str, object], ground_truth_document: dict[str, object]
 ) -> None:
-    content_bytes = _json_bytes(content_document)
-    content = SyntheticContent.model_validate_json(content_bytes)
-    manifest = AuthoringManifest.model_validate_json(_json_bytes(manifest_document))
+    backstory_bytes = _json_bytes(content_document)
+    content = SyntheticBackstory.model_validate_json(backstory_bytes)
+    ground_truth = ProposedGroundTruth.model_validate_json(
+        _json_bytes(ground_truth_document)
+    )
     validate_package(
         content,
-        manifest,
-        content_bytes=content_bytes,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
         run_configurations=load_run_configurations(
             DEFAULT_RUN_CONFIGURATION_DIRECTORY
         ),
@@ -170,37 +172,37 @@ def _validate(
 
 def _valid_documents() -> tuple[dict[str, object], dict[str, object]]:
     content = _content_document()
-    return content, _manifest_document(content, _json_bytes(content))
+    return content, _ground_truth_document(content, _json_bytes(content))
 
 
 def test_validates_shared_prop_bank_with_target_and_comparison_mix() -> None:
-    content, manifest = _valid_documents()
+    content, ground_truth = _valid_documents()
 
-    _validate(content, manifest)
+    _validate(content, ground_truth)
 
 
 def test_rejects_wrong_prop_count() -> None:
-    content, manifest = _valid_documents()
+    content, ground_truth = _valid_documents()
     for scene in content["scenes"]:  # type: ignore[union-attr]
         scene["prop_ids"] = scene["prop_ids"][:-1]  # type: ignore[index]
     content["props"].pop()  # type: ignore[union-attr]
-    manifest = _manifest_document(content, _json_bytes(content))
+    ground_truth = _ground_truth_document(content, _json_bytes(content))
 
     with pytest.raises(PackageValidationError, match="requires 11 Props"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_rejects_missing_prop_relevance_judgment() -> None:
-    content, manifest = _valid_documents()
-    manifest["proposals"][0]["prop_relevance"].pop()  # type: ignore[index]
+    content, ground_truth = _valid_documents()
+    ground_truth["proposals"][0]["prop_relevance"].pop()  # type: ignore[index]
 
     with pytest.raises(PackageValidationError, match="judgment for every Prop"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_rejects_wrong_relevance_mix() -> None:
-    content, manifest = _valid_documents()
-    target = manifest["proposals"][0]  # type: ignore[index]
+    content, ground_truth = _valid_documents()
+    target = ground_truth["proposals"][0]  # type: ignore[index]
     second = target["prop_relevance"][1]
     second["relevance"] = "relevant"
     target["evidence"].append(
@@ -212,29 +214,29 @@ def test_rejects_wrong_relevance_mix() -> None:
     )
 
     with pytest.raises(PackageValidationError, match="retrieval Prop mixes"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_rejects_different_prop_banks() -> None:
     content = _content_document(shifted_comparison_bank=True)
-    manifest = _manifest_document(content, _json_bytes(content))
+    ground_truth = _ground_truth_document(content, _json_bytes(content))
 
     with pytest.raises(PackageValidationError, match="same Prop bank"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_rejects_inactive_prop() -> None:
     content, _ = _valid_documents()
     content["props"][0]["lifecycle"][0]["state"] = "inactive"  # type: ignore[index]
-    manifest = _manifest_document(content, _json_bytes(content))
+    ground_truth = _ground_truth_document(content, _json_bytes(content))
 
     with pytest.raises(PackageValidationError, match="requires Prop .* to be active"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_rejects_prop_evidence_for_a_distractor() -> None:
-    content, manifest = _valid_documents()
-    comparison = manifest["proposals"][1]  # type: ignore[index]
+    content, ground_truth = _valid_documents()
+    comparison = ground_truth["proposals"][1]  # type: ignore[index]
     comparison["evidence"] = [
         {
             "kind": "prop",
@@ -244,12 +246,12 @@ def test_rejects_prop_evidence_for_a_distractor() -> None:
     ]
 
     with pytest.raises(PackageValidationError, match="exactly match"):
-        _validate(content, manifest)
+        _validate(content, ground_truth)
 
 
 def test_schema_exposes_typed_prop_relevance() -> None:
-    manifest_schema = AuthoringManifest.model_json_schema()
-    judgment_schema = manifest_schema["$defs"]["PropRelevanceJudgment"]
+    ground_truth_schema = ProposedGroundTruth.model_json_schema()
+    judgment_schema = ground_truth_schema["$defs"]["PropRelevanceJudgment"]
 
     assert judgment_schema["properties"]["relevance"]["enum"] == [
         "relevant",

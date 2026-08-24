@@ -1,4 +1,4 @@
-"""Strict authoring contracts for synthetic journal evaluation."""
+"""Strict Backstory and Ground truth contracts for synthetic evaluation."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def _require_unique(field_name: str, values: tuple[str, ...]) -> None:
 
 
 class StrictModel(BaseModel):
-    """Reject coercion, mutation, and unrecognized authoring fields."""
+    """Reject coercion, mutation, and unrecognized fields."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
@@ -130,8 +130,8 @@ class Scene(StrictModel):
         return self
 
 
-class SyntheticContent(StrictModel):
-    """Generated content for one Backstory, person, and account."""
+class SyntheticBackstory(StrictModel):
+    """Generated package rooted in one Backstory, person, and account."""
 
     objective_ids: tuple[Identifier, ...] = Field(min_length=1)
     run_configuration_ids: tuple[Identifier, ...] = ()
@@ -142,8 +142,8 @@ class SyntheticContent(StrictModel):
     offline_inputs: tuple[OfflineInput, ...] = ()
 
     @model_validator(mode="after")
-    def validate_content_graph(self) -> Self:
-        _require_unique("content objective_ids", self.objective_ids)
+    def validate_backstory_graph(self) -> Self:
+        _require_unique("Backstory objective_ids", self.objective_ids)
         _require_unique("run_configuration_ids", self.run_configuration_ids)
         _require_contiguous_orders("Scene", tuple(scene.order for scene in self.scenes))
 
@@ -162,7 +162,7 @@ class SyntheticContent(StrictModel):
             for identifiers in collections.values()
             for identifier in identifiers
         )
-        _require_unique("all content entity IDs", all_ids)
+        _require_unique("all Backstory entity IDs", all_ids)
 
         scenes = {scene.scene_id: scene for scene in self.scenes}
         props = {prop.prop_id: prop for prop in self.props}
@@ -443,10 +443,10 @@ class GroundTruthProposal(StrictModel):
         return self
 
 
-class AuthoringManifest(StrictModel):
-    """Separate generator-authored proposed Ground truth for one content file."""
+class ProposedGroundTruth(StrictModel):
+    """Proposed Ground truth for one backstory.json file."""
 
-    content_sha256: Sha256
+    backstory_sha256: Sha256
     ground_truth_status: Literal["proposed"]
     proposals: tuple[GroundTruthProposal, ...] = Field(min_length=1)
 
