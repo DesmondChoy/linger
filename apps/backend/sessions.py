@@ -49,7 +49,11 @@ class TurnRecord:
     """Content-free evidence and review handles for one released turn."""
 
     turn_id: str
-    release_source: Literal["muse_candidate", "application_safe_decline"]
+    release_source: Literal[
+        "muse_candidate",
+        "application_emotional_boundary",
+        "application_safe_decline",
+    ]
     evidence_ids: tuple[str, ...]
     review_finding_codes: tuple[tuple[str, ...], ...]
 
@@ -64,7 +68,11 @@ def append_turn(
     assistant_message: str,
     *,
     turn_id: str,
-    release_source: Literal["muse_candidate", "application_safe_decline"],
+    release_source: Literal[
+        "muse_candidate",
+        "application_emotional_boundary",
+        "application_safe_decline",
+    ],
     evidence_ids: tuple[str, ...] = (),
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
 ) -> None:

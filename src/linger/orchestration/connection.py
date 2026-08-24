@@ -32,6 +32,7 @@ from src.linger.agents.serendipity.models import (
     DeclineReason,
     SerendipityResponse,
 )
+from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
     SearchTrace,
@@ -156,7 +157,9 @@ async def _agent_explorer(
         span_name="serendipity.discovery",
         role="Serendipity",
         stage="search_rank_select",
-        prompt_template_id="serendipity.search-rank-select",
+        prompt_template_id=PROMPT_FINGERPRINT.template_id,
+        prompt_version=PROMPT_FINGERPRINT.version,
+        prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="serendipity_model_failed",
         retryable=False,
         deps=deps,

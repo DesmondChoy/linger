@@ -32,6 +32,7 @@ from src.linger.agents.serendipity.models import (
     InternalSearchResult,
 )
 from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
@@ -43,6 +44,7 @@ def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
                 {
                     "findings": [],
                     "response_decision": "pass",
+                    "emotional_boundary_decision": "not_required",
                     "capture_decision": "no_candidate",
                 },
             )
@@ -177,6 +179,15 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
         self.account = AccountContext("chat-connection-test")
+        self._boundary_patcher = patch.object(
+            main,
+            "assess_emotional_boundary",
+            return_value=EmotionalBoundaryAssessment(
+                decision="continue_reflection"
+            ),
+        )
+        self._boundary_patcher.start()
+        self.addCleanup(self._boundary_patcher.stop)
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)

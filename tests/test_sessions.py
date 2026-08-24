@@ -54,6 +54,22 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
         )
         self.assertNotIn(private_passage, json.dumps(asdict(record)))
 
+    def test_emotional_boundary_is_audited_but_grants_no_evidence(self) -> None:
+        sessions.append_turn(
+            self.session_id,
+            "private distressing Line",
+            "fixed boundary",
+            turn_id="turn-boundary",
+            release_source="application_emotional_boundary",
+            evidence_ids=("evidence-1",),
+        )
+
+        self.assertEqual((), sessions.released_evidence_ids(self.session_id))
+        self.assertEqual(
+            "application_emotional_boundary",
+            sessions.turn_records(self.session_id)[0].release_source,
+        )
+
     def test_clear_removes_evidence_audit_and_grants(self) -> None:
         sessions.append_turn(
             self.session_id,

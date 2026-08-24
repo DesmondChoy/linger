@@ -106,6 +106,7 @@ class MuseInstructionTests(unittest.TestCase):
                 "# Probe when context is insufficient",
                 "# Grounding with librarian_search",
                 "# Quotations and honesty",
+                "# Emotional safety",
                 "# Connections with serendipity_explore",
             },
             headings,
@@ -134,8 +135,22 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("book-only proposal may", lowered)
         self.assertIn("web-backed proposal internal", lowered)
         self.assertIn("ask the reader that exact question", lowered)
-        self.assertIn("never quote or present source text as exact", lowered)
+        self.assertIn("exact reader wording", lowered)
+        self.assertIn("exact book text", lowered)
         self.assertIn("relay that honestly", lowered)
+
+    def test_instructions_define_draft_and_revision_envelopes(self) -> None:
+        compact = " ".join(self.instructions.split())
+        self.assertIn('mode="draft"', compact)
+        self.assertIn('mode="revision"', compact)
+        self.assertIn("most recent candidate", compact)
+
+    def test_instructions_keep_emotional_safety_as_defence_in_depth(self) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        self.assertIn("never diagnose or label", lowered)
+        self.assertIn("call no tools", lowered)
+        self.assertIn("ask no follow-up question", lowered)
+        self.assertIn("emotional_boundary", lowered)
 
     def test_instructions_distinguish_every_librarian_response_branch(self) -> None:
         lowered = " ".join(self.instructions.lower().split())

@@ -35,6 +35,7 @@ with patch.dict(
     )
     from src.linger.orchestration.inspection_context import ConnectionRunInspection
     from src.linger.services.memory import AccountContext, MemoryPolicyService
+    from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 
 
 class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
@@ -45,6 +46,17 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self._memory_directory.cleanup)
         self.memory_service = MemoryPolicyService(Path(self._memory_directory.name))
         self.memory_context = AccountContext("chat-endpoint-test")
+        self._boundary_patcher = patch.object(
+            main,
+            "assess_emotional_boundary",
+            AsyncMock(
+                return_value=EmotionalBoundaryAssessment(
+                    decision="continue_reflection"
+                )
+            ),
+        )
+        self._boundary_patcher.start()
+        self.addCleanup(self._boundary_patcher.stop)
 
     async def call_chat(self, request: ChatRequest):
         return await main.chat(request, self.memory_service, self.memory_context)
@@ -169,7 +181,11 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         review_context = gate.await_args.kwargs["review_context"]
         self.assertIn("policy_constraints", review_context)
         muse_payload = json.loads(gate.await_args.args[0])
-        self.assertEqual({"muse_turn", "context_resolution"}, set(muse_payload))
+        self.assertEqual(
+            {"mode", "muse_turn", "context_resolution", "prior_evidence"},
+            set(muse_payload),
+        )
+        self.assertEqual("draft", muse_payload["mode"])
         self.assertEqual("Hello", muse_payload["muse_turn"]["user_message"])
         self.assertFalse(muse_payload["muse_turn"]["policy"]["allow_connection"])
         self.assertIn("context_resolution", muse_payload)
@@ -345,6 +361,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             release_source="application_safe_decline",
             provenance_verdicts=("pass",),
             failure_stage="deterministic_validation",
+            failure_type="validation",
+            failure_retryable=False,
             librarian_grounding_calls=(grounding_call,),
         ))
 
@@ -446,6 +464,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             reply="Safe decline",
             release_source="application_safe_decline",
             failure_stage="provenance_review",
+            failure_type="model",
+            failure_retryable=True,
         ))
 
         with patch.object(main, "reflection_reply", gate):
@@ -464,6 +484,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 release_source="application_safe_decline",
                 provenance_verdicts=("pass",),
                 failure_stage="deterministic_validation",
+                failure_type="validation",
+                failure_retryable=False,
             )
         )
 
@@ -498,19 +520,31 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 findings=(
                     RiskFinding(
                         code="unsupported_claim",
-                        quote=secret_quote,
+                        applies_to="response",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.response",
+                            "path": "",
+                        },
                         explanation=secret_explanation,
                     ),
                 ),
                 response_decision="reject",
+                emotional_boundary_decision="not_required",
                 capture_decision="no_candidate",
             )
         )
+        _, muse_input, review_context = main._inspection_for(
+            ChatRequest(session_id=self.session_id, message="Hello"),
+            allow_memory_capture=False,
+        )
         release = await run_reflection_gate(
-            "Hello",
+            muse_input,
             [],
             muse=muse,
             provenance=provenance,
+            review_context=review_context,
+            capture_source_text="Hello",
         )
         gate = AsyncMock(return_value=release)
 
@@ -527,6 +561,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             {
                 "release_source",
+                "boundary_origin",
                 "provenance_verdicts",
                 "finding_codes",
                 "revision_count",

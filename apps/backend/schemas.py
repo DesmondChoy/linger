@@ -1,7 +1,8 @@
 """Request and response bodies for the application API."""
 
-from typing import Any, Literal
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, Literal, Self
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.linger.agents.provenance.models import RiskCode
 from src.linger.agents.serendipity.models import DeclineReason
@@ -29,7 +30,7 @@ class CaptureInspection(BaseModel):
         "allow_capture", "reject_capture", "no_candidate"
     ] | None
     binding: Literal["exact", "not_applicable", "invalid"]
-    storage: Literal["committed", "refused", "not_applicable"]
+    storage: Literal["committed", "refused", "suppressed", "not_applicable"]
     reason_code: str | None
 
 
@@ -38,17 +39,32 @@ class ReleaseInspection(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    release_source: Literal["muse_candidate", "application_safe_decline"]
+    release_source: Literal[
+        "muse_candidate",
+        "application_emotional_boundary",
+        "application_safe_decline",
+    ]
+    boundary_origin: Literal["preflight", "candidate_review"] | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...]
     finding_codes: tuple[RiskCode, ...]
     revision_count: int = Field(ge=0, le=1)
     failure_stage: Literal[
+        "emotional_boundary_preflight",
         "muse_draft",
         "provenance_review",
         "muse_revision",
         "deterministic_validation",
     ] | None
     capture: CaptureInspection
+
+    @model_validator(mode="after")
+    def validate_boundary_origin(self) -> Self:
+        is_boundary = self.release_source == "application_emotional_boundary"
+        if is_boundary != (self.boundary_origin is not None):
+            raise ValueError(
+                "boundary_origin is required only for an emotional-boundary release"
+            )
+        return self
 
 
 class ConnectionDeclineInspection(BaseModel):

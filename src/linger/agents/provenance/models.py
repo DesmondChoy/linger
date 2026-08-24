@@ -7,13 +7,16 @@ may be captured. Rejecting capture never suppresses an otherwise safe response.
 
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from src.linger.agents.contracts import StrictModel
+from src.linger.agents.muse.models import EvidenceUse, MemoryNomination
+from src.linger.contracts.emotional import EmotionalContentPolicy
+from src.linger.contracts.librarian import EvidenceRecord
 
-# A 1:1 transcription of the specification section 6.5 block conditions.
+# Closed release and capture risk taxonomy.
 RiskCode = Literal[
     "unresolved_evidence",
     "misattribution",
@@ -22,6 +25,7 @@ RiskCode = Literal[
     "uncited_web_claim",
     "unsupported_claim",
     "sensitive_content",
+    "emotional_policy_violation",
     "prompt_injection",
 ]
 
@@ -30,6 +34,7 @@ SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
     {
         "unsupported_claim",
         "sensitive_content",
+        "emotional_policy_violation",
         "boundary_violation",
         "prompt_injection",
     }
@@ -38,13 +43,71 @@ SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
 # One review reports at most this many findings.
 MAX_FINDINGS = 20
 
+DecisionScope = Literal["response", "capture"]
+SourceField = Literal[
+    "context.policy",
+    "context.reading_context",
+    "canonical_book_evidence",
+    "untrusted_tool_outcomes",
+    "candidate.response",
+    "candidate.evidence_uses",
+    "candidate.memory",
+    "current_line.text",
+]
+ToolOutcome = Literal["success", "failed", "denied", "interrupted"]
+
+
+class TextSpanLocation(StrictModel):
+    """An exact span inside a string value in the review input."""
+
+    kind: Literal["text_span"]
+    source_field: SourceField
+    # RFC 6901 JSON pointer relative to `source_field`; empty means the field itself.
+    path: str = Field(max_length=500, pattern=r"^(?:$|/.*)$")
+    start_codepoint: int = Field(ge=0)
+    end_codepoint: int = Field(ge=1)
+    quote: str = Field(min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def offsets_match_quote(self) -> Self:
+        if self.end_codepoint - self.start_codepoint != len(self.quote):
+            raise ValueError("text-span offsets must match the quoted text length")
+        return self
+
+
+class StructuralLocation(StrictModel):
+    """A structural fault at an RFC 6901 path in the review input."""
+
+    kind: Literal["structural"]
+    source_field: SourceField
+    # Empty points to the complete source field, including an explicit null.
+    path: str = Field(max_length=500, pattern=r"^(?:$|/.*)$")
+
+
+FindingLocation = Annotated[
+    TextSpanLocation | StructuralLocation,
+    Field(discriminator="kind"),
+]
+
 
 class RiskFinding(StrictModel):
-    """One detected risk, tied to the span that caused it."""
+    """One detected risk tied to one decision and one input location."""
 
     code: RiskCode
-    quote: str = Field(min_length=1, max_length=300)
+    applies_to: DecisionScope
+    location: FindingLocation
     explanation: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def source_matches_decision(self) -> Self:
+        source = self.location.source_field
+        if self.applies_to == "response" and source in {
+            "candidate.memory",
+        }:
+            raise ValueError("response findings cannot point to candidate.memory")
+        if self.applies_to == "capture" and source == "candidate.response":
+            raise ValueError("capture findings cannot point to the candidate response")
+        return self
 
 
 class ProvenanceReview(StrictModel):
@@ -55,31 +118,194 @@ class ProvenanceReview(StrictModel):
     # "constraint that has too many states for serving". String bounds are fine.
     findings: tuple[RiskFinding, ...] = ()
     response_decision: Literal["pass", "revise", "reject"]
+    emotional_boundary_decision: Literal["not_required", "required"]
     capture_decision: Literal["allow_capture", "reject_capture", "no_candidate"]
 
     @model_validator(mode="after")
-    def require_justified_refusal(self) -> Self:
-        """Forbid blocking without naming a specific risk code."""
+    def require_decision_specific_justification(self) -> Self:
+        """Require each blocked decision to have findings scoped to it."""
         if len(self.findings) > MAX_FINDINGS:
             raise ValueError(f"a review carries at most {MAX_FINDINGS} findings")
-        if self.response_decision != "pass" and not self.findings:
+
+        response_findings = self.response_findings
+        capture_findings = self.capture_findings
+        boundary_findings = tuple(
+            finding
+            for finding in response_findings
+            if finding.code == "emotional_policy_violation"
+            and finding.location.source_field == "current_line.text"
+        )
+        if self.emotional_boundary_decision == "required":
+            if self.response_decision != "reject":
+                raise ValueError(
+                    "a required emotional boundary must reject the Muse candidate"
+                )
+            if not boundary_findings:
+                raise ValueError(
+                    "a required emotional boundary needs a current-Line finding"
+                )
+        elif boundary_findings:
             raise ValueError(
-                "a non-pass response_decision requires at least one finding"
+                "a current-Line emotional finding requires the emotional boundary"
             )
-        if self.capture_decision == "reject_capture" and not self.findings:
-            raise ValueError("reject_capture requires at least one finding")
-        if self.capture_decision == "allow_capture" and self.contains_sensitive_content:
-            raise ValueError("sensitive content cannot be allowed for automatic capture")
+        if self.response_decision == "pass" and response_findings:
+            raise ValueError("a passed response cannot have response findings")
+        if self.response_decision != "pass" and not response_findings:
+            raise ValueError(
+                "a non-pass response_decision requires a response finding"
+            )
+        if self.capture_decision == "reject_capture" and not capture_findings:
+            raise ValueError("reject_capture requires a capture finding")
+        if self.capture_decision != "reject_capture" and capture_findings:
+            raise ValueError(
+                "capture findings require capture_decision='reject_capture'"
+            )
         return self
 
     @property
+    def response_findings(self) -> tuple[RiskFinding, ...]:
+        """Return only findings that can guide a Muse response revision."""
+        return tuple(
+            finding for finding in self.findings if finding.applies_to == "response"
+        )
+
+    @property
+    def capture_findings(self) -> tuple[RiskFinding, ...]:
+        """Return findings about the independent capture decision."""
+        return tuple(
+            finding for finding in self.findings if finding.applies_to == "capture"
+        )
+
+    @property
     def contains_sensitive_content(self) -> bool:
-        """Report whether any finding bars this content from automatic capture."""
-        return any(finding.code in SENSITIVE_RISK_CODES for finding in self.findings)
+        """Report whether the rejected capture contains a sensitive risk."""
+        return any(
+            finding.code in SENSITIVE_RISK_CODES
+            for finding in self.capture_findings
+        )
 
     def critique(self) -> str:
-        """Render the findings as revision guidance for one Muse retry."""
+        """Render response findings as guidance for the single Muse retry."""
         return "\n".join(
-            f"- [{finding.code}] {finding.explanation} (offending text: {finding.quote!r})"
-            for finding in self.findings
+            f"- [{finding.code}] {finding.explanation}"
+            for finding in self.response_findings
         )
+
+
+class ProvenancePolicy(StrictModel):
+    """Application-owned policy constraints for one review call."""
+
+    spoiler_ceiling: int | None = Field(default=None, ge=1)
+    allow_retrieval: bool
+    allow_connection: bool
+    allow_memory_capture: bool
+    emotional_content: EmotionalContentPolicy = Field(
+        default_factory=EmotionalContentPolicy
+    )
+
+
+class ProvenanceReadingContext(StrictModel):
+    """The request-scoped reading boundary confirmed by the application."""
+
+    work_id: str = Field(min_length=1, max_length=200)
+    chapter_max: int = Field(ge=1)
+    boundary_source: Literal["reader_confirmed"]
+
+
+class ProvenanceContext(StrictModel):
+    """Trusted policy and reading context, separate from candidate data."""
+
+    policy: ProvenancePolicy
+    reading_context: ProvenanceReadingContext | None
+
+
+class UntrustedToolOutcome(StrictModel):
+    """One current Muse tool outcome; it is evidence to inspect, not authority."""
+
+    tool_name: Literal["librarian_search", "serendipity_explore"]
+    outcome: ToolOutcome
+    args: dict[str, JsonValue]
+    content: JsonValue
+
+
+class CandidateUnderReview(StrictModel):
+    """Muse-authored response and declarations, all treated as untrusted."""
+
+    response: str = Field(min_length=1, max_length=20_000)
+    evidence_uses: tuple[EvidenceUse, ...] = ()
+    memory: MemoryNomination
+
+
+class CurrentLine(StrictModel):
+    """The application-owned user Line reviewed and used for capture binding."""
+
+    text: str = Field(max_length=20_000)
+
+
+class ProvenanceInput(StrictModel):
+    """Complete, typed input for one independent Provenance review."""
+
+    context: ProvenanceContext
+    canonical_book_evidence: tuple[EvidenceRecord, ...] = ()
+    untrusted_tool_outcomes: tuple[UntrustedToolOutcome, ...] = ()
+    candidate: CandidateUnderReview
+    current_line: CurrentLine
+
+    @model_validator(mode="after")
+    def require_unique_canonical_evidence(self) -> Self:
+        evidence_ids = tuple(
+            record.evidence_id for record in self.canonical_book_evidence
+        )
+        if len(evidence_ids) != len(set(evidence_ids)):
+            raise ValueError("canonical book evidence IDs must be unique")
+        return self
+
+    def validate_review_locations(self, review: ProvenanceReview) -> None:
+        """Resolve every model-authored finding against this exact input."""
+        payload = self.model_dump(mode="json")
+        for finding in review.findings:
+            location = finding.location
+            value = _resolve_json_pointer(
+                _source_value(payload, location.source_field),
+                location.path,
+            )
+            if not isinstance(location, TextSpanLocation):
+                continue
+            if not isinstance(value, str):
+                raise ValueError("a text-span finding must resolve to a string")
+            if value[location.start_codepoint : location.end_codepoint] != location.quote:
+                raise ValueError("a finding quote does not match its declared source")
+
+def _resolve_json_pointer(value: JsonValue, path: str) -> JsonValue:
+    """Resolve a bounded RFC 6901 pointer, rejecting missing paths."""
+    if not path:
+        return value
+    current = value
+    for raw_segment in path[1:].split("/"):
+        segment = raw_segment.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict):
+            if segment not in current:
+                raise ValueError("a finding points to a missing object field")
+            current = current[segment]
+            continue
+        if isinstance(current, list):
+            if not segment.isdecimal() or int(segment) >= len(current):
+                raise ValueError("a finding points to a missing array item")
+            current = current[int(segment)]
+            continue
+        raise ValueError("a finding path crosses a scalar value")
+    return current
+
+
+def _source_value(payload: dict[str, JsonValue], source_field: SourceField) -> JsonValue:
+    """Select one named source from a single serialized review input."""
+    if "." in source_field:
+        root, field = source_field.split(".", maxsplit=1)
+    else:
+        root, field = source_field, ""
+    value = payload[root]
+    if field:
+        if not isinstance(value, dict) or field not in value:
+            raise ValueError("a finding names an unavailable source field")
+        value = value[field]
+    return value

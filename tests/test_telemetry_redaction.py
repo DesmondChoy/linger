@@ -28,9 +28,13 @@ from pydantic_ai.usage import RequestUsage
 from apps.backend.contracts import (
     BookScope,
     ConnectionBrief,
+    ContextResolution,
     EvidenceBundle,
     EvidenceItem,
     LibrarianRequest,
+    MuseDraftInput,
+    MuseTurn,
+    TurnPolicy,
 )
 from apps.backend.config import Settings
 from apps.backend.telemetry import (
@@ -40,15 +44,21 @@ from apps.backend.telemetry import (
     review_attrs,
     run_agent_traced,
 )
+from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.emotional import (
+    EmotionalBoundaryAssessment,
+    EmotionalContentPolicy,
+)
+from src.linger.orchestration.emotional import assess_emotional_boundary
 from src.linger.orchestration import grounding as grounding_module
 from src.linger.orchestration.reflection import (
     SAFE_DECLINE,
     ReflectionRelease,
-    reflection_reply,
+    reflection_reply as production_reflection_reply,
 )
 from src.linger.orchestration.turn_context import (
     reset_confirmed_reading,
@@ -81,6 +91,33 @@ def result(output: object) -> SimpleNamespace:
     return SimpleNamespace(output=output, new_messages=lambda: messages)
 
 
+def muse_input(message: str) -> str:
+    return MuseDraftInput(
+        mode="draft",
+        muse_turn=MuseTurn(
+            turn_id="telemetry-test-turn",
+            user_message=message,
+            reading_context=None,
+            policy=TurnPolicy(
+                spoiler_ceiling=None,
+                allow_retrieval=False,
+                allow_connection=False,
+                allow_memory_capture=False,
+            ),
+        ),
+        context_resolution=ContextResolution(
+            status="unknown",
+            explanation="No reading context.",
+        ),
+    ).model_dump_json()
+
+
+async def reflection_reply(message: str, *args, **kwargs):
+    prompt = message if message.lstrip().startswith("{") else muse_input(message)
+    kwargs.setdefault("capture_source_text", message)
+    return await production_reflection_reply(prompt, *args, **kwargs)
+
+
 class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
     """Capture spans in memory; nothing is sent anywhere."""
 
@@ -106,6 +143,42 @@ class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
     def exported_payload(self) -> str:
         """Every exported span, as one JSON blob for substring assertions."""
         return json.dumps(self.exporter.exported_spans_as_dict(), default=str)
+
+    async def test_emotional_preflight_exports_only_fixed_metadata(self) -> None:
+        provenance = AsyncMock()
+        provenance.run.return_value = result(
+            EmotionalBoundaryAssessment(decision="apply_boundary")
+        )
+
+        await assess_emotional_boundary(
+            SECRET_MESSAGE,
+            EmotionalContentPolicy(),
+            provenance=provenance,
+        )
+
+        payload = self.exported_payload()
+        self.assertIn("provenance.emotional-boundary", payload)
+        self.assertIn("emotional_boundary_preflight", payload)
+        self.assertIn("apply_boundary", payload)
+        self.assertNotIn(SECRET_MESSAGE, payload)
+
+    async def test_emotional_preflight_records_continue_without_line_content(
+        self,
+    ) -> None:
+        provenance = AsyncMock()
+        provenance.run.return_value = result(
+            EmotionalBoundaryAssessment(decision="continue_reflection")
+        )
+
+        await assess_emotional_boundary(
+            SECRET_MESSAGE,
+            EmotionalContentPolicy(),
+            provenance=provenance,
+        )
+
+        payload = self.exported_payload()
+        self.assertIn("continue_reflection", payload)
+        self.assertNotIn(SECRET_MESSAGE, payload)
 
 
 class ProjectionRedactionTests(TelemetryTestCase):
@@ -171,11 +244,20 @@ class ProjectionRedactionTests(TelemetryTestCase):
             findings=(
                 RiskFinding(
                     code="unsupported_claim",
-                    quote=SECRET_QUOTE,
+                    applies_to="response",
+                    location={
+                        "kind": "text_span",
+                        "source_field": "candidate.response",
+                        "path": "",
+                        "start_codepoint": 0,
+                        "end_codepoint": len(SECRET_QUOTE),
+                        "quote": SECRET_QUOTE,
+                    },
                     explanation="explanatory prose about the quote",
                 ),
             ),
             response_decision="reject",
+            emotional_boundary_decision="not_required",
             capture_decision="no_candidate",
         )
         attrs = review_attrs(review)
@@ -190,6 +272,33 @@ class ProjectionRedactionTests(TelemetryTestCase):
 
 
 class AgentInstrumentationTests(TelemetryTestCase):
+    def test_prompt_digest_covers_only_the_static_artifact(self) -> None:
+        first = PromptFingerprint.from_artifact(
+            template_id="test.prompt",
+            version="test-v1",
+            instructions="Static instructions.",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+        )
+        same = PromptFingerprint.from_artifact(
+            template_id="test.prompt",
+            version="test-v2",
+            instructions="Static instructions.",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+        )
+        changed = PromptFingerprint.from_artifact(
+            template_id="test.prompt",
+            version="test-v1",
+            instructions="Changed static instructions.",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+        )
+
+        self.assertEqual(first.digest, same.digest)
+        self.assertNotEqual(first.digest, changed.digest)
+        self.assertNotIn(SECRET_MESSAGE, first.model_dump_json())
+
     async def test_explicit_agent_span_excludes_all_model_content(self) -> None:
         def respond(_messages, _info):
             return ModelResponse(
@@ -209,6 +318,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
             role="Muse",
             stage="test",
             prompt_template_id="test.prompt",
+            prompt_version="test-v1",
+            prompt_digest="0" * 64,
             failure_code="test_model_failed",
         )
 
@@ -217,6 +328,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertNotIn(SECRET_MESSAGE, payload)
         self.assertNotIn("zxcas private model output zxcas", payload)
         self.assertIn("test.prompt", payload)
+        self.assertIn("test-v1", payload)
+        self.assertIn('"prompt.digest": "' + "0" * 64 + '"', payload)
         self.assertIn('"input_tokens": 12', payload)
         self.assertIn('"output_tokens": 4', payload)
         self.assertIn('"cost.usd": 0.0012', payload)
@@ -234,6 +347,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 role="Muse",
                 stage="test",
                 prompt_template_id="test.prompt",
+                prompt_version="test-v1",
+                prompt_digest="0" * 64,
                 failure_code="test_model_failed",
             )
 
@@ -243,6 +358,34 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertNotIn(SECRET_EXCEPTION, payload)
         self.assertNotIn("RuntimeError", payload)
         self.assertIn("test_model_failed", payload)
+
+    async def test_result_projection_failure_is_application_owned(self) -> None:
+        agent = AsyncMock()
+        agent.run.return_value = result("A valid result")
+
+        def fail_projection(_result):
+            raise RuntimeError(SECRET_EXCEPTION)
+
+        projected_result = await run_agent_traced(
+            agent,
+            SECRET_MESSAGE,
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            prompt_template_id="test.prompt",
+            prompt_version="test-v1",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+            result_attrs=fail_projection,
+        )
+
+        self.assertEqual("A valid result", projected_result.output.reply)
+        payload = self.exported_payload()
+        self.assertIn("agent_result_projection_failed", payload)
+        self.assertIn('"failure.type": "application"', payload)
+        self.assertIn('"failure.retryable": false', payload)
+        self.assertNotIn("test_model_failed", payload)
+        self.assertNotIn(SECRET_EXCEPTION, payload)
 
     async def test_agent_cancellation_uses_fixed_metadata_only(self) -> None:
         agent = AsyncMock()
@@ -256,6 +399,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 role="Muse",
                 stage="test",
                 prompt_template_id="test.prompt",
+                prompt_version="test-v1",
+                prompt_digest="0" * 64,
                 failure_code="test_model_failed",
             )
 
@@ -304,16 +449,49 @@ class ReflectionSpanTests(TelemetryTestCase):
         )
 
         self.assertEqual("muse_draft", release.failure_stage)
+        self.assertEqual("validation", release.failure_type)
+        self.assertFalse(release.failure_retryable)
         payload = self.exported_payload()
         self.assertNotIn(SECRET_QUOTE, payload)
         self.assertNotIn("private-location", payload)
+
+    async def test_invalid_review_envelope_is_not_reported_as_model_failure(
+        self,
+    ) -> None:
+        muse = AsyncMock()
+        muse.run.return_value = result("A candidate reply")
+        provenance = AsyncMock()
+
+        release = await reflection_reply(
+            SECRET_MESSAGE,
+            [],
+            muse=muse,
+            provenance=provenance,
+            review_context={"unexpected": True},
+        )
+
+        self.assertEqual("provenance_review", release.failure_stage)
+        self.assertEqual("validation", release.failure_type)
+        self.assertFalse(release.failure_retryable)
+        provenance.run.assert_not_awaited()
+
+        payload = self.exported_payload()
+        self.assertIn('"failure.type": "validation"', payload)
+        self.assertIn('"failure.retryable": false', payload)
+        self.assertNotIn("provenance_model_failed", payload)
+        self.assertNotIn(SECRET_MESSAGE, payload)
 
     async def test_released_turn_records_verdicts_without_content(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("An approved reply mentioning nothing secret")
         provenance = AsyncMock()
         provenance.run.return_value = result(
-            ProvenanceReview(findings=(), response_decision="pass", capture_decision="no_candidate")
+            ProvenanceReview(
+                findings=(),
+                response_decision="pass",
+                emotional_boundary_decision="not_required",
+                capture_decision="no_candidate",
+            )
         )
 
         release = await reflection_reply(
@@ -321,7 +499,15 @@ class ReflectionSpanTests(TelemetryTestCase):
             [],
             muse=muse,
             provenance=provenance,
-            review_context={"policy_constraints": {"spoiler_ceiling": 3}},
+            review_context={
+                "policy_constraints": {
+                    "spoiler_ceiling": 3,
+                    "allow_retrieval": True,
+                    "allow_connection": False,
+                    "allow_memory_capture": False,
+                },
+                "reading_context": None,
+            },
         )
 
         self.assertEqual("muse_candidate", release.release_source)
@@ -349,10 +535,14 @@ class ReflectionSpanTests(TelemetryTestCase):
         self.assertEqual(SAFE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("provenance_review", release.failure_stage)
+        self.assertEqual("model", release.failure_type)
+        self.assertTrue(release.failure_retryable)
 
         payload = self.exported_payload()
         self.assertIn("provenance_review", payload)
         self.assertIn("provenance_model_failed", payload)
+        self.assertIn('"failure.type": "model"', payload)
+        self.assertIn('"failure.retryable": true', payload)
         self.assertNotIn(SECRET_EXCEPTION, payload)
         self.assertNotIn("RuntimeError", payload)
         self.assertNotIn(SECRET_MESSAGE, payload)
@@ -371,12 +561,27 @@ class ReflectionSpanTests(TelemetryTestCase):
                 findings=(
                     RiskFinding(
                         code="unsupported_claim",
-                        quote=SECRET_QUOTE,
+                        applies_to="response",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.response",
+                            "path": "",
+                        },
                         explanation="explanatory prose",
                     ),
-                    RiskFinding(code="spoiler", quote=SECRET_QUOTE, explanation="prose"),
+                    RiskFinding(
+                        code="spoiler",
+                        applies_to="response",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.response",
+                            "path": "",
+                        },
+                        explanation="prose",
+                    ),
                 ),
                 response_decision="reject",
+                emotional_boundary_decision="not_required",
                 capture_decision="no_candidate",
             )
         )
@@ -406,17 +611,26 @@ class ReflectionSpanTests(TelemetryTestCase):
                     findings=(
                         RiskFinding(
                             code="unsupported_claim",
-                            quote=SECRET_QUOTE,
+                            applies_to="response",
+                            location={
+                                "kind": "structural",
+                                "source_field": "candidate.response",
+                                "path": "",
+                            },
                             explanation="needs support",
                         ),
                     ),
                     response_decision="revise",
+                    emotional_boundary_decision="not_required",
                     capture_decision="no_candidate",
                 )
             ),
             result(
                 ProvenanceReview(
-                    findings=(), response_decision="pass", capture_decision="no_candidate"
+                    findings=(),
+                    response_decision="pass",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="no_candidate",
                 )
             ),
         ]

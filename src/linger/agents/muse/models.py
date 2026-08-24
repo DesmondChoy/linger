@@ -18,6 +18,7 @@ NoMemoryCandidateReasonCode = Literal[
     "nomination_policy_ambiguous",
     "no_user_words",
     "automatic_capture_disabled",
+    "emotional_boundary",
 ]
 
 

@@ -23,6 +23,7 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
 
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.orchestration.turn_context import confirmed_reading, turn_evidence
@@ -63,6 +64,17 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
         self.account = AccountContext("chat-context-test")
+        self._boundary_patcher = patch.object(
+            main,
+            "assess_emotional_boundary",
+            AsyncMock(
+                return_value=EmotionalBoundaryAssessment(
+                    decision="continue_reflection"
+                )
+            ),
+        )
+        self._boundary_patcher.start()
+        self.addCleanup(self._boundary_patcher.stop)
 
     async def call_chat(self, request: ChatRequest):
         return await main.chat(request, self.service, self.account)
@@ -270,7 +282,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((EVIDENCE_ID,), audit.evidence_ids)
         self.assertEqual((("unsupported_claim",),), audit.review_finding_codes)
         self.assertEqual((), sessions.released_evidence_ids(self.session_id))
-        self.assertNotIn("prior_evidence", seen["muse_input"])
+        self.assertEqual([], seen["muse_input"]["prior_evidence"])
         self.assertEqual({}, seen["turn_evidence"])
         self.assertEqual(frozenset(), seen["released_ids"])
         self.assertEqual({}, turn_evidence())

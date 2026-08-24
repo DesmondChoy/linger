@@ -4,9 +4,18 @@ import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+
+from pydantic import ValidationError
 from pydantic_ai.messages import ToolReturnPart
 
-from apps.backend.contracts import EvidenceItem
+from apps.backend.contracts import (
+    ContextResolution,
+    EvidenceItem,
+    MuseDraftInput,
+    MuseRevisionReview,
+    MuseTurn,
+    TurnPolicy,
+)
 from src.linger.agents.muse.models import (
     EvidenceUse,
     MuseCandidate,
@@ -22,7 +31,10 @@ from src.linger.agents.serendipity.models import (
 )
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ReleaseScope
-from src.linger.orchestration.reflection import SAFE_DECLINE, reflection_reply
+from src.linger.orchestration.reflection import (
+    SAFE_DECLINE,
+    reflection_reply as production_reflection_reply,
+)
 from src.linger.orchestration.turn_context import (
     add_turn_evidence,
     reset_turn_evidence,
@@ -37,6 +49,34 @@ RELEASE_SCOPE = ReleaseScope(
     book_version_id="pg11-v01b38ea4",
     chapter_max=3,
 )
+
+
+def muse_input(message: str) -> str:
+    return MuseDraftInput(
+        mode="draft",
+        muse_turn=MuseTurn(
+            turn_id="test-turn",
+            user_message=message,
+            reading_context=None,
+            policy=TurnPolicy(
+                spoiler_ceiling=None,
+                allow_retrieval=False,
+                allow_connection=False,
+                allow_memory_capture=False,
+            ),
+        ),
+        context_resolution=ContextResolution(
+            status="unknown",
+            explanation="No reading context.",
+        ),
+    ).model_dump_json()
+
+
+async def reflection_reply(message: str, *args, **kwargs):
+    """Keep tests concise while exercising the strict production envelope."""
+    prompt = message if message.lstrip().startswith("{") else muse_input(message)
+    kwargs.setdefault("capture_source_text", message)
+    return await production_reflection_reply(prompt, *args, **kwargs)
 
 
 def candidate(
@@ -203,18 +243,37 @@ def review(
     finding: str = "",
 ) -> ProvenanceReview:
     """Build a review, supplying the finding a non-pass decision requires."""
-    findings = ()
-    if decision != "pass" or capture == "reject_capture":
-        findings = (
+    findings = []
+    if decision != "pass":
+        findings.append(
             RiskFinding(
                 code="unsupported_claim",
-                quote="an unsupported span",
+                applies_to="response",
+                location={
+                    "kind": "structural",
+                    "source_field": "candidate.response",
+                    "path": "",
+                },
                 explanation=finding or "The evidence does not support this.",
-            ),
+            )
+        )
+    if capture == "reject_capture":
+        findings.append(
+            RiskFinding(
+                code="unsupported_claim",
+                applies_to="capture",
+                location={
+                    "kind": "structural",
+                    "source_field": "candidate.memory",
+                    "path": "",
+                },
+                explanation="The memory nomination is not safe to capture.",
+            )
         )
     return ProvenanceReview(
-        findings=findings,
+        findings=tuple(findings),
         response_decision=decision,
+        emotional_boundary_decision="not_required",
         capture_decision=capture,
     )
 
@@ -232,6 +291,59 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         add_turn_evidence((record,))
         return record
 
+    async def test_rejects_undiscriminated_muse_input_before_model_invocation(self) -> None:
+        muse = AsyncMock()
+        provenance = AsyncMock()
+
+        release = await production_reflection_reply(
+            json.dumps({"muse_turn": {"user_message": "Hello"}}),
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual("muse_draft", release.failure_stage)
+        muse.run.assert_not_awaited()
+        provenance.run.assert_not_awaited()
+
+    async def test_rejects_unknown_nested_muse_authority_before_model_invocation(
+        self,
+    ) -> None:
+        muse = AsyncMock()
+        provenance = AsyncMock()
+        payload = json.loads(muse_input("Hello"))
+        payload["muse_turn"]["policy"]["unexpected_grant"] = True
+
+        release = await production_reflection_reply(
+            json.dumps(payload),
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual("muse_draft", release.failure_stage)
+        muse.run.assert_not_awaited()
+        provenance.run.assert_not_awaited()
+
+    def test_revision_contract_rejects_capture_findings(self) -> None:
+        with self.assertRaises(ValidationError):
+            MuseRevisionReview(
+                findings=(
+                    RiskFinding(
+                        code="unsupported_claim",
+                        applies_to="capture",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.memory",
+                            "path": "",
+                        },
+                        explanation="Capture-only fault.",
+                    ),
+                )
+            )
+
     async def test_releases_only_after_pass(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("Approved reply")
@@ -243,7 +355,15 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             [],
             muse=muse,
             provenance=provenance,
-            review_context={"policy_constraints": {"spoiler_ceiling": 3}, "cited_evidence": {"items": []}},
+            review_context={
+                "policy_constraints": {
+                    "spoiler_ceiling": 3,
+                    "allow_retrieval": True,
+                    "allow_connection": False,
+                    "allow_memory_capture": False,
+                },
+                "reading_context": None,
+            },
         )
 
         self.assertEqual("Approved reply", release.reply)
@@ -251,11 +371,13 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(("pass",), release.provenance_verdicts)
         provenance.run.assert_awaited_once()
         review_payload = json.loads(provenance.run.await_args.args[0])
-        self.assertEqual(3, review_payload["policy_constraints"]["spoiler_ceiling"])
-        self.assertEqual({"items": []}, review_payload["cited_evidence"])
-        self.assertEqual([], review_payload["candidate_evidence_uses"])
+        self.assertEqual(3, review_payload["context"]["policy"]["spoiler_ceiling"])
+        self.assertIsNone(review_payload["context"]["reading_context"])
+        self.assertEqual([], review_payload["candidate"]["evidence_uses"])
+        self.assertNotIn("cited_evidence", review_payload)
+        self.assertNotIn("connection_proposal", review_payload)
 
-    async def test_provenance_receives_actual_muse_tool_results(self) -> None:
+    async def test_provenance_receives_untrusted_tool_outcomes_once(self) -> None:
         self.register_evidence()
         muse = AsyncMock()
         muse.run.return_value = result(
@@ -281,18 +403,17 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         )
 
         review_payload = json.loads(provenance.run.await_args.args[0])
-        self.assertEqual("librarian_search", review_payload["muse_tool_results"][0]["tool_name"])
         self.assertEqual(
-            EVIDENCE_ID,
-            review_payload["cited_evidence"][0]["evidence"][0]["evidence_id"],
+            "librarian_search",
+            review_payload["untrusted_tool_outcomes"][0]["tool_name"],
         )
         self.assertEqual(
             EVIDENCE_ID,
-            review_payload["candidate_evidence_uses"][0]["evidence_id"],
+            review_payload["candidate"]["evidence_uses"][0]["evidence_id"],
         )
         self.assertEqual(
             EVIDENCE_ID,
-            review_payload["trusted_book_evidence"][0]["evidence_id"],
+            review_payload["canonical_book_evidence"][0]["evidence_id"],
         )
 
     async def test_direct_librarian_grounding_is_exposed_for_inspection(self) -> None:
@@ -464,7 +585,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 )
 
                 review_payload = json.loads(provenance.run.await_args.args[0])
-                self.assertEqual(branch, review_payload["cited_evidence"][0])
+                self.assertEqual(
+                    branch,
+                    review_payload["untrusted_tool_outcomes"][0]["content"],
+                )
 
     async def test_allows_one_reviewed_revision(self) -> None:
         muse = AsyncMock()
@@ -484,15 +608,33 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)
         revision_payload = json.loads(muse.run.await_args_list[1].args[0])
-        finding = revision_payload["revision"]["findings"][0]
+        self.assertEqual("revision", revision_payload["mode"])
+        finding = revision_payload["review"]["findings"][0]
         self.assertEqual("Qualify the claim.", finding["explanation"])
-        self.assertEqual("an unsupported span", finding["quote"])
+        self.assertEqual("response", finding["applies_to"])
+        self.assertEqual("candidate.response", finding["location"]["source_field"])
         self.assertEqual(
             draft.new_messages(),
             muse.run.await_args_list[1].kwargs["message_history"],
         )
         self.assertEqual((("unsupported_claim",), ()), release.review_finding_codes)
         self.assertFalse(hasattr(release, "critiques"))
+
+    async def test_revision_guidance_excludes_capture_findings(self) -> None:
+        muse = AsyncMock()
+        muse.run.side_effect = [result("Draft"), result("Revised reply")]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [
+            result(review("revise", capture="reject_capture")),
+            result(review("pass")),
+        ]
+
+        await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        revision_payload = json.loads(muse.run.await_args_list[1].args[0])
+        findings = revision_payload["review"]["findings"]
+        self.assertEqual(1, len(findings))
+        self.assertEqual("response", findings[0]["applies_to"])
 
     async def test_valid_book_quote_passes_deterministic_validation(self) -> None:
         self.register_evidence()

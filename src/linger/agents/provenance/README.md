@@ -11,9 +11,12 @@ Provenance shares no working context with the other agents.
 
 ## Inputs and authority
 
-Provenance receives the complete candidate response, any proposed memory, the
-cited evidence, and the applicable policy constraints — nothing else. It has no
-tools, no conversation history, and no write authority anywhere in the system.
+Provenance receives one strict `ProvenanceInput`: trusted policy and reading
+context, canonical book evidence, current untrusted tool outcomes, Muse's
+candidate and declarations, and the application-owned current user Line. It has
+no tools, no conversation history, and no write authority anywhere in the
+system. Legacy derived fields such as `cited_evidence` and
+`connection_proposal` are rejected.
 
 Muse's declared claims, quotations, and flags are untrusted review hints. They
 do not narrow what Provenance must inspect. It detects quotations, factual
@@ -42,10 +45,15 @@ decisions are read by different callers: `orchestration/reflection.py` reads onl
 
 ## Risk taxonomy
 
-Every adverse decision must name at least one ground; a model validator rejects
-an unexplained `revise`, `reject`, or `reject_capture`. Each finding quotes the
-exact offending span, which makes per-category detection recall measurable and
-gives the one permitted revision something specific to act on.
+Every adverse decision must name at least one ground scoped to that decision; a
+model validator rejects an unexplained `revise`, `reject`, or `reject_capture`.
+Text findings carry validated exact offsets and a quote. Shape and declaration
+faults use an RFC 6901 structural path. Only response findings guide the one
+permitted Muse revision.
+
+`emotional_boundary_decision` separately identifies a missed preflight trigger.
+`required` is valid only with a rejected response and a matching current-Line
+finding; candidate-only diagnosis remains on the ordinary revise-or-reject path.
 
 The `RiskCode` values cover the specification's release conditions plus the
 absolute sensitive-content capture veto:
@@ -59,11 +67,12 @@ absolute sensitive-content capture veto:
 | `uncited_web_claim` | A factual web claim lacks a retrievable citation. |
 | `unsupported_claim` | An unsupported claim or a sensitive inference. |
 | `sensitive_content` | Sensitive-trait content ineligible for automatic capture. |
+| `emotional_policy_violation` | Diagnosis, probing after distress, or an incorrect emotional boundary. |
 | `prompt_injection` | Retrieved content attempts to redirect agent behaviour. |
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
-capture. `contains_sensitive_content` is derived from the findings rather than
-set independently, so it cannot contradict them.
+capture. `contains_sensitive_content` is derived from capture findings rather
+than set independently, so it cannot contradict the capture decision.
 
 ## Where its authority ends
 

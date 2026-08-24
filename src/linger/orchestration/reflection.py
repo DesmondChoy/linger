@@ -16,13 +16,34 @@ from apps.backend.telemetry import (
     run_agent_traced,
     set_span_attrs,
 )
-from apps.backend.contracts import EvidenceItem
+from apps.backend.contracts import (
+    EvidenceItem,
+    MuseDraftInput,
+    MuseRevisionInput,
+    MuseRevisionReview,
+)
 from src.linger.agents.muse.models import MemoryCandidate, MuseCandidate
-from src.linger.agents.provenance.models import ProvenanceReview, RiskCode
+from src.linger.agents.muse.prompt import (
+    DRAFT_PROMPT_FINGERPRINT,
+    REVISION_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.provenance.models import (
+    CandidateUnderReview,
+    CurrentLine,
+    ProvenanceContext,
+    ProvenanceInput,
+    ProvenancePolicy,
+    ProvenanceReview,
+    RiskCode,
+)
+from src.linger.agents.provenance.prompt import (
+    PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
+)
 from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
 )
+from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     EvidenceRecord,
@@ -36,13 +57,16 @@ from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 FailureStage = Literal[
+    "emotional_boundary_preflight",
     "muse_draft",
     "provenance_review",
     "muse_revision",
     "deterministic_validation",
 ]
+FailureType = Literal["application", "model", "validation"]
 CaptureFailure = Literal["invalid_capture_binding"]
 CaptureNomination = Literal["candidate", "no_candidate"]
+BoundaryOrigin = Literal["preflight", "candidate_review"]
 
 
 class ReleaseValidationError(ValueError):
@@ -54,10 +78,17 @@ class ReflectionRelease:
     """The released text and the real path that authorised it."""
 
     reply: str
-    release_source: Literal["muse_candidate", "application_safe_decline"]
+    release_source: Literal[
+        "muse_candidate",
+        "application_emotional_boundary",
+        "application_safe_decline",
+    ]
+    boundary_origin: BoundaryOrigin | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...] = ()
     revision_count: int = 0
     failure_stage: FailureStage | None = None
+    failure_type: FailureType | None = None
+    failure_retryable: bool | None = None
     # Why Provenance blocked, as bare risk codes. The matching critique contains
     # rejected draft text and therefore never crosses the release boundary.
     finding_codes: tuple[RiskCode, ...] = ()
@@ -71,6 +102,18 @@ class ReflectionRelease:
     # Content-free handles only. Rejected candidate text never crosses this boundary.
     evidence_ids: tuple[str, ...] = ()
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
+
+    def __post_init__(self) -> None:
+        is_boundary = self.release_source == "application_emotional_boundary"
+        if is_boundary != (self.boundary_origin is not None):
+            raise ValueError(
+                "boundary_origin is required only for an emotional-boundary release"
+            )
+        has_failure = self.failure_stage is not None
+        if has_failure != (self.failure_type is not None):
+            raise ValueError("failure_type is required only with failure_stage")
+        if has_failure != (self.failure_retryable is not None):
+            raise ValueError("failure_retryable is required only with failure_stage")
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
@@ -102,6 +145,8 @@ def _safe_decline(
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
     revision_count: int = 0,
     failure_stage: FailureStage | None = None,
+    failure_type: FailureType | None = None,
+    failure_retryable: bool | None = None,
     finding_codes: tuple[RiskCode, ...] = (),
     capture_nomination: CaptureNomination | None = None,
     capture_decision: Literal[
@@ -119,6 +164,8 @@ def _safe_decline(
         provenance_verdicts=verdicts,
         revision_count=revision_count,
         failure_stage=failure_stage,
+        failure_type=failure_type,
+        failure_retryable=failure_retryable,
         finding_codes=finding_codes,
         capture_nomination=capture_nomination,
         capture_decision=capture_decision,
@@ -128,6 +175,58 @@ def _safe_decline(
         evidence_ids=evidence_ids,
         review_finding_codes=review_finding_codes,
     )
+
+
+def emotional_boundary_release(
+    *,
+    origin: BoundaryOrigin,
+    review_path: tuple[ProvenanceReview, ...] = (),
+    candidate: MuseCandidate | None = None,
+    tool_results: list[dict[str, object]] | None = None,
+) -> ReflectionRelease:
+    """Return the canonical boundary with content-free audit metadata."""
+    if origin == "preflight" and (review_path or candidate is not None):
+        raise ValueError("a preflight boundary cannot have candidate data")
+    if origin == "candidate_review" and (not review_path or candidate is None):
+        raise ValueError(
+            "a candidate-review boundary requires its candidate and review path"
+        )
+    if len(review_path) > 2:
+        raise ValueError("an emotional boundary can follow at most one revision")
+    tool_results = tool_results or []
+    return ReflectionRelease(
+        reply=EMOTIONAL_BOUNDARY_RESPONSE,
+        release_source="application_emotional_boundary",
+        boundary_origin=origin,
+        provenance_verdicts=tuple(
+            review.response_decision for review in review_path
+        ),
+        revision_count=max(0, len(review_path) - 1),
+        finding_codes=_codes(*review_path),
+        capture_nomination=_nomination(candidate) if candidate is not None else None,
+        capture_decision=(review_path[-1].capture_decision if review_path else None),
+        librarian_grounding_calls=_librarian_grounding(tool_results),
+        evidence_ids=_evidence_ids(candidate) if candidate is not None else (),
+        review_finding_codes=_review_codes(*review_path),
+    )
+
+
+def emotional_preflight_safe_decline(
+    *,
+    failure_type: FailureType = "model",
+    retryable: bool = True,
+) -> ReflectionRelease:
+    """Fail closed when the no-tool boundary classifier cannot complete."""
+    return _safe_decline(
+        failure_stage="emotional_boundary_preflight",
+        failure_type=failure_type,
+        failure_retryable=retryable,
+    )
+
+
+def _review_requires_emotional_boundary(review: ProvenanceReview) -> bool:
+    """Read the gate's explicit disposition for a preflight miss."""
+    return review.emotional_boundary_decision == "required"
 
 
 def _tool_results(run_result: Any) -> list[dict[str, object]]:
@@ -329,47 +428,74 @@ def _validate_release(
             raise ReleaseValidationError("Candidate exact quotation is not supported")
 
 
-def _context_with_tool_results(
+def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceContext:
+    """Validate the trusted application context before it reaches Provenance."""
+    if not review_context:
+        return ProvenanceContext(
+            policy=ProvenancePolicy(
+                spoiler_ceiling=None,
+                allow_retrieval=False,
+                allow_connection=False,
+                allow_memory_capture=False,
+            ),
+            reading_context=None,
+        )
+    unexpected = set(review_context) - {"policy_constraints", "reading_context"}
+    if unexpected:
+        raise ReleaseValidationError("Provenance context contains unknown fields")
+    try:
+        return ProvenanceContext.model_validate(
+            {
+                "policy": review_context["policy_constraints"],
+                "reading_context": review_context.get("reading_context"),
+            }
+        )
+    except Exception:
+        raise ReleaseValidationError("Provenance context is invalid") from None
+
+
+def _provenance_input(
+    candidate: MuseCandidate,
     review_context: Mapping[str, object],
     tool_results: list[dict[str, object]],
-) -> dict[str, object]:
-    """Attach evidence from Muse's real tool calls without trusting its claims."""
-    context = dict(review_context)
-    context["muse_tool_results"] = tool_results
-    trusted = [
-        record.model_dump(mode="json") for record in turn_evidence().values()
-    ]
-    if trusted:
-        context["trusted_book_evidence"] = trusted
-    cited_evidence = [
-        result["content"] for result in tool_results if result["tool_name"] == "librarian_search"
-    ]
-    connection_proposals = [
-        result["content"] for result in tool_results if result["tool_name"] == "serendipity_explore"
-    ]
-    if cited_evidence:
-        context["cited_evidence"] = cited_evidence
-    if connection_proposals:
-        context["connection_proposal"] = connection_proposals
-    return context
+    capture_source_text: str,
+) -> ProvenanceInput:
+    """Build the sole typed envelope for one Provenance review."""
+    try:
+        return ProvenanceInput.model_validate(
+            {
+                "context": _provenance_context(review_context),
+                "canonical_book_evidence": tuple(turn_evidence().values()),
+                "untrusted_tool_outcomes": tool_results,
+                "candidate": CandidateUnderReview(
+                    response=candidate.reply,
+                    evidence_uses=candidate.evidence_uses,
+                    memory=candidate.memory,
+                ),
+                "current_line": CurrentLine(text=capture_source_text),
+            }
+        )
+    except ReleaseValidationError:
+        raise
+    except Exception:
+        raise ReleaseValidationError("Provenance input is invalid") from None
 
 
 async def _review(
     candidate: MuseCandidate,
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
+    tool_results: list[dict[str, object]],
     capture_source_text: str,
 ) -> ProvenanceReview:
+    review_input = _provenance_input(
+        candidate,
+        review_context,
+        tool_results,
+        capture_source_text,
+    )
     payload = json.dumps(
-        {
-            **review_context,
-            "candidate_response": candidate.reply,
-            "candidate_evidence_uses": [
-                evidence.model_dump(mode="json") for evidence in candidate.evidence_uses
-            ],
-            "candidate_memory": candidate.memory.model_dump(mode="json"),
-            "capture_source_text": capture_source_text,
-        },
+        review_input.model_dump(mode="json"),
         ensure_ascii=False,
     )
     result = await run_agent_traced(
@@ -378,11 +504,18 @@ async def _review(
         span_name="provenance.review",
         role="Provenance",
         stage="review",
-        prompt_template_id="provenance.release-gate",
+        prompt_template_id=PROVENANCE_PROMPT_FINGERPRINT.template_id,
+        prompt_version=PROVENANCE_PROMPT_FINGERPRINT.version,
+        prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
         failure_code="provenance_model_failed",
         result_attrs=lambda run_result: review_attrs(run_result.output),
     )
-    return result.output
+    try:
+        review = ProvenanceReview.model_validate(result.output)
+        review_input.validate_review_locations(review)
+    except Exception:
+        raise ReleaseValidationError("Provenance review output is invalid") from None
+    return review
 
 
 def _reviewed_capture(
@@ -484,7 +617,7 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
         {
             "status": (
                 "decline"
-                if release.release_source == "application_safe_decline"
+                if release.release_source != "muse_candidate"
                 else "success"
             ),
             "release.source": release.release_source,
@@ -502,7 +635,10 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
         },
     )
     if release.failure_stage is not None:
+        assert release.failure_type is not None
+        assert release.failure_retryable is not None
         failure_code = {
+            "emotional_boundary_preflight": "emotional_boundary_preflight_failed",
             "muse_draft": "muse_draft_failed",
             "provenance_review": "provenance_review_failed",
             "muse_revision": "muse_revision_failed",
@@ -512,12 +648,8 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
             span,
             stage=release.failure_stage,
             code=failure_code,
-            retryable=release.failure_stage != "deterministic_validation",
-            failure_type=(
-                "validation"
-                if release.failure_stage == "deterministic_validation"
-                else "model"
-            ),
+            retryable=release.failure_retryable,
+            failure_type=release.failure_type,
         )
     return release
 
@@ -537,51 +669,104 @@ async def _reflection_reply(
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
     try:
+        draft_input = MuseDraftInput.model_validate_json(message)
+    except Exception:
+        return _record_release(
+            span,
+            _safe_decline(
+                failure_stage="muse_draft",
+                failure_type="validation",
+                failure_retryable=False,
+            ),
+        )
+    try:
         draft_result = await run_agent_traced(
             muse,
-            message,
+            draft_input.model_dump_json(),
             span_name="muse.draft",
             role="Muse",
             stage="draft",
-            prompt_template_id="muse.reflection",
+            prompt_template_id=DRAFT_PROMPT_FINGERPRINT.template_id,
+            prompt_version=DRAFT_PROMPT_FINGERPRINT.version,
+            prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
             message_history=history,
         )
+    except Exception:
+        return _record_release(
+            span,
+            _safe_decline(
+                failure_stage="muse_draft",
+                failure_type="model",
+                failure_retryable=True,
+            ),
+        )
+    try:
         candidate = _candidate(draft_result.output)
         draft_tool_results = _tool_results(draft_result)
     except Exception:
-        return _record_release(span, _safe_decline(failure_stage="muse_draft"))
+        return _record_release(
+            span,
+            _safe_decline(
+                failure_stage="muse_draft",
+                failure_type="validation",
+                failure_retryable=False,
+            ),
+        )
     draft_nomination = _nomination(candidate)
-    draft_review_context = _context_with_tool_results(review_context, draft_tool_results)
-
     try:
         review = await _review(
             candidate,
             provenance,
-            draft_review_context,
+            review_context,
+            draft_tool_results,
             capture_source_text,
+        )
+    except ReleaseValidationError:
+        return _record_release(
+            span,
+            _safe_decline(
+                failure_stage="provenance_review",
+                failure_type="validation",
+                failure_retryable=False,
+                capture_nomination=draft_nomination,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+            ),
         )
     except Exception:
         return _record_release(
             span,
             _safe_decline(
                 failure_stage="provenance_review",
+                failure_type="model",
+                failure_retryable=True,
                 capture_nomination=draft_nomination,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
                 evidence_ids=_evidence_ids(candidate),
             ),
         )
 
-    if review.response_decision != "revise":
-        capture, capture_failure = _reviewed_capture(
-            candidate,
-            review,
-            capture_source_text=capture_source_text,
-            source_event_id=source_event_id,
-            tool_results=draft_tool_results,
-            release_scope=release_scope,
-            previously_released_evidence_ids=previously_released_evidence_ids,
+    if _review_requires_emotional_boundary(review):
+        return _record_release(
+            span,
+            emotional_boundary_release(
+                origin="candidate_review",
+                review_path=(review,),
+                candidate=candidate,
+                tool_results=draft_tool_results,
+            ),
         )
+
+    capture, capture_failure = _reviewed_capture(
+        candidate,
+        review,
+        capture_source_text=capture_source_text,
+        source_event_id=source_event_id,
+        tool_results=draft_tool_results,
+        release_scope=release_scope,
+        previously_released_evidence_ids=previously_released_evidence_ids,
+    )
 
     if review.response_decision == "pass":
         try:
@@ -597,6 +782,8 @@ async def _reflection_reply(
                 _safe_decline(
                     verdicts=("pass",),
                     failure_stage="deterministic_validation",
+                    failure_type="validation",
+                    failure_retryable=False,
                     finding_codes=_codes(review),
                     capture_nomination=draft_nomination,
                     capture_decision=review.capture_decision,
@@ -640,34 +827,13 @@ async def _reflection_reply(
         )
 
     try:
-        revision_payload = json.loads(message)
-    except json.JSONDecodeError:
-        revision_payload = {
-            "muse_turn": {"user_message": message},
-            "context_resolution": None,
-        }
-    if not isinstance(revision_payload, dict):
-        revision_payload = {
-            "muse_turn": {"user_message": message},
-            "context_resolution": None,
-        }
-    revision_payload["revision"] = {
-        "task": "Revise the previous candidate once to address this review.",
-        "findings": [finding.model_dump(mode="json") for finding in review.findings],
-    }
-    revision_request = json.dumps(revision_payload, ensure_ascii=False)
-    try:
-        revision_result = await run_agent_traced(
-            muse,
-            revision_request,
-            span_name="muse.revision",
-            role="Muse",
-            stage="revision",
-            prompt_template_id="muse.revision",
-            failure_code="muse_revision_model_failed",
-            message_history=[*history, *draft_result.new_messages()],
-        )
-        revised_candidate = _candidate(revision_result.output)
+        revision_request = MuseRevisionInput(
+            mode="revision",
+            muse_turn=draft_input.muse_turn,
+            context_resolution=draft_input.context_resolution,
+            prior_evidence=draft_input.prior_evidence,
+            review=MuseRevisionReview(findings=review.response_findings),
+        ).model_dump_json()
     except Exception:
         return _record_release(
             span,
@@ -675,8 +841,67 @@ async def _reflection_reply(
                 verdicts=("revise",),
                 revision_count=1,
                 failure_stage="muse_revision",
+                failure_type="validation",
+                failure_retryable=False,
                 finding_codes=_codes(review),
                 capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
+            ),
+        )
+    try:
+        revision_result = await run_agent_traced(
+            muse,
+            revision_request,
+            span_name="muse.revision",
+            role="Muse",
+            stage="revision",
+            prompt_template_id=REVISION_PROMPT_FINGERPRINT.template_id,
+            prompt_version=REVISION_PROMPT_FINGERPRINT.version,
+            prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
+            failure_code="muse_revision_model_failed",
+            message_history=[*history, *draft_result.new_messages()],
+        )
+    except Exception:
+        return _record_release(
+            span,
+            _safe_decline(
+                verdicts=("revise",),
+                revision_count=1,
+                failure_stage="muse_revision",
+                failure_type="model",
+                failure_retryable=True,
+                finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
+            ),
+        )
+    try:
+        revised_candidate = _candidate(revision_result.output)
+        revised_tool_results = draft_tool_results + _tool_results(revision_result)
+    except Exception:
+        return _record_release(
+            span,
+            _safe_decline(
+                verdicts=("revise",),
+                revision_count=1,
+                failure_stage="muse_revision",
+                failure_type="validation",
+                failure_retryable=False,
+                finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
                 evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
@@ -686,12 +911,31 @@ async def _reflection_reply(
     revised_nomination = _nomination(revised_candidate)
 
     try:
-        revised_tool_results = draft_tool_results + _tool_results(revision_result)
         revised_review = await _review(
             revised_candidate,
             provenance,
-            _context_with_tool_results(review_context, revised_tool_results),
+            review_context,
+            revised_tool_results,
             capture_source_text,
+        )
+    except ReleaseValidationError:
+        return _record_release(
+            span,
+            _safe_decline(
+                verdicts=("revise",),
+                revision_count=1,
+                failure_stage="provenance_review",
+                failure_type="validation",
+                failure_retryable=False,
+                finding_codes=_codes(review),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(revised_tool_results),
+                evidence_ids=_evidence_ids(candidate),
+                review_finding_codes=_review_codes(review),
+            ),
         )
     except Exception:
         return _record_release(
@@ -700,11 +944,26 @@ async def _reflection_reply(
                 verdicts=("revise",),
                 revision_count=1,
                 failure_stage="provenance_review",
+                failure_type="model",
+                failure_retryable=True,
                 finding_codes=_codes(review),
-                capture_nomination=revised_nomination,
-                librarian_grounding_calls=_librarian_grounding(draft_tool_results),
-                evidence_ids=_evidence_ids(revised_candidate),
+                capture_nomination=draft_nomination,
+                capture_decision=review.capture_decision,
+                automatic_capture_candidate=capture,
+                capture_failure=capture_failure,
+                librarian_grounding_calls=_librarian_grounding(revised_tool_results),
+                evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
+            ),
+        )
+    if _review_requires_emotional_boundary(revised_review):
+        return _record_release(
+            span,
+            emotional_boundary_release(
+                origin="candidate_review",
+                review_path=(review, revised_review),
+                candidate=revised_candidate,
+                tool_results=revised_tool_results,
             ),
         )
 
@@ -733,6 +992,8 @@ async def _reflection_reply(
                     verdicts=("revise", "pass"),
                     revision_count=1,
                     failure_stage="deterministic_validation",
+                    failure_type="validation",
+                    failure_retryable=False,
                     finding_codes=_codes(review, revised_review),
                     capture_nomination=revised_nomination,
                     capture_decision=revised_review.capture_decision,

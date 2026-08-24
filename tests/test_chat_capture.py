@@ -22,11 +22,13 @@ with patch.dict(
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.models import (
+    EvidenceUse,
     MemoryCandidate,
     MuseCandidate,
     NoMemoryCandidate,
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
@@ -56,21 +58,39 @@ def review(
     capture_decision: str,
     *,
     risk_code: str | None = None,
+    response_decision: str = "pass",
 ) -> ProvenanceReview:
-    findings = (
-        (
+    findings = []
+    if risk_code is not None:
+        findings.append(
             RiskFinding(
                 code=risk_code,
-                quote="offending span",
+                applies_to="capture",
+                location={
+                    "kind": "structural",
+                    "source_field": "candidate.memory",
+                    "path": "",
+                },
                 explanation="Capture must be refused.",
-            ),
+            )
         )
-        if risk_code is not None
-        else ()
-    )
+    if response_decision != "pass":
+        findings.append(
+            RiskFinding(
+                code="unsupported_claim",
+                applies_to="response",
+                location={
+                    "kind": "structural",
+                    "source_field": "candidate.response",
+                    "path": "",
+                },
+                explanation="The response must not be released.",
+            )
+        )
     return ProvenanceReview(
-        findings=findings,
-        response_decision="pass",
+        findings=tuple(findings),
+        response_decision=response_decision,
+        emotional_boundary_decision="not_required",
         capture_decision=capture_decision,
     )
 
@@ -89,6 +109,13 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             "capture-substitution",
             "capture-sensitive",
             "capture-review-mismatch",
+            "capture-safe-0",
+            "capture-safe-1",
+            "capture-safe-2",
+            "capture-safe-3",
+            "capture-safe-4",
+            "capture-safe-5",
+            "capture-safe-6",
         ):
             sessions.clear(session_id)
 
@@ -103,11 +130,51 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = result(provenance_review)
         with (
+            patch.object(
+                main,
+                "assess_emotional_boundary",
+                AsyncMock(
+                    return_value=EmotionalBoundaryAssessment(
+                        decision="continue_reflection"
+                    )
+                ),
+            ),
             patch.object(main, "muse_chat_agent", muse),
             patch.object(main, "provenance_agent", provenance),
         ):
             response = await main.chat(request, self.service, self.account)
         return response, provenance
+
+    async def run_chat_sequence(
+        self,
+        request: ChatRequest,
+        candidates: list[MuseCandidate | Exception],
+        reviews: list[ProvenanceReview | Exception],
+    ):
+        muse = AsyncMock()
+        muse.run.side_effect = [
+            candidate if isinstance(candidate, Exception) else result(candidate)
+            for candidate in candidates
+        ]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [
+            item if isinstance(item, Exception) else result(item)
+            for item in reviews
+        ]
+        with (
+            patch.object(
+                main,
+                "assess_emotional_boundary",
+                AsyncMock(
+                    return_value=EmotionalBoundaryAssessment(
+                        decision="continue_reflection"
+                    )
+                ),
+            ),
+            patch.object(main, "muse_chat_agent", muse),
+            patch.object(main, "provenance_agent", provenance),
+        ):
+            return await main.chat(request, self.service, self.account)
 
     async def test_allowed_exact_nomination_commits_and_discloses(self) -> None:
         self.service.set_capture_enabled(self.account, True)
@@ -158,7 +225,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         candidate = candidate.model_copy(
             update={
                 "memory": candidate.memory.model_copy(
-                    update={"text": "Substituted source words"}
+                    update={"text": "The wrong source words."}
                 )
             }
         )
@@ -208,3 +275,92 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("no_candidate", capture.provenance_decision)
         self.assertEqual("invalid", capture.binding)
         self.assertEqual([], self.service.list_active(self.account))
+
+    async def test_every_safe_decline_path_suppresses_an_allowed_candidate(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        source = "I want to pause before I answer next time."
+        valid = muse_candidate(source, nominated=source)
+        unsupported = valid.model_copy(
+            update={
+                "evidence_uses": (
+                    EvidenceUse(
+                        source_kind="book_corpus",
+                        evidence_id="unknown-evidence",
+                        source_location="Unknown source",
+                        exact_quote=None,
+                    ),
+                )
+            }
+        )
+        cases = (
+            (
+                [valid],
+                [review("allow_capture", response_decision="reject")],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="reject"),
+                ],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="revise"),
+                ],
+                None,
+            ),
+            (
+                [unsupported],
+                [review("allow_capture")],
+                "deterministic_validation",
+            ),
+            (
+                [valid, unsupported],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture"),
+                ],
+                "deterministic_validation",
+            ),
+            (
+                [valid, RuntimeError("revision failed")],
+                [review("allow_capture", response_decision="revise")],
+                "muse_revision",
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    RuntimeError("second review failed"),
+                ],
+                "provenance_review",
+            ),
+        )
+
+        for index, (candidates, reviews, failure_stage) in enumerate(cases):
+            with self.subTest(index=index):
+                response = await self.run_chat_sequence(
+                    ChatRequest(
+                        session_id=f"capture-safe-{index}",
+                        turn_id=f"capture-safe-turn-{index}",
+                        message=source,
+                    ),
+                    candidates,
+                    reviews,
+                )
+
+                release = response.inspection.release
+                self.assertEqual("application_safe_decline", release.release_source)
+                self.assertEqual(failure_stage, release.failure_stage)
+                self.assertEqual("suppressed", release.capture.storage)
+                self.assertEqual(
+                    "safe_decline_capture_suppressed",
+                    release.capture.reason_code,
+                )
+                self.assertIsNone(response.memory_capture)
+                self.assertEqual([], self.service.list_active(self.account))

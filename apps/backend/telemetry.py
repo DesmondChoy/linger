@@ -14,12 +14,12 @@ import logfire
 
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 
 from .config import get_settings
 from .contracts import EvidenceBundle, LibrarianRequest
 
 SERVICE_NAME = "linger-backend"
-PROMPT_VERSION = "1"
 
 
 def configure_telemetry() -> None:
@@ -47,7 +47,8 @@ def agent_attrs(
     role: str,
     stage: str,
     prompt_template_id: str,
-    prompt_version: str = PROMPT_VERSION,
+    prompt_version: str,
+    prompt_digest: str,
 ) -> dict[str, object]:
     """Stable agent metadata; no composed prompt or model content."""
     provider, separator, model = get_settings().linger_model.partition(":")
@@ -61,6 +62,7 @@ def agent_attrs(
         "model.name": model,
         "prompt.template_id": prompt_template_id,
         "prompt.version": prompt_version,
+        "prompt.digest": prompt_digest,
         "status": "started",
         "retry_count": 0,
     }
@@ -133,6 +135,8 @@ async def run_agent_traced(
     role: str,
     stage: str,
     prompt_template_id: str,
+    prompt_version: str,
+    prompt_digest: str,
     failure_code: str,
     retryable: bool = True,
     result_attrs: Callable[[Any], Mapping[str, object | None]] | None = None,
@@ -152,12 +156,12 @@ async def run_agent_traced(
             role=role,
             stage=stage,
             prompt_template_id=prompt_template_id,
+            prompt_version=prompt_version,
+            prompt_digest=prompt_digest,
         ),
     ) as span:
         try:
             result = await agent.run(prompt, **run_kwargs)
-            if result_attrs is not None:
-                set_span_attrs(span, result_attrs(result))
         except asyncio.CancelledError:
             cancelled = True
             record_failure(
@@ -177,7 +181,19 @@ async def run_agent_traced(
                 failure_type="model",
             )
         else:
-            _record_agent_success(span, result)
+            try:
+                if result_attrs is not None:
+                    set_span_attrs(span, result_attrs(result))
+            except Exception:
+                record_failure(
+                    span,
+                    stage=stage,
+                    code="agent_result_projection_failed",
+                    retryable=False,
+                    failure_type="application",
+                )
+            else:
+                _record_agent_success(span, result)
 
     if cancelled:
         raise asyncio.CancelledError
@@ -225,7 +241,17 @@ def review_attrs(review: ProvenanceReview) -> dict[str, object]:
     """Fixed decisions and risk codes, never critique prose or quotations."""
     return {
         "provenance.response_decision": review.response_decision,
+        "provenance.emotional_boundary_decision": (
+            review.emotional_boundary_decision
+        ),
         "provenance.capture_decision": review.capture_decision,
         "provenance.finding_codes": [finding.code for finding in review.findings],
         "provenance.finding_count": len(review.findings),
     }
+
+
+def emotional_boundary_attrs(
+    assessment: EmotionalBoundaryAssessment,
+) -> dict[str, object]:
+    """Fixed preflight decision with no current-Line or rationale content."""
+    return {"provenance.preflight_decision": assessment.decision}

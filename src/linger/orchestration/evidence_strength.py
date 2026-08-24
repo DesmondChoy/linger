@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 
 from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
 from src.linger.contracts.librarian import EvidenceRecord
 
 
@@ -37,7 +38,9 @@ async def judge_evidence_strength(
         span_name="librarian.evidence_strength",
         role="Librarian",
         stage="evidence_strength",
-        prompt_template_id="librarian.evidence-strength",
+        prompt_template_id=PROMPT_FINGERPRINT.template_id,
+        prompt_version=PROMPT_FINGERPRINT.version,
+        prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="evidence_strength_model_failed",
     )
     decision = result.output

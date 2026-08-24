@@ -37,11 +37,21 @@ def review(
     findings = ()
     if capture_decision == "reject_capture":
         findings = (
-            RiskFinding(code=code, quote="offending span", explanation="why"),
+            RiskFinding(
+                code=code,
+                applies_to="capture",
+                location={
+                    "kind": "structural",
+                    "source_field": "candidate.memory",
+                    "path": "",
+                },
+                explanation="why",
+            ),
         )
     return ProvenanceReview(
         findings=findings,
         response_decision="pass",
+        emotional_boundary_decision="not_required",
         capture_decision=capture_decision,
     )
 

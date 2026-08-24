@@ -22,9 +22,17 @@ import logfire  # noqa: E402  (import order is load-bearing, see above)
 
 from src.linger.agents.muse.agent import muse_chat_agent  # noqa: E402
 from src.linger.agents.provenance.agent import provenance_agent  # noqa: E402
+from src.linger.agents.provenance.emotional import (  # noqa: E402
+    emotional_boundary_agent,
+)
+from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.connection import web_reach_permitted
+from src.linger.orchestration.emotional import (
+    EmotionalBoundaryValidationError,
+    assess_emotional_boundary,
+)
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
@@ -32,7 +40,12 @@ from src.linger.orchestration.inspection_context import (
     connection_inspections,
     reset_connection_inspection,
 )
-from src.linger.orchestration.reflection import ReflectionRelease, reflection_reply
+from src.linger.orchestration.reflection import (
+    ReflectionRelease,
+    emotional_boundary_release,
+    emotional_preflight_safe_decline,
+    reflection_reply,
+)
 from src.linger.orchestration.turn_context import (
     reset_confirmed_reading,
     reset_reader_message,
@@ -54,6 +67,7 @@ from . import sessions
 from .config import REPO_ROOT, get_settings
 from .contracts import (
     ContextResolution,
+    MuseDraftInput,
     MuseTurn,
     ReadingContext,
     TurnPolicy,
@@ -259,16 +273,17 @@ def _inspection_for(
         {"agent": "Serendipity", "status": "waiting", "detail": "Waiting to see whether Muse requests connection discovery."},
     ])
 
-    muse_payload = {
-        "muse_turn": muse_turn.model_dump(mode="json"),
-        "context_resolution": resolution.model_dump(mode="json"),
-    }
-    inspection_prompt = json.dumps(muse_payload, ensure_ascii=False)
-    if prior_evidence:
-        muse_payload["prior_evidence"] = [
-            record.model_dump(mode="json") for record in prior_evidence
-        ]
-    muse_input = json.dumps(muse_payload, ensure_ascii=False)
+    muse_payload = MuseDraftInput(
+        mode="draft",
+        muse_turn=muse_turn,
+        context_resolution=resolution,
+        prior_evidence=prior_evidence,
+    )
+    inspection_prompt = json.dumps(
+        muse_payload.model_dump(mode="json", exclude={"prior_evidence"}),
+        ensure_ascii=False,
+    )
+    muse_input = muse_payload.model_dump_json()
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
         "reading_context": context.model_dump(mode="json") if context else None,
@@ -314,6 +329,17 @@ def _commit_automatic_capture(
     """Apply deterministic policy without changing the response decision."""
     decision = release.capture_decision
     nomination = release.capture_nomination or "unavailable"
+    if release.release_source == "application_emotional_boundary":
+        preflight = release.boundary_origin == "preflight"
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="unavailable" if preflight else nomination,
+                provenance_decision=None if preflight else decision,
+                binding="not_applicable",
+                storage="suppressed",
+                reason_code="emotional_boundary_capture_suppressed",
+            )
+        )
     if release.capture_failure is not None:
         return AutomaticCaptureExecution(
             inspection=CaptureInspection(
@@ -333,6 +359,16 @@ def _commit_automatic_capture(
                 binding="not_applicable",
                 storage="not_applicable",
                 reason_code="not_applicable" if decision == "no_candidate" else None,
+            )
+        )
+    if release.release_source == "application_safe_decline":
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination=nomination,
+                provenance_decision=decision,
+                binding="exact",
+                storage="suppressed",
+                reason_code="safe_decline_capture_suppressed",
             )
         )
     try:
@@ -538,6 +574,26 @@ async def _run_chat_pipeline(
         allow_memory_capture=service.capture_enabled(account),
         prior_evidence=prior_evidence,
     )
+    release: ReflectionRelease | None = None
+    try:
+        boundary = await assess_emotional_boundary(
+            request.message,
+            EmotionalContentPolicy(),
+            provenance=emotional_boundary_agent,
+        )
+    except asyncio.CancelledError:
+        raise
+    except EmotionalBoundaryValidationError:
+        release = emotional_preflight_safe_decline(
+            failure_type="validation",
+            retryable=False,
+        )
+    except Exception:
+        release = emotional_preflight_safe_decline()
+    else:
+        if boundary.decision == "apply_boundary":
+            release = emotional_boundary_release(origin="preflight")
+
     context = inspection.muse_turn.get("reading_context")
     book_version_id = (
         librarian_service.version_for(context["work_id"]) if context else None
@@ -551,34 +607,38 @@ async def _run_chat_pipeline(
         if context and book_version_id
         else None
     )
-    token = set_confirmed_reading(
-        ConfirmedReading(work_id=context["work_id"], chapter_max=context["chapter_max"])
-        if context
-        else None
-    )
-    evidence_token = set_turn_evidence(prior_evidence)
-    reader_message_token = set_reader_message(request.message)
-    connection_token = begin_connection_inspection()
-    try:
-        release: ReflectionRelease = await reflection_reply(
-            muse_input,
-            sessions.history(request.session_id),
-            muse=muse_chat_agent,
-            provenance=provenance_agent,
-            review_context=review_context,
-            release_scope=release_scope,
-            previously_released_evidence_ids=frozenset(
-                record.evidence_id for record in prior_evidence
-            ),
-            capture_source_text=request.message,
-            source_event_id=inspection.muse_turn["turn_id"],
+    nested_connections: tuple[ConnectionRunInspection, ...] = ()
+    if release is None:
+        token = set_confirmed_reading(
+            ConfirmedReading(
+                work_id=context["work_id"], chapter_max=context["chapter_max"]
+            )
+            if context
+            else None
         )
-    finally:
-        nested_connections = connection_inspections()
-        reset_connection_inspection(connection_token)
-        reset_reader_message(reader_message_token)
-        reset_turn_evidence(evidence_token)
-        reset_confirmed_reading(token)
+        evidence_token = set_turn_evidence(prior_evidence)
+        reader_message_token = set_reader_message(request.message)
+        connection_token = begin_connection_inspection()
+        try:
+            release = await reflection_reply(
+                muse_input,
+                sessions.history(request.session_id),
+                muse=muse_chat_agent,
+                provenance=provenance_agent,
+                review_context=review_context,
+                release_scope=release_scope,
+                previously_released_evidence_ids=frozenset(
+                    record.evidence_id for record in prior_evidence
+                ),
+                capture_source_text=request.message,
+                source_event_id=inspection.muse_turn["turn_id"],
+            )
+        finally:
+            nested_connections = connection_inspections()
+            reset_connection_inspection(connection_token)
+            reset_reader_message(reader_message_token)
+            reset_turn_evidence(evidence_token)
+            reset_confirmed_reading(token)
     connection_book_outcomes: tuple[str, ...] = ()
     if nested_connections:
         connection_book_outcomes = _apply_connection_inspection(
@@ -592,7 +652,7 @@ async def _run_chat_pipeline(
         release,
         connection_book_outcomes=connection_book_outcomes,
     )
-    if release.release_source == "application_safe_decline":
+    if release.release_source != "muse_candidate":
         sessions.restore_reading_state(request.session_id, reading_state)
     capture = _commit_automatic_capture(release, service, account)
     sessions.append_turn(
@@ -685,6 +745,8 @@ async def chat(
                         if release.release_source == "application_safe_decline"
                         else "completed"
                     ),
+                    "release.source": release.release_source,
+                    "release.boundary_origin": release.boundary_origin,
                 },
             )
 
@@ -726,6 +788,7 @@ async def chat(
     )
     inspection.release = ReleaseInspection(
         release_source=release.release_source,
+        boundary_origin=release.boundary_origin,
         provenance_verdicts=release.provenance_verdicts,
         finding_codes=release.finding_codes,
         revision_count=release.revision_count,
@@ -744,11 +807,45 @@ async def chat(
         }
         provenance_status = "complete"
         provenance_detail = f"Recorded review path: {verdict_path}."
+    elif release.release_source == "application_emotional_boundary":
+        if release.boundary_origin == "preflight":
+            inspection.traces[-1] = {
+                "agent": "Muse",
+                "status": "skipped",
+                "detail": (
+                    "The emotional boundary was applied before Muse or its tools ran."
+                ),
+            }
+            provenance_detail = (
+                "The no-tool preflight required the application-owned emotional boundary."
+            )
+        else:
+            inspection.traces[-1] = {
+                "agent": "Muse",
+                "status": "declined",
+                "detail": (
+                    "Muse ran, but its candidate was replaced by the fixed "
+                    "application-owned emotional boundary."
+                ),
+            }
+            provenance_detail = (
+                "Candidate review caught a preflight miss and required the fixed "
+                f"boundary; recorded review path: {verdict_path}."
+            )
+        provenance_status = "complete"
     else:
         inspection.traces[-1] = {
             "agent": "Muse",
-            "status": "declined",
-            "detail": "No Muse candidate was released; the application supplied its safe decline.",
+            "status": (
+                "skipped"
+                if release.failure_stage == "emotional_boundary_preflight"
+                else "declined"
+            ),
+            "detail": (
+                "The emotional-boundary preflight failed closed before Muse ran."
+                if release.failure_stage == "emotional_boundary_preflight"
+                else "No Muse candidate was released; the application supplied its safe decline."
+            ),
         }
         if release.failure_stage == "deterministic_validation":
             provenance_status = "complete"
@@ -757,9 +854,16 @@ async def chat(
                 "validation failed closed."
             )
         else:
-            if release.failure_stage == "provenance_review":
+            if release.failure_stage in {
+                "emotional_boundary_preflight",
+                "provenance_review",
+            }:
                 provenance_status = "failed"
-                provenance_detail = "Provenance review failed; no candidate was released."
+                provenance_detail = (
+                    "The emotional-boundary preflight failed; no candidate was produced."
+                    if release.failure_stage == "emotional_boundary_preflight"
+                    else "Provenance review failed; no candidate was released."
+                )
             elif release.failure_stage:
                 provenance_status = "declined"
                 provenance_detail = (
@@ -784,7 +888,7 @@ async def chat(
                 if capture.inspection.storage == "committed"
                 else (
                     "declined"
-                    if capture.inspection.storage == "refused"
+                    if capture.inspection.storage in {"refused", "suppressed"}
                     else "not_run"
                 )
             ),

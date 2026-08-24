@@ -13,6 +13,7 @@ from src.linger.agents.sculptor.models import (
     SCULPTOR_RESPONSE_ADAPTER,
     SculptorResponse,
 )
+from src.linger.agents.sculptor.prompt import PROMPT_FINGERPRINT
 
 
 class InvalidCurationProposal(ValueError):
@@ -38,7 +39,9 @@ async def propose_curation(
         span_name="sculptor.curation",
         role="Sculptor",
         stage="curation",
-        prompt_template_id="sculptor.curation",
+        prompt_template_id=PROMPT_FINGERPRINT.template_id,
+        prompt_version=PROMPT_FINGERPRINT.version,
+        prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="sculptor_model_failed",
         retryable=False,
     )

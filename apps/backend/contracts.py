@@ -1,17 +1,22 @@
 """Typed hand-offs for the reflection and connection pipeline."""
 
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from src.linger.agents.contracts import StrictModel
+from src.linger.agents.provenance.models import RiskFinding
+from src.linger.contracts.emotional import EmotionalContentPolicy
+from src.linger.contracts.librarian import EvidenceRecord
 
 
-class ReadingContext(BaseModel):
+class ReadingContext(StrictModel):
     work_id: str
     chapter_max: int = Field(ge=1)
     boundary_source: Literal["reader_confirmed"] = "reader_confirmed"
 
 
-class ContextResolution(BaseModel):
+class ContextResolution(StrictModel):
     """What the router knows before it creates the spoiler-safe MuseTurn."""
 
     status: Literal["confirmed", "inferred", "unknown"]
@@ -22,20 +27,54 @@ class ContextResolution(BaseModel):
     explanation: str
 
 
-class TurnPolicy(BaseModel):
+class TurnPolicy(StrictModel):
     spoiler_ceiling: int | None = Field(default=None, ge=1)
     allow_retrieval: bool
     allow_connection: bool
     allow_memory_capture: bool = False
+    emotional_content: EmotionalContentPolicy = Field(
+        default_factory=EmotionalContentPolicy
+    )
 
 
-class MuseTurn(BaseModel):
+class MuseTurn(StrictModel):
     """Fixed per-turn contract from the router to Muse."""
 
     turn_id: str
     user_message: str
     reading_context: ReadingContext | None
     policy: TurnPolicy
+
+
+class MuseDraftInput(StrictModel):
+    """Complete application-owned envelope for one initial Muse draft."""
+
+    mode: Literal["draft"]
+    muse_turn: MuseTurn
+    context_resolution: ContextResolution
+    prior_evidence: tuple[EvidenceRecord, ...] = ()
+
+
+class MuseRevisionReview(StrictModel):
+    """Only response-scoped findings from the first Provenance review."""
+
+    findings: tuple[RiskFinding, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_response_findings(self) -> Self:
+        if any(finding.applies_to != "response" for finding in self.findings):
+            raise ValueError("Muse revision guidance must be response-scoped")
+        return self
+
+
+class MuseRevisionInput(StrictModel):
+    """Complete application-owned envelope for the single reviewed rewrite."""
+
+    mode: Literal["revision"]
+    muse_turn: MuseTurn
+    context_resolution: ContextResolution
+    prior_evidence: tuple[EvidenceRecord, ...] = ()
+    review: MuseRevisionReview
 
 
 class ConnectionBrief(BaseModel):
