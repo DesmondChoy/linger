@@ -439,7 +439,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, content and authoring-manifest structures, deterministic package validator, and Ground truth authority lifecycle below. One capture-only package and its production-path Scene replay are implemented; reusable generation, independent adoption tooling, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. One capture-only package and its production-path Scene replay are implemented; reusable generation, independent adoption tooling, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 | Term | Definition |
 |---|---|
@@ -448,7 +448,7 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 | **Prop** | A generated memory record pre-positioned in Linger's storage and available to the evaluation before a scene runs. Each prop belongs to the backstory's person and evaluation account. When lines are fed to Muse, a prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input sent to Linger's production chat boundary within a scene. Most scenes contain one line; some contain an ordered sequence of lines. A policy preflight may stop a line before Muse. |
-| **Ground truth** | The answer-key data for a scene: intended relationships, expected outcomes, permitted evidence identifiers, exact spans, and failure conditions. The generator writes **proposed Ground truth** in a separate authoring manifest while creating the content. Deterministic validation checks objective facts, then an independent reviewer adopts, revises, or rejects the proposal. Only **adopted Ground truth** is canonical for grading. Neither state is exposed to the running system. |
+| **Ground truth** | The answer-key data for a scene: intended relationships, expected outcomes, permitted evidence identifiers, exact spans, and failure conditions. The generator writes **proposed Ground truth** to `ground-truth.json` while creating `backstory.json`. Deterministic validation checks objective facts, then an independent reviewer adopts, revises, or rejects the proposal. Only **adopted Ground truth** is canonical for grading. Neither state is exposed to the running system. |
 
 The vocabulary encodes these boundaries:
 
@@ -456,13 +456,19 @@ The vocabulary encodes these boundaries:
 - The backstory never enters the running system, and no backstory content becomes a prop by copying. A prop whose use or non-use is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
-- The generator writes content and a separate authoring manifest together. The manifest records proposed Ground truth, including exact spans, intended relationships, Scene pairings, and expected or prohibited outcomes needed to preserve the generator's intent.
+- The generator writes `backstory.json` and `ground-truth.json` together. The Ground truth file records exact spans, intended relationships, Scene pairings, and expected or prohibited outcomes needed to preserve the generator's intent.
 - Deterministic validation checks facts that can be resolved without judging Linger, such as identifiers, references, span boundaries, pairwise differences, and schema constraints. It does not adopt behavioral judgments.
-- An independent reviewer adopts, revises, or rejects the proposed Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth.
+- An independent reviewer adopts, revises, or rejects the proposed Ground truth. The system under evaluation receives neither the Ground truth file nor adopted Ground truth.
 
-Synthetic authoring is intentionally evaluation-aware. The generator receives the selected, resolved Objective requirements and writes both content and proposed Ground truth so that intended contrasts and exact source spans are preserved. This is authoring, not grading: the generator does not observe Linger's recorded output and cannot adopt its own labels. Raw developer metadata and judge rubrics remain outside the generator prompt, and an independent reviewer still owns adoption.
+Synthetic authoring is intentionally evaluation-aware. The generator receives the selected, resolved Objective requirements and writes both the Backstory package and proposed Ground truth so that intended contrasts and exact source spans are preserved. This is authoring, not grading: the generator does not observe Linger's recorded output and cannot adopt its own labels. Raw developer metadata and judge rubrics remain outside the generator prompt, and an independent reviewer still owns adoption.
 
-[`evals/synthetic_journals/models.py`](../evals/synthetic_journals/models.py) defines the synthetic content and separate authoring-manifest structures. [`evals/synthetic_journals/validate_package.py`](../evals/synthetic_journals/validate_package.py) checks the exact content-file hash, identifiers, references, ordering, spans, evidence, declared Scene differences, and resolved run-configuration counts. One validated package contains one Backstory, person, and evaluation account. A full dataset may combine multiple separately validated packages with different Backstories.
+[`evals/synthetic_journals/models.py`](../evals/synthetic_journals/models.py) defines `SyntheticBackstory` and `ProposedGroundTruth`. [`evals/synthetic_journals/validate_package.py`](../evals/synthetic_journals/validate_package.py) checks the exact `backstory.json` hash, identifiers, references, ordering, spans, evidence, declared Scene differences, and resolved run-configuration counts. One validated package contains one Backstory, person, and evaluation account. A full dataset may combine multiple separately validated packages with different Backstories.
+
+Each authoring attempt has one timestamped directory under
+`synthetic-journal-evaluation/packages/`. It starts with
+`pre-generation-report.md`; after separate human approval, the generator writes
+the sibling `backstory.json` and `ground-truth.json`. Executed replay output
+is not part of this authoring package.
 
 A Backstory may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
@@ -475,11 +481,11 @@ Everything after a Line enters the production chat boundary — preflight, routi
 
 The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
 
-The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped Markdown pre-generation report for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined content and authoring-manifest structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
+The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one timestamped package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
 The first reviewed automatic-capture package can now be replayed without
-changing these authority boundaries. Its runner validates the content and
-authoring manifest, creates a temporary store and unique evaluation account,
+changing these authority boundaries. Its runner validates the Backstory and
+Ground truth, creates a temporary store and unique evaluation account,
 enables capture through the server-owned Memory & Policy Service, and sends
 exactly one Line in a fresh session for each Scene. Pydantic Evals creates one
 code-defined dataset, one experiment per replay, and one ordered native case
@@ -503,7 +509,7 @@ The project still has not defined reusable workflow for:
 - scene composition;
 - line generation;
 - Ground truth review ownership and adoption tooling;
-- package-directory and full-dataset layout;
+- full-dataset assembly and layout;
 - freezing; or
 - replay of Props, offline inputs, continued-session Scenes, or other Objectives.
 
@@ -567,7 +573,7 @@ Two loops are in scope.
 
 **Pain point.** Observed failures, including blocked prompt-injection attempts, Provenance rejections, and failed deterministic post-checks, can reveal gaps in regression coverage.
 
-**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. Section 7.2 defines how synthetic content and its separate authoring manifest are structured, and the package validator checks them. The project has not adopted a mechanism for turning a live failure into synthetic content, a review and adoption process for that content, or a promotion workflow.
+**Boundary.** A live-user failure produces only the metadata signature permitted by the [telemetry data contract](telemetry.md): trace ID, component and prompt versions, fixed verdicts, validation outcomes, and failure codes. Runtime telemetry never reconstructs or copies the user's input. Section 7.2 defines the synthetic Backstory and Ground truth structures, and the package validator checks them. The project has not adopted a mechanism for turning a live failure into a synthetic Backstory, a review and adoption process for that Backstory, or a promotion workflow.
 
 **Agents involved.** Provenance and the deterministic post-check layer act only as detectors. They cannot create, write, freeze, or promote evaluation data.
 

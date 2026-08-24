@@ -610,11 +610,11 @@
               <ol>
                 <li><strong>Select objectives.</strong> Run the <code>generate-synthetic-journals</code> skill. Its local selector groups all ten objectives by the catalog's menu families and accepts one through ten. The explorer on this page is not that selector.</li>
                 <li><strong>Inspect the repository.</strong> The skill assesses each confirmed Scene against the current implementation and proposes target designs with the smallest required build-out.</li>
-                <li><strong>Write one report.</strong> A timestamped Markdown report lands under <code>synthetic-journal-evaluation/reports/</code>, covering each scene's design plus a separate authoring manifest of proposed Ground truth. Book-backed prompts point to <code>data/corpus/</code>; for spoiler tests only bounded evidence reaches Muse.</li>
+                <li><strong>Write one report.</strong> A timestamped directory under <code>synthetic-journal-evaluation/packages/</code> starts with <code>pre-generation-report.md</code>. After separate approval, the generator adds sibling <code>backstory.json</code> and <code>ground-truth.json</code> files. Book-backed prompts point to <code>data/corpus/</code>; for spoiler tests only bounded evidence reaches Muse.</li>
                 <li><strong>Validate, then review.</strong> Deterministic checks verify objective facts before you adopt, revise, or reject proposed Ground truth. The report is developer-only and never reaches a generator or the system under evaluation.</li>
-                <li><strong>Stop.</strong> Confirmation creates no evaluation data — no backstories, props, scenes, lines, manifests, annotations, or releases. Target designs remain proposals until a human approves them.</li>
+                <li><strong>Stop.</strong> Confirmation creates no evaluation data — no Backstories, Props, Scenes, Lines, Ground truth, annotations, or releases. Target designs remain proposals until a human approves them.</li>
               </ol>
-              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the repository defines the content and authoring-manifest structures and deterministic validator; generation, independent adoption tooling, full-dataset layout, freezing, and replay remain undefined.</div>
+              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the repository defines the package-directory layout, Backstory and Ground truth structures, and deterministic validator; generation, independent adoption tooling, full-dataset layout, freezing, and replay remain undefined.</div>
             </article>
           </div>
         </section>
