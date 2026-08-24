@@ -4,8 +4,8 @@ purpose: >-
   Let developers select one or more evaluation objectives and review their
   scenarios before the project adopts a complete downstream workflow. The
   catalog defines what future evaluation data must exercise and the Ground
-  truth authority lifecycle. The repository-owned content and authoring-
-  manifest contracts define package structure; generation, adoption, freezing,
+  truth authority lifecycle. The repository-owned Backstory and Ground truth
+  contracts define package structure; generation, adoption, freezing,
   and replay tooling remain separate decisions.
 
 canonical_vocabulary: >-
@@ -15,9 +15,9 @@ canonical_vocabulary: >-
 
 prompt_input_terms:
   resolved_prompt_input: Concrete context inserted by the renderer in place of a catalog requirement.
-  authoring_manifest: >-
-    A generator-written document stored separately from synthetic content. It
-    contains proposed Ground truth and the exact authoring facts needed to
+  ground_truth: >-
+    Proposed Ground truth stored separately from backstory.json. It contains the
+    exact facts needed to
     preserve the intended evaluation design.
   proposed_ground_truth: >-
     Candidate answer-key data written by the generator and not yet accepted as
@@ -100,7 +100,7 @@ developer_workflow:
       - line_generation
       - ground_truth_review_ownership
       - ground_truth_adoption_tooling
-      - package_directory_and_dataset_layout
+      - full_dataset_assembly_and_layout
       - freezing
       - replay
 
@@ -131,8 +131,8 @@ prompt_boundary:
     - composition
     - evaluation_metadata
   target_state_prompt_uses:
-    - adopted_content_contract
-    - adopted_authoring_manifest_contract
+    - adopted_backstory_contract
+    - adopted_ground_truth_contract
     - deterministic_package_validator
     - workflow_preconditions
   reason: >-
@@ -148,8 +148,8 @@ prompt_boundary:
 
 ground_truth_lifecycle:
   generation: >-
-    The generator writes synthetic content and a separate authoring manifest
-    together. The manifest contains proposed Ground truth anchored to the
+    The generator writes backstory.json and ground-truth.json together. The
+    Ground truth file contains proposals anchored to the
     generated identifiers, relationships, exact spans, Scene pairings, and
     intended expected or prohibited outcomes.
   deterministic_validation: >-
@@ -162,7 +162,7 @@ ground_truth_lifecycle:
     candidate label. Only accepted labels become adopted Ground truth used for
     grading.
   exposure: >-
-    The system under evaluation receives neither the authoring manifest nor
+    The system under evaluation receives neither the Ground truth file nor
     adopted Ground truth.
 
 prompt_input_suppliers:

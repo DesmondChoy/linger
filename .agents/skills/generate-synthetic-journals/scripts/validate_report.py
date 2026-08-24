@@ -26,8 +26,9 @@ CANONICAL_NOUNS = (
     "Line",
     "Ground truth",
 )
-FILENAME_PATTERN = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{6}[+-]\d{4}-pre-generation-report(?:-\d{2})?\.md$"
+REPORT_FILENAME = "pre-generation-report.md"
+CANONICAL_VOCABULARY_LINK = re.compile(
+    r"\]\((?:\.\./)+docs/specification\.md#721-canonical-vocabulary\)"
 )
 
 
@@ -62,8 +63,8 @@ def validate_report(
     path: Path, selected_objective_ids: tuple[str, ...] = ()
 ) -> list[str]:
     errors: list[str] = []
-    if not FILENAME_PATTERN.fullmatch(path.name):
-        errors.append("filename does not match the timestamped report contract")
+    if path.name != REPORT_FILENAME:
+        errors.append(f"filename must be {REPORT_FILENAME}")
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -94,7 +95,7 @@ def validate_report(
             rows.append(cells[0])
     if tuple(rows) != CANONICAL_NOUNS:
         errors.append(f"canonical-noun rows are {rows!r}; expected {list(CANONICAL_NOUNS)!r}")
-    if "../../docs/specification.md#721-canonical-vocabulary" not in target:
+    if not CANONICAL_VOCABULARY_LINK.search(target):
         errors.append("Target evaluation design lacks the Section 7.2.1 relative link")
 
     prompt_section = _section(text, "Proposed generator prompt")
@@ -110,12 +111,17 @@ def validate_report(
             ("Props or no Props", r"\bProps?\b"),
             ("Scenes", r"\bScenes?\b"),
             ("Lines or offline inputs", r"\bLines?\b|\boffline inputs?\b"),
-            ("authoring manifest", r"\bauthoring manifest\b"),
+            ("Ground truth file", r"\bground truth file\b"),
             ("proposed Ground truth", r"\bproposed Ground truth\b"),
             ("package models", r"evals/synthetic_journals/models\.py"),
             (
                 "deterministic package validator",
                 r"evals/synthetic_journals/validate_package\.py",
+            ),
+            ("package Backstory path", r"PACKAGE_DIRECTORY/backstory\.json"),
+            (
+                "package Ground truth path",
+                r"PACKAGE_DIRECTORY/ground-truth\.json",
             ),
         ):
             if not re.search(pattern, prompt, flags=re.IGNORECASE):

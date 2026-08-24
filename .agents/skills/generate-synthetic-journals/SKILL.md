@@ -88,8 +88,8 @@ authorize synthetic-data generation.
 9. Inspect the package models in
    `evals/synthetic_journals/models.py` and deterministic validator in
    `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
-   content JSON represents one Backstory, Props, Scenes, Lines, and offline
-   inputs. The separate authoring-manifest JSON contains proposed Ground truth
+   `backstory.json` represents one Backstory, Props, Scenes, Lines, and offline
+   inputs. The separate `ground-truth.json` contains proposed Ground truth
    anchored to those identifiers, exact spans, evidence, per-Scene Prop
    relevance judgments, and Scene pairings.
    Do not propose a parallel schema or claim that validation adopts Ground truth.
@@ -115,11 +115,13 @@ authorize synthetic-data generation.
     confirmed selection.
 11. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
-    workflow inputs, translated Ground truth requirements, and the content and
-    authoring-manifest contracts. The prompt must explicitly instruct the
+    workflow inputs, translated Ground truth requirements, and the Backstory and
+    Ground truth contracts. The prompt must explicitly instruct the
     generator how to produce the Backstory, Props or no Props, Scenes, Lines or
-    offline inputs, and separate authoring manifest required by the plan. Do not
-    weaken or descope a confirmed Objective because current code is incomplete.
+    offline inputs, and separate proposed Ground truth required by the plan. It
+    must write `backstory.json` and `ground-truth.json` beside the report in the
+    same package directory. Do not weaken or descope a confirmed Objective because
+    current code is incomplete.
 12. Put a precondition header inside the fenced prompt. If every Scene is
     runnable, label the prompt **Runnable after human approval**. Otherwise
     label it **Target state — do not run** and name every capability or source
@@ -128,21 +130,21 @@ authorize synthetic-data generation.
 13. Obey `prompt_boundary`: do not send raw `composition`, `prompt_inputs`, or
     `evaluation_metadata`, numeric thresholds, judge rubrics, component routes,
     or the report itself to the generator. Evaluation-aware generation is
-    intentional: translate the selected requirements needed to create coherent
-    content and proposed Ground truth, while keeping grading and label adoption
-    outside the generator. State that the generator has read-only access to the
-    current checkout and must inspect permitted paths at invocation time.
+    intentional: translate the selected requirements needed to create a coherent
+    Backstory, Scenes, and proposed Ground truth, while keeping grading and label
+    adoption outside the generator. State that the generator has read-only access
+    to the current checkout and must inspect permitted paths at invocation time.
 14. Preserve the three-stage Ground truth lifecycle. First, require the generator
-    to write proposed Ground truth in an authoring manifest stored separately
-    from generated content. Second, run the adopted package validator for
-    objective facts including schema conformance, content hashing, reference and
+    to write proposed Ground truth in `ground-truth.json`, separate from
+    `backstory.json`. Second, run the adopted package validator for objective
+    facts including schema conformance, Backstory hashing, reference and
     span resolution, ordering, permitted evidence, declared matched-Scene
     differences, complete Prop relevance judgments, and resolved
     run-configuration counts; these checks do not judge whether the proposed
     relevance is semantically correct or assess Linger's recorded behavior.
     Third, require a reviewer independent of
     the generator to adopt, revise, or reject each candidate label. Only adopted
-    Ground truth may grade a run, and neither manifest nor adopted Ground truth
+    Ground truth may grade a run, and neither proposed nor adopted Ground truth
     may reach the system under evaluation.
 15. Hypothesize representative inputs, likely response behavior, and plain-
     language success checks. Treat response text as a hypothesis, not an exact
@@ -157,12 +159,14 @@ mark the affected Scene blocked until event-led inference exists.
 
 ## Write the pre-generation report
 
-Create exactly one Markdown file under
-`synthetic-journal-evaluation/reports/`, unless the caller supplies a different
-output directory for an isolated test. Use the local timestamp in the sortable,
-colon-free filename produced by
-`%Y-%m-%dT%H%M%S%z-pre-generation-report.md`; if it exists, insert `-02`, `-03`,
-and so on immediately before `.md`.
+Create exactly one package directory under
+`synthetic-journal-evaluation/packages/`. Name it with the local timestamp
+produced by `%Y-%m-%dT%H%M%S%z`; if it exists, append `-02`, `-03`, and so on. For
+an isolated test, use the package directory supplied by the caller instead.
+Write the Markdown report to `pre-generation-report.md` inside that directory.
+The report is the only file this skill creates. Its fenced generator prompt must
+use the same directory as `PACKAGE_DIRECTORY` and reserve exactly two sibling
+output paths: `backstory.json` and `ground-truth.json`.
 
 Before drafting, invoke `$google-developer-docs-style` when available and follow
 it. If unavailable, read the relevant current official guidance under
@@ -182,11 +186,14 @@ in order:
 2. **Your selection.** Use one short bullet per selected Objective with its
    title, ID, and a plain-language summary derived only from `menu.summary`.
 3. **Target evaluation design.** Link `docs/specification.md` Section 7.2.1 at
-   the first canonical-noun reference. Follow it with a compact two-column table
-   containing exactly six body rows in this order: `Objective`, `Backstory`,
-   `Prop`, `Scene`, `Line`, and `Ground truth`. Explain how each noun applies,
-   including catalog minimums and any separately resolved run configuration.
-   Describe the content and authoring-manifest contracts directly, cite their
+   the first canonical-noun reference. From the default package directory, use
+   `../../../docs/specification.md#721-canonical-vocabulary`; for an isolated
+   test, use the equivalent relative link. Follow it with a compact two-column
+   table containing exactly six body rows in this order: `Objective`,
+   `Backstory`, `Prop`, `Scene`, `Line`, and `Ground truth`. Explain how each noun
+   applies, including catalog minimums and any separately resolved run
+   configuration.
+   Describe the Backstory and Ground truth contracts directly, cite their
    model and validator paths, and explain their concrete structures. Explain
    proposed versus adopted Ground truth in the final row.
 4. **Current implementation and required work.** Use **Observed**, **Proposed**,
@@ -203,9 +210,9 @@ in order:
    when useful.
 6. **Proposed generator prompt.** Include the exact prompt in a fenced code block.
    It must contain its own status and preconditions, direct instructions to use
-   the content and authoring-manifest contracts and validator, generation
+   the Backstory and Ground truth contracts and validator, generation
    instructions for every generator-owned canonical entity, and instructions
-   for a separate authoring manifest containing proposed Ground truth. It must
+   for a separate `ground-truth.json` containing proposed Ground truth. It must
    not ask the generator to grade recorded system
    behavior or claim that its candidate labels are adopted.
 7. **Ground truth lifecycle.** Explain what the generator proposes, what
@@ -227,7 +234,7 @@ never offer execution before the named preconditions are met.
 
 The report is only for the human or developer and must never be sent wholesale
 to a generator. Do not invoke a generation model or create Backstories, Props,
-Scenes, Lines, offline inputs, authoring manifests, proposed or adopted Ground
+Scenes, Lines, offline inputs, Ground truth files, proposed or adopted Ground
 truth, annotations, packages, frozen releases, or replay data.
 
 After writing the report, resolve `scripts/validate_report.py` relative to this
@@ -240,8 +247,8 @@ word count. Then verify the semantic requirements that the script cannot prove:
 - The target design satisfies every confirmed Objective without descoping.
 - The fenced prompt uses the package models and validator without inventing
   another contract.
-- The fenced prompt creates proposed Ground truth in a separate authoring
-  manifest without grading recorded behavior or claiming adoption.
+- The fenced prompt creates proposed Ground truth in a separate
+  `ground-truth.json` without grading recorded behavior or claiming adoption.
 - Deterministic validation and independent Ground truth adoption are concrete in
   the human report.
 - Exactly one Backstory, person, and evaluation account are used; every Prop,
@@ -253,6 +260,6 @@ word count. Then verify the semantic requirements that the script cannot prove:
   active Props and proposed relevance covers all 11 Props in each Scene.
 
 Report the path and selected Objective IDs, then stop. The repository defines
-the content and authoring-manifest contracts and deterministic validator.
-Generation, independent review ownership, adoption tooling, package freezing,
-and replay remain unadopted until separately approved.
+the Backstory and Ground truth contracts and deterministic validator.
+Generation, independent review ownership, adoption tooling, full-dataset
+assembly, package freezing, and replay remain unadopted until separately approved.

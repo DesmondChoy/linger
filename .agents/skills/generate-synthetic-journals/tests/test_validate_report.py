@@ -31,7 +31,7 @@ Insufficient.
 
 ## Target evaluation design
 
-[Section 7.2.1](../../docs/specification.md#721-canonical-vocabulary)
+[Section 7.2.1](../../../docs/specification.md#721-canonical-vocabulary)
 
 | Noun | Use |
 |---|---|
@@ -51,7 +51,8 @@ One Line has a likely response and success check.
 STATUS: Target state — do not run.
 PRECONDITIONS: contract adopted.
 Create one Backstory, no Props, three Scenes, and one Line per Scene.
-Write a separate authoring manifest containing proposed Ground truth.
+Write PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at
+PACKAGE_DIRECTORY/ground-truth.json containing proposed Ground truth.
 Use evals/synthetic_journals/models.py and validate with
 evals/synthetic_journals/validate_package.py.
 {prompt}
@@ -71,7 +72,7 @@ Authority remains separate.
 
 
 def write_report(tmp_path: Path, text: str) -> Path:
-    path = tmp_path / "2026-08-22T120000+0800-pre-generation-report.md"
+    path = tmp_path / "pre-generation-report.md"
     path.write_text(text, encoding="utf-8")
     return path
 
@@ -94,15 +95,16 @@ def test_rejects_excess_narrative(tmp_path: Path) -> None:
     assert any("maximum is 900" in error for error in validate_report(path))
 
 
-def test_rejects_prompt_without_authoring_manifest(tmp_path: Path) -> None:
+def test_rejects_prompt_without_ground_truth_file(tmp_path: Path) -> None:
     text = report_text().replace(
-        "Write a separate authoring manifest containing proposed Ground truth.\n",
-        "",
+        "Write PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at\n"
+        "PACKAGE_DIRECTORY/ground-truth.json containing proposed Ground truth.\n",
+        "Write PACKAGE_DIRECTORY/backstory.json.\n",
     )
     path = write_report(tmp_path, text)
 
     errors = validate_report(path)
-    assert any("authoring manifest" in error for error in errors)
+    assert any("Ground truth file" in error for error in errors)
     assert any("proposed Ground truth" in error for error in errors)
 
 
@@ -169,8 +171,18 @@ def test_accepts_offline_inputs_without_lines(tmp_path: Path) -> None:
     assert validate_report(path) == []
 
 
+def test_rejects_prompt_without_sibling_package_paths(tmp_path: Path) -> None:
+    text = report_text().replace(
+        "PACKAGE_DIRECTORY/backstory.json",
+        "backstory.json",
+    )
+    path = write_report(tmp_path, text)
+
+    assert any("package Backstory path" in error for error in validate_report(path))
+
+
 def test_rejects_bad_filename(tmp_path: Path) -> None:
-    path = tmp_path / "report.md"
+    path = tmp_path / "2026-08-22T120000+0800-pre-generation-report.md"
     path.write_text(report_text(), encoding="utf-8")
 
     assert any("filename" in error for error in validate_report(path))

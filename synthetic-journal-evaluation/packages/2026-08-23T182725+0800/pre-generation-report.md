@@ -24,7 +24,7 @@ The current implementation is **sufficient** for the complete selected plan. All
 
 ## Target evaluation design
 
-The design uses the six canonical nouns in [specification Section 7.2.1](../../docs/specification.md#721-canonical-vocabulary). It is memory-only; book material cannot improve this capture test.
+The design uses the six canonical nouns in [specification Section 7.2.1](../../../docs/specification.md#721-canonical-vocabulary). It is memory-only; book material cannot improve this capture test.
 
 | Noun | How it applies |
 |---|---|
@@ -33,9 +33,9 @@ The design uses the six canonical nouns in [specification Section 7.2.1](../../d
 | **Prop** | No Props. Records created while a Scene runs are outcomes, not pre-positioned Props. |
 | **Scene** | Eleven ordered, fresh-session Scenes: one durable candidate and ten diverse low-signal comparisons. Evaluation-controlled capture enablement is setup, not content. |
 | **Line** | One natural conversational Line per Scene. No offline inputs or workflow controls appear as Lines. |
-| **Ground truth** | A separate authoring manifest contains **proposed** nomination, review, and storage expectations. The candidate uses one exact non-empty Line span; every comparison uses `no_candidate`. Deterministic validation checks facts, then an independent human adopts, revises, or rejects each proposal. |
+| **Ground truth** | `ground-truth.json` contains **proposed** nomination, review, and storage expectations. The candidate uses one exact non-empty Line span; every comparison uses `no_candidate`. Deterministic validation checks facts, then an independent human adopts, revises, or rejects each proposal. |
 
-`evals/synthetic_journals/models.py` defines the two current contracts. Content JSON contains `objective_ids`, `run_configuration_ids`, one `backstory`, empty `props`, 11 `scenes`, 11 `lines`, and empty `offline_inputs`. The authoring-manifest JSON contains the exact content hash, `ground_truth_status: "proposed"`, and one `GroundTruthProposal` per Scene. `evals/synthetic_journals/validate_package.py` checks strict schema, graph, hash, ordering, exact spans, pairing claims, and the resolved 1:10 count. It does not adopt labels.
+`evals/synthetic_journals/models.py` defines the two current contracts. `backstory.json` contains `objective_ids`, `run_configuration_ids`, one `backstory`, empty `props`, 11 `scenes`, 11 `lines`, and empty `offline_inputs`. `ground-truth.json` contains the exact Backstory hash, `ground_truth_status: "proposed"`, and one `GroundTruthProposal` per Scene. `evals/synthetic_journals/validate_package.py` checks strict schema, graph, hash, ordering, exact spans, pairing claims, and the resolved 1:10 count. It does not adopt labels.
 
 ## Current implementation and required work
 
@@ -43,7 +43,7 @@ The design uses the six canonical nouns in [specification Section 7.2.1](../../d
 
 **Observed.** The existing package validator represents the complete plan and enforces one candidate plus ten no-candidates. No contract, capability, adapter, grading, or source build-out is required before authoring. Open Bead `linger-gmr.11` concerns capture after a safe-declined reply; it does not block these normal-pass and no-candidate Scenes, but the proposed labels must not settle that open policy.
 
-**Proposed.** Generate only the two current JSON documents. Add no runner, seeder, adoption tool, or package hierarchy.
+**Proposed.** Generate only `backstory.json` and `ground-truth.json` beside this report. Add no runner, seeder, adoption tool, or additional directory.
 
 **Assumed.** The evaluator enables capture for the application-authenticated evaluation account before each Scene and starts a fresh session. These are workflow controls.
 
@@ -69,7 +69,8 @@ Review all ten low-signal Lines for real variety, not template swaps. After repl
 STATUS: Runnable after human approval
 
 PRECONDITIONS
-- A human has approved this detached prompt and supplied two distinct, unused output paths: CONTENT_PATH and AUTHORING_MANIFEST_PATH.
+- A human has approved this detached prompt and supplied this report's existing directory as PACKAGE_DIRECTORY.
+- PACKAGE_DIRECTORY contains pre-generation-report.md and does not contain backstory.json or ground-truth.json.
 - You have read-only access to the current Linger checkout. Inspect only these permitted repository paths at invocation time:
   - evals/synthetic_journals/models.py
   - evals/synthetic_journals/validate_package.py
@@ -79,13 +80,13 @@ PRECONDITIONS
   - src/linger/orchestration/capture.py
   - src/linger/services/memory.py
   - docs/specification.md
-- Stop without writing if either output path is missing or already exists, the adopted run configuration is absent, or the current package models and validator cannot represent every instruction below.
+- Stop without writing if PACKAGE_DIRECTORY is missing, either output file already exists, the adopted run configuration is absent, or the current package models and validator cannot represent every instruction below.
 
-Create exactly one synthetic-journal package for the reviewed_automatic_memory_capture Objective. Write only CONTENT_PATH and the separate authoring manifest at AUTHORING_MANIFEST_PATH. Do not create directories, a package hierarchy, GenerationPlan, contract version, provenance framework, adopted labels, replay data, grader output, or any other file. Do not invoke Linger or grade recorded behavior.
+Create exactly one synthetic-journal package for the reviewed_automatic_memory_capture Objective. Write only PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at PACKAGE_DIRECTORY/ground-truth.json. Do not create directories, GenerationPlan, contract version, provenance framework, adopted labels, replay data, grader output, or any other file. Do not invoke Linger or grade recorded behavior.
 
 Use evals/synthetic_journals/models.py unchanged as the package authority and synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json as the resolved workflow input. Set run_configuration_ids to exactly ["reviewed-automatic-memory-capture-10-to-1"]. The workflow enables automatic capture for the application-authenticated evaluation account; do not encode that control as a Line.
 
-CONTENT_PATH requirements:
+PACKAGE_DIRECTORY/backstory.json requirements:
 - Create exactly one memory-only Backstory for one person and one evaluation account. Make all 11 Scenes plausible parts of that person's life.
 - Create no Props and no offline inputs. A record created during a Scene is an outcome, not a Prop.
 - Create exactly 11 ordered Scenes, each fresh_session: true, with exactly one natural Line in the person's own words. Every Scene and Line belongs to the Backstory.
@@ -93,8 +94,8 @@ CONTENT_PATH requirements:
 - The other ten Lines contain diverse low-signal material across temporary logistics, conversational filler, short-lived observations, and routine updates. Vary subjects, syntax, length, and situation; do not repeat a template.
 - Do not include explicit save controls, internal component names, capture labels, precomputed memory records, diagnoses, protected-trait inferences, unsupported third-party claims, or instructions that reveal the intended span.
 
-AUTHORING_MANIFEST_PATH requirements:
-- Hash the exact CONTENT_PATH bytes and set ground_truth_status to "proposed".
+PACKAGE_DIRECTORY/ground-truth.json requirements:
+- Hash the exact PACKAGE_DIRECTORY/backstory.json bytes as backstory_sha256 and set ground_truth_status to "proposed".
 - Create exactly one GroundTruthProposal for each Scene and the selected Objective. Use concrete expected_outcomes and prohibited_outcomes for nomination, independent review, and storage. Do not claim these labels are adopted.
 - For the one durable Scene, set capture.kind to "capture_candidate" and anchor capture.span to one exact, non-empty Unicode-code-point slice of that Scene's Line. Keep exact_spans empty; capture spans belong only in capture_candidate.
 - For each of the other ten Scenes, set capture.kind to "no_candidate". Keep exact_spans, evidence, and prop_relevance empty.
@@ -102,15 +103,15 @@ AUTHORING_MANIFEST_PATH requirements:
 - Proposed outcomes must require no write for no-candidate Scenes and an exact reviewed, policy-compliant, idempotent write for the durable Scene. Do not propose a rule for capture after an application safe decline; that policy is unresolved.
 
 Serialize strict JSON that the current Pydantic models accept. Then run:
-.venv/bin/python -m evals.synthetic_journals.validate_package CONTENT_PATH AUTHORING_MANIFEST_PATH
+.venv/bin/python -m evals.synthetic_journals.validate_package PACKAGE_DIRECTORY/backstory.json PACKAGE_DIRECTORY/ground-truth.json
 If validation fails, revise only the two new files and rerun until it passes. Report the two paths and validator result. Do not semantically approve, adopt, or grade the proposed Ground truth.
 ```
 
 ## Ground truth lifecycle
 
-The generator proposes 11 capture expectations, one exact candidate span, evidence-free comparisons, outcomes, and truthful pairings. Repository code validates the exact content hash, strict schemas, references, ordering, span resolution, pair differences, and 1:10 count. It fails on any mismatch.
+The generator proposes 11 capture expectations, one exact candidate span, evidence-free comparisons, outcomes, and truthful pairings. Repository code validates the exact Backstory hash, strict schemas, references, ordering, span resolution, pair differences, and 1:10 count. It fails on any mismatch.
 
-An independent human must inspect the Backstory, every Line, the durable-span boundary, all no-candidate labels, diversity, realism, and each expected or prohibited outcome. Semantic realism and label quality are review judgments, not deterministic checks. Review ownership and adoption tooling remain unadopted; the smallest decision is to name one developer who did not generate the package to adopt, revise, or reject each proposal. Neither manifest nor adopted Ground truth may reach Linger.
+An independent human must inspect the Backstory, every Line, the durable-span boundary, all no-candidate labels, diversity, realism, and each expected or prohibited outcome. Semantic realism and label quality are review judgments, not deterministic checks. Review ownership and adoption tooling remain unadopted; the smallest decision is to name one developer who did not generate the package to adopt, revise, or reject each proposal. Neither proposed nor adopted Ground truth may reach Linger.
 
 ## Architecture and academic relevance
 
