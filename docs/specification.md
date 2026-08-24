@@ -103,11 +103,13 @@ The system contains five reasoning agents and one deterministic service:
 
 The Memory & Policy Service derives account identity from authenticated request
 context and never accepts it from model output; agents cannot choose or widen
-account scope. The interactive web application exposes Muse conversation,
-session reset, and a read-only per-turn Inspect view of the response workflow,
-released direct Librarian results, fixed Serendipity outcomes, and trace
-correlation. It exposes no Serendipity proposal, search, or evidence payloads,
-memory-management UI, or public memory CRUD API.
+account scope. The product-facing web application exposes Muse conversation and
+session reset. It exposes no diagnostic Reader or Inspect surface, Serendipity
+proposal, search or evidence payloads, memory-management UI, or public memory
+CRUD API. The local development frontend may mount Reader and a read-only
+per-turn Inspect projection so developers can exercise the corpus and debug the
+response workflow, released direct Librarian results, fixed Serendipity
+outcomes, and trace correlation.
 
 **Tool implementation policy.** Pydantic AI's maintained tools, capabilities, and toolsets are the default implementation, not examples to recreate locally. The implementation must first use an [official Pydantic AI tool or capability](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/), a provider-native tool supported by Pydantic AI, or a supported external toolset such as MCP. A custom Pydantic AI function tool is permitted only for Linger-specific domain operations for which no maintained implementation exists, such as enforcing account-scoped memory retrieval or the book spoiler boundary. Such tools must be thin adapters over application services; they must not reimplement generic search clients, page fetching, tool schema generation, dispatch, or retries already supplied by Pydantic AI.
 
@@ -204,6 +206,34 @@ evidence remains internal and fails closed; its content-bearing diagnostics are
 not returned by the application API. Stored-memory and image evidence also remain
 non-authoritative, and authorised-memory retrieval is not a current Serendipity
 grant.
+
+#### 4.2.4 Developer corpus and inspection tools
+
+Reader and Inspect are development and debugging tools, not product frontend
+surfaces. The local development frontend mounts them for convenience while
+developers interact with the corpus and trace backend behavior. A user-facing
+frontend does not expose either tool or depend on either tool's state.
+
+Reader is a developer corpus browser for *Alice's Adventures in Wonderland*. It
+opens the public Project Gutenberg HTML at the selected chapter. Opening the
+book, selecting a chapter, or revealing a chapter summary changes local
+diagnostic state only. Chapter summaries remain hidden behind an explicit
+spoiler warning, and neither chapter navigation nor summary reveal establishes
+reading progress, session evidence, or a chat retrieval boundary. Chat uses only
+the request-scoped context resolution and confirmed ceiling described in Section
+6.1.
+
+Inspect is a developer-only, read-only projection of each completed chat turn.
+It exposes the reader message, `MuseTurn` policy contract, context resolution,
+assembled Muse dynamic input, application-recorded agent statuses, direct
+Librarian grounding calls, fixed Serendipity decline metadata, the released
+response, the actual Provenance verdict path, release source, failure stage,
+capture outcome, and server-generated trace ID. This diagnostic detail exists
+to debug request-scoped contracts and hand-offs; it is not end-user content. It
+does not expose Serendipity proposals, searches, web or private evidence
+payloads, rejected draft text, Provenance critiques, or memory content. Inspect
+metadata cannot authorize retrieval, release, capture, or storage, and its trace
+link follows the metadata-only backend telemetry contract in Section 8.1.
 
 ## 5. Core records
 
@@ -483,8 +513,8 @@ The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-ob
 
 The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one timestamped package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
-The first reviewed automatic-capture package can now be replayed without
-changing these authority boundaries. Its runner validates the Backstory and
+The reviewed automatic-capture package replays without changing these authority
+boundaries. Its runner validates the Backstory and
 Ground truth, creates a temporary store and unique evaluation account,
 enables capture through the server-owned Memory & Policy Service, and sends
 exactly one Line in a fresh session for each Scene. Pydantic Evals creates one

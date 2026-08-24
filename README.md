@@ -8,10 +8,41 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 - **Reasoning:** five focused agents, with deterministic application control
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
 - **Corpus milestone:** *Alice's Adventures in Wonderland* from Project Gutenberg
+- **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
 - **Issue tracking:** [Beads](https://github.com/gastownhall/beads), backed by a local Dolt database
 
 Linger keeps authority over account boundaries, memory writes, validation, and
 user-visible output in application code—not in an agent.
+
+## What the prototype does
+
+- **Reflect:** sends each Line through a no-tool emotional-boundary preflight,
+  Muse, optional specialists, Provenance, and deterministic release checks.
+  Failed or rejected candidates produce application-owned responses.
+- **Ground:** retrieves exact, spoiler-bounded book passages through Librarian.
+  Evidence remains request-scoped and every released quotation must resolve to
+  the canonical corpus.
+- **Reconnect:** lets Serendipity explore bounded book evidence and, when
+  explicitly configured, public web evidence through Exa. Private wording is
+  blocked from web-search queries.
+- **Capture:** supports reviewed automatic memory capture only through
+  server-controlled evaluation policy. The interactive POC keeps capture
+  disabled and exposes no memory-management actions.
+
+## Developer tools
+
+The local development frontend mounts Reader and Inspect for developers working
+with the corpus and backend workflow. They are debugging tools, not product
+frontend surfaces; a user-facing app should omit both.
+
+- **Reader** browses the public-domain Alice corpus by chapter and can reveal
+  chapter summaries after an explicit spoiler warning. It helps developers
+  exercise corpus behavior. Its local navigation never establishes reading
+  progress, evidence authority, or a chat spoiler boundary.
+- **Inspect** projects each completed turn's request contract, context
+  resolution, specialist outcomes, Provenance release path, capture outcome,
+  and server-generated Logfire trace ID. It helps developers trace backend
+  hand-offs and decisions; its diagnostic data grants no runtime authority.
 
 ## Startup
 
@@ -28,7 +59,7 @@ From the repository root:
 
 ```bash
 # Create local configuration and choose a model provider
-cp .env.example .env
+cp -f .env.example .env
 
 # Install Python application and development dependencies from uv.lock
 uv sync --dev
@@ -37,14 +68,26 @@ uv sync --dev
 pnpm install --dir apps/frontend
 ```
 
-Edit `.env` to set `LINGER_MODEL` and the matching API key. Only the selected
-provider's key is needed:
+Edit `.env` to set `LINGER_MODEL` and the matching API key. The checked-in
+default is `openai:gpt-5.6-luna`; supported provider prefixes are `google`,
+`openai`, and `anthropic`. Only the selected provider's key is needed.
 
 - `google:gemini-2.5-flash` → `GOOGLE_API_KEY`
-- `openai:gpt-5` → `OPENAI_API_KEY`
+- `openai:gpt-5.6-luna` → `OPENAI_API_KEY`
 - `anthropic:claude-sonnet-4-5` → `ANTHROPIC_API_KEY`
 
-To send the existing metadata-only telemetry to the Linger Logfire project:
+Optional public-web connection discovery requires both settings:
+
+```dotenv
+EXA_API_KEY=...
+LINGER_WEB_SEARCH_ENABLED=true
+```
+
+`LINGER_ACCOUNT_ID` supplies the server-owned account for the single-user
+prototype. `LINGER_ALLOWED_ORIGINS` accepts a comma-separated list of browser
+origins and defaults to `http://localhost:5173`.
+
+To send the backend's metadata-only telemetry to the Linger Logfire project:
 
 ```bash
 uv run logfire --region us auth
@@ -70,6 +113,10 @@ pnpm --dir apps/frontend dev
 
 Open <http://localhost:5173>. Interactive API documentation is available at
 <http://127.0.0.1:8000/docs>.
+
+The frontend can call a separately hosted API by setting `VITE_API_URL` before
+starting or building it. Without that variable, Vite proxies `/api` to the
+local backend.
 
 ### Get Beads working
 
@@ -121,6 +168,53 @@ uv run jupyter lab notebooks/librarian_manual_evaluation.ipynb
 
 Full Librarian cells use the model and matching API key configured in `.env`.
 
+## Evaluation and validation
+
+Run the complete automated suite and frontend gates from the repository root:
+
+```bash
+uv run pytest
+pnpm --dir apps/frontend test
+pnpm --dir apps/frontend lint
+pnpm --dir apps/frontend build
+```
+
+The evaluation entry points are:
+
+```bash
+# Deterministic five-strategy Librarian benchmark
+uv run python -m evals.librarian.benchmark
+
+# Provider-backed Librarian release validation
+uv run python -m evals.librarian.live_validation
+
+# Provider-backed emotional-boundary classification
+uv run python -m evals.provenance.emotional_boundary
+
+# Validate a synthetic package
+uv run python -m evals.synthetic_journals.validate_package \
+  path/to/backstory.json path/to/ground-truth.json
+
+# Replay the reviewed capture package through the production chat boundary
+uv run python -m evals.synthetic_journals.replay \
+  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
+  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
+  --output /tmp/reviewed-automatic-memory-capture-run.json
+```
+
+The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
+and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
+`--limit`, and `--report`; the Provenance evaluation accepts `--report`.
+Synthetic package validation accepts `--run-configuration-directory`, and the
+replay writes JSON to stdout unless `--output` is supplied. See the README in
+each `evals/` subdirectory for contracts and artifact boundaries.
+
+Every production agent invocation carries a template-specific prompt ID,
+version, and static-artifact digest. Synthetic replay records the complete
+runtime fingerprint set in its durable JSON transcript and uses the separate
+content-bearing `linger-evals` Logfire service. Normal `linger-backend` traffic
+remains metadata-only.
+
 ## Project Gutenberg notebook
 
 [`notebooks/project_gutenberg_query_workflow.ipynb`](notebooks/project_gutenberg_query_workflow.ipynb)
@@ -160,12 +254,13 @@ linger/
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations
 ├── data/                           # Corpus, manifests, and fixtures
-├── evals/                          # Fixed evaluation cases and scorers
-├── synthetic-journal-evaluation/   # Evaluation-objective catalog
+├── evals/                          # Benchmarks, live evals, package validation, and replay
+├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and packages
 ├── tests/                          # Integration, security, and end-to-end tests
 ├── memories/                       # Git-ignored runtime Markdown memories
-├── docs/                           # Architecture, reports, and risk register
-└── deploy/                         # Containers and deployment configuration
+├── notebooks/                      # Manual Librarian and Gutenberg workflows
+├── prompts/                        # Repository-owned prompt artifacts
+└── docs/                           # Specification, telemetry contract, designs, and reports
 ```
 
 For app-specific details, see [`apps/README.md`](apps/README.md).

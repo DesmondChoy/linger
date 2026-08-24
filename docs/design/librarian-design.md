@@ -93,9 +93,9 @@ chapters.
 ```text
 User request + transient conversation context
                     ↓
-Muse proposes a temporary reading boundary
+Application resolves a current-turn reading context
                     ↓
-Application validates the typed boundary
+Application validates a reader-confirmed ceiling
           ↙ invalid or ambiguous     valid ↘
 Clarification to Muse          Eligible catalogue only
                                       ↓
@@ -120,8 +120,8 @@ truth, and non-selected indexes need not remain in the production path.
 | Corpus processor | Verifies the source, extracts exact chapter bodies, renders initial Markdown, and checks integrity |
 | Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
-| Muse | Infers a temporary reading boundary, sends the typed request, and presents any returned clarification to the user |
-| Application boundary | Validates and enforces Muse's declared scope; returns clarification before any retrieval when it is ambiguous |
+| Muse | Supplies the exact question, invokes the granted Librarian adapter when grounding is useful, and presents any clarification or evidence result to the user |
+| Application boundary | Supplies and enforces the reader-confirmed ceiling in the shipped slice; prevents every caller from widening it |
 | Librarian agent | Chooses a permitted retrieval path and judges the combined evidence strength |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
 | Sculptor | May later propose reviewed routing-metadata improvements; it never changes canonical chapter bodies |
@@ -345,9 +345,14 @@ A structural or integrity failure returns no ready corpus:
 
 ### 4.1 Input contract
 
-Muse supplies the question and its best request-scoped reading position. The
-application adds trusted access context and validates the complete request
-before any catalogue, index, agent, or model sees book data.
+Muse supplies the exact question. In the shipped slice, application code adds
+trusted access context and a reader-confirmed request ceiling before any
+catalogue, index, agent, or model sees book data. The target inference phase
+belongs to Librarian: it cross-references the current Line and authorised
+memories against the complete work, returns a typed candidate ceiling without
+disclosing post-boundary content, and leaves application code to validate and
+propagate that ceiling. Full-work inference is not part of the current vertical
+slice.
 
 ```json
 {
@@ -370,8 +375,8 @@ before any catalogue, index, agent, or model sees book data.
 ```
 
 `access_scope` is created by trusted application code, never copied from model
-output. Thresholds may be overridden by evaluated configuration, but Muse may
-not lower them or enlarge scope.
+output. Thresholds may be overridden by evaluated configuration, but no agent
+may lower them or enlarge scope.
 
 ### 4.2 Boundary enforcement and clarification
 

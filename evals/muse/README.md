@@ -23,6 +23,12 @@ hard gates and belongs to the rubric. Free prose also carries a human or
 secondary-LLM rubric. Semantic review is reported separately and can never
 override a failed hard gate.
 
+Run the case-contract and hard-gate tests from the repository root:
+
+```bash
+uv run pytest tests/test_muse_evals.py
+```
+
 ## Versioning
 
 The current case schema is version 1. Every case declares `schema_version: 1`

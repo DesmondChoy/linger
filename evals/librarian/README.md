@@ -42,6 +42,13 @@ Run it with:
 uv run python -m evals.librarian.benchmark
 ```
 
+The benchmark options are:
+
+- `--output <path>` for the JSON report;
+- `--repetitions <count>` for warm-query measurement repeats;
+- `--target-words <count>` for derived paragraph-window size; and
+- `--overlap-words <count>` for adjacent-window overlap.
+
 The generated `report.json` records every model and threshold, per-case evidence
 IDs, safety and citation gates, evidence recall, citation precision,
 evidence-strength support accuracy, p95 latency, evidence-token volume, local
@@ -53,6 +60,23 @@ from the project's final user-visible citation target: the judge may retain only
 the candidate evidence IDs that actually support an answer. End-to-end
 validation measures that final projection without relabelling candidate quality
 as final citation quality.
+
+## Live release validation
+
+Run the provider-backed Librarian-to-Muse release path with:
+
+```bash
+uv run python -m evals.librarian.live_validation
+```
+
+The command uses the selected hybrid retriever, configured model, Muse,
+Provenance, and deterministic release validation. `--case <id>` is repeatable,
+`--limit <count>` runs the first bounded subset, and `--report <path>` chooses
+the metadata-only JSON report location. The default report is
+`evals/librarian/live-report.json`.
+
+The report excludes prompts, replies, evidence text, and credentials. It records
+case outcomes, release metrics, latency, and any provider usage the SDK exposes.
 
 Indexes and model caches are derived artifacts. Canonical chapter Markdown
 remains the source of truth, and the query boundary filters eligible windows

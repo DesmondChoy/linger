@@ -11,6 +11,9 @@ Run the live evaluation from the repository root:
 uv run python -m evals.provenance.emotional_boundary
 ```
 
+Use `--report <path>` to choose the JSON report location; the default is
+`evals/provenance/live-report.json`.
+
 The command uses the configured `LINGER_MODEL` and its API key. It writes
 `live-report.json` only when you run it. The report contains case IDs, expected
 and actual decisions, prompt and policy versions, latency, and aggregate

@@ -17,9 +17,13 @@ The Pydantic models in `models.py` are the schema authority. Validate a package
 from the repository root:
 
 ```bash
-.venv/bin/python -m evals.synthetic_journals.validate_package \
+uv run python -m evals.synthetic_journals.validate_package \
   path/to/backstory.json path/to/ground-truth.json
 ```
+
+The validator resolves shared run configurations from
+`synthetic-journal-evaluation/run-configurations/`. Use
+`--run-configuration-directory <path>` to validate against another directory.
 
 The validator fails closed on schema drift, coercion, bad hashes, missing or
 extra Ground truth proposals, invalid references or ordering, span mismatches,
@@ -31,7 +35,7 @@ reject every proposal before it can grade Linger.
 Replay the validated capture-only package through the production Muse path:
 
 ```bash
-.venv/bin/python -m evals.synthetic_journals.replay \
+uv run python -m evals.synthetic_journals.replay \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
@@ -45,6 +49,8 @@ agent input, model-visible messages and instructions, typed output, tool calls
 and results, usage, observed reply, release and capture decisions, committed
 synthetic text, and matching Logfire trace and span IDs. Do not use this runner
 with live user traffic.
+
+Without `--output`, the runner writes the complete JSON artifact to stdout.
 
 The command sends the same validated synthetic run to the existing Logfire
 project as service `linger-evals`, environment `synthetic-evaluation`. Pydantic

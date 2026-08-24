@@ -17,6 +17,12 @@ schema, provenance boundaries, and summary length. Generated summary text and
 topic labels also carry a human or secondary-LLM rubric. Semantic review is
 reported separately and can never override a failed hard gate.
 
+Run the case-contract and hard-gate tests from the repository root:
+
+```bash
+uv run pytest tests/test_sculptor_evals.py
+```
+
 ## Versioning
 
 The current case schema is version 1. Every case declares `schema_version: 1`

@@ -294,7 +294,7 @@ def _inspection_for(
         context_resolution=resolution.model_dump(mode="json"),
         traces=traces,
         # Re-resolved passages are supplied to Muse but not duplicated into the
-        # user-facing Inspect payload.
+        # developer-only Inspect diagnostics.
         prompt=inspection_prompt,
     ), muse_input, review_context
 
