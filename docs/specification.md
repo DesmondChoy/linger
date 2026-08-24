@@ -477,7 +477,24 @@ The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-ob
 
 The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing and writes one timestamped Markdown pre-generation report for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined content and authoring-manifest structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither the authoring manifest nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current content there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
-The first reviewed automatic-capture package can now be replayed without changing these authority boundaries. Its runner validates the content and authoring manifest, creates a temporary store and unique evaluation account, enables capture through the server-owned Memory & Policy Service, and sends exactly one Line in a fresh session for each Scene. It records observed replies, release decisions, capture metadata, and committed synthetic text. It never gives Muse the Backstory or proposed Ground truth, and it does not grade or adopt proposals.
+The first reviewed automatic-capture package can now be replayed without
+changing these authority boundaries. Its runner validates the content and
+authoring manifest, creates a temporary store and unique evaluation account,
+enables capture through the server-owned Memory & Policy Service, and sends
+exactly one Line in a fresh session for each Scene. Pydantic Evals creates one
+code-defined dataset, one experiment per replay, and one ordered native case
+per Scene. Each case records the validated synthetic input, proposed expected
+capture label, compact observed output, and a `proposal_comparison` label. The
+proposal remains `proposed`; `matches_proposal` and `differs_from_proposal` are
+agreement observations, not adopted Ground truth grades.
+
+The replay also records a durable JSON transcript containing each synthetic
+Line, the exact model-visible agent inputs and messages, typed outputs, tool
+calls and results, usage, release and capture decisions, and correlated
+Logfire trace and span IDs. It never gives Muse the Backstory or proposed
+Ground truth. Provider thinking is intentionally omitted from the durable
+artifact; the evaluation-only Logfire path may display a thinking part only
+when the provider returned one.
 
 The project still has not defined reusable workflow for:
 
@@ -508,7 +525,37 @@ Failure ownership is explicit. Exceptions from an agent invocation are model fai
 
 ### 8.1 Agent telemetry and debugging
 
-The canonical [telemetry data contract](telemetry.md) defines the minimal captured fields, prohibited content, evaluation boundary, and verification requirements. Telemetry is diagnostic only: it never authorises output release, chooses account scope, commits memory writes, or becomes product memory.
+The canonical [telemetry data contract](telemetry.md) defines the minimal
+captured fields, prohibited content, evaluation boundary, and verification
+requirements. Telemetry is diagnostic only: it never authorises output
+release, chooses account scope, commits memory writes, or becomes product
+memory.
+
+The implementation uses one Logfire project with two explicit service
+identities. `linger-backend` remains metadata-only for human runtime traffic.
+The synthetic replay process reconfigures telemetry as `linger-evals` in the
+`synthetic-evaluation` environment, marks the content as synthetic, and enables
+content-bearing instrumentation only for the five fixed named Pydantic AI
+agents. This separation is code-owned; there is no production environment flag
+that can enable synthetic transcript capture.
+
+Logfire's Evals view shows the replay as a dataset, experiment, and ordered
+cases with expected and actual outputs, evaluator labels, latency, tokens, and
+cost. Its Agents and LLM views show only roles that were actually invoked in
+the selected period, with ordered system, user, assistant, tool, and
+provider-returned thinking parts. The Live view retains the complete
+application-owned trace hierarchy and fixed hand-off metadata. Logfire renders
+native `invoke_agent Muse` and `invoke_agent Provenance` spans as **Muse run**
+and **Provenance run**; their surrounding `muse.draft`,
+`provenance.emotional_boundary`, and `provenance.review` spans carry the fixed
+origin, receiver, and contract attributes.
+
+For the ordinary reviewed-capture Scene, the trace sequence is application to
+Provenance emotional preflight, application to Muse draft, application to
+Provenance candidate review, deterministic Memory & Policy processing, and
+release. An `apply_boundary` preflight terminates before Muse exactly as
+specified in Section 4.1. These are application-mediated transitions, not
+agent-selected delegation.
 
 ## 9. Recursive self-improvement
 

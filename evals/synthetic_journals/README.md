@@ -31,14 +31,30 @@ Replay the validated capture-only package through the production Muse path:
 
 The runner creates a fresh temporary memory store and a unique evaluation
 account, enables capture through the server-owned Memory & Policy Service, and
-sends exactly one Line in a fresh session for each Scene. It records observed
-replies, release decisions, capture metadata, committed synthetic text, and the
-versioned static prompt fingerprints for the evaluated runtime. Fingerprints
-never include Lines, replies, evidence, or other runtime content.
+sends exactly one Line in a fresh session for each Scene. The output is a
+content-bearing evaluation artifact: it records the synthetic Line, exact
+agent input, model-visible messages and instructions, typed output, tool calls
+and results, usage, observed reply, release and capture decisions, committed
+synthetic text, and matching Logfire trace and span IDs. Do not use this runner
+with live user traffic.
+
+The command sends the same validated synthetic run to the existing Logfire
+project as service `linger-evals`, environment `synthetic-evaluation`. Pydantic
+Evals creates one native case per Scene, including synthetic input, proposed
+expected output, compact actual output, and a `proposal_comparison` label.
+Content-bearing Pydantic AI spans provide Logfire's LLM panels with ordered
+messages, model responses, tool calls, tokens, and cost. The surrounding
+application spans retain fixed agent and hand-off metadata. Normal
+`linger-backend` traffic remains metadata-only.
+
+Runtime prompt fingerprints and a prompt-set system variant identify the
+evaluated static artifacts. The JSON artifact remains the durable, complete
+evaluation record; Logfire is the interactive inspection and comparison view.
 Emotional-boundary observations also record whether the fixed response came
 from the no-tool preflight or the downstream candidate-review fallback.
-The Backstory and proposed Ground truth never enter Muse, and the runner does
-not grade or adopt the proposals.
+The Backstory and proposed Ground truth never enter Muse. The runner compares
+observed capture labels with authoring proposals, but reports only
+`matches_proposal` or `differs_from_proposal`; it does not grade or adopt them.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene
