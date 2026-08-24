@@ -1,4 +1,5 @@
 import type { ChatResult } from '../types'
+import { formatMachineLabel } from './formatMachineLabel'
 
 type Props = {
   timeline: ChatResult[]
@@ -51,6 +52,33 @@ function decisionSummary(turn: ChatResult) {
   return 'Muse handled this as a direct reflection without a connection search.'
 }
 
+function releaseLabel(turn: ChatResult) {
+  switch (turn.inspection.release?.release_source) {
+    case 'application_safe_decline':
+      return 'Safe decline released'
+    case 'application_emotional_boundary':
+      return 'Emotional boundary released'
+    default:
+      return 'Reply complete'
+  }
+}
+
+function releaseDecisionSummary(turn: ChatResult) {
+  const source = turn.inspection.release?.release_source
+  if (source === 'muse_candidate') {
+    return `Provenance approved the Muse candidate (${turn.inspection.release?.provenance_verdicts.join(' → ')}).`
+  }
+  if (source === 'application_emotional_boundary') {
+    return turn.inspection.release?.boundary_origin === 'preflight'
+      ? 'The no-tool preflight required the fixed application-owned emotional boundary.'
+      : 'Candidate review caught a preflight miss, withheld the Muse candidate, and required the fixed application-owned emotional boundary.'
+  }
+  if (turn.inspection.release?.failure_stage === 'emotional_boundary_preflight') {
+    return 'The emotional-boundary preflight failed, so Muse was skipped and the application supplied a safe decline.'
+  }
+  return 'The Muse candidate was withheld and the application supplied a safe decline.'
+}
+
 function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
   const decline = turn.inspection.connection_decline
   if (!decline) return null
@@ -58,7 +86,7 @@ function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
     <section className="connection-decision declined">
       <p className="eyebrow">Connection contract</p>
       <h4>Serendipity declined to surface a connection</h4>
-      <p className="muted">Reason: {decline.reason.replaceAll('_', ' ')}</p>
+      <p className="muted">Reason: {formatMachineLabel(decline.reason)}</p>
       {decline.failure_code && <p className="muted">Failure: connection discovery failed closed.</p>}
     </section>
   )
@@ -73,10 +101,10 @@ export function Inspector({ timeline }: Props) {
         <p>
           Each card is one message and its resulting reply. Books are optional context: a confirmed reading
           boundary enables spoiler-safe book retrieval, while reflection and permitted public-web connections
-          can proceed without one. Muse is the only agent that writes to the reader; Inspect exposes only
-          approved contracts and fixed metadata for withheld connection attempts.
+          can proceed without one. Muse drafts ordinary candidates; the application owns fixed boundary and
+          safe-decline responses. Inspect exposes only approved contracts and fixed outcome metadata.
         </p>
-        <p className="process-key">Reader message → source grants → Muse → optional Serendipity handoff → Provenance release decision</p>
+        <p className="process-key">Reader message → no-tool boundary preflight → source grants → Muse → optional Serendipity handoff → Provenance release decision</p>
       </div>
 
       <section className="process-timeline" aria-label="Turn-by-turn processing timeline">
@@ -99,7 +127,7 @@ export function Inspector({ timeline }: Props) {
                       <span className="eyebrow">Reader message {String(index + 1).padStart(2, '0')}</span>
                       <strong>{turn.inspection.muse_turn.user_message}</strong>
                       <span>{boundarySummary(turn)}</span>
-                      <small>{turn.inspection.release?.release_source === 'application_safe_decline' ? 'Safe decline released' : 'Reply complete'}</small>
+                      <small>{releaseLabel(turn)}</small>
                     </span>
                     <span className="event-toggle" aria-hidden="true" />
                   </summary>
@@ -118,7 +146,7 @@ export function Inspector({ timeline }: Props) {
                         <ul className="agent-traces">
                           {turn.inspection.traces.map((trace, traceIndex) => (
                             <li key={`${trace.agent}-${traceIndex}`}>
-                              <b>{trace.agent}</b><span className={`trace-status ${trace.status}`}>{trace.status.replace('_', ' ')}</span><span>{trace.detail}</span>
+                              <b>{trace.agent}</b><span className={`trace-status ${trace.status}`}>{formatMachineLabel(trace.status)}</span><span>{trace.detail}</span>
                             </li>
                           ))}
                         </ul>
@@ -134,8 +162,8 @@ export function Inspector({ timeline }: Props) {
                       <pre>{JSON.stringify(turn.inspection.context_resolution, null, 2)}</pre>
                     </details>
                     <details className="raw-detail">
-                      <summary>View Muse dynamic input</summary>
-                      <p className="muted">This is the request-scoped JSON contract passed to Muse.</p>
+                      <summary>View assembled Muse dynamic input</summary>
+                      <p className="muted">This request-scoped JSON contract is passed to Muse only when the preflight allows reflection to continue.</p>
                       <pre>{turn.inspection.prompt}</pre>
                     </details>
                     {turn.inspection.librarian_grounding.length > 0 && (
@@ -152,11 +180,9 @@ export function Inspector({ timeline }: Props) {
                       <section>
                         <h4>Release decision</h4>
                         <p>
-                          {turn.inspection.release.release_source === 'muse_candidate'
-                            ? `Provenance approved the Muse candidate (${turn.inspection.release.provenance_verdicts.join(' → ')}).`
-                            : 'The Muse candidate was withheld and the application supplied a safe decline.'}
+                          {releaseDecisionSummary(turn)}
                         </p>
-                        {turn.inspection.release.failure_stage && <p className="muted">Failure stage: {turn.inspection.release.failure_stage.replace('_', ' ')}</p>}
+                        {turn.inspection.release.failure_stage && <p className="muted">Failure stage: {formatMachineLabel(turn.inspection.release.failure_stage)}</p>}
                       </section>
                     )}
                     <section>
@@ -172,7 +198,7 @@ export function Inspector({ timeline }: Props) {
       </section>
 
       <p className="inspection-note">
-        Inspect records the request contract, direct Librarian grounding, release decision, and fixed Serendipity outcome metadata. Muse is the only agent that writes to the reader.
+        Inspect records the request contract, direct Librarian grounding, release decision, and fixed Serendipity outcome metadata. Muse drafts ordinary replies; fixed policy responses are application-owned.
       </p>
     </section>
   )

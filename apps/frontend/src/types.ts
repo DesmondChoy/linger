@@ -27,6 +27,14 @@ export type MuseTurnContract = {
     allow_retrieval: boolean
     allow_connection: boolean
     allow_memory_capture: boolean
+    emotional_content: {
+      version: '1'
+      boundary_response_id: 'distressing_disclosure_v1'
+      prohibit_diagnosis: true
+      stop_probing_after_distress: true
+      suppress_tools: true
+      suppress_capture: true
+    }
   }
 }
 
@@ -53,22 +61,24 @@ export type RiskCode =
   | 'uncited_web_claim'
   | 'unsupported_claim'
   | 'sensitive_content'
+  | 'emotional_policy_violation'
   | 'prompt_injection'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'
   provenance_decision: 'allow_capture' | 'reject_capture' | 'no_candidate' | null
   binding: 'exact' | 'not_applicable' | 'invalid'
-  storage: 'committed' | 'refused' | 'not_applicable'
+  storage: 'committed' | 'refused' | 'suppressed' | 'not_applicable'
   reason_code: string | null
 }
 
 export type ReleaseInspection = {
-  release_source: 'muse_candidate' | 'application_safe_decline'
+  release_source: 'muse_candidate' | 'application_emotional_boundary' | 'application_safe_decline'
+  boundary_origin: 'preflight' | 'candidate_review' | null
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
   finding_codes: RiskCode[]
   revision_count: number
-  failure_stage: 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
+  failure_stage: 'emotional_boundary_preflight' | 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
   capture: CaptureInspection
 }
 
