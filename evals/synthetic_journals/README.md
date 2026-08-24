@@ -32,7 +32,11 @@ Replay the validated capture-only package through the production Muse path:
 The runner creates a fresh temporary memory store and a unique evaluation
 account, enables capture through the server-owned Memory & Policy Service, and
 sends exactly one Line in a fresh session for each Scene. It records observed
-replies, release decisions, capture metadata, and committed synthetic text.
+replies, release decisions, capture metadata, committed synthetic text, and the
+versioned static prompt fingerprints for the evaluated runtime. Fingerprints
+never include Lines, replies, evidence, or other runtime content.
+Emotional-boundary observations also record whether the fixed response came
+from the no-tool preflight or the downstream candidate-review fallback.
 The Backstory and proposed Ground truth never enter Muse, and the runner does
 not grade or adopt the proposals.
 

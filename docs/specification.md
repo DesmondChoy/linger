@@ -98,7 +98,7 @@ The system contains five reasoning agents and one deterministic service:
 | **Librarian** | Infers request-scoped reading boundaries by cross-referencing authorised memories with the complete corpus, then plans, executes, fuses, and reranks evidence retrieval within the inferred ceiling. | None |
 | **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summary or formatting updates, duplicate links, and topic groups while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
-| **Provenance** | Semantically reviews every complete Muse candidate response and passes, requests one revision, or rejects it based on evidence, attribution, privacy, spoiler, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
+| **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. Candidate review passes, requests one revision, or rejects based on evidence, attribution, privacy, spoiler, emotional-policy, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
 | **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture policy, access, storage, idempotency, and review. It accepts automatic candidates only after the required review. | Commits validated writes |
 
 The Memory & Policy Service derives account identity from authenticated request
@@ -119,19 +119,29 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
-| **Provenance** | No tools. It reviews only the complete candidate, supplied evidence, and policy constraints. | Pydantic AI typed input and output contracts |
+| **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. | Pydantic AI typed input and output contracts |
 
 Exa is the sole general web-search integration for the prototype. Install the `pydantic-ai-harness[exa]` extra and register `ExaSearch()` in Serendipity's `capabilities`; do not implement an Exa client or web-search tool locally. The older `exa_search_tool`, related Exa common tools, and `ExaToolset` are deprecated and must not be introduced. Exa results remain untrusted evidence and are still subject to Sections 6.4 and 6.5. This allocation does not authorise browser control, arbitrary URL fetching, shell access, or any external action excluded by Section 3.
 
-Agents are logical roles, not necessarily separate models or processes. Muse handles the main interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed; Provenance runs for every Muse candidate response.
+Agents are logical roles, not necessarily separate models or processes. Muse handles ordinary interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed. Provenance runs the request-local emotional-boundary preflight for every Line and the release review for every Muse candidate.
 
 The five roles separate conversation and optional memory nomination, retrieval, post-capture memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, capture, writes, and output release.
 
-Each hand-off carries only the candidate response, optional memory candidate, claims, evidence identifiers, confidence, and policy flags required by the next step. Full transcripts and unrestricted working context are not passed between agents.
+Each hand-off uses a strict, discriminated envelope and carries only the fields required by the next step. Muse receives either a draft envelope or one revision envelope that preserves the same turn and context authority. Full transcripts and unrestricted working context are not passed between agents.
 
-Provenance is a separate model call that shares no working context with the other agents. It receives the complete candidate response, any optional `MemoryCandidate`, the cited evidence, and the applicable policy constraints — nothing else, and no write tools. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
+Provenance shares no model working context with the other agents and has no tools. The preflight receives only the current Line and the application-owned emotional-content policy. The later release gate receives one typed envelope containing trusted context, canonical book evidence, untrusted current-run tool outcomes, Muse's candidate declarations, and the current Line for emotional review and exact capture binding. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
 
 ### 4.1 Output release contract
+
+Before Muse or any Muse-accessible tool runs, Provenance classifies the current
+Line against the versioned emotional-content policy. `continue_reflection`
+enters the ordinary Muse flow. `apply_boundary` skips Muse, Librarian,
+Serendipity, ordinary candidate review, and memory nomination; application code
+releases the canonical response from Section 6.6 and records
+`application_emotional_boundary`. A preflight failure fails closed to the
+application safe decline before Muse runs. This narrow application-owned path
+does not create a Muse candidate; every candidate that Muse does produce still
+requires the ordinary Provenance gate.
 
 At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
@@ -152,13 +162,16 @@ Unsupported, ambiguous, web-backed, or otherwise unverifiable evidence fails
 closed to the application-authored safe decline. This staged contract does not
 remove the remaining target fields above.
 
-Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one revision with the draft run's tool messages and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
+Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
 ### 4.2 End-to-end flows
 
 #### 4.2.1 Reflection and grounding
 
-Muse asks Librarian for evidence only when grounding is needed, but every path produces a candidate response for Provenance review. There is no Muse-to-user bypass.
+After the emotional-boundary preflight returns `continue_reflection`, Muse asks Librarian for evidence only when grounding is needed, and every Muse path produces a candidate response for Provenance review. There is no Muse-to-user bypass. The no-Muse branches are the fixed application-owned boundary and the generic application safe decline when preflight fails, as described in Sections 4.1 and 6.6.
+
+The following diagram begins at the ordinary `continue_reflection` branch; the
+preflight and its application-owned boundary branch precede it.
 
 ![Reflection and grounding flow](images/reflection-and-grounding.png)
 
@@ -353,6 +366,8 @@ records never enter this book-citation authority and therefore fail closed.
 - Raw photographs remain transient.
 - Derived memories from photographs may be captured only while controlled capture policy is enabled.
 - Sensitive-trait content is never captured automatically.
+- An application-authored safe decline never commits automatic memory or produces a save notice, even when the proposed memory was independently approved.
+- The preflight emotional boundary creates no nomination. Every emotional-boundary release suppresses writes and save notices.
 - Logs and telemetry follow the canonical [telemetry data contract](telemetry.md).
 
 ### 6.4 Untrusted content and privacy
@@ -369,13 +384,43 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - evidence crosses account boundaries;
 - a factual web claim lacks a retrievable citation;
 - the candidate contains an unsupported claim or sensitive inference;
+- the candidate violates the emotional-content policy; or
 - retrieved content attempts to redirect agent behaviour.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
 
 ### 6.6 Emotional content
 
-Muse is a reflection companion, not a wellbeing tool. It does not diagnose or label mental state and stops reflective probing after a distressing disclosure. It uses a fixed boundary response encouraging appropriate human support; crisis assessment and resource routing remain out of scope.
+Linger is a reflection companion, not a wellbeing tool. It never diagnoses or
+labels a person's mental state. A distressing disclosure is a current,
+first-person Line that communicates intense distress or inability to cope such
+that continued reflective questioning would be inappropriate. Ordinary
+disappointment, frustration, uncertainty, literary discussion, or concern about
+someone else does not trigger this boundary by itself. This is a request-local
+interaction boundary, not a diagnosis, severity score, or crisis assessment.
+
+Before Muse runs, the no-tool Provenance preflight evaluates only the current
+Line and the versioned emotional-content policy. For a distressing disclosure,
+the application stops the ordinary reflection path and returns exactly:
+
+> That sounds deeply distressing. I don’t want to keep probing, and I’m not able
+> to assess your wellbeing. Please consider reaching out to someone you trust or
+> a qualified professional for support.
+
+On this path Muse, Librarian, and Serendipity do not run. No candidate, evidence
+declaration, or memory nomination exists. Inspection records
+`application_emotional_boundary` and suppressed capture; no write or save notice
+occurs. A preflight failure returns the generic application safe decline and
+also skips Muse and its tools. The ordinary Muse prompt and candidate Provenance
+gate remain defence in depth: Muse must not diagnose or continue probing, and a
+missed current-Line boundary is reported through the explicit
+`emotional_boundary_decision=required` disposition and a current-Line
+`emotional_policy_violation`, so the application can substitute the canonical
+response without a revision. Inspection records whether the boundary originated
+in the preflight or the candidate review and never claims that Muse was skipped
+on the fallback path. A candidate-response-only diagnosis follows the normal
+revise-or-reject path.
+Crisis assessment and resource routing remain out of scope.
 
 ## 7. Evaluation and acceptance
 
@@ -402,7 +447,7 @@ Synthetic journal evaluation uses the following six terms. Documentation, skills
 | **Backstory** | The generated history for one person, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
 | **Prop** | A generated memory record pre-positioned in Linger's storage and available to the evaluation before a scene runs. Each prop belongs to the backstory's person and evaluation account. When lines are fed to Muse, a prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
 | **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
-| **Line** | One generated user input that is sent to Muse within a scene. Most scenes contain one line; some contain an ordered sequence of lines. |
+| **Line** | One generated user input sent to Linger's production chat boundary within a scene. Most scenes contain one line; some contain an ordered sequence of lines. A policy preflight may stop a line before Muse. |
 | **Ground truth** | The answer-key data for a scene: intended relationships, expected outcomes, permitted evidence identifiers, exact spans, and failure conditions. The generator writes **proposed Ground truth** in a separate authoring manifest while creating the content. Deterministic validation checks objective facts, then an independent reviewer adopts, revises, or rejects the proposal. Only **adopted Ground truth** is canonical for grading. Neither state is exposed to the running system. |
 
 The vocabulary encodes these boundaries:
@@ -424,7 +469,7 @@ Prop and Line may refer naturally to events the person has already discussed;
 the corresponding corpus position becomes Ground truth for grading Librarian's
 boundary inference. Memory-only Backstories do not inspect or depend on the book corpus.
 
-Everything after a line is handed to Muse — routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
+Everything after a Line enters the production chat boundary — preflight, routing, agent hand-offs, telemetry — uses the architecture vocabulary in Sections 4–6 and the [telemetry data contract](telemetry.md), not this vocabulary.
 
 #### 7.2.2 Objective selection and downstream boundary
 
@@ -457,7 +502,9 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI for the application API and deterministic orchestration. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
-Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
+Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Every model invocation records its template-specific version and a SHA-256 digest of the canonical static instructions and input/output contract identities; the digest excludes runtime content. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
+
+Failure ownership is explicit. Exceptions from an agent invocation are model failures. Deterministic envelope, candidate-output, review-output, finding-location, and release checks are non-retryable validation failures. Instrumentation projection defects are non-retryable application failures. All failure paths record fixed metadata without exception text.
 
 ### 8.1 Agent telemetry and debugging
 

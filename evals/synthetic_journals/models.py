@@ -81,7 +81,7 @@ class Prop(StrictModel):
 
 
 class Line(StrictModel):
-    """One ordered user input sent to Muse."""
+    """One ordered user input sent through the production chat boundary."""
 
     line_id: Identifier
     scene_id: Identifier

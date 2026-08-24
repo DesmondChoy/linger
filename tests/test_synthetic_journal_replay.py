@@ -23,7 +23,11 @@ from apps.backend.schemas import (
 )
 from evals.synthetic_journals.models import CaptureCandidate
 from evals.synthetic_journals.replay import main as replay_main
-from evals.synthetic_journals.replay import replay_capture_scenes
+from evals.synthetic_journals.replay import (
+    RUNTIME_PROMPT_FINGERPRINTS,
+    SceneObservation,
+    replay_capture_scenes,
+)
 from evals.synthetic_journals.validate_package import validate_package_files
 from src.linger.agents.muse.models import (
     MemoryCandidate,
@@ -31,6 +35,7 @@ from src.linger.agents.muse.models import (
     NoMemoryCandidate,
 )
 from src.linger.agents.provenance.models import ProvenanceReview
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -80,6 +85,29 @@ def _no_capture_response() -> ChatResponse:
     )
 
 
+def test_scene_observation_requires_boundary_origin_for_boundary_release() -> None:
+    capture = CaptureInspection(
+        nomination="unavailable",
+        provenance_decision=None,
+        binding="not_applicable",
+        storage="suppressed",
+        reason_code="emotional_boundary_capture_suppressed",
+    )
+    with pytest.raises(ValueError, match="boundary_origin"):
+        SceneObservation(
+            scene_id="scene",
+            line_id="line",
+            session_id="session",
+            turn_id="turn",
+            reply="boundary",
+            release_source="application_emotional_boundary",
+            boundary_origin=None,
+            capture=capture,
+            memory_id=None,
+            stored_text=None,
+        )
+
+
 def test_replay_isolates_account_store_sessions_and_turns() -> None:
     content, _ = validate_package_files(CONTENT_PATH, MANIFEST_PATH)
     requests: list[ChatRequest] = []
@@ -114,6 +142,11 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
     assert all(not path.exists() for path in store_roots)
     assert all(not sessions.history(item.session_id) for item in requests)
     assert result.capture_enabled is True
+    assert result.runtime_prompt_fingerprints == RUNTIME_PROMPT_FINGERPRINTS
+    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == len(
+        RUNTIME_PROMPT_FINGERPRINTS
+    )
+    assert all(len(item.digest) == 64 for item in RUNTIME_PROMPT_FINGERPRINTS)
     assert result.evaluation_account_id != content.backstory.evaluation_account_id
     assert result.final_active_memory_ids == ()
 
@@ -123,6 +156,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
     assert content.backstory.context not in serialized_requests
     assert "expected_outcomes" not in serialized_requests
     assert "prohibited_outcomes" not in serialized_requests
+    assert "runtime_prompt_fingerprints" not in content.model_dump(mode="json")
 
 
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
@@ -194,7 +228,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
 
     async def provenance_run(prompt: str, **_: object) -> SimpleNamespace:
         payload = json.loads(prompt)
-        proposal = proposals[scenes_by_text[payload["capture_source_text"]]]
+        proposal = proposals[scenes_by_text[payload["current_line"]["text"]]]
         decision = (
             "allow_capture"
             if isinstance(proposal.capture, CaptureCandidate)
@@ -204,6 +238,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
             ProvenanceReview(
                 findings=(),
                 response_decision="pass",
+                emotional_boundary_decision="not_required",
                 capture_decision=decision,
             )
         )
@@ -223,7 +258,12 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
             muse.run.side_effect = muse_run
             provenance = AsyncMock()
             provenance.run.side_effect = provenance_run
+            boundary = AsyncMock()
+            boundary.return_value = EmotionalBoundaryAssessment(
+                decision="continue_reflection"
+            )
             with (
+                patch.object(main, "assess_emotional_boundary", boundary),
                 patch.object(main, "muse_chat_agent", muse),
                 patch.object(main, "provenance_agent", provenance),
             ):
@@ -245,9 +285,11 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
     assert len(committed) == 1
     assert committed[0].stored_text == expected_span.text
     assert len(result.final_active_memory_ids) == 1
+    assert all(scene.boundary_origin is None for scene in result.scenes)
     assert all(history == [] for history in histories)
 
     serialized_payloads = json.dumps(muse_payloads)
     assert content.backstory.context not in serialized_payloads
     assert "expected_outcomes" not in serialized_payloads
     assert "prohibited_outcomes" not in serialized_payloads
+    assert "runtime_prompt_fingerprints" not in manifest.model_dump(mode="json")

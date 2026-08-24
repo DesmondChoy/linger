@@ -33,16 +33,20 @@ test are updated together.
 |---|---|
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
-| Agent and model | Agent role and stage; provider and model; prompt-template ID and version; success, decline, or failure; retry count; latency; tokens; cost |
+| Agent and model | Agent role and stage; provider and model; prompt-template ID, version, and static artifact digest; success, decline, or failure; retry count; latency; tokens; cost |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome |
-| Review and release | Provenance response and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source |
-| Failure | Fixed failure stage and code; retryability; coarse application-owned type |
+| Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
+| Failure | Fixed failure stage and code; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Case ID, dataset version, run ID, system variant, expected and actual fixed labels, pass/fail and aggregate metrics, latency, tokens, and cost |
 
 Values must be fixed enums, booleans, numbers, repository versions,
 server-generated correlation IDs, or identifiers validated against an
 application-owned public registry. Route values must be templates such as
 `/api/sessions/{session_id}`, never resolved paths.
+
+The prompt digest covers only canonical static instructions and input/output
+contract identities. It never covers a composed prompt, user input, retrieved
+evidence, or other runtime content.
 
 ## 3. What Logfire does not record
 
@@ -77,8 +81,12 @@ The contract is enforced by construction:
 2. Request spans use fixed route templates and never inspect bodies, headers,
    raw URLs, query strings, or resolved path values.
 3. Application-authored attributes come only from typed allowlist projections.
-4. Failures map to fixed stages and codes instead of recording exception
-   objects or messages.
+4. Failures map to fixed stages, codes, owner types, and retryability instead of
+   recording exception objects or messages. Exceptions from an agent invocation
+   are model failures. Deterministic envelope, output, and finding-location
+   checks are non-retryable validation failures; instrumentation projection
+   defects are non-retryable application failures and do not interrupt the
+   agent result they were describing.
 5. Exported-payload tests inject distinctive secret markers into every
    prohibited source and assert that no span, log, event, or resource attribute
    contains them.

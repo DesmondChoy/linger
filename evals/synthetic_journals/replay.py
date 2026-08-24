@@ -8,17 +8,49 @@ import sys
 import tempfile
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 from uuid import uuid4
+
+from pydantic import model_validator
 
 from apps.backend import sessions
 from apps.backend.schemas import CaptureInspection, ChatRequest, ChatResponse
+from src.linger.agents.contracts import PromptFingerprint
+from src.linger.agents.librarian.prompt import (
+    PROMPT_FINGERPRINT as LIBRARIAN_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.muse.prompt import (
+    DRAFT_PROMPT_FINGERPRINT,
+    REVISION_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.provenance.emotional_prompt import (
+    EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.provenance.prompt import (
+    PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.sculptor.prompt import (
+    PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.serendipity.prompt import (
+    PROMPT_FINGERPRINT as SERENDIPITY_PROMPT_FINGERPRINT,
+)
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 from .models import StrictModel, SyntheticContent
 from .validate_package import PackageValidationError, validate_package_files
 
 CAPTURE_OBJECTIVE_ID = "reviewed_automatic_memory_capture"
+
+RUNTIME_PROMPT_FINGERPRINTS = (
+    LIBRARIAN_PROMPT_FINGERPRINT,
+    DRAFT_PROMPT_FINGERPRINT,
+    REVISION_PROMPT_FINGERPRINT,
+    EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT,
+    PROVENANCE_PROMPT_FINGERPRINT,
+    SCULPTOR_PROMPT_FINGERPRINT,
+    SERENDIPITY_PROMPT_FINGERPRINT,
+)
 
 ChatHandler = Callable[
     [ChatRequest, MemoryPolicyService, AccountContext],
@@ -34,10 +66,24 @@ class SceneObservation(StrictModel):
     session_id: str
     turn_id: str
     reply: str
-    release_source: Literal["muse_candidate", "application_safe_decline"]
+    release_source: Literal[
+        "muse_candidate",
+        "application_emotional_boundary",
+        "application_safe_decline",
+    ]
+    boundary_origin: Literal["preflight", "candidate_review"] | None
     capture: CaptureInspection
     memory_id: str | None
     stored_text: str | None
+
+    @model_validator(mode="after")
+    def validate_boundary_origin(self) -> Self:
+        is_boundary = self.release_source == "application_emotional_boundary"
+        if is_boundary != (self.boundary_origin is not None):
+            raise ValueError(
+                "boundary_origin is required only for an emotional-boundary release"
+            )
+        return self
 
 
 class EvaluationRun(StrictModel):
@@ -47,6 +93,7 @@ class EvaluationRun(StrictModel):
     objective_id: Literal["reviewed_automatic_memory_capture"]
     evaluation_account_id: str
     capture_enabled: Literal[True]
+    runtime_prompt_fingerprints: tuple[PromptFingerprint, ...]
     scenes: tuple[SceneObservation, ...]
     final_active_memory_ids: tuple[str, ...]
 
@@ -116,6 +163,7 @@ async def replay_capture_scenes(
                     turn_id=turn_id,
                     reply=response.reply,
                     release_source=release.release_source,
+                    boundary_origin=release.boundary_origin,
                     capture=release.capture,
                     memory_id=record.memory_id if record else None,
                     stored_text=record.text if record else None,
@@ -131,6 +179,7 @@ async def replay_capture_scenes(
         objective_id=CAPTURE_OBJECTIVE_ID,
         evaluation_account_id=account.account_id,
         capture_enabled=True,
+        runtime_prompt_fingerprints=RUNTIME_PROMPT_FINGERPRINTS,
         scenes=tuple(observations),
         final_active_memory_ids=active_ids,
     )
