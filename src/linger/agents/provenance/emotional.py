@@ -14,6 +14,7 @@ def build_emotional_boundary_agent(
     """Build the independent preflight with typed output and no tools."""
     return Agent[None, EmotionalBoundaryAssessment](
         model if model is not None else build_model(),
+        name="Provenance",
         output_type=EmotionalBoundaryAssessment,
         instructions=INSTRUCTIONS,
     )

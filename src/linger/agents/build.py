@@ -64,6 +64,7 @@ def build_agent(
     instructions: str,
     *,
     output_type: None = None,
+    name: str | None = None,
     tools: Sequence[Tool[None]] = (),
     retries: int | AgentRetries | None = None,
 ) -> Agent[None, str]: ...
@@ -74,6 +75,7 @@ def build_agent(
     instructions: str,
     *,
     output_type: type[OutputT],
+    name: str | None = None,
     tools: Sequence[Tool[None]] = (),
     retries: int | AgentRetries | None = None,
 ) -> Agent[None, OutputT]: ...
@@ -83,6 +85,7 @@ def build_agent(
     instructions: str,
     *,
     output_type: type[Any] | None = None,
+    name: str | None = None,
     tools: Sequence[Tool[None]] = (),
     retries: int | AgentRetries | None = None,
 ) -> Agent[None, Any]:
@@ -92,6 +95,7 @@ def build_agent(
         build_model(),
         output_type=selected_output,
         instructions=instructions,
+        name=name,
         tools=tools,
         retries=retries,
     )

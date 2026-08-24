@@ -12,6 +12,7 @@ def build_provenance_agent(model: Model | None = None) -> Agent[None, Provenance
     """Build Provenance with the shared provider model and typed outputs."""
     return Agent[None, ProvenanceReview](
         model if model is not None else build_model(),
+        name="Provenance",
         output_type=ProvenanceReview,
         instructions=INSTRUCTIONS,
     )

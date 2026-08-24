@@ -39,6 +39,8 @@ async def propose_curation(
         span_name="sculptor.curation",
         role="Sculptor",
         stage="curation",
+        input_contract="src.linger.agents.sculptor.models.AccountScopedMemories",
+        output_contract="src.linger.agents.sculptor.models.SculptorResponse",
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
         prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,

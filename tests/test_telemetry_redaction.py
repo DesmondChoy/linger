@@ -44,11 +44,13 @@ from apps.backend.telemetry import (
     review_attrs,
     run_agent_traced,
 )
+from evals.synthetic_journals.transcript import SceneTranscriptRecorder
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
     EmotionalContentPolicy,
@@ -311,17 +313,21 @@ class AgentInstrumentationTests(TelemetryTestCase):
             )
 
         agent = Agent(FunctionModel(respond), instructions=SECRET_SYSTEM)
-        await run_agent_traced(
-            agent,
-            SECRET_MESSAGE,
-            span_name="test.agent",
-            role="Muse",
-            stage="test",
-            prompt_template_id="test.prompt",
-            prompt_version="test-v1",
-            prompt_digest="0" * 64,
-            failure_code="test_model_failed",
-        )
+        recorder = SceneTranscriptRecorder()
+        with bind_evaluation_transcript_sink(recorder):
+            await run_agent_traced(
+                agent,
+                SECRET_MESSAGE,
+                span_name="test.agent",
+                role="Muse",
+                stage="test",
+                input_contract="TestInput.v1",
+                output_contract="TestOutput.v1",
+                prompt_template_id="test.prompt",
+                prompt_version="test-v1",
+                prompt_digest="0" * 64,
+                failure_code="test_model_failed",
+            )
 
         payload = self.exported_payload()
         self.assertNotIn(SECRET_SYSTEM, payload)
@@ -333,6 +339,23 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertIn('"input_tokens": 12', payload)
         self.assertIn('"output_tokens": 4', payload)
         self.assertIn('"cost.usd": 0.0012', payload)
+        self.assertIn('"handoff.input.origin": "Application"', payload)
+        self.assertIn('"handoff.input.receiver": "Muse"', payload)
+        self.assertIn('"handoff.input.contract": "TestInput.v1"', payload)
+        self.assertIn('"handoff.output.origin": "Muse"', payload)
+        self.assertIn('"handoff.output.receiver": "Application"', payload)
+        self.assertIn('"handoff.output.contract": "TestOutput.v1"', payload)
+
+        exchange = recorder.exchanges[0]
+        self.assertEqual(SECRET_MESSAGE, exchange.input_prompt)
+        self.assertEqual("Muse", exchange.role)
+        self.assertEqual("Application", exchange.input_origin)
+        self.assertEqual("Application", exchange.output_receiver)
+        self.assertIn(SECRET_SYSTEM, json.dumps(exchange.model_messages))
+        self.assertIn(
+            "zxcas private model output zxcas",
+            json.dumps(exchange.model_messages),
+        )
 
     async def test_explicit_agent_span_maps_failure_without_exception(self) -> None:
         def fail(_messages, _info):
@@ -346,6 +369,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 span_name="test.agent",
                 role="Muse",
                 stage="test",
+                input_contract="TestInput.v1",
+                output_contract="TestOutput.v1",
                 prompt_template_id="test.prompt",
                 prompt_version="test-v1",
                 prompt_digest="0" * 64,
@@ -372,6 +397,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
             span_name="test.agent",
             role="Muse",
             stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
             prompt_template_id="test.prompt",
             prompt_version="test-v1",
             prompt_digest="0" * 64,
@@ -398,6 +425,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 span_name="test.agent",
                 role="Muse",
                 stage="test",
+                input_contract="TestInput.v1",
+                output_contract="TestOutput.v1",
                 prompt_template_id="test.prompt",
                 prompt_version="test-v1",
                 prompt_digest="0" * 64,

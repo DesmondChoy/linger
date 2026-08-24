@@ -55,6 +55,7 @@ def build_serendipity_agent(
     """Build Serendipity with bounded internal search and typed outputs."""
     agent = Agent[SerendipityDependencies, SerendipityResponse](
         model if model is not None else build_model(),
+        name="Serendipity",
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline],
         instructions=INSTRUCTIONS,

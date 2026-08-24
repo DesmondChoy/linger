@@ -38,6 +38,10 @@ async def judge_evidence_strength(
         span_name="librarian.evidence_strength",
         role="Librarian",
         stage="evidence_strength",
+        input_contract="LibrarianEvidenceStrengthInput.v1",
+        output_contract=(
+            "src.linger.agents.librarian.models.EvidenceStrengthDecision"
+        ),
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
         prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,

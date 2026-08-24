@@ -16,6 +16,7 @@ def build_sculptor_agent(model: Model | None = None) -> Agent[None, SculptorResp
     """Build Sculptor with the shared provider model and typed outputs."""
     return Agent[None, SculptorResponse](
         model if model is not None else build_model(),
+        name="Sculptor",
         output_type=[CurationProposal, NoCurationProposal],
         instructions=INSTRUCTIONS,
     )

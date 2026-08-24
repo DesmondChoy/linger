@@ -17,6 +17,7 @@ from src.linger.orchestration.turn_context import turn_evidence
 
 muse_chat_agent = build_agent(
     INSTRUCTIONS,
+    name="Muse",
     output_type=MuseCandidate,
     tools=[Tool(librarian_search), Tool(serendipity_explore, sequential=True)],
     retries={"tools": 1, "output": 3},

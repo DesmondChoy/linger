@@ -36,6 +36,10 @@ async def assess_emotional_boundary(
         span_name="provenance.emotional_boundary",
         role="Provenance",
         stage="emotional_boundary_preflight",
+        input_contract="src.linger.contracts.emotional.EmotionalBoundaryInput",
+        output_contract=(
+            "src.linger.contracts.emotional.EmotionalBoundaryAssessment"
+        ),
         prompt_template_id=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.template_id,
         prompt_version=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.version,
         prompt_digest=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.digest,
