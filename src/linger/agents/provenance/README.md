@@ -74,6 +74,40 @@ absolute sensitive-content capture veto:
 capture. `contains_sensitive_content` is derived from capture findings rather
 than set independently, so it cannot contradict the capture decision.
 
+Decisions:
+1. Memory interaction pattern: Message passing (only final message passed in from Muse)
+2. Memory types used: Episodic (past task outcomes from other agents) + Procedural (main prompt, relevant policies)
+3. Type of agent: Combine basic reasoning + tool-use (simple tools e.g., to determine which risks we need to pay attention to based off which Provenance flow)
+4. Guardrails: Model-based (e.g., matching the claim against evidence)
+
+## Provenance Flows
+
+| Code | 4.2.1 Reflection & grounding | 4.2.2 Reviewed capture | 4.2.3 Connection discovery |
+|---|:-:|:-:|:-:|
+| `unresolved_evidence` | ✓ | | ✓ |
+| `misattribution` | ✓ | | ✓ |
+| `spoiler` | ✓ | | ✓ |
+| `unsupported_claim` | ✓ | ✓ | ✓ |
+| `prompt_injection` | ✓ | ✓ | ✓ |
+| `boundary_violation` | | ✓ | ✓ |
+| `uncited_web_claim` | | | ✓ |
+| `sensitive_content` | | ✓ | |
+| `emotional_policy_violation` | ✓ | | ✓ |
+
+
+### 4.2.1 — Reflection & grounding (book evidence)
+
+Book corpus is the only citation authority here, so the four evidence/attribution codes plus injection from retrieved passages. spoiler is flow-specific — it needs a chapter ceiling to violate.
+
+### 4.2.2 — Reviewed automatic capture
+
+Exactly SENSITIVE_RISK_CODES ([models.py:29](vscode-webview://1oc4b8fqen1v0dr7mdkmlc3mcoqkusqpbncpem1r8dbf0g540d47/src/linger/agents/provenance/models.py#L29)) — the set that forces reject_capture and blocks allow_capture via validator. These are the §4.2.2 veto grounds verbatim: sensitive inference, unsupported provenance, privacy, injection.
+
+### 4.2.3 — Connection discovery (Serendipity + web)
+
+The only flow that can reach web evidence and cross-source memory, so the only flow where these two can fire. unsupported_claim carries the heaviest load — tentative connections overclaim by nature.
+
+
 ## Where its authority ends
 
 Provenance is the semantic boundary only, and it is never the last check.
