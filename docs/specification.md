@@ -471,6 +471,11 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. One capture-only package and its production-path Scene replay are implemented; reusable generation, independent adoption tooling, dataset freezing, and replay for other Objectives remain downstream decisions.
 
+The Objective governs the generated package. The diagram follows its Props and
+Lines through production replay and the Ground truth lifecycle used for grading.
+
+![Canonical evaluation vocabulary](images/canonical-evaluation-vocabulary.png)
+
 | Term | Definition |
 |---|---|
 | **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
