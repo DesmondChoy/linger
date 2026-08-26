@@ -38,8 +38,15 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
         "decisions_not_adopted"
     ]
     assert document["developer_workflow"]["handoff_boundary"]["downstream_workflow"] == (
-        "ground_truth_lifecycle_defined_other_stages_intentionally_undefined"
+        "independent_review_and_supported_replay_defined_"
+        "other_stages_intentionally_undefined"
     )
+    assert document["developer_workflow"]["handoff_boundary"][
+        "supported_replay_objectives"
+    ] == [
+        "reviewed_automatic_memory_capture",
+        "bounded_memory_curation",
+    ]
     assert set(document["ground_truth_lifecycle"]) == {
         "generation",
         "deterministic_validation",

@@ -87,9 +87,14 @@ developer_workflow:
     allowed_output: implementation_oriented_markdown_report_for_human_review
     report_is_generator_input: false
     dataset_generation_authorized: false
-    downstream_workflow: ground_truth_lifecycle_defined_other_stages_intentionally_undefined
+    downstream_workflow: independent_review_and_supported_replay_defined_other_stages_intentionally_undefined
     package_contract: evals/synthetic_journals/models.py
     package_validator: evals/synthetic_journals/validate_package.py
+    ground_truth_reviewer: .agents/skills/review-synthetic-ground-truth/SKILL.md
+    adoption_validator: evals/synthetic_journals/adoption.py
+    supported_replay_objectives:
+      - reviewed_automatic_memory_capture
+      - bounded_memory_curation
     run_configuration_directory: synthetic-journal-evaluation/run-configurations
     report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true
@@ -98,11 +103,9 @@ developer_workflow:
       - prop_generation
       - scene_composition
       - line_generation
-      - ground_truth_review_ownership
-      - ground_truth_adoption_tooling
       - full_dataset_assembly_and_layout
       - freezing
-      - replay
+      - unsupported_objective_replay
 
 selection_constraints:
   untrusted_content_injection_resistance:
@@ -471,7 +474,8 @@ evaluation_objectives:
         themes, meaningful updates, noise, and scenes where no curation is useful.
       minimum_scenes:
         - An exact-duplicate pair that may be linked without deleting either source.
-        - Related records that could support a topic group or derived summary.
+        - Several notes that update or refine one evolving fact and should support a derived summary.
+        - Related notes that remain separate facts worth preserving individually and should support a topic group.
         - A noisy or unrelated group of props for which no curation proposal is appropriate.
       generation_requirements:
         - Build a coherent history that produces several independently useful reflections.

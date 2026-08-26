@@ -139,7 +139,7 @@ case
   -> provenance.emotional_boundary -> Provenance run -> model call
   -> muse.draft -> Muse run -> model call
   -> provenance.review -> Provenance run -> model call
-  -> proposal_comparison evaluator
+  -> proposal_comparison or adopted_hard_gate_grade evaluator
 ```
 
 If emotional preflight returns `apply_boundary`, the trace stops before Muse
@@ -148,6 +148,12 @@ receives a discriminated draft envelope whose `muse_turn.user_message` contains
 the synthetic Line, and Provenance later receives a separate candidate-review
 envelope. A revision adds another Muse and Provenance cycle within the same
 case.
+
+Proposal mode emits `proposal_comparison` with `matches_proposal` or
+`differs_from_proposal`. When the exact package has a validated independent
+adoption, the same case position emits `adopted_hard_gate_grade` with
+`passes_hard_gates` or `fails_hard_gates` and uses the adopted Ground truth
+identity as the dataset version.
 
 The application-owned parent spans carry
 `handoff.input.origin`, `handoff.input.receiver`,

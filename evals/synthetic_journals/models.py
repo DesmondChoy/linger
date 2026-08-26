@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Literal, Self
 
 from pydantic import (
@@ -12,6 +13,8 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
+
+from evals.sculptor.harness import CurationExpectation
 
 
 def _reject_blank(value: str) -> str:
@@ -429,6 +432,7 @@ class GroundTruthProposal(StrictModel):
     prop_relevance: tuple[PropRelevanceJudgment, ...] = ()
     pairing: ScenePairing | None = None
     capture: CaptureExpectation | None = None
+    curation: CurationExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:
@@ -461,6 +465,52 @@ class ProposedGroundTruth(StrictModel):
             for proposal in self.proposals
         )
         _require_unique("GroundTruthProposal Scene/Objective pairs", keys)
+        return self
+
+
+class HumanGroundTruthReviewer(StrictModel):
+    """The human developer who independently reviewed proposed Ground truth."""
+
+    reviewer_id: Text
+    reviewer_kind: Literal["human_developer"] = "human_developer"
+    review_method: Literal["interactive_local_review"] = (
+        "interactive_local_review"
+    )
+
+
+class AdoptedProposalDecision(StrictModel):
+    """One human adoption decision bound to one generated proposal."""
+
+    proposal_id: Identifier
+    scene_id: Identifier
+    objective_id: Identifier
+    decision: Literal["adopted"] = "adopted"
+
+
+class GroundTruthAdoption(StrictModel):
+    """Independent human adoption of one exact proposed Ground truth file."""
+
+    backstory_sha256: Sha256
+    proposed_ground_truth_sha256: Sha256
+    ground_truth_status: Literal["adopted"] = "adopted"
+    reviewer: HumanGroundTruthReviewer
+    reviewed_at: datetime
+    decisions: tuple[AdoptedProposalDecision, ...] = Field(min_length=1)
+    adopted_ground_truth_identity: Sha256
+
+    @model_validator(mode="after")
+    def validate_decision_ids(self) -> Self:
+        _require_unique(
+            "adopted Ground truth proposal IDs",
+            tuple(decision.proposal_id for decision in self.decisions),
+        )
+        keys = tuple(
+            f"{decision.scene_id}\0{decision.objective_id}"
+            for decision in self.decisions
+        )
+        _require_unique("adopted Ground truth Scene/Objective pairs", keys)
+        if self.reviewed_at.tzinfo is None:
+            raise ValueError("reviewed_at must include a timezone")
         return self
 
 

@@ -30,6 +30,7 @@ from apps.backend.schemas import (
     TraceReference,
     TurnInspection,
 )
+from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.models import CaptureCandidate
 from evals.synthetic_journals.replay import main as replay_main
 from evals.synthetic_journals.replay import (
@@ -116,7 +117,7 @@ def test_scene_observation_requires_boundary_origin_for_boundary_release() -> No
             trace_id="0" * 32,
             expected_capture_label="no_candidate",
             actual_capture_label="unavailable",
-            label_comparison="differs_from_proposal",
+            ground_truth_result="differs_from_proposal",
             agent_exchanges=(),
             reply="boundary",
             release_source="application_emotional_boundary",
@@ -239,6 +240,38 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
     assert "expected_outcomes" not in serialized_requests
     assert "prohibited_outcomes" not in serialized_requests
     assert "runtime_prompt_fingerprints" not in content.model_dump(mode="json")
+
+
+def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    adoption = build_ground_truth_adoption(
+        ground_truth,
+        GROUND_TRUTH_PATH.read_bytes(),
+        reviewer_id="independent.developer@example.com",
+    )
+
+    async def chat_handler(
+        _request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        return _no_capture_response()
+
+    result = asyncio.run(
+        replay_capture_scenes(
+            content,
+            ground_truth,
+            adoption=adoption,
+            chat_handler=chat_handler,
+        )
+    )
+
+    assert result.ground_truth_status == "adopted"
+    assert result.dataset_version == adoption.adopted_ground_truth_identity
+    assert {scene.ground_truth_result for scene in result.scenes} == {
+        "passes_hard_gates",
+        "fails_hard_gates",
+    }
 
 
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
@@ -419,7 +452,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
     assert len(result.final_active_memory_ids) == 1
     assert all(scene.boundary_origin is None for scene in result.scenes)
     assert all(
-        scene.label_comparison == "matches_proposal" for scene in result.scenes
+        scene.ground_truth_result == "matches_proposal" for scene in result.scenes
     )
     assert all(
         [exchange.role for exchange in scene.agent_exchanges]

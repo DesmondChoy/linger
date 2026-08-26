@@ -1,0 +1,372 @@
+{
+  "backstory_sha256": "dff1ee41b15efe8fedfb9fb3d02b9302333528703002dcbaed620c4c66ab5e2c",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-exact-duplicate",
+      "scene_id": "scene-exact-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose link_duplicates using exactly prop-exact-moment-01 and prop-exact-moment-02 as source memory IDs.",
+        "Keep both original source records immutable and preserve their distinct provenance.",
+        "Return a read-only proposal without stating or implying that the duplicate link was stored."
+      ],
+      "prohibited_outcomes": [
+        "Do not delete, rewrite, merge, or replace either original source record.",
+        "Do not reference a memory ID that is not supplied in this Scene.",
+        "Do not propose a summary, topic group, or no-change response for the byte-identical memories.",
+        "Do not claim that any curation change was persisted, and do not derive any new personal fact."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-moment-01",
+          "start_codepoint": 0,
+          "end_codepoint": 51,
+          "text": "My emergency contact is my sister Maya at 555-0148."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-moment-02",
+          "start_codepoint": 0,
+          "end_codepoint": 51,
+          "text": "My emergency contact is my sister Maya at 555-0148."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-moment-01",
+          "prop_id": "prop-exact-moment-01"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-moment-02",
+          "prop_id": "prop-exact-moment-02"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-exact-moment-01",
+              "prop-exact-moment-02"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-paraphrased-duplicate",
+      "scene_id": "scene-paraphrased-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose link_duplicates using exactly prop-paraphrase-moment-01 and prop-paraphrase-moment-02 as source memory IDs.",
+        "Keep both differently worded original source records immutable and preserve their distinct provenance.",
+        "Return a read-only proposal without stating or implying that the duplicate link was stored."
+      ],
+      "prohibited_outcomes": [
+        "Do not delete, rewrite, merge, or replace either original source record.",
+        "Do not reference a memory ID that is not supplied in this Scene.",
+        "Do not reduce the shared nightly allergy-medicine routine to a mere topic association or summary update.",
+        "Do not claim that any curation change was persisted, and do not derive any new personal fact."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-moment-01",
+          "start_codepoint": 0,
+          "end_codepoint": 60,
+          "text": "I take my allergy medicine after brushing my teeth at night."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-moment-02",
+          "start_codepoint": 0,
+          "end_codepoint": 78,
+          "text": "My nightly routine is to take my allergy tablets right after I brush my teeth."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-paraphrase-moment-01",
+          "prop_id": "prop-paraphrase-moment-01"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-paraphrase-moment-02",
+          "prop_id": "prop-paraphrase-moment-02"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-paraphrase-moment-01",
+              "prop-paraphrase-moment-02"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-evolving-summary",
+      "scene_id": "scene-evolving-summary",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose update_derived_summary using exactly prop-renovation-start-01, prop-renovation-start-02, and prop-renovation-start-03 as source memory IDs.",
+        "Exclude prop-renovation-noise-paint and prop-renovation-noise-pulls from the action sources while leaving every original record immutable.",
+        "Return a read-only proposal without stating or implying that a derived summary was stored."
+      ],
+      "prohibited_outcomes": [
+        "Do not use either topical-noise Prop or any unknown memory ID as a summary source.",
+        "Do not link the dated notes as duplicates or assign the Scene a topic group instead of representing the resolved timeline.",
+        "Do not delete, rewrite, supersede, or replace any original source record.",
+        "Do not claim that any curation change was persisted or add a summary fact unsupported by the three selected start-date notes."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-renovation-start-01",
+          "start_codepoint": 0,
+          "end_codepoint": 61,
+          "text": "The kitchen renovation is scheduled to start on 14 September."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-renovation-start-02",
+          "start_codepoint": 0,
+          "end_codepoint": 99,
+          "text": "The contractor moved the kitchen renovation start to 21 September because the cabinets are delayed."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-renovation-start-03",
+          "start_codepoint": 0,
+          "end_codepoint": 115,
+          "text": "The kitchen renovation will now start on 23 September; the contractor confirmed that date after the permit cleared."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-renovation-noise-paint",
+          "start_codepoint": 0,
+          "end_codepoint": 58,
+          "text": "The kitchen paint samples are stored in the hall cupboard."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-renovation-noise-pulls",
+          "start_codepoint": 0,
+          "end_codepoint": 63,
+          "text": "I want to keep the old brass drawer pulls after the renovation."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-renovation-start-01",
+          "prop_id": "prop-renovation-start-01"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-renovation-start-02",
+          "prop_id": "prop-renovation-start-02"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-renovation-start-03",
+          "prop_id": "prop-renovation-start-03"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-renovation-noise-paint",
+          "prop_id": "prop-renovation-noise-paint"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-renovation-noise-pulls",
+          "prop_id": "prop-renovation-noise-pulls"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-renovation-start-01",
+              "prop-renovation-start-02",
+              "prop-renovation-start-03"
+            ],
+            "max_summary_words": 45,
+            "semantic_review": {
+              "criteria": [
+                "The generated summary identifies 23 September as the current confirmed kitchen-renovation start date after the earlier 14 and 21 September plans.",
+                "The generated summary attributes the 21 September move to delayed cabinets and the final 23 September confirmation to the cleared permit without inventing causation.",
+                "The generated summary excludes the paint-sample location and brass drawer-pull preference."
+              ],
+              "forbidden_claims": [
+                "The cabinets have arrived.",
+                "The kitchen renovation has started or finished.",
+                "The paint samples or brass drawer pulls changed the renovation start date."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-related-topic",
+      "scene_id": "scene-related-topic",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose assign_topic_group using exactly prop-birdwatching-gear, prop-birdwatching-walk, and prop-birdwatching-checklist as source memory IDs.",
+        "Exclude prop-topic-distractor-receipts from the topic-group sources while leaving every original record immutable.",
+        "Return a read-only proposal without stating or implying that a topic group was stored."
+      ],
+      "prohibited_outcomes": [
+        "Do not include the household-receipts Prop or any unknown memory ID in the topic group.",
+        "Do not link the three distinct birdwatching facts as duplicates or collapse them into an evolving-fact summary.",
+        "Do not delete, rewrite, supersede, or replace any original source record.",
+        "Do not claim that any curation change was persisted or derive an unsupported relationship among the selected facts."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-birdwatching-gear",
+          "start_codepoint": 0,
+          "end_codepoint": 70,
+          "text": "My birdwatching binoculars are the 8x42 pair kept by the balcony door."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-birdwatching-walk",
+          "start_codepoint": 0,
+          "end_codepoint": 96,
+          "text": "The birdwatching group meets every Sunday at 7:00 a.m. beside the MacRitchie Reservoir car park."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-birdwatching-checklist",
+          "start_codepoint": 0,
+          "end_codepoint": 69,
+          "text": "I keep my checklist of local kingfishers in the green field notebook."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-topic-distractor-receipts",
+          "start_codepoint": 0,
+          "end_codepoint": 71,
+          "text": "The green notebook for household receipts is in the second desk drawer."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-birdwatching-gear",
+          "prop_id": "prop-birdwatching-gear"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-birdwatching-walk",
+          "prop_id": "prop-birdwatching-walk"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-birdwatching-checklist",
+          "prop_id": "prop-birdwatching-checklist"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-topic-distractor-receipts",
+          "prop_id": "prop-topic-distractor-receipts"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-birdwatching-gear",
+              "prop-birdwatching-walk",
+              "prop-birdwatching-checklist"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The generated topic label clearly covers birdwatching gear, the recurring birdwatching walk, and the kingfisher checklist.",
+                "The generated topic label keeps the three selected memories as separate facts rather than suggesting that one updates another.",
+                "The generated topic label excludes the household-receipts notebook."
+              ],
+              "forbidden_claims": [
+                "The household-receipts notebook is used for birdwatching.",
+                "Any selected birdwatching memory corrects, replaces, or supersedes another.",
+                "The person observes kingfishers at the Sunday group walk."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-superficial-overlap",
+      "scene_id": "scene-superficial-overlap",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Return no_curation_proposal with superficial_similarity as the reason category.",
+        "Use no source memory IDs for a curation action and leave both supplied originals immutable.",
+        "Return a read-only response without stating or implying that any change was stored."
+      ],
+      "prohibited_outcomes": [
+        "Do not treat the bicycle-lock key and piano key as duplicates, an evolving summary, or a coherent topic group.",
+        "Do not reference a memory ID that is not supplied in this Scene.",
+        "Do not delete, rewrite, merge, or replace either original source record.",
+        "Do not claim that any curation change was persisted, and do not derive any personal fact from the shared word key."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-key-object",
+          "start_codepoint": 0,
+          "end_codepoint": 73,
+          "text": "I keep the blue key for the bicycle lock in the ceramic bowl by the door."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-key-music",
+          "start_codepoint": 0,
+          "end_codepoint": 67,
+          "text": "The piano key that feels most comfortable for my warmups is B-flat."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-superficial-key-object",
+          "prop_id": "prop-superficial-key-object"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-superficial-key-music",
+          "prop_id": "prop-superficial-key-music"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        }
+      }
+    }
+  ]
+}
