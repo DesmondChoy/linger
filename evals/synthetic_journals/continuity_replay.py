@@ -21,7 +21,13 @@ from src.linger.agents.contracts import PromptFingerprint
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
-from .models import Line, ProposedGroundTruth, StrictModel, SyntheticBackstory
+from .models import (
+    GroundTruthAdoption,
+    Line,
+    ProposedGroundTruth,
+    StrictModel,
+    SyntheticBackstory,
+)
 from .replay import (
     RUNTIME_PROMPT_FINGERPRINTS,
     RUNTIME_SYSTEM_VARIANT,
@@ -217,13 +223,22 @@ async def replay_continuity_scenes(
     backstory: SyntheticBackstory,
     ground_truth: ProposedGroundTruth,
     *,
+    adoption: GroundTruthAdoption | None = None,
     chat_handler: ChatHandler | None = None,
 ) -> ContinuityEvaluationRun:
     """Run ordered continuity Scenes through Pydantic Evals and production chat."""
 
     scenes = _continuity_scenes(backstory, ground_truth)
-    ground_truth_status: GroundTruthStatus = ground_truth.ground_truth_status
-    dataset_version = ground_truth.backstory_sha256
+    ground_truth_status: GroundTruthStatus = (
+        adoption.ground_truth_status
+        if adoption is not None
+        else ground_truth.ground_truth_status
+    )
+    dataset_version = (
+        adoption.adopted_ground_truth_identity
+        if adoption is not None
+        else ground_truth.backstory_sha256
+    )
     evaluation_name = (
         "adopted_hard_gate_grade"
         if ground_truth_status == "adopted"

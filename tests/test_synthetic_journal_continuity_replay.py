@@ -23,6 +23,7 @@ from apps.backend.schemas import (
     TraceReference,
     TurnInspection,
 )
+from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.continuity_replay import (
     CONTINUITY_OBJECTIVE_ID,
     RUNTIME_PROMPT_FINGERPRINTS,
@@ -32,6 +33,7 @@ from evals.synthetic_journals.continuity_replay import (
     ContinuityEvaluationResult,
     ContinuitySceneObservation,
     ContinuityStructuralEvaluator,
+    GroundTruthStatus,
     ReleaseSource,
     SceneRole,
     TurnObservation,
@@ -39,6 +41,7 @@ from evals.synthetic_journals.continuity_replay import (
 )
 from evals.synthetic_journals.models import (
     Backstory,
+    GroundTruthAdoption,
     GroundTruthProposal,
     Line,
     OfflineInput,
@@ -940,6 +943,8 @@ def _evaluator_context(
     scene_id: str,
     role: SceneRole,
     output: ContinuityEvaluationOutput,
+    *,
+    ground_truth_status: GroundTruthStatus = "proposed",
 ) -> EvaluatorContext[
     ContinuityEvaluationInput,
     ContinuityEvaluationResult,
@@ -957,7 +962,7 @@ def _evaluator_context(
         expected_output=ContinuityEvaluationExpected(
             role=role,
             paired_scene_id=CONTINUITY_SCENE_ID if role == "comparison" else None,
-            ground_truth_status="proposed",
+            ground_truth_status=ground_truth_status,
         ),
         output=output,
         duration=0.0,
@@ -1133,3 +1138,150 @@ def test_continuity_replay_labels_a_broken_session_as_deviated() -> None:
     assert labels["session_state_invariants"].value == "deviated"
     assert "history_thread_broken:line-2" in reason
     assert "turn_record_mismatch" in reason
+
+
+def _adoption(ground_truth: ProposedGroundTruth) -> GroundTruthAdoption:
+    return build_ground_truth_adoption(
+        ground_truth,
+        ground_truth.model_dump_json().encode("utf-8"),
+        reviewer_id="independent.developer@example.com",
+    )
+
+
+async def _clean_handler(
+    request: ChatRequest,
+    _service: MemoryPolicyService,
+    _account: AccountContext,
+) -> ChatResponse:
+    response = _released_response()
+    _append(request, response)
+    return response
+
+
+def test_continuity_replay_grades_adopted_ground_truth_with_hard_gates() -> None:
+    backstory, ground_truth = _continuity_package()
+    adoption = _adoption(ground_truth)
+
+    result = asyncio.run(
+        replay_continuity_scenes(
+            backstory,
+            ground_truth,
+            adoption=adoption,
+            chat_handler=_clean_handler,
+        )
+    )
+
+    continuity, comparison = result.scenes
+    assert result.ground_truth_status == "adopted"
+    assert result.dataset_version == adoption.adopted_ground_truth_identity
+    assert result.dataset_version != ground_truth.backstory_sha256
+    assert comparison.ground_truth_result == "passes_hard_gates"
+    assert continuity.ground_truth_result == "not_applicable"
+    assert continuity.ground_truth_result not in {
+        "passes_hard_gates",
+        "fails_hard_gates",
+    }
+
+    evaluator = ContinuityStructuralEvaluator(ground_truth_status="adopted")
+    labels = evaluator.evaluate(
+        _evaluator_context(
+            comparison.scene_id,
+            comparison.role,
+            _evaluation_output(
+                comparison.role,
+                session_boundary_held=True,
+                ground_truth_result=comparison.ground_truth_result,
+            ),
+            ground_truth_status="adopted",
+        )
+    )
+    assert set(labels) == {"adopted_hard_gate_grade", "session_state_invariants"}
+    assert labels["adopted_hard_gate_grade"] == "passes_hard_gates"
+
+    unjudged = evaluator.evaluate(
+        _evaluator_context(
+            continuity.scene_id,
+            continuity.role,
+            _evaluation_output(
+                continuity.role,
+                session_boundary_held=None,
+                ground_truth_result=continuity.ground_truth_result,
+            ),
+            ground_truth_status="adopted",
+        )
+    )
+    assert unjudged["adopted_hard_gate_grade"] == "not_applicable"
+    assert unjudged["session_state_invariants"].value == "held"
+
+
+def test_continuity_replay_fails_hard_gates_for_a_leaked_comparison_session() -> None:
+    backstory, ground_truth = _continuity_package()
+    adoption = _adoption(ground_truth)
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        response = _released_response()
+        _append(request, response)
+        if request.session_id.endswith(CONTINUITY_SCENE_ID):
+            leaked = request.session_id.replace(
+                CONTINUITY_SCENE_ID, COMPARISON_SCENE_ID
+            )
+            sessions.append_turn(
+                leaked,
+                request.message,
+                response.reply,
+                turn_id=f"{request.turn_id}:leaked",
+                release_source="muse_candidate",
+            )
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(
+            backstory,
+            ground_truth,
+            adoption=adoption,
+            chat_handler=chat_handler,
+        )
+    )
+
+    continuity, comparison = result.scenes
+    assert comparison.ground_truth_result == "fails_hard_gates"
+    assert continuity.ground_truth_result == "not_applicable"
+
+
+def test_continuity_replay_exports_adopted_cases_in_scene_order() -> None:
+    backstory, ground_truth = _continuity_package()
+    adoption = _adoption(ground_truth)
+    exporter = TestExporter()
+    logfire.configure(
+        send_to_logfire=False,
+        console=False,
+        inspect_arguments=False,
+        additional_span_processors=[logfire.testing.SimpleSpanProcessor(exporter)],
+    )
+
+    result = asyncio.run(
+        replay_continuity_scenes(
+            backstory,
+            ground_truth,
+            adoption=adoption,
+            chat_handler=_clean_handler,
+        )
+    )
+    spans = exporter.exported_spans_as_dict()
+    case_names = [
+        span["attributes"]["case_name"]
+        for span in spans
+        if span["name"] == "case: {case_name}"
+    ]
+
+    # Logfire scrubs exported values containing "session", so the experiment's
+    # dataset name and metadata are asserted on the run model instead.
+    assert case_names == [CONTINUITY_SCENE_ID, COMPARISON_SCENE_ID]
+    assert case_names == [scene.scene_id for scene in result.scenes]
+    assert result.objective_id == CONTINUITY_OBJECTIVE_ID
+    assert result.dataset_version == adoption.adopted_ground_truth_identity
+    assert result.ground_truth_status == "adopted"
