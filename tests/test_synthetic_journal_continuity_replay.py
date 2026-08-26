@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 import logfire
 import pytest
@@ -14,7 +16,11 @@ from logfire.testing import TestExporter
 from pydantic_evals.evaluators import EvaluatorContext
 from pydantic_evals.evaluators.context import SpanTreeRecordingError
 
+from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
+
 from apps.backend import sessions
+from apps.backend.config import get_settings
 from apps.backend.schemas import (
     CaptureInspection,
     ChatRequest,
@@ -24,6 +30,7 @@ from apps.backend.schemas import (
     TurnInspection,
 )
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
+from evals.synthetic_journals.continuity_replay import main as continuity_main
 from evals.synthetic_journals.continuity_replay import (
     CONTINUITY_OBJECTIVE_ID,
     RUNTIME_PROMPT_FINGERPRINTS,
@@ -53,6 +60,9 @@ from evals.synthetic_journals.models import (
     SyntheticBackstory,
 )
 from evals.synthetic_journals.validate_package import validate_package
+from src.linger.agents.muse.agent import muse_chat_agent
+from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
@@ -1285,3 +1295,139 @@ def test_continuity_replay_exports_adopted_cases_in_scene_order() -> None:
     assert result.objective_id == CONTINUITY_OBJECTIVE_ID
     assert result.dataset_version == adoption.adopted_ground_truth_identity
     assert result.ground_truth_status == "adopted"
+
+
+def _muse_replies(_messages: list[object], info: AgentInfo) -> ModelResponse:
+    """Return one released Muse candidate without a memory nomination."""
+
+    tool = info.output_tools[0]
+    return ModelResponse(
+        parts=[
+            ToolCallPart(
+                tool.name,
+                {
+                    "reply": "A synthetic reviewed reply.",
+                    "evidence_uses": [],
+                    "memory": {
+                        "kind": "no_memory_candidate",
+                        "reason_code": "automatic_capture_disabled",
+                    },
+                },
+            )
+        ]
+    )
+
+
+def _provenance_passes(_messages: list[object], info: AgentInfo) -> ModelResponse:
+    tool = info.output_tools[0]
+    return ModelResponse(
+        parts=[
+            ToolCallPart(
+                tool.name,
+                {
+                    "findings": [],
+                    "response_decision": "pass",
+                    "emotional_boundary_decision": "not_required",
+                    "capture_decision": "no_candidate",
+                },
+            )
+        ]
+    )
+
+
+def _muse_drafts(scene: object) -> list[object]:
+    return [
+        exchange
+        for exchange in scene.agent_exchanges  # type: ignore[attr-defined]
+        if exchange.role == "Muse" and exchange.stage == "draft"
+    ]
+
+
+def test_continuity_replay_threads_history_through_the_production_pipeline() -> None:
+    backstory, ground_truth = _continuity_package()
+    get_settings.cache_clear()
+    try:
+        with patch.dict(
+            os.environ,
+            {
+                "LINGER_MODEL": "openai:gpt-5.6-luna",
+                "OPENAI_API_KEY": "test-key",
+            },
+        ):
+            from apps.backend import main
+
+            async def chat_handler(
+                request: ChatRequest,
+                service: MemoryPolicyService,
+                account: AccountContext,
+            ) -> ChatResponse:
+                return await main.chat(request, service, account)
+
+            boundary = AsyncMock()
+            boundary.return_value = EmotionalBoundaryAssessment(
+                decision="continue_reflection"
+            )
+            with (
+                patch.object(main, "assess_emotional_boundary", boundary),
+                muse_chat_agent.override(model=FunctionModel(_muse_replies)),
+                provenance_agent.override(model=FunctionModel(_provenance_passes)),
+            ):
+                result = asyncio.run(
+                    replay_continuity_scenes(
+                        backstory,
+                        ground_truth,
+                        chat_handler=chat_handler,
+                    )
+                )
+    finally:
+        get_settings.cache_clear()
+
+    continuity, comparison = result.scenes
+    assert [turn.release_source for turn in continuity.turns] == [
+        "muse_candidate"
+    ] * len(CONTINUITY_TEXTS)
+    assert continuity.structural_findings == ()
+    assert comparison.ground_truth_result == "matches_proposal"
+    assert result.final_active_memory_ids == ()
+
+    drafts = _muse_drafts(continuity)
+    assert len(drafts) == len(CONTINUITY_TEXTS)
+    fourth_history = drafts[-1].message_history
+    assert [message["kind"] for message in fourth_history] == [
+        "request",
+        "response",
+    ] * 3
+    rendered_history = json.dumps(fourth_history)
+    for text in CONTINUITY_TEXTS[:3]:
+        assert text in rendered_history
+    assert CONTINUITY_TEXTS[3] not in rendered_history
+    assert [len(draft.message_history) for draft in drafts] == [0, 2, 4, 6]
+
+    comparison_drafts = _muse_drafts(comparison)
+    assert len(comparison_drafts) == 1
+    assert comparison_drafts[0].message_history == ()
+    assert COMPARISON_TEXT in comparison_drafts[0].input_prompt
+
+    serialized = json.dumps(
+        [exchange.model_dump(mode="json") for exchange in continuity.agent_exchanges]
+    )
+    assert backstory.backstory.context not in serialized
+    assert "expected_outcomes" not in serialized
+    assert "prohibited_outcomes" not in serialized
+
+
+def test_cli_returns_nonzero_for_an_invalid_package(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    backstory, ground_truth = _continuity_package()
+    backstory_path = tmp_path / "backstory.json"
+    ground_truth_path = tmp_path / "ground-truth.json"
+    backstory_path.write_text(backstory.model_dump_json(), encoding="utf-8")
+    tampered = ground_truth.model_copy(update={"backstory_sha256": "0" * 64})
+    ground_truth_path.write_text(tampered.model_dump_json(), encoding="utf-8")
+
+    result = continuity_main([str(backstory_path), str(ground_truth_path)])
+
+    assert result == 1
+    assert "EVALUATION_RUN_ERROR=" in capsys.readouterr().err

@@ -73,8 +73,12 @@ does not rewrite `ground-truth.json`.
 The loopback server only returns the decision. The agent validates the result
 and chooses a known objective-specific runner. The browser never receives
 runtime authority or provider credentials. Capture and bounded curation are the
-only implemented confirmed replay paths; other or mixed Objectives stop after
-adoption.
+only confirmed replay paths; other or mixed Objectives stop after adoption.
+
+A session-continuity runner also exists below; registering it as a confirmed
+replay path in the Objective catalog and the review skill remains a pending
+human decision, so the review app still stops after adoption for that
+Objective.
 
 ## Capture replay
 
@@ -159,6 +163,37 @@ model and every deployed prompt fingerprint for lineage. `objective_execution`
 hashes the configured model, Sculptor prompt, and active curation contracts for
 behavioral comparison. Changing an inactive prompt changes the former but not
 the latter.
+
+Replay a validated session-continuity package through the production chat
+boundary:
+
+```bash
+uv run python -m evals.synthetic_journals.continuity_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/session-scoped-conversation-continuity-run.json
+```
+
+This runner accepts Lines only and rejects Props, offline inputs, run
+configurations, and continued sessions. Each Scene runs in its own persisted
+session: one session ID carries the Scene's ordered Lines through production
+chat, capture stays disabled, and a committed memory is a hard failure. Within
+a pairing edge the multi-Line Scene is the continuity Scene and the single-Line
+Scene is its fresh comparison, whose Line must repeat the continuity Scene's
+final Line. The Ground-truth grade binds only to the session boundary the
+`ScenePairing` asserts — the comparison Scene's session began clean — while
+continuity Scenes report `not_applicable`. Session-contract deviations surface
+separately as `session_state_invariants` findings and never change the grade.
+Correction adoption and prior-session leakage remain review judgments; the
+artifact records every reply, exact Muse input, and per-turn exchange range a
+later judge needs, and grades neither.
+
+Logfire's default scrubber redacts exported attribute paths and values
+containing `session`, which hides this runner's objective ID, boundary fields,
+and `session_state_invariants` label in the Logfire view. The Ground-truth
+grade, adoption-authority fields, and durable artifact are unaffected; because
+the redaction is value-triggered, only a scrubbing-configuration decision, not
+a rename, can restore visibility.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene

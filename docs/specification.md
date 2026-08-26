@@ -481,7 +481,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; a session-continuity runner is implemented, and its registration as a supported replay path remains a downstream decision; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -561,6 +561,21 @@ adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
 identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
+
+A session-continuity runner replays `session_scoped_conversation_continuity`
+packages through the same production chat boundary. It accepts Lines only,
+runs each Scene in one persisted session so the Scene's ordered Lines build
+real conversation history, and leaves automatic capture disabled throughout.
+Scene roles come from the pairing topology: the multi-Line continuity Scene and
+the single-Line fresh comparison Scene that repeats its final Line. The
+Ground-truth grade binds only to the proposal-backed session boundary — the
+comparison Scene's session began clean — and a continuity Scene reports
+`not_applicable` rather than any grade, because the adopted key contains no
+typed continuity claim. Session-contract deviations are reported separately as
+structural findings and never change that grade. Whether a reply adopted the
+reader's correction, and whether a comparison reply leaked prior-session
+content, remain review judgments. Registering this runner in the Objective
+catalog and the review skill remains a pending human decision.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool

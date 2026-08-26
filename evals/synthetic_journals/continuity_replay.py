@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import argparse
+import asyncio
+import sys
 import tempfile
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Self
 from uuid import uuid4
 
+import logfire
 from opentelemetry.trace import format_span_id, format_trace_id, get_current_span
 from pydantic import Field, model_validator
 from pydantic_evals import Case, Dataset
@@ -21,6 +26,10 @@ from src.linger.agents.contracts import PromptFingerprint
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
+from .adoption import (
+    GroundTruthAdoptionError,
+    validate_ground_truth_adoption_files,
+)
 from .models import (
     GroundTruthAdoption,
     Line,
@@ -39,6 +48,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
+from .validate_package import PackageValidationError, validate_package_files
 
 CONTINUITY_OBJECTIVE_ID = "session_scoped_conversation_continuity"
 MESSAGES_PER_EXCHANGE = 2
@@ -628,3 +638,54 @@ def _scene_roles(
             )
         roles[scene_id] = ("continuity", None)
     return roles
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("backstory", type=Path)
+    parser.add_argument("ground_truth", type=Path)
+    parser.add_argument("--adoption", type=Path)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args(argv)
+
+    try:
+        if args.adoption is None:
+            backstory, ground_truth = validate_package_files(
+                args.backstory, args.ground_truth
+            )
+            adoption = None
+        else:
+            backstory, ground_truth, adoption = (
+                validate_ground_truth_adoption_files(
+                    args.backstory,
+                    args.ground_truth,
+                    args.adoption,
+                )
+            )
+        result = asyncio.run(
+            replay_continuity_scenes(
+                backstory,
+                ground_truth,
+                adoption=adoption,
+            )
+        )
+        rendered = result.model_dump_json(indent=2) + "\n"
+        if args.output is None:
+            print(rendered, end="")
+        else:
+            args.output.write_text(rendered, encoding="utf-8")
+        logfire.force_flush()
+    except (
+        OSError,
+        GroundTruthAdoptionError,
+        PackageValidationError,
+        RuntimeError,
+        ValueError,
+    ) as error:
+        print(f"EVALUATION_RUN_ERROR={error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
