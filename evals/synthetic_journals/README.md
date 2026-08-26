@@ -1,5 +1,7 @@
 # Synthetic journal package validation
 
+## Package contract
+
 The package has two JSON files: `backstory.json` contains the generated
 Backstory, Props, Scenes, Lines, and offline inputs; `ground-truth.json` contains
 only proposed Ground truth and hashes the exact `backstory.json` bytes. One
@@ -32,6 +34,8 @@ It does not decide whether generated prose is realistic or whether a proposed
 behavioral label is correct. An independent reviewer must adopt, revise, or
 reject every proposal before it can grade Linger.
 
+## Independent Ground truth review
+
 Review a validated package with the desktop-only local app:
 
 ```bash
@@ -40,6 +44,22 @@ uv run python \
   path/to/backstory.json path/to/ground-truth.json \
   --reviewer-id REVIEWER_ID
 ```
+
+The reviewer command accepts these options:
+
+- `--reviewer-id ID` records the required stable human identity.
+- `--adoption PATH` selects the adoption output path. The default is
+  `ground-truth-adoption.json` beside the package, and a custom path must remain
+  in the same directory.
+- `--ui PATH` serves another built review UI. The default is the checked-in
+  `.agents/skills/review-synthetic-ground-truth/ui/dist` build.
+- `--timeout SECONDS` sets the loopback server lifetime and defaults to 1800.
+
+The command validates the package before binding to `127.0.0.1`, prints one
+token-bearing `GROUND_TRUTH_REVIEW_URL`, and exits with one
+`GROUND_TRUTH_REVIEW_JSON` decision. It refuses an existing adoption path,
+package changes during review, a non-sibling adoption path, an incomplete
+confirmation, or a timeout. It never overwrites an adoption.
 
 The app joins each Scene's Lines, Props, and offline inputs with the complete
 proposed Ground truth in one side-by-side review row. **Confirm and run
@@ -56,13 +76,14 @@ runtime authority or provider credentials. Capture and bounded curation are the
 only implemented confirmed replay paths; other or mixed Objectives stop after
 adoption.
 
+## Capture replay
+
 Replay the validated capture-only package through the production Muse path:
 
 ```bash
 uv run python -m evals.synthetic_journals.replay \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
-  --adoption synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth-adoption.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
 ```
 
@@ -99,12 +120,20 @@ The Backstory and Ground truth never enter Muse. Proposal mode reports
 `matches_proposal` or `differs_from_proposal`. Adopted mode reports
 `passes_hard_gates` or `fails_hard_gates`. Neither runner adopts its own labels.
 
+The capture command accepts `--adoption PATH` only for an adoption that validates
+against the exact Backstory and proposed Ground truth bytes. `--output PATH`
+writes the durable JSON artifact to that path; without it, the complete artifact
+is written to stdout. The command rejects mixed Objectives, Props, offline
+inputs, continued sessions, or any Scene that does not contain exactly one
+Line.
+
+## Bounded-curation replay
+
 Replay a validated bounded-curation package through production Sculptor:
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
   path/to/backstory.json path/to/ground-truth.json \
-  --adoption path/to/ground-truth-adoption.json \
   --output /tmp/bounded-memory-curation-run.json
 ```
 
@@ -118,6 +147,12 @@ exchange, the typed response, deterministic hard-gate comparison, and separate
 semantic criteria. Proposal mode remains an exploratory comparison. Adopted
 mode grades deterministic hard gates while continuing to expose semantic
 criteria for separate review; a hard-gate pass is not a semantic-quality claim.
+
+The curation command uses the same `--adoption` and `--output` behavior. It
+accepts exactly the `bounded_memory_curation` Objective, no run configuration,
+and isolated Scenes containing two to twelve active, same-account Props. It
+rejects Lines, offline inputs, inactive Props, mixed Objectives, and any Ground
+truth proposal without a typed curation expectation.
 
 Curated-run identity has two purposes. `full_deployment` hashes the configured
 model and every deployed prompt fingerprint for lineage. `objective_execution`
@@ -133,6 +168,8 @@ Prop and ten distractors, while the comparison Scene has no relevant Props.
 The Ground truth file records a typed proposed relevance judgment for every
 available Prop. Validation checks coverage and counts; independent review
 decides whether the proposed relevance and distractors are semantically sound.
+
+## Schema export
 
 Generate JSON Schema for external tooling with Pydantic's public API:
 

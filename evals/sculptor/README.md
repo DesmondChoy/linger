@@ -23,6 +23,33 @@ Run the case-contract and hard-gate tests from the repository root:
 uv run pytest tests/test_sculptor_evals.py
 ```
 
+## Provider-backed bounded-curation replay
+
+The synthetic-journal runner converts each isolated Scene's active,
+same-account Props into `AccountScopedMemories` and calls production
+`propose_curation`:
+
+```bash
+uv run python -m evals.synthetic_journals.curation_replay \
+  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
+  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
+  --output /tmp/bounded-memory-curation-run.json
+```
+
+The command records source hashes before and after every call, the complete
+observable Sculptor exchange, typed output, hard-gate result, separate semantic
+criteria, and correlated Logfire trace IDs. Proposal mode compares against
+proposed Ground truth. Supplying a hash-valid `--adoption` grades the same hard
+gates against independently adopted Ground truth; semantic quality remains a
+separate review and cannot override a hard failure.
+
+The artifact carries two identities. `full_deployment` covers the configured
+model and every deployed prompt for lineage. `objective_execution` covers the
+configured model, Sculptor prompt, and active curation contracts for behavioral
+comparison. See
+[`evals/synthetic_journals/README.md`](../synthetic_journals/README.md) for the
+package topology, review command, and replay options.
+
 ## Versioning
 
 The current case schema is version 1. Every case declares `schema_version: 1`

@@ -545,7 +545,10 @@ The bounded-curation runner supplies only the isolated Scene's active,
 same-account Props to production `propose_curation`. It preserves and hashes
 the immutable sources, records the typed response, and grades deterministic
 hard gates. Semantic criteria remain visible and separately reviewable; an
-adopted hard-gate pass does not claim semantic quality.
+adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
+identity covers the configured model and every deployed prompt fingerprint for
+lineage, while `objective_execution` covers the configured model, Sculptor
+prompt, and active curation contracts for behavioral comparison.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool
@@ -563,8 +566,8 @@ The project still has not defined reusable workflow for:
 - line generation;
 - full-dataset assembly and layout;
 - freezing; or
-- replay of unsupported Props, offline inputs, continued-session Scenes, or
-  other Objectives.
+- replay of Props outside bounded curation, offline inputs, continued-session
+  Scenes, mixed Objective packages, or other Objectives.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined package models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 

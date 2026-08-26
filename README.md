@@ -9,6 +9,8 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
 - **Corpus milestone:** *Alice's Adventures in Wonderland* from Project Gutenberg
 - **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
+- **Synthetic evaluation:** validated packages, independent Ground truth review,
+  and production-boundary capture and curation replay
 - **Issue tracking:** [Beads](https://github.com/gastownhall/beads), backed by a local Dolt database
 
 Linger keeps authority over account boundaries, memory writes, validation, and
@@ -28,6 +30,9 @@ user-visible output in application code—not in an agent.
 - **Capture:** supports reviewed automatic memory capture only through
   server-controlled evaluation policy. The interactive POC keeps capture
   disabled and exposes no memory-management actions.
+- **Evaluate:** validates synthetic Backstory packages, records independent
+  human adoption without rewriting generated files, and replays supported
+  capture and bounded-curation Objectives through their production boundaries.
 
 ## Developer tools
 
@@ -195,19 +200,44 @@ uv run python -m evals.provenance.emotional_boundary
 uv run python -m evals.synthetic_journals.validate_package \
   path/to/backstory.json path/to/ground-truth.json
 
-# Replay the reviewed capture package through the production chat boundary
+# Review proposed Ground truth and write a hash-bound adoption after confirmation
+uv run python \
+  .agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py \
+  path/to/backstory.json path/to/ground-truth.json \
+  --reviewer-id REVIEWER_ID
+
+# Replay a capture package through the production chat boundary
 uv run python -m evals.synthetic_journals.replay \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
+
+# Replay a bounded-curation package through production Sculptor
+uv run python -m evals.synthetic_journals.curation_replay \
+  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
+  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
+  --output /tmp/bounded-memory-curation-run.json
 ```
 
 The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
 and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
 `--limit`, and `--report`; the Provenance evaluation accepts `--report`.
-Synthetic package validation accepts `--run-configuration-directory`, and the
-replay writes JSON to stdout unless `--output` is supplied. See the README in
-each `evals/` subdirectory for contracts and artifact boundaries.
+Synthetic package validation accepts `--run-configuration-directory`. The
+Ground truth reviewer requires `--reviewer-id`; `--adoption` selects a sibling
+output path, `--ui` selects a built UI directory, and `--timeout` sets the
+loopback review lifetime in seconds. Both replay commands accept an optional
+hash-validated `--adoption` and write JSON to stdout unless `--output` is
+supplied.
+
+Without `--adoption`, replay compares observed hard gates with proposed Ground
+truth. A complete independent adoption changes the dataset identity and grades
+the same gates as adopted Ground truth. Capture replay accepts only the
+`reviewed_automatic_memory_capture` topology; curation replay accepts only
+isolated `bounded_memory_curation` Scenes containing two to twelve active Props
+and no Lines or offline inputs. See
+[`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
+the README in each `evals/` subdirectory for the complete contracts and
+artifact boundaries.
 
 Every production agent invocation carries a template-specific prompt ID,
 version, and static-artifact digest. Synthetic replay records the complete
@@ -254,8 +284,8 @@ linger/
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations
 ├── data/                           # Corpus, manifests, and fixtures
-├── evals/                          # Benchmarks, live evals, package validation, and replay
-├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and packages
+├── evals/                          # Benchmarks, package validation, adoption, and replay
+├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and authoring packages
 ├── tests/                          # Integration, security, and end-to-end tests
 ├── memories/                       # Git-ignored runtime Markdown memories
 ├── notebooks/                      # Manual Librarian and Gutenberg workflows
