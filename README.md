@@ -153,10 +153,15 @@ uv run python -m src.linger.corpus.book src.linger.corpus.alice check
 uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 ```
 
-The Librarian applies the confirmed chapter boundary before BM25 and semantic
-retrieval, fuses and reranks candidates locally, resolves exact canonical
-evidence, and uses a set-level evidence-strength judgment before returning a
-typed result to Muse.
+For a book-related request without explicit progress, the Librarian privately
+searches the complete selected work using the current Line and relevant
+account-scoped memories. It returns only a candidate chapter ceiling,
+confidence, and content-free supporting locations. After application
+validation—or after a focused reader clarification when confidence is too
+low—the Librarian runs a separate BM25 and semantic search bounded to that
+ceiling. Later chapters never enter the answer-evidence candidate set. The
+eligible candidates are fused, reranked, resolved against the immutable corpus,
+and returned to Muse as a typed evidence response.
 
 ## Librarian notebook
 

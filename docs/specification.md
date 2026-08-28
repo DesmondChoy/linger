@@ -373,10 +373,22 @@ request. This separation lets evaluation compare Librarian's inferred ceiling
 with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
-The current implementation has only the second phase: it requires a
-reader-confirmed `ConfirmedReading` ceiling before Librarian dispatch and fails
-closed when that ceiling is absent. Full-work boundary inference from memories
-is the next implementation gap, not shipped behavior.
+The current implementation has both phases for the Alice corpus. Metadata-only
+routing first identifies the work. Librarian then receives the current Line and
+at most eight account-scoped memories that independently route to that work,
+searches the complete immutable revision, and returns a typed candidate ceiling,
+confidence, and content-free supporting locations. Full-work candidate passage
+text remains private to this phase and is never copied into Muse, Inspect, the
+turn evidence ledger, or the release scope.
+
+Application code validates the returned work, version, evidence identifiers,
+and candidate chapter. Confidence below `0.75`, conflicting context, missing
+support, unreadable memory storage, retrieval failure, or an invalid model
+decision produces one fixed clarification and no evidence search. A validated
+candidate creates only a request-scoped ceiling; it is not persisted as reading
+progress. Muse may then request the second search, which the application clamps
+to that ceiling before any passage becomes releasable evidence. Explicit reader
+confirmation remains authoritative and skips inference for that request.
 
 ### 6.2 Citations and attribution
 

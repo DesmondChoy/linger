@@ -117,6 +117,7 @@ def search_librarian(
             query=query,
             book_scopes=list(ctx.deps.task.scope.book_scopes),
             max_results=limit,
+            purpose="connection_discovery",
         )
         bundle = ctx.deps.librarian.retrieve(request)
     except Exception:

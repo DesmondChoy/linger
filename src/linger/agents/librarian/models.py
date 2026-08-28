@@ -26,3 +26,40 @@ class EvidenceStrengthDecision(StrictModel):
         if self.evidence_strength == "weak" and not self.limitations:
             raise ValueError("weak strength must explain at least one limitation")
         return self
+
+
+class BoundaryInferenceDecision(StrictModel):
+    """Private full-work judgment before the application grants retrieval."""
+
+    outcome: Literal["candidate", "uncertain"]
+    work_id: str | None = None
+    book_version_id: str | None = None
+    chapter_number: int | None = Field(default=None, ge=1)
+    confidence: float = Field(ge=0, le=1)
+    supporting_evidence_ids: tuple[str, ...] = ()
+    reason_code: Literal[
+        "insufficient_context",
+        "conflicting_context",
+        "low_confidence",
+    ] | None = None
+
+    @model_validator(mode="after")
+    def _fields_match_outcome(self) -> "BoundaryInferenceDecision":
+        candidate_fields = (
+            self.work_id,
+            self.book_version_id,
+            self.chapter_number,
+        )
+        if self.outcome == "candidate":
+            if any(value is None for value in candidate_fields):
+                raise ValueError("candidate outcome requires work, version, and chapter")
+            if not self.supporting_evidence_ids:
+                raise ValueError("candidate outcome requires supporting evidence IDs")
+            if self.reason_code is not None:
+                raise ValueError("candidate outcome cannot declare an uncertainty reason")
+        else:
+            if any(value is not None for value in candidate_fields) or self.supporting_evidence_ids:
+                raise ValueError("uncertain outcome cannot declare a candidate boundary")
+            if self.reason_code is None:
+                raise ValueError("uncertain outcome requires a reason code")
+        return self

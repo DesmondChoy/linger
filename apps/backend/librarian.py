@@ -52,6 +52,16 @@ class Paragraph:
     source_lines: tuple[int, int]
 
 
+@dataclass(frozen=True)
+class RegisteredCorpusScope:
+    """Metadata-only identity and extent of one immutable registered work."""
+
+    work_id: str
+    book_version_id: str
+    title: str
+    max_chapter: int
+
+
 def _terms(text: str) -> set[str]:
     return {
         token.casefold()
@@ -121,6 +131,91 @@ class Librarian:
     def version_for(self, work_id: str) -> str | None:
         registration = CORPORA.get(work_id)
         return registration.book.book_version_id if registration else None
+
+    def registered_scope(
+        self,
+        work_id: str,
+        book_version_id: str,
+    ) -> RegisteredCorpusScope | None:
+        """Return trusted metadata without opening any canonical chapter body."""
+        registration = CORPORA.get(work_id)
+        if registration is None or registration.book.book_version_id != book_version_id:
+            return None
+        catalog = _load_catalog(registration)
+        chapters = catalog.get("chapters")
+        if not isinstance(chapters, list):
+            raise CorpusScopeError("catalog chapters must be a list")
+        numbers = [
+            chapter.get("chapter_number")
+            for chapter in chapters
+            if isinstance(chapter, dict)
+        ]
+        if not numbers or any(not isinstance(number, int) for number in numbers):
+            raise CorpusScopeError("catalog chapter numbers are invalid")
+        return RegisteredCorpusScope(
+            work_id=work_id,
+            book_version_id=book_version_id,
+            title=registration.book.title,
+            max_chapter=max(numbers),
+        )
+
+    def route_work(
+        self,
+        text: str,
+        allowed_book_version_ids: tuple[str, ...],
+    ) -> RegisteredCorpusScope | None:
+        """Route explicit literary cues using metadata only, never chapter text."""
+        lowered = text.casefold()
+        query_terms = _terms(text)
+        allowed = set(allowed_book_version_ids)
+        ranked: list[tuple[int, RegisteredCorpusScope]] = []
+        for registration in CORPORA.values():
+            book = registration.book
+            if book.book_version_id not in allowed:
+                continue
+            scope = self.registered_scope(book.work_id, book.book_version_id)
+            assert scope is not None
+            catalog = _load_catalog(registration)
+            chapters = catalog.get("chapters")
+            assert isinstance(chapters, list)
+
+            direct_markers = {
+                book.title.casefold(),
+                book.work_id.replace("-", " ").casefold(),
+            }
+            routing_terms: set[str] = set()
+            for chapter in chapters:
+                if not isinstance(chapter, dict):
+                    continue
+                for field in ("characters", "locations", "retrieval_cues"):
+                    values = chapter.get(field)
+                    if isinstance(values, list):
+                        direct_markers.update(
+                            value.casefold()
+                            for value in values
+                            if isinstance(value, str) and len(value.strip()) >= 4
+                        )
+                        routing_terms.update(
+                            term
+                            for value in values
+                            if isinstance(value, str)
+                            for term in _terms(value)
+                        )
+                description = chapter.get("routing_description")
+                if isinstance(description, str):
+                    routing_terms.update(_terms(description))
+
+            direct = any(marker in lowered for marker in direct_markers)
+            overlap = len(query_terms & routing_terms)
+            if direct:
+                ranked.append((100 + overlap, scope))
+
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: (-item[0], item[1].work_id))
+        if len(ranked) > 1 and ranked[0][0] == ranked[1][0]:
+            return None
+        return ranked[0][1]
 
     def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
         """Resolve one released handle without running retrieval again."""
@@ -287,5 +382,10 @@ class Librarian:
                 break
         return EvidenceBundle(
             items=diversified,
-            retrieval_note="Only exact text inside the reader-confirmed corpus revision and chapter boundary was searched.",
+            retrieval_note=(
+                "The complete immutable work was searched privately for boundary inference; "
+                "candidate passage text is not a disclosure grant."
+                if request.purpose == "boundary_inference"
+                else "Only exact text inside the validated corpus revision and chapter boundary was searched."
+            ),
         )

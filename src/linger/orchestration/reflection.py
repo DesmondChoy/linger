@@ -406,8 +406,17 @@ def _validate_release(
     tool_results: list[dict[str, object]],
     release_scope: ReleaseScope | None,
     previously_released_evidence_ids: frozenset[str],
+    required_clarification: str | None = None,
 ) -> None:
     """Validate declared book citations after semantic approval."""
+    if required_clarification is not None and (
+        candidate.reply != required_clarification
+        or candidate.evidence_uses
+        or tool_results
+    ):
+        raise ReleaseValidationError(
+            "An unresolved spoiler boundary requires the exact clarification only"
+        )
     evidence = _validated_book_evidence(
         tool_results,
         release_scope,
@@ -780,6 +789,7 @@ async def _reflection_reply(
                 draft_tool_results,
                 release_scope,
                 previously_released_evidence_ids,
+                draft_input.context_resolution.clarification_question,
             )
         except ReleaseValidationError:
             return _record_release(
@@ -992,6 +1002,7 @@ async def _reflection_reply(
                 revised_tool_results,
                 release_scope,
                 previously_released_evidence_ids,
+                draft_input.context_resolution.clarification_question,
             )
         except ReleaseValidationError:
             return _record_release(

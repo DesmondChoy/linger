@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from logfire.testing import TestExporter
 
 from apps.backend.config import get_settings
+from src.linger.contracts.librarian import BoundarySupportLocation, BoundaryUncertain
 
 get_settings.cache_clear()
 with patch.dict(
@@ -414,7 +415,31 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await blocker.wait()
 
-        with patch.object(main, "reflection_reply", cancelled_gate):
+        with (
+            patch.object(
+                main,
+                "infer_spoiler_boundary",
+                AsyncMock(
+                    return_value=BoundaryUncertain(
+                        kind="uncertain",
+                        work_id="pg11",
+                        book_version_id="pg11-v01b38ea4",
+                        reason_code="low_confidence",
+                        confidence=0.6,
+                        candidate_chapter=5,
+                        supporting_locations=(
+                            BoundarySupportLocation(
+                                evidence_id="pg11-v01b38ea4-ch05-ln0974-0975",
+                                chapter_number=5,
+                                location="Chapter 5, lines 974-975",
+                            ),
+                        ),
+                        clarification_question="What chapter have you completed?",
+                    )
+                ),
+            ),
+            patch.object(main, "reflection_reply", cancelled_gate),
+        ):
             task = asyncio.create_task(self.call_chat(request))
             await asyncio.wait_for(entered.wait(), timeout=1)
             self.assertIsNotNone(sessions.reading_candidate(self.session_id))

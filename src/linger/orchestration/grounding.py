@@ -174,6 +174,7 @@ async def _grounding_evidence(
         ],
         retrieval_score_threshold=request.options.retrieval_score_threshold,
         max_results=request.options.max_final_evidence,
+        purpose="evidence_retrieval",
     )
 
     try:

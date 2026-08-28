@@ -83,6 +83,55 @@ class EvidenceRecord(StrictModel):
     text: str
 
 
+class BoundarySupportLocation(StrictModel):
+    """Content-free location supporting one inferred spoiler ceiling."""
+
+    evidence_id: str
+    chapter_number: int = Field(ge=1)
+    location: str
+
+
+class BoundaryCandidate(StrictModel):
+    """Validated request-scoped ceiling; full-work passage text is excluded."""
+
+    kind: Literal["candidate"]
+    work_id: str
+    book_version_id: str
+    max_chapter_inclusive: int = Field(ge=1)
+    confidence: float = Field(ge=0, le=1)
+    supporting_locations: tuple[BoundarySupportLocation, ...] = Field(min_length=1)
+
+
+class BoundaryUncertain(StrictModel):
+    """A safe request for clarification when inference cannot set a ceiling."""
+
+    kind: Literal["uncertain"]
+    work_id: str
+    book_version_id: str
+    reason_code: Literal[
+        "insufficient_context",
+        "conflicting_context",
+        "low_confidence",
+        "inference_unavailable",
+    ]
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    candidate_chapter: int | None = Field(default=None, ge=1)
+    supporting_locations: tuple[BoundarySupportLocation, ...] = ()
+    clarification_question: str
+
+    @model_validator(mode="after")
+    def _candidate_fields_are_complete(self) -> "BoundaryUncertain":
+        if self.candidate_chapter is None:
+            if self.supporting_locations:
+                raise ValueError("uncertain result without a candidate cannot cite support")
+        elif self.confidence is None or not self.supporting_locations:
+            raise ValueError("uncertain candidate requires confidence and support")
+        return self
+
+
+BoundaryInferenceResult = BoundaryCandidate | BoundaryUncertain
+
+
 class RetrievalResult(StrictModel):
     kind: Literal["result"]
     request_id: str

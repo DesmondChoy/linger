@@ -1192,7 +1192,7 @@
           </svg>
           <div class="ring-copy"><strong>172 / 186</strong><span>tracked issues closed</span></div>
         </div>
-        <div class="score"><span class="score-label">Verified backend</span><strong>384 + 270</strong><small>tests · subtests passing</small></div>
+        <div class="score"><span class="score-label">Verified backend</span><strong>396 + 275</strong><small>tests · subtests passing</small></div>
         <div class="score"><span class="score-label">Synthetic evaluation</span><strong>21</strong><small>validated Scenes · three packages</small></div>
         <div class="score"><span class="score-label">Canonical corpus</span><strong>12</strong><small>Alice chapters validated</small></div>
       </section>
@@ -1209,7 +1209,7 @@
           </article>
           <article class="journey-step" data-step="02 / GROUND">
             <div class="journey-body"><h3>Ground</h3><p>Alice retrieval supports direct, BM25, semantic, hybrid, and reranked strategies with exact citation validation.</p></div>
-            <div class="journey-footer"><span class="status-tag partial">Boundary-limited</span><p class="remaining">Still needed: Librarian-owned full-work boundary inference, canonical cache ceilings, authorised memory retrieval, and the planned 3–5 book corpus.</p></div>
+            <div class="journey-footer"><span class="status-tag partial">Alice-first slice</span><p class="remaining">Private full-work boundary inference and the separately bounded evidence search now work for Alice. Still needed: typed boundary Ground truth and live evaluation, canonical cache ceilings, the planned 3–5 book corpus, and approved budgets.</p></div>
           </article>
           <article class="journey-step" data-step="03 / PRESERVE">
             <div class="journey-body"><h3>Preserve</h3><p>Controlled automatic capture binds exact user text to independent review, suppresses application-authored responses, commits through deterministic policy, and replays across 11 synthetic Scenes.</p></div>
@@ -1228,7 +1228,7 @@
           <p class="section-summary">The current snapshot combines deterministic suites, fixed role eval cases, corpus integrity checks, and frontend verification. Role-specific confidence and missing evidence are separated in the role view.</p>
         </header>
         <div class="proof-strip" aria-label="Shared verification metrics">
-          <div class="proof-stat"><span>Python suite</span><strong>384 + 270</strong><small>tests · subtests passing</small></div>
+          <div class="proof-stat"><span>Python suite</span><strong>396 + 275</strong><small>tests · subtests passing</small></div>
           <div class="proof-stat"><span>Frontend</span><strong>4</strong><small>tests + lint + production build</small></div>
           <div class="proof-stat"><span>Fixed eval cases</span><strong>30</strong><small>across Muse, Librarian, Provenance, Sculptor</small></div>
           <div class="proof-stat"><span>Corpus integrity</span><strong>12 / 12</strong><small>canonical Alice chapters valid</small></div>
@@ -1264,7 +1264,7 @@
             <article class="evaluation-asset"><span>Synthetic curation packages</span><strong>2 × 5</strong><p>Two action-focused packages supply isolated active Props to production Sculptor while preserving every source hash.</p><a href="../synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json">Open the latest curation Backstory</a></article>
             <article class="evaluation-asset"><span>Replay workflows</span><strong>2</strong><p>Capture and bounded curation publish native Pydantic Evals cases, content-bearing agent spans, authority-specific labels, and trace identifiers.</p><a href="telemetry.md#41-native-logfire-views">Read telemetry views</a></article>
             <article class="evaluation-asset"><span>Manual end-to-end routes</span><strong>2</strong><p>Independent notebook routes for the complete release path and the internal retrieval/evaluation stages.</p><a href="../notebooks/librarian_manual_evaluation.ipynb">Open evaluation notebook</a></article>
-            <article class="evaluation-asset"><span>Deterministic verification</span><strong>384</strong><p>Python tests plus 270 subtests, with four product-frontend tests, lint, TypeScript, and production build.</p><a href="../tests/test_synthetic_journal_replay.py">Open capture replay tests</a></article>
+            <article class="evaluation-asset"><span>Deterministic verification</span><strong>396</strong><p>Python tests plus 275 subtests, with four product-frontend tests, lint, TypeScript, and production build.</p><a href="../tests/test_synthetic_journal_replay.py">Open capture replay tests</a></article>
           </div>
         </div>
 
@@ -1329,14 +1329,9 @@
           <div><h3>Prove one curated result improves one retrieval consumer</h3><p>After the evaluation and capture-readiness gates, use one independently adopted derived summary in an isolated with-versus-without retrieval comparison.</p></div>
           <span class="issue-state status-tag partial">Open · P2</span>
         </article>
-        <article class="issue" id="issue-linger-yq1" data-status="open">
-          <span class="issue-id">linger-yq1</span>
-          <div><h3>Add typed spoiler-boundary Ground truth</h3><p>Represent canonical work, immutable version, and expected event-derived corpus ceiling for corpus-backed Scenes without putting runtime authority in Backstory, Props, or Lines.</p></div>
-          <span class="issue-state status-tag partial">Open · P2</span>
-        </article>
-        <article class="issue" id="issue-linger-o0f" data-status="open">
-          <span class="issue-id">linger-o0f</span>
-          <div><h3>Implement Librarian-owned spoiler-boundary inference</h3><p>Infer a typed request-scoped ceiling from authorised memories and the current Line while preventing later-story content from reaching bounded retrieval.</p></div>
+        <article class="issue" id="issue-linger-kow" data-status="open">
+          <span class="issue-id">linger-kow</span>
+          <div><h3>Reconcile synthetic boundary schema with runtime contracts</h3><p>Define typed spoiler-boundary Ground truth for corpus-backed Scenes and its deliberate mapping to the runtime work, revision, and inferred-ceiling contracts.</p></div>
           <span class="issue-state status-tag partial">Open · P2</span>
         </article>
         <article class="issue" id="issue-linger-n4h" data-status="open">
@@ -1396,8 +1391,7 @@
           <p class="phase">Next · Canonicalise</p>
           <h3>Close the authority gaps</h3>
           <ul>
-            <li>Ship Librarian-owned full-work spoiler-boundary inference.</li>
-            <li>Add typed spoiler-boundary Ground truth for corpus-backed Scenes.</li>
+            <li>Add typed spoiler-boundary Ground truth and live inference evaluation for corpus-backed Scenes.</li>
             <li>Canonicalise equivalent hybrid retrieval scopes before cache lookup.</li>
             <li>Make an evidence-backed go or no-go decision on one curated retrieval consumer.</li>
           </ul>
@@ -1449,13 +1443,13 @@
             <div class="role-lead"><div class="role-code" aria-hidden="true">Mu</div><div><h3 class="role-name">Muse</h3><span class="status-tag working">Operational slice</span><br><a class="role-link" href="design/muse-design.html">View detailed progress</a></div></div>
             <div class="role-built"><h3>Current scope</h3><p>Typed replies, bounded specialist calls, emotional preflight, one reviewed revision, Inspect diagnostics, safe declines, and capture nomination.</p></div>
             <div class="role-proof"><strong>Suite + 5</strong><span>focused tests · fixed eval cases</span></div>
-            <div class="role-next"><h3>Next gate</h3><p>Librarian-owned boundary inference, durable capture identity, blank-nomination refusal, and photograph input. <strong>linger-o0f · linger-gmr.8 · linger-gmr.9</strong></p></div>
+            <div class="role-next"><h3>Next gate</h3><p>Durable capture identity, blank-nomination refusal, and photograph input. <strong>linger-gmr.8 · linger-gmr.9</strong></p></div>
           </article>
           <article class="role-progress">
             <div class="role-lead"><div class="role-code" aria-hidden="true">Li</div><div><h3 class="role-name">Librarian</h3><span class="status-tag partial">Strong Alice slice</span><br><a class="role-link" href="design/librarian-design.html">View detailed progress</a></div></div>
-            <div class="role-built"><h3>Current scope</h3><p>Confirmed-ceiling Alice retrieval across five strategies, hybrid reranking, exact evidence resolution, and a reproducible manual notebook.</p></div>
+            <div class="role-built"><h3>Current scope</h3><p>Request-scoped Alice boundary inference from the current Line and relevant account memories, followed by a separately bounded search across five retrieval strategies, hybrid reranking, and exact evidence resolution.</p></div>
             <div class="role-proof"><strong>Suite + 12</strong><span>focused tests · frozen cases</span></div>
-            <div class="role-next"><h3>Next gate</h3><p>Full-work boundary inference, canonical cache ceilings, 3–5 books, authorised memory retrieval, and approved budgets. <strong>linger-o0f · linger-dj6 · linger-cnx</strong></p></div>
+            <div class="role-next"><h3>Next gate</h3><p>Typed boundary Ground truth and live inference evaluation, canonical cache ceilings, 3–5 books, and approved budgets. <strong>linger-kow · linger-dj6 · linger-cnx</strong></p></div>
           </article>
           <article class="role-progress">
             <div class="role-lead"><div class="role-code" aria-hidden="true">Pr</div><div><h3 class="role-name">Provenance</h3><span class="status-tag working">Mandatory gate</span><br><a class="role-link" href="design/provenance-design.html">View detailed progress</a></div></div>

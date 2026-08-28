@@ -5,6 +5,12 @@ configurations on the same Alice query set. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
+The frozen benchmark and provider-backed release report evaluate the second
+phase with a known chapter ceiling. The request-scoped full-work inference
+phase is covered by deterministic and integration tests, but it does not yet
+have adopted typed Ground truth or a provider-backed live scorecard. That
+evaluation contract remains tracked by `linger-kow`.
+
 ## Manual notebook
 
 [`../../notebooks/librarian_manual_evaluation.ipynb`](../../notebooks/librarian_manual_evaluation.ipynb)

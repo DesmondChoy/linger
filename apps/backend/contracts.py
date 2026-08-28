@@ -7,13 +7,13 @@ from pydantic import BaseModel, Field, model_validator
 from src.linger.agents.contracts import StrictModel
 from src.linger.agents.provenance.models import RiskFinding
 from src.linger.contracts.emotional import EmotionalContentPolicy
-from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.librarian import BoundarySupportLocation, EvidenceRecord
 
 
 class ReadingContext(StrictModel):
     work_id: str
     chapter_max: int = Field(ge=1)
-    boundary_source: Literal["reader_confirmed"] = "reader_confirmed"
+    boundary_source: Literal["reader_confirmed", "librarian_inferred"]
 
 
 class ContextResolution(StrictModel):
@@ -22,9 +22,44 @@ class ContextResolution(StrictModel):
     status: Literal["confirmed", "inferred", "unknown"]
     work_id: str | None = None
     work_title: str | None = None
+    book_version_id: str | None = None
     chapter_max: int | None = Field(default=None, ge=1)
-    boundary_source: Literal["reader_confirmed", "inferred_from_question"] | None = None
+    boundary_source: Literal["reader_confirmed", "librarian_inferred"] | None = None
+    boundary_confidence: float | None = Field(default=None, ge=0, le=1)
+    boundary_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
+    candidate_chapter: int | None = Field(default=None, ge=1)
+    candidate_confidence: float | None = Field(default=None, ge=0, le=1)
+    candidate_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
+    clarification_question: str | None = None
     explanation: str
+
+    @model_validator(mode="after")
+    def validate_boundary_state(self) -> Self:
+        if self.status == "confirmed":
+            if self.work_id is None or self.chapter_max is None or self.boundary_source is None:
+                raise ValueError("confirmed context requires a work and boundary")
+        elif self.chapter_max is not None or self.boundary_source is not None:
+            raise ValueError("unconfirmed context cannot grant a spoiler boundary")
+        if self.boundary_source == "librarian_inferred":
+            if (
+                self.book_version_id is None
+                or self.boundary_confidence is None
+                or not self.boundary_supporting_locations
+            ):
+                raise ValueError("inferred boundary requires version, confidence, and support")
+        elif self.boundary_confidence is not None or self.boundary_supporting_locations:
+            raise ValueError("only inferred boundaries carry inference metadata")
+        if self.candidate_chapter is None:
+            if self.candidate_confidence is not None or self.candidate_supporting_locations:
+                raise ValueError("candidate metadata requires a candidate chapter")
+        elif (
+            self.status != "inferred"
+            or self.candidate_confidence is None
+            or not self.candidate_supporting_locations
+            or self.clarification_question is None
+        ):
+            raise ValueError("uncertain candidate requires confidence, support, and clarification")
+        return self
 
 
 class TurnPolicy(StrictModel):
@@ -93,13 +128,17 @@ class BookScope(BaseModel):
 
 
 class LibrarianRequest(BaseModel):
-    """Serendipity's bounded retrieval request to Librarian."""
+    """Application-scoped retrieval request to Librarian."""
 
     query: str = Field(min_length=1, max_length=2000)
     book_scopes: list[BookScope] = []
     retrieval_score_threshold: float = Field(default=0.5, ge=0, le=1)
     max_results: int = Field(default=5, ge=1, le=10)
-    purpose: Literal["connection_discovery"] = "connection_discovery"
+    purpose: Literal[
+        "boundary_inference",
+        "evidence_retrieval",
+        "connection_discovery",
+    ] = "evidence_retrieval"
 
 
 class EvidenceItem(BaseModel):
