@@ -58,8 +58,10 @@ class LibrarianTests(unittest.TestCase):
         self.librarian = Librarian()
 
     def test_metadata_routes_alice_cues_without_opening_story_text(self) -> None:
+        # "alice" alone is only one distinct cue (below threshold); pair it
+        # with a second genuine catalog cue to justify metadata-only routing.
         decision = self.librarian.route_work(
-            "Why does Alice keep struggling to explain who she is?",
+            "Why does Alice trust the White Rabbit near the riverbank?",
             (BOOK_VERSION_ID,),
         )
 
@@ -90,6 +92,77 @@ class LibrarianTests(unittest.TestCase):
         )
 
         self.assertIsNone(decision)
+
+    def test_incidental_cue_fragments_in_reflection_do_not_route(self) -> None:
+        # Live replay regression: one incidental catalog cue ("garden") plus
+        # ordinary words from cue phrases must not accumulate confidence.
+        decision = self.librarian.route_work(
+            "I signed up for a plot in the community garden this spring, and "
+            "I keep going back and forth about whether I'm taking on more "
+            "than I can keep up with this season.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_word_boundary_prevents_substring_false_positive(self) -> None:
+        # "alice" inside "Malice", "pigeon" inside "pigeonholing" must not match.
+        decision = self.librarian.route_work(
+            "Malice and pigeonholing at work today.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_nested_cue_is_not_double_counted(self) -> None:
+        # "garden" and "rose garden" both match; only the maximal cue counts,
+        # leaving one distinct multi-word cue, below threshold.
+        decision = self.librarian.route_work(
+            "my grandmother tends her rose garden",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_generic_single_word_cues_do_not_route(self) -> None:
+        # cook/eggs/baby are catalog cues but also common English words
+        # (GENERIC_CUE_WORDS); none of them may count toward confidence.
+        decision = self.librarian.route_work(
+            "The kitchen cook made eggs for the baby.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_lone_generic_single_word_cue_does_not_route(self) -> None:
+        decision = self.librarian.route_work(
+            "The cook was busy today.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_distinctive_bare_single_word_names_route(self) -> None:
+        # Unlike generic words, two distinctive single-word character names
+        # (not in GENERIC_CUE_WORDS) must still clear the threshold.
+        decision = self.librarian.route_work(
+            "Why does the Dormouse annoy the Hatter?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertGreaterEqual(decision.confidence, 0.6)
+
+    def test_distinctive_multi_word_character_scene_routes(self) -> None:
+        decision = self.librarian.route_work(
+            "What does the Dormouse say to the Hatter at the tea party?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertGreaterEqual(decision.confidence, 0.6)
 
     def test_bare_single_word_message_does_not_route(self) -> None:
         # Confidence must be length-independent: a one-word message carries the

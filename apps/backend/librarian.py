@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from src.linger.corpus.alice import BOOK
@@ -28,6 +29,13 @@ STOP_WORDS = {
     "so", "that", "the", "their", "them", "then", "there", "they", "this",
     "to", "too", "us", "was", "we", "were", "what", "when", "where", "which",
     "who", "why", "will", "with", "would", "you", "your",
+}
+# Single-word catalog cues that are also common English words: matching one
+# of these must not bear routing confidence, unlike a distinctive name like
+# "dormouse" that happens to also be one word.
+GENERIC_CUE_WORDS = {
+    "baby", "cook", "crab", "duck", "eggs", "five", "garden", "kitchen",
+    "mouse", "seven", "wood",
 }
 
 
@@ -131,6 +139,45 @@ def _load_catalog(registration: CorpusRegistration) -> dict[str, object]:
     return catalog
 
 
+def _normalize(text: str) -> str:
+    """Casefold and unify apostrophe variants so cue matching is quote-agnostic."""
+    return text.casefold().replace("’", "'").replace("‘", "'").replace("ʼ", "'")
+
+
+@lru_cache(maxsize=None)
+def _routing_cues(
+    registration: CorpusRegistration,
+) -> tuple[frozenset[str], frozenset[str], re.Pattern[str]]:
+    """Precompute one corpus's title/catalog cue markers and a single matcher."""
+    book = registration.book
+    title_markers = frozenset(
+        {_normalize(book.title), book.work_id.replace("-", " ").casefold()}
+    )
+    catalog = _load_catalog(registration)
+    chapters = catalog.get("chapters")
+    assert isinstance(chapters, list)
+    catalog_markers: set[str] = set()
+    for chapter in chapters:
+        if not isinstance(chapter, dict):
+            continue
+        for field in ("characters", "locations", "retrieval_cues"):
+            values = chapter.get(field)
+            if isinstance(values, list):
+                catalog_markers.update(
+                    _normalize(value)
+                    for value in values
+                    if isinstance(value, str) and len(value.strip()) >= 4
+                )
+        # routing_description is free prose written for humans, not a
+        # catalog cue — counting its incidental words (e.g. "while",
+        # "much") as evidence would let unrelated reflection accrue
+        # confidence from common vocabulary alone.
+    all_markers = catalog_markers | title_markers
+    alternation = "|".join(re.escape(marker) for marker in sorted(all_markers, key=len, reverse=True))
+    pattern = re.compile(rf"(?<!\w)(?:{alternation})(?!\w)")
+    return frozenset(catalog_markers), title_markers, pattern
+
+
 class Librarian:
     """Retrieve exact passages only from a registered revision and chapter range."""
 
@@ -178,8 +225,7 @@ class Librarian:
         allowed_book_version_ids: tuple[str, ...],
     ) -> RoutingDecision | None:
         """Route explicit literary cues using metadata only, never chapter text."""
-        lowered = text.casefold()
-        query_terms = _terms(text)
+        lowered = _normalize(text)
         allowed = set(allowed_book_version_ids)
         ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
         for registration in CORPORA.values():
@@ -188,63 +234,48 @@ class Librarian:
                 continue
             scope = self.registered_scope(book.work_id, book.book_version_id)
             assert scope is not None
-            catalog = _load_catalog(registration)
-            chapters = catalog.get("chapters")
-            assert isinstance(chapters, list)
+            catalog_markers, title_markers, pattern = _routing_cues(registration)
 
-            title_markers = {
-                book.title.casefold(),
-                book.work_id.replace("-", " ").casefold(),
+            all_matches = {match.group(0) for match in pattern.finditer(lowered)}
+            title_match = bool(all_matches & title_markers)
+            matched_markers = all_matches & catalog_markers
+            # Keep only maximal matches: drop a matched cue that is itself a
+            # substring of another matched cue (e.g. "garden" inside "rose
+            # garden") so nested catalog entries don't double-count.
+            matched_markers = {
+                marker
+                for marker in matched_markers
+                if not any(
+                    marker != other and marker in other for other in matched_markers
+                )
             }
-            catalog_markers: set[str] = set()
-            routing_terms: set[str] = set()
-            for chapter in chapters:
-                if not isinstance(chapter, dict):
-                    continue
-                for field in ("characters", "locations", "retrieval_cues"):
-                    values = chapter.get(field)
-                    if isinstance(values, list):
-                        catalog_markers.update(
-                            value.casefold()
-                            for value in values
-                            if isinstance(value, str) and len(value.strip()) >= 4
-                        )
-                        routing_terms.update(
-                            term
-                            for value in values
-                            if isinstance(value, str)
-                            for term in _terms(value)
-                        )
-                # routing_description is free prose written for humans, not a
-                # catalog cue — counting its incidental words (e.g. "while",
-                # "much") as evidence would let unrelated reflection accrue
-                # confidence from common vocabulary alone.
-
-            title_match = any(marker in lowered for marker in title_markers)
-            catalog_match = any(marker in lowered for marker in catalog_markers)
-            if not (title_match or catalog_match):
+            if not (title_match or matched_markers):
                 continue
 
-            overlap = len(query_terms & routing_terms)
             if title_match:
                 # An explicit title or work-id mention is unambiguous.
                 confidence = 1.0
+                distinct_cues = len(matched_markers)
             else:
-                # Confidence must track the ABSOLUTE strength of the evidence,
-                # not its share of the message: a long message and a short one
-                # explain a routed work equally well from the same number of
-                # distinct catalog cues. One incidental cue (a character,
-                # place, or retrieval word) stays below threshold regardless
-                # of message length; two or more distinct cues clear it.
-                confidence = min(1.0, 0.3 + 0.2 * overlap)
-            ranked.append((scope, confidence, overlap))
+                # A single-word cue that is also common English (see
+                # GENERIC_CUE_WORDS) is too weak to count alone; a multi-word
+                # cue, or a distinctive single-word name, always counts.
+                counted_cues = {
+                    marker
+                    for marker in matched_markers
+                    if " " in marker or marker not in GENERIC_CUE_WORDS
+                }
+                distinct_cues = len(counted_cues)
+                confidence = min(1.0, 0.3 + 0.2 * distinct_cues)
+            ranked.append((scope, confidence, distinct_cues))
 
         if not ranked:
             return None
         ranked.sort(key=lambda item: (-item[1], -item[2], item[0].work_id))
         # Ambiguous only when the full evidence signal ties (confidence and
-        # overlap); `work_id` is a deterministic tiebreaker for sorting only,
-        # never a reason by itself to call two distinct routes a tie.
+        # distinct cue count); `work_id` is a deterministic tiebreaker for
+        # sorting only, never a reason by itself to call two distinct routes
+        # a tie.
         if len(ranked) > 1 and ranked[0][1:] == ranked[1][1:]:
             return None
         scope, confidence, _ = ranked[0]
