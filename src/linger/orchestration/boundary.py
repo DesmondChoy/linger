@@ -17,14 +17,17 @@ from src.linger.contracts.librarian import (
     BoundaryUncertain,
     EvidenceRecord,
 )
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.services.memory import MemoryRecord
 
 BOUNDARY_CONFIDENCE_THRESHOLD = 0.75
 MAX_BOUNDARY_MEMORIES = 8
 MAX_BOUNDARY_CANDIDATES = 10
 
+RetrievalMemory = MemoryRecord | CuratedMemory
+
 BoundaryJudge = Callable[
-    [str, tuple[MemoryRecord, ...], tuple[EvidenceRecord, ...]],
+    [str, tuple[RetrievalMemory, ...], tuple[EvidenceRecord, ...]],
     Awaitable[BoundaryInferenceDecision],
 ]
 
@@ -42,7 +45,7 @@ def _clarification(scope: RegisteredCorpusScope, *, chapter: int | None = None) 
 
 
 def _memory_mentions_work(
-    memory: MemoryRecord,
+    memory: RetrievalMemory,
     scope: RegisteredCorpusScope,
     librarian: Librarian,
 ) -> bool:
@@ -62,10 +65,10 @@ def _memory_mentions_work(
 
 
 def relevant_memories(
-    memories: tuple[MemoryRecord, ...],
+    memories: tuple[RetrievalMemory, ...],
     scope: RegisteredCorpusScope,
     librarian: Librarian,
-) -> tuple[MemoryRecord, ...]:
+) -> tuple[RetrievalMemory, ...]:
     """Return a bounded account-scoped subset that references this work."""
     matching = [
         memory
@@ -77,7 +80,7 @@ def relevant_memories(
 
 async def judge_spoiler_boundary(
     current_line: str,
-    memories: tuple[MemoryRecord, ...],
+    memories: tuple[RetrievalMemory, ...],
     evidence: tuple[EvidenceRecord, ...],
 ) -> BoundaryInferenceDecision:
     """Run Librarian's private boundary judgment without logging its content."""
@@ -119,7 +122,7 @@ async def infer_spoiler_boundary(
     *,
     work_id: str,
     book_version_id: str,
-    memories: tuple[MemoryRecord, ...],
+    memories: tuple[RetrievalMemory, ...],
     librarian: Librarian,
     judge: BoundaryJudge | None = None,
     confidence_threshold: float = BOUNDARY_CONFIDENCE_THRESHOLD,

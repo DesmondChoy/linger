@@ -335,7 +335,7 @@ async def _infer_request_boundary(
     ):
         return resolution
     try:
-        memories = tuple(service.list_active(account))
+        memories = tuple(service.list_for_retrieval(account))
         inferred = await infer_spoiler_boundary(
             request.message,
             work_id=resolution.work_id,

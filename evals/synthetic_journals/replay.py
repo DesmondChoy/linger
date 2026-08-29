@@ -38,6 +38,9 @@ from src.linger.agents.provenance.emotional_prompt import (
 from src.linger.agents.provenance.prompt import (
     PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.provenance.curation_prompt import (
+    PROMPT_FINGERPRINT as CURATION_PROVENANCE_PROMPT_FINGERPRINT,
+)
 from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
 )
@@ -68,6 +71,7 @@ RUNTIME_PROMPT_FINGERPRINTS = (
     REVISION_PROMPT_FINGERPRINT,
     EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT,
     PROVENANCE_PROMPT_FINGERPRINT,
+    CURATION_PROVENANCE_PROMPT_FINGERPRINT,
     SCULPTOR_PROMPT_FINGERPRINT,
     SERENDIPITY_PROMPT_FINGERPRINT,
 )

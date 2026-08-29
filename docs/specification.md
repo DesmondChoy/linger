@@ -18,7 +18,10 @@ Serendipity proposal, or exact records re-resolved from evidence identifiers
 cited by an earlier released reply in the same session. Stored-memory, web, and
 image evidence are not citation authorities in this slice and therefore fail
 closed. Declared claims, richer sensitive-inference flags, and account-scoped
-memory retrieval remain later slices.
+memory search remain later slices. The implemented curation slice selects a
+bounded set of stored originals, obtains a Sculptor proposal and independent
+Provenance verdict, applies only an exactly bound allowed proposal through the
+Memory & Policy Service, and materialises the resulting retrieval view.
 
 ## 1. Purpose and positioning
 
@@ -43,7 +46,7 @@ The core journey is:
 |---|---|
 | **Reflect** | Muse drafts responses to text or a photograph and asks a small number of useful follow-up questions. Provenance reviews every complete draft before display, including drafts with no declared factual claims. |
 | **Ground** | Librarian retrieves authorised book passages and memories. Muse drafts a response separating quotations, user statements, and generated interpretation; Provenance checks the complete draft and its claimed support. |
-| **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. Sculptor may later curate existing memories for retrieval. |
+| **Preserve** | During controlled evaluation, Muse may nominate a useful reflection for automatic capture. Provenance may veto an unsafe candidate, and the deterministic Memory & Policy Service alone validates and commits approved captures. A later application-owned curation run may select bounded originals, ask Sculptor to propose one action, obtain a curation-specific Provenance verdict, and let the service apply an exactly bound allowed proposal. The interactive POC exposes no memory-management drawer or explicit save, correction, or deletion actions. |
 | **Reconnect** | Muse may ask Serendipity to explore a cue across memories, books, photographs, and general web evidence. Muse drafts the tentative connection, and Provenance reviews the whole reply and its evidence before release. |
 
 Automatic capture is disabled by default in the interactive POC. Controlled
@@ -60,7 +63,8 @@ approval. Content about sensitive traits is never captured.
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
 - reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
-- original memories, generated summaries, duplicate links, topic groups, and progressive disclosure;
+- immutable original memories, versioned generated summaries, duplicate links,
+  topic groups, reversible retrieval tombstones, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
@@ -96,10 +100,10 @@ The system contains five reasoning agents and one deterministic service:
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
 | **Librarian** | Infers request-scoped reading boundaries by cross-referencing authorised memories with the complete corpus, then plans, executes, fuses, and reranks evidence retrieval within the inferred ceiling. | None |
-| **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summary or formatting updates, duplicate links, and topic groups while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
+| **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summaries, duplicate links, topic groups, or reversible retrieval tombstones and restorations while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
-| **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. Candidate review passes, requests one revision, or rejects based on evidence, attribution, privacy, spoiler, emotional-policy, sensitive-inference, and injection checks. In the same review call, it may independently veto an unsafe automatic `MemoryCandidate`. | None |
-| **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture policy, access, storage, idempotency, and review. It accepts automatic candidates only after the required review. | Commits validated writes |
+| **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. It separately reviews complete Sculptor curation proposals against their exact source snapshots and returns an `allow`, `revise`, or `reject` verdict bound to the proposal digest. | None |
+| **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture and curation policy, access, storage, idempotency, source freshness, audit verification, and the retrieval projection. It accepts only reviewed commands whose immutable proposal digest matches an `allow` verdict. | Commits validated writes |
 
 The Memory & Policy Service derives account identity from authenticated request
 context and never accepts it from model output; agents cannot choose or widen
@@ -121,7 +125,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
-| **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. | Pydantic AI typed input and output contracts |
+| **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
 Exa is the sole general web-search integration for the prototype. Install the `pydantic-ai-harness[exa]` extra and register `ExaSearch()` in Serendipity's `capabilities`; do not implement an Exa client or web-search tool locally. The older `exa_search_tool`, related Exa common tools, and `ExaToolset` are deprecated and must not be introduced. Exa results remain untrusted evidence and are still subject to Sections 6.4 and 6.5. This allocation does not authorise browser control, arbitrary URL fetching, shell access, or any external action excluded by Section 3.
 
@@ -131,7 +135,7 @@ The five roles separate conversation and optional memory nomination, retrieval, 
 
 Each hand-off uses a strict, discriminated envelope and carries only the fields required by the next step. Muse receives either a draft envelope or one revision envelope that preserves the same turn and context authority. Full transcripts and unrestricted working context are not passed between agents.
 
-Provenance shares no model working context with the other agents and has no tools. The preflight receives only the current Line and the application-owned emotional-content policy. The later release gate receives one typed envelope containing trusted context, canonical book evidence, untrusted current-run tool outcomes, Muse's candidate declarations, and the current Line for emotional review and exact capture binding. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. This provides separation of duties, not model independence, because the same underlying model may be used.
+Provenance shares no model working context with the other agents and has no tools. The preflight receives only the current Line and the application-owned emotional-content policy. The later release gate receives one typed envelope containing trusted context, canonical book evidence, untrusted current-run tool outcomes, Muse's candidate declarations, and the current Line for emotional review and exact capture binding. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. The curation gate is a separate typed call with no Muse context; it reviews the complete Sculptor proposal and source evidence, then echoes the exact proposal digest in its verdict. This provides separation of duties, not model independence, because the same underlying model may be used.
 
 ### 4.1 Output release contract
 
@@ -177,7 +181,7 @@ preflight and its application-owned boundary branch precede it.
 
 ![Reflection and grounding flow](images/reflection-and-grounding.png)
 
-#### 4.2.2 Reviewed automatic memory capture
+#### 4.2.2 Reviewed memory capture and curation
 
 During controlled evaluation, Muse may nominate one typed `MemoryCandidate`;
 Provenance may veto it for privacy, sensitive inference, unsupported provenance,
@@ -186,7 +190,36 @@ server-side evaluation policy and idempotency, validates the request, and owns
 every write. The application reports a committed capture but offers no
 memory-management action.
 
-Sculptor is not part of capture. It later receives a bounded, account-scoped set of existing memories and may return a `CurationProposal | NoCurationProposal`; the Memory & Policy Service validates and applies permitted derived changes without modifying originals.
+Sculptor is not part of capture. Product-side curation is the following
+application-owned flow:
+
+1. The Memory & Policy Service resolves 2–12 requested memory identifiers to
+   immutable originals within the authenticated account.
+2. Sculptor receives only those identifiers and source texts and returns one
+   typed `CurationProposal | NoCurationProposal`. It has no tools.
+3. For a proposal, application code snapshots every referenced original,
+   constructs an immutable `CurationPlan`, and hashes its account scope,
+   current ordered curation-state digest, complete proposal, and source-record
+   digests.
+4. The curation-specific Provenance gate receives that proposal digest, the
+   complete proposal, and its exact source evidence. It has no tools and returns
+   `allow`, `revise`, or `reject` while echoing the digest. Any missing,
+   malformed, revised, rejected, or differently bound verdict stops the flow.
+5. Application code constructs `ApprovedCuration` only from an exact `allow`.
+   The Memory & Policy Service re-reads the originals and fails closed on stale,
+   unknown, cross-account, stale-state, or structurally invalid sources before
+   appending one immutable, idempotent audit event.
+6. The service verifies the stored event and source hashes. Retrieval reads the
+   materialised curated view rather than the raw capture list.
+
+Allowed actions are duplicate links, versioned derived summaries, topic groups,
+retrieval tombstones, and retrieval restoration. A tombstone requires a prior
+duplicate link to a distinct canonical original. It only suppresses the target
+from retrieval; restoration removes that suppression. Neither action changes
+or deletes a source record. Generated summaries and topic labels remain
+separate retrieval items with explicit source-memory identifiers. There is no
+public memory CRUD endpoint, arbitrary agent tool, physical deletion, or
+autonomous scheduler in this slice.
 
 #### 4.2.3 Connection discovery and verification
 
@@ -279,8 +312,10 @@ Each active memory contains:
 - created and updated timestamps.
 
 Original captured records are immutable. Sculptor may add or replace versioned
-derived summaries and links but cannot modify an original. The interactive POC
-does not expose correction or deletion.
+derived summaries and links but cannot modify an original. A reversible
+retrieval tombstone changes only the materialised view and is not deletion. The
+interactive POC does not expose correction, tombstoning, restoration, or
+deletion.
 
 For the prototype, the Memory & Policy Service stores each immutable capture as
 a Markdown file with JSON front matter under a Git-ignored
@@ -288,6 +323,16 @@ a Markdown file with JSON front matter under a Git-ignored
 policy server-side; the interactive UI cannot change it. No embedding,
 search-index, telemetry-memory, or vector-database layer is created until
 retrieval requires one.
+
+Reviewed curation is stored separately as immutable JSON events under
+`memories/<hashed-account-id>/curation/`. Each event records the complete allowed
+Provenance review, proposal and review digests, typed action, exact source
+snapshots, account key, current curation-state digest, and application time.
+Replaying an identical approved plan is idempotent; an event conflict, stale
+state, stale source, missing source, or account mismatch fails closed. The
+retrieval projection combines visible originals with the latest derived summary
+and topic-group version for each source set, includes duplicate and topic
+metadata, and excludes only originals with an effective retrieval tombstone.
 
 ### 5.3 Evidence record
 
@@ -472,8 +517,13 @@ Evaluation must test the product behaviour and authority boundaries in Sections 
 
 - Compare keyword, semantic, hybrid, and reranked book and memory retrieval using measures such as Recall@5 and nDCG@5.
 - Test whether Librarian's strategy selection improves relevance or latency over the strongest fixed strategy.
-- Measure Sculptor's linking and grouping quality without allowing it to modify or delete an original memory.
-- Verify that every derived record resolves to its originals.
+- Measure Sculptor's linking and grouping quality without giving it tools or
+  allowing it to modify or delete an original memory.
+- Verify that every applied proposal has an exact allowed Provenance verdict,
+  fresh same-account sources, an immutable audit event, and a reproducible
+  curated retrieval projection.
+- Verify that every derived record resolves to its originals and that retrieval
+  tombstones are reversible without physical deletion.
 
 The suggested measures in the [synthetic journal evaluation-objective catalog](../synthetic-journal-evaluation/evaluation-objectives.yaml) identify relevant signals. They are not adopted thresholds, aggregate scores, or release gates. Every factual web claim must include a retrievable citation, every evidence identifier must resolve, and any LLM-as-judge result is secondary and labelled non-independent.
 
@@ -561,6 +611,13 @@ adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
 identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
+
+That proposal-quality runner remains read-only and does not apply Ground truth
+or model output. Separate application-loop replay tests seed account-scoped
+captures and exercise proposal, bound Provenance review, deterministic policy,
+all supported curation actions, audit verification, restoration, immutable
+sources, and the curated retrieval projection. Test verdicts do not adopt or
+rewrite synthetic Ground truth.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool
@@ -673,7 +730,10 @@ monitoring and unsolicited resurfacing.
 
 - Every adopted RSI output is a proposal. Humans review and CI gates every merge; no loop applies changes to prompts, policies, code, or evaluation scenes itself.
 - Both loops run on a schedule, not during user conversations, and add no latency or authority to any user-facing flow.
-- No agent gains write authority. Playbook changes, and any future evaluation data, must enter through repository review rather than the Memory & Policy Service. Sculptor's product-side curation path remains proposal-only.
+- No agent gains write authority. Playbook changes, and any future evaluation
+  data, must enter through repository review rather than the Memory & Policy
+  Service. Sculptor's product-side role remains proposal-only; only the service
+  may apply an exactly reviewed product-memory proposal.
 - Loops consume only the operational metadata permitted by the [telemetry data contract](telemetry.md).
 - Autonomous prompt or skill self-modification remains out of scope (Section 3.3); metric trends are reported without claiming measured product uplift.
 
