@@ -72,17 +72,21 @@ authorize synthetic-data generation.
    as authority for Objective text, composition, and prompt boundaries; use the
    maintained specification, current code, and tests to describe shipped product
    behavior; and treat a runner as evidence only for the path it actually
-   executes. Do not silently edit an Objective or let a narrower runner descope
-   the target design. Name every material contradiction. An unresolved
-   contradiction affecting the plan is a **source gap**: mark the implementation
-   insufficient and set the fenced prompt to **Target state — do not run** with
-   reconciliation as a precondition.
+   executes. The confirmed Objective defines the evaluation boundary. A runner
+   is narrower only when it omits behavior that Objective requires, not merely
+   because the product continues through later stages. Do not silently edit an
+   Objective or let an actually narrower runner descope it. Name every material
+   contradiction. An unresolved contradiction affecting the selected plan is a
+   **source gap**: mark the implementation insufficient and set the fenced prompt
+   to **Target state — do not run** with reconciliation as a precondition.
 5. Trace every required Scene from setup through all participating agents,
    authority gates, deterministic services, state changes, and verification to
-   its terminal product outcome. Include applicable short-circuit and no-change
-   branches. Do not stop at the nearest agent response or evaluation-runner
-   output when the product workflow continues. State separately which complete
-   product path exists and which portion the current evaluation runner covers.
+   its terminal product outcome for architectural context. Include applicable
+   short-circuit and no-change branches. Then identify the selected Objective's
+   evaluation endpoint separately. Do not add downstream product invariants to
+   generator-authored Ground truth or grading unless the catalog or a separate
+   adopted scope decision requires them. State which complete product path
+   exists and which portion the current evaluation runner intentionally covers.
 6. Read Section 7.2.1 completely and use its six canonical nouns exactly:
    `Objective`, `Backstory`, `Prop`, `Scene`, `Line`, and `Ground truth`. Use
    implementation terms such as `batch` only for actual runtime objects, never
@@ -207,8 +211,9 @@ in order:
    consequence. Include a compact table with one row per required Scene or
    coherent ordered Scene sequence: target behavior, status (`runnable`,
    `partially runnable`, or `blocked`), and exact evidence or gap. Describe the
-   terminal product outcome and distinguish it from the portion exercised by the
-   current evaluation runner.
+   Objective's evaluated outcome. Mention the terminal product outcome only as
+   context, and do not treat downstream stages as evaluation gaps unless the
+   confirmed Objective requires them.
 2. **Your selection.** Use one short bullet per selected Objective with its
    title, ID, and a plain-language summary derived only from `menu.summary`.
 3. **Target evaluation design.** Link `docs/specification.md` Section 7.2.1 at
@@ -226,12 +231,14 @@ in order:
    and **Assumed** labels. Cite implementation and focused-test evidence. Name
    reusable `evals/` assets, including the adopted package validator, the recent
    commits that establish or change the workflow, and relevant open and closed
-   Beads. State the reconciled product path and current runner coverage. For each
-   gap, state whether it is a contract, capability, adapter, grading, or source
-   gap; give the smallest high-level build-out and testable acceptance criteria.
-   If authorities conflict, identify the exact conflict and the evidence needed
-   to resolve it. If no build-out is required, say so. End this section with one
-   compact repository snapshot line; do not create a separate Provenance section.
+   Beads. State the reconciled product path, the Objective evaluation endpoint,
+   and current runner coverage. Do not call an intentionally downstream product
+   stage a gap. For each actual gap, state whether it is a contract, capability,
+   adapter, grading, or source gap; give the smallest high-level build-out and
+   testable acceptance criteria. If authorities conflict, identify the exact
+   conflict and the evidence needed to resolve it. If no build-out is required,
+   say so. End this section with one compact repository snapshot line; do not
+   create a separate Provenance section.
 5. **Expected behavior and evaluation.** State whether the plan contains Lines
    or offline inputs. Pair each representative input with likely behavior and a
    plain-language success check. Put metric names after the explanation only
@@ -272,9 +279,12 @@ report and rerun the validator until it exits successfully. Do not estimate the
 word count. Then verify the semantic requirements that the script cannot prove:
 
 - Every required Scene has one current status with concrete evidence or a gap.
-- Every Scene is traced to its terminal product outcome, including applicable
-  authority gates, deterministic services, state changes, verification, and
-  short-circuit branches; the report separately states current runner coverage.
+- Every Scene is traced to its terminal product outcome for context, including
+  applicable authority gates, deterministic services, state changes,
+  verification, and short-circuit branches. The report separately states the
+  Objective evaluation endpoint and current runner coverage.
+- Generator-authored Ground truth and grading stop at the confirmed Objective's
+  evaluation boundary unless a separate adopted scope decision expands them.
 - The report reconciles the catalog, maintained specification, recent relevant
   commit diffs, runtime, evaluation runner, focused tests, and relevant open and
   closed Beads, and cites the commits and Beads that materially affect readiness.

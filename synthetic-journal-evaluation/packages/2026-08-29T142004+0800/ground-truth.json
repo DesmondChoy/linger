@@ -1,0 +1,350 @@
+{
+  "backstory_sha256": "df448df11ba0aede91f10d9a3e1254cb9358e0f303a4d8cfb7599dc4bd14de53",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-exact-duplicate",
+      "scene_id": "scene-exact-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor returns a curation_proposal with link_duplicates and exactly prop-exact-notebook-a and prop-exact-notebook-b as its source memory identifiers.",
+        "Both supplied Props remain separate, immutable source records with their identifiers and provenance preserved."
+      ],
+      "prohibited_outcomes": [
+        "Do not rewrite or delete either Prop, cite an unsupplied identifier, derive a new fact, or claim that storage changed."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-notebook-a",
+          "start_codepoint": 0,
+          "end_codepoint": 79,
+          "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-notebook-b",
+          "start_codepoint": 0,
+          "end_codepoint": 79,
+          "text": "My kiln maintenance notebook is in the second drawer beneath the wedging table."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-notebook-a",
+          "prop_id": "prop-exact-notebook-a"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-notebook-b",
+          "prop_id": "prop-exact-notebook-b"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-exact-notebook-a",
+              "prop-exact-notebook-b"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-paraphrased-duplicate",
+      "scene_id": "scene-paraphrased-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor returns a curation_proposal with link_duplicates and exactly prop-paraphrase-key-a and prop-paraphrase-key-b as its source memory identifiers.",
+        "The proposal recognizes that both Props express the same durable spare-key location despite their different wording."
+      ],
+      "prohibited_outcomes": [
+        "Do not treat the paraphrases as separate facts, rewrite either Prop, cite an unsupplied identifier, or claim that storage changed."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-key-a",
+          "start_codepoint": 0,
+          "end_codepoint": 75,
+          "text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-paraphrase-key-b",
+          "start_codepoint": 0,
+          "end_codepoint": 95,
+          "text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-paraphrase-key-a",
+          "prop_id": "prop-paraphrase-key-a"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-paraphrase-key-b",
+          "prop_id": "prop-paraphrase-key-b"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-paraphrase-key-a",
+              "prop-paraphrase-key-b"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-evolving-fact-with-noise",
+      "scene_id": "scene-evolving-fact-with-noise",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor returns a curation_proposal with update_derived_summary and cites only prop-summary-date-original, prop-summary-date-moved, and prop-summary-date-confirmed.",
+        "The derived summary represents the updated open-house date and confirmed time without incorporating the poster or tea records."
+      ],
+      "prohibited_outcomes": [
+        "Do not cite prop-summary-noise-posters or prop-summary-noise-tea, turn the records into a topic group, rewrite any original, or add an unsupported event detail."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-summary-date-original",
+          "start_codepoint": 0,
+          "end_codepoint": 98,
+          "text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-summary-date-moved",
+          "start_codepoint": 0,
+          "end_codepoint": 115,
+          "text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-summary-date-confirmed",
+          "start_codepoint": 0,
+          "end_codepoint": 100,
+          "text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-summary-noise-posters",
+          "start_codepoint": 0,
+          "end_codepoint": 63,
+          "text": "For the pottery open house, I chose indigo ink for the posters."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-summary-noise-tea",
+          "start_codepoint": 0,
+          "end_codepoint": 67,
+          "text": "I ordered jasmine tea for the volunteers at the pottery open house."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-summary-date-original",
+          "prop_id": "prop-summary-date-original"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-summary-date-moved",
+          "prop_id": "prop-summary-date-moved"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-summary-date-confirmed",
+          "prop_id": "prop-summary-date-confirmed"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-summary-noise-posters",
+          "prop_id": "prop-summary-noise-posters"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-summary-noise-tea",
+          "prop_id": "prop-summary-noise-tea"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-summary-date-original",
+              "prop-summary-date-moved",
+              "prop-summary-date-confirmed"
+            ],
+            "max_summary_words": 100,
+            "semantic_review": {
+              "criteria": [
+                "The summary states that the pottery open house moved from September 14 to September 21.",
+                "The summary preserves the confirmed 2:00 to 5:00 p.m. time without adding details.",
+                "The summary excludes the poster-ink choice and volunteer-tea order."
+              ],
+              "forbidden_claims": [
+                "The poster color or tea order caused or changed the event schedule.",
+                "The open house is confirmed for a date other than September 21."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-related-distinct-with-distractor",
+      "scene_id": "scene-related-distinct-with-distractor",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor returns a curation_proposal with assign_topic_group and cites only prop-topic-ramp, prop-topic-large-print, and prop-topic-quiet-room.",
+        "The topic label captures the shared visitor-accessibility theme while keeping the three source facts distinct."
+      ],
+      "prohibited_outcomes": [
+        "Do not cite prop-topic-distractor-receipt, link the records as duplicates, convert them into one evolving-fact summary, rewrite any original, or add an unsupported accessibility claim."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-topic-ramp",
+          "start_codepoint": 0,
+          "end_codepoint": 102,
+          "text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-topic-large-print",
+          "start_codepoint": 0,
+          "end_codepoint": 99,
+          "text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-topic-quiet-room",
+          "start_codepoint": 0,
+          "end_codepoint": 84,
+          "text": "I reserved the small side room as a quiet break space during the pottery open house."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-topic-distractor-receipt",
+          "start_codepoint": 0,
+          "end_codepoint": 84,
+          "text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-topic-ramp",
+          "prop_id": "prop-topic-ramp"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-topic-large-print",
+          "prop_id": "prop-topic-large-print"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-topic-quiet-room",
+          "prop_id": "prop-topic-quiet-room"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-topic-distractor-receipt",
+          "prop_id": "prop-topic-distractor-receipt"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-topic-ramp",
+              "prop-topic-large-print",
+              "prop-topic-quiet-room"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The topic label concisely describes visitor accessibility or accommodations for the pottery open house.",
+                "The label covers the ramp check, large-type cards, and quiet room without collapsing them into one fact.",
+                "The bakery-receipt record remains outside the topic group."
+              ],
+              "forbidden_claims": [
+                "The bakery receipt is an accessibility accommodation.",
+                "The supplied preparations prove that every visitor's accessibility needs are fully met."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-superficial-similarity",
+      "scene_id": "scene-superficial-similarity",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Sculptor returns a no_curation_proposal because the shared word rib refers to unrelated pottery and exercise facts.",
+        "Both supplied Props remain unchanged and independently retrievable."
+      ],
+      "prohibited_outcomes": [
+        "Do not link, group, or summarize the two Props based only on their superficial wording overlap, and do not claim that storage changed."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-rib-tool",
+          "start_codepoint": 0,
+          "end_codepoint": 66,
+          "text": "I use a wooden rib tool to smooth clay slabs before trimming them."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-superficial-rib-stretch",
+          "start_codepoint": 0,
+          "end_codepoint": 67,
+          "text": "My physiotherapist recommended rib stretches after rowing practice."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-superficial-rib-tool",
+          "prop_id": "prop-superficial-rib-tool"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-superficial-rib-stretch",
+          "prop_id": "prop-superficial-rib-stretch"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        }
+      }
+    }
+  ]
+}
