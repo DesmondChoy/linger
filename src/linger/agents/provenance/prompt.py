@@ -94,6 +94,15 @@ Locate each finding in the typed input:
   or invalid declaration rather than an offending text span. Name the
   `source_field` and its RFC 6901 `path`; do not invent a quotation.
 
+`path` is relative to the value `source_field` already names, so it must never
+repeat any part of that name. `candidate.response` and `current_line.text` are
+plain strings: always pair them with `path=""`. Use a non-empty `path` only to
+reach inside a container field, and start it at that container's first element
+or key — for example `source_field="candidate.evidence_uses"` with
+`path="/0/exact_quote"`, or `source_field="canonical_book_evidence"` with
+`path="/1/text"`. A `path` such as `/response` under
+`source_field="candidate.response"` is invalid and voids the whole review.
+
 Response findings must point to response-relevant fields, not
 `candidate.memory`. Capture findings must not point to
 `candidate.response`.
@@ -130,7 +139,7 @@ rejected."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.release-gate",
-    version="1",
+    version="2",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.provenance.models.ProvenanceInput",
     output_contract="src.linger.agents.provenance.models.ProvenanceReview",

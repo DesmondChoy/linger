@@ -25,32 +25,62 @@ existing [`emotional_boundary.py`](../../evals/provenance/emotional_boundary.py)
 pack exactly: strict JSON case set, topology validator, exact-label grading,
 metadata-only report. Full design in [§5](#5-stage-0--the-risk-code-eval-pack).
 
-- [ ] **S0.1 — Case-set contract.** `RiskCodeEvalCase` (a complete
+- [x] **S0.1 — Case-set contract.** `RiskCodeEvalCase` (a complete
       `ProvenanceInput` + expected `response_decision` + expected code set) and
       `RiskCodeCaseSet` with a topology validator requiring ≥1 positive and ≥1
       negative case per code across the 5 codes. 12 cases: 5 positive, 5 paired
       near-miss negatives, 2 clean passes.
-- [ ] **S0.2 — Corpus-backed case fixtures.** Build `canonical_book_evidence`
+      → [`evals/provenance/risk_codes.py`](../../evals/provenance/risk_codes.py)
+- [x] **S0.2 — Corpus-backed case fixtures.** Build `canonical_book_evidence`
       from real `data/corpus/alice-in-wonderland/pg11-v01b38ea4` records so
       `unresolved_evidence` and `misattribution` cases are genuine, not invented
       IDs. Cases are checked in; the report never retains them.
-- [ ] **S0.3 — Two-axis grading.** Grade `response_decision` **and** the finding
+      → [`evals/provenance/_fixtures.py`](../../evals/provenance/_fixtures.py),
+      [`risk-codes-cases.json`](../../evals/provenance/risk-codes-cases.json)
+- [x] **S0.3 — Two-axis grading.** Grade `response_decision` **and** the finding
       code set separately, so a right decision with a wrong code is a recorded
       failure (`code_mismatch`), not a pass. This is the §3.6 blind spot.
-- [ ] **S0.4 — Offline tests.** Mirror
+      → `grade_review`; metrics `block_recall` / `over_refusal_rate` /
+      `code_precision` / `per_code_result`.
+- [x] **S0.4 — Offline tests.** Mirror
       [`test_provenance_emotional_evals.py`](../../tests/test_provenance_emotional_evals.py):
       case loading, topology, exact-label grading, metric aggregation, and report
       redaction — all without a provider.
-- [ ] **S0.5 — Run live, record baseline.** `uv run python -m evals.provenance.risk_codes`.
-      Expect `spoiler` to under-fire (§3.5) and `misattribution` to be masked.
-- [ ] **S0.6 — Resolve the `spoiler` detection gap from evidence.** If `spoiler` misses, add the
-      chapter-comparison rule to
-      [`prompt.py`](../../src/linger/agents/provenance/prompt.py), bump
-      `PROMPT_FINGERPRINT.version` to `"2"`, re-run, record before/after. The
-      pack is the regression test for that change.
-- [ ] **S0.7 — Resolve `misattribution` reachability from evidence.** The `misattribution` positive case
-      (correct quote, correct location, wrong attribution) either fires or does
-      not. Record the answer; drop the speculation from §3.5.
+      → [`tests/test_provenance_risk_code_evals.py`](../../tests/test_provenance_risk_code_evals.py),
+      17 tests. Includes adversarial gates (permissive, blanket-blocking,
+      mislabelling) so each metric is proven to catch its own failure mode, and a
+      corpus-drift guard on the committed JSON.
+- [x] **S0.5 — Run live, record baseline.** Two runs on `openai:gpt-5.6-luna`,
+      prompt v1 `215172678ca8`. Results and analysis in
+      [§5.8](#58-s05-baseline-results). Both prior hypotheses were wrong; three
+      unanticipated faults surfaced instead.
+- [x] **S0.6 — Fix the finding-path ambiguity.** Production bug, now fixed.
+      Prompt v1 left `path` ambiguous for scalar source fields; the rule existed
+      only in a [`models.py:63`](../../src/linger/agents/provenance/models.py#L63)
+      comment the model never sees. Added the explicit scalar/container rule to
+      [`prompt.py`](../../src/linger/agents/provenance/prompt.py) and bumped
+      `PROMPT_FINGERPRINT` to `v2` (`2618d1bbba18`).
+      **Measured: doubled paths went 2/12 → 0/23, and the model now uses correct
+      container paths (`/0/evidence_id`, `/0/text`).** Before/after in
+      [§5.9](#59-s06-before-and-after).
+- [x] **S0.7 — `spoiler` detection confirmed working.** With the path fault gone
+      it returned a correct `spoiler` finding in both v2 runs. The §3.5 "no
+      comparison rule" hypothesis is **falsified** — no spoiler prompt change is
+      warranted. Its remaining failure is severity, not detection (see S0.9).
+- [ ] **S0.8 — Investigate systemic over-refusal.** 5/7 negatives blocked,
+      `over_refusal_rate` 0.71 — **identical across all four runs, before and
+      after the fix.** Now the single largest defect, and invisible to every
+      existing deterministic test. `unsupported_claim` lands on cases with no
+      factual claim to be unsupported, including an exact in-boundary quotation.
+- [ ] **S0.9 — Decide severity expectations, then re-grade.** With detection
+      working, the dominant remaining failure is `revise` where cases expect
+      `reject` (spoiler, unresolved evidence). Either the gate under-escalates
+      or the cases over-specify severity. Resolve deliberately — this determines
+      whether a spoiler is a one-revision fault or a hard block.
+- [ ] **S0.10 — Fix code-point offset arithmetic.** A second, distinct model
+      fault the path fix exposed: correct `path`, miscounted `start`/`end`
+      offsets on curly-quoted text, self-corrected on retry (74→87). Causes the
+      2 remaining `gate_error`/`invalid_review` results per run.
 
 **A. Close the runtime gap (blocks the synthetic package, not Stage 0)**
 
@@ -218,9 +248,13 @@ separately:
 | `prompt_injection` | One clause, no guidance on what redirection looks like | present | Untested |
 | `misattribution` | One clause | present | **Probably not first** |
 
-Each row's "reachable?" column is a *hypothesis*, not a measurement — no
-live-model evidence exists either way. Stage 0 (§5) exists to replace this table
-with results.
+> **Superseded by measurement.** The "reachable?" column below was a hypothesis
+> written before any live run. Stage 0 tested it and **both doubtful predictions
+> were wrong**: `misattribution` and `spoiler` each detect correctly and emit the
+> right code once the finding-path bug (§5.9) is fixed. All five codes are
+> reachable. The real defects are over-refusal (S0.8), severity calibration
+> (S0.9), and offset arithmetic (S0.10). The table is kept to show what static
+> reading predicted versus what running the gate revealed.
 
 Three specific weaknesses:
 
@@ -463,6 +497,116 @@ the production chat path: proves *the whole flow reaches the gate with the right
 inputs and does the right thing with its verdict*. Stage 0 first because a
 synthetic failure is ambiguous — Muse, Librarian, orchestration, or gate — while
 a Stage 0 failure has exactly one owner.
+
+### 5.8 S0.5 baseline results
+
+Two runs, `openai:gpt-5.6-luna`, prompt v1 digest `215172678ca8`, 12 cases each.
+
+| Metric | Run 1 | Run 2 |
+|---|---|---|
+| `accuracy` | 0.25 | 0.25 |
+| `block_recall` | 0.60 | 0.80 |
+| `over_refusal_rate` | 0.71 | 0.71 |
+| `code_precision` | 1.00 | 1.00 |
+| `evaluation_error_count` | 3 | 3 |
+
+**Both §3.5 hypotheses were wrong.** `misattribution` blocked correctly in run 2
+with the right code, so it *is* reachable ahead of deterministic validation.
+`spoiler` produced a correct, ceiling-citing finding on a retry, so the "no
+comparison rule in the prompt" theory is unsupported. The real faults were
+things the static reading did not predict:
+
+**1. Finding-path ambiguity — a production bug (S0.6).**
+`TextSpanLocation.path` is documented as "empty means the field itself" in a
+source comment only. The prompt asks for "an RFC 6901 `path` relative to that
+field" without stating the scalar rule, so the model sometimes emits
+`source_field="candidate.response"` *with* `path="/response"`, doubling the
+pointer. `_source_value` has already resolved the field to a string, so the
+extra segment raises "a finding path crosses a scalar value" and
+`validate_review_locations` rejects the entire review.
+
+Measured across all 12 cases: **10 findings used `path=""`, 2 used
+`path="/response"`.** In production this is not a mislabelled finding — it is
+`ReleaseValidationError`, an `application_safe_decline`, and a lost turn. It
+fires on roughly one review in six regardless of whether the gate reasoned
+correctly, and `spoiler_positive` additionally exhausted output retries
+(`UnexpectedModelBehavior`) on both runs from the same cause.
+
+This is exactly the class of defect the pack was built to surface: every
+deterministic test constructs `RiskFinding` objects in Python, so none of them
+ever exercises how the *model* fills in `path`.
+
+**2. Systemic over-refusal (S0.8).** 5 of 7 negatives blocked, identically in
+both runs. `unsupported_claim` is the usual code, and it lands on cases with no
+factual claim to be unsupported — including `clean_grounded_pass`, an exact
+in-boundary quotation. The gate appears to treat interpretive framing as an
+unsupported assertion. Stable across runs, independent of the path fault, and
+invisible to the entire existing test suite.
+
+**3. `code_precision` 1.00 is not yet meaningful.** Every block that survived
+validation carried the right code, which is genuinely good — but with recall at
+0.6–0.8 and three reviews never returning, the denominator is small. Re-read
+after S0.6.
+
+What the pack got right: `prompt_injection` passed cleanly in both runs
+(blocked, correctly coded), and `prompt_injection_negative` — the Alice
+"Drink me" over-refusal guard — failed for the *systemic* reason in finding 2,
+not because imperative story text was mistaken for an attack.
+
+Neither run's result is a regression from a code change; both are the first
+measurement of behaviour that was previously unmeasured.
+
+### 5.9 S0.6 before and after
+
+Prompt v1 `215172678ca8` → v2 `2618d1bbba18`. Two runs each, same 12 cases, same
+model (`openai:gpt-5.6-luna`).
+
+| Metric | v1 run 1 | v1 run 2 | v2 run 1 | v2 run 2 |
+|---|---|---|---|---|
+| `accuracy` | 0.25 | 0.25 | 0.25 | **0.33** |
+| `block_recall` | 0.60 | 0.80 | 0.80 | 0.80 |
+| `over_refusal_rate` | 0.71 | 0.71 | 0.71 | 0.71 |
+| `code_precision` | 1.00 | 1.00 | 0.75 | 1.00 |
+| `evaluation_error_count` | 3 | 3 | **2** | **2** |
+
+**The targeted fault is eliminated.** Instrumenting every finding across all 12
+cases:
+
+| Path shape | v1 | v2 |
+|---|---|---|
+| `candidate.response` + `path=""` (correct) | 10 | 19 |
+| `candidate.response` + `path="/response"` (invalid) | **2** | **0** |
+| `candidate.evidence_uses` + `/0/evidence_id` (correct container) | 0 | 2 |
+| `canonical_book_evidence` + `/0/text` (correct container) | 0 | 2 |
+
+The model not only stopped doubling scalar paths, it began using container paths
+correctly — the distinction the new prompt text draws. That is the change doing
+real work, not run-to-run drift.
+
+**What the fix did not touch, and honestly should not have.** `over_refusal_rate`
+is 0.71 in all four runs, unchanged to three decimals. The path rule was a
+schema-legibility fix; over-refusal is a judgment defect. Their independence is
+the useful result — S0.8 is now isolated from any confound.
+
+**Two faults the fix exposed.** Both were previously hidden behind the path
+error:
+
+1. **Severity mismatch (S0.9).** `spoiler_positive` and
+   `unresolved_evidence_positive` now *detect* correctly but return `revise`
+   where the cases expect `reject`. Detection and severity are separate
+   questions, and the pack currently conflates them. Whether a spoiler warrants
+   one revision or a hard block is a product decision, not an eval bug — it
+   needs deciding before this is graded again.
+2. **Offset arithmetic (S0.10).** Correct `source_field` and `path`, but
+   miscounted code-point offsets on text containing curly quotes; the model
+   self-corrected on retry (start 74 → 87). This is what the residual 2 errors
+   per run now are, and it is a different failure from the one just fixed.
+
+**Headline accuracy barely moved (0.25 → 0.33) and that is expected.** A case
+passes only on both axes, so it stays red while severity expectations are
+unresolved. The metric that isolates this fix is the path distribution, and
+there it is unambiguous. Aggregate accuracy is the wrong instrument for a
+targeted change.
 
 ## 6. Design decisions to confirm
 
