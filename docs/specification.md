@@ -258,8 +258,11 @@ spoiler boundary anew for each book-related request.
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
 finding codes. This record never stores passage text or reading progress.
-Only identifiers from successfully released Muse replies may be re-resolved on
-a later turn, and session reset removes these handles with the conversation.
+Only a turn released as a Muse candidate enters the conversational message
+history itself; an emotional-boundary or safe-decline turn keeps only its
+content-free record. Only identifiers from successfully released Muse replies
+may be re-resolved on a later turn, and session reset removes these handles
+with the conversation.
 
 ### 5.2 Memory record
 
@@ -481,7 +484,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; a session-continuity runner is implemented, and its registration as a supported replay path remains a downstream decision; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; a session-continuity runner is implemented and registered as a supported replay path; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -574,8 +577,8 @@ comparison Scene's session began clean — and a continuity Scene reports
 typed continuity claim. Session-contract deviations are reported separately as
 structural findings and never change that grade. Whether a reply adopted the
 reader's correction, and whether a comparison reply leaked prior-session
-content, remain review judgments. Registering this runner in the Objective
-catalog and the review skill remains a pending human decision.
+content, remain review judgments. This runner is registered in the Objective
+catalog as a supported replay path.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool
