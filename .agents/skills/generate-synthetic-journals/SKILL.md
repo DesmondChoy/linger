@@ -51,41 +51,65 @@ authorize synthetic-data generation.
 2. Snapshot the current repository with the branch, `HEAD` commit, dirty or clean
    status, local timestamp, and a concise fingerprint of materially relevant
    files. If the tree is dirty, identify materially relevant changes and state
-   whether `HEAD` alone reproduces the inspected implementation.
+   whether `HEAD` alone reproduces the inspected implementation. Inspect `HEAD`
+   and up to five earlier commits that touch the selected Objectives' materially
+   relevant specification, runtime, evaluation, contract, or test paths. Read
+   the relevant diffs, not only their subjects, and record the commit hashes that
+   establish or change the inspected workflow.
 3. Read the selected Objectives' complete catalog entries. Inspect the current
    implementation, focused tests, existing `evals/` contracts, and relevant
-   Beads for their declared agents, supporting components, mandatory gates,
-   deterministic services, prompt inputs, and observable outcomes. Read the
-   five-agent architecture and shared authority boundaries in
+   open and closed Beads for their declared agents, supporting components,
+   mandatory gates, deterministic services, prompt inputs, and observable
+   outcomes. Read each relevant Bead rather than relying on list output; closed
+   work may be the best evidence for recently shipped behavior. Follow a linked
+   issue, pull request, or commit when it is needed to understand that behavior.
+   Read the five-agent architecture and shared authority boundaries in
    `docs/specification.md`. Distinguish implemented, partial, missing, and merely
    proposed behavior.
-4. Read Section 7.2.1 completely and use its six canonical nouns exactly:
+4. Reconcile the catalog, current specification, recent relevant commit diffs,
+   production runtime path, Objective-specific evaluation runner, focused tests,
+   and relevant open and closed Beads before judging readiness. Use the catalog
+   as authority for Objective text, composition, and prompt boundaries; use the
+   maintained specification, current code, and tests to describe shipped product
+   behavior; and treat a runner as evidence only for the path it actually
+   executes. Do not silently edit an Objective or let a narrower runner descope
+   the target design. Name every material contradiction. An unresolved
+   contradiction affecting the plan is a **source gap**: mark the implementation
+   insufficient and set the fenced prompt to **Target state — do not run** with
+   reconciliation as a precondition.
+5. Trace every required Scene from setup through all participating agents,
+   authority gates, deterministic services, state changes, and verification to
+   its terminal product outcome. Include applicable short-circuit and no-change
+   branches. Do not stop at the nearest agent response or evaluation-runner
+   output when the product workflow continues. State separately which complete
+   product path exists and which portion the current evaluation runner covers.
+6. Read Section 7.2.1 completely and use its six canonical nouns exactly:
    `Objective`, `Backstory`, `Prop`, `Scene`, `Line`, and `Ground truth`. Use
    implementation terms such as `batch` only for actual runtime objects, never
    as replacements for canonical nouns.
-5. Read the complete academic source
+7. Read the complete academic source
    `docs/submissions/aas-practice-module-briefing.pdf`. Use its project questions
    and expected artifacts to make one concrete academic-relevance claim. Do not
    invent a professor requirement or present a suggested design as mandatory.
-6. Decide whether the target Backstory should be corpus-backed or memory-only.
+8. Decide whether the target Backstory should be corpus-backed or memory-only.
    If book material is useful, point the future generator to `data/corpus/` and
    require it to discover the available work, immutable version, structure, and
    evidence at invocation time. Never hardcode corpus facts from an earlier
    report. If book material is not useful, do not require corpus inspection.
-7. Describe the complete target evaluation design required by the confirmed
+9. Describe the complete target evaluation design required by the confirmed
    Objectives, regardless of current implementation gaps. Keep one Backstory for
    one person and one evaluation account. Every Prop, Scene, and Line belongs to
    that Backstory. Props are separate records positioned before their designated
    Scenes; runtime-created records are outcomes, not Props. Lines are only
    conversational inputs sent to Muse. Workflow controls are not Lines.
-8. Assess current implementation sufficiency for every required Scene. A Scene is
+10. Assess current implementation sufficiency for every required Scene. A Scene is
    **runnable** only when its setup can be supplied, its input has an existing
    execution path, required authority gates operate, its outcome is observable,
    and focused tests or an eval harness prove the relevant contract. Mark a Scene
    **partially runnable** when a named adapter or grading path is missing. Mark it
    **blocked** when a required capability or source is missing. Missing downstream
    freezing or replay alone does not weaken the target design; report the gap.
-9. Inspect the package models in
+11. Inspect the package models in
    `evals/synthetic_journals/models.py` and deterministic validator in
    `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
    `backstory.json` represents one Backstory, Props, Scenes, Lines, and offline
@@ -95,7 +119,7 @@ authorize synthetic-data generation.
    Do not propose a parallel schema or claim that validation adopts Ground truth.
    If the selected Objectives cannot be represented, report a contract gap and
    stop the fenced prompt from authorizing generation.
-10. Resolve run-specific workflow inputs. When
+12. Resolve run-specific workflow inputs. When
     `reviewed_automatic_memory_capture` is selected, use
     `synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json`
     unless the developer explicitly supplied another adopted configuration.
@@ -113,7 +137,7 @@ authorize synthetic-data generation.
     `GroundTruthProposal.prop_relevance` entry for every available Prop in each
     Scene. Without this Objective, create only the Props required by the
     confirmed selection.
-11. Draft the exact target-state prompt for a future generator. Build it from the
+13. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
     workflow inputs, translated Ground truth requirements, and the Backstory and
     Ground truth contracts. The prompt must explicitly instruct the
@@ -122,19 +146,19 @@ authorize synthetic-data generation.
     must write `backstory.json` and `ground-truth.json` beside the report in the
     same package directory. Do not weaken or descope a confirmed Objective because
     current code is incomplete.
-12. Put a precondition header inside the fenced prompt. If every Scene is
+14. Put a precondition header inside the fenced prompt. If every Scene is
     runnable, label the prompt **Runnable after human approval**. Otherwise
     label it **Target state — do not run** and name every capability or source
     that must exist first. The detached prompt must remain
     self-invalidating when its prerequisites are unmet.
-13. Obey `prompt_boundary`: do not send raw `composition`, `prompt_inputs`, or
+15. Obey `prompt_boundary`: do not send raw `composition`, `prompt_inputs`, or
     `evaluation_metadata`, numeric thresholds, judge rubrics, component routes,
     or the report itself to the generator. Evaluation-aware generation is
     intentional: translate the selected requirements needed to create a coherent
     Backstory, Scenes, and proposed Ground truth, while keeping grading and label
     adoption outside the generator. State that the generator has read-only access
     to the current checkout and must inspect permitted paths at invocation time.
-14. Preserve the three-stage Ground truth lifecycle. First, require the generator
+16. Preserve the three-stage Ground truth lifecycle. First, require the generator
     to write proposed Ground truth in `ground-truth.json`, separate from
     `backstory.json`. Second, run the adopted package validator for objective
     facts including schema conformance, Backstory hashing, reference and
@@ -146,7 +170,7 @@ authorize synthetic-data generation.
     the generator to adopt, revise, or reject each candidate label. Only adopted
     Ground truth may grade a run, and neither proposed nor adopted Ground truth
     may reach the system under evaluation.
-15. Hypothesize representative inputs, likely response behavior, and plain-
+17. Hypothesize representative inputs, likely response behavior, and plain-
     language success checks. Treat response text as a hypothesis, not an exact
     oracle.
 
@@ -182,7 +206,9 @@ in order:
    **insufficient** for the complete selected plan and give the practical
    consequence. Include a compact table with one row per required Scene or
    coherent ordered Scene sequence: target behavior, status (`runnable`,
-   `partially runnable`, or `blocked`), and exact evidence or gap.
+   `partially runnable`, or `blocked`), and exact evidence or gap. Describe the
+   terminal product outcome and distinguish it from the portion exercised by the
+   current evaluation runner.
 2. **Your selection.** Use one short bullet per selected Objective with its
    title, ID, and a plain-language summary derived only from `menu.summary`.
 3. **Target evaluation design.** Link `docs/specification.md` Section 7.2.1 at
@@ -198,12 +224,14 @@ in order:
    proposed versus adopted Ground truth in the final row.
 4. **Current implementation and required work.** Use **Observed**, **Proposed**,
    and **Assumed** labels. Cite implementation and focused-test evidence. Name
-   reusable `evals/` assets, including the adopted package validator, and
-   relevant Beads. For each gap, state whether it is a contract, capability,
-   adapter, grading, or source gap; give the smallest high-level build-out and
-   testable acceptance criteria. If no build-out is
-   required, say so. End this section with one compact repository snapshot line;
-   do not create a separate Provenance section.
+   reusable `evals/` assets, including the adopted package validator, the recent
+   commits that establish or change the workflow, and relevant open and closed
+   Beads. State the reconciled product path and current runner coverage. For each
+   gap, state whether it is a contract, capability, adapter, grading, or source
+   gap; give the smallest high-level build-out and testable acceptance criteria.
+   If authorities conflict, identify the exact conflict and the evidence needed
+   to resolve it. If no build-out is required, say so. End this section with one
+   compact repository snapshot line; do not create a separate Provenance section.
 5. **Expected behavior and evaluation.** State whether the plan contains Lines
    or offline inputs. Pair each representative input with likely behavior and a
    plain-language success check. Put metric names after the explanation only
@@ -244,6 +272,14 @@ report and rerun the validator until it exits successfully. Do not estimate the
 word count. Then verify the semantic requirements that the script cannot prove:
 
 - Every required Scene has one current status with concrete evidence or a gap.
+- Every Scene is traced to its terminal product outcome, including applicable
+  authority gates, deterministic services, state changes, verification, and
+  short-circuit branches; the report separately states current runner coverage.
+- The report reconciles the catalog, maintained specification, recent relevant
+  commit diffs, runtime, evaluation runner, focused tests, and relevant open and
+  closed Beads, and cites the commits and Beads that materially affect readiness.
+- Every unresolved material contradiction is named as a source gap, makes the
+  plan insufficient, and appears as a **Target state — do not run** precondition.
 - The target design satisfies every confirmed Objective without descoping.
 - The fenced prompt uses the package models and validator without inventing
   another contract.
