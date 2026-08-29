@@ -204,6 +204,9 @@ def _continuity_package() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
 
 def _released_response(
     release_source: ReleaseSource = "muse_candidate",
+    *,
+    prior_evidence_count: int = 0,
+    context_resolution_status: str = "unknown",
 ) -> ChatResponse:
     declined = release_source != "muse_candidate"
     capture = CaptureInspection(
@@ -217,7 +220,8 @@ def _released_response(
         reply="A synthetic reviewed reply.",
         inspection=TurnInspection(
             muse_turn={},
-            context_resolution={},
+            context_resolution={"status": context_resolution_status},
+            prior_evidence_count=prior_evidence_count,
             traces=[],
             prompt="synthetic",
             release=ReleaseInspection(
@@ -268,6 +272,8 @@ def _turn_fields(**overrides: object) -> dict[str, object]:
         "boundary_origin": None,
         "store_messages_before": 0,
         "store_messages_appended": 2,
+        "prior_evidence_rehydrated": 0,
+        "context_resolution_status": "unknown",
         "capture": release.capture,
         "span_id": "0" * 16,
     }
@@ -301,6 +307,34 @@ def _record_exchange(input_prompt: str) -> None:
             output={"reply": "synthetic"},
             new_messages=lambda: [],
         ),
+        status="success",
+        failure_code=None,
+    )
+
+
+def _record_routed_exchange(role: str) -> None:
+    """Drive the bound transcript sink as a Librarian or Serendipity call would."""
+
+    sink = active_evaluation_transcript_sink()
+    assert sink is not None
+    handle = sink.begin_agent_exchange(
+        role=role,
+        stage="retrieval",
+        input_origin="Muse",
+        output_receiver="Muse",
+        input_contract=f"{role}Request.v1",
+        output_contract=f"{role}Response.v1",
+        prompt_template_id=f"{role.lower()}.request",
+        prompt_version="1",
+        prompt_digest="0" * 64,
+        input_prompt="synthetic",
+        message_history=(),
+        trace_id="0" * 32,
+        span_id="0" * 16,
+    )
+    sink.complete_agent_exchange(
+        handle,
+        result=SimpleNamespace(output={}, new_messages=lambda: []),
         status="success",
         failure_code=None,
     )
@@ -458,7 +492,7 @@ def test_continuity_replay_records_a_mid_sequence_decline() -> None:
         "application_safe_decline",
         "muse_candidate",
     )
-    assert [turn.store_messages_appended for turn in continuity.turns] == [2, 2, 2, 2]
+    assert [turn.store_messages_appended for turn in continuity.turns] == [2, 2, 0, 2]
     assert continuity.ground_truth_result == "not_applicable"
     assert result.scenes[1].ground_truth_result == "matches_proposal"
 
@@ -1414,6 +1448,178 @@ def test_continuity_replay_threads_history_through_the_production_pipeline() -> 
     assert backstory.backstory.context not in serialized
     assert "expected_outcomes" not in serialized
     assert "prohibited_outcomes" not in serialized
+
+
+def test_continuity_replay_gates_the_comparison_scene_on_rehydrated_evidence() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        leaked = request.session_id.endswith(COMPARISON_SCENE_ID)
+        response = _released_response(prior_evidence_count=2 if leaked else 0)
+        _append(request, response)
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+    )
+
+    comparison = result.scenes[1]
+    assert comparison.turns[0].prior_evidence_rehydrated == 2
+    assert comparison.ground_truth_result == "differs_from_proposal"
+
+
+def test_continuity_replay_flags_routed_agent_participation() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        _record_routed_exchange("Librarian")
+        response = _released_response(context_resolution_status="inferred")
+        _append(request, response)
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+    )
+
+    continuity = result.scenes[0]
+    assert all(
+        f"routed_agent_engaged:{turn.line_id}" in continuity.structural_findings
+        for turn in continuity.turns
+    )
+
+
+def test_continuity_replay_does_not_flag_unrouted_agent_participation() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        _record_routed_exchange("Librarian")
+        response = _released_response(context_resolution_status="unknown")
+        _append(request, response)
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+    )
+
+    continuity = result.scenes[0]
+    assert not any(
+        finding.startswith("routed_agent_engaged")
+        for finding in continuity.structural_findings
+    )
+
+
+def test_continuity_replay_attributes_routed_agent_findings_per_turn() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        if request.message == CONTINUITY_TEXTS[0]:
+            _record_routed_exchange("Librarian")
+        response = _released_response(context_resolution_status="inferred")
+        _append(request, response)
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+    )
+
+    continuity = result.scenes[0]
+    flagged_line_id = continuity.turns[0].line_id
+    assert f"routed_agent_engaged:{flagged_line_id}" in continuity.structural_findings
+    assert all(
+        f"routed_agent_engaged:{turn.line_id}" not in continuity.structural_findings
+        for turn in continuity.turns[1:]
+    )
+
+
+def test_continuity_replay_does_not_flag_resolved_context_without_routing() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        _service: MemoryPolicyService,
+        _account: AccountContext,
+    ) -> ChatResponse:
+        response = _released_response(context_resolution_status="inferred")
+        _append(request, response)
+        return response
+
+    result = asyncio.run(
+        replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+    )
+
+    continuity = result.scenes[0]
+    assert not any(
+        finding.startswith("routed_agent_engaged")
+        for finding in continuity.structural_findings
+    )
+
+
+def test_continuity_replay_rejects_a_non_empty_store_at_scene_entry() -> None:
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        service: MemoryPolicyService,
+        account: AccountContext,
+    ) -> ChatResponse:
+        response = _released_response()
+        _append(request, response)
+        if request.message == CONTINUITY_TEXTS[0]:
+            service._save(  # noqa: SLF001
+                account,
+                text="a memory committed during the first Scene",
+                source_event_id=request.turn_id or "synthetic-source",
+                evidence_ids=(),
+            )
+        return response
+
+    with pytest.raises(RuntimeError, match=COMPARISON_SCENE_ID):
+        asyncio.run(
+            replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+        )
+
+
+def test_continuity_replay_rejects_a_committed_memory_while_capture_is_disabled() -> (
+    None
+):
+    backstory, ground_truth = _continuity_package()
+
+    async def chat_handler(
+        request: ChatRequest,
+        service: MemoryPolicyService,
+        account: AccountContext,
+    ) -> ChatResponse:
+        response = _released_response()
+        _append(request, response)
+        if request.session_id.endswith(COMPARISON_SCENE_ID):
+            service._save(  # noqa: SLF001
+                account,
+                text="a memory committed while capture is disabled",
+                source_event_id=request.turn_id or "synthetic-source",
+                evidence_ids=(),
+            )
+        return response
+
+    with pytest.raises(RuntimeError, match="committed memories"):
+        asyncio.run(
+            replay_continuity_scenes(backstory, ground_truth, chat_handler=chat_handler)
+        )
 
 
 def test_cli_returns_nonzero_for_an_invalid_package(

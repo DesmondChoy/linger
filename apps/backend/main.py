@@ -314,6 +314,7 @@ def _inspection_for(
     return TurnInspection(
         muse_turn=muse_turn.model_dump(mode="json"),
         context_resolution=resolution.model_dump(mode="json"),
+        prior_evidence_count=len(prior_evidence),
         traces=traces,
         # Re-resolved passages are supplied to Muse but not duplicated into the
         # developer-only Inspect diagnostics.

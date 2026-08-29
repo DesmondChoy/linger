@@ -73,6 +73,8 @@ class TurnObservation(StrictModel):
     boundary_origin: Literal["preflight", "candidate_review"] | None
     store_messages_before: int = Field(ge=0)
     store_messages_appended: int = Field(ge=0)
+    prior_evidence_rehydrated: int = Field(ge=0)
+    context_resolution_status: Literal["confirmed", "inferred", "unknown"]
     exchange_sequence_first: int | None = Field(default=None, ge=1)
     exchange_sequence_last: int | None = Field(default=None, ge=1)
     capture: CaptureInspection
@@ -402,6 +404,10 @@ async def _replay_continuity_scene(
     service: MemoryPolicyService,
     account: AccountContext,
 ) -> ContinuitySceneObservation:
+    if tuple(service.list_active(account)):
+        raise RuntimeError(
+            f"Scene {scene.scene_id} began with a non-empty durable memory store"
+        )
     recorder = SceneTranscriptRecorder()
     session_id = f"synthetic-eval:{run_id}:scene:{scene.scene_id}"
     turns: list[TurnObservation] = []
@@ -433,7 +439,7 @@ async def _replay_continuity_scene(
         sessions.clear(session_id)
 
     release_sources = tuple(record.release_source for record in records)
-    findings = _structural_findings(tuple(turns), release_sources)
+    findings = _structural_findings(tuple(turns), release_sources, recorder.exchanges)
     boundary_held = _session_boundary_held(
         scene.role, tuple(turns), release_sources
     )
@@ -490,6 +496,10 @@ def _turn_observation(
         boundary_origin=release.boundary_origin,
         store_messages_before=store_before,
         store_messages_appended=store_after - store_before,
+        prior_evidence_rehydrated=response.inspection.prior_evidence_count,
+        context_resolution_status=response.inspection.context_resolution.get(
+            "status", "unknown"
+        ),
         exchange_sequence_first=exchanges_before + 1 if produced_exchange else None,
         exchange_sequence_last=exchanges_after if produced_exchange else None,
         capture=release.capture,
@@ -500,19 +510,32 @@ def _turn_observation(
 def _structural_findings(
     turns: tuple[TurnObservation, ...],
     release_sources: tuple[ReleaseSource, ...],
+    agent_exchanges: tuple[AgentExchange, ...],
 ) -> tuple[str, ...]:
     """Report session-contract deviations without touching the Ground-truth grade."""
 
     findings: list[str] = []
     expected_before = 0
     for turn in turns:
+        expected_appended = (
+            MESSAGES_PER_EXCHANGE if turn.release_source == "muse_candidate" else 0
+        )
         if turn.release_source != "muse_candidate":
             findings.append(f"unreleased_turn:{turn.line_id}")
         if (
-            turn.store_messages_appended != MESSAGES_PER_EXCHANGE
+            turn.store_messages_appended != expected_appended
             or turn.store_messages_before != expected_before
         ):
             findings.append(f"history_thread_broken:{turn.line_id}")
+        turn_routed_agent_engaged = turn.exchange_sequence_first is not None and any(
+            exchange.role in {"Librarian", "Serendipity"}
+            for exchange in agent_exchanges
+            if turn.exchange_sequence_first
+            <= exchange.sequence
+            <= turn.exchange_sequence_last
+        )
+        if turn_routed_agent_engaged and turn.context_resolution_status != "unknown":
+            findings.append(f"routed_agent_engaged:{turn.line_id}")
         expected_before += turn.store_messages_appended
     if release_sources != tuple(turn.release_source for turn in turns):
         findings.append("turn_record_mismatch")
@@ -524,11 +547,15 @@ def _session_boundary_held(
     turns: tuple[TurnObservation, ...],
     release_sources: tuple[ReleaseSource, ...],
 ) -> bool | None:
-    """Grade only the proposal-backed fact: the comparison session began clean."""
+    """Defensive assertion against a rehydration regression, not a cross-scene leak detector."""
 
     if role != "comparison":
         return None
-    return turns[0].store_messages_before == 0 and len(release_sources) == 1
+    return (
+        turns[0].store_messages_before == 0
+        and turns[0].prior_evidence_rehydrated == 0
+        and len(release_sources) == 1
+    )
 
 
 def _continuity_scenes(
