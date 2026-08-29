@@ -1,0 +1,383 @@
+{
+  "backstory_sha256": "f2b65dd049217a1f3ca66a71974a8a3bf326349b2066bf01f856a713a032d3d8",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-exact-duplicate",
+      "scene_id": "scene-exact-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "The proposal links prop-exact-key-a and prop-exact-key-b as duplicates and cites no other source ID.",
+        "Both source Props remain unchanged.",
+        "The response remains a proposal and does not claim that the link was stored."
+      ],
+      "prohibited_outcomes": [
+        "Citing any ID outside the two Props supplied to the Scene.",
+        "Editing, deleting, merging, or replacing either original Prop.",
+        "Claiming that a duplicate link or any derived record was stored.",
+        "Introducing a personal fact not supported by the supplied Prop text."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-key-a",
+          "start_codepoint": 0,
+          "end_codepoint": 62,
+          "text": "I keep a spare key in the blue ceramic bowl by the front door."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-exact-key-b",
+          "start_codepoint": 0,
+          "end_codepoint": 62,
+          "text": "I keep a spare key in the blue ceramic bowl by the front door."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-key-a",
+          "prop_id": "prop-exact-key-a"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-exact-key-b",
+          "prop_id": "prop-exact-key-b"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-exact-key-a",
+              "prop-exact-key-b"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-paraphrased-duplicate",
+      "scene_id": "scene-paraphrased-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "The proposal links prop-walk-original and prop-walk-restated as two records of the same protected Sunday-morning MacRitchie walk.",
+        "Both source Props remain unchanged.",
+        "The response remains a proposal and does not claim that the link was stored."
+      ],
+      "prohibited_outcomes": [
+        "Citing any ID outside the two Props supplied to the Scene.",
+        "Treating wording differences as evidence that the records describe different routines.",
+        "Editing, deleting, merging, or replacing either original Prop.",
+        "Claiming that a duplicate link or any derived record was stored.",
+        "Introducing a personal fact not supported by the supplied Prop text."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-walk-original",
+          "start_codepoint": 0,
+          "end_codepoint": 73,
+          "text": "Sunday mornings are reserved for a long walk around MacRitchie Reservoir."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-walk-restated",
+          "start_codepoint": 0,
+          "end_codepoint": 64,
+          "text": "I protect my Sunday morning for an unhurried loop at MacRitchie."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-walk-original",
+          "prop_id": "prop-walk-original"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-walk-restated",
+          "prop_id": "prop-walk-restated"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-walk-original",
+              "prop-walk-restated"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-summary-refinement",
+      "scene_id": "scene-summary-refinement",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "The proposal derives a concise summary from prop-garden-idea, prop-garden-light, and prop-garden-decision only.",
+        "The summary reflects the later decision to begin the balcony garden with rosemary and thyme in self-watering pots.",
+        "All four source Props, including prop-garden-noise, remain unchanged.",
+        "The response remains a proposal and does not claim that the summary was stored."
+      ],
+      "prohibited_outcomes": [
+        "Using prop-garden-noise as a source for the garden-plan summary.",
+        "Citing any ID outside the four Props supplied to the Scene.",
+        "Editing, deleting, merging, or replacing any original Prop.",
+        "Claiming that a derived summary or any other record was stored.",
+        "Adding a plant, purchase, completed planting action, or other fact not supported by the selected source Props."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-garden-idea",
+          "start_codepoint": 0,
+          "end_codepoint": 60,
+          "text": "I have been sketching ideas for a small balcony herb garden."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-garden-light",
+          "start_codepoint": 0,
+          "end_codepoint": 78,
+          "text": "The balcony gets strong afternoon sun, so I am considering rosemary and thyme."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-garden-decision",
+          "start_codepoint": 0,
+          "end_codepoint": 104,
+          "text": "After testing the light for two weeks, I decided to start with rosemary and thyme in self-watering pots."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-garden-noise",
+          "start_codepoint": 0,
+          "end_codepoint": 68,
+          "text": "The cafe downstairs started selling a rosemary focaccia that I like."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-garden-idea",
+          "prop_id": "prop-garden-idea"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-garden-light",
+          "prop_id": "prop-garden-light"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-garden-decision",
+          "prop_id": "prop-garden-decision"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-garden-noise",
+          "prop_id": "prop-garden-noise"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-garden-idea",
+              "prop-garden-light",
+              "prop-garden-decision"
+            ],
+            "max_summary_words": 35,
+            "semantic_review": {
+              "criteria": [
+                "The summary preserves that the garden is a small balcony herb-garden plan.",
+                "The summary reflects the later decision to start with rosemary and thyme in self-watering pots.",
+                "The summary does not turn considering or deciding into a claim that planting is complete."
+              ],
+              "forbidden_claims": [
+                "The rosemary focaccia is part of Jamie's balcony-garden plan.",
+                "Jamie has already planted the herb garden.",
+                "Jamie plans to grow a plant not named in the selected source Props."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-related-topic",
+      "scene_id": "scene-related-topic",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "The proposal groups prop-pottery-class, prop-pottery-mug, and prop-pottery-studio under a specific pottery-practice topic.",
+        "The proposal leaves prop-pottery-distractor outside the topic group.",
+        "All four source Props remain unchanged.",
+        "The response remains a proposal and does not claim that the topic group was stored."
+      ],
+      "prohibited_outcomes": [
+        "Including prop-pottery-distractor in the proposed topic group.",
+        "Citing any ID outside the four Props supplied to the Scene.",
+        "Collapsing the three distinct pottery experiences into duplicate records.",
+        "Editing, deleting, merging, or replacing any original Prop.",
+        "Claiming that a topic group or any derived record was stored.",
+        "Introducing a personal fact not supported by the selected source Props."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-pottery-class",
+          "start_codepoint": 0,
+          "end_codepoint": 74,
+          "text": "I joined a Saturday pottery class and learned to center clay on the wheel."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-pottery-mug",
+          "start_codepoint": 0,
+          "end_codepoint": 66,
+          "text": "My first glazed mug came out lopsided, but I still use it for tea."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-pottery-studio",
+          "start_codepoint": 0,
+          "end_codepoint": 69,
+          "text": "I booked an open-studio session to practice pulling taller cylinders."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-pottery-distractor",
+          "start_codepoint": 0,
+          "end_codepoint": 67,
+          "text": "I replaced the cracked ceramic filter in the kitchen water pitcher."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-pottery-class",
+          "prop_id": "prop-pottery-class"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-pottery-mug",
+          "prop_id": "prop-pottery-mug"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-pottery-studio",
+          "prop_id": "prop-pottery-studio"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-pottery-distractor",
+          "prop_id": "prop-pottery-distractor"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-pottery-class",
+              "prop-pottery-mug",
+              "prop-pottery-studio"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The topic label specifically describes Jamie's pottery learning and practice.",
+                "The label is broad enough to cover the class, handmade mug, and open-studio practice without treating them as duplicates.",
+                "The label does not imply that the kitchen water-filter repair is part of the pottery activity."
+              ],
+              "forbidden_claims": [
+                "The ceramic water filter is part of Jamie's pottery practice.",
+                "The three selected Props describe the same event.",
+                "Jamie sells pottery or works as a professional potter."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-superficial-overlap",
+      "scene_id": "scene-superficial-overlap",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "The response proposes no curation change because the shared words long way do not make the book note and route note semantically related.",
+        "Both source Props remain unchanged.",
+        "The response does not claim that any link, group, summary, or record was stored."
+      ],
+      "prohibited_outcomes": [
+        "Linking the two Props as duplicates.",
+        "Assigning the two Props to one topic group.",
+        "Deriving a summary from the two Props.",
+        "Citing any ID outside the two Props supplied to the Scene.",
+        "Editing, deleting, merging, or replacing either original Prop.",
+        "Introducing a personal fact not supported by the supplied Prop text."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-long-way-book",
+          "start_codepoint": 0,
+          "end_codepoint": 62,
+          "text": "I am reading The Long Way to a Small, Angry Planet before bed."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-long-way-route",
+          "start_codepoint": 0,
+          "end_codepoint": 60,
+          "text": "I took the long way home to avoid roadworks on Orchard Road."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-long-way-book",
+          "prop_id": "prop-long-way-book"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-long-way-route",
+          "prop_id": "prop-long-way-route"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        }
+      }
+    }
+  ]
+}

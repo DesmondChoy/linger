@@ -1,0 +1,293 @@
+{
+  "objective_ids": [
+    "bounded_memory_curation"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-bmc-20260825-092910",
+    "person_id": "person-bmc-01",
+    "evaluation_account_id": "evaluation-account-bmc-01",
+    "context": "One person's independently captured memory records are presented in five isolated curation scenes. Records with moment-specific IDs came from separate source moments."
+  },
+  "props": [
+    {
+      "prop_id": "prop-exact-moment-01",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "My emergency contact is my sister Maya at 555-0148.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-exact-moment-02",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "My emergency contact is my sister Maya at 555-0148.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-moment-01",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "I take my allergy medicine after brushing my teeth at night.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-moment-02",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "My nightly routine is to take my allergy tablets right after I brush my teeth.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-renovation-start-01",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The kitchen renovation is scheduled to start on 14 September.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-summary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-renovation-start-02",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The contractor moved the kitchen renovation start to 21 September because the cabinets are delayed.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-summary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-renovation-start-03",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The kitchen renovation will now start on 23 September; the contractor confirmed that date after the permit cleared.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-summary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-renovation-noise-paint",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The kitchen paint samples are stored in the hall cupboard.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-summary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-renovation-noise-pulls",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "I want to keep the old brass drawer pulls after the renovation.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-summary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-birdwatching-gear",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "My birdwatching binoculars are the 8x42 pair kept by the balcony door.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-birdwatching-walk",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The birdwatching group meets every Sunday at 7:00 a.m. beside the MacRitchie Reservoir car park.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-birdwatching-checklist",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "I keep my checklist of local kingfishers in the green field notebook.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-topic-distractor-receipts",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The green notebook for household receipts is in the second desk drawer.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-key-object",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "I keep the blue key for the bicycle lock in the ceramic bowl by the door.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-overlap",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-key-music",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "person_id": "person-bmc-01",
+      "evaluation_account_id": "evaluation-account-bmc-01",
+      "source_text": "The piano key that feels most comfortable for my warmups is B-flat.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-overlap",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-exact-duplicate",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-exact-moment-01",
+        "prop-exact-moment-02"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-paraphrased-duplicate",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-paraphrase-moment-01",
+        "prop-paraphrase-moment-02"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-evolving-summary",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-renovation-start-01",
+        "prop-renovation-start-02",
+        "prop-renovation-start-03",
+        "prop-renovation-noise-paint",
+        "prop-renovation-noise-pulls"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-related-topic",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-birdwatching-gear",
+        "prop-birdwatching-walk",
+        "prop-birdwatching-checklist",
+        "prop-topic-distractor-receipts"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-superficial-overlap",
+      "backstory_id": "backstory-bmc-20260825-092910",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-superficial-key-object",
+        "prop-superficial-key-music"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [],
+  "offline_inputs": []
+}

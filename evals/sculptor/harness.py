@@ -128,6 +128,18 @@ ExpectedResponse = Annotated[
 ]
 
 
+class CurationExpectation(StrictModel):
+    """Reusable expected behavior for one bounded curation invocation."""
+
+    primary_behavior: PrimaryBehavior
+    expected: ExpectedResponse
+
+    @model_validator(mode="after")
+    def validate_expected_behavior(self) -> Self:
+        _validate_expected_behavior(self.primary_behavior, self.expected)
+        return self
+
+
 class SculptorEvalCase(StrictModel):
     """One versioned baseline case with a single primary behaviour."""
 
@@ -147,25 +159,9 @@ class SculptorEvalCase(StrictModel):
         if len(memory_ids) != len(set(memory_ids)):
             raise ValueError("input memory IDs must be unique")
 
-        expected_action_by_behavior = {
-            "exact_duplicate": "link_duplicates",
-            "paraphrased_duplicate": "link_duplicates",
-            "noisy_memory_summary": "update_derived_summary",
-            "related_topic_group": "assign_topic_group",
-        }
-        required_action = expected_action_by_behavior.get(self.primary_behavior)
-
-        if self.primary_behavior == "superficial_similarity_no_change":
-            if not isinstance(self.expected, ExpectedNoCurationProposal):
-                raise ValueError("the no-change case must expect NoCurationProposal")
+        _validate_expected_behavior(self.primary_behavior, self.expected)
+        if isinstance(self.expected, ExpectedNoCurationProposal):
             return self
-
-        if not isinstance(self.expected, ExpectedCurationProposal):
-            raise ValueError("curation cases must expect CurationProposal")
-        if self.expected.action.action != required_action:
-            raise ValueError(
-                f"{self.primary_behavior} must expect action {required_action}"
-            )
 
         source_ids = self.expected.action.source_memory_ids
         if len(source_ids) != len(set(source_ids)):
@@ -176,6 +172,30 @@ class SculptorEvalCase(StrictModel):
                 f"expected source memory IDs are outside the input: {sorted(unknown_ids)}"
             )
         return self
+
+
+def _validate_expected_behavior(
+    primary_behavior: PrimaryBehavior,
+    expected: ExpectedResponse,
+) -> None:
+    expected_action_by_behavior = {
+        "exact_duplicate": "link_duplicates",
+        "paraphrased_duplicate": "link_duplicates",
+        "noisy_memory_summary": "update_derived_summary",
+        "related_topic_group": "assign_topic_group",
+    }
+    required_action = expected_action_by_behavior.get(primary_behavior)
+
+    if primary_behavior == "superficial_similarity_no_change":
+        if not isinstance(expected, ExpectedNoCurationProposal):
+            raise ValueError("the no-change case must expect NoCurationProposal")
+        return
+    if not isinstance(expected, ExpectedCurationProposal):
+        raise ValueError("curation cases must expect CurationProposal")
+    if expected.action.action != required_action:
+        raise ValueError(
+            f"{primary_behavior} must expect action {required_action}"
+        )
 
 
 class GradeResult(StrictModel):
@@ -222,7 +242,23 @@ def grade_sculptor_response(
     response: SculptorResponse | dict[str, object],
 ) -> GradeResult:
     """Apply hard deterministic gates without pretending prose is exact-matchable."""
-    semantic_review = _semantic_review(case)
+    return grade_curation_expectation(
+        CurationExpectation(
+            primary_behavior=case.primary_behavior,
+            expected=case.expected,
+        ),
+        tuple(memory.memory_id for memory in case.input.memories),
+        response,
+    )
+
+
+def grade_curation_expectation(
+    expectation: CurationExpectation,
+    input_memory_ids: tuple[str, ...],
+    response: SculptorResponse | dict[str, object],
+) -> GradeResult:
+    """Grade one package-backed expectation with the adopted hard gates."""
+    semantic_review = _semantic_review(expectation.expected)
     try:
         parsed = RESPONSE_ADAPTER.validate_python(response)
     except ValidationError as exc:
@@ -233,7 +269,7 @@ def grade_sculptor_response(
         )
 
     failures: list[str] = []
-    if isinstance(case.expected, ExpectedNoCurationProposal):
+    if isinstance(expectation.expected, ExpectedNoCurationProposal):
         if not isinstance(parsed, NoCurationProposalResponse):
             failures.append("expected_no_curation_proposal")
         return GradeResult(
@@ -250,7 +286,7 @@ def grade_sculptor_response(
             **semantic_review,
         )
 
-    expected_action = case.expected.action
+    expected_action = expectation.expected.action
     actual_action = parsed.action
     if actual_action.action != expected_action.action:
         failures.append(
@@ -264,7 +300,7 @@ def grade_sculptor_response(
     if actual_sources != expected_sources:
         failures.append("source_memory_ids_mismatch")
 
-    input_ids = {memory.memory_id for memory in case.input.memories}
+    input_ids = set(input_memory_ids)
     if not actual_sources <= input_ids:
         failures.append("unknown_source_memory_id")
 
@@ -281,15 +317,15 @@ def grade_sculptor_response(
     )
 
 
-def _semantic_review(case: SculptorEvalCase) -> dict[str, object]:
-    if not isinstance(case.expected, ExpectedCurationProposal):
+def _semantic_review(expected: ExpectedResponse) -> dict[str, object]:
+    if not isinstance(expected, ExpectedCurationProposal):
         return {
             "semantic_review_required": False,
             "semantic_criteria": (),
             "forbidden_semantic_claims": (),
         }
 
-    action = case.expected.action
+    action = expected.action
     if isinstance(action, (DerivedSummaryExpectation, TopicGroupExpectation)):
         return {
             "semantic_review_required": True,

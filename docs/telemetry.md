@@ -81,25 +81,29 @@ the user's content.
 
 ## 4. Synthetic evaluation transcripts
 
-The synthetic-journal replay runner uses the same Logfire project under the
-separate `linger-evals` service, `synthetic-evaluation` environment, and
-`content.classification=synthetic` resource attribute. No production
+The capture and bounded-curation replay runners use the same Logfire project
+under the separate `linger-evals` service, `synthetic-evaluation` environment,
+and `content.classification=synthetic` resource attribute. No production
 configuration or environment flag enables this service or its recorder.
 
-The runner uses Pydantic Evals for one native case per Scene and content-bearing
-Pydantic AI instrumentation for the fixed named agents: Muse, Provenance,
-Librarian, Serendipity, and Sculptor. Evaluation spans may record validated
-synthetic Lines, proposed expected outputs, actual outputs, labels,
-model-visible instructions and messages, provider-returned thinking parts,
-tool calls and results, tokens, cost, and fixed evaluation metadata. Binary
-content and full model-request parameter objects remain disabled.
+Each runner uses Pydantic Evals for one native case per Scene and
+content-bearing Pydantic AI instrumentation for the fixed named agents: Muse,
+Provenance, Librarian, Serendipity, and Sculptor. A workflow instruments only
+the agents it invokes. Evaluation spans may record validated synthetic Lines or
+Props, proposed expected outputs, actual outputs, labels, model-visible
+instructions and messages, provider-returned thinking parts, tool calls and
+results, tokens, cost, and fixed evaluation metadata. Binary content and full
+model-request parameter objects remain disabled.
 
-The JSON artifact remains the durable evidence and records the synthetic Line,
-exact agent input, model-visible messages, typed output, tool calls and results,
-usage, released reply, capture outcome, and matching Logfire trace and span IDs.
-It omits thinking parts. Logfire may display only thinking content that the
-provider actually returned; absence does not establish that a model performed
-no internal reasoning.
+The durable capture artifact records the synthetic Line, exact agent input,
+model-visible messages, typed output, tool calls and results, usage, released
+reply, capture outcome, and matching Logfire trace and span IDs. The durable
+curation artifact records the supplied Props, source hashes before and after
+the call, typed Sculptor response, deterministic failures, separate semantic
+criteria, full-deployment and objective-execution identities, and correlated
+trace IDs. Both artifacts omit thinking parts. Logfire may display only
+thinking content that the provider actually returned; absence does not
+establish that a model performed no internal reasoning.
 
 Proposed authoring labels remain explicitly `proposed`. Comparison is reported
 as `matches_proposal` or `differs_from_proposal`, never as an adopted Ground
@@ -114,8 +118,8 @@ Logfire project:
   Scene, synthetic input, proposed expected output, compact actual output,
   evaluator labels, operational metrics, and run comparison.
 - **Agents** groups invocations by fixed agent name. It shows only agents
-  exercised by the selected workflow and time range; a capture-only replay
-  normally shows Muse and Provenance, not all five configured roles.
+  exercised by the selected workflow and time range: capture normally shows
+  Muse and Provenance, while bounded curation shows Sculptor.
 - **LLMs and providers** aggregates model calls, latency, tokens, cost, and
   provider reliability data.
 - **Live** shows the complete nested experiment, case, application, agent, and
@@ -139,7 +143,15 @@ case
   -> provenance.emotional_boundary -> Provenance run -> model call
   -> muse.draft -> Muse run -> model call
   -> provenance.review -> Provenance run -> model call
-  -> proposal_comparison evaluator
+  -> proposal_comparison or adopted_hard_gate_grade evaluator
+```
+
+An isolated bounded-curation Scene is:
+
+```text
+case
+  -> sculptor.curation -> Sculptor run -> model call
+  -> proposal_comparison or adopted_hard_gate_grade evaluator
 ```
 
 If emotional preflight returns `apply_boundary`, the trace stops before Muse
@@ -148,6 +160,18 @@ receives a discriminated draft envelope whose `muse_turn.user_message` contains
 the synthetic Line, and Provenance later receives a separate candidate-review
 envelope. A revision adds another Muse and Provenance cycle within the same
 case.
+
+Proposal mode emits `proposal_comparison` with `matches_proposal` or
+`differs_from_proposal`. When the exact package has a validated independent
+adoption, the same case position emits `adopted_hard_gate_grade` with
+`passes_hard_gates` or `fails_hard_gates` and uses the adopted Ground truth
+identity as the dataset version.
+
+Bounded-curation experiment metadata also records
+`full_deployment_identity` for complete deployed-prompt lineage and
+`objective_execution_identity` for behavioral comparison of the configured
+model, Sculptor prompt, and active curation contracts. An inactive prompt may
+change the former without changing the latter.
 
 The application-owned parent spans carry
 `handoff.input.origin`, `handoff.input.receiver`,

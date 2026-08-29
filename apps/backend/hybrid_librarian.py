@@ -338,7 +338,12 @@ class HybridLibrarian(Librarian):
         return EvidenceBundle(
             items=items,
             retrieval_note=(
-                "Only exact text inside the reader-confirmed boundary was searched using "
-                "BM25, local semantic embeddings, reciprocal-rank fusion, and local reranking."
+                "The complete immutable work was searched privately for boundary inference; "
+                "candidate passage text is not a disclosure grant."
+                if request.purpose == "boundary_inference"
+                else (
+                    "Only exact text inside the validated request boundary was searched using "
+                    "BM25, local semantic embeddings, reciprocal-rank fusion, and local reranking."
+                )
             ),
         )

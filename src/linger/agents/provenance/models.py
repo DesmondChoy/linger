@@ -205,11 +205,11 @@ class ProvenancePolicy(StrictModel):
 
 
 class ProvenanceReadingContext(StrictModel):
-    """The request-scoped reading boundary confirmed by the application."""
+    """The request-scoped reading boundary validated by the application."""
 
     work_id: str = Field(min_length=1, max_length=200)
     chapter_max: int = Field(ge=1)
-    boundary_source: Literal["reader_confirmed"]
+    boundary_source: Literal["reader_confirmed", "librarian_inferred"]
 
 
 class ProvenanceContext(StrictModel):

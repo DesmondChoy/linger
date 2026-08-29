@@ -373,10 +373,22 @@ request. This separation lets evaluation compare Librarian's inferred ceiling
 with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
-The current implementation has only the second phase: it requires a
-reader-confirmed `ConfirmedReading` ceiling before Librarian dispatch and fails
-closed when that ceiling is absent. Full-work boundary inference from memories
-is the next implementation gap, not shipped behavior.
+The current implementation has both phases for the Alice corpus. Metadata-only
+routing first identifies the work. Librarian then receives the current Line and
+at most eight account-scoped memories that independently route to that work,
+searches the complete immutable revision, and returns a typed candidate ceiling,
+confidence, and content-free supporting locations. Full-work candidate passage
+text remains private to this phase and is never copied into Muse, Inspect, the
+turn evidence ledger, or the release scope.
+
+Application code validates the returned work, version, evidence identifiers,
+and candidate chapter. Confidence below `0.75`, conflicting context, missing
+support, unreadable memory storage, retrieval failure, or an invalid model
+decision produces one fixed clarification and no evidence search. A validated
+candidate creates only a request-scoped ceiling; it is not persisted as reading
+progress. Muse may then request the second search, which the application clamps
+to that ceiling before any passage becomes releasable evidence. Explicit reader
+confirmation remains authoritative and skips inference for that request.
 
 ### 6.2 Citations and attribution
 
@@ -469,7 +481,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. One capture-only package and its production-path Scene replay are implemented; reusable generation, independent adoption tooling, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -497,13 +509,14 @@ The vocabulary encodes these boundaries:
 
 Synthetic authoring is intentionally evaluation-aware. The generator receives the selected, resolved Objective requirements and writes both the Backstory package and proposed Ground truth so that intended contrasts and exact source spans are preserved. This is authoring, not grading: the generator does not observe Linger's recorded output and cannot adopt its own labels. Raw developer metadata and judge rubrics remain outside the generator prompt, and an independent reviewer still owns adoption.
 
-[`evals/synthetic_journals/models.py`](../evals/synthetic_journals/models.py) defines `SyntheticBackstory` and `ProposedGroundTruth`. [`evals/synthetic_journals/validate_package.py`](../evals/synthetic_journals/validate_package.py) checks the exact `backstory.json` hash, identifiers, references, ordering, spans, evidence, declared Scene differences, and resolved run-configuration counts. One validated package contains one Backstory, person, and evaluation account. A full dataset may combine multiple separately validated packages with different Backstories.
+[`evals/synthetic_journals/models.py`](../evals/synthetic_journals/models.py) defines `SyntheticBackstory`, `ProposedGroundTruth`, and `GroundTruthAdoption`. [`evals/synthetic_journals/validate_package.py`](../evals/synthetic_journals/validate_package.py) checks the exact `backstory.json` hash, identifiers, references, ordering, spans, evidence, declared Scene differences, and resolved run-configuration counts. [`evals/synthetic_journals/adoption.py`](../evals/synthetic_journals/adoption.py) separately binds a complete human decision to the exact proposed file bytes. One validated package contains one Backstory, person, and evaluation account. A full dataset may combine multiple separately validated packages with different Backstories.
 
 Each authoring attempt has one timestamped directory under
 `synthetic-journal-evaluation/packages/`. It starts with
 `pre-generation-report.md`; after separate human approval, the generator writes
-the sibling `backstory.json` and `ground-truth.json`. Executed replay output
-is not part of this authoring package.
+the sibling `backstory.json` and `ground-truth.json`. Independent confirmation
+adds `ground-truth-adoption.json` without modifying either generated file.
+Executed replay output is not part of this authoring package.
 
 A Backstory may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
@@ -518,16 +531,36 @@ The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-ob
 
 The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one timestamped package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
+After a generator produces the two validated JSON files, the
+[`review-synthetic-ground-truth`](../.agents/skills/review-synthetic-ground-truth/SKILL.md)
+skill opens a desktop-only loopback React app. Each review row places the
+Scene's complete inputs beside its complete proposed Ground truth. The reviewer
+may request changes at any time, but confirmation remains unavailable until
+every row is explicitly approved. A change request returns control to the
+agent without writing adoption or invoking runtime. Confirmation creates the
+separate hash-bound adoption, then returns control to the agent. The browser
+does not select or invoke a runner.
+
 The reviewed automatic-capture package replays without changing these authority
-boundaries. Its runner validates the Backstory and
-Ground truth, creates a temporary store and unique evaluation account,
+boundaries. Its runner validates the Backstory, Ground truth, and optional
+adoption, creates a temporary store and unique evaluation account,
 enables capture through the server-owned Memory & Policy Service, and sends
 exactly one Line in a fresh session for each Scene. Pydantic Evals creates one
 code-defined dataset, one experiment per replay, and one ordered native case
-per Scene. Each case records the validated synthetic input, proposed expected
-capture label, compact observed output, and a `proposal_comparison` label. The
-proposal remains `proposed`; `matches_proposal` and `differs_from_proposal` are
-agreement observations, not adopted Ground truth grades.
+per Scene. Proposal mode emits `proposal_comparison` with
+`matches_proposal` or `differs_from_proposal`. A hash-valid adoption switches
+the authority to `adopted`, uses the adopted Ground truth identity as the
+dataset version, and emits `adopted_hard_gate_grade` with
+`passes_hard_gates` or `fails_hard_gates`.
+
+The bounded-curation runner supplies only the isolated Scene's active,
+same-account Props to production `propose_curation`. It preserves and hashes
+the immutable sources, records the typed response, and grades deterministic
+hard gates. Semantic criteria remain visible and separately reviewable; an
+adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
+identity covers the configured model and every deployed prompt fingerprint for
+lineage, while `objective_execution` covers the configured model, Sculptor
+prompt, and active curation contracts for behavioral comparison.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool
@@ -543,10 +576,10 @@ The project still has not defined reusable workflow for:
 - prop generation;
 - scene composition;
 - line generation;
-- Ground truth review ownership and adoption tooling;
 - full-dataset assembly and layout;
 - freezing; or
-- replay of Props, offline inputs, continued-session Scenes, or other Objectives.
+- replay of Props outside bounded curation, offline inputs, continued-session
+  Scenes, mixed Objective packages, or other Objectives.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined package models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 

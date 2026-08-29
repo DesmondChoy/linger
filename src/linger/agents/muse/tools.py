@@ -31,12 +31,12 @@ async def librarian_search(
 
     Use this when answering would benefit from grounding in the book's actual
     text rather than general knowledge. `work_id` and `book_version_id` must
-    match the book the reader has confirmed they are discussing. Pass the
-    reader's current chapter position as `reading_boundary` (its
+    match the application-validated request scope. Pass the validated current
+    chapter position from `reading_context` as `reading_boundary` (its
     `chapter_state` of "started" or "completed" determines how far into the
     book the search is allowed to look — never chapters beyond what the
-    reader has confirmed reading). If the reader's reading position hasn't
-    been confirmed yet, you may still call this tool with
+    reader is known to have reached). If no request-scoped reading position was
+    validated, you may still call this tool with
     `reading_boundary=None`; you will get back a clarification question to
     ask the reader instead of search results. The response may be a
     clarification request, a retrieval result (with or without evidence), or

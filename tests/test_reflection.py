@@ -661,6 +661,52 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", release.release_source)
         self.assertIsNone(release.failure_stage)
 
+    async def test_unresolved_boundary_releases_only_the_exact_clarification(self) -> None:
+        question = "Have you completed Chapter 5, or are you still earlier?"
+        prompt = MuseDraftInput(
+            mode="draft",
+            muse_turn=MuseTurn(
+                turn_id="clarification-turn",
+                user_message="Why does Alice struggle to explain who she is?",
+                reading_context=None,
+                policy=TurnPolicy(
+                    spoiler_ceiling=None,
+                    allow_retrieval=False,
+                    allow_connection=False,
+                    allow_memory_capture=False,
+                ),
+            ),
+            context_resolution=ContextResolution(
+                status="inferred",
+                work_id="pg11",
+                work_title="Alice's Adventures in Wonderland",
+                book_version_id="pg11-v01b38ea4",
+                clarification_question=question,
+                explanation="Boundary inference was uncertain.",
+            ),
+        ).model_dump_json()
+
+        for reply, expected_source in (
+            (question, "muse_candidate"),
+            ("I think the answer is in Chapter 5.", "application_safe_decline"),
+        ):
+            with self.subTest(reply=reply):
+                muse = AsyncMock()
+                muse.run.return_value = result(reply)
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review("pass"))
+
+                release = await reflection_reply(
+                    prompt,
+                    [],
+                    muse=muse,
+                    provenance=provenance,
+                )
+
+                self.assertEqual(expected_source, release.release_source)
+                if expected_source == "application_safe_decline":
+                    self.assertEqual("deterministic_validation", release.failure_stage)
+
     async def test_unresolved_or_non_librarian_evidence_fails_closed(self) -> None:
         self.register_evidence()
         cases = (

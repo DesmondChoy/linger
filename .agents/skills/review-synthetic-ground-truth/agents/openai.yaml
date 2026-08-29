@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Synthetic Ground Truth"
+  short_description: "Review and adopt synthetic answer keys"
+  default_prompt: "Use $review-synthetic-ground-truth to review and adopt a validated synthetic-journal package before replay."

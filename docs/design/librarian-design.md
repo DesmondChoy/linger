@@ -1,6 +1,6 @@
 # Librarian Subsystem Design
 
-Status: **Initial Librarian vertical slice implemented and validated**
+Status: **Two-phase Alice Librarian implemented; broader evaluation and corpus expansion remain**
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -9,12 +9,13 @@ responsibilities and safeguards in [`../specification.md`](../specification.md).
 ### Progress snapshot
 
 Beads is the durable source of truth; this table is its human-readable design
-projection as of 17 August 2026.
+projection as of 28 August 2026.
 
 | Track | Progress | Current state | Beads |
 |---|---:|---|---|
 | Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
 | Initial Librarian implementation | 6 of 6 slices (100%) | Corpus, boundary, retrieval, Muse handling, five-way strategy selection, and live end-to-end validation are complete | `linger-ibq` |
+| Two-phase spoiler boundary | 1 of 1 implementation slice (100%) | Full-work private inference returns a validated content-free candidate or focused clarification before the second bounded search | `linger-lfh` |
 | Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
 
 The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
@@ -47,6 +48,8 @@ Librarian evidence-strength decision.
 
 Librarian may:
 
+- privately search a complete authorised work to locate reader-known events;
+- propose a request-scoped candidate ceiling with confidence and supporting locations;
 - inspect compact metadata for chapters inside the current request's boundary;
 - choose and read relevant canonical chapter files;
 - use later keyword, semantic, or hybrid indexes when available;
@@ -55,7 +58,7 @@ Librarian may:
 
 Librarian may not:
 
-- choose, persist, or widen the user's reading boundary;
+- grant, persist, or widen the user's reading boundary; application code must validate its candidate;
 - expose metadata or text beyond the validated request scope;
 - treat generated routing metadata as citable evidence;
 - invent, rewrite, or silently truncate source evidence;
@@ -93,13 +96,22 @@ chapters.
 ```text
 User request + transient conversation context
                     ↓
-Application resolves a current-turn reading context
+Application routes the possible work using metadata only
                     ↓
-Application validates a reader-confirmed ceiling
-          ↙ invalid or ambiguous     valid ↘
-Clarification to Muse          Eligible catalogue only
+Explicit reader ceiling in this request?
+        ├─ yes → Application validates explicit ceiling ───────────┐
+        └─ no  → Librarian privately searches the complete work    │
+                 using current Line + relevant account memories    │
+                                      ↓                            │
+                 Candidate ceiling + confidence + locations        │
+                                      ↓                            │
+                 Application validates inferred ceiling           │
+                     ↙ uncertain          validated ↘              │
+          Exact clarification to Muse       └──────────────────────┤
+                                                                  ↓
+                                                     Eligible catalogue only
                                       ↓
-                         Direct read or bounded search
+                         Second, bounded evidence search
                                       ↓
                          Rerank candidate evidence
                                       ↓
@@ -121,8 +133,8 @@ truth, and non-selected indexes need not remain in the production path.
 | Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
 | Muse | Supplies the exact question, invokes the granted Librarian adapter when grounding is useful, and presents any clarification or evidence result to the user |
-| Application boundary | Supplies and enforces the reader-confirmed ceiling in the shipped slice; prevents every caller from widening it |
-| Librarian agent | Chooses a permitted retrieval path and judges the combined evidence strength |
+| Application boundary | Supplies access scope, validates explicit or inferred ceilings, and prevents every caller from widening them |
+| Librarian agent | Infers a private candidate ceiling, then judges the answerability of separately retrieved bounded evidence |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
 | Sculptor | May later propose reviewed routing-metadata improvements; it never changes canonical chapter bodies |
 | Muse and Provenance | Draft and review the eventual response; neither treats routing metadata as evidence |
@@ -343,16 +355,57 @@ A structural or integrity failure returns no ready corpus:
 
 ## 4. Online retrieval flow
 
-### 4.1 Input contract
+### 4.1 Input and output contracts
 
-Muse supplies the exact question. In the shipped slice, application code adds
-trusted access context and a reader-confirmed request ceiling before any
-catalogue, index, agent, or model sees book data. The target inference phase
-belongs to Librarian: it cross-references the current Line and authorised
-memories against the complete work, returns a typed candidate ceiling without
-disclosing post-boundary content, and leaves application code to validate and
-propagate that ceiling. Full-work inference is not part of the current vertical
-slice.
+Before Muse receives a book retrieval grant, application code routes a possible
+work using metadata only. The private boundary phase receives the current Line,
+a bounded set of relevant account-scoped memories, and full-work retrieval
+candidates:
+
+```json
+{
+  "current_line": "Why does Alice struggle to explain who she is?",
+  "relevant_memories": [
+    {
+      "memory_id": "mem_01K2...",
+      "text": "The Caterpillar's questions made me think about how uncertain I am about my identity."
+    }
+  ],
+  "full_work_candidates": [
+    {
+      "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0981",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_number": 5,
+      "text": "Private canonical passage used only for localization"
+    }
+  ]
+}
+```
+
+Only the private Librarian boundary agent sees the memory and candidate text.
+Its accepted output contains no passage text:
+
+```json
+{
+  "kind": "candidate",
+  "work_id": "pg11",
+  "book_version_id": "pg11-v01b38ea4",
+  "max_chapter_inclusive": 5,
+  "confidence": 0.93,
+  "supporting_locations": [
+    {
+      "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0981",
+      "chapter_number": 5,
+      "location": "Chapter 5, source lines 974-981"
+    }
+  ]
+}
+```
+
+Application code validates that candidate and either supplies a request-scoped
+retrieval grant or requires one exact clarification. Muse then supplies the
+exact question for the separate bounded evidence phase:
 
 ```json
 {
@@ -380,6 +433,18 @@ may lower them or enlarge scope.
 
 ### 4.2 Boundary enforcement and clarification
 
+Boundary inference and evidence retrieval are separate calls:
+
+1. The inference search may inspect the complete immutable work, but its
+   passages remain private and never enter the turn evidence ledger.
+2. Librarian selects only content-free supporting evidence IDs and locations.
+3. Application code derives the ceiling from those trusted records and rejects
+   invented IDs, a mismatched work or revision, and inconsistent chapters.
+4. Confidence below `0.75` or any ambiguity yields an exact clarification; the
+   release validator rejects a book answer or tool call in its place.
+5. A validated candidate enables a new search whose scope is clamped to the
+   inferred ceiling. No boundary is persisted to later requests.
+
 At chapter granularity:
 
 - Chapter 5 `completed` permits Chapters 1 through 5.
@@ -387,9 +452,12 @@ At chapter granularity:
 - Missing, conflicting, or ambiguous state returns a clarification without
   opening the catalogue or running retrieval.
 
-Post-boundary catalogue entries and chapter bodies must not reach Librarian,
-Muse, an index, a reranker, or downstream model context. Reading progress is
-not durable memory; it is resolved again for each book-related request.
+During the second phase, post-boundary catalogue entries and chapter bodies
+must not reach the evidence judge, Muse, a bounded index, a reranker, or any
+downstream answer context. The private first-phase Librarian is the sole
+exception and has localization authority, not disclosure authority. Reading
+progress is not durable memory; it is resolved again for each book-related
+request.
 
 Clarification is a distinct response type, not a weak or empty retrieval
 result:

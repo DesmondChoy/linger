@@ -1,0 +1,279 @@
+{
+  "objective_ids": [
+    "bounded_memory_curation"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-jamie-tan-001",
+    "person_id": "person-jamie-tan-001",
+    "evaluation_account_id": "eval-account-jamie-tan-001",
+    "context": "Jamie Tan lives in Singapore and keeps brief personal notes about routines, small projects, classes, books, and practical errands. The records span separate moments in an ordinary year and belong only to Jamie's evaluation account."
+  },
+  "props": [
+    {
+      "prop_id": "prop-exact-key-a",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I keep a spare key in the blue ceramic bowl by the front door.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-exact-key-b",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I keep a spare key in the blue ceramic bowl by the front door.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-walk-original",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "Sunday mornings are reserved for a long walk around MacRitchie Reservoir.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-walk-restated",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I protect my Sunday morning for an unhurried loop at MacRitchie.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-garden-idea",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I have been sketching ideas for a small balcony herb garden.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-summary-refinement",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-garden-light",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "The balcony gets strong afternoon sun, so I am considering rosemary and thyme.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-summary-refinement",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-garden-decision",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "After testing the light for two weeks, I decided to start with rosemary and thyme in self-watering pots.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-summary-refinement",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-garden-noise",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "The cafe downstairs started selling a rosemary focaccia that I like.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-summary-refinement",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-pottery-class",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I joined a Saturday pottery class and learned to center clay on the wheel.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-pottery-mug",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "My first glazed mug came out lopsided, but I still use it for tea.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-pottery-studio",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I booked an open-studio session to practice pulling taller cylinders.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-pottery-distractor",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I replaced the cracked ceramic filter in the kitchen water pitcher.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-topic",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-long-way-book",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I am reading The Long Way to a Small, Angry Planet before bed.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-overlap",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-long-way-route",
+      "backstory_id": "backstory-jamie-tan-001",
+      "person_id": "person-jamie-tan-001",
+      "evaluation_account_id": "eval-account-jamie-tan-001",
+      "source_text": "I took the long way home to avoid roadworks on Orchard Road.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-overlap",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-exact-duplicate",
+      "backstory_id": "backstory-jamie-tan-001",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-exact-key-a",
+        "prop-exact-key-b"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-paraphrased-duplicate",
+      "backstory_id": "backstory-jamie-tan-001",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-walk-original",
+        "prop-walk-restated"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-summary-refinement",
+      "backstory_id": "backstory-jamie-tan-001",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-garden-idea",
+        "prop-garden-light",
+        "prop-garden-decision",
+        "prop-garden-noise"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-related-topic",
+      "backstory_id": "backstory-jamie-tan-001",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-pottery-class",
+        "prop-pottery-mug",
+        "prop-pottery-studio",
+        "prop-pottery-distractor"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-superficial-overlap",
+      "backstory_id": "backstory-jamie-tan-001",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-long-way-book",
+        "prop-long-way-route"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [],
+  "offline_inputs": []
+}

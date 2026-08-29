@@ -32,6 +32,31 @@ class LibrarianTests(unittest.TestCase):
     def setUp(self) -> None:
         self.librarian = Librarian()
 
+    def test_metadata_routes_alice_cues_without_opening_story_text(self) -> None:
+        scope = self.librarian.route_work(
+            "Why does Alice keep struggling to explain who she is?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(scope)
+        assert scope is not None
+        self.assertEqual(WORK_ID, scope.work_id)
+        self.assertEqual(BOOK_VERSION_ID, scope.book_version_id)
+        self.assertEqual(12, scope.max_chapter)
+
+    def test_metadata_does_not_route_an_unrelated_line(self) -> None:
+        unrelated_lines = (
+            "Repair the spaceship engine",
+            "Sketching by hand helps me slow down and think clearly.",
+            "My desk feels oddly quiet with the fan switched off.",
+        )
+
+        for line in unrelated_lines:
+            with self.subTest(line=line):
+                self.assertIsNone(
+                    self.librarian.route_work(line, (BOOK_VERSION_ID,))
+                )
+
     def test_unrelated_query_returns_no_evidence_without_fallback(self) -> None:
         bundle = self.librarian.retrieve(request("zyxwvu qqqqq"))
         self.assertEqual([], bundle.items)

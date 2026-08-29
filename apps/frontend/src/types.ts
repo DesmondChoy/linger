@@ -21,7 +21,11 @@ export type AgentTrace = {
 export type MuseTurnContract = {
   turn_id: string
   user_message: string
-  reading_context: { work_id: string; chapter_max: number; boundary_source: 'reader_confirmed' } | null
+  reading_context: {
+    work_id: string
+    chapter_max: number
+    boundary_source: 'reader_confirmed' | 'librarian_inferred'
+  } | null
   policy: {
     spoiler_ceiling: number | null
     allow_retrieval: boolean
@@ -42,8 +46,23 @@ export type ContextResolution = {
   status: 'confirmed' | 'inferred' | 'unknown'
   work_id: string | null
   work_title: string | null
+  book_version_id: string | null
   chapter_max: number | null
-  boundary_source: 'reader_confirmed' | 'inferred_from_question' | null
+  boundary_source: 'reader_confirmed' | 'librarian_inferred' | null
+  boundary_confidence: number | null
+  boundary_supporting_locations: {
+    evidence_id: string
+    chapter_number: number
+    location: string
+  }[]
+  candidate_chapter: number | null
+  candidate_confidence: number | null
+  candidate_supporting_locations: {
+    evidence_id: string
+    chapter_number: number
+    location: string
+  }[]
+  clarification_question: string | null
   explanation: string
 }
 

@@ -47,7 +47,16 @@ from src.linger.agents.serendipity.prompt import (
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
-from .models import ProposedGroundTruth, StrictModel, SyntheticBackstory
+from .adoption import (
+    GroundTruthAdoptionError,
+    validate_ground_truth_adoption_files,
+)
+from .models import (
+    GroundTruthAdoption,
+    ProposedGroundTruth,
+    StrictModel,
+    SyntheticBackstory,
+)
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_package import PackageValidationError, validate_package_files
 
@@ -75,6 +84,13 @@ ChatHandler = Callable[
     [ChatRequest, MemoryPolicyService, AccountContext],
     Awaitable[ChatResponse],
 ]
+GroundTruthStatus = Literal["proposed", "adopted"]
+GroundTruthResult = Literal[
+    "matches_proposal",
+    "differs_from_proposal",
+    "passes_hard_gates",
+    "fails_hard_gates",
+]
 
 
 class SceneObservation(StrictModel):
@@ -86,7 +102,7 @@ class SceneObservation(StrictModel):
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     expected_capture_label: Literal["candidate", "no_candidate"]
     actual_capture_label: Literal["candidate", "no_candidate", "unavailable"]
-    label_comparison: Literal["matches_proposal", "differs_from_proposal"]
+    ground_truth_result: GroundTruthResult
     agent_exchanges: tuple[AgentExchange, ...]
     reply: str
     release_source: Literal[
@@ -119,7 +135,7 @@ class EvaluationRun(StrictModel):
     objective_id: Literal["reviewed_automatic_memory_capture"]
     dataset_version: str = Field(pattern=r"^[0-9a-f]{64}$")
     system_variant: str = Field(pattern=r"^[0-9a-f]{64}$")
-    ground_truth_status: Literal["proposed"]
+    ground_truth_status: GroundTruthStatus
     capture_enabled: Literal[True]
     runtime_prompt_fingerprints: tuple[PromptFingerprint, ...]
     scenes: tuple[SceneObservation, ...]
@@ -136,17 +152,17 @@ class CaptureEvaluationInput(StrictModel):
 
 
 class CaptureEvaluationExpected(StrictModel):
-    """Authoring proposal displayed as expected output, never adopted truth."""
+    """Proposed or human-adopted capture label shown as expected output."""
 
     capture_label: Literal["candidate", "no_candidate"]
-    ground_truth_status: Literal["proposed"]
+    ground_truth_status: GroundTruthStatus
 
 
 class CaptureEvaluationOutput(StrictModel):
     """Compact application result displayed by Logfire's Evals UI."""
 
     actual_capture_label: Literal["candidate", "no_candidate", "unavailable"]
-    label_comparison: Literal["matches_proposal", "differs_from_proposal"]
+    ground_truth_result: GroundTruthResult
     reply: str
     release_source: Literal[
         "muse_candidate",
@@ -160,14 +176,16 @@ CaptureEvaluationResult = CaptureEvaluationExpected | CaptureEvaluationOutput
 
 
 @dataclass(repr=False)
-class CaptureProposalComparison(
+class CaptureGroundTruthEvaluator(
     Evaluator[
         CaptureEvaluationInput,
         CaptureEvaluationResult,
         dict[str, object],
     ]
 ):
-    """Label an observation against proposed, not adopted, Ground truth."""
+    """Compare a proposal or grade an independently adopted capture label."""
+
+    ground_truth_status: GroundTruthStatus
 
     def evaluate(
         self,
@@ -183,31 +201,58 @@ class CaptureProposalComparison(
             raise TypeError("capture evaluation expected output is unavailable")
         if not isinstance(output, CaptureEvaluationOutput):
             raise TypeError("capture evaluation task returned the wrong output")
-        comparison = (
-            "matches_proposal"
-            if output.actual_capture_label == expected.capture_label
-            else "differs_from_proposal"
+        ground_truth_result = _ground_truth_result(
+            matches=output.actual_capture_label == expected.capture_label,
+            ground_truth_status=expected.ground_truth_status,
         )
-        if output.label_comparison != comparison:
-            raise ValueError("capture evaluation comparison is inconsistent")
-        return comparison
+        if output.ground_truth_result != ground_truth_result:
+            raise ValueError("capture Ground truth result is inconsistent")
+        return ground_truth_result
 
     def get_default_evaluation_name(self) -> str:
+        if self.ground_truth_status == "adopted":
+            return "adopted_hard_gate_grade"
         return "proposal_comparison"
+
+
+def _ground_truth_result(
+    *,
+    matches: bool,
+    ground_truth_status: GroundTruthStatus,
+) -> GroundTruthResult:
+    if ground_truth_status == "adopted":
+        return "passes_hard_gates" if matches else "fails_hard_gates"
+    return "matches_proposal" if matches else "differs_from_proposal"
 
 
 async def replay_capture_scenes(
     backstory: SyntheticBackstory,
     ground_truth: ProposedGroundTruth,
     *,
+    adoption: GroundTruthAdoption | None = None,
     chat_handler: ChatHandler | None = None,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
     scene_lines = _capture_scene_lines(backstory)
+    ground_truth_status: GroundTruthStatus = (
+        adoption.ground_truth_status
+        if adoption is not None
+        else ground_truth.ground_truth_status
+    )
+    dataset_version = (
+        adoption.adopted_ground_truth_identity
+        if adoption is not None
+        else ground_truth.backstory_sha256
+    )
+    evaluation_name = (
+        "adopted_hard_gate_grade"
+        if ground_truth_status == "adopted"
+        else "proposal_comparison"
+    )
     if chat_handler is None:
         handler = _production_chat_handler()
-        configure_synthetic_evaluation_telemetry(_evaluation_agents())
+        configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
 
@@ -243,13 +288,13 @@ async def replay_capture_scenes(
                 ),
                 expected_output=CaptureEvaluationExpected(
                     capture_label=expected_label,
-                    ground_truth_status=ground_truth.ground_truth_status,
+                    ground_truth_status=ground_truth_status,
                 ),
                 metadata={
                     "objective_id": CAPTURE_OBJECTIVE_ID,
                     "line_id": line_id,
                     "scene_order": order,
-                    "ground_truth_status": ground_truth.ground_truth_status,
+                    "ground_truth_status": ground_truth_status,
                 },
             )
         )
@@ -287,7 +332,7 @@ async def replay_capture_scenes(
             observations.append(observation)
             return CaptureEvaluationOutput(
                 actual_capture_label=observation.actual_capture_label,
-                label_comparison=observation.label_comparison,
+                ground_truth_result=observation.ground_truth_result,
                 reply=observation.reply,
                 release_source=observation.release_source,
                 capture=observation.capture,
@@ -296,7 +341,11 @@ async def replay_capture_scenes(
         dataset = Dataset(
             name=CAPTURE_OBJECTIVE_ID,
             cases=cases,
-            evaluators=[CaptureProposalComparison()],
+            evaluators=[
+                CaptureGroundTruthEvaluator(
+                    ground_truth_status=ground_truth_status
+                )
+            ],
         )
         report = await dataset.evaluate(
             evaluate_scene,
@@ -308,9 +357,10 @@ async def replay_capture_scenes(
                 "content_classification": "synthetic",
                 "objective_id": CAPTURE_OBJECTIVE_ID,
                 "run_id": run_id,
-                "dataset_version": ground_truth.backstory_sha256,
+                "dataset_version": dataset_version,
                 "system_variant": RUNTIME_SYSTEM_VARIANT,
-                "ground_truth_status": ground_truth.ground_truth_status,
+                "ground_truth_status": ground_truth_status,
+                "ground_truth_evaluation": evaluation_name,
             },
         )
         if report.failures:
@@ -325,9 +375,9 @@ async def replay_capture_scenes(
         run_id=run_id,
         trace_id=report.trace_id or "0" * 32,
         objective_id=CAPTURE_OBJECTIVE_ID,
-        dataset_version=ground_truth.backstory_sha256,
+        dataset_version=dataset_version,
         system_variant=RUNTIME_SYSTEM_VARIANT,
-        ground_truth_status=ground_truth.ground_truth_status,
+        ground_truth_status=ground_truth_status,
         capture_enabled=True,
         runtime_prompt_fingerprints=RUNTIME_PROMPT_FINGERPRINTS,
         scenes=tuple(observations),
@@ -378,13 +428,15 @@ async def _replay_capture_scene(
             f"Scene {inputs.scene_id} capture inspection disagrees with storage"
         )
     actual_label = release.capture.nomination
-    comparison = (
-        "matches_proposal"
-        if actual_label == expected.capture_label
-        else "differs_from_proposal"
+    ground_truth_result = _ground_truth_result(
+        matches=actual_label == expected.capture_label,
+        ground_truth_status=expected.ground_truth_status,
     )
     set_eval_attribute("actual_capture_label", actual_label)
-    set_eval_attribute("label_comparison", comparison)
+    set_eval_attribute(
+        "ground_truth_result",
+        ground_truth_result,
+    )
     set_eval_attribute("release_source", release.release_source)
     set_eval_attribute("capture_storage", release.capture.storage)
     trace_id = format_trace_id(get_current_span().get_span_context().trace_id)
@@ -395,7 +447,7 @@ async def _replay_capture_scene(
         trace_id=trace_id,
         expected_capture_label=expected.capture_label,
         actual_capture_label=actual_label,
-        label_comparison=comparison,
+        ground_truth_result=ground_truth_result,
         agent_exchanges=recorder.exchanges,
         reply=response.reply,
         release_source=release.release_source,
@@ -454,7 +506,7 @@ def _production_chat_handler() -> ChatHandler:
     return invoke
 
 
-def _evaluation_agents() -> tuple[Any, ...]:
+def evaluation_agents() -> tuple[Any, ...]:
     """Return every named Pydantic AI agent available to synthetic workflows."""
 
     from src.linger.agents.librarian.agent import librarian_strength_agent
@@ -478,21 +530,44 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("backstory", type=Path)
     parser.add_argument("ground_truth", type=Path)
+    parser.add_argument("--adoption", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
 
     try:
-        backstory, ground_truth = validate_package_files(
-            args.backstory, args.ground_truth
+        if args.adoption is None:
+            backstory, ground_truth = validate_package_files(
+                args.backstory, args.ground_truth
+            )
+            adoption = None
+        else:
+            backstory, ground_truth, adoption = (
+                validate_ground_truth_adoption_files(
+                    args.backstory,
+                    args.ground_truth,
+                    args.adoption,
+                )
+            )
+        result = asyncio.run(
+            replay_capture_scenes(
+                backstory,
+                ground_truth,
+                adoption=adoption,
+            )
         )
-        result = asyncio.run(replay_capture_scenes(backstory, ground_truth))
         rendered = result.model_dump_json(indent=2) + "\n"
         if args.output is None:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
         logfire.force_flush()
-    except (OSError, PackageValidationError, RuntimeError, ValueError) as error:
+    except (
+        OSError,
+        GroundTruthAdoptionError,
+        PackageValidationError,
+        RuntimeError,
+        ValueError,
+    ) as error:
         print(f"EVALUATION_RUN_ERROR={error}", file=sys.stderr)
         return 1
     return 0

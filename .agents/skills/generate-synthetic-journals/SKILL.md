@@ -261,5 +261,8 @@ word count. Then verify the semantic requirements that the script cannot prove:
 
 Report the path and selected Objective IDs, then stop. The repository defines
 the Backstory and Ground truth contracts and deterministic validator.
-Generation, independent review ownership, adoption tooling, full-dataset
-assembly, package freezing, and replay remain unadopted until separately approved.
+This skill does not authorize generation. After separately authorized generation
+writes the two JSON files, `$review-synthetic-ground-truth` owns independent
+review, adoption, and the handoff to an implemented Objective-specific replay.
+Full-dataset assembly, package freezing, and unsupported replay paths remain
+unadopted until separately approved.

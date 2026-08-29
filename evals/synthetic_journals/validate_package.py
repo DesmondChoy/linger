@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from evals.sculptor.harness import ExpectedCurationProposal, REQUIRED_BEHAVIORS
 from evals.synthetic_journals.models import (
     CaptureCandidate,
     ExactSpan,
@@ -27,6 +28,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
     REPOSITORY_ROOT / "synthetic-journal-evaluation" / "run-configurations"
 )
+BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 
 
 class PackageValidationError(ValueError):
@@ -178,10 +180,143 @@ def validate_package(
             )
 
     failures.extend(
+        _validate_bounded_curation(backstory, ground_truth, props)
+    )
+    failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)
     )
     if failures:
         raise PackageValidationError(failures)
+
+
+def _validate_bounded_curation(
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+    props: dict[str, Any],
+) -> list[str]:
+    failures: list[str] = []
+    curation_scenes = [
+        scene
+        for scene in backstory.scenes
+        if BOUNDED_CURATION_OBJECTIVE_ID in scene.objective_ids
+    ]
+    proposals = {
+        proposal.scene_id: proposal
+        for proposal in ground_truth.proposals
+        if proposal.objective_id == BOUNDED_CURATION_OBJECTIVE_ID
+    }
+
+    for proposal in ground_truth.proposals:
+        if (
+            proposal.objective_id != BOUNDED_CURATION_OBJECTIVE_ID
+            and proposal.curation is not None
+        ):
+            failures.append(
+                f"proposal {proposal.proposal_id} has curation Ground truth for "
+                f"Objective {proposal.objective_id}"
+            )
+
+    if not curation_scenes:
+        return failures
+
+    observed_behaviors = []
+    for scene in curation_scenes:
+        proposal = proposals.get(scene.scene_id)
+        if proposal is None:  # Covered by the general proposal topology check.
+            continue
+        if proposal.curation is None:
+            failures.append(
+                f"bounded curation proposal {proposal.proposal_id} lacks typed "
+                "curation Ground truth"
+            )
+            continue
+        observed_behaviors.append(proposal.curation.primary_behavior)
+
+        if scene.line_ids or scene.offline_input_ids:
+            failures.append(
+                f"bounded curation Scene {scene.scene_id} accepts Props only"
+            )
+        if not 2 <= len(scene.prop_ids) <= 12:
+            failures.append(
+                f"bounded curation Scene {scene.scene_id} requires 2-12 Props"
+            )
+        for prop_id in scene.prop_ids:
+            prop = props[prop_id]
+            lifecycle = next(
+                item for item in prop.lifecycle if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"bounded curation Prop {prop_id} must be active for "
+                    f"Scene {scene.scene_id}"
+                )
+
+        evidence_prop_ids = [
+            evidence.prop_id
+            for evidence in proposal.evidence
+            if isinstance(evidence, PropEvidence)
+        ]
+        if len(evidence_prop_ids) != len(proposal.evidence):
+            failures.append(
+                f"bounded curation proposal {proposal.proposal_id} permits only "
+                "Prop evidence"
+            )
+        if (
+            len(evidence_prop_ids) != len(scene.prop_ids)
+            or set(evidence_prop_ids) != set(scene.prop_ids)
+        ):
+            failures.append(
+                f"bounded curation proposal {proposal.proposal_id} must cite "
+                "every Scene Prop exactly once"
+            )
+        if not proposal.exact_spans or any(
+            span.source_kind != "prop" for span in proposal.exact_spans
+        ):
+            failures.append(
+                f"bounded curation proposal {proposal.proposal_id} requires "
+                "exact Prop spans"
+            )
+        if proposal.capture is not None or proposal.prop_relevance:
+            failures.append(
+                f"bounded curation proposal {proposal.proposal_id} cannot contain "
+                "capture or retrieval labels"
+            )
+
+        expected = proposal.curation.expected
+        if isinstance(expected, ExpectedCurationProposal):
+            source_ids = expected.action.source_memory_ids
+            if len(source_ids) != len(set(source_ids)):
+                failures.append(
+                    f"bounded curation proposal {proposal.proposal_id} has "
+                    "duplicate expected source IDs"
+                )
+            unknown_sources = set(source_ids) - set(scene.prop_ids)
+            if unknown_sources:
+                failures.append(
+                    f"bounded curation proposal {proposal.proposal_id} expects "
+                    f"Props outside its Scene: {sorted(unknown_sources)}"
+                )
+            span_prop_ids = {
+                span.source_id
+                for span in proposal.exact_spans
+                if span.source_kind == "prop"
+            }
+            unsupported_sources = set(source_ids) - span_prop_ids
+            if unsupported_sources:
+                failures.append(
+                    f"bounded curation proposal {proposal.proposal_id} lacks "
+                    f"exact spans for expected sources: {sorted(unsupported_sources)}"
+                )
+
+    if (
+        len(observed_behaviors) != len(REQUIRED_BEHAVIORS)
+        or set(observed_behaviors) != REQUIRED_BEHAVIORS
+    ):
+        failures.append(
+            "bounded curation package must contain exactly one Scene for each "
+            "accepted Sculptor behavior"
+        )
+    return failures
 
 
 def _validate_span(
