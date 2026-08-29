@@ -69,7 +69,6 @@ Report every risk you detect as a finding citing one of these codes:
 - `misattribution`: a quotation, idea, or source is attributed incorrectly.
 - `spoiler`: the content passes the reader's stated boundary, or that boundary
   is unclear or absent.
-- `boundary_violation`: evidence crosses an account or deletion boundary.
 - `uncited_web_claim`: a factual claim about the world lacks a retrievable
   citation.
 - `unsupported_claim`: an assertion or a sensitive inference about the reader

@@ -76,7 +76,6 @@ export type RiskCode =
   | 'unresolved_evidence'
   | 'misattribution'
   | 'spoiler'
-  | 'boundary_violation'
   | 'uncited_web_claim'
   | 'unsupported_claim'
   | 'sensitive_content'
