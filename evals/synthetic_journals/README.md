@@ -208,7 +208,8 @@ the latter.
 
 ## Grounded reflection and spoiler-boundary replay
 
-Replay the validated three-Scene book package through production chat:
+Replay the validated three-Scene book package through the production
+application chat-turn boundary:
 
 ```bash
 uv run python -m evals.synthetic_journals.book_replay \
@@ -225,7 +226,9 @@ session. The two book-boundary Scenes share one active Prop; the personal Scene
 has no Prop.
 
 The runner seeds each Scene's designated Prop into fresh, account-scoped
-storage, disables automatic capture, and calls the production chat boundary.
+storage, disables automatic capture, and calls `run_chat_turn` directly. This
+is the same application workflow used by `POST /api/chat`, but replay does not
+construct an HTTP request or depend on FastAPI exception semantics.
 It records the content-free boundary handoff separately from bounded Librarian
 retrieval, released evidence, Provenance verdicts, and the response. Typed
 Ground truth grades the inference or clarification decision, exact ceiling,

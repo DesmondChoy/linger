@@ -19,7 +19,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import main, sessions
+    from apps.backend import chat_turn, main, sessions
     from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.models import (
     EvidenceUse,
@@ -131,7 +131,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         provenance.run.return_value = result(provenance_review)
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(
                     return_value=EmotionalBoundaryAssessment(
@@ -139,8 +139,8 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                     )
                 ),
             ),
-            patch.object(main, "muse_chat_agent", muse),
-            patch.object(main, "provenance_agent", provenance),
+            patch.object(chat_turn, "muse_chat_agent", muse),
+            patch.object(chat_turn, "provenance_agent", provenance),
         ):
             response = await main.chat(request, self.service, self.account)
         return response, provenance
@@ -163,7 +163,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         ]
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(
                     return_value=EmotionalBoundaryAssessment(
@@ -171,8 +171,8 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                     )
                 ),
             ),
-            patch.object(main, "muse_chat_agent", muse),
-            patch.object(main, "provenance_agent", provenance),
+            patch.object(chat_turn, "muse_chat_agent", muse),
+            patch.object(chat_turn, "provenance_agent", provenance),
         ):
             return await main.chat(request, self.service, self.account)
 

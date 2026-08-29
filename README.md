@@ -249,7 +249,7 @@ uv run python \
   path/to/backstory.json path/to/ground-truth.json \
   --reviewer-id REVIEWER_ID
 
-# Replay a capture package through the production chat boundary
+# Replay a capture package through the production application chat boundary
 uv run python -m evals.synthetic_journals.replay \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
@@ -261,7 +261,7 @@ uv run python -m evals.synthetic_journals.curation_replay \
   synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
   --output /tmp/bounded-memory-curation-run.json
 
-# Replay grounded reflection plus spoiler-boundary Scenes through production chat
+# Replay grounded reflection plus spoiler-boundary Scenes through the same boundary
 uv run python -m evals.synthetic_journals.book_replay \
   path/to/backstory.json path/to/ground-truth.json \
   --adoption path/to/ground-truth-adoption.json \
@@ -322,7 +322,7 @@ and deterministic services remain shared.
 ```text
 linger/
 ├── apps/                           # Runnable backend and frontend
-│   ├── backend/                    # FastAPI entry point
+│   ├── backend/                    # FastAPI adapter plus application chat turn
 │   └── frontend/                   # React user interface
 ├── src/linger/
 │   ├── agents/                     # Agent prompts and reasoning

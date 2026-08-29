@@ -20,7 +20,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import main, sessions
+    from apps.backend import chat_turn, main, sessions
     from apps.backend.schemas import ChatRequest
 
 from src.linger.contracts.librarian import (
@@ -108,7 +108,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         self.service = MemoryPolicyService(Path(self._directory.name))
         self.account = AccountContext("chat-context-test")
         self._boundary_patcher = patch.object(
-            main,
+            chat_turn,
             "assess_emotional_boundary",
             AsyncMock(
                 return_value=EmotionalBoundaryAssessment(
@@ -140,8 +140,8 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         inference = AsyncMock(return_value=inferred_boundary())
         with (
-            patch.object(main, "infer_spoiler_boundary", inference),
-            patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
+            patch.object(chat_turn, "infer_spoiler_boundary", inference),
+            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
         ):
             await self.call_chat(request)
 
@@ -170,7 +170,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         request = ChatRequest(session_id=self.session_id, message="Hello")
 
-        with patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
             await self.call_chat(request)
 
         self.assertIsNone(seen["value"])
@@ -188,11 +188,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch.object(
-                main,
+                chat_turn,
                 "infer_spoiler_boundary",
                 AsyncMock(return_value=uncertain_boundary()),
             ),
-            patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
+            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
         ):
             await self.call_chat(request)
 
@@ -215,11 +215,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         )
         with (
             patch.object(
-                main,
+                chat_turn,
                 "infer_spoiler_boundary",
                 AsyncMock(return_value=inferred_boundary()),
             ),
-            patch.object(main, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
+            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
         ):
             response = await self.call_chat(request)
 
@@ -258,11 +258,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch.object(
-                main,
+                chat_turn,
                 "infer_spoiler_boundary",
                 AsyncMock(return_value=inferred_boundary()),
             ),
-            patch.object(main, "reflection_reply", side_effect=fake_reflection_reply),
+            patch.object(chat_turn, "reflection_reply", side_effect=fake_reflection_reply),
         ):
             await self.call_chat(
                 ChatRequest(
@@ -291,7 +291,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
                 ),
             )
 
-        resolution = main.resolve_reading_context(
+        resolution = chat_turn.resolve_reading_context(
             ChatRequest(
                 session_id=self.session_id,
                 message="Why does Alice keep struggling to explain who she is?",
@@ -306,8 +306,8 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             )
             return uncertain_boundary()
 
-        with patch.object(main, "infer_spoiler_boundary", side_effect=capture_memories):
-            await main._infer_request_boundary(
+        with patch.object(chat_turn, "infer_spoiler_boundary", side_effect=capture_memories):
+            await chat_turn._infer_request_boundary(
                 ChatRequest(
                     session_id=self.session_id,
                     message="Why does Alice keep struggling to explain who she is?",
@@ -323,7 +323,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
         )
 
-        with patch.object(main, "reflection_reply", AsyncMock(return_value=released())):
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(return_value=released())):
             await self.call_chat(request)
 
         self.assertIsNone(confirmed_reading())
@@ -350,11 +350,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch.object(
-                main,
+                chat_turn,
                 "reflection_reply",
                 AsyncMock(side_effect=fail_with_evidence),
             ),
-            patch.object(main.librarian_service, "fetch_by_id", return_value=record),
+            patch.object(chat_turn.librarian_service, "fetch_by_id", return_value=record),
         ):
             with self.assertRaises(HTTPException):
                 await self.call_chat(request)
@@ -385,12 +385,12 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         record = evidence_record()
         with (
             patch.object(
-                main,
+                chat_turn,
                 "reflection_reply",
                 AsyncMock(side_effect=fake_reflection_reply),
             ),
             patch.object(
-                main.librarian_service,
+                chat_turn.librarian_service,
                 "fetch_by_id",
                 return_value=record,
             ) as fetch,
@@ -436,11 +436,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch.object(
-                main,
+                chat_turn,
                 "reflection_reply",
                 AsyncMock(side_effect=fake_reflection_reply),
             ),
-            patch.object(main.librarian_service, "fetch_by_id") as fetch,
+            patch.object(chat_turn.librarian_service, "fetch_by_id") as fetch,
         ):
             await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="First question")

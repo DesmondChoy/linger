@@ -88,7 +88,7 @@ RUNTIME_SYSTEM_VARIANT = hashlib.sha256(
     ).encode("utf-8")
 ).hexdigest()
 
-ChatHandler = Callable[
+ChatTurnHandler = Callable[
     [ChatRequest, MemoryPolicyService, AccountContext],
     Awaitable[ChatResponse],
 ]
@@ -238,7 +238,7 @@ async def replay_capture_scenes(
     ground_truth: ProposedGroundTruth,
     *,
     adoption: GroundTruthAdoption | None = None,
-    chat_handler: ChatHandler | None = None,
+    chat_handler: ChatTurnHandler | None = None,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
@@ -259,7 +259,7 @@ async def replay_capture_scenes(
         else "proposal_comparison"
     )
     if chat_handler is None:
-        handler = _production_chat_handler()
+        handler = _production_chat_turn_handler()
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
@@ -398,7 +398,7 @@ async def _replay_capture_scene(
     expected: CaptureEvaluationExpected,
     *,
     run_id: str,
-    handler: ChatHandler,
+    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
 ) -> SceneObservation:
@@ -495,23 +495,12 @@ def _capture_scene_lines(
     return tuple(scene_lines)
 
 
-def _production_chat_handler() -> ChatHandler:
-    """Import the configured backend before creating evaluation parent spans."""
+def _production_chat_turn_handler() -> ChatTurnHandler:
+    """Import the transport-independent production chat boundary."""
 
-    from apps.backend.main import chat
-    from fastapi import HTTPException
+    from apps.backend.chat_turn import run_chat_turn
 
-    async def invoke(
-        request: ChatRequest,
-        service: MemoryPolicyService,
-        account: AccountContext,
-    ) -> ChatResponse:
-        try:
-            return await chat(request, service, account)
-        except HTTPException as error:
-            raise RuntimeError("production chat failed") from error
-
-    return invoke
+    return run_chat_turn
 
 
 def evaluation_agents() -> tuple[Any, ...]:

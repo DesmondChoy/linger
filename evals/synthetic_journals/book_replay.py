@@ -53,13 +53,13 @@ from .models import (
     SyntheticBackstory,
 )
 from .replay import (
-    ChatHandler,
+    ChatTurnHandler,
     GroundTruthResult,
     GroundTruthStatus,
     RUNTIME_PROMPT_FINGERPRINTS,
     RUNTIME_SYSTEM_VARIANT,
     _ground_truth_result,
-    _production_chat_handler,
+    _production_chat_turn_handler,
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
@@ -227,7 +227,7 @@ async def replay_book_scenes(
     ground_truth: ProposedGroundTruth,
     *,
     adoption: GroundTruthAdoption | None = None,
-    chat_handler: ChatHandler | None = None,
+    chat_handler: ChatTurnHandler | None = None,
 ) -> BookEvaluationRun:
     """Run the approved three-Scene book package through production chat."""
 
@@ -248,7 +248,7 @@ async def replay_book_scenes(
         else "proposal_comparison"
     )
     if chat_handler is None:
-        handler = _production_chat_handler()
+        handler = _production_chat_turn_handler()
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
@@ -360,7 +360,7 @@ async def _replay_book_scene(
     scene: _BookSceneCase,
     *,
     run_id: str,
-    handler: ChatHandler,
+    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
     ground_truth_status: GroundTruthStatus,

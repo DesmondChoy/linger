@@ -1,9 +1,11 @@
 # Linger chat prototype
 
 The runnable application combines a product-facing React chat path, a local
-developer harness, a FastAPI backend, and five Pydantic AI reasoning roles. The
-backend owns session scope, specialist grants, output release, capture policy,
-and telemetry.
+developer harness, a thin FastAPI transport adapter, one application-owned
+chat-turn boundary, and five Pydantic AI reasoning roles. The chat-turn boundary
+owns session scope, specialist grants, output release, capture policy, and
+application telemetry; FastAPI only supplies trusted dependencies and maps the
+result to HTTP.
 
 The prototype has no end-user authentication or database. Conversation sessions
 live in the backend process and disappear on restart. Automatic evaluation
@@ -92,7 +94,9 @@ automatic memory or display a save notice.
 
 `POST /api/chat` accepts `session_id`, optional `turn_id`, and `message`.
 Unexpected fields fail validation. The server supplies account identity and all
-authority-bearing policy state.
+authority-bearing policy state. Synthetic replay calls the same
+`run_chat_turn` application boundary directly, without constructing an HTTP
+request or translating a FastAPI exception.
 
 ## Validation
 
@@ -110,7 +114,8 @@ Vite 8 requires Node 20.19+ or 22.12+.
 ```text
 apps/
 ├── backend/
-│   ├── main.py       # routes and application-owned orchestration
+│   ├── main.py       # FastAPI routes and HTTP outcome mapping
+│   ├── chat_turn.py  # complete application-owned chat-turn workflow
 │   ├── config.py     # repository-root .env settings
 │   ├── contracts.py  # typed turn and context envelopes
 │   ├── schemas.py    # public request and response bodies

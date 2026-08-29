@@ -416,7 +416,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
                 "OPENAI_API_KEY": "test-key",
             },
         ):
-            from apps.backend import main
+            from apps.backend import chat_turn
 
             muse = AsyncMock()
             muse.run.side_effect = muse_run
@@ -427,15 +427,15 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
                 decision="continue_reflection"
             )
             with (
-                patch.object(main, "assess_emotional_boundary", boundary),
-                patch.object(main, "muse_chat_agent", muse),
-                patch.object(main, "provenance_agent", provenance),
+                patch.object(chat_turn, "assess_emotional_boundary", boundary),
+                patch.object(chat_turn, "muse_chat_agent", muse),
+                patch.object(chat_turn, "provenance_agent", provenance),
             ):
                 result = asyncio.run(
                     replay_capture_scenes(
                         content,
                         ground_truth,
-                        chat_handler=main.chat,
+                        chat_handler=chat_turn.run_chat_turn,
                     )
                 )
     finally:

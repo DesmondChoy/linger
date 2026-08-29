@@ -639,7 +639,7 @@ def test_book_replay_rejects_wrong_scene_topology() -> None:
 
 def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
     backstory, ground_truth, _ = _models()
-    from apps.backend import main
+    from apps.backend import chat_turn
 
     boundary_calls = 0
 
@@ -716,7 +716,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
 
     with (
         patch.object(
-            main,
+            chat_turn,
             "assess_emotional_boundary",
             AsyncMock(
                 return_value=EmotionalBoundaryAssessment(
@@ -724,14 +724,14 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                 )
             ),
         ),
-        patch.object(main, "infer_spoiler_boundary", side_effect=infer_boundary),
-        patch.object(main, "reflection_reply", side_effect=reflection),
+        patch.object(chat_turn, "infer_spoiler_boundary", side_effect=infer_boundary),
+        patch.object(chat_turn, "reflection_reply", side_effect=reflection),
     ):
         result = asyncio.run(
             replay_book_scenes(
                 backstory,
                 ground_truth,
-                chat_handler=main.chat,
+                chat_handler=chat_turn.run_chat_turn,
             )
         )
 
