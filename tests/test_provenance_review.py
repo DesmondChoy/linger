@@ -310,6 +310,64 @@ class ProvenanceReviewTests(unittest.TestCase):
         self.assertIn("reader or another person", lowered)
         self.assertIn("emotional_boundary_decision", lowered)
 
+    def test_prompt_scopes_book_evidence_away_from_reader_attributed_facts(
+        self,
+    ) -> None:
+        """Reader recall of their own statements must not need book evidence.
+
+        Otherwise every correct recall reply (e.g. "my plot is plot 21") is
+        unsupportable by construction and Provenance rejects it.
+        """
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("is exempt from `canonical_book_evidence`", lowered)
+        self.assertIn("session-continuity contract", lowered)
+        self.assertIn("book-corpus claim", lowered)
+        self.assertIn("matching record in `canonical_book_evidence`", lowered)
+
+    def test_prompt_gives_book_corpus_claims_precedence_over_reader_attribution(
+        self,
+    ) -> None:
+        """A reader-framed book fact still needs a matching record.
+
+        Otherwise "you mentioned Hana died in chapter 12" would launder an
+        unsupported book-corpus claim through reader attribution.
+        """
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("reader attribution never exempts a book-corpus claim", lowered)
+        self.assertIn("no book-corpus content at all", lowered)
+
+    def test_prompt_routes_doubted_reader_facts_to_revise_not_reject(self) -> None:
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("do not reject it outright", lowered)
+        self.assertIn("attribute the fact explicitly to the reader", lowered)
+        self.assertIn('response_decision="revise"', lowered)
+
+    def test_doubted_reader_fact_finding_satisfies_decision_justification(self) -> None:
+        """The prompt's prescribed misattribution finding must actually validate.
+
+        Mirrors the exact shape the prompt instructs the model to emit for a
+        doubted, purely reader-attributed fact.
+        """
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="misattribution",
+                    applies_to="response",
+                    location=StructuralLocation(
+                        kind="structural",
+                        source_field="candidate.response",
+                        path="",
+                    ),
+                    explanation="Attribute this fact explicitly to the reader.",
+                ),
+            ),
+            response_decision="revise",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        self.assertEqual("revise", review.response_decision)
+        self.assertEqual("misattribution", review.findings[0].code)
+
 
 class ProvenanceAgentTests(unittest.TestCase):
     def test_review_round_trips_through_the_agent(self) -> None:

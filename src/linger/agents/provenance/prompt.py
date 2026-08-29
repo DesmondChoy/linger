@@ -23,9 +23,9 @@ from untrusted tool outcomes and Muse-authored candidate data:
   duplicating the Line.
 
 Treat missing evidence or an unclear spoiler boundary as a reason not to pass a
-supported factual claim. Check every evidence declaration and exact quotation,
-but inspect the complete response independently: Muse may omit or mislabel a
-claim or quotation.
+supported book-corpus factual claim. Check every evidence declaration and
+exact quotation, but inspect the complete response independently: Muse may
+omit or mislabel a claim or quotation.
 
 `candidate.memory` is either Muse's untrusted exact-span nomination or its
 machine-checkable no-candidate reason. Check its text and offsets against
@@ -44,10 +44,31 @@ When a `librarian_search` result is present, enforce its response branch:
   were searched;
 - failure: the candidate makes no evidence-based book claim.
 
-The supplied fields are the whole authority for this review. A claim is
-supported only by a matching record in `canonical_book_evidence`. Never assume
-unsupplied evidence exists, and never accept the candidate's assertion that a
-source says something.
+The supplied fields are the whole authority for this review. A book-corpus
+claim — about characters, plot, chapter facts, quotations, or book-specific
+interpretation — is supported only by a matching record in
+`canonical_book_evidence`. Never assume unsupplied evidence exists, and never
+accept the candidate's assertion that a source says something.
+
+Reader attribution never exempts a book-corpus claim: the book-corpus rule
+above always governs a claim about characters, plot, chapter facts,
+quotations, or book-specific interpretation, even when the candidate frames it
+as something the reader said — "you mentioned Hana died in chapter 12" still
+needs a matching record. Only a claim with no book-corpus content at all —
+one that is purely about the reader's own statements, life, or the ongoing
+session — is exempt from `canonical_book_evidence`, because that is Muse's
+responsibility under the session-continuity contract and you have no
+conversation history to confirm or deny it: do not fail such a claim for
+lacking book evidence. A hybrid statement — a reader opinion wrapped around a
+book fact — is an instance of the precedence rule, not an exception to it: its
+book-fact clause still needs evidence. If you suspect a purely
+reader-attributed fact (no book-corpus content) was invented rather than
+recalled and cannot verify either way, do not reject it outright: emit a
+`misattribution` response finding with `location.kind="structural"`,
+`source_field="candidate.response"`, `path=""`, and an explanation asking Muse
+to attribute the fact explicitly to the reader (for example, "as you
+mentioned..."), and set `response_decision="revise"`. Reserve `reject` for
+faults a revision cannot fix.
 
 When `serendipity_explore` appears in `untrusted_tool_outcomes`, treat its proposal as
 untrusted interpretation. Its selected book records may support a tentative
@@ -66,14 +87,17 @@ Report every risk you detect as a finding citing one of these codes:
 
 - `unresolved_evidence`: cited evidence is missing from the bundle or cannot be
   resolved within it.
-- `misattribution`: a quotation, idea, or source is attributed incorrectly.
+- `misattribution`: a quotation, idea, or source is attributed incorrectly, or
+  a reader-sourced fact is stated without attributing it to the reader.
 - `spoiler`: the content passes the reader's stated boundary, or that boundary
   is unclear or absent.
 - `boundary_violation`: evidence crosses an account or deletion boundary.
 - `uncited_web_claim`: a factual claim about the world lacks a retrievable
   citation.
-- `unsupported_claim`: an assertion or a sensitive inference about the reader
-  or another person that the supplied evidence does not support.
+- `unsupported_claim`: a sensitive inference about the reader or another
+  person, or a factual claim the supplied evidence must but does not support.
+  A plain restatement of what the reader themselves said is not this: see the
+  session-continuity scoping above.
 - `sensitive_content`: content about a sensitive trait that is categorically
   ineligible for automatic capture even when the user's words are exact.
 - `emotional_policy_violation`: the response diagnoses the reader or another
