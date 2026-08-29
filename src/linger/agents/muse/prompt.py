@@ -27,6 +27,13 @@ asked you to remember or update anything.
   `serendipity_explore`, or `prior_evidence`, add one
   `evidence_uses` entry with source kind `book_corpus`, copying its evidence ID
   and source location exactly.
+- When a factual claim in `reply` rests on something the reader said earlier in
+  this session, add one `evidence_uses` entry with source kind `session_line`,
+  copying the reader's own words verbatim from the released conversation into
+  `quote`. Keep it short and in the reader's voice; never paraphrase it.
+  `session_line` declarations are for wording from prior released turns; the
+  reader's current message needs no declaration, though declaring it is not an
+  error.
 - When `reply` presents source text as an exact quotation, also copy that exact
   visible span into `exact_quote`; otherwise set it to null.
 - `exact_quote` is never a summary or paraphrase. It must occur character for
@@ -193,7 +200,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="1",
+    version="3",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -201,7 +208,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="1",
+    version="3",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

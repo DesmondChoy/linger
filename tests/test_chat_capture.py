@@ -22,7 +22,7 @@ with patch.dict(
     from apps.backend import main, sessions
     from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.models import (
-    EvidenceUse,
+    BookEvidenceUse,
     MemoryCandidate,
     MuseCandidate,
     NoMemoryCandidate,
@@ -283,7 +283,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         unsupported = valid.model_copy(
             update={
                 "evidence_uses": (
-                    EvidenceUse(
+                    BookEvidenceUse(
                         source_kind="book_corpus",
                         evidence_id="unknown-evidence",
                         source_location="Unknown source",

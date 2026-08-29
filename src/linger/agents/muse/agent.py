@@ -33,7 +33,8 @@ muse_chat_agent = build_agent(
 def validate_exact_quote_declarations(output: MuseCandidate) -> MuseCandidate:
     """Reject quote metadata that does not describe visible reply text."""
     if any(
-        evidence.exact_quote is not None
+        evidence.source_kind == "book_corpus"
+        and evidence.exact_quote is not None
         and evidence.exact_quote not in output.reply
         for evidence in output.evidence_uses
     ):
@@ -58,6 +59,8 @@ def validate_muse_output(
     validate_exact_quote_declarations(output)
     available = _available_evidence()
     for declared in output.evidence_uses:
+        if declared.source_kind != "book_corpus":
+            continue
         record = available.get(declared.evidence_id)
         if record is None:
             raise ModelRetry(

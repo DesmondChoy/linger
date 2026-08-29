@@ -350,6 +350,29 @@ class ProvenanceReviewTests(unittest.TestCase):
             lowered.replace("`", ""),
         )
 
+    def test_prompt_describes_canonical_session_lines(self) -> None:
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("`canonical_session_lines` contains reader statements", lowered)
+        self.assertIn(
+            "exact substring of a user line in this session (an earlier "
+            "released turn or the current message)",
+            lowered,
+        )
+
+    def test_prompt_scopes_session_line_corroboration_to_reader_attribution(
+        self,
+    ) -> None:
+        """Otherwise a reader-typed book fact declared as session_line would launder."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn(
+            "a purely reader-attributed factual claim (no book-corpus content) "
+            "matching an entry in `canonical_session_lines` is corroborated as "
+            "something the reader said",
+            lowered,
+        )
+        self.assertIn("never supports a book-corpus claim", lowered)
+        self.assertIn("no matching entry, stays", lowered)
+
     def test_doubted_reader_fact_finding_satisfies_decision_justification(self) -> None:
         """Mirrors the exact finding shape the prompt instructs for a doubted reader fact."""
         review = ProvenanceReview(
@@ -543,6 +566,44 @@ class ProvenanceInputTests(unittest.TestCase):
             review_input.validate_review_locations(review)
 
         self.assertEqual(1, calls)
+
+    def test_canonical_session_lines_round_trip(self) -> None:
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["I lost my job last spring"]
+        round_tripped = ProvenanceInput.model_validate(payload)
+        self.assertEqual(
+            ("I lost my job last spring",), round_tripped.canonical_session_lines
+        )
+        self.assertEqual(payload, round_tripped.model_dump(mode="json"))
+
+    def test_canonical_session_lines_must_be_unique(self) -> None:
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["the same reader line", "the same reader line"]
+        with self.assertRaisesRegex(ValidationError, "must be unique"):
+            ProvenanceInput.model_validate(payload)
+
+    def test_finding_can_point_to_a_canonical_session_line(self) -> None:
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="misattribution",
+                    applies_to="response",
+                    location=TextSpanLocation(
+                        kind="text_span",
+                        source_field="canonical_session_lines",
+                        path="/0",
+                        quote="lost my job",
+                    ),
+                    explanation="Cross-check the reader's verified statement.",
+                ),
+            ),
+            response_decision="revise",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["I lost my job last spring"]
+        ProvenanceInput.model_validate(payload).validate_review_locations(review)
 
     def test_structural_path_must_exist(self) -> None:
         # Response findings cannot point at candidate.memory.

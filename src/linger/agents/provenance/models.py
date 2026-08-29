@@ -43,6 +43,7 @@ SourceField = Literal[
     "context.policy",
     "context.reading_context",
     "canonical_book_evidence",
+    "canonical_session_lines",
     "untrusted_tool_outcomes",
     "candidate.response",
     "candidate.evidence_uses",
@@ -232,6 +233,12 @@ class ProvenanceInput(StrictModel):
 
     context: ProvenanceContext
     canonical_book_evidence: tuple[EvidenceRecord, ...] = ()
+    # Reader statements the application verified as an exact substring of a
+    # user Line in this session — an earlier released turn or the current
+    # message (see reflection.py); text is the identity, there are no IDs.
+    canonical_session_lines: tuple[
+        Annotated[str, Field(min_length=12, max_length=2_000)], ...
+    ] = ()
     untrusted_tool_outcomes: tuple[UntrustedToolOutcome, ...] = ()
     candidate: CandidateUnderReview
     current_line: CurrentLine
@@ -243,6 +250,8 @@ class ProvenanceInput(StrictModel):
         )
         if len(evidence_ids) != len(set(evidence_ids)):
             raise ValueError("canonical book evidence IDs must be unique")
+        if len(self.canonical_session_lines) != len(set(self.canonical_session_lines)):
+            raise ValueError("canonical session lines must be unique")
         return self
 
     def validate_review_locations(self, review: ProvenanceReview) -> None:

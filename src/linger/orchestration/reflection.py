@@ -7,7 +7,13 @@ from typing import Any, Literal, Mapping
 
 import logfire
 from pydantic_ai import Agent
-from pydantic_ai.messages import ModelMessage, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelRequest,
+    ToolCallPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
 from pydantic_core import to_jsonable_python
 
 from apps.backend.telemetry import (
@@ -22,7 +28,7 @@ from apps.backend.contracts import (
     MuseRevisionInput,
     MuseRevisionReview,
 )
-from src.linger.agents.muse.models import MemoryCandidate, MuseCandidate
+from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -145,8 +151,43 @@ def _review_codes(*reviews: ProvenanceReview) -> tuple[tuple[RiskCode, ...], ...
 
 
 def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
-    """Keep declared evidence handles without persisting candidate content."""
-    return tuple(dict.fromkeys(use.evidence_id for use in candidate.evidence_uses))
+    """Keep declared book-corpus evidence handles; session lines have no ID."""
+    return tuple(
+        dict.fromkeys(
+            use.evidence_id
+            for use in candidate.evidence_uses
+            if use.source_kind == "book_corpus"
+        )
+    )
+
+
+def _released_user_lines(history: list[ModelMessage]) -> tuple[str, ...]:
+    """Return released user-authored Line text from this session, never Muse replies."""
+    return tuple(
+        part.content
+        for message in history
+        if isinstance(message, ModelRequest)
+        for part in message.parts
+        if isinstance(part, UserPromptPart) and isinstance(part.content, str)
+    )
+
+
+def _verified_session_lines(
+    evidence_uses: tuple[EvidenceUse, ...],
+    released_user_lines: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Resolve each declared session-line quote as an exact substring of one line.
+
+    `released_user_lines` carries prior released turns plus the current turn's
+    own user message, so a same-turn echo verifies without laundering anything.
+    """
+    verified: dict[str, None] = {}
+    for declared in evidence_uses:
+        if declared.source_kind != "session_line":
+            continue
+        if any(declared.quote in line for line in released_user_lines):
+            verified.setdefault(declared.quote, None)
+    return tuple(verified)
 
 
 def _nomination(candidate: MuseCandidate) -> CaptureNomination:
@@ -488,8 +529,9 @@ def _validate_release(
     release_scope: ReleaseScope | None,
     previously_released_evidence_ids: frozenset[str],
     required_clarification: str | None = None,
+    released_user_lines: tuple[str, ...] = (),
 ) -> None:
-    """Validate declared book citations after semantic approval."""
+    """Validate declared book and session-line citations after semantic approval."""
     if required_clarification is not None and (
         candidate.reply != required_clarification
         or candidate.evidence_uses
@@ -504,6 +546,12 @@ def _validate_release(
         previously_released_evidence_ids,
     )
     for declared in candidate.evidence_uses:
+        if declared.source_kind == "session_line":
+            if not any(
+                declared.quote in line for line in released_user_lines
+            ):
+                raise ReleaseValidationError("Candidate cites an unresolved session line")
+            continue
         if declared.source_kind != "book_corpus":
             raise ReleaseValidationError("Candidate uses an unsupported evidence source")
         record = evidence.get(declared.evidence_id)
@@ -584,6 +632,7 @@ def _provenance_input(
     review_context: Mapping[str, object],
     tool_results: list[dict[str, object]],
     capture_source_text: str,
+    released_user_lines: tuple[str, ...],
 ) -> ProvenanceInput:
     """Build the sole typed envelope for one Provenance review."""
     # librarian_route only identifies a work and boundary; it carries no book
@@ -596,6 +645,9 @@ def _provenance_input(
             {
                 "context": _provenance_context(review_context),
                 "canonical_book_evidence": tuple(turn_evidence().values()),
+                "canonical_session_lines": _verified_session_lines(
+                    candidate.evidence_uses, released_user_lines
+                ),
                 "untrusted_tool_outcomes": grounding_results,
                 "candidate": CandidateUnderReview(
                     response=candidate.reply,
@@ -617,12 +669,14 @@ async def _review(
     review_context: Mapping[str, object],
     tool_results: list[dict[str, object]],
     capture_source_text: str,
+    released_user_lines: tuple[str, ...],
 ) -> ProvenanceReview:
     review_input = _provenance_input(
         candidate,
         review_context,
         tool_results,
         capture_source_text,
+        released_user_lines,
     )
     payload = json.dumps(
         review_input.model_dump(mode="json"),
@@ -801,6 +855,13 @@ async def _reflection_reply(
     span: Any,
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
+    # A session_line declaration may verify against wording released in an
+    # earlier turn, or against the current turn's own message: Provenance
+    # already receives that text as `current_line`, so verifying it here
+    # launders nothing and avoids declining an innocent same-turn echo.
+    released_user_lines = _released_user_lines(history) + (
+        (capture_source_text,) if capture_source_text else ()
+    )
     try:
         draft_input = MuseDraftInput.model_validate_json(message)
     except Exception:
@@ -862,6 +923,7 @@ async def _reflection_reply(
             draft_review_context,
             draft_tool_results,
             capture_source_text,
+            released_user_lines,
         )
     except ReleaseValidationError:
         return _record_release(
@@ -917,6 +979,7 @@ async def _reflection_reply(
                 draft_release_scope,
                 previously_released_evidence_ids,
                 _required_clarification(draft_routing),
+                released_user_lines,
             )
         except ReleaseValidationError:
             return _record_release(
@@ -1065,6 +1128,7 @@ async def _reflection_reply(
             revised_review_context,
             revised_tool_results,
             capture_source_text,
+            released_user_lines,
         )
     except ReleaseValidationError:
         return _record_release(
@@ -1133,6 +1197,7 @@ async def _reflection_reply(
                 revised_release_scope,
                 previously_released_evidence_ids,
                 _required_clarification(revised_routing),
+                released_user_lines,
             )
         except ReleaseValidationError:
             return _record_release(

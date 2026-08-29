@@ -42,6 +42,17 @@ not route to an unfixable `reject`: it routes to `revise` with a
 `source_field="candidate.response"`) asking Muse to attribute the fact
 explicitly to the reader.
 
+`canonical_session_lines` is the same kind of application-verified authority
+for reader-attributed facts: `orchestration/reflection.py` resolves each
+Muse-declared `session_line` evidence use against this session's released
+user Lines plus the current turn's user message (never Muse's own replies)
+with an exact-substring check before Provenance ever runs, and only the
+verified reader statements reach `ProvenanceInput`. A matching entry
+corroborates a purely reader-attributed claim as something the reader said —
+it never supports a book-corpus claim; an undeclared or unresolved one stays
+on the existing exempt-and-revise path above rather than failing closed,
+exactly like unresolvable book evidence does at the deterministic layer.
+
 ## Two independent decisions
 
 One review call returns both decisions, and they are decoupled:

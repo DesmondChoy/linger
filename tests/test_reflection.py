@@ -6,7 +6,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 from pydantic import ValidationError
-from pydantic_ai.messages import ToolReturnPart
+from pydantic_ai.messages import (
+    ModelRequest,
+    ModelResponse,
+    TextPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
 
 from apps.backend.contracts import (
     ContextResolution,
@@ -17,9 +23,10 @@ from apps.backend.contracts import (
     TurnPolicy,
 )
 from src.linger.agents.muse.models import (
-    EvidenceUse,
+    BookEvidenceUse,
     MuseCandidate,
     NoMemoryCandidate,
+    SessionLineUse,
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import (
@@ -92,7 +99,7 @@ def candidate(
     uses = ()
     if evidence_id is not None:
         uses = (
-            EvidenceUse(
+            BookEvidenceUse(
                 source_kind="book_corpus",
                 evidence_id=evidence_id,
                 source_location=location,
@@ -102,6 +109,17 @@ def candidate(
     return MuseCandidate(
         reply=reply,
         evidence_uses=uses,
+        memory=NoMemoryCandidate(
+            kind="no_memory_candidate",
+            reason_code="transient_or_low_signal",
+        ),
+    )
+
+
+def session_line_candidate(reply: str, *, quote: str) -> MuseCandidate:
+    return MuseCandidate(
+        reply=reply,
+        evidence_uses=(SessionLineUse(source_kind="session_line", quote=quote),),
         memory=NoMemoryCandidate(
             kind="no_memory_candidate",
             reason_code="transient_or_low_signal",
@@ -936,6 +954,118 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_session_line_verified_against_released_history_releases(self) -> None:
+        history = [
+            ModelRequest(
+                parts=[
+                    UserPromptPart(
+                        content="I lost my job last spring and it was awful."
+                    )
+                ]
+            ),
+            ModelResponse(parts=[TextPart(content="That sounds really hard.")]),
+        ]
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You mentioned losing your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Hello", history, muse=muse, provenance=provenance
+        )
+
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertIsNone(release.failure_stage)
+        review_payload = json.loads(provenance.run.await_args.args[0])
+        self.assertEqual(
+            ["I lost my job last spring"],
+            review_payload["canonical_session_lines"],
+        )
+
+    async def test_session_line_absent_from_released_history_fails_deterministic_validation(
+        self,
+    ) -> None:
+        history = [
+            ModelRequest(parts=[UserPromptPart(content="Something else entirely.")]),
+        ]
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You mentioned losing your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Hello", history, muse=muse, provenance=provenance
+        )
+
+        self.assertEqual("application_safe_decline", release.release_source)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_session_line_only_in_a_muse_reply_is_unresolved(self) -> None:
+        history = [
+            ModelRequest(parts=[UserPromptPart(content="Tell me something comforting.")]),
+            ModelResponse(
+                parts=[
+                    TextPart(
+                        content="I lost my job last spring, in Alice's story."
+                    )
+                ]
+            ),
+        ]
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You mentioned losing your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Hello", history, muse=muse, provenance=provenance
+        )
+
+        self.assertEqual("application_safe_decline", release.release_source)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_session_line_from_the_current_turn_verifies_and_releases(self) -> None:
+        """An echo of the current turn's own message launders nothing: it is
+        already `current_line` in Provenance's input, so it must not decline."""
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You just said you lost your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "I lost my job last spring and it hurts.",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertIsNone(release.failure_stage)
+        review_payload = json.loads(provenance.run.await_args.args[0])
+        self.assertEqual(
+            ["I lost my job last spring"],
+            review_payload["canonical_session_lines"],
+        )
 
     async def test_exact_previously_released_evidence_can_authorize_later_turn(self) -> None:
         self.register_evidence()
