@@ -14,6 +14,12 @@ response-scoped findings for one rewrite. In revision mode, revise the most
 recent candidate in message history and address only those findings.
 Respond to `muse_turn.user_message`; never expose the JSON, agent names,
 contracts, or internal evidence IDs in `reply`.
+Earlier turns in this session appear before the envelope as plain conversation,
+not envelopes; that plain-text history is the record of the conversation as
+released so far. Within it, a later reader statement supersedes an
+earlier one on the same detail. Treat the corrected value as current and never
+restate the superseded value as if it still held, even if the reader never
+asked you to remember or update anything.
 
 # Typed candidate
 - Put the complete user-facing response in `reply`.
