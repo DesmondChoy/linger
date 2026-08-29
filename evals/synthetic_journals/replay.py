@@ -28,6 +28,9 @@ from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.librarian.prompt import (
     PROMPT_FINGERPRINT as LIBRARIAN_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.librarian.boundary_prompt import (
+    PROMPT_FINGERPRINT as LIBRARIAN_BOUNDARY_PROMPT_FINGERPRINT,
+)
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -66,6 +69,7 @@ from .validate_package import PackageValidationError, validate_package_files
 CAPTURE_OBJECTIVE_ID = "reviewed_automatic_memory_capture"
 
 RUNTIME_PROMPT_FINGERPRINTS = (
+    LIBRARIAN_BOUNDARY_PROMPT_FINGERPRINT,
     LIBRARIAN_PROMPT_FINGERPRINT,
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -513,7 +517,10 @@ def _production_chat_handler() -> ChatHandler:
 def evaluation_agents() -> tuple[Any, ...]:
     """Return every named Pydantic AI agent available to synthetic workflows."""
 
-    from src.linger.agents.librarian.agent import librarian_strength_agent
+    from src.linger.agents.librarian.agent import (
+        librarian_boundary_agent,
+        librarian_strength_agent,
+    )
     from src.linger.agents.muse.agent import muse_chat_agent
     from src.linger.agents.provenance.agent import provenance_agent
     from src.linger.agents.provenance.emotional import emotional_boundary_agent
@@ -524,6 +531,7 @@ def evaluation_agents() -> tuple[Any, ...]:
         muse_chat_agent,
         provenance_agent,
         emotional_boundary_agent,
+        librarian_boundary_agent,
         librarian_strength_agent,
         serendipity_agent,
         sculptor_agent,

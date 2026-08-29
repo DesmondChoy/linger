@@ -222,6 +222,12 @@ uv run python -m evals.synthetic_journals.curation_replay \
   synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
   --output /tmp/bounded-memory-curation-run.json
+
+# Replay grounded reflection plus spoiler-boundary Scenes through production chat
+uv run python -m evals.synthetic_journals.book_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/book-reflection-spoiler-run.json
 ```
 
 The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
@@ -230,7 +236,7 @@ and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
 Synthetic package validation accepts `--run-configuration-directory`. The
 Ground truth reviewer requires `--reviewer-id`; `--adoption` selects a sibling
 output path, `--ui` selects a built UI directory, and `--timeout` sets the
-loopback review lifetime in seconds. Both replay commands accept an optional
+loopback review lifetime in seconds. All replay commands accept an optional
 hash-validated `--adoption` and write JSON to stdout unless `--output` is
 supplied.
 
@@ -239,7 +245,10 @@ truth. A complete independent adoption changes the dataset identity and grades
 the same gates as adopted Ground truth. Capture replay accepts only the
 `reviewed_automatic_memory_capture` topology; curation replay accepts only
 isolated `bounded_memory_curation` Scenes containing two to twelve active Props
-and no Lines or offline inputs. See
+and no Lines or offline inputs. Book replay accepts the ordered
+`grounded_book_reflection` plus `spoiler_boundary_clarification` three-Scene
+design, seeds its designated Prop in isolated storage, and disables capture
+before each fresh-session Line. See
 [`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
 the README in each `evals/` subdirectory for the complete contracts and
 artifact boundaries.

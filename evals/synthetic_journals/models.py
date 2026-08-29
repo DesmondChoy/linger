@@ -354,6 +354,8 @@ class OfflineInputEvidence(StrictModel):
 
 
 class RepositoryTextEvidence(StrictModel):
+    """Hash-bound source text identified independently of retrieval indexing."""
+
     kind: Literal["repository_text"]
     evidence_id: Identifier
     repository_path: Text
@@ -419,6 +421,81 @@ class ScenePairing(StrictModel):
         return self
 
 
+class GroundedBookReflectionExpectation(StrictModel):
+    """Deterministic retrieval expectations for one grounded reflection Scene."""
+
+    retrieval: Literal["required", "not_required"]
+    permitted_evidence_ids: tuple[Identifier, ...] = ()
+    exact_quotation_evidence_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_retrieval_expectation(self) -> Self:
+        _require_unique(
+            "grounded reflection permitted evidence IDs",
+            self.permitted_evidence_ids,
+        )
+        _require_unique(
+            "grounded reflection exact quotation evidence IDs",
+            self.exact_quotation_evidence_ids,
+        )
+        if self.retrieval == "required" and not self.permitted_evidence_ids:
+            raise ValueError("required retrieval needs permitted evidence IDs")
+        if self.retrieval == "not_required" and (
+            self.permitted_evidence_ids or self.exact_quotation_evidence_ids
+        ):
+            raise ValueError("no-retrieval reflection cannot permit evidence")
+        unknown_quote_ids = set(self.exact_quotation_evidence_ids) - set(
+            self.permitted_evidence_ids
+        )
+        if unknown_quote_ids:
+            raise ValueError(
+                "exact quotation evidence IDs must be permitted evidence IDs"
+            )
+        return self
+
+
+class SpoilerBoundaryExpectation(StrictModel):
+    """Typed answer key for event-led inference or spoiler-safe clarification."""
+
+    decision: Literal["infer", "clarify"]
+    authorised_prop_ids: tuple[Identifier, ...] = Field(min_length=1)
+    safe_ceiling_chapter: int | None = Field(default=None, ge=1)
+    supporting_evidence_ids: tuple[Identifier, ...] = ()
+    forbidden_later_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_boundary_expectation(self) -> Self:
+        _require_unique(
+            "spoiler boundary authorised Prop IDs",
+            self.authorised_prop_ids,
+        )
+        _require_unique(
+            "spoiler boundary supporting evidence IDs",
+            self.supporting_evidence_ids,
+        )
+        _require_unique(
+            "spoiler boundary forbidden later evidence IDs",
+            self.forbidden_later_evidence_ids,
+        )
+        overlap = set(self.supporting_evidence_ids) & set(
+            self.forbidden_later_evidence_ids
+        )
+        if overlap:
+            raise ValueError(
+                "supporting and forbidden later evidence IDs must be disjoint"
+            )
+        if self.decision == "infer":
+            if self.safe_ceiling_chapter is None or not self.supporting_evidence_ids:
+                raise ValueError(
+                    "inferred boundary requires a safe ceiling and supporting evidence"
+                )
+        elif self.safe_ceiling_chapter is not None or self.supporting_evidence_ids:
+            raise ValueError(
+                "clarification boundary cannot declare a ceiling or supporting evidence"
+            )
+        return self
+
+
 class GroundTruthProposal(StrictModel):
     """Generator-authored candidate answer-key data for one Scene and Objective."""
 
@@ -433,6 +510,8 @@ class GroundTruthProposal(StrictModel):
     pairing: ScenePairing | None = None
     capture: CaptureExpectation | None = None
     curation: CurationExpectation | None = None
+    grounded_book_reflection: GroundedBookReflectionExpectation | None = None
+    spoiler_boundary: SpoilerBoundaryExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:

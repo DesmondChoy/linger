@@ -72,9 +72,9 @@ does not rewrite `ground-truth.json`.
 
 The loopback server only returns the decision. The agent validates the result
 and chooses a known objective-specific runner. The browser never receives
-runtime authority or provider credentials. Capture and bounded curation are the
-only implemented confirmed replay paths; other or mixed Objectives stop after
-adoption.
+runtime authority or provider credentials. Implemented replay paths cover
+capture, bounded curation, and the grounded-reflection plus spoiler-boundary
+pair. Other Objectives stop after adoption.
 
 ## Capture replay
 
@@ -159,6 +159,38 @@ model and every deployed prompt fingerprint for lineage. `objective_execution`
 hashes the configured model, Sculptor prompt, and active curation contracts for
 behavioral comparison. Changing an inactive prompt changes the former but not
 the latter.
+
+## Grounded reflection and spoiler-boundary replay
+
+Replay the validated three-Scene book package through production chat:
+
+```bash
+uv run python -m evals.synthetic_journals.book_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/book-reflection-spoiler-run.json
+```
+
+The package must select `grounded_book_reflection` followed by
+`spoiler_boundary_clarification`, with no run configuration. It contains one
+combined inference-and-grounding Scene, one ambiguous clarification comparison,
+and one personal no-retrieval comparison. All three use one Line in a fresh
+session. The two book-boundary Scenes share one active Prop; the personal Scene
+has no Prop.
+
+The runner seeds each Scene's designated Prop into fresh, account-scoped
+storage, disables automatic capture, and calls the production chat boundary.
+It records the content-free boundary handoff separately from bounded Librarian
+retrieval, released evidence, Provenance verdicts, and the response. Typed
+Ground truth grades the inference or clarification decision, exact ceiling,
+permitted and forbidden production evidence IDs, exact quotations, absence of
+retrieval, and unchanged Prop storage. Proposed labels never enter chat.
+
+Repository-text evidence uses a globally unique `evidence_id` for each review
+reference. The grader matches its hash-bound exact text against evidence
+observed from production, so packages do not depend on a particular retrieval
+index's window IDs. The command shares the other runners' proposal, adoption,
+and output behavior; it does not adopt or run independent review itself.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene

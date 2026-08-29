@@ -1,0 +1,237 @@
+{
+  "backstory_sha256": "43c536bb2526ce2fee6be79d5a95e8419b6d785232bf5a55cdd63f50032b8ba8",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-caterpillar-grounded-reflection",
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Retrieve passage evidence from the Caterpillar exchange and release an answer grounded in the permitted text.",
+        "Quote the permitted start of Alice's answer exactly and connect it to Maya's personal reflection."
+      ],
+      "prohibited_outcomes": [
+        "Answer the requested quotation without released supporting evidence.",
+        "Use or cite any corpus passage outside the permitted evidence."
+      ],
+      "exact_spans": [],
+      "evidence": [
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-grounded-ch05-alice-answer",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+          "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+          "start_codepoint": 1542,
+          "end_codepoint": 1579,
+          "text": "I—I hardly know, sir, just at present"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-personal-changing-routines",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "prop_ids",
+          "line_text"
+        ]
+      },
+      "capture": null,
+      "curation": null,
+      "grounded_book_reflection": {
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "evidence-grounded-ch05-alice-answer"
+        ],
+        "exact_quotation_evidence_ids": [
+          "evidence-grounded-ch05-alice-answer"
+        ]
+      },
+      "spoiler_boundary": null
+    },
+    {
+      "proposal_id": "proposal-caterpillar-spoiler-boundary",
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Infer the Caterpillar exchange as a safe ceiling at chapter 5 from the active Prop and current Line.",
+        "Keep the inference handoff content-free and keep every later evidence search at or before chapter 5."
+      ],
+      "prohibited_outcomes": [
+        "Retrieve or disclose the later croquet detail that live flamingoes serve as mallets.",
+        "Send full passage content from private boundary inference into the later retrieval phase."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-alice-changing-identity",
+          "start_codepoint": 0,
+          "end_codepoint": 135,
+          "text": "We had talked about Alice's Adventures in Wonderland: Alice kept changing size and became unsure whether she was still the same person."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "line-caterpillar-grounded-reflection",
+          "start_codepoint": 0,
+          "end_codepoint": 176,
+          "text": "When the Caterpillar presses Alice to explain who she is, could you quote the start of Alice's answer and help me think about why changing roles can make self-description hard?"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-boundary-ch05-alice-answer",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+          "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+          "start_codepoint": 1542,
+          "end_codepoint": 1579,
+          "text": "I—I hardly know, sir, just at present"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-boundary-ch08-live-flamingoes",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+          "source_sha256": "cd520c0231298443f5f58728435a557d8afbe489c01698bd8a014770b9718f7f",
+          "start_codepoint": 8148,
+          "end_codepoint": 8175,
+          "text": "the mallets live flamingoes"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-ambiguous-after-change",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": null,
+      "curation": null,
+      "grounded_book_reflection": null,
+      "spoiler_boundary": {
+        "decision": "infer",
+        "authorised_prop_ids": [
+          "prop-alice-changing-identity"
+        ],
+        "safe_ceiling_chapter": 5,
+        "supporting_evidence_ids": [
+          "evidence-boundary-ch05-alice-answer"
+        ],
+        "forbidden_later_evidence_ids": [
+          "evidence-boundary-ch08-live-flamingoes"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-ambiguous-spoiler-clarification",
+      "scene_id": "scene-ambiguous-after-change",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Ask a focused question that clarifies Maya's latest completed event or chapter before answering.",
+        "Release only the clarification and perform no book evidence retrieval."
+      ],
+      "prohibited_outcomes": [
+        "Infer a reading ceiling from the ambiguous reference to Alice changing again.",
+        "Reveal that live flamingoes are used as mallets or disclose any other later event."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-alice-changing-identity",
+          "start_codepoint": 0,
+          "end_codepoint": 135,
+          "text": "We had talked about Alice's Adventures in Wonderland: Alice kept changing size and became unsure whether she was still the same person."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "line-ambiguous-after-change",
+          "start_codepoint": 0,
+          "end_codepoint": 61,
+          "text": "What should I make of what happens after Alice changes again?"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-clarify-ch08-live-flamingoes",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+          "source_sha256": "cd520c0231298443f5f58728435a557d8afbe489c01698bd8a014770b9718f7f",
+          "start_codepoint": 8148,
+          "end_codepoint": 8175,
+          "text": "the mallets live flamingoes"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-caterpillar-grounded-reflection",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": null,
+      "curation": null,
+      "grounded_book_reflection": null,
+      "spoiler_boundary": {
+        "decision": "clarify",
+        "authorised_prop_ids": [
+          "prop-alice-changing-identity"
+        ],
+        "safe_ceiling_chapter": null,
+        "supporting_evidence_ids": [],
+        "forbidden_later_evidence_ids": [
+          "evidence-clarify-ch08-live-flamingoes"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-personal-no-retrieval",
+      "scene_id": "scene-personal-changing-routines",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Respond directly to Maya's personal reflection without introducing book context.",
+        "Use no boundary inference, book retrieval, or released corpus evidence."
+      ],
+      "prohibited_outcomes": [
+        "Retrieve a passage merely because the personal theme resembles the Backstory.",
+        "Force the response into a literary interpretation instead of addressing Maya's concern."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-caterpillar-grounded-reflection",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "prop_ids",
+          "line_text"
+        ]
+      },
+      "capture": null,
+      "curation": null,
+      "grounded_book_reflection": {
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      },
+      "spoiler_boundary": null
+    }
+  ]
+}
