@@ -329,6 +329,27 @@ class ProvenanceReviewTests(unittest.TestCase):
         self.assertIn("attribute the fact explicitly to the reader", lowered)
         self.assertIn('response_decision="revise"', lowered)
 
+    def test_prompt_disambiguates_plot_from_everyday_vocabulary(self) -> None:
+        """Otherwise a reader's garden plot reads as a book-plot claim."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("plot events", lowered)
+        self.assertIn(
+            "shares vocabulary with book terms (words like plot, chapter, or "
+            "character used in everyday senses",
+            lowered,
+        )
+
+    def test_prompt_states_text_span_path_is_empty_for_the_fields_own_string(
+        self,
+    ) -> None:
+        """Otherwise the model repeats the field name in path and validation fails."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn(
+            "path` must be `\"\"` (empty string) — never repeat the field name "
+            "inside the path".replace("`", ""),
+            lowered.replace("`", ""),
+        )
+
     def test_doubted_reader_fact_finding_satisfies_decision_justification(self) -> None:
         """Mirrors the exact finding shape the prompt instructs for a doubted reader fact."""
         review = ProvenanceReview(

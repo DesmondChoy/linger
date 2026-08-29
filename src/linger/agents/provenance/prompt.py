@@ -45,13 +45,18 @@ When a `librarian_search` result is present, enforce its response branch:
 - failure: the candidate makes no evidence-based book claim.
 
 The supplied fields are the whole authority for this review. A book-corpus
-claim — about characters, plot, chapter facts, quotations, or book-specific
-interpretation — is supported only by a matching record in
+claim — about characters, plot events, chapter facts, quotations, or
+book-specific interpretation — is supported only by a matching record in
 `canonical_book_evidence`. Never assume unsupplied evidence exists, and never
-accept the candidate's assertion that a source says something.
+accept the candidate's assertion that a source says something. A claim about
+the reader's own life is not a book-corpus claim merely because it shares
+vocabulary with book terms (words like plot, chapter, or character used in
+everyday senses, as in a garden plot or a chapter of someone's life): what
+matters is whether the claim is about the book's content, not the words it
+uses.
 
 Reader attribution never exempts a book-corpus claim: the book-corpus rule
-above always governs a claim about characters, plot, chapter facts,
+above always governs a claim about characters, plot events, chapter facts,
 quotations, or book-specific interpretation, even when the candidate frames it
 as something the reader said — "you mentioned Hana died in chapter 12" still
 needs a matching record. Only a claim with no book-corpus content at all —
@@ -114,7 +119,10 @@ Locate each finding in the typed input:
 
 - Use `location.kind="text_span"` for offending text. Name its `source_field`,
   give an RFC 6901 `path` relative to that field, and copy `quote` verbatim,
-  character-for-character, from the source text — no offsets are needed.
+  character-for-character, from the source text — no offsets are needed. The
+  `path` is relative to the named `source_field`, not the whole input: when
+  the quote sits directly in that field's own string value, `path` MUST be
+  `""` (empty string) — never repeat the field name inside the path.
   Example: a candidate response of `"Your sister mentioned the flood last
   spring."` with an unsupported claim about the flood would be
   `{"kind": "text_span", "source_field": "candidate.response", "path": "",
