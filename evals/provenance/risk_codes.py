@@ -41,11 +41,11 @@ FailureCode = Literal[
 
 FLOW_421_CODES: frozenset[RiskCode] = frozenset(
     {
-        "unresolved_evidence",
-        "misattribution",
-        "spoiler",
-        "unsupported_claim",
-        "prompt_injection",
+        RiskCode.UNRESOLVED_EVIDENCE,
+        RiskCode.MISATTRIBUTION,
+        RiskCode.SPOILER,
+        RiskCode.UNSUPPORTED_CLAIM,
+        RiskCode.PROMPT_INJECTION,
     }
 )
 

@@ -7,6 +7,7 @@ may be captured. Rejecting capture never suppresses an otherwise safe response.
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, model_validator
@@ -17,24 +18,23 @@ from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 
 # Closed release and capture risk taxonomy.
-RiskCode = Literal[
-    "unresolved_evidence",
-    "misattribution",
-    "spoiler",
-    "uncited_web_claim",
-    "unsupported_claim",
-    "sensitive_content",
-    "emotional_policy_violation",
-    "prompt_injection",
-]
+class RiskCode(StrEnum):
+    UNRESOLVED_EVIDENCE = "unresolved_evidence"
+    MISATTRIBUTION = "misattribution"
+    SPOILER = "spoiler"
+    UNCITED_WEB_CLAIM = "uncited_web_claim"
+    UNSUPPORTED_CLAIM = "unsupported_claim"
+    SENSITIVE_CONTENT = "sensitive_content"
+    EMOTIONAL_POLICY_VIOLATION = "emotional_policy_violation"
+    PROMPT_INJECTION = "prompt_injection"
 
 # Grounds that make content ineligible for automatic capture.
-SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
+SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
     {
-        "unsupported_claim",
-        "sensitive_content",
-        "emotional_policy_violation",
-        "prompt_injection",
+        RiskCode.UNSUPPORTED_CLAIM,
+        RiskCode.SENSITIVE_CONTENT,
+        RiskCode.EMOTIONAL_POLICY_VIOLATION,
+        RiskCode.PROMPT_INJECTION,
     }
 )
 
@@ -130,7 +130,7 @@ class ProvenanceReview(StrictModel):
         boundary_findings = tuple(
             finding
             for finding in response_findings
-            if finding.code == "emotional_policy_violation"
+            if finding.code == RiskCode.EMOTIONAL_POLICY_VIOLATION
             and finding.location.source_field == "current_line.text"
         )
         if self.emotional_boundary_decision == "required":
