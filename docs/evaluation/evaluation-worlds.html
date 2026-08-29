@@ -601,20 +601,22 @@
         </section>
 
         <section class="evaluation-contract" aria-labelledby="contract-title">
-          <header class="contract-head"><span class="label">How it works</span><h3 id="contract-title">Confirmation produces a human-only planning report.</h3></header>
+          <header class="contract-head"><span class="label">How it works</span><h3 id="contract-title">Human approval gates planning, generation, adoption, and replay.</h3></header>
           <div class="contract-grid">
             <article class="contract-card">
-              <span class="micro">Report, then stop</span>
-              <h4>Inspect the current repository before generating data</h4>
-              <p>The repository’s <code>generate-synthetic-journals</code> skill launches a local selector, validates the confirmed catalog IDs, then writes one timestamped implementation-oriented Markdown report for human review.</p>
+              <span class="micro">Plan, approve, review, replay</span>
+              <h4>Keep every authority transition explicit</h4>
+              <p>The repository separates Objective confirmation, report approval, synthetic-data generation, independent Ground truth adoption, and provider-backed replay.</p>
               <ol>
-                <li><strong>Select objectives.</strong> Run the <code>generate-synthetic-journals</code> skill. Its local selector groups all ten objectives by the catalog's menu families and accepts one through ten. The explorer on this page is not that selector.</li>
-                <li><strong>Inspect the repository.</strong> The skill assesses each confirmed Scene against the current implementation and proposes target designs with the smallest required build-out.</li>
-                <li><strong>Write one report.</strong> A timestamped directory under <code>synthetic-journal-evaluation/packages/</code> starts with <code>pre-generation-report.md</code>. After separate approval, the generator adds sibling <code>backstory.json</code> and <code>ground-truth.json</code> files. Book-backed prompts point to <code>data/corpus/</code>; for spoiler tests only bounded evidence reaches Muse.</li>
-                <li><strong>Validate, then review.</strong> Deterministic checks verify objective facts before you adopt, revise, or reject proposed Ground truth. The report is developer-only and never reaches a generator or the system under evaluation.</li>
-                <li><strong>Stop.</strong> Confirmation creates no evaluation data — no Backstories, Props, Scenes, Lines, Ground truth, annotations, or releases. Target designs remain proposals until a human approves them.</li>
+                <li><strong>Configure Logfire.</strong> Configure the Linger project before a provider-backed evaluation so an accepted replay can publish Pydantic Evals results and synthetic-only traces.</li>
+                <li><strong>Select Objectives.</strong> Run the <code>generate-synthetic-journals</code> skill. Its local selector groups all ten Objectives by the catalog's menu families and accepts one through ten. The explorer on this page is not that selector.</li>
+                <li><strong>Review the plan.</strong> Selection confirmation creates only a timestamped <code>pre-generation-report.md</code>. Read it, then separately approve its design and detached generator prompt, request changes, or abandon the attempt.</li>
+                <li><strong>Generate and validate.</strong> Only separate approval authorizes a generator to add sibling <code>backstory.json</code> and <code>ground-truth.json</code>. Deterministic validation checks objective facts. The report stays human-only and never reaches the generator wholesale or the system under evaluation.</li>
+                <li><strong>Review Ground truth.</strong> Run the <code>review-synthetic-ground-truth</code> skill. A human independent of the generator approves or flags every proposed Ground truth row.</li>
+                <li><strong>Adopt or revise.</strong> <strong>Make Changes</strong> writes no adoption and invokes no runtime. Confirmation writes <code>ground-truth-adoption.json</code>; the agent starts one replay only for a supported single Objective. Automatic post-confirmation routes currently cover reviewed automatic capture and bounded memory curation.</li>
+                <li><strong>Inspect the replay.</strong> Review the experiment in Pydantic Evals and Logfire, and retain the runner's JSON output as the durable evaluation record.</li>
               </ol>
-              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the repository defines the package-directory layout, Backstory and Ground truth structures, deterministic validator, desktop review and adoption workflow, and capture and bounded-curation replay. Reusable generation, full-dataset layout, freezing, and replay for other Objectives remain undefined.</div>
+              <div class="contract-rule"><a href="../specification.md#72-scenario-first-synthetic-journal-evaluation">Linger system specification, section 7.2, Scenario-first synthetic journal evaluation</a> · the repository defines the package-directory layout, Backstory and Ground truth structures, deterministic validator, desktop review and adoption workflow, and automatic capture and bounded-curation replay routes. Reusable generation, full-dataset layout, freezing, and automatic replay for other Objectives remain undefined.</div>
             </article>
           </div>
         </section>

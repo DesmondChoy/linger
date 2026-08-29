@@ -15,6 +15,51 @@ Checked-in authoring packages live under
 remain under `synthetic-journal-evaluation/run-configurations/` because packages
 reference them by ID and the validator applies them across packages.
 
+## Human-gated end-to-end workflow
+
+Configure the Linger Logfire project before starting a provider-backed
+evaluation. Local development uses the credentials created by:
+
+```bash
+uv run logfire --region us auth
+uv run logfire --region us projects use --org desmond-choy linger
+```
+
+Deployed and CI environments use `LOGFIRE_TOKEN`. Without either credential
+source, the replay may still produce its durable JSON output, but no result is
+available in Logfire.
+
+The complete workflow is:
+
+1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
+   Objectives in the loopback selector and confirms the complete selection.
+2. The skill creates a timestamped package directory containing only
+   `pre-generation-report.md`. Selection confirmation is not generation
+   approval.
+3. A human reads the report and approves its design and detached generator
+   prompt, requests changes, or abandons the attempt. Generation proceeds only
+   after separate approval and only when the prompt is runnable or all named
+   preconditions have been met.
+4. A separately authorized generator writes `backstory.json` and
+   `ground-truth.json` beside the report. Validate both files with the command
+   below.
+5. Invoke the `review-synthetic-ground-truth` skill. A human independent of the
+   generator approves or flags every proposed Ground truth row.
+6. **Make Changes** returns the decision without writing an adoption or starting
+   runtime. Confirmation writes `ground-truth-adoption.json`. For exactly one
+   supported Objective, the agent validates that adoption and starts one
+   provider-backed replay. The skill automatically routes reviewed automatic
+   capture and bounded memory curation; other selections stop after adoption.
+7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
+   providers, and Live views. Keep the runner's JSON output as the durable,
+   complete evaluation record.
+
+The local selectors and reviewer return decisions to the agent; neither browser
+server invokes a generator, model, or replay runner. The grounded-reflection and
+spoiler-boundary runner described below is implemented for explicit invocation
+after adoption, but it is not an automatic route owned by the current review
+skill.
+
 The Pydantic models in `models.py` are the schema authority. Validate a package
 from the repository root:
 
@@ -72,9 +117,10 @@ does not rewrite `ground-truth.json`.
 
 The loopback server only returns the decision. The agent validates the result
 and chooses a known objective-specific runner. The browser never receives
-runtime authority or provider credentials. Implemented replay paths cover
-capture, bounded curation, and the grounded-reflection plus spoiler-boundary
-pair. Other Objectives stop after adoption.
+runtime authority or provider credentials. Automatic post-confirmation routes
+cover capture and bounded curation. The grounded-reflection plus
+spoiler-boundary runner is available for explicit invocation after adoption;
+other Objectives stop after adoption.
 
 ## Capture replay
 

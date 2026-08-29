@@ -92,7 +92,8 @@ LINGER_WEB_SEARCH_ENABLED=true
 prototype. `LINGER_ALLOWED_ORIGINS` accepts a comma-separated list of browser
 origins and defaults to `http://localhost:5173`.
 
-To send the backend's metadata-only telemetry to the Linger Logfire project:
+To send the backend's metadata-only telemetry and synthetic evaluation telemetry
+to the Linger Logfire project:
 
 ```bash
 uv run logfire --region us auth
@@ -101,6 +102,9 @@ uv run logfire --region us projects use --org desmond-choy linger
 
 Use `LOGFIRE_TOKEN` instead in deployed or CI environments. The telemetry
 allowlist and privacy constraints are defined in [`docs/telemetry.md`](docs/telemetry.md).
+Configure Logfire before starting a provider-backed synthetic evaluation so the
+accepted replay is available in Pydantic Evals and Logfire's Agents, LLMs and
+providers, and Live views.
 
 ### Start the app
 
@@ -179,6 +183,40 @@ uv run jupyter lab notebooks/librarian_manual_evaluation.ipynb
 Full Librarian cells use the model and matching API key configured in `.env`.
 
 ## Evaluation and validation
+
+### Human-gated synthetic evaluation
+
+The synthetic evaluation workflow keeps planning, generation, Ground truth
+adoption, and execution behind separate human decisions:
+
+1. Configure Logfire as described above, then ask your coding agent to run the
+   [`generate-synthetic-journals`](.agents/skills/generate-synthetic-journals/SKILL.md)
+   skill.
+2. Select one or more evaluation Objectives in the local selector and confirm
+   the selection. The skill writes only `pre-generation-report.md`; confirming
+   the selection does not authorize synthetic-data generation.
+3. Read the report and approve its design and detached generator prompt, request
+   changes, or abandon the attempt. Generate data only after separate approval
+   and only when the prompt is runnable or all named preconditions have been
+   met. The generator writes sibling `backstory.json` and `ground-truth.json`
+   files, and the repository validator checks them.
+4. Ask your coding agent to run the
+   [`review-synthetic-ground-truth`](.agents/skills/review-synthetic-ground-truth/SKILL.md)
+   skill. An independent human reviewer approves or flags every proposed Ground
+   truth row in the local review app.
+5. **Make Changes** stops without adoption or replay. Confirmation writes the
+   sibling `ground-truth-adoption.json`. For a single supported Objective, the
+   skill then starts one provider-backed replay; automatic post-confirmation
+   routing currently supports reviewed automatic capture and bounded memory
+   curation. Other Objective selections stop after adoption.
+6. Inspect the accepted replay in Pydantic Evals and Logfire, and retain the
+   runner's JSON output as the durable evaluation record.
+
+The browser review app never invokes a model or runner. It returns the human
+decision to the coding agent, which validates the adoption and maps a supported
+Objective to its runner. See the
+[`evals/synthetic_journals` guide](evals/synthetic_journals/README.md) for the
+package, review, replay, and telemetry contracts.
 
 Run the complete automated suite and frontend gates from the repository root:
 

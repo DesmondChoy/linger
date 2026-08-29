@@ -579,6 +579,31 @@ Everything after a Line enters the production chat boundary — preflight, routi
 
 The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
 
+The end-to-end workflow has distinct human gates:
+
+1. Before a provider-backed evaluation, the developer configures the Linger
+   Logfire project so the eventual replay can publish Pydantic Evals and
+   synthetic-only traces.
+2. The developer invokes `generate-synthetic-journals`, selects one or more
+   Objectives in its local selector, and confirms that complete selection.
+3. Selection confirmation writes only `pre-generation-report.md`. The developer
+   reads the report and separately approves its design and detached prompt,
+   requests changes, or abandons the attempt.
+4. Only a separate approval authorizes a generator to write sibling
+   `backstory.json` and `ground-truth.json`; the repository validator then
+   checks the package. The project has no reusable generation service.
+5. The developer invokes `review-synthetic-ground-truth`. An independent human
+   reviewer approves or flags every proposed Ground truth row.
+6. A change request writes no adoption and invokes no runtime. Confirmation
+   writes sibling `ground-truth-adoption.json`; for one Objective with an
+   automatic post-confirmation route, the agent validates the adoption and
+   starts one provider-backed replay. The review skill currently routes reviewed
+   automatic capture and bounded memory curation. Other selections stop after
+   adoption.
+7. The durable replay output remains the complete evaluation record. Pydantic
+   Evals and the `linger-evals` Logfire service provide interactive result,
+   agent, provider, and trace views.
+
 The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one timestamped package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
 After a generator produces the two validated JSON files, the

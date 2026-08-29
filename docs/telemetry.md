@@ -86,6 +86,16 @@ under the separate `linger-evals` service, `synthetic-evaluation` environment,
 and `content.classification=synthetic` resource attribute. No production
 configuration or environment flag enables this service or its recorder.
 
+Configure that project before beginning the human-gated synthetic evaluation
+workflow. Objective selection and `pre-generation-report.md` approval emit no
+evaluation telemetry. Package generation and independent Ground truth review
+also emit no replay result. After the human confirms every review row, the
+review skill writes `ground-truth-adoption.json` and routes a supported single
+Objective to one provider-backed runner; that runner publishes the Pydantic
+Evals experiment and `linger-evals` traces. Without local `logfire projects use`
+credentials or `LOGFIRE_TOKEN`, the runner retains its durable JSON output but
+exports nothing to Logfire.
+
 Each runner uses Pydantic Evals for one native case per Scene and
 content-bearing Pydantic AI instrumentation for the fixed named agents: Muse,
 Provenance, Librarian, Serendipity, and Sculptor. A workflow instruments only
