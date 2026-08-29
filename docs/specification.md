@@ -655,6 +655,16 @@ Two loops are in scope.
 
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
+**Future product direction.** Sculptor is the proactive intelligence layer;
+Muse is how that intelligence speaks. A separately adopted scheduled product
+task could let Sculptor propose a grounded next action or timely resurfacing
+from a bounded, account-scoped memory set. Sculptor would not release the
+proposal itself: Muse would produce any user-facing wording, and Provenance and
+deterministic application checks would retain the ordinary release boundary.
+This is not current prototype behaviour and does not alter Sculptor's
+proposal-only, no-write authority or Section 3.3's exclusion of continuous
+monitoring and unsolicited resurfacing.
+
 **Relationship to failure-to-eval promotion.** If the project adopts the workflow in Section 9.1, failure-to-eval promotion will produce regression coverage, while Section 9.2 will continue to curate operational guidance. The two concerns remain separate.
 
 **Success measures.** Playbook deduplication precision on seeded duplicate lessons; human acceptance rate of proposed edits; recurrence of repeated Provenance rejection classes tracked across releases. These are reported as evidence that the loop operates as designed; consistent with Section 3.3, the prototype makes no claim that telemetry measurably improved the system.
