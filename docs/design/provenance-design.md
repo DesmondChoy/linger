@@ -14,73 +14,86 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 ## TODO
 
-Test-driven order: the risk-code eval pack (**Stage 0**) is written *first*, and
-its results decide the open design questions instead of argument. The synthetic
-package work (A–C) follows.
+Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
+results would decide the open design questions instead of argument — which is
+what happened. **A1 is the next unblocked item.**
 
-**Stage 0 — Candidate-gate risk-code eval pack (do this first)**
+**Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
-Build `evals/provenance/risk_codes.py` + `risk-codes-cases.json`, mirroring the
-existing [`emotional_boundary.py`](../../evals/provenance/emotional_boundary.py)
-pack exactly: strict JSON case set, topology validator, exact-label grading,
-metadata-only report. Full design in [§5](#5-stage-0--the-risk-code-eval-pack).
+Delivered: [`risk_codes.py`](../../evals/provenance/risk_codes.py),
+[`_fixtures.py`](../../evals/provenance/_fixtures.py),
+[`harness.py`](../../evals/provenance/harness.py),
+[`risk-codes-cases.json`](../../evals/provenance/risk-codes-cases.json),
+[17 offline tests](../../tests/test_provenance_risk_code_evals.py). Design in
+[§5](#5-stage-0--the-risk-code-eval-pack).
 
-- [x] **S0.1 — Case-set contract.** `RiskCodeEvalCase` (a complete
-      `ProvenanceInput` + expected `response_decision` + expected code set) and
-      `RiskCodeCaseSet` with a topology validator requiring ≥1 positive and ≥1
-      negative case per code across the 5 codes. 12 cases: 5 positive, 5 paired
-      near-miss negatives, 2 clean passes.
-      → [`evals/provenance/risk_codes.py`](../../evals/provenance/risk_codes.py)
-- [x] **S0.2 — Corpus-backed case fixtures.** Build `canonical_book_evidence`
-      from real `data/corpus/alice-in-wonderland/pg11-v01b38ea4` records so
-      `unresolved_evidence` and `misattribution` cases are genuine, not invented
-      IDs. Cases are checked in; the report never retains them.
-      → [`evals/provenance/_fixtures.py`](../../evals/provenance/_fixtures.py),
-      [`risk-codes-cases.json`](../../evals/provenance/risk-codes-cases.json)
-- [x] **S0.3 — Two-axis grading.** Grade `response_decision` **and** the finding
-      code set separately, so a right decision with a wrong code is a recorded
-      failure (`code_mismatch`), not a pass. This is the §3.6 blind spot.
-      → `grade_review`; metrics `block_recall` / `over_refusal_rate` /
-      `code_precision` / `per_code_result`.
-- [x] **S0.4 — Offline tests.** Mirror
-      [`test_provenance_emotional_evals.py`](../../tests/test_provenance_emotional_evals.py):
-      case loading, topology, exact-label grading, metric aggregation, and report
-      redaction — all without a provider.
-      → [`tests/test_provenance_risk_code_evals.py`](../../tests/test_provenance_risk_code_evals.py),
-      17 tests. Includes adversarial gates (permissive, blanket-blocking,
-      mislabelling) so each metric is proven to catch its own failure mode, and a
-      corpus-drift guard on the committed JSON.
-- [x] **S0.5 — Run live, record baseline.** Two runs on `openai:gpt-5.6-luna`,
-      prompt v1 `215172678ca8`. Results and analysis in
-      [§5.8](#58-s05-baseline-results). Both prior hypotheses were wrong; three
-      unanticipated faults surfaced instead.
-- [x] **S0.6 — Fix the finding-path ambiguity.** Production bug, now fixed.
-      Prompt v1 left `path` ambiguous for scalar source fields; the rule existed
-      only in a [`models.py:63`](../../src/linger/agents/provenance/models.py#L63)
-      comment the model never sees. Added the explicit scalar/container rule to
-      [`prompt.py`](../../src/linger/agents/provenance/prompt.py) and bumped
-      `PROMPT_FINGERPRINT` to `v2` (`2618d1bbba18`).
-      **Measured: doubled paths went 2/12 → 0/23, and the model now uses correct
-      container paths (`/0/evidence_id`, `/0/text`).** Before/after in
-      [§5.9](#59-s06-before-and-after).
-- [x] **S0.7 — `spoiler` detection confirmed working.** With the path fault gone
-      it returned a correct `spoiler` finding in both v2 runs. The §3.5 "no
-      comparison rule" hypothesis is **falsified** — no spoiler prompt change is
-      warranted. Its remaining failure is severity, not detection (see S0.9).
-- [ ] **S0.8 — Investigate systemic over-refusal.** 5/7 negatives blocked,
-      `over_refusal_rate` 0.71 — **identical across all four runs, before and
-      after the fix.** Now the single largest defect, and invisible to every
-      existing deterministic test. `unsupported_claim` lands on cases with no
-      factual claim to be unsupported, including an exact in-boundary quotation.
-- [ ] **S0.9 — Decide severity expectations, then re-grade.** With detection
-      working, the dominant remaining failure is `revise` where cases expect
-      `reject` (spoiler, unresolved evidence). Either the gate under-escalates
-      or the cases over-specify severity. Resolve deliberately — this determines
-      whether a spoiler is a one-revision fault or a hard block.
-- [ ] **S0.10 — Fix code-point offset arithmetic.** A second, distinct model
-      fault the path fix exposed: correct `path`, miscounted `start`/`end`
-      offsets on curly-quoted text, self-corrected on retry (74→87). Causes the
-      2 remaining `gate_error`/`invalid_review` results per run.
+**Done (S0.1–S0.7, S0.9).** Built the pack, ran it live, and fixed the two
+production prompt defects it exposed — defects the existing 413-test suite could
+not see, because every deterministic test constructs `RiskFinding` objects in
+Python and so never exercises how the *model* fills them in. It also falsified
+both §3.5 hypotheses: all five 4.2.1 codes detect and label correctly.
+
+| Prompt | Change | Effect |
+|---|---|---|
+| v1 → v2 | Finding-path rule for scalar vs container fields | Invalid doubled paths 2/12 → 0/23 |
+| v2 → v3 | `spoiler` is always `reject` (product decision: hard block) | `block_recall` reached 1.00 |
+
+### Stage 0 metrics
+
+Two runs per prompt version, `openai:gpt-5.6-luna`, same 12 cases throughout.
+Full analysis in [§5.8](#58-s05-baseline-results), [§5.9](#59-s06-before-and-after),
+[§5.10](#510-s09-severity-outcome).
+
+| Metric | v1 r1 | v1 r2 | v2 r1 | v2 r2 | v3 r1 | v3 r2 |
+|---|---|---|---|---|---|---|
+| `accuracy` | 0.25 | 0.25 | 0.25 | 0.33 | **0.50** | 0.42 |
+| `block_recall` | 0.60 | 0.80 | 0.80 | 0.80 | 0.80 | **1.00** |
+| `over_refusal_rate` | 0.71 | 0.71 | 0.71 | 0.71 | **0.57** | 0.86 |
+| `code_precision` | 1.00 | 1.00 | 0.75 | 1.00 | 1.00 | 0.80 |
+| `evaluation_error_count` | 3 | 3 | 2 | 2 | 2 | **0** |
+
+Invalid finding paths, measured across all findings in a full pass:
+
+| Path shape | v1 | v2 |
+|---|---|---|
+| `candidate.response` + `path=""` (correct) | 10 | 19 |
+| `candidate.response` + `path="/response"` (invalid) | **2** | **0** |
+| container + `/0/evidence_id`, `/0/text` (correct) | 0 | 4 |
+
+`code_precision` is reported over blocks that survived validation, so its
+denominator is small; read it alongside `block_recall`, not alone.
+
+Provenance of these figures: the v2 and v3 columns are reproduced from saved
+report files, and the v3 r2 run is the one committed as
+[`risk-codes-live-report.json`](../../evals/provenance/risk-codes-live-report.json).
+The v1 columns predate that convention and were transcribed from the run output
+at the time, so they are not independently reproducible from a stored artifact —
+only the direction of the v1 → v2 change is load-bearing, and the path-shape
+table above is its direct measurement.
+
+**Open, deliberately not being pushed further.** Both need a decision, not
+another patch.
+
+- [-] **S0.8 — Systemic over-refusal. BLOCKED on a product decision.**
+      `unsupported_claim` blocks negatives that make no factual claim, including
+      `clean_grounded_pass` (an exact in-boundary quotation) in every run so far.
+      Largest remaining defect, and invisible to every existing deterministic
+      test. The gate treats interpretive framing ("the book keeps promising rules
+      that never arrive") as an unsupported assertion. Whether that is
+      over-refusal or correct caution is a judgment about what Muse may say
+      unsupported — not something to settle by tuning a prompt until the metric
+      moves. Needs a stated policy, then a prompt change, then re-measurement.
+      **Methodology caveat:** `over_refusal_rate` swung 0.57 → 0.86 across two
+      identical v3 runs, so two replicates cannot evaluate a fix here. Budget
+      more runs per configuration before attributing a metric move to a change.
+- [-] **S0.10 — Code-point offset arithmetic. BLOCKED on a contract decision.**
+      Correct `path`, miscounted `start`/`end` offsets on curly-quoted text;
+      self-corrected on retry (74→87). Intermittent — 2 errors in v3 run 1, 0 in
+      run 2. Not worth a prompt patch: the model already recovers via the
+      existing retry, and the failure is arithmetic on multi-byte punctuation,
+      which more instruction text is unlikely to fix. The real options are
+      raising the output-retry allowance or having the gate name the quote and
+      let application code compute offsets — a contract change outside Stage 0.
 
 **A. Close the runtime gap (blocks the synthetic package, not Stage 0)**
 
@@ -607,6 +620,38 @@ passes only on both axes, so it stays red while severity expectations are
 unresolved. The metric that isolates this fix is the path distribution, and
 there it is unambiguous. Aggregate accuracy is the wrong instrument for a
 targeted change.
+
+### 5.10 S0.9 severity outcome
+
+Prompt v2 `2618d1bbba18` → v3 `0d057ecfa076`, plus one corrected case
+expectation. Same 12 cases, same model.
+
+| Metric | v2 r1 | v2 r2 | v3 r1 | v3 r2 |
+|---|---|---|---|---|
+| `accuracy` | 0.25 | 0.33 | **0.50** | 0.42 |
+| `block_recall` | 0.80 | 0.80 | 0.80 | **1.00** |
+| `over_refusal_rate` | 0.71 | 0.71 | **0.57** | 0.86 |
+| `code_precision` | 0.75 | 1.00 | 1.00 | 0.80 |
+| errors | 2 | 2 | 2 | **0** |
+
+**The spoiler rule works.** `spoiler_positive` returned `reject` with the
+`spoiler` code in the run that completed it, against `revise` in both v2 runs.
+Detection was never the problem; severity instruction was.
+
+**Accuracy roughly doubled off a two-line change** (0.25/0.33 → 0.50/0.42), and
+`block_recall` hit 1.00 for the first time.
+
+**Variance is now the limiting factor, not any single defect.** `over_refusal_rate`
+swung 0.57 → 0.86 between two runs of identical inputs, and `spoiler_negative`
+passed in one and was blocked in the other. Two runs per configuration was
+adequate for diagnosing a deterministic schema fault; it is **not** adequate for
+measuring a judgment rate. Any S0.8 work needs more replicates per
+configuration before a change can be called an improvement — otherwise noise of
+this size will read as signal.
+
+**S0.8 remains the largest open defect, and is unchanged in character.**
+`unsupported_claim` still lands on negatives with no factual claim to support,
+including `clean_grounded_pass` in every run so far.
 
 ## 6. Design decisions to confirm
 

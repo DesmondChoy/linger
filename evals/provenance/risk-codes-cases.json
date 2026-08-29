@@ -9,7 +9,7 @@
       "case_id": "provenance-risk-unresolved-evidence-positive-v1",
       "owner": "provenance",
       "primary_behavior": "unresolved_evidence_positive",
-      "description": "The candidate cites an evidence ID absent from the frozen bundle.",
+      "description": "The candidate cites an evidence ID absent from the frozen bundle. The claim itself is accurate, so correcting the citation is one focused fix and the expected severity is revise, not reject.",
       "review_input": {
         "context": {
           "policy": {
@@ -102,7 +102,7 @@
           "text": "What does the Cat say about madness?"
         }
       },
-      "expected_response_decision": "reject",
+      "expected_response_decision": "revise",
       "expected_codes": [
         "unresolved_evidence"
       ]

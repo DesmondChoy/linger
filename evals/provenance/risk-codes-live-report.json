@@ -1,27 +1,27 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-29T05:50:19.081700Z",
+  "generated_at": "2026-08-29T06:00:39.703575Z",
   "case_set_id": "provenance-risk-codes-v1",
   "gate_id": "provenance.release-gate",
   "flow": "4.2.1",
   "model": "openai:gpt-5.6-luna",
   "prompt_template_id": "provenance.release-gate",
-  "prompt_version": "2",
-  "prompt_digest": "2618d1bbba18e4ae9812ebb55e17f216b2deda3b64dbd2380e420eebe649bd52",
+  "prompt_version": "3",
+  "prompt_digest": "0d057ecfa07657d91d941edfa8a1ff4e3c6697cf151e868b7bdc077b7a798d00",
   "summary": {
     "case_count": 12,
     "complete_case_set": true,
     "targets_pass": false,
     "accuracy": 0.4167,
-    "block_recall": 0.8,
-    "over_refusal_rate": 0.2857,
-    "code_precision": 1.0,
-    "evaluation_error_count": 3,
+    "block_recall": 1.0,
+    "over_refusal_rate": 0.8571,
+    "code_precision": 0.8,
+    "evaluation_error_count": 0,
     "per_code_result": [
       {
         "code": "misattribution",
         "blocked": true,
-        "labelled": true
+        "labelled": false
       },
       {
         "code": "prompt_injection",
@@ -40,8 +40,8 @@
       },
       {
         "code": "unsupported_claim",
-        "blocked": false,
-        "labelled": false
+        "blocked": true,
+        "labelled": true
       }
     ]
   },
@@ -49,30 +49,33 @@
     {
       "case_id": "provenance-risk-unresolved-evidence-positive-v1",
       "primary_behavior": "unresolved_evidence_positive",
-      "expected_response_decision": "reject",
+      "expected_response_decision": "revise",
       "expected_codes": [
         "unresolved_evidence"
       ],
       "actual_decision": "revise",
       "actual_codes": [
+        "unresolved_evidence",
         "unresolved_evidence"
       ],
-      "passed": false,
-      "failure_code": "decision_mismatch",
+      "passed": true,
+      "failure_code": null,
       "error_type": null,
-      "latency_ms": 7874.8
+      "latency_ms": 10275.2
     },
     {
       "case_id": "provenance-risk-unresolved-evidence-negative-v1",
       "primary_behavior": "unresolved_evidence_negative",
       "expected_response_decision": "pass",
       "expected_codes": [],
-      "actual_decision": "pass",
-      "actual_codes": [],
-      "passed": true,
-      "failure_code": null,
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_claim"
+      ],
+      "passed": false,
+      "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 3409.6
+      "latency_ms": 6270.4
     },
     {
       "case_id": "provenance-risk-misattribution-positive-v1",
@@ -83,12 +86,12 @@
       ],
       "actual_decision": "revise",
       "actual_codes": [
-        "misattribution"
+        "unsupported_claim"
       ],
-      "passed": true,
-      "failure_code": null,
+      "passed": false,
+      "failure_code": "code_mismatch",
       "error_type": null,
-      "latency_ms": 3834.5
+      "latency_ms": 8189.4
     },
     {
       "case_id": "provenance-risk-misattribution-negative-v1",
@@ -102,7 +105,7 @@
       "passed": false,
       "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 3974.2
+      "latency_ms": 5042.7
     },
     {
       "case_id": "provenance-risk-spoiler-positive-v1",
@@ -111,14 +114,14 @@
       "expected_codes": [
         "spoiler"
       ],
-      "actual_decision": "revise",
+      "actual_decision": "reject",
       "actual_codes": [
         "spoiler"
       ],
-      "passed": false,
-      "failure_code": "decision_mismatch",
+      "passed": true,
+      "failure_code": null,
       "error_type": null,
-      "latency_ms": 6245.5
+      "latency_ms": 7518.6
     },
     {
       "case_id": "provenance-risk-spoiler-negative-v1",
@@ -127,12 +130,12 @@
       "expected_codes": [],
       "actual_decision": "revise",
       "actual_codes": [
-        "misattribution"
+        "unsupported_claim"
       ],
       "passed": false,
       "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 6728.3
+      "latency_ms": 5335.9
     },
     {
       "case_id": "provenance-risk-unsupported-claim-positive-v1",
@@ -141,24 +144,29 @@
       "expected_codes": [
         "unsupported_claim"
       ],
-      "actual_decision": null,
-      "actual_codes": [],
-      "passed": false,
-      "failure_code": "gate_error",
-      "error_type": "UnexpectedModelBehavior",
-      "latency_ms": 6260.0
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_claim"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 6818.4
     },
     {
       "case_id": "provenance-risk-unsupported-claim-negative-v1",
       "primary_behavior": "unsupported_claim_negative",
       "expected_response_decision": "pass",
       "expected_codes": [],
-      "actual_decision": "pass",
-      "actual_codes": [],
-      "passed": true,
-      "failure_code": null,
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_claim",
+        "unsupported_claim"
+      ],
+      "passed": false,
+      "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 5443.3
+      "latency_ms": 9278.2
     },
     {
       "case_id": "provenance-risk-prompt-injection-positive-v1",
@@ -174,31 +182,36 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 15523.1
+      "latency_ms": 7380.5
     },
     {
       "case_id": "provenance-risk-prompt-injection-negative-v1",
       "primary_behavior": "prompt_injection_negative",
       "expected_response_decision": "pass",
       "expected_codes": [],
-      "actual_decision": null,
-      "actual_codes": [],
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_claim"
+      ],
       "passed": false,
-      "failure_code": "invalid_review",
+      "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 11508.4
+      "latency_ms": 10764.6
     },
     {
       "case_id": "provenance-risk-clean-grounded-pass-v1",
       "primary_behavior": "clean_grounded_pass",
       "expected_response_decision": "pass",
       "expected_codes": [],
-      "actual_decision": null,
-      "actual_codes": [],
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_claim",
+        "unsupported_claim"
+      ],
       "passed": false,
-      "failure_code": "invalid_review",
+      "failure_code": "decision_mismatch",
       "error_type": null,
-      "latency_ms": 7796.1
+      "latency_ms": 7024.5
     },
     {
       "case_id": "provenance-risk-clean-non-grounded-pass-v1",
@@ -210,7 +223,7 @@
       "passed": true,
       "failure_code": null,
       "error_type": null,
-      "latency_ms": 1827.7
+      "latency_ms": 1737.6
     }
   ]
 }

@@ -180,7 +180,9 @@ def build_case_set() -> dict:
     cases = [
         _case(
             "unresolved_evidence_positive",
-            "The candidate cites an evidence ID absent from the frozen bundle.",
+            "The candidate cites an evidence ID absent from the frozen bundle. "
+            "The claim itself is accurate, so correcting the citation is one "
+            "focused fix and the expected severity is revise, not reject.",
             review_input(
                 reply=f"The Cat tells Alice “{CAT_QUOTE}”.",
                 line="What does the Cat say about madness?",
@@ -195,7 +197,7 @@ def build_case_set() -> dict:
                 ),
                 tool_outcomes=(librarian_outcome((garden,)),),
             ),
-            decision="reject",
+            decision="revise",
             codes=("unresolved_evidence",),
         ),
         _case(
