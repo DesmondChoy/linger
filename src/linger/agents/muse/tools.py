@@ -13,10 +13,11 @@ from typing import Literal
 
 from apps.backend.contracts import ConnectionBrief
 from src.linger.agents.serendipity.models import ConnectionExplorationResult
-from src.linger.contracts.librarian import LibrarianResponse
+from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse
 from src.linger.contracts.reading import ReadingBoundary
 from src.linger.orchestration.connection import connection_exploration
 from src.linger.orchestration.grounding import build_request, grounding_evidence
+from src.linger.orchestration.routing import route_reader_message
 from src.linger.orchestration.turn_context import reader_message
 
 
@@ -44,6 +45,30 @@ async def librarian_search(
     """
     request = build_request(query, work_id, book_version_id, reading_boundary, max_final_evidence)
     return await grounding_evidence(request)
+
+
+async def librarian_route() -> LibrarianRoutingResponse:
+    """Identify whether the reader's message depends on a specific confirmed book.
+
+    Call this only when the request appears to depend on a specific book — an
+    explicit title, a character, or an evident continuation of a book already
+    in progress. Never call it for an incidental word inside otherwise
+    personal reflection. The application supplies the exact current reader
+    message; the model cannot replace it. Returns a routed work with a
+    resolved reading boundary, a clarification question to relay to the
+    reader verbatim, or no match when no book intent is evident. This tool
+    only identifies the work and boundary; it grants no retrieval or write
+    authority — call `librarian_search` with the routed `work_id`,
+    `book_version_id`, and a `reading_boundary` built from
+    `max_chapter_inclusive` to actually search the text.
+    """
+    message = reader_message()
+    if message is None:
+        # Unreachable in production: the application always binds this before
+        # Muse runs. Not a ModelRetry — no argument Muse could change would
+        # fix a missing application-side turn context.
+        raise RuntimeError("librarian_route requires an active reader turn")
+    return await route_reader_message(message)
 
 
 async def serendipity_explore(

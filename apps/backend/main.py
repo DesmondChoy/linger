@@ -26,10 +26,9 @@ from src.linger.agents.provenance.emotional import (  # noqa: E402
     emotional_boundary_agent,
 )
 from src.linger.contracts.emotional import EmotionalContentPolicy
-from src.linger.contracts.librarian import BoundaryCandidate, EvidenceRecord
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.connection import web_reach_permitted
-from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.orchestration.emotional import (
     EmotionalBoundaryValidationError,
     assess_emotional_boundary,
@@ -48,11 +47,15 @@ from src.linger.orchestration.reflection import (
     reflection_reply,
 )
 from src.linger.orchestration.turn_context import (
+    reset_active_memories,
     reset_confirmed_reading,
     reset_reader_message,
+    reset_session_id,
     reset_turn_evidence,
+    set_active_memories,
     set_confirmed_reading,
     set_reader_message,
+    set_session_id,
     set_turn_evidence,
 )
 from src.linger.services.memory import (
@@ -163,11 +166,12 @@ def _work_id_for_title(title: str) -> str:
 
 
 def resolve_reading_context(request: ChatRequest) -> ContextResolution:
-    """Resolve explicit progress or route a possible work without granting access.
+    """Resolve reading context from explicit reader declarations only.
 
-    Regexes validate direct declarations. Metadata-only routing may identify a
-    work, but only reader confirmation or the private Librarian phase can set a
-    request-scoped chapter ceiling.
+    Regexes validate direct declarations. Librarian routing no longer runs
+    here: Muse decides when a request depends on a book and calls the
+    `librarian_route` tool during its own turn, inside the validated
+    Provenance and release pipeline.
     """
     candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
@@ -224,19 +228,6 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
         )
 
-    routed = librarian_service.route_work(
-        request.message,
-        settings.allowed_book_version_ids,
-    )
-    if routed is not None:
-        return ContextResolution(
-            status="inferred",
-            work_id=routed.work_id,
-            work_title=routed.title,
-            book_version_id=routed.book_version_id,
-            explanation="Metadata-only routing identified a possible work; no chapter access has been granted yet.",
-        )
-
     if selection:
         return ContextResolution(
             status="inferred",
@@ -248,7 +239,11 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
 
     return ContextResolution(
         status="unknown",
-        explanation="No book or safe reading boundary was established for this request.",
+        explanation=(
+            "No confirmed book or reading boundary yet; Muse will call "
+            "librarian_route during its own turn if the request appears to "
+            "depend on a specific book."
+        ),
     )
 
 
@@ -320,87 +315,6 @@ def _inspection_for(
         # developer-only Inspect diagnostics.
         prompt=inspection_prompt,
     ), muse_input, review_context
-
-
-async def _infer_request_boundary(
-    request: ChatRequest,
-    resolution: ContextResolution,
-    service: MemoryPolicyService,
-    account: AccountContext,
-) -> ContextResolution:
-    """Enrich a routed work with one private, non-persistent ceiling candidate."""
-    if (
-        resolution.status == "confirmed"
-        or resolution.work_id is None
-        or resolution.book_version_id is None
-    ):
-        return resolution
-    try:
-        memories = tuple(service.list_active(account))
-        inferred = await infer_spoiler_boundary(
-            request.message,
-            work_id=resolution.work_id,
-            book_version_id=resolution.book_version_id,
-            memories=memories,
-            librarian=librarian_service,
-        )
-    except MemoryServiceError:
-        return resolution.model_copy(
-            update={
-                "clarification_question": (
-                    f"What is the latest chapter or scene in {resolution.work_title or resolution.work_id} "
-                    "that you have completed?"
-                ),
-                "explanation": "The account-scoped memories could not be read, so boundary inference failed closed.",
-            }
-        )
-
-    if isinstance(inferred, BoundaryCandidate):
-        return ContextResolution(
-            status="confirmed",
-            work_id=inferred.work_id,
-            work_title=resolution.work_title,
-            book_version_id=inferred.book_version_id,
-            chapter_max=inferred.max_chapter_inclusive,
-            boundary_source="librarian_inferred",
-            boundary_confidence=inferred.confidence,
-            boundary_supporting_locations=inferred.supporting_locations,
-            explanation=(
-                "Librarian privately inferred and the application validated a "
-                f"request-scoped ceiling of Chapter {inferred.max_chapter_inclusive}."
-            ),
-        )
-
-    if inferred.candidate_chapter is not None:
-        sessions.set_book_selection(
-            request.session_id,
-            sessions.BookSelection(
-                book_id=inferred.work_id,
-                book_title=resolution.work_title,
-            ),
-        )
-        sessions.set_reading_candidate(
-            request.session_id,
-            sessions.ReadingCandidate(
-                book_id=inferred.work_id,
-                book_title=resolution.work_title,
-                chapter=inferred.candidate_chapter,
-            ),
-        )
-    return ContextResolution(
-        status="inferred",
-        work_id=inferred.work_id,
-        work_title=resolution.work_title,
-        book_version_id=inferred.book_version_id,
-        candidate_chapter=inferred.candidate_chapter,
-        candidate_confidence=inferred.confidence if inferred.candidate_chapter else None,
-        candidate_supporting_locations=inferred.supporting_locations,
-        clarification_question=inferred.clarification_question,
-        explanation=(
-            "Librarian could not validate a spoiler ceiling with enough confidence; "
-            "bounded evidence retrieval remains disabled."
-        ),
-    )
 
 
 def get_memory_service() -> MemoryPolicyService:
@@ -607,15 +521,8 @@ def _finalize_librarian_inspection(
         call.get("outcome") != "success" for call in direct_calls
     ) or "failure" in direct_kinds
     direct_clarified = "clarification" in direct_kinds
+    direct_no_match = direct_kinds and all(kind == "no_match" for kind in direct_kinds)
     released = release.release_source == "muse_candidate"
-    inferred_boundary = (
-        inspection.context_resolution.get("boundary_source")
-        == "librarian_inferred"
-    )
-    boundary_uncertain = (
-        inspection.context_resolution.get("status") == "inferred"
-        and inspection.context_resolution.get("clarification_question") is not None
-    )
     inspection.librarian_grounding = (
         list(direct_calls) if released else []
     )
@@ -638,26 +545,12 @@ def _finalize_librarian_inspection(
     elif direct_clarified:
         status = "declined"
         detail = "Librarian requested clarification instead of searching the corpus."
+    elif direct_no_match:
+        status = "complete"
+        detail = "Muse asked Librarian to route this request; no book match was found."
     elif direct_calls:
         status = "complete"
-        detail = (
-            "Librarian inferred the request-scoped ceiling and completed bounded "
-            f"grounding ({len(direct_calls)} call(s))."
-            if inferred_boundary
-            else (
-                f"Muse called librarian_search directly {len(direct_calls)} time(s) for "
-                "book grounding."
-            )
-        )
-    elif boundary_uncertain:
-        status = "declined"
-        detail = "Librarian requested clarification; bounded evidence retrieval did not run."
-    elif inferred_boundary:
-        status = "complete"
-        detail = (
-            "Librarian inferred a validated request-scoped ceiling; Muse did not "
-            "request the second bounded evidence search."
-        )
+        detail = f"Muse called Librarian directly {len(direct_calls)} time(s) for book grounding."
     else:
         status = "skipped"
         detail = "No Librarian retrieval was requested for this turn."
@@ -716,13 +609,6 @@ async def _run_chat_pipeline(
         if boundary.decision == "apply_boundary":
             release = emotional_boundary_release(origin="preflight")
 
-    if release is None:
-        resolution = await _infer_request_boundary(
-            request,
-            resolution,
-            service,
-            account,
-        )
     inspection, muse_input, review_context = _inspection_for(
         request,
         allow_memory_capture=service.capture_enabled(account),
@@ -754,6 +640,12 @@ async def _run_chat_pipeline(
         )
         evidence_token = set_turn_evidence(prior_evidence)
         reader_message_token = set_reader_message(request.message)
+        session_id_token = set_session_id(request.session_id)
+        try:
+            active_memories = tuple(service.list_active(account))
+        except MemoryServiceError:
+            active_memories = ()
+        memories_token = set_active_memories(active_memories)
         connection_token = begin_connection_inspection()
         try:
             release = await reflection_reply(
@@ -772,7 +664,9 @@ async def _run_chat_pipeline(
         finally:
             nested_connections = connection_inspections()
             reset_connection_inspection(connection_token)
+            reset_active_memories(memories_token)
             reset_reader_message(reader_message_token)
+            reset_session_id(session_id_token)
             reset_turn_evidence(evidence_token)
             reset_confirmed_reading(token)
     connection_book_outcomes: tuple[str, ...] = ()

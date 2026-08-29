@@ -62,6 +62,19 @@ class RegisteredCorpusScope:
     max_chapter: int
 
 
+# Below this, a matched catalog word explains too little of the message to
+# justify routing (e.g. one incidental word inside unrelated reflection).
+ROUTING_CONFIDENCE_THRESHOLD = 0.6
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """A routed work plus the confidence the evidence supports for it."""
+
+    scope: RegisteredCorpusScope
+    confidence: float
+
+
 def _terms(text: str) -> set[str]:
     return {
         token.casefold()
@@ -163,12 +176,12 @@ class Librarian:
         self,
         text: str,
         allowed_book_version_ids: tuple[str, ...],
-    ) -> RegisteredCorpusScope | None:
+    ) -> RoutingDecision | None:
         """Route explicit literary cues using metadata only, never chapter text."""
         lowered = text.casefold()
         query_terms = _terms(text)
         allowed = set(allowed_book_version_ids)
-        ranked: list[tuple[int, RegisteredCorpusScope]] = []
+        ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
         for registration in CORPORA.values():
             book = registration.book
             if book.book_version_id not in allowed:
@@ -179,10 +192,11 @@ class Librarian:
             chapters = catalog.get("chapters")
             assert isinstance(chapters, list)
 
-            direct_markers = {
+            title_markers = {
                 book.title.casefold(),
                 book.work_id.replace("-", " ").casefold(),
             }
+            catalog_markers: set[str] = set()
             routing_terms: set[str] = set()
             for chapter in chapters:
                 if not isinstance(chapter, dict):
@@ -190,7 +204,7 @@ class Librarian:
                 for field in ("characters", "locations", "retrieval_cues"):
                     values = chapter.get(field)
                     if isinstance(values, list):
-                        direct_markers.update(
+                        catalog_markers.update(
                             value.casefold()
                             for value in values
                             if isinstance(value, str) and len(value.strip()) >= 4
@@ -201,21 +215,42 @@ class Librarian:
                             if isinstance(value, str)
                             for term in _terms(value)
                         )
-                description = chapter.get("routing_description")
-                if isinstance(description, str):
-                    routing_terms.update(_terms(description))
+                # routing_description is free prose written for humans, not a
+                # catalog cue — counting its incidental words (e.g. "while",
+                # "much") as evidence would let unrelated reflection accrue
+                # confidence from common vocabulary alone.
 
-            direct = any(marker in lowered for marker in direct_markers)
+            title_match = any(marker in lowered for marker in title_markers)
+            catalog_match = any(marker in lowered for marker in catalog_markers)
+            if not (title_match or catalog_match):
+                continue
+
             overlap = len(query_terms & routing_terms)
-            if direct:
-                ranked.append((100 + overlap, scope))
+            if title_match:
+                # An explicit title or work-id mention is unambiguous.
+                confidence = 1.0
+            else:
+                # Confidence must track the ABSOLUTE strength of the evidence,
+                # not its share of the message: a long message and a short one
+                # explain a routed work equally well from the same number of
+                # distinct catalog cues. One incidental cue (a character,
+                # place, or retrieval word) stays below threshold regardless
+                # of message length; two or more distinct cues clear it.
+                confidence = min(1.0, 0.3 + 0.2 * overlap)
+            ranked.append((scope, confidence, overlap))
 
         if not ranked:
             return None
-        ranked.sort(key=lambda item: (-item[0], item[1].work_id))
-        if len(ranked) > 1 and ranked[0][0] == ranked[1][0]:
+        ranked.sort(key=lambda item: (-item[1], -item[2], item[0].work_id))
+        # Ambiguous only when the full evidence signal ties (confidence and
+        # overlap); `work_id` is a deterministic tiebreaker for sorting only,
+        # never a reason by itself to call two distinct routes a tie.
+        if len(ranked) > 1 and ranked[0][1:] == ranked[1][1:]:
             return None
-        return ranked[0][1]
+        scope, confidence, _ = ranked[0]
+        if confidence < ROUTING_CONFIDENCE_THRESHOLD:
+            return None
+        return RoutingDecision(scope=scope, confidence=confidence)
 
     def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
         """Resolve one released handle without running retrieval again."""

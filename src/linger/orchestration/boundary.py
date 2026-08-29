@@ -58,7 +58,7 @@ def _memory_mentions_work(
         ):
             return True
     routed = librarian.route_work(memory.text, (scope.book_version_id,))
-    return routed is not None and routed.work_id == scope.work_id
+    return routed is not None and routed.scope.work_id == scope.work_id
 
 
 def relevant_memories(

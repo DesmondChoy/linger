@@ -154,3 +154,27 @@ LibrarianResponse = ClarificationRequest | RetrievalResult | RetrievalFailure
 LIBRARIAN_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[LibrarianResponse, Field(discriminator="kind")]
 )
+
+
+class RoutedWork(StrictModel):
+    """A confidently identified work with a resolved, request-scoped boundary."""
+
+    kind: Literal["routed"]
+    work_id: str
+    book_version_id: str
+    title: str
+    routing_confidence: float = Field(ge=0, le=1)
+    max_chapter_inclusive: int = Field(ge=1)
+    boundary_confidence: float = Field(ge=0, le=1)
+
+
+class NoMatch(StrictModel):
+    """No book intent was evident in the message; Muse should keep reflecting."""
+
+    kind: Literal["no_match"]
+
+
+LibrarianRoutingResponse = RoutedWork | ClarificationRequest | NoMatch
+LIBRARIAN_ROUTING_RESPONSE_ADAPTER = TypeAdapter(
+    Annotated[LibrarianRoutingResponse, Field(discriminator="kind")]
+)

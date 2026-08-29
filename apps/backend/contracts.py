@@ -27,10 +27,6 @@ class ContextResolution(StrictModel):
     boundary_source: Literal["reader_confirmed", "librarian_inferred"] | None = None
     boundary_confidence: float | None = Field(default=None, ge=0, le=1)
     boundary_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
-    candidate_chapter: int | None = Field(default=None, ge=1)
-    candidate_confidence: float | None = Field(default=None, ge=0, le=1)
-    candidate_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
-    clarification_question: str | None = None
     explanation: str
 
     @model_validator(mode="after")
@@ -49,16 +45,6 @@ class ContextResolution(StrictModel):
                 raise ValueError("inferred boundary requires version, confidence, and support")
         elif self.boundary_confidence is not None or self.boundary_supporting_locations:
             raise ValueError("only inferred boundaries carry inference metadata")
-        if self.candidate_chapter is None:
-            if self.candidate_confidence is not None or self.candidate_supporting_locations:
-                raise ValueError("candidate metadata requires a candidate chapter")
-        elif (
-            self.status != "inferred"
-            or self.candidate_confidence is None
-            or not self.candidate_supporting_locations
-            or self.clarification_question is None
-        ):
-            raise ValueError("uncertain candidate requires confidence, support, and clarification")
         return self
 
 

@@ -141,7 +141,11 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual(next_turn.work_id, "animal-farm")
         self.assertIsNone(next_turn.chapter_max)
 
-    def test_new_scene_candidate_replaces_stale_book_assumption(self) -> None:
+    def test_a_new_catalog_cue_does_not_override_the_active_book_pre_muse(self) -> None:
+        # Librarian routing no longer runs pre-Muse: a later message about a
+        # different book's characters does not override the session's active
+        # selection here. Whether Muse routes to the new book instead is its
+        # own tool decision, covered by tests/test_librarian_routing.py.
         resolve_reading_context(
             ChatRequest(
                 session_id="context-test",
@@ -157,7 +161,7 @@ class BookContextTests(unittest.TestCase):
         )
 
         self.assertEqual("inferred", inspection.context_resolution["status"])
-        self.assertEqual("pg11", inspection.context_resolution["work_id"])
+        self.assertEqual("animal-farm", inspection.context_resolution["work_id"])
         self.assertIsNone(inspection.muse_turn["reading_context"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_connection"])

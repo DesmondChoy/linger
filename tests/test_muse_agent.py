@@ -104,6 +104,7 @@ class MuseInstructionTests(unittest.TestCase):
                 "# Context authority",
                 "# Optional book grounding and spoilers",
                 "# Probe when context is insufficient",
+                "# Routing with librarian_route",
                 "# Grounding with librarian_search",
                 "# Quotations and honesty",
                 "# Emotional safety",

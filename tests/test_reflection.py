@@ -663,28 +663,17 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unresolved_boundary_releases_only_the_exact_clarification(self) -> None:
         question = "Have you completed Chapter 5, or are you still earlier?"
-        prompt = MuseDraftInput(
-            mode="draft",
-            muse_turn=MuseTurn(
-                turn_id="clarification-turn",
-                user_message="Why does Alice struggle to explain who she is?",
-                reading_context=None,
-                policy=TurnPolicy(
-                    spoiler_ceiling=None,
-                    allow_retrieval=False,
-                    allow_connection=False,
-                    allow_memory_capture=False,
-                ),
-            ),
-            context_resolution=ContextResolution(
-                status="inferred",
-                work_id="pg11",
-                work_title="Alice's Adventures in Wonderland",
-                book_version_id="pg11-v01b38ea4",
-                clarification_question=question,
-                explanation="Boundary inference was uncertain.",
-            ),
-        ).model_dump_json()
+        librarian_clarification = ToolReturnPart(
+            "librarian_route",
+            {
+                "kind": "clarification",
+                "request_id": "routereq_1",
+                "clarification_id": "clarify_1",
+                "reason_code": "insufficient_context",
+                "question": question,
+                "expected_answer": {"type": "free_text", "values": []},
+            },
+        )
 
         for reply, expected_source in (
             (question, "muse_candidate"),
@@ -692,12 +681,12 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         ):
             with self.subTest(reply=reply):
                 muse = AsyncMock()
-                muse.run.return_value = result(reply)
+                muse.run.return_value = result(reply, librarian_clarification)
                 provenance = AsyncMock()
                 provenance.run.return_value = result(review("pass"))
 
                 release = await reflection_reply(
-                    prompt,
+                    "Why does Alice struggle to explain who she is?",
                     [],
                     muse=muse,
                     provenance=provenance,

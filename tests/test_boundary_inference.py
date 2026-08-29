@@ -3,7 +3,7 @@
 import unittest
 
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
-from apps.backend.librarian import RegisteredCorpusScope
+from apps.backend.librarian import RegisteredCorpusScope, RoutingDecision
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.contracts.librarian import BoundaryCandidate, BoundaryUncertain
 from src.linger.orchestration.boundary import infer_spoiler_boundary
@@ -66,7 +66,9 @@ class FakeLibrarian:
         if VERSION_ID in allowed_versions and any(
             cue in text.casefold() for cue in ("alice", "caterpillar", "identity")
         ):
-            return self.registered_scope(WORK_ID, VERSION_ID)
+            return RoutingDecision(
+                scope=self.registered_scope(WORK_ID, VERSION_ID), confidence=1.0
+            )
         return None
 
     def fetch_by_id(self, evidence_id: str):
