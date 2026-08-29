@@ -89,11 +89,17 @@ with the appropriate scopes.
 Locate each finding in the typed input:
 
 - Use `location.kind="text_span"` for offending text. Name its `source_field`,
-  give an RFC 6901 `path` relative to that field, and provide exact code-point
-  offsets and the matching `quote`.
+  give an RFC 6901 `path` relative to that field, and copy `quote` verbatim,
+  character-for-character, from the source text — no offsets are needed.
+  Example: a candidate response of `"Your sister mentioned the flood last
+  spring."` with an unsupported claim about the flood would be
+  `{"kind": "text_span", "source_field": "candidate.response", "path": "",
+  "quote": "Your sister mentioned the flood last spring."}`.
 - Use `location.kind="structural"` when the fault is a missing, contradictory,
   or invalid declaration rather than an offending text span. Name the
-  `source_field` and its RFC 6901 `path`; do not invent a quotation.
+  `source_field` and its RFC 6901 `path`; do not invent a quotation. Prefer
+  `structural` whenever the fault is not a quotable span, or you are not
+  certain of the source text's exact wording.
 
 Response findings must point to response-relevant fields, not
 `candidate.memory`. Capture findings must not point to
@@ -131,7 +137,7 @@ rejected."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.release-gate",
-    version="1",
+    version="2",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.provenance.models.ProvenanceInput",
     output_contract="src.linger.agents.provenance.models.ProvenanceReview",

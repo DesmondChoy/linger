@@ -251,8 +251,6 @@ class ProjectionRedactionTests(TelemetryTestCase):
                         "kind": "text_span",
                         "source_field": "candidate.response",
                         "path": "",
-                        "start_codepoint": 0,
-                        "end_codepoint": len(SECRET_QUOTE),
                         "quote": SECRET_QUOTE,
                     },
                     explanation="explanatory prose about the quote",

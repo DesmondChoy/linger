@@ -58,21 +58,13 @@ ToolOutcome = Literal["success", "failed", "denied", "interrupted"]
 
 
 class TextSpanLocation(StrictModel):
-    """An exact span inside a string value in the review input."""
+    """A verbatim quotation from a string value in the review input."""
 
     kind: Literal["text_span"]
     source_field: SourceField
     # RFC 6901 JSON pointer relative to `source_field`; empty means the field itself.
     path: str = Field(max_length=500, pattern=r"^(?:$|/.*)$")
-    start_codepoint: int = Field(ge=0)
-    end_codepoint: int = Field(ge=1)
-    quote: str = Field(min_length=1, max_length=300)
-
-    @model_validator(mode="after")
-    def offsets_match_quote(self) -> Self:
-        if self.end_codepoint - self.start_codepoint != len(self.quote):
-            raise ValueError("text-span offsets must match the quoted text length")
-        return self
+    quote: str = Field(min_length=3, max_length=300)
 
 
 class StructuralLocation(StrictModel):
@@ -273,7 +265,7 @@ class ProvenanceInput(StrictModel):
                 continue
             if not isinstance(value, str):
                 raise ValueError("a text-span finding must resolve to a string")
-            if value[location.start_codepoint : location.end_codepoint] != location.quote:
+            if location.quote not in value:
                 raise ValueError("a finding quote does not match its declared source")
 
 def _resolve_json_pointer(value: JsonValue, path: str) -> JsonValue:

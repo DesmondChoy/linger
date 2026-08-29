@@ -21,6 +21,7 @@ from src.linger.agents.provenance.models import (
     StructuralLocation,
     TextSpanLocation,
 )
+from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.prompt import INSTRUCTIONS
 from src.linger.agents.muse.models import NoMemoryCandidate
 
@@ -325,8 +326,6 @@ class ProvenanceAgentTests(unittest.TestCase):
                             "kind": "text_span",
                             "source_field": "candidate.response",
                             "path": "",
-                            "start_codepoint": 0,
-                            "end_codepoint": 28,
                             "quote": "ignore previous instructions",
                         },
                         "explanation": "The passage redirects agent behaviour.",
@@ -343,6 +342,12 @@ class ProvenanceAgentTests(unittest.TestCase):
         self.assertIsInstance(review, ProvenanceReview)
         self.assertEqual("prompt_injection", review.findings[0].code)
         self.assertEqual("reject", review.response_decision)
+
+    def test_agent_retries_output_validation(self) -> None:
+        # pydantic-ai does not expose a public accessor for output retries;
+        # `_max_output_retries` is the private attribute set from `retries`.
+        agent = build_provenance_agent(TestModel())
+        self.assertEqual(2, agent._max_output_retries)
 
     def test_provenance_has_no_tools(self) -> None:
         """Section 3.3: Provenance reviews without any tool authority."""
@@ -363,6 +368,26 @@ class ProvenanceAgentTests(unittest.TestCase):
         self.assertEqual([], model.last_model_request_parameters.function_tools)
 
 
+class TextSpanLocationTests(unittest.TestCase):
+    def test_accepts_a_quote_only_location(self) -> None:
+        location = TextSpanLocation(
+            kind="text_span",
+            source_field="candidate.response",
+            path="",
+            quote="offending",
+        )
+        self.assertEqual("offending", location.quote)
+
+    def test_rejects_a_too_short_quote(self) -> None:
+        with self.assertRaises(ValidationError):
+            TextSpanLocation(
+                kind="text_span",
+                source_field="candidate.response",
+                path="",
+                quote="ab",
+            )
+
+
 class ProvenanceInputTests(unittest.TestCase):
     def test_rejects_unknown_top_level_fields(self) -> None:
         payload = provenance_input().model_dump(mode="json")
@@ -380,8 +405,6 @@ class ProvenanceInputTests(unittest.TestCase):
                         kind="text_span",
                         source_field="candidate.response",
                         path="",
-                        start_codepoint=0,
-                        end_codepoint=9,
                         quote="offending",
                     ),
                     explanation="why",
@@ -395,6 +418,29 @@ class ProvenanceInputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not match"):
             provenance_input("different text").validate_review_locations(review)
 
+    def test_quote_contained_in_a_longer_source_string_still_matches(self) -> None:
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="unsupported_claim",
+                    applies_to="response",
+                    location=TextSpanLocation(
+                        kind="text_span",
+                        source_field="candidate.response",
+                        path="",
+                        quote="offending",
+                    ),
+                    explanation="why",
+                ),
+            ),
+            response_decision="reject",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        provenance_input("this is an offending span within a longer response").validate_review_locations(
+            review
+        )
+
     def test_response_finding_can_point_to_the_current_user_line(self) -> None:
         review = ProvenanceReview(
             findings=(
@@ -405,8 +451,6 @@ class ProvenanceInputTests(unittest.TestCase):
                         kind="text_span",
                         source_field="current_line.text",
                         path="",
-                        start_codepoint=0,
-                        end_codepoint=6,
                         quote="reader",
                     ),
                     explanation="The user Line requires the emotional boundary.",

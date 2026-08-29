@@ -47,7 +47,8 @@ decisions are read by different callers: `orchestration/reflection.py` reads onl
 
 Every adverse decision must name at least one ground scoped to that decision; a
 model validator rejects an unexplained `revise`, `reject`, or `reject_capture`.
-Text findings carry validated exact offsets and a quote. Shape and declaration
+Text findings carry a source field, an RFC 6901 path, and a verbatim quote
+validated by exact-substring containment against the resolved source. Shape and declaration
 faults use an RFC 6901 structural path. Only response findings guide the one
 permitted Muse revision.
 
