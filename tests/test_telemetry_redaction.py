@@ -146,6 +146,8 @@ class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
         """Every exported span, as one JSON blob for substring assertions."""
         return json.dumps(self.exporter.exported_spans_as_dict(), default=str)
 
+
+class EmotionalPreflightTelemetryTests(TelemetryTestCase):
     async def test_emotional_preflight_exports_only_fixed_metadata(self) -> None:
         provenance = AsyncMock()
         provenance.run.return_value = result(
