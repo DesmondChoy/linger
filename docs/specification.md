@@ -376,8 +376,18 @@ request. This separation lets evaluation compare Librarian's inferred ceiling
 with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
-The current implementation has both phases for the Alice corpus. Metadata-only
-routing first identifies the work. Librarian then receives the current Line and
+The current implementation has both phases for the Alice corpus. Muse, not the
+application, decides whether a request depends on a specific book, and calls
+an argument-less `librarian_route` tool only then — never for an incidental
+word inside otherwise personal reflection. The application supplies the exact
+current reader message; Muse cannot substitute its own text. Metadata-only
+routing scores each catalogue candidate: an explicit title mention or a
+de-hyphenated work-id match is confidence `1.0`; otherwise confidence is
+`0.3 + 0.2 × overlap` over distinct matched catalog-cue *terms* (character,
+location, or retrieval-cue words; a two-word cue contributes 2), capped at
+`1.0`. Below a `0.6` threshold, or a full-evidence tie between two candidates,
+routing returns no match and Muse keeps reflecting without consulting
+Librarian. A routed work then enters boundary inference: Librarian receives the current Line and
 at most eight account-scoped memories that independently route to that work,
 searches the complete immutable revision, and returns a typed candidate ceiling,
 confidence, and content-free supporting locations. Full-work candidate passage
@@ -386,12 +396,27 @@ turn evidence ledger, or the release scope.
 
 Application code validates the returned work, version, evidence identifiers,
 and candidate chapter. Confidence below `0.75`, conflicting context, missing
-support, unreadable memory storage, retrieval failure, or an invalid model
-decision produces one fixed clarification and no evidence search. A validated
+support, retrieval failure, or an invalid model decision produces one fixed
+clarification and no evidence search. Unreadable account-scoped memory storage
+no longer fails closed into a clarification: the application swallows the
+storage error and binds an empty memory set, and boundary inference proceeds
+with no memories available to it. A validated
 candidate creates only a request-scoped ceiling; it is not persisted as reading
 progress. Muse may then request the second search, which the application clamps
 to that ceiling before any passage becomes releasable evidence. Explicit reader
-confirmation remains authoritative and skips inference for that request.
+confirmation remains authoritative and skips inference for that request, and a
+routed inferred ceiling never widens or replaces a boundary the reader already
+confirmed this turn.
+
+An unresolved routing or boundary clarification returns a typed
+`ClarificationRequest` from the tool call itself. The deterministic release
+gate binds on that exact question from the tool payload: the released reply
+must match it verbatim, carry no evidence declarations, and accompany no other
+tool call in the same turn — Librarian or Serendipity alike. A routed work
+also derives Provenance's
+review context after Muse runs, not before — a `RoutedWork` result grants the
+same reading-context and policy authority the application would otherwise
+have supplied only when no boundary was already resolved.
 
 ### 6.2 Citations and attribution
 
