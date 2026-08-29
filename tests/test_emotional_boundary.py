@@ -35,7 +35,10 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
     from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
-    from src.linger.orchestration.reflection import SAFE_DECLINE, ReflectionRelease
+    from src.linger.orchestration.reflection import (
+        PIPELINE_FAILURE_DECLINE,
+        ReflectionRelease,
+    )
     from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 from src.linger.agents.provenance.emotional import build_emotional_boundary_agent
@@ -311,7 +314,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                 self.account,
             )
 
-        self.assertEqual(SAFE_DECLINE, response.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, response.reply)
         self.assertEqual(
             "application_safe_decline",
             response.inspection.release.release_source,

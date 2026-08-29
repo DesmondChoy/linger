@@ -32,7 +32,10 @@ from src.linger.agents.serendipity.models import (
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.reflection import (
+    PIPELINE_FAILURE_DECLINE,
     SAFE_DECLINE,
+    SPOILER_DECLINE,
+    decline_text,
     reflection_reply as production_reflection_reply,
 )
 from src.linger.orchestration.turn_context import (
@@ -278,6 +281,42 @@ def review(
     )
 
 
+class DeclineTextTests(unittest.TestCase):
+    def test_unsupported_claim_only_reject_falls_back_to_the_generic_decline(
+        self,
+    ) -> None:
+        self.assertEqual(
+            SAFE_DECLINE,
+            decline_text(None, ("unsupported_claim",)),
+        )
+
+    def test_spoiler_only_reject_gets_the_spoiler_message(self) -> None:
+        self.assertEqual(SPOILER_DECLINE, decline_text(None, ("spoiler",)))
+
+    def test_mixed_codes_fall_back_to_the_generic_decline(self) -> None:
+        self.assertEqual(
+            SAFE_DECLINE,
+            decline_text(None, ("unsupported_claim", "spoiler")),
+        )
+
+    def test_no_codes_fall_back_to_the_generic_decline(self) -> None:
+        self.assertEqual(SAFE_DECLINE, decline_text(None, ()))
+
+    def test_any_failure_stage_gets_the_pipeline_failure_message(self) -> None:
+        for stage in (
+            "emotional_boundary_preflight",
+            "muse_draft",
+            "provenance_review",
+            "muse_revision",
+            "deterministic_validation",
+        ):
+            with self.subTest(stage=stage):
+                self.assertEqual(
+                    PIPELINE_FAILURE_DECLINE,
+                    decline_text(stage, ("unsupported_claim",)),
+                )
+
+
 class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._evidence_token = set_turn_evidence(())
@@ -302,7 +341,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             provenance=provenance,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("muse_draft", release.failure_stage)
         muse.run.assert_not_awaited()
         provenance.run.assert_not_awaited()
@@ -322,7 +361,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             provenance=provenance,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("muse_draft", release.failure_stage)
         muse.run.assert_not_awaited()
         provenance.run.assert_not_awaited()
@@ -475,7 +514,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             provenance=provenance,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("deterministic_validation", release.failure_stage)
 
@@ -733,7 +772,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                     release_scope=RELEASE_SCOPE,
                 )
 
-                self.assertEqual(SAFE_DECLINE, release.reply)
+                self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
                 self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_quote_and_location_mismatches_fail_closed(self) -> None:
@@ -774,7 +813,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                     release_scope=RELEASE_SCOPE,
                 )
 
-                self.assertEqual(SAFE_DECLINE, release.reply)
+                self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
                 self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_work_revision_and_spoiler_mismatches_fail_closed(self) -> None:
@@ -798,7 +837,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                     "Hello", [], muse=muse, provenance=provenance, release_scope=scope
                 )
 
-                self.assertEqual(SAFE_DECLINE, release.reply)
+                self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
                 self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_unsupported_candidate_source_fails_closed_before_review(self) -> None:
@@ -820,7 +859,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("muse_draft", release.failure_stage)
         provenance.run.assert_not_awaited()
 
@@ -844,7 +883,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             release_scope=RELEASE_SCOPE,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_passed_revision_still_requires_deterministic_validation(self) -> None:
@@ -867,7 +906,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             release_scope=RELEASE_SCOPE,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual(("revise", "pass"), release.provenance_verdicts)
         self.assertEqual("deterministic_validation", release.failure_stage)
 
@@ -895,7 +934,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             release_scope=RELEASE_SCOPE,
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_exact_previously_released_evidence_can_authorize_later_turn(self) -> None:
@@ -939,7 +978,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("provenance_review", release.failure_stage)
         self.assertEqual((), release.provenance_verdicts)
 

@@ -417,8 +417,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(main, "reflection_reply", cancelled_gate):
             task = asyncio.create_task(self.call_chat(request))
             await asyncio.wait_for(entered.wait(), timeout=1)
-            # resolve_reading_context already confirmed the explicit chapter
-            # declaration synchronously, before the (now cancelled) model call.
+            # resolve_reading_context already confirmed the chapter synchronously.
             self.assertIsNotNone(sessions.book_selection(self.session_id))
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):

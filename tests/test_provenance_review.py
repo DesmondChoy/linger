@@ -245,12 +245,7 @@ class ProvenanceReviewTests(unittest.TestCase):
             )
 
     def test_findings_array_declares_no_length_bound(self) -> None:
-        """Gemini rejects any request whose schema bounds an array length.
-
-        The cap belongs in `require_justified_refusal`, not on the field: an
-        array bound here returns 400 "constraint that has too many states for
-        serving" and the agent cannot run at all. String bounds are safe.
-        """
+        """An array bound here 400s Gemini; the cap belongs in `require_justified_refusal`; string bounds are fine."""
         findings_schema = ProvenanceReview.model_json_schema()["properties"]["findings"]
         self.assertNotIn("maxItems", findings_schema)
         self.assertNotIn("minItems", findings_schema)
@@ -313,11 +308,7 @@ class ProvenanceReviewTests(unittest.TestCase):
     def test_prompt_scopes_book_evidence_away_from_reader_attributed_facts(
         self,
     ) -> None:
-        """Reader recall of their own statements must not need book evidence.
-
-        Otherwise every correct recall reply (e.g. "my plot is plot 21") is
-        unsupportable by construction and Provenance rejects it.
-        """
+        """Otherwise every correct recall reply is unsupportable by construction."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
         self.assertIn("is exempt from `canonical_book_evidence`", lowered)
         self.assertIn("session-continuity contract", lowered)
@@ -327,11 +318,7 @@ class ProvenanceReviewTests(unittest.TestCase):
     def test_prompt_gives_book_corpus_claims_precedence_over_reader_attribution(
         self,
     ) -> None:
-        """A reader-framed book fact still needs a matching record.
-
-        Otherwise "you mentioned Hana died in chapter 12" would launder an
-        unsupported book-corpus claim through reader attribution.
-        """
+        """Otherwise reader attribution could launder an unsupported book-corpus claim."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
         self.assertIn("reader attribution never exempts a book-corpus claim", lowered)
         self.assertIn("no book-corpus content at all", lowered)
@@ -343,11 +330,7 @@ class ProvenanceReviewTests(unittest.TestCase):
         self.assertIn('response_decision="revise"', lowered)
 
     def test_doubted_reader_fact_finding_satisfies_decision_justification(self) -> None:
-        """The prompt's prescribed misattribution finding must actually validate.
-
-        Mirrors the exact shape the prompt instructs the model to emit for a
-        doubted, purely reader-attributed fact.
-        """
+        """Mirrors the exact finding shape the prompt instructs for a doubted reader fact."""
         review = ProvenanceReview(
             findings=(
                 RiskFinding(
@@ -402,8 +385,7 @@ class ProvenanceAgentTests(unittest.TestCase):
         self.assertEqual("reject", review.response_decision)
 
     def test_agent_retries_output_validation(self) -> None:
-        # pydantic-ai does not expose a public accessor for output retries;
-        # `_max_output_retries` is the private attribute set from `retries`.
+        # pydantic-ai exposes no public accessor for output retries.
         agent = build_provenance_agent(TestModel())
         self.assertEqual(2, agent._max_output_retries)
 

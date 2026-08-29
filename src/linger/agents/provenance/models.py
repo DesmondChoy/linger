@@ -1,9 +1,4 @@
-"""Typed Provenance hand-off contracts.
-
-One review call carries two decoupled decisions (specification section 4.1):
-whether the response may be released, and whether an automatic memory candidate
-may be captured. Rejecting capture never suppresses an otherwise safe response.
-"""
+"""Typed Provenance hand-off contracts: one review, two decoupled release/capture decisions (spec section 4.1)."""
 
 from __future__ import annotations
 
@@ -105,9 +100,7 @@ class RiskFinding(StrictModel):
 class ProvenanceReview(StrictModel):
     """One review of one candidate, carrying both release decisions."""
 
-    # `max_length` is enforced below rather than declared on the field: an array
-    # bound in the wire schema makes Gemini reject the whole request with
-    # "constraint that has too many states for serving". String bounds are fine.
+    # max_length enforced below, not on the field: an array bound in the wire schema 400s Gemini; string bounds are fine.
     findings: tuple[RiskFinding, ...] = ()
     response_decision: Literal["pass", "revise", "reject"]
     emotional_boundary_decision: Literal["not_required", "required"]

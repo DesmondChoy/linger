@@ -60,6 +60,13 @@ from src.linger.orchestration.turn_context import turn_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
+SPOILER_DECLINE = (
+    "I’m not sure where you are in the book, so I’d rather not risk getting "
+    "ahead of you."
+)
+PIPELINE_FAILURE_DECLINE = (
+    "Something went wrong on my side just now — mind asking again?"
+)
 FailureStage = Literal[
     "emotional_boundary_preflight",
     "muse_draft",
@@ -122,6 +129,9 @@ class ReflectionRelease:
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
     """Collect risk codes across one or both reviews, first occurrence first."""
+    # Not filtered by applies_to: a non-pass response always carries a
+    # response-scoped finding, so a capture finding can only widen this set
+    # into decline_text's generic fallback, never redirect the selection.
     seen: dict[RiskCode, None] = {}
     for review in reviews:
         for finding in review.findings:
@@ -144,6 +154,18 @@ def _nomination(candidate: MuseCandidate) -> CaptureNomination:
     return "candidate" if isinstance(candidate.memory, MemoryCandidate) else "no_candidate"
 
 
+def decline_text(
+    failure_stage: FailureStage | None,
+    finding_codes: tuple[RiskCode, ...],
+) -> str:
+    """Pick the one fixed, application-authored decline for a blocked turn."""
+    if failure_stage is not None:
+        return PIPELINE_FAILURE_DECLINE
+    if set(finding_codes) == {"spoiler"}:
+        return SPOILER_DECLINE
+    return SAFE_DECLINE
+
+
 def _safe_decline(
     *,
     verdicts: tuple[Literal["pass", "revise", "reject"], ...] = (),
@@ -163,7 +185,7 @@ def _safe_decline(
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = (),
 ) -> ReflectionRelease:
     return ReflectionRelease(
-        reply=SAFE_DECLINE,
+        reply=decline_text(failure_stage, finding_codes),
         release_source="application_safe_decline",
         provenance_verdicts=verdicts,
         revision_count=revision_count,
