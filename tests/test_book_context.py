@@ -30,6 +30,27 @@ class BookContextTests(unittest.TestCase):
         )
         self.assertIsNone(context.chapter_max)
 
+    def test_common_catalog_words_do_not_select_alice(self) -> None:
+        for index, message in enumerate(
+            (
+                "My friend Alice is stressed about work.",
+                "What should I cook for dinner?",
+                "A mouse ran through the kitchen.",
+            ),
+            start=1,
+        ):
+            with self.subTest(message=message):
+                context = resolve_reading_context(
+                    ChatRequest(
+                        session_id=f"context-common-{index}",
+                        message=message,
+                    )
+                )
+                self.assertEqual("unknown", context.status)
+                self.assertIsNone(context.work_id)
+                self.assertIsNone(context.clarification_question)
+                sessions.clear(f"context-common-{index}")
+
     def test_book_and_chapter_without_completion_do_not_grant_the_whole_chapter(self) -> None:
         first = resolve_reading_context(
             ChatRequest(
@@ -55,8 +76,27 @@ class BookContextTests(unittest.TestCase):
             ChatRequest(session_id="context-test", turn_id="turn-2", message="I've now finished Chapter 3.")
         )
         self.assertEqual(first.chapter_max, 2)
+        self.assertEqual("explicit_progress", first.boundary_authorization_basis)
         self.assertEqual(context.work_title, "Dune")
         self.assertEqual(context.chapter_max, 3)
+        self.assertEqual("explicit_progress", context.boundary_authorization_basis)
+
+    def test_active_book_preserves_an_indirect_follow_up(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+            ),
+        )
+
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", message="Why did she do that?")
+        )
+
+        self.assertEqual("inferred", context.status)
+        self.assertEqual("pg11", context.work_id)
+        self.assertIsNone(context.chapter_max)
 
     def test_completion_can_confirm_the_previous_scene_candidate(self) -> None:
         sessions.set_reading_candidate(
@@ -154,7 +194,7 @@ class BookContextTests(unittest.TestCase):
         inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
-                message="Why does the Caterpillar ask who Alice is?",
+                message="Why does the Cheshire Cat keep disappearing?",
             ),
             allow_memory_capture=False,
         )

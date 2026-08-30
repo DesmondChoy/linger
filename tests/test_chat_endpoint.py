@@ -428,7 +428,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancellation_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="Why does the Caterpillar ask who Alice is?",
+            message="Why does the Cheshire Cat keep disappearing?",
         )
         entered = asyncio.Event()
         blocker = asyncio.Event()
@@ -448,6 +448,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                         book_version_id="pg11-v01b38ea4",
                         reason_code="low_confidence",
                         confidence=0.6,
+                        authorization_basis="memory_supported",
+                        supporting_memory_ids=("memory-boundary",),
                         candidate_chapter=5,
                         supporting_locations=(
                             BoundarySupportLocation(

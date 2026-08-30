@@ -32,19 +32,19 @@ class LibrarianTests(unittest.TestCase):
     def setUp(self) -> None:
         self.librarian = Librarian()
 
-    def test_metadata_routes_alice_cues_without_opening_story_text(self) -> None:
-        scope = self.librarian.route_work(
-            "Why does Alice keep struggling to explain who she is?",
+    def test_metadata_generates_strong_candidate_for_distinctive_cue(self) -> None:
+        candidates = self.librarian.work_candidates(
+            "Why does the Cheshire Cat keep disappearing?",
             (BOOK_VERSION_ID,),
         )
 
-        self.assertIsNotNone(scope)
-        assert scope is not None
-        self.assertEqual(WORK_ID, scope.work_id)
-        self.assertEqual(BOOK_VERSION_ID, scope.book_version_id)
-        self.assertEqual(12, scope.max_chapter)
+        self.assertEqual(1, len(candidates))
+        self.assertEqual("strong", candidates[0].strength)
+        self.assertEqual(WORK_ID, candidates[0].scope.work_id)
+        self.assertEqual(BOOK_VERSION_ID, candidates[0].scope.book_version_id)
+        self.assertEqual(12, candidates[0].scope.max_chapter)
 
-    def test_metadata_does_not_route_an_unrelated_line(self) -> None:
+    def test_metadata_does_not_generate_an_unrelated_candidate(self) -> None:
         unrelated_lines = (
             "Repair the spaceship engine",
             "Sketching by hand helps me slow down and think clearly.",
@@ -53,8 +53,30 @@ class LibrarianTests(unittest.TestCase):
 
         for line in unrelated_lines:
             with self.subTest(line=line):
-                self.assertIsNone(
-                    self.librarian.route_work(line, (BOOK_VERSION_ID,))
+                self.assertFalse(
+                    any(
+                        candidate.strength == "strong"
+                        for candidate in self.librarian.work_candidates(
+                            line,
+                            (BOOK_VERSION_ID,),
+                        )
+                    )
+                )
+
+    def test_common_catalog_words_are_weak_candidates_only(self) -> None:
+        for line in (
+            "My friend Alice is stressed about work.",
+            "What should I cook for dinner?",
+            "A mouse ran through the kitchen.",
+        ):
+            with self.subTest(line=line):
+                candidates = self.librarian.work_candidates(
+                    line,
+                    (BOOK_VERSION_ID,),
+                )
+                self.assertTrue(candidates)
+                self.assertTrue(
+                    all(candidate.strength == "weak" for candidate in candidates)
                 )
 
     def test_unrelated_query_returns_no_evidence_without_fallback(self) -> None:

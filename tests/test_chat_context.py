@@ -53,6 +53,8 @@ def inferred_boundary() -> BoundaryCandidate:
         book_version_id="pg11-v01b38ea4",
         max_chapter_inclusive=5,
         confidence=0.92,
+        authorization_basis="memory_supported",
+        supporting_memory_ids=("memory-boundary",),
         supporting_locations=(
             BoundarySupportLocation(
                 evidence_id=EVIDENCE_ID,
@@ -316,6 +318,68 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
                 self.service,
                 self.account,
             )
+
+    async def test_personal_alice_memory_does_not_start_book_inference(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="My friend Alice is stressed about work.",
+                source_event_id="event-personal-alice",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="My friend Alice is stressed again today.",
+        )
+        resolution = chat_turn.resolve_reading_context(request)
+        inference = AsyncMock(return_value=inferred_boundary())
+
+        with patch.object(chat_turn, "infer_spoiler_boundary", inference):
+            result = await chat_turn._infer_request_boundary(
+                request,
+                resolution,
+                self.service,
+                self.account,
+            )
+
+        inference.assert_not_awaited()
+        self.assertEqual("unknown", result.status)
+        self.assertIsNone(result.work_id)
+
+    async def test_generic_overlap_does_not_activate_a_book_memory(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text=(
+                    "Alice and the Caterpillar's questions about identity stayed "
+                    "with me."
+                ),
+                source_event_id="event-book-memory",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
+        request = ChatRequest(
+            session_id=self.session_id,
+            message="Sketching by hand helps me slow down and think clearly.",
+        )
+        resolution = chat_turn.resolve_reading_context(request)
+        inference = AsyncMock(return_value=inferred_boundary())
+
+        with patch.object(chat_turn, "infer_spoiler_boundary", inference):
+            result = await chat_turn._infer_request_boundary(
+                request,
+                resolution,
+                self.service,
+                self.account,
+            )
+
+        inference.assert_not_awaited()
+        self.assertEqual("unknown", result.status)
 
     async def test_var_reset_after_successful_turn(self) -> None:
         request = ChatRequest(

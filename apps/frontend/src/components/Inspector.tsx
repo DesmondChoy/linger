@@ -32,7 +32,7 @@ function boundarySummary(turn: ChatResult) {
   const resolution = turn.inspection.context_resolution
   if (resolution.status === 'confirmed') {
     if (resolution.boundary_source === 'librarian_inferred') {
-      return `${resolution.work_title ?? resolution.work_id}, inferred ceiling Chapter ${resolution.chapter_max} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
+      return `${resolution.work_title ?? resolution.work_id}, memory-supported ceiling Chapter ${resolution.chapter_max} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
     }
     return resolution.chapter_max
       ? `${resolution.work_title ?? resolution.work_id}, through completed chapter ${resolution.chapter_max}.`
@@ -40,7 +40,7 @@ function boundarySummary(turn: ChatResult) {
   }
   if (resolution.status === 'inferred') {
     return resolution.candidate_chapter
-      ? `Possible ceiling: ${resolution.work_title}, Chapter ${resolution.candidate_chapter} — clarification required.`
+      ? `Possible ${resolution.candidate_authorization_basis === 'line_only' ? 'Line-only' : 'memory-supported'} ceiling: ${resolution.work_title}, Chapter ${resolution.candidate_chapter} — clarification required.`
       : `Possible book: ${resolution.work_title}; spoiler boundary not validated.`
   }
   return 'No book context; reflection and permitted public-web connections remain available.'

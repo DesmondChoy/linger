@@ -63,6 +63,7 @@ from .contracts import (
     TurnPolicy,
 )
 from .logger import ROOT_NAME
+from .librarian import RegisteredCorpusScope
 from .schemas import (
     CaptureInspection,
     ChatRequest,
@@ -141,6 +142,40 @@ def _work_id_for_title(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
+def _strong_work_candidates(text: str) -> tuple[RegisteredCorpusScope, ...]:
+    return tuple(
+        candidate.scope
+        for candidate in librarian_service.work_candidates(
+            text,
+            settings.allowed_book_version_ids,
+        )
+        if candidate.strength == "strong"
+    )
+
+
+def _memory_supported_scopes(memories: tuple[object, ...]) -> tuple[RegisteredCorpusScope, ...]:
+    """Resolve strong, application-verifiable work signals from memories."""
+    scopes: dict[tuple[str, str], RegisteredCorpusScope] = {}
+    allowed = set(settings.allowed_book_version_ids)
+    for memory in memories:
+        for evidence_id in getattr(memory, "evidence_ids", ()):
+            try:
+                record = librarian_service.fetch_by_id(evidence_id)
+            except Exception:
+                continue
+            if record is None or record.book_version_id not in allowed:
+                continue
+            scope = librarian_service.registered_scope(
+                record.work_id,
+                record.book_version_id,
+            )
+            if scope is not None:
+                scopes[(scope.work_id, scope.book_version_id)] = scope
+        for scope in _strong_work_candidates(getattr(memory, "text", "")):
+            scopes[(scope.work_id, scope.book_version_id)] = scope
+    return tuple(scopes[key] for key in sorted(scopes))
+
+
 def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     """Resolve explicit progress or route a possible work without granting access.
 
@@ -182,6 +217,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             book_version_id=librarian_service.version_for(selection.book_id),
             chapter_max=chapter,
             boundary_source="reader_confirmed",
+            boundary_authorization_basis="explicit_progress",
             explanation="The reader explicitly confirmed this completed chapter in the current message.",
         )
 
@@ -200,20 +236,25 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             book_version_id=librarian_service.version_for(candidate.book_id),
             chapter_max=candidate.chapter,
             boundary_source="reader_confirmed",
+            boundary_authorization_basis="explicit_progress",
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
         )
 
-    routed = librarian_service.route_work(
-        request.message,
-        settings.allowed_book_version_ids,
-    )
-    if routed is not None:
+    routed = _strong_work_candidates(request.message)
+    if len(routed) == 1:
+        scope = routed[0]
         return ContextResolution(
             status="inferred",
-            work_id=routed.work_id,
-            work_title=routed.title,
-            book_version_id=routed.book_version_id,
+            work_id=scope.work_id,
+            work_title=scope.title,
+            book_version_id=scope.book_version_id,
             explanation="Metadata-only routing identified a possible work; no chapter access has been granted yet.",
+        )
+    if len(routed) > 1:
+        return ContextResolution(
+            status="unknown",
+            clarification_question="Which book are you referring to?",
+            explanation="Metadata-only routing found multiple possible works and failed closed.",
         )
 
     if selection:
@@ -307,22 +348,13 @@ async def _infer_request_boundary(
     account: AccountContext,
 ) -> ContextResolution:
     """Enrich a routed work with one private, non-persistent ceiling candidate."""
-    if (
-        resolution.status == "confirmed"
-        or resolution.work_id is None
-        or resolution.book_version_id is None
-    ):
+    if resolution.status == "confirmed":
         return resolution
     try:
         memories = tuple(service.list_for_retrieval(account))
-        inferred = await infer_spoiler_boundary(
-            request.message,
-            work_id=resolution.work_id,
-            book_version_id=resolution.book_version_id,
-            memories=memories,
-            librarian=librarian_service,
-        )
     except MemoryServiceError:
+        if resolution.work_id is None:
+            return resolution
         return resolution.model_copy(
             update={
                 "clarification_question": (
@@ -333,6 +365,55 @@ async def _infer_request_boundary(
             }
         )
 
+    if resolution.work_id is None or resolution.book_version_id is None:
+        line_candidate_ids = {
+            (
+                candidate.scope.work_id,
+                candidate.scope.book_version_id,
+            )
+            for candidate in librarian_service.work_candidates(
+                request.message,
+                settings.allowed_book_version_ids,
+            )
+            if candidate.strength == "strong"
+            or "single_catalog_term" in candidate.reasons
+        }
+        matched_scopes = tuple(
+            scope
+            for scope in _memory_supported_scopes(memories)
+            if (scope.work_id, scope.book_version_id) in line_candidate_ids
+        )
+        if not matched_scopes:
+            return resolution
+        if len(matched_scopes) > 1:
+            return ContextResolution(
+                status="unknown",
+                clarification_question="Which book are you referring to?",
+                explanation=(
+                    "The current Line and authorized memories indicate multiple "
+                    "possible works, so boundary inference failed closed."
+                ),
+            )
+        scope = matched_scopes[0]
+        resolution = ContextResolution(
+            status="inferred",
+            work_id=scope.work_id,
+            work_title=scope.title,
+            book_version_id=scope.book_version_id,
+            explanation=(
+                "The current Line and an authorized memory jointly identified a "
+                "possible work; no chapter access has been granted yet."
+            ),
+        )
+
+    inferred = await infer_spoiler_boundary(
+        request.message,
+        work_id=resolution.work_id,
+        book_version_id=resolution.book_version_id,
+        memories=memories,
+        librarian=librarian_service,
+    )
+
     if isinstance(inferred, BoundaryCandidate):
         return ContextResolution(
             status="confirmed",
@@ -341,7 +422,9 @@ async def _infer_request_boundary(
             book_version_id=inferred.book_version_id,
             chapter_max=inferred.max_chapter_inclusive,
             boundary_source="librarian_inferred",
+            boundary_authorization_basis=inferred.authorization_basis,
             boundary_confidence=inferred.confidence,
+            boundary_supporting_memory_ids=inferred.supporting_memory_ids,
             boundary_supporting_locations=inferred.supporting_locations,
             explanation=(
                 "Librarian privately inferred and the application validated a "
@@ -371,7 +454,9 @@ async def _infer_request_boundary(
         work_title=resolution.work_title,
         book_version_id=inferred.book_version_id,
         candidate_chapter=inferred.candidate_chapter,
+        candidate_authorization_basis=inferred.authorization_basis,
         candidate_confidence=inferred.confidence if inferred.candidate_chapter else None,
+        candidate_supporting_memory_ids=inferred.supporting_memory_ids,
         candidate_supporting_locations=inferred.supporting_locations,
         clarification_question=inferred.clarification_question,
         explanation=(

@@ -25,10 +25,17 @@ class ContextResolution(StrictModel):
     book_version_id: str | None = None
     chapter_max: int | None = Field(default=None, ge=1)
     boundary_source: Literal["reader_confirmed", "librarian_inferred"] | None = None
+    boundary_authorization_basis: Literal[
+        "explicit_progress",
+        "memory_supported",
+    ] | None = None
     boundary_confidence: float | None = Field(default=None, ge=0, le=1)
+    boundary_supporting_memory_ids: tuple[str, ...] = ()
     boundary_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
     candidate_chapter: int | None = Field(default=None, ge=1)
+    candidate_authorization_basis: Literal["memory_supported", "line_only"] | None = None
     candidate_confidence: float | None = Field(default=None, ge=0, le=1)
+    candidate_supporting_memory_ids: tuple[str, ...] = ()
     candidate_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
     clarification_question: str | None = None
     explanation: str
@@ -43,22 +50,58 @@ class ContextResolution(StrictModel):
         if self.boundary_source == "librarian_inferred":
             if (
                 self.book_version_id is None
+                or self.boundary_authorization_basis != "memory_supported"
                 or self.boundary_confidence is None
+                or not self.boundary_supporting_memory_ids
                 or not self.boundary_supporting_locations
             ):
-                raise ValueError("inferred boundary requires version, confidence, and support")
-        elif self.boundary_confidence is not None or self.boundary_supporting_locations:
-            raise ValueError("only inferred boundaries carry inference metadata")
+                raise ValueError(
+                    "inferred boundary requires memory authorization and support"
+                )
+        elif self.boundary_source == "reader_confirmed":
+            if self.boundary_authorization_basis != "explicit_progress":
+                raise ValueError("reader-confirmed boundary requires explicit progress")
+            if (
+                self.boundary_confidence is not None
+                or self.boundary_supporting_memory_ids
+                or self.boundary_supporting_locations
+            ):
+                raise ValueError("explicit progress cannot carry inference metadata")
+        elif (
+            self.boundary_authorization_basis is not None
+            or self.boundary_confidence is not None
+            or self.boundary_supporting_memory_ids
+            or self.boundary_supporting_locations
+        ):
+            raise ValueError("only confirmed boundaries carry authorization metadata")
         if self.candidate_chapter is None:
-            if self.candidate_confidence is not None or self.candidate_supporting_locations:
+            if (
+                self.candidate_authorization_basis is not None
+                or self.candidate_confidence is not None
+                or self.candidate_supporting_memory_ids
+                or self.candidate_supporting_locations
+            ):
                 raise ValueError("candidate metadata requires a candidate chapter")
         elif (
             self.status != "inferred"
+            or self.candidate_authorization_basis is None
             or self.candidate_confidence is None
             or not self.candidate_supporting_locations
             or self.clarification_question is None
         ):
-            raise ValueError("uncertain candidate requires confidence, support, and clarification")
+            raise ValueError(
+                "uncertain candidate requires basis, confidence, support, and clarification"
+            )
+        elif (
+            self.candidate_authorization_basis == "memory_supported"
+            and not self.candidate_supporting_memory_ids
+        ):
+            raise ValueError("memory-supported candidate requires supporting memories")
+        elif (
+            self.candidate_authorization_basis == "line_only"
+            and self.candidate_supporting_memory_ids
+        ):
+            raise ValueError("line-only candidate cannot cite supporting memories")
         return self
 
 

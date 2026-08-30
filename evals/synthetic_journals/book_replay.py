@@ -596,6 +596,8 @@ def _boundary_handoff_is_content_free(
         "book_version_id",
         "chapter_number",
         "confidence",
+        "authorization_basis",
+        "supporting_memory_ids",
         "supporting_evidence_ids",
         "reason_code",
     }

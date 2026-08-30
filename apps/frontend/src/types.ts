@@ -49,14 +49,18 @@ export type ContextResolution = {
   book_version_id: string | null
   chapter_max: number | null
   boundary_source: 'reader_confirmed' | 'librarian_inferred' | null
+  boundary_authorization_basis: 'explicit_progress' | 'memory_supported' | null
   boundary_confidence: number | null
+  boundary_supporting_memory_ids: string[]
   boundary_supporting_locations: {
     evidence_id: string
     chapter_number: number
     location: string
   }[]
   candidate_chapter: number | null
+  candidate_authorization_basis: 'memory_supported' | 'line_only' | null
   candidate_confidence: number | null
+  candidate_supporting_memory_ids: string[]
   candidate_supporting_locations: {
     evidence_id: string
     chapter_number: number

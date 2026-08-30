@@ -402,18 +402,27 @@ untrusted internal material; Provenance reviews the later complete Muse draft.
 
 ### 6.1 Spoilers
 
-For each book-related request, Librarian first performs boundary inference. The
-complete immutable work is its search scope: Librarian cross-references all
-chapters against relevant, account-scoped memories and the current Line to
-localize the latest event the person appears to know. This inference phase
-returns a typed candidate boundary, confidence, and supporting locations for
-the trace; it must not return
-post-boundary story content to Muse. If the evidence is ambiguous or confidence
-is insufficient, Muse asks a focused clarification before book evidence is
-retrieved.
+For each book-related request, application code first generates possible works
+from metadata. Exact supported titles, stable aliases, an active session
+selection, and canonical evidence references are strong signals. Common
+character, location, and catalogue words are weak candidates only: they cannot
+select a work or expose a memory by themselves. Multiple plausible works fail
+closed with a focused book clarification.
 
-After inference, application code validates the work and version and propagates
-the candidate as a request-scoped ceiling. Librarian then performs a separate
+Librarian then performs boundary inference. The complete immutable selected
+work is its search scope: Librarian cross-references all chapters against the
+current Line and relevant account-scoped memories to localize the latest event
+the person appears to know. The typed decision declares whether its basis is a
+relevant prior memory or the current Line alone, cites the exact supporting
+memory and evidence identifiers, and returns confidence plus content-free
+locations. It must not return post-boundary story content to Muse.
+
+After inference, application code validates the work, version, memory IDs, and
+evidence IDs. A non-progress question in the current Line may locate an event
+but cannot authorize a ceiling by itself; Line-only candidates always require
+reader clarification. Explicit current-turn progress remains authoritative,
+while a memory-supported candidate is eligible for the provisional confidence
+policy. Librarian then performs a separate
 retrieval bounded to that ceiling, and application code rejects evidence outside
 it before Muse can use it. Linger stores memories of what the person discussed,
 not a durable chapter-progress field; the boundary is derived anew for each
@@ -422,21 +431,24 @@ with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
 The current implementation has both phases for the Alice corpus. Metadata-only
-routing first identifies the work. Librarian then receives the current Line and
-at most eight account-scoped memories that independently route to that work,
-searches the complete immutable revision, and returns a typed candidate ceiling,
-confidence, and content-free supporting locations. Full-work candidate passage
-text remains private to this phase and is never copied into Muse, Inspect, the
-turn evidence ledger, or the release scope.
+routing separates weak work candidates from strong work selection. Librarian
+then receives the current Line and at most eight account-scoped memories backed
+by canonical book evidence or strong independent routing context, searches the
+complete immutable revision, and returns a typed candidate ceiling, evidence
+basis, confidence, supporting memory IDs, and content-free locations. Full-work
+candidate passage text remains private to this phase and is never copied into
+Muse, Inspect, the turn evidence ledger, or the release scope.
 
-Application code validates the returned work, version, evidence identifiers,
-and candidate chapter. Confidence below `0.75`, conflicting context, missing
-support, unreadable memory storage, retrieval failure, or an invalid model
-decision produces one fixed clarification and no evidence search. A validated
-candidate creates only a request-scoped ceiling; it is not persisted as reading
-progress. Muse may then request the second search, which the application clamps
-to that ceiling before any passage becomes releasable evidence. Explicit reader
-confirmation remains authoritative and skips inference for that request.
+Application code validates the returned work, version, memory identifiers,
+evidence identifiers, authorization basis, and candidate chapter. A Line-only
+candidate, confidence below the provisional `0.75` threshold, conflicting
+context, missing support, unreadable memory storage, retrieval failure, or an
+invalid model decision produces one fixed clarification and no evidence search.
+A validated memory-supported candidate creates only a request-scoped ceiling;
+it is not persisted as reading progress. Muse may then request the second
+search, which the application clamps to that ceiling before any passage becomes
+releasable evidence. Explicit reader confirmation remains authoritative and
+skips inference for that request.
 
 ### 6.2 Citations and attribution
 

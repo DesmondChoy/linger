@@ -36,6 +36,8 @@ class BoundaryInferenceDecision(StrictModel):
     book_version_id: str | None = None
     chapter_number: int | None = Field(default=None, ge=1)
     confidence: float = Field(ge=0, le=1)
+    authorization_basis: Literal["memory_supported", "line_only"] | None = None
+    supporting_memory_ids: tuple[str, ...] = ()
     supporting_evidence_ids: tuple[str, ...] = ()
     reason_code: Literal[
         "insufficient_context",
@@ -55,10 +57,24 @@ class BoundaryInferenceDecision(StrictModel):
                 raise ValueError("candidate outcome requires work, version, and chapter")
             if not self.supporting_evidence_ids:
                 raise ValueError("candidate outcome requires supporting evidence IDs")
+            if self.authorization_basis is None:
+                raise ValueError("candidate outcome requires an authorization basis")
+            if self.authorization_basis == "memory_supported":
+                if not self.supporting_memory_ids:
+                    raise ValueError(
+                        "memory-supported candidate requires supporting memory IDs"
+                    )
+            elif self.supporting_memory_ids:
+                raise ValueError("line-only candidate cannot cite supporting memories")
             if self.reason_code is not None:
                 raise ValueError("candidate outcome cannot declare an uncertainty reason")
         else:
-            if any(value is not None for value in candidate_fields) or self.supporting_evidence_ids:
+            if (
+                any(value is not None for value in candidate_fields)
+                or self.authorization_basis is not None
+                or self.supporting_memory_ids
+                or self.supporting_evidence_ids
+            ):
                 raise ValueError("uncertain outcome cannot declare a candidate boundary")
             if self.reason_code is None:
                 raise ValueError("uncertain outcome requires a reason code")
