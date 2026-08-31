@@ -186,6 +186,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             book_version_id=librarian_service.version_for(selection.book_id),
             chapter_max=chapter,
             boundary_source="reader_confirmed",
+            boundary_authorization_basis="explicit_progress",
             explanation="The reader explicitly confirmed this completed chapter in the current message.",
         )
 
@@ -204,6 +205,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             book_version_id=librarian_service.version_for(candidate.book_id),
             chapter_max=candidate.chapter,
             boundary_source="reader_confirmed",
+            boundary_authorization_basis="explicit_progress",
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
         )
 

@@ -380,7 +380,15 @@ location, or retrieval-cue words; a two-word cue contributes 2), capped at
 `1.0` — a long message and a short one with the same cues score the same.
 Below the `0.6` threshold, or a full-evidence tie between two candidates
 (same confidence and same cue overlap), the result is no match rather than a
-guess. A routed work then unconditionally enters the same private boundary
+guess.
+
+`work_candidates` separately classifies possible works for the boundary
+phase: exact supported titles, stable aliases, distinctive multi-word
+catalogue phrases, and broad catalogue-context agreement are *strong*
+signals; common catalogue words are *weak* candidates that can neither select
+a work nor expose a memory on their own.
+
+A routed work then unconditionally enters the same private boundary
 phase described below; a `NoMatch` leaves Muse to keep reflecting without a
 book tool, and an unresolved boundary surfaces as a `ClarificationRequest`
 that Muse relays to the reader verbatim. A routed result grants no retrieval
@@ -394,8 +402,8 @@ The boundary phase runs exactly when `librarian_route` matched a work; an
 explicit reader-confirmed ceiling is authoritative and terminal for the
 request and never enters this phase. Once a work is routed, application code
 hands off to the private boundary phase. It receives the current Line,
-a bounded set of relevant account-scoped memories, and full-work retrieval
-candidates:
+a bounded set of strongly routed account-scoped memories, and full-work
+retrieval candidates:
 
 ```json
 {
@@ -403,7 +411,8 @@ candidates:
   "relevant_memories": [
     {
       "memory_id": "mem_01K2...",
-      "text": "The Caterpillar's questions made me think about how uncertain I am about my identity."
+      "text": "The Caterpillar's questions made me think about how uncertain I am about my identity.",
+      "evidence_ids": ["pg11-v01b38ea4-ch05-ln0974-0981"]
     }
   ],
   "full_work_candidates": [
@@ -428,6 +437,8 @@ Its accepted output contains no passage text:
   "book_version_id": "pg11-v01b38ea4",
   "max_chapter_inclusive": 5,
   "confidence": 0.93,
+  "authorization_basis": "memory_supported",
+  "supporting_memory_ids": ["mem_01K2..."],
   "supporting_locations": [
     {
       "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0981",
@@ -438,9 +449,12 @@ Its accepted output contains no passage text:
 }
 ```
 
-Application code validates that candidate and either supplies a request-scoped
-retrieval grant or requires one exact clarification. Muse then supplies the
-exact question for the separate bounded evidence phase:
+Application code validates the selected registered work, supporting memory IDs,
+canonical evidence IDs, derived chapter, and authorization basis. A Line-only
+question can locate an event but cannot authorize a ceiling; it requires one
+exact clarification even at high model confidence. A validated
+memory-supported candidate receives a request-scoped retrieval grant. Muse then
+supplies the exact question for the separate bounded evidence phase:
 
 ```json
 {
@@ -472,10 +486,12 @@ Boundary inference and evidence retrieval are separate calls:
 
 1. The inference search may inspect the complete immutable work, but its
    passages remain private and never enter the turn evidence ledger.
-2. Librarian selects only content-free supporting evidence IDs and locations.
+2. Librarian declares `memory_supported` or `line_only` and selects only input
+   memory IDs plus content-free supporting evidence IDs and locations.
 3. Application code derives the ceiling from those trusted records and rejects
-   invented IDs, a mismatched work or revision, and inconsistent chapters.
-4. Confidence below `0.75` or any ambiguity yields an exact clarification; the
+   invented memory or evidence IDs, a mismatched work or revision, an invalid
+   basis, and inconsistent chapters.
+4. Line-only curiosity, confidence below `0.75`, or any ambiguity yields an exact clarification; the
    release validator rejects a book answer or tool call in its place.
 5. A validated candidate enables a new search whose scope is clamped to the
    inferred ceiling. No boundary is persisted to later requests.

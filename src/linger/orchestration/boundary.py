@@ -60,8 +60,13 @@ def _memory_mentions_work(
             and record.book_version_id == scope.book_version_id
         ):
             return True
-    routed = librarian.route_work(memory.text, (scope.book_version_id,))
-    return routed is not None and routed.scope.work_id == scope.work_id
+    return any(
+        candidate.strength == "strong" and candidate.scope.work_id == scope.work_id
+        for candidate in librarian.work_candidates(
+            memory.text,
+            (scope.book_version_id,),
+        )
+    )
 
 
 def relevant_memories(
@@ -90,7 +95,11 @@ async def judge_spoiler_boundary(
         {
             "current_line": current_line,
             "relevant_memories": [
-                {"memory_id": memory.memory_id, "text": memory.text}
+                {
+                    "memory_id": memory.memory_id,
+                    "text": memory.text,
+                    "evidence_ids": list(memory.evidence_ids),
+                }
                 for memory in memories
             ],
             "full_work_candidates": [
@@ -222,6 +231,27 @@ async def infer_spoiler_boundary(
             clarification_question=_clarification(scope),
         )
 
+    if len(set(decision.supporting_memory_ids)) != len(
+        decision.supporting_memory_ids
+    ):
+        return BoundaryUncertain(
+            kind="uncertain",
+            work_id=scope.work_id,
+            book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable",
+            clarification_question=_clarification(scope),
+        )
+
+    selected_memory_ids = {memory.memory_id for memory in selected_memories}
+    if not set(decision.supporting_memory_ids) <= selected_memory_ids:
+        return BoundaryUncertain(
+            kind="uncertain",
+            work_id=scope.work_id,
+            book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable",
+            clarification_question=_clarification(scope),
+        )
+
     by_id = {record.evidence_id: record for record in evidence}
     try:
         supporting = tuple(by_id[evidence_id] for evidence_id in decision.supporting_evidence_ids)
@@ -263,6 +293,18 @@ async def infer_spoiler_boundary(
         )
         for record in supporting
     )
+    if decision.authorization_basis == "line_only":
+        return BoundaryUncertain(
+            kind="uncertain",
+            work_id=scope.work_id,
+            book_version_id=scope.book_version_id,
+            reason_code="progress_unverified",
+            confidence=decision.confidence,
+            authorization_basis="line_only",
+            candidate_chapter=derived_chapter,
+            supporting_locations=locations,
+            clarification_question=_clarification(scope),
+        )
     if decision.confidence < confidence_threshold:
         return BoundaryUncertain(
             kind="uncertain",
@@ -270,6 +312,8 @@ async def infer_spoiler_boundary(
             book_version_id=scope.book_version_id,
             reason_code="low_confidence",
             confidence=decision.confidence,
+            authorization_basis="memory_supported",
+            supporting_memory_ids=decision.supporting_memory_ids,
             candidate_chapter=derived_chapter,
             supporting_locations=locations,
             clarification_question=_clarification(scope, chapter=derived_chapter),
@@ -280,5 +324,7 @@ async def infer_spoiler_boundary(
         book_version_id=scope.book_version_id,
         max_chapter_inclusive=derived_chapter,
         confidence=decision.confidence,
+        authorization_basis="memory_supported",
+        supporting_memory_ids=decision.supporting_memory_ids,
         supporting_locations=locations,
     )

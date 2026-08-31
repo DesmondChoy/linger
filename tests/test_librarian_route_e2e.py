@@ -37,7 +37,11 @@ from src.linger.agents.librarian.models import (
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import (
+    AccountContext,
+    AutomaticMemoryCandidate,
+    MemoryPolicyService,
+)
 
 BOOK_REQUEST_MESSAGE = "Why does the Caterpillar ask who Alice is?"
 
@@ -317,24 +321,28 @@ def _muse_searches_directly(captured: list, *, chapter: int):
     return _respond
 
 
-async def _confident_judge(_line, _memories, evidence):
+async def _confident_judge(_line, memories, evidence):
     return BoundaryInferenceDecision(
         outcome="candidate",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
         chapter_number=max(record.chapter_number for record in evidence),
         confidence=0.95,
+        authorization_basis="memory_supported",
+        supporting_memory_ids=[memory.memory_id for memory in memories],
         supporting_evidence_ids=[record.evidence_id for record in evidence],
     )
 
 
-async def _low_confidence_candidate_judge(_line, _memories, evidence):
+async def _low_confidence_candidate_judge(_line, memories, evidence):
     return BoundaryInferenceDecision(
         outcome="candidate",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
         chapter_number=max(record.chapter_number for record in evidence),
         confidence=0.6,
+        authorization_basis="memory_supported",
+        supporting_memory_ids=[memory.memory_id for memory in memories],
         supporting_evidence_ids=[record.evidence_id for record in evidence],
     )
 
@@ -347,6 +355,17 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
         self.account = AccountContext("librarian-route-e2e-account")
+        # `authorization_basis="memory_supported"` needs a backing memory.
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="Alice and the Caterpillar made me think about identity.",
+                source_event_id="event-route-e2e-backing",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
         self._boundary_patcher = patch.object(
             chat_turn,
             "assess_emotional_boundary",
@@ -516,8 +535,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(3, captured[0]["searched_scope"]["max_chapter_inclusive"])
 
     async def test_routing_reads_only_the_calling_account_memories(self) -> None:
-        from src.linger.services.memory import AutomaticMemoryCandidate
-
         other_account = AccountContext("librarian-route-e2e-other-account")
         self.service.set_capture_enabled(self.account, True)
         self.service.set_capture_enabled(other_account, True)

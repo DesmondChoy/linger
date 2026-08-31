@@ -399,6 +399,8 @@ def _response(
                 book_version_id="pg11-v01b38ea4",
                 chapter_number=5,
                 confidence=0.92,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=("memory-synthetic",),
                 supporting_evidence_ids=(SUPPORT_ID,),
             )
         )
@@ -409,7 +411,9 @@ def _response(
             book_version_id="pg11-v01b38ea4",
             chapter_max=5,
             boundary_source="librarian_inferred",
+            boundary_authorization_basis="memory_supported",
             boundary_confidence=0.92,
+            boundary_supporting_memory_ids=("memory-synthetic",),
             boundary_supporting_locations=(
                 BoundarySupportLocation(
                     evidence_id=SUPPORT_ID,
@@ -647,6 +651,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
         nonlocal boundary_calls
         boundary_calls += 1
         assert len(kwargs["memories"]) == 1
+        memory_id = kwargs["memories"][0].memory_id
         if "quote" in current_line:
             _record_boundary(
                 BoundaryInferenceDecision(
@@ -655,6 +660,8 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                     book_version_id="pg11-v01b38ea4",
                     chapter_number=5,
                     confidence=0.92,
+                    authorization_basis="memory_supported",
+                    supporting_memory_ids=(memory_id,),
                     supporting_evidence_ids=(SUPPORT_ID,),
                 )
             )
@@ -664,6 +671,8 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                 book_version_id="pg11-v01b38ea4",
                 max_chapter_inclusive=5,
                 confidence=0.92,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=(memory_id,),
                 supporting_locations=(
                     BoundarySupportLocation(
                         evidence_id=SUPPORT_ID,

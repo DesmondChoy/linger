@@ -1,9 +1,10 @@
 """Two-phase Librarian spoiler-boundary inference tests."""
 
 import unittest
+from types import SimpleNamespace
 
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
-from apps.backend.librarian import RegisteredCorpusScope, RoutingDecision
+from apps.backend.librarian import RegisteredCorpusScope, WorkRouteCandidate
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.contracts.librarian import BoundaryCandidate, BoundaryUncertain
 from src.linger.orchestration.boundary import infer_spoiler_boundary
@@ -62,16 +63,28 @@ class FakeLibrarian:
             max_chapter=12,
         )
 
-    def route_work(self, text: str, allowed_versions: tuple[str, ...]):
+    def work_candidates(self, text: str, allowed_versions: tuple[str, ...]):
         if VERSION_ID in allowed_versions and any(
             cue in text.casefold() for cue in ("alice", "caterpillar", "identity")
         ):
-            return RoutingDecision(
-                scope=self.registered_scope(WORK_ID, VERSION_ID), confidence=1.0
+            return (
+                WorkRouteCandidate(
+                    scope=self.registered_scope(WORK_ID, VERSION_ID),
+                    strength="strong",
+                    reasons=("test_signal",),
+                ),
             )
-        return None
+        return ()
 
     def fetch_by_id(self, evidence_id: str):
+        if evidence_id in {
+            self.chapter_five.evidence_id,
+            self.chapter_eight.evidence_id,
+        }:
+            return SimpleNamespace(
+                work_id=WORK_ID,
+                book_version_id=VERSION_ID,
+            )
         return None
 
     def retrieve(self, request):
@@ -88,6 +101,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         stored = memory(
             "memory-1",
             "The Caterpillar's questions made me think about how uncertain I am about my identity.",
+            (librarian.chapter_five.evidence_id,),
         )
 
         async def judge(current_line, memories, evidence):
@@ -99,6 +113,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 book_version_id=VERSION_ID,
                 chapter_number=5,
                 confidence=0.93,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=(stored.memory_id,),
                 supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
             )
 
@@ -114,14 +130,21 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(result, BoundaryCandidate)
         assert isinstance(result, BoundaryCandidate)
         self.assertEqual(5, result.max_chapter_inclusive)
+        self.assertEqual("memory_supported", result.authorization_basis)
+        self.assertEqual((stored.memory_id,), result.supporting_memory_ids)
         self.assertEqual(12, librarian.requests[0].book_scopes[0].chapter_max)
         serialized = result.model_dump_json()
         self.assertNotIn("Caterpillar asks Alice", serialized)
         self.assertNotIn(PRIVATE_LATER_TEXT, serialized)
         self.assertIn("Chapter 5", serialized)
 
-    async def test_low_confidence_candidate_requires_clarification_with_support(self) -> None:
+    async def test_low_confidence_memory_candidate_requires_clarification(self) -> None:
         librarian = FakeLibrarian()
+        stored = memory(
+            "memory-low",
+            "The Caterpillar made me think about identity.",
+            (librarian.chapter_five.evidence_id,),
+        )
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
@@ -130,6 +153,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 book_version_id=VERSION_ID,
                 chapter_number=5,
                 confidence=0.61,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=(stored.memory_id,),
                 supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
             )
 
@@ -137,7 +162,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             "Why does Alice feel uncertain?",
             work_id=WORK_ID,
             book_version_id=VERSION_ID,
-            memories=(),
+            memories=(stored,),
             librarian=librarian,  # type: ignore[arg-type]
             judge=judge,
         )
@@ -147,8 +172,39 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("low_confidence", result.reason_code)
         self.assertEqual(5, result.candidate_chapter)
         self.assertEqual(0.61, result.confidence)
+        self.assertEqual("memory_supported", result.authorization_basis)
+        self.assertEqual((stored.memory_id,), result.supporting_memory_ids)
         self.assertTrue(result.supporting_locations)
         self.assertIn("completed Chapter 5", result.clarification_question)
+
+    async def test_line_only_candidate_never_authorizes_a_ceiling(self) -> None:
+        librarian = FakeLibrarian()
+
+        async def judge(*_args):
+            return BoundaryInferenceDecision(
+                outcome="candidate",
+                work_id=WORK_ID,
+                book_version_id=VERSION_ID,
+                chapter_number=5,
+                confidence=0.99,
+                authorization_basis="line_only",
+                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+            )
+
+        result = await infer_spoiler_boundary(
+            "Why does the Caterpillar ask Alice who she is?",
+            work_id=WORK_ID,
+            book_version_id=VERSION_ID,
+            memories=(),
+            librarian=librarian,  # type: ignore[arg-type]
+            judge=judge,
+        )
+
+        self.assertIsInstance(result, BoundaryUncertain)
+        assert isinstance(result, BoundaryUncertain)
+        self.assertEqual("progress_unverified", result.reason_code)
+        self.assertEqual("line_only", result.authorization_basis)
+        self.assertEqual(5, result.candidate_chapter)
 
     async def test_unrelated_memories_are_not_sent_to_the_judge(self) -> None:
         librarian = FakeLibrarian()
@@ -180,10 +236,12 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         chapter_five_memory = memory(
             "memory-3",
             "The Caterpillar made Alice's uncertainty about identity feel familiar.",
+            (librarian.chapter_five.evidence_id,),
         )
         later_memory = memory(
             "memory-4",
             "Alice in the garden reminded me of a later disagreement.",
+            (librarian.chapter_eight.evidence_id,),
         )
 
         async def judge(_line, memories, _evidence):
@@ -221,6 +279,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 book_version_id=VERSION_ID,
                 chapter_number=5,
                 confidence=0.95,
+                authorization_basis="line_only",
                 supporting_evidence_ids=("invented-evidence",),
             )
 
@@ -247,6 +306,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 book_version_id=VERSION_ID,
                 chapter_number=5,
                 confidence=0.95,
+                authorization_basis="line_only",
                 supporting_evidence_ids=(
                     librarian.chapter_five.evidence_id,
                     librarian.chapter_five.evidence_id,
@@ -258,6 +318,39 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             work_id=WORK_ID,
             book_version_id=VERSION_ID,
             memories=(),
+            librarian=librarian,  # type: ignore[arg-type]
+            judge=judge,
+        )
+
+        self.assertIsInstance(result, BoundaryUncertain)
+        assert isinstance(result, BoundaryUncertain)
+        self.assertEqual("inference_unavailable", result.reason_code)
+
+    async def test_unknown_supporting_memory_id_fails_closed(self) -> None:
+        librarian = FakeLibrarian()
+        stored = memory(
+            "memory-known",
+            "The Caterpillar made me think about identity.",
+            (librarian.chapter_five.evidence_id,),
+        )
+
+        async def judge(*_args):
+            return BoundaryInferenceDecision(
+                outcome="candidate",
+                work_id=WORK_ID,
+                book_version_id=VERSION_ID,
+                chapter_number=5,
+                confidence=0.95,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=("memory-invented",),
+                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+            )
+
+        result = await infer_spoiler_boundary(
+            "Why does Alice feel uncertain?",
+            work_id=WORK_ID,
+            book_version_id=VERSION_ID,
+            memories=(stored,),
             librarian=librarian,  # type: ignore[arg-type]
             judge=judge,
         )

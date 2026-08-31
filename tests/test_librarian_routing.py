@@ -7,12 +7,27 @@ from apps.backend.config import Settings
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
 from src.linger.contracts.librarian import ClarificationRequest, NoMatch, RoutedWork
+from src.linger.services.memory import MemoryRecord
 from src.linger.orchestration.turn_context import (
     reset_active_memories,
     reset_reader_message,
     set_active_memories,
     set_reader_message,
 )
+
+
+def _book_memory() -> MemoryRecord:
+    return MemoryRecord(
+        memory_id="memory-alice",
+        account_key="account-key",
+        text="Alice and the Caterpillar made me think about identity.",
+        capture_type="automatic",
+        source_event_id="event-alice",
+        idempotency_key="key-alice",
+        evidence_ids=(),
+        created_at="2026-08-28T00:00:00+00:00",
+        updated_at="2026-08-28T00:00:00+00:00",
+    )
 
 
 def _settings() -> Settings:
@@ -52,16 +67,21 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(result, NoMatch)
 
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
-        async def confident_judge(_line, _memories, evidence):
+        async def confident_judge(_line, memories, evidence):
             return BoundaryInferenceDecision(
                 outcome="candidate",
                 work_id="pg11",
                 book_version_id="pg11-v01b38ea4",
                 chapter_number=max(record.chapter_number for record in evidence),
                 confidence=0.95,
+                authorization_basis="memory_supported",
+                supporting_memory_ids=[memory.memory_id for memory in memories],
                 supporting_evidence_ids=[record.evidence_id for record in evidence],
             )
 
+        # A ceiling needs an account-scoped memory backing the routed work.
+        reset_active_memories(self._token)
+        self._token = set_active_memories((_book_memory(),))
         self._set_message(
             "Can we talk about Alice's Adventures in Wonderland? I just "
             "finished the caterpillar's advice."

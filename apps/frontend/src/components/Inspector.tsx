@@ -32,7 +32,7 @@ function boundarySummary(turn: ChatResult) {
   const resolution = turn.inspection.context_resolution
   if (resolution.status === 'confirmed') {
     if (resolution.boundary_source === 'librarian_inferred') {
-      return `${resolution.work_title ?? resolution.work_id}, inferred ceiling Chapter ${resolution.chapter_max} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
+      return `${resolution.work_title ?? resolution.work_id}, memory-supported ceiling Chapter ${resolution.chapter_max} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
     }
     return resolution.chapter_max
       ? `${resolution.work_title ?? resolution.work_id}, through completed chapter ${resolution.chapter_max}.`

@@ -159,11 +159,14 @@ uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 
 For a book-related request without explicit progress, the Librarian privately
 searches the complete selected work using the current Line and relevant
-account-scoped memories. It returns only a candidate chapter ceiling,
-confidence, and content-free supporting locations. After application
-validation—or after a focused reader clarification when confidence is too
-low—the Librarian runs a separate BM25 and semantic search bounded to that
-ceiling. Later chapters never enter the answer-evidence candidate set. The
+account-scoped memories. Common catalogue words can nominate a possible work
+but cannot select it or expose a memory on their own. Librarian returns only a
+candidate chapter ceiling, its memory-or-Line evidence basis, confidence, and
+content-free supporting locations. Application code accepts explicit progress
+or a validated memory-supported candidate; a curiosity-only Line always
+requires focused clarification. The Librarian then runs a separate BM25 and
+semantic search bounded to the accepted ceiling. Later chapters never enter the
+answer-evidence candidate set. The
 eligible candidates are fused, reranked, resolved against the immutable corpus,
 and returned to Muse as a typed evidence response.
 
