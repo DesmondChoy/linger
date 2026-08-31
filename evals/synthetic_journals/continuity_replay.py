@@ -40,11 +40,11 @@ from .models import (
 from .replay import (
     RUNTIME_PROMPT_FINGERPRINTS,
     RUNTIME_SYSTEM_VARIANT,
-    ChatHandler,
+    ChatTurnHandler,
     GroundTruthResult,
     GroundTruthStatus,
     _ground_truth_result,
-    _production_chat_handler,
+    _production_chat_turn_handler,
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
@@ -236,7 +236,7 @@ async def replay_continuity_scenes(
     ground_truth: ProposedGroundTruth,
     *,
     adoption: GroundTruthAdoption | None = None,
-    chat_handler: ChatHandler | None = None,
+    chat_handler: ChatTurnHandler | None = None,
 ) -> ContinuityEvaluationRun:
     """Run ordered continuity Scenes through Pydantic Evals and production chat."""
 
@@ -257,7 +257,7 @@ async def replay_continuity_scenes(
         else "proposal_comparison"
     )
     if chat_handler is None:
-        handler = _production_chat_handler()
+        handler = _production_chat_turn_handler()
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
@@ -400,7 +400,7 @@ async def _replay_continuity_scene(
     expected: ContinuityEvaluationExpected,
     *,
     run_id: str,
-    handler: ChatHandler,
+    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
 ) -> ContinuitySceneObservation:

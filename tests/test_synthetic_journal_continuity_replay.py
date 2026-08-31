@@ -1388,7 +1388,7 @@ def test_continuity_replay_threads_history_through_the_production_pipeline() -> 
                 "OPENAI_API_KEY": "test-key",
             },
         ):
-            from apps.backend import main
+            from apps.backend import chat_turn, main
 
             async def chat_handler(
                 request: ChatRequest,
@@ -1402,7 +1402,7 @@ def test_continuity_replay_threads_history_through_the_production_pipeline() -> 
                 decision="continue_reflection"
             )
             with (
-                patch.object(main, "assess_emotional_boundary", boundary),
+                patch.object(chat_turn, "assess_emotional_boundary", boundary),
                 muse_chat_agent.override(model=FunctionModel(_muse_replies)),
                 provenance_agent.override(model=FunctionModel(_provenance_passes)),
             ):
