@@ -28,6 +28,9 @@ from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.librarian.prompt import (
     PROMPT_FINGERPRINT as LIBRARIAN_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.librarian.boundary_prompt import (
+    PROMPT_FINGERPRINT as LIBRARIAN_BOUNDARY_PROMPT_FINGERPRINT,
+)
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -37,6 +40,9 @@ from src.linger.agents.provenance.emotional_prompt import (
 )
 from src.linger.agents.provenance.prompt import (
     PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
+)
+from src.linger.agents.provenance.curation_prompt import (
+    PROMPT_FINGERPRINT as CURATION_PROVENANCE_PROMPT_FINGERPRINT,
 )
 from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
@@ -63,11 +69,13 @@ from .validate_package import PackageValidationError, validate_package_files
 CAPTURE_OBJECTIVE_ID = "reviewed_automatic_memory_capture"
 
 RUNTIME_PROMPT_FINGERPRINTS = (
+    LIBRARIAN_BOUNDARY_PROMPT_FINGERPRINT,
     LIBRARIAN_PROMPT_FINGERPRINT,
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
     EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT,
     PROVENANCE_PROMPT_FINGERPRINT,
+    CURATION_PROVENANCE_PROMPT_FINGERPRINT,
     SCULPTOR_PROMPT_FINGERPRINT,
     SERENDIPITY_PROMPT_FINGERPRINT,
 )
@@ -80,7 +88,7 @@ RUNTIME_SYSTEM_VARIANT = hashlib.sha256(
     ).encode("utf-8")
 ).hexdigest()
 
-ChatHandler = Callable[
+ChatTurnHandler = Callable[
     [ChatRequest, MemoryPolicyService, AccountContext],
     Awaitable[ChatResponse],
 ]
@@ -230,7 +238,7 @@ async def replay_capture_scenes(
     ground_truth: ProposedGroundTruth,
     *,
     adoption: GroundTruthAdoption | None = None,
-    chat_handler: ChatHandler | None = None,
+    chat_handler: ChatTurnHandler | None = None,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
@@ -251,7 +259,7 @@ async def replay_capture_scenes(
         else "proposal_comparison"
     )
     if chat_handler is None:
-        handler = _production_chat_handler()
+        handler = _production_chat_turn_handler()
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
@@ -390,7 +398,7 @@ async def _replay_capture_scene(
     expected: CaptureEvaluationExpected,
     *,
     run_id: str,
-    handler: ChatHandler,
+    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
 ) -> SceneObservation:
@@ -487,29 +495,21 @@ def _capture_scene_lines(
     return tuple(scene_lines)
 
 
-def _production_chat_handler() -> ChatHandler:
-    """Import the configured backend before creating evaluation parent spans."""
+def _production_chat_turn_handler() -> ChatTurnHandler:
+    """Import the transport-independent production chat boundary."""
 
-    from apps.backend.main import chat
-    from fastapi import HTTPException
+    from apps.backend.chat_turn import run_chat_turn
 
-    async def invoke(
-        request: ChatRequest,
-        service: MemoryPolicyService,
-        account: AccountContext,
-    ) -> ChatResponse:
-        try:
-            return await chat(request, service, account)
-        except HTTPException as error:
-            raise RuntimeError("production chat failed") from error
-
-    return invoke
+    return run_chat_turn
 
 
 def evaluation_agents() -> tuple[Any, ...]:
     """Return every named Pydantic AI agent available to synthetic workflows."""
 
-    from src.linger.agents.librarian.agent import librarian_strength_agent
+    from src.linger.agents.librarian.agent import (
+        librarian_boundary_agent,
+        librarian_strength_agent,
+    )
     from src.linger.agents.muse.agent import muse_chat_agent
     from src.linger.agents.provenance.agent import provenance_agent
     from src.linger.agents.provenance.emotional import emotional_boundary_agent
@@ -520,6 +520,7 @@ def evaluation_agents() -> tuple[Any, ...]:
         muse_chat_agent,
         provenance_agent,
         emotional_boundary_agent,
+        librarian_boundary_agent,
         librarian_strength_agent,
         serendipity_agent,
         sculptor_agent,

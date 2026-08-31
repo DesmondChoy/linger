@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import shutil
@@ -47,18 +48,114 @@ CAPTURE_PACKAGE = (
     / "packages"
     / "2026-08-23T182725+0800"
 )
-CURATION_PACKAGE = (
-    ROOT
-    / "synthetic-journal-evaluation"
-    / "packages"
-    / "2026-08-25T092910+0800"
-)
-
-
 def _copy_package(source: Path, destination: Path) -> None:
     destination.mkdir()
     for name in ("backstory.json", "ground-truth.json", "pre-generation-report.md"):
         shutil.copyfile(source / name, destination / name)
+
+
+def _write_curation_package(destination: Path) -> None:
+    """Build a compact package from the maintained Sculptor baseline cases."""
+
+    case_paths = sorted((ROOT / "evals" / "sculptor" / "cases").glob("*.json"))
+    cases = [json.loads(path.read_text(encoding="utf-8")) for path in case_paths]
+    backstory_id = "backstory-ground-truth-review-test"
+    person_id = "person-ground-truth-review-test"
+    account_id = "eval-account-sculptor"
+    props: list[dict[str, object]] = []
+    scenes: list[dict[str, object]] = []
+    proposals: list[dict[str, object]] = []
+
+    for order, case in enumerate(cases, start=1):
+        scene_id = f"scene-{case['primary_behavior']}"
+        memories = case["input"]["memories"]
+        prop_ids = [memory["memory_id"] for memory in memories]
+        scenes.append(
+            {
+                "scene_id": scene_id,
+                "backstory_id": backstory_id,
+                "objective_ids": ["bounded_memory_curation"],
+                "order": order,
+                "fresh_session": True,
+                "prop_ids": prop_ids,
+                "line_ids": [],
+                "offline_input_ids": [],
+            }
+        )
+        for memory in memories:
+            props.append(
+                {
+                    "prop_id": memory["memory_id"],
+                    "backstory_id": backstory_id,
+                    "person_id": person_id,
+                    "evaluation_account_id": account_id,
+                    "source_text": memory["text"],
+                    "lifecycle": [{"scene_id": scene_id, "state": "active"}],
+                }
+            )
+        proposals.append(
+            {
+                "proposal_id": f"proposal-{case['primary_behavior']}",
+                "scene_id": scene_id,
+                "objective_id": "bounded_memory_curation",
+                "expected_outcomes": ["Return the expected typed curation response."],
+                "prohibited_outcomes": ["Do not mutate original memories."],
+                "exact_spans": [
+                    {
+                        "source_kind": "prop",
+                        "source_id": memory["memory_id"],
+                        "start_codepoint": 0,
+                        "end_codepoint": len(memory["text"]),
+                        "text": memory["text"],
+                    }
+                    for memory in memories
+                ],
+                "evidence": [
+                    {
+                        "kind": "prop",
+                        "evidence_id": f"evidence-{memory['memory_id']}",
+                        "prop_id": memory["memory_id"],
+                    }
+                    for memory in memories
+                ],
+                "curation": {
+                    "primary_behavior": case["primary_behavior"],
+                    "expected": case["expected"],
+                },
+            }
+        )
+
+    backstory = {
+        "objective_ids": ["bounded_memory_curation"],
+        "run_configuration_ids": [],
+        "backstory": {
+            "backstory_id": backstory_id,
+            "person_id": person_id,
+            "evaluation_account_id": account_id,
+            "context": "Test-only curation review package.",
+        },
+        "props": props,
+        "scenes": scenes,
+        "lines": [],
+        "offline_inputs": [],
+    }
+    backstory_bytes = (json.dumps(backstory, indent=2) + "\n").encode()
+    ground_truth = {
+        "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
+        "ground_truth_status": "proposed",
+        "proposals": proposals,
+    }
+
+    destination.mkdir()
+    (destination / "backstory.json").write_bytes(backstory_bytes)
+    (destination / "ground-truth.json").write_text(
+        json.dumps(ground_truth, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (destination / "pre-generation-report.md").write_text(
+        "# Pre-generation report\n\nTest-only review fixture.\n",
+        encoding="utf-8",
+    )
 
 
 def _state(package: Path, ui: Path) -> reviewer.ReviewState:
@@ -112,7 +209,7 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     capture = tmp_path / "capture"
     curation = tmp_path / "curation"
     _copy_package(CAPTURE_PACKAGE, capture)
-    _copy_package(CURATION_PACKAGE, curation)
+    _write_curation_package(curation)
 
     capture_payload = _state(capture, built_ui).payload
     curation_payload = _state(curation, built_ui).payload
@@ -169,7 +266,7 @@ def test_confirm_requires_every_row_and_writes_exact_adoption(
     built_ui: Path,
 ) -> None:
     package = tmp_path / "package"
-    _copy_package(CURATION_PACKAGE, package)
+    _write_curation_package(package)
     state = _state(package, built_ui)
     server, thread, base_url = _start_server(state)
     try:

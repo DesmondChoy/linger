@@ -16,7 +16,6 @@ RiskCode = Literal[
     "unresolved_evidence",
     "misattribution",
     "spoiler",
-    "boundary_violation",
     "uncited_web_claim",
     "unsupported_claim",
     "sensitive_content",
@@ -30,7 +29,6 @@ SENSITIVE_RISK_CODES: frozenset[str] = frozenset(
         "unsupported_claim",
         "sensitive_content",
         "emotional_policy_violation",
-        "boundary_violation",
         "prompt_injection",
     }
 )

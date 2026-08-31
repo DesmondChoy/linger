@@ -1,4 +1,0 @@
-interface:
-  display_name: "Autoreview"
-  short_description: "Run isolated structured reviews before shipping"
-  default_prompt: "Use $autoreview to review the current change and verify any actionable findings."

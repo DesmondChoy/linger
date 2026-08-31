@@ -22,8 +22,8 @@ from typing import Any
 from pydantic_ai.messages import ToolCallPart
 
 from apps.backend import sessions
+from apps.backend.chat_turn import prepare_reflection_turn
 from apps.backend.config import get_settings
-from apps.backend.main import _inspection_for
 from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.muse.models import MuseCandidate
@@ -159,7 +159,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     session_id = f"librarian-live-eval-{case.case_id}"
     sessions.clear(session_id)
     request = ChatRequest(session_id=session_id, message=_chat_message(case))
-    inspection, muse_input, review_context = _inspection_for(
+    inspection, muse_input, review_context = prepare_reflection_turn(
         request,
         allow_memory_capture=False,
     )

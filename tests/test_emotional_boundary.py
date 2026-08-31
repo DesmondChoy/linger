@@ -25,7 +25,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import main, sessions
+    from apps.backend import chat_turn, main, sessions
     from apps.backend.contracts import (
         ContextResolution,
         MuseDraftInput,
@@ -178,8 +178,8 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         )
 
         with (
-            patch.object(main, "assess_emotional_boundary", preflight),
-            patch.object(main, "reflection_reply", reflection),
+            patch.object(chat_turn, "assess_emotional_boundary", preflight),
+            patch.object(chat_turn, "reflection_reply", reflection),
         ):
             response = await main.chat(request, self.service, self.account)
 
@@ -260,7 +260,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
 
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(
                     return_value=EmotionalBoundaryAssessment(
@@ -268,8 +268,8 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                     )
                 ),
             ),
-            patch.object(main, "muse_chat_agent", muse),
-            patch.object(main, "provenance_agent", provenance),
+            patch.object(chat_turn, "muse_chat_agent", muse),
+            patch.object(chat_turn, "provenance_agent", provenance),
         ):
             response = await main.chat(
                 ChatRequest(session_id=self.session_id, message=message),
@@ -299,11 +299,11 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         reflection = AsyncMock()
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(side_effect=RuntimeError("private provider failure")),
             ),
-            patch.object(main, "reflection_reply", reflection),
+            patch.object(chat_turn, "reflection_reply", reflection),
         ):
             response = await main.chat(
                 ChatRequest(
@@ -337,13 +337,13 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         )
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(side_effect=EmotionalBoundaryValidationError()),
             ),
-            patch.object(main, "reflection_reply", reflection),
+            patch.object(chat_turn, "reflection_reply", reflection),
         ):
-            _, release, _ = await main._run_chat_pipeline(
+            _, release, _ = await chat_turn._run_chat_pipeline(
                 request,
                 sessions.snapshot_reading_state(self.session_id),
                 self.service,
@@ -364,7 +364,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         )
         with (
             patch.object(
-                main,
+                chat_turn,
                 "assess_emotional_boundary",
                 AsyncMock(
                     return_value=EmotionalBoundaryAssessment(
@@ -372,7 +372,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                     )
                 ),
             ),
-            patch.object(main, "reflection_reply", reflection),
+            patch.object(chat_turn, "reflection_reply", reflection),
         ):
             response = await main.chat(
                 ChatRequest(
@@ -388,7 +388,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_preflight_cancellation_restores_state_and_writes_nothing(self) -> None:
         with patch.object(
-            main,
+            chat_turn,
             "assess_emotional_boundary",
             AsyncMock(side_effect=asyncio.CancelledError),
         ):
@@ -442,7 +442,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-        release = await main.reflection_reply(
+        release = await chat_turn.reflection_reply(
             draft_input(message),
             [],
             muse=muse,
@@ -521,7 +521,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        release = await main.reflection_reply(
+        release = await chat_turn.reflection_reply(
             draft_input(message),
             [],
             muse=muse,
@@ -591,7 +591,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        release = await main.reflection_reply(
+        release = await chat_turn.reflection_reply(
             draft_input(message),
             [],
             muse=muse,

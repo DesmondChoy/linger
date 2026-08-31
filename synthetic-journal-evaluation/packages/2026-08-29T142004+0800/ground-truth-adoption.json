@@ -1,0 +1,44 @@
+{
+  "backstory_sha256": "df448df11ba0aede91f10d9a3e1254cb9358e0f303a4d8cfb7599dc4bd14de53",
+  "proposed_ground_truth_sha256": "3993de04d32a4e6467b247b5d32659dc9eab44e7fa695f5a6cff1d95a640956e",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-08-29T16:09:05.617279+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-exact-duplicate",
+      "scene_id": "scene-exact-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-paraphrased-duplicate",
+      "scene_id": "scene-paraphrased-duplicate",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-evolving-fact-with-noise",
+      "scene_id": "scene-evolving-fact-with-noise",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-related-distinct-with-distractor",
+      "scene_id": "scene-related-distinct-with-distractor",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-superficial-similarity",
+      "scene_id": "scene-superficial-similarity",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "9ef5f3e2ce78c12b438cd6a2e747d412ec610c647dd5423e9cd860c40475b648"
+}

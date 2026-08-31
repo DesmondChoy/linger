@@ -86,6 +86,16 @@ under the separate `linger-evals` service, `synthetic-evaluation` environment,
 and `content.classification=synthetic` resource attribute. No production
 configuration or environment flag enables this service or its recorder.
 
+Configure that project before beginning the human-gated synthetic evaluation
+workflow. Objective selection and `pre-generation-report.md` approval emit no
+evaluation telemetry. Package generation and independent Ground truth review
+also emit no replay result. After the human confirms every review row, the
+review skill writes `ground-truth-adoption.json` and routes a supported single
+Objective to one provider-backed runner; that runner publishes the Pydantic
+Evals experiment and `linger-evals` traces. Without local `logfire projects use`
+credentials or `LOGFIRE_TOKEN`, the runner retains its durable JSON output but
+exports nothing to Logfire.
+
 Each runner uses Pydantic Evals for one native case per Scene and
 content-bearing Pydantic AI instrumentation for the fixed named agents: Muse,
 Provenance, Librarian, Serendipity, and Sculptor. A workflow instruments only
@@ -139,12 +149,27 @@ chronological application-owned sequence. A normal reviewed-capture Scene is:
 
 ```text
 case
-  -> chat.request
+  -> chat.turn
   -> provenance.emotional_boundary -> Provenance run -> model call
   -> muse.draft -> Muse run -> model call
   -> provenance.review -> Provenance run -> model call
   -> proposal_comparison or adopted_hard_gate_grade evaluator
 ```
+
+Human HTTP traffic adds a transport span around the same application span:
+
+```text
+chat.request
+  -> chat.turn
+  -> provenance.emotional_boundary -> Provenance run -> model call
+  -> muse.draft -> Muse run -> model call
+  -> provenance.review -> Provenance run -> model call
+```
+
+`chat.request` owns only route-template, method, response-status, and HTTP
+outcome metadata. `chat.turn` owns session rollback, agent sequencing, release,
+capture, and application failure metadata. Both spans share one trace for HTTP
+traffic; synthetic replay starts at `chat.turn` beneath the evaluation case.
 
 An isolated bounded-curation Scene is:
 
@@ -187,9 +212,11 @@ The contract is enforced by construction:
 1. Automatic Pydantic AI and FastAPI instrumentation remains disabled for
    `linger-backend`. The replay command explicitly instruments only the fixed
    named Pydantic AI agents with content enabled under `linger-evals`.
-2. Request spans use fixed route templates and never inspect bodies, headers,
-   raw URLs, query strings, or resolved path values.
-3. Application-authored attributes come only from typed allowlist projections.
+2. HTTP request spans use fixed route templates and never inspect bodies,
+   headers, raw URLs, query strings, or resolved path values. Direct evaluation
+   replay creates no request span.
+3. The application chat-turn span and all application-authored attributes come
+   only from typed allowlist projections.
 4. Failures map to fixed stages, codes, owner types, and retryability instead of
    recording exception objects or messages. Exceptions from an agent invocation
    are model failures. Deterministic envelope, output, and finding-location

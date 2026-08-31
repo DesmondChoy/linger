@@ -13,7 +13,10 @@ with patch.dict(
     },
 ):
     from apps.backend import sessions
-    from apps.backend.main import _inspection_for, resolve_reading_context
+    from apps.backend.chat_turn import (
+        prepare_reflection_turn,
+        resolve_reading_context,
+    )
     from apps.backend.schemas import ChatRequest
 
 
@@ -152,7 +155,7 @@ class BookContextTests(unittest.TestCase):
                 message="I am reading Animal Farm and I have finished Chapter 3.",
             )
         )
-        inspection, _, review_context = _inspection_for(
+        inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
                 message="Why does the Caterpillar ask who Alice is?",
@@ -168,7 +171,7 @@ class BookContextTests(unittest.TestCase):
         self.assertIsNone(review_context["reading_context"])
 
     def test_reflection_without_a_source_does_not_grant_connection_search(self) -> None:
-        inspection, _, review_context = _inspection_for(
+        inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
                 message=(

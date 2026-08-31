@@ -92,7 +92,8 @@ LINGER_WEB_SEARCH_ENABLED=true
 prototype. `LINGER_ALLOWED_ORIGINS` accepts a comma-separated list of browser
 origins and defaults to `http://localhost:5173`.
 
-To send the backend's metadata-only telemetry to the Linger Logfire project:
+To send the backend's metadata-only telemetry and synthetic evaluation telemetry
+to the Linger Logfire project:
 
 ```bash
 uv run logfire --region us auth
@@ -101,6 +102,9 @@ uv run logfire --region us projects use --org desmond-choy linger
 
 Use `LOGFIRE_TOKEN` instead in deployed or CI environments. The telemetry
 allowlist and privacy constraints are defined in [`docs/telemetry.md`](docs/telemetry.md).
+Configure Logfire before starting a provider-backed synthetic evaluation so the
+accepted replay is available in Pydantic Evals and Logfire's Agents, LLMs and
+providers, and Live views.
 
 ### Start the app
 
@@ -180,6 +184,40 @@ Full Librarian cells use the model and matching API key configured in `.env`.
 
 ## Evaluation and validation
 
+### Human-gated synthetic evaluation
+
+The synthetic evaluation workflow keeps planning, generation, Ground truth
+adoption, and execution behind separate human decisions:
+
+1. Configure Logfire as described above, then ask your coding agent to run the
+   [`generate-synthetic-journals`](.agents/skills/generate-synthetic-journals/SKILL.md)
+   skill.
+2. Select one or more evaluation Objectives in the local selector and confirm
+   the selection. The skill writes only `pre-generation-report.md`; confirming
+   the selection does not authorize synthetic-data generation.
+3. Read the report and approve its design and detached generator prompt, request
+   changes, or abandon the attempt. Generate data only after separate approval
+   and only when the prompt is runnable or all named preconditions have been
+   met. The generator writes sibling `backstory.json` and `ground-truth.json`
+   files, and the repository validator checks them.
+4. Ask your coding agent to run the
+   [`review-synthetic-ground-truth`](.agents/skills/review-synthetic-ground-truth/SKILL.md)
+   skill. An independent human reviewer approves or flags every proposed Ground
+   truth row in the local review app.
+5. **Make Changes** stops without adoption or replay. Confirmation writes the
+   sibling `ground-truth-adoption.json`. For a single supported Objective, the
+   skill then starts one provider-backed replay; automatic post-confirmation
+   routing currently supports reviewed automatic capture and bounded memory
+   curation. Other Objective selections stop after adoption.
+6. Inspect the accepted replay in Pydantic Evals and Logfire, and retain the
+   runner's JSON output as the durable evaluation record.
+
+The browser review app never invokes a model or runner. It returns the human
+decision to the coding agent, which validates the adoption and maps a supported
+Objective to its runner. See the
+[`evals/synthetic_journals` guide](evals/synthetic_journals/README.md) for the
+package, review, replay, and telemetry contracts.
+
 Run the complete automated suite and frontend gates from the repository root:
 
 ```bash
@@ -211,7 +249,7 @@ uv run python \
   path/to/backstory.json path/to/ground-truth.json \
   --reviewer-id REVIEWER_ID
 
-# Replay a capture package through the production chat boundary
+# Replay a capture package through the production application chat boundary
 uv run python -m evals.synthetic_journals.replay \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
@@ -222,6 +260,12 @@ uv run python -m evals.synthetic_journals.curation_replay \
   synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
   synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
   --output /tmp/bounded-memory-curation-run.json
+
+# Replay grounded reflection plus spoiler-boundary Scenes through the same boundary
+uv run python -m evals.synthetic_journals.book_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/book-reflection-spoiler-run.json
 ```
 
 The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
@@ -230,7 +274,7 @@ and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
 Synthetic package validation accepts `--run-configuration-directory`. The
 Ground truth reviewer requires `--reviewer-id`; `--adoption` selects a sibling
 output path, `--ui` selects a built UI directory, and `--timeout` sets the
-loopback review lifetime in seconds. Both replay commands accept an optional
+loopback review lifetime in seconds. All replay commands accept an optional
 hash-validated `--adoption` and write JSON to stdout unless `--output` is
 supplied.
 
@@ -239,7 +283,10 @@ truth. A complete independent adoption changes the dataset identity and grades
 the same gates as adopted Ground truth. Capture replay accepts only the
 `reviewed_automatic_memory_capture` topology; curation replay accepts only
 isolated `bounded_memory_curation` Scenes containing two to twelve active Props
-and no Lines or offline inputs. See
+and no Lines or offline inputs. Book replay accepts the ordered
+`grounded_book_reflection` plus `spoiler_boundary_clarification` three-Scene
+design, seeds its designated Prop in isolated storage, and disables capture
+before each fresh-session Line. See
 [`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
 the README in each `evals/` subdirectory for the complete contracts and
 artifact boundaries.
@@ -275,7 +322,7 @@ and deterministic services remain shared.
 ```text
 linger/
 ├── apps/                           # Runnable backend and frontend
-│   ├── backend/                    # FastAPI entry point
+│   ├── backend/                    # FastAPI adapter plus application chat turn
 │   └── frontend/                   # React user interface
 ├── src/linger/
 │   ├── agents/                     # Agent prompts and reasoning
