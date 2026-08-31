@@ -81,6 +81,7 @@ class TurnInspection(BaseModel):
 
     muse_turn: dict[str, Any]
     context_resolution: dict[str, Any]
+    prior_evidence_count: int = Field(default=0, ge=0)
     traces: list[dict[str, str]]
     connection_decline: ConnectionDeclineInspection | None = None
     librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)

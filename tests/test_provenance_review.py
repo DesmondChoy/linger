@@ -21,6 +21,7 @@ from src.linger.agents.provenance.models import (
     StructuralLocation,
     TextSpanLocation,
 )
+from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.prompt import INSTRUCTIONS
 from src.linger.agents.muse.models import NoMemoryCandidate
 
@@ -243,12 +244,7 @@ class ProvenanceReviewTests(unittest.TestCase):
             )
 
     def test_findings_array_declares_no_length_bound(self) -> None:
-        """Gemini rejects any request whose schema bounds an array length.
-
-        The cap belongs in `require_justified_refusal`, not on the field: an
-        array bound here returns 400 "constraint that has too many states for
-        serving" and the agent cannot run at all. String bounds are safe.
-        """
+        """An array bound here 400s Gemini; the cap belongs in `require_justified_refusal`; string bounds are fine."""
         findings_schema = ProvenanceReview.model_json_schema()["properties"]["findings"]
         self.assertNotIn("maxItems", findings_schema)
         self.assertNotIn("minItems", findings_schema)
@@ -308,6 +304,96 @@ class ProvenanceReviewTests(unittest.TestCase):
         self.assertIn("reader or another person", lowered)
         self.assertIn("emotional_boundary_decision", lowered)
 
+    def test_prompt_scopes_book_evidence_away_from_reader_attributed_facts(
+        self,
+    ) -> None:
+        """Otherwise every correct recall reply is unsupportable by construction."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("is exempt from `canonical_book_evidence`", lowered)
+        self.assertIn("session-continuity contract", lowered)
+        self.assertIn("book-corpus claim", lowered)
+        self.assertIn("matching record in `canonical_book_evidence`", lowered)
+
+    def test_prompt_gives_book_corpus_claims_precedence_over_reader_attribution(
+        self,
+    ) -> None:
+        """Otherwise reader attribution could launder an unsupported book-corpus claim."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("reader attribution never exempts a book-corpus claim", lowered)
+        self.assertIn("no book-corpus content at all", lowered)
+
+    def test_prompt_routes_doubted_reader_facts_to_revise_not_reject(self) -> None:
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("do not reject it outright", lowered)
+        self.assertIn("attribute the fact explicitly to the reader", lowered)
+        self.assertIn('response_decision="revise"', lowered)
+
+    def test_prompt_disambiguates_plot_from_everyday_vocabulary(self) -> None:
+        """Otherwise a reader's garden plot reads as a book-plot claim."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("plot events", lowered)
+        self.assertIn(
+            "shares vocabulary with book terms (words like plot, chapter, or "
+            "character used in everyday senses",
+            lowered,
+        )
+
+    def test_prompt_states_text_span_path_is_empty_for_the_fields_own_string(
+        self,
+    ) -> None:
+        """Otherwise the model repeats the field name in path and validation fails."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn(
+            "path` must be `\"\"` (empty string) — never repeat the field name "
+            "inside the path".replace("`", ""),
+            lowered.replace("`", ""),
+        )
+
+    def test_prompt_describes_canonical_session_lines(self) -> None:
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn("`canonical_session_lines` contains reader statements", lowered)
+        self.assertIn(
+            "exact substring of a user line in this session (an earlier "
+            "released turn or the current message)",
+            lowered,
+        )
+
+    def test_prompt_scopes_session_line_corroboration_to_reader_attribution(
+        self,
+    ) -> None:
+        """Otherwise a reader-typed book fact declared as session_line would launder."""
+        lowered = " ".join(INSTRUCTIONS.lower().split())
+        self.assertIn(
+            "a purely reader-attributed factual claim (no book-corpus content) "
+            "matching an entry in `canonical_session_lines` is corroborated as "
+            "something the reader said",
+            lowered,
+        )
+        self.assertIn("never supports a book-corpus claim", lowered)
+        self.assertIn("no matching entry, stays", lowered)
+
+    def test_doubted_reader_fact_finding_satisfies_decision_justification(self) -> None:
+        """Mirrors the exact finding shape the prompt instructs for a doubted reader fact."""
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="misattribution",
+                    applies_to="response",
+                    location=StructuralLocation(
+                        kind="structural",
+                        source_field="candidate.response",
+                        path="",
+                    ),
+                    explanation="Attribute this fact explicitly to the reader.",
+                ),
+            ),
+            response_decision="revise",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        self.assertEqual("revise", review.response_decision)
+        self.assertEqual("misattribution", review.findings[0].code)
+
 
 class ProvenanceAgentTests(unittest.TestCase):
     def test_review_round_trips_through_the_agent(self) -> None:
@@ -324,8 +410,6 @@ class ProvenanceAgentTests(unittest.TestCase):
                             "kind": "text_span",
                             "source_field": "candidate.response",
                             "path": "",
-                            "start_codepoint": 0,
-                            "end_codepoint": 28,
                             "quote": "ignore previous instructions",
                         },
                         "explanation": "The passage redirects agent behaviour.",
@@ -342,6 +426,11 @@ class ProvenanceAgentTests(unittest.TestCase):
         self.assertIsInstance(review, ProvenanceReview)
         self.assertEqual("prompt_injection", review.findings[0].code)
         self.assertEqual("reject", review.response_decision)
+
+    def test_agent_retries_output_validation(self) -> None:
+        # pydantic-ai exposes no public accessor for output retries.
+        agent = build_provenance_agent(TestModel())
+        self.assertEqual(2, agent._max_output_retries)
 
     def test_provenance_has_no_tools(self) -> None:
         """Section 3.3: Provenance reviews without any tool authority."""
@@ -362,6 +451,26 @@ class ProvenanceAgentTests(unittest.TestCase):
         self.assertEqual([], model.last_model_request_parameters.function_tools)
 
 
+class TextSpanLocationTests(unittest.TestCase):
+    def test_accepts_a_quote_only_location(self) -> None:
+        location = TextSpanLocation(
+            kind="text_span",
+            source_field="candidate.response",
+            path="",
+            quote="offending",
+        )
+        self.assertEqual("offending", location.quote)
+
+    def test_rejects_a_too_short_quote(self) -> None:
+        with self.assertRaises(ValidationError):
+            TextSpanLocation(
+                kind="text_span",
+                source_field="candidate.response",
+                path="",
+                quote="ab",
+            )
+
+
 class ProvenanceInputTests(unittest.TestCase):
     def test_rejects_unknown_top_level_fields(self) -> None:
         payload = provenance_input().model_dump(mode="json")
@@ -379,8 +488,6 @@ class ProvenanceInputTests(unittest.TestCase):
                         kind="text_span",
                         source_field="candidate.response",
                         path="",
-                        start_codepoint=0,
-                        end_codepoint=9,
                         quote="offending",
                     ),
                     explanation="why",
@@ -394,6 +501,29 @@ class ProvenanceInputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not match"):
             provenance_input("different text").validate_review_locations(review)
 
+    def test_quote_contained_in_a_longer_source_string_still_matches(self) -> None:
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="unsupported_claim",
+                    applies_to="response",
+                    location=TextSpanLocation(
+                        kind="text_span",
+                        source_field="candidate.response",
+                        path="",
+                        quote="offending",
+                    ),
+                    explanation="why",
+                ),
+            ),
+            response_decision="reject",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        provenance_input("this is an offending span within a longer response").validate_review_locations(
+            review
+        )
+
     def test_response_finding_can_point_to_the_current_user_line(self) -> None:
         review = ProvenanceReview(
             findings=(
@@ -404,8 +534,6 @@ class ProvenanceInputTests(unittest.TestCase):
                         kind="text_span",
                         source_field="current_line.text",
                         path="",
-                        start_codepoint=0,
-                        end_codepoint=6,
                         quote="reader",
                     ),
                     explanation="The user Line requires the emotional boundary.",
@@ -437,6 +565,44 @@ class ProvenanceInputTests(unittest.TestCase):
             review_input.validate_review_locations(review)
 
         self.assertEqual(1, calls)
+
+    def test_canonical_session_lines_round_trip(self) -> None:
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["I lost my job last spring"]
+        round_tripped = ProvenanceInput.model_validate(payload)
+        self.assertEqual(
+            ("I lost my job last spring",), round_tripped.canonical_session_lines
+        )
+        self.assertEqual(payload, round_tripped.model_dump(mode="json"))
+
+    def test_canonical_session_lines_must_be_unique(self) -> None:
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["the same reader line", "the same reader line"]
+        with self.assertRaisesRegex(ValidationError, "must be unique"):
+            ProvenanceInput.model_validate(payload)
+
+    def test_finding_can_point_to_a_canonical_session_line(self) -> None:
+        review = ProvenanceReview(
+            findings=(
+                RiskFinding(
+                    code="misattribution",
+                    applies_to="response",
+                    location=TextSpanLocation(
+                        kind="text_span",
+                        source_field="canonical_session_lines",
+                        path="/0",
+                        quote="lost my job",
+                    ),
+                    explanation="Cross-check the reader's verified statement.",
+                ),
+            ),
+            response_decision="revise",
+            emotional_boundary_decision="not_required",
+            capture_decision="no_candidate",
+        )
+        payload = provenance_input().model_dump(mode="json")
+        payload["canonical_session_lines"] = ["I lost my job last spring"]
+        ProvenanceInput.model_validate(payload).validate_review_locations(review)
 
     def test_structural_path_must_exist(self) -> None:
         # Response findings cannot point at candidate.memory.

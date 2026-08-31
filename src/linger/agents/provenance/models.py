@@ -1,9 +1,4 @@
-"""Typed Provenance hand-off contracts.
-
-One review call carries two decoupled decisions (specification section 4.1):
-whether the response may be released, and whether an automatic memory candidate
-may be captured. Rejecting capture never suppresses an otherwise safe response.
-"""
+"""Typed Provenance hand-off contracts: one review, two decoupled release/capture decisions (spec section 4.1)."""
 
 from __future__ import annotations
 
@@ -46,6 +41,7 @@ SourceField = Literal[
     "context.policy",
     "context.reading_context",
     "canonical_book_evidence",
+    "canonical_session_lines",
     "untrusted_tool_outcomes",
     "candidate.response",
     "candidate.evidence_uses",
@@ -56,21 +52,13 @@ ToolOutcome = Literal["success", "failed", "denied", "interrupted"]
 
 
 class TextSpanLocation(StrictModel):
-    """An exact span inside a string value in the review input."""
+    """A verbatim quotation from a string value in the review input."""
 
     kind: Literal["text_span"]
     source_field: SourceField
     # RFC 6901 JSON pointer relative to `source_field`; empty means the field itself.
     path: str = Field(max_length=500, pattern=r"^(?:$|/.*)$")
-    start_codepoint: int = Field(ge=0)
-    end_codepoint: int = Field(ge=1)
-    quote: str = Field(min_length=1, max_length=300)
-
-    @model_validator(mode="after")
-    def offsets_match_quote(self) -> Self:
-        if self.end_codepoint - self.start_codepoint != len(self.quote):
-            raise ValueError("text-span offsets must match the quoted text length")
-        return self
+    quote: str = Field(min_length=3, max_length=300)
 
 
 class StructuralLocation(StrictModel):
@@ -111,9 +99,7 @@ class RiskFinding(StrictModel):
 class ProvenanceReview(StrictModel):
     """One review of one candidate, carrying both release decisions."""
 
-    # `max_length` is enforced below rather than declared on the field: an array
-    # bound in the wire schema makes Gemini reject the whole request with
-    # "constraint that has too many states for serving". String bounds are fine.
+    # max_length enforced below, not on the field: an array bound in the wire schema 400s Gemini; string bounds are fine.
     findings: tuple[RiskFinding, ...] = ()
     response_decision: Literal["pass", "revise", "reject"]
     emotional_boundary_decision: Literal["not_required", "required"]
@@ -245,6 +231,12 @@ class ProvenanceInput(StrictModel):
 
     context: ProvenanceContext
     canonical_book_evidence: tuple[EvidenceRecord, ...] = ()
+    # Reader statements the application verified as an exact substring of a
+    # user Line in this session — an earlier released turn or the current
+    # message (see reflection.py); text is the identity, there are no IDs.
+    canonical_session_lines: tuple[
+        Annotated[str, Field(min_length=12, max_length=2_000)], ...
+    ] = ()
     untrusted_tool_outcomes: tuple[UntrustedToolOutcome, ...] = ()
     candidate: CandidateUnderReview
     current_line: CurrentLine
@@ -256,6 +248,8 @@ class ProvenanceInput(StrictModel):
         )
         if len(evidence_ids) != len(set(evidence_ids)):
             raise ValueError("canonical book evidence IDs must be unique")
+        if len(self.canonical_session_lines) != len(set(self.canonical_session_lines)):
+            raise ValueError("canonical session lines must be unique")
         return self
 
     def validate_review_locations(self, review: ProvenanceReview) -> None:
@@ -271,7 +265,7 @@ class ProvenanceInput(StrictModel):
                 continue
             if not isinstance(value, str):
                 raise ValueError("a text-span finding must resolve to a string")
-            if value[location.start_codepoint : location.end_codepoint] != location.quote:
+            if location.quote not in value:
                 raise ValueError("a finding quote does not match its declared source")
 
 def _resolve_json_pointer(value: JsonValue, path: str) -> JsonValue:

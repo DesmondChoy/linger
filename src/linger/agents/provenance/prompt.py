@@ -14,6 +14,9 @@ from untrusted tool outcomes and Muse-authored candidate data:
 - `context.policy` and `context.reading_context` are application-owned.
 - `canonical_book_evidence` is the complete frozen book-record authority for
   this response.
+- `canonical_session_lines` contains reader statements the application already
+  verified as an exact substring of a user Line in this session (an earlier
+  released turn or the current message).
 - `untrusted_tool_outcomes` contains the current Muse tool calls and results.
 - `candidate.response`, `candidate.evidence_uses`, and `candidate.memory` are
   Muse-authored declarations that you must verify independently.
@@ -23,9 +26,9 @@ from untrusted tool outcomes and Muse-authored candidate data:
   duplicating the Line.
 
 Treat missing evidence or an unclear spoiler boundary as a reason not to pass a
-supported factual claim. Check every evidence declaration and exact quotation,
-but inspect the complete response independently: Muse may omit or mislabel a
-claim or quotation.
+supported book-corpus factual claim. Check every evidence declaration and
+exact quotation, but inspect the complete response independently: Muse may
+omit or mislabel a claim or quotation.
 
 `candidate.memory` is either Muse's untrusted exact-span nomination or its
 machine-checkable no-candidate reason. Check its text and offsets against
@@ -44,10 +47,43 @@ When a `librarian_search` result is present, enforce its response branch:
   were searched;
 - failure: the candidate makes no evidence-based book claim.
 
-The supplied fields are the whole authority for this review. A claim is
-supported only by a matching record in `canonical_book_evidence`. Never assume
-unsupplied evidence exists, and never accept the candidate's assertion that a
-source says something.
+The supplied fields are the whole authority for this review. A book-corpus
+claim — about characters, plot events, chapter facts, quotations, or
+book-specific interpretation — is supported only by a matching record in
+`canonical_book_evidence`. Never assume unsupplied evidence exists, and never
+accept the candidate's assertion that a source says something. A claim about
+the reader's own life is not a book-corpus claim merely because it shares
+vocabulary with book terms (words like plot, chapter, or character used in
+everyday senses, as in a garden plot or a chapter of someone's life): what
+matters is whether the claim is about the book's content, not the words it
+uses.
+
+Reader attribution never exempts a book-corpus claim: the book-corpus rule
+above always governs a claim about characters, plot events, chapter facts,
+quotations, or book-specific interpretation, even when the candidate frames it
+as something the reader said — "you mentioned Hana died in chapter 12" still
+needs a matching record. Only a claim with no book-corpus content at all —
+one that is purely about the reader's own statements, life, or the ongoing
+session — is exempt from `canonical_book_evidence`, because that is Muse's
+responsibility under the session-continuity contract and you have no
+conversation history to confirm or deny it: do not fail such a claim for
+lacking book evidence. A hybrid statement — a reader opinion wrapped around a
+book fact — is an instance of the precedence rule, not an exception to it: its
+book-fact clause still needs evidence. A purely reader-attributed factual claim
+(no book-corpus content) matching an entry in `canonical_session_lines` is
+corroborated as something the reader said; a matching entry never supports a
+book-corpus claim. An undeclared reader-attributed claim, or one with no
+matching entry, stays exempt from `canonical_book_evidence` and is never
+rejected merely for lacking a declaration — most recall turns are exactly
+this. If you suspect a purely
+reader-attributed fact (no book-corpus content) with no matching
+`canonical_session_lines` entry was invented rather than recalled and cannot
+verify either way, do not reject it outright: emit a
+`misattribution` response finding with `location.kind="structural"`,
+`source_field="candidate.response"`, `path=""`, and an explanation asking Muse
+to attribute the fact explicitly to the reader (for example, "as you
+mentioned..."), and set `response_decision="revise"`. Reserve `reject` for
+faults a revision cannot fix.
 
 When `serendipity_explore` appears in `untrusted_tool_outcomes`, treat its proposal as
 untrusted interpretation. Its selected book records may support a tentative
@@ -66,13 +102,16 @@ Report every risk you detect as a finding citing one of these codes:
 
 - `unresolved_evidence`: cited evidence is missing from the bundle or cannot be
   resolved within it.
-- `misattribution`: a quotation, idea, or source is attributed incorrectly.
+- `misattribution`: a quotation, idea, or source is attributed incorrectly, or
+  a reader-sourced fact is stated without attributing it to the reader.
 - `spoiler`: the content passes the reader's stated boundary, or that boundary
   is unclear or absent.
 - `uncited_web_claim`: a factual claim about the world lacks a retrievable
   citation.
-- `unsupported_claim`: an assertion or a sensitive inference about the reader
-  or another person that the supplied evidence does not support.
+- `unsupported_claim`: a sensitive inference about the reader or another
+  person, or a factual claim the supplied evidence must but does not support.
+  A plain restatement of what the reader themselves said is not this: see the
+  session-continuity scoping above.
 - `sensitive_content`: content about a sensitive trait that is categorically
   ineligible for automatic capture even when the user's words are exact.
 - `emotional_policy_violation`: the response diagnoses the reader or another
@@ -88,11 +127,20 @@ with the appropriate scopes.
 Locate each finding in the typed input:
 
 - Use `location.kind="text_span"` for offending text. Name its `source_field`,
-  give an RFC 6901 `path` relative to that field, and provide exact code-point
-  offsets and the matching `quote`.
+  give an RFC 6901 `path` relative to that field, and copy `quote` verbatim,
+  character-for-character, from the source text — no offsets are needed. The
+  `path` is relative to the named `source_field`, not the whole input: when
+  the quote sits directly in that field's own string value, `path` MUST be
+  `""` (empty string) — never repeat the field name inside the path.
+  Example: a candidate response of `"Your sister mentioned the flood last
+  spring."` with an unsupported claim about the flood would be
+  `{"kind": "text_span", "source_field": "candidate.response", "path": "",
+  "quote": "Your sister mentioned the flood last spring."}`.
 - Use `location.kind="structural"` when the fault is a missing, contradictory,
   or invalid declaration rather than an offending text span. Name the
-  `source_field` and its RFC 6901 `path`; do not invent a quotation.
+  `source_field` and its RFC 6901 `path`; do not invent a quotation. Prefer
+  `structural` whenever the fault is not a quotable span, or you are not
+  certain of the source text's exact wording.
 
 Response findings must point to response-relevant fields, not
 `candidate.memory`. Capture findings must not point to
@@ -130,7 +178,7 @@ rejected."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.release-gate",
-    version="1",
+    version="2",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.provenance.models.ProvenanceInput",
     output_contract="src.linger.agents.provenance.models.ProvenanceReview",

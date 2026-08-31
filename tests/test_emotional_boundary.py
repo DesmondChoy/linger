@@ -35,7 +35,10 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
     from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
-    from src.linger.orchestration.reflection import SAFE_DECLINE, ReflectionRelease
+    from src.linger.orchestration.reflection import (
+        PIPELINE_FAILURE_DECLINE,
+        ReflectionRelease,
+    )
     from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 from src.linger.agents.provenance.emotional import build_emotional_boundary_agent
@@ -244,8 +247,6 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                             "kind": "text_span",
                             "source_field": "current_line.text",
                             "path": "",
-                            "start_codepoint": 0,
-                            "end_codepoint": len(message),
                             "quote": message,
                         },
                         explanation="The current Line requires the boundary.",
@@ -313,7 +314,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                 self.account,
             )
 
-        self.assertEqual(SAFE_DECLINE, response.reply)
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, response.reply)
         self.assertEqual(
             "application_safe_decline",
             response.inspection.release.release_source,
@@ -430,8 +431,6 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
                             "kind": "text_span",
                             "source_field": "current_line.text",
                             "path": "",
-                            "start_codepoint": 0,
-                            "end_codepoint": len(message),
                             "quote": message,
                         },
                         explanation="The current Line requires the boundary.",
@@ -510,8 +509,6 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
                                 "kind": "text_span",
                                 "source_field": "current_line.text",
                                 "path": "",
-                                "start_codepoint": 0,
-                                "end_codepoint": len(message),
                                 "quote": message,
                             },
                             explanation="The current Line requires the boundary.",
@@ -575,8 +572,6 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
                                 "kind": "text_span",
                                 "source_field": "candidate.response",
                                 "path": "",
-                                "start_codepoint": 18,
-                                "end_codepoint": 27,
                                 "quote": "depressed",
                             },
                             explanation="Remove the diagnosis.",

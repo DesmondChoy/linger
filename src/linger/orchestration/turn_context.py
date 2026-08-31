@@ -8,12 +8,19 @@ from types import MappingProxyType
 
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.services.memory import MemoryRecord
 
-_confirmed_reading: contextvars.ContextVar[ConfirmedReading | None] = contextvars.ContextVar(
-    "confirmed_reading", default=None
+_confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
+    contextvars.ContextVar("confirmed_reading", default=None)
 )
 _reader_message: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "reader_message", default=None
+)
+_active_memories: contextvars.ContextVar[tuple[MemoryRecord, ...]] = contextvars.ContextVar(
+    "active_memories", default=()
+)
+_session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "session_id", default=None
 )
 _EMPTY_EVIDENCE: Mapping[str, EvidenceRecord] = MappingProxyType({})
 _turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
@@ -22,11 +29,32 @@ _turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
 
 
 def set_confirmed_reading(value: ConfirmedReading | None) -> contextvars.Token:
-    return _confirmed_reading.set(value)
+    """Bind a fresh, single-slot cell as this turn's confirmed reading.
+
+    A plain `ContextVar.set()` inside one tool call is only visible in that
+    call's own copied context, not to a sibling tool call pydantic-ai may run
+    as a separate asyncio Task. Binding a mutable one-item list here, and
+    mutating its slot in place from `bind_confirmed_reading`, makes a
+    mid-turn update visible everywhere the same cell reference is held.
+    """
+    return _confirmed_reading.set([value])
 
 
 def confirmed_reading() -> ConfirmedReading | None:
-    return _confirmed_reading.get()
+    cell = _confirmed_reading.get()
+    return cell[0] if cell is not None else None
+
+
+def bind_confirmed_reading(value: ConfirmedReading) -> None:
+    """Mutate the current turn's confirmed-reading cell in place.
+
+    Used by application-side tool orchestration (never Muse's text) to grant
+    the same authority `_infer_request_boundary` used to grant, mid-turn. A
+    no-op outside an active turn (no cell bound yet).
+    """
+    cell = _confirmed_reading.get()
+    if cell is not None:
+        cell[0] = value
 
 
 def reset_confirmed_reading(token: contextvars.Token) -> None:
@@ -44,6 +72,32 @@ def reader_message() -> str | None:
 
 def reset_reader_message(token: contextvars.Token) -> None:
     _reader_message.reset(token)
+
+
+def set_active_memories(value: tuple[MemoryRecord, ...]) -> contextvars.Token:
+    """Bind the account-scoped memories available to Muse's routing tool this turn."""
+    return _active_memories.set(value)
+
+
+def active_memories() -> tuple[MemoryRecord, ...]:
+    return _active_memories.get()
+
+
+def reset_active_memories(token: contextvars.Token) -> None:
+    _active_memories.reset(token)
+
+
+def set_session_id(value: str) -> contextvars.Token:
+    """Bind the application-owned session ID so a routing tool can persist state."""
+    return _session_id.set(value)
+
+
+def session_id() -> str | None:
+    return _session_id.get()
+
+
+def reset_session_id(token: contextvars.Token) -> None:
+    _session_id.reset(token)
 
 
 def _evidence_index(records: Iterable[EvidenceRecord]) -> Mapping[str, EvidenceRecord]:

@@ -57,15 +57,6 @@ export type ContextResolution = {
     chapter_number: number
     location: string
   }[]
-  candidate_chapter: number | null
-  candidate_authorization_basis: 'memory_supported' | 'line_only' | null
-  candidate_confidence: number | null
-  candidate_supporting_memory_ids: string[]
-  candidate_supporting_locations: {
-    evidence_id: string
-    chapter_number: number
-    location: string
-  }[]
   clarification_question: string | null
   explanation: string
 }

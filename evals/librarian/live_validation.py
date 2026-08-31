@@ -68,6 +68,15 @@ class RecordingAgent:
         return result
 
 
+def _book_corpus_evidence_uses(candidate: MuseCandidate) -> list[Any]:
+    """Keep only book-corpus declarations; session-line uses have no evidence_id."""
+    return [
+        declared
+        for declared in candidate.evidence_uses
+        if declared.source_kind == "book_corpus"
+    ]
+
+
 def _p95(values: list[float]) -> float:
     ordered = sorted(values)
     return ordered[max(0, math.ceil(0.95 * len(ordered)) - 1)]
@@ -224,7 +233,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
         for record in result.evidence
     }
     cited_ids = (
-        [item.evidence_id for item in released_candidate.evidence_uses]
+        [item.evidence_id for item in _book_corpus_evidence_uses(released_candidate)]
         if released_candidate is not None
         else []
     )
@@ -271,7 +280,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     )
     candidate_declarations = []
     if final_candidate is not None:
-        for declared in final_candidate.evidence_uses:
+        for declared in _book_corpus_evidence_uses(final_candidate):
             record = evidence_by_id.get(declared.evidence_id)
             candidate_declarations.append(
                 {

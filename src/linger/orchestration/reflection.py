@@ -7,7 +7,13 @@ from typing import Any, Literal, Mapping
 
 import logfire
 from pydantic_ai import Agent
-from pydantic_ai.messages import ModelMessage, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelRequest,
+    ToolCallPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
 from pydantic_core import to_jsonable_python
 
 from apps.backend.telemetry import (
@@ -22,7 +28,7 @@ from apps.backend.contracts import (
     MuseRevisionInput,
     MuseRevisionReview,
 )
-from src.linger.agents.muse.models import MemoryCandidate, MuseCandidate
+from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -46,8 +52,12 @@ from src.linger.agents.serendipity.models import (
 from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
+    LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
+    ClarificationRequest,
     EvidenceRecord,
+    NoMatch,
     RetrievalResult,
+    RoutedWork,
 )
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
@@ -56,6 +66,13 @@ from src.linger.orchestration.turn_context import turn_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
+SPOILER_DECLINE = (
+    "I’m not sure where you are in the book, so I’d rather not risk getting "
+    "ahead of you."
+)
+PIPELINE_FAILURE_DECLINE = (
+    "Something went wrong on my side just now — mind asking again?"
+)
 FailureStage = Literal[
     "emotional_boundary_preflight",
     "muse_draft",
@@ -118,6 +135,9 @@ class ReflectionRelease:
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
     """Collect risk codes across one or both reviews, first occurrence first."""
+    # Not filtered by applies_to: a non-pass response always carries a
+    # response-scoped finding, so a capture finding can only widen this set
+    # into decline_text's generic fallback, never redirect the selection.
     seen: dict[RiskCode, None] = {}
     for review in reviews:
         for finding in review.findings:
@@ -131,13 +151,60 @@ def _review_codes(*reviews: ProvenanceReview) -> tuple[tuple[RiskCode, ...], ...
 
 
 def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
-    """Keep declared evidence handles without persisting candidate content."""
-    return tuple(dict.fromkeys(use.evidence_id for use in candidate.evidence_uses))
+    """Keep declared book-corpus evidence handles; session lines have no ID."""
+    return tuple(
+        dict.fromkeys(
+            use.evidence_id
+            for use in candidate.evidence_uses
+            if use.source_kind == "book_corpus"
+        )
+    )
+
+
+def _released_user_lines(history: list[ModelMessage]) -> tuple[str, ...]:
+    """Return released user-authored Line text from this session, never Muse replies."""
+    return tuple(
+        part.content
+        for message in history
+        if isinstance(message, ModelRequest)
+        for part in message.parts
+        if isinstance(part, UserPromptPart) and isinstance(part.content, str)
+    )
+
+
+def _verified_session_lines(
+    evidence_uses: tuple[EvidenceUse, ...],
+    released_user_lines: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Resolve each declared session-line quote as an exact substring of one line.
+
+    `released_user_lines` carries prior released turns plus the current turn's
+    own user message, so a same-turn echo verifies without laundering anything.
+    """
+    verified: dict[str, None] = {}
+    for declared in evidence_uses:
+        if declared.source_kind != "session_line":
+            continue
+        if any(declared.quote in line for line in released_user_lines):
+            verified.setdefault(declared.quote, None)
+    return tuple(verified)
 
 
 def _nomination(candidate: MuseCandidate) -> CaptureNomination:
     """Report Muse's actual nomination without serializing candidate text."""
     return "candidate" if isinstance(candidate.memory, MemoryCandidate) else "no_candidate"
+
+
+def decline_text(
+    failure_stage: FailureStage | None,
+    finding_codes: tuple[RiskCode, ...],
+) -> str:
+    """Pick the one fixed, application-authored decline for a blocked turn."""
+    if failure_stage is not None:
+        return PIPELINE_FAILURE_DECLINE
+    if set(finding_codes) == {"spoiler"}:
+        return SPOILER_DECLINE
+    return SAFE_DECLINE
 
 
 def _safe_decline(
@@ -159,7 +226,7 @@ def _safe_decline(
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = (),
 ) -> ReflectionRelease:
     return ReflectionRelease(
-        reply=SAFE_DECLINE,
+        reply=decline_text(failure_stage, finding_codes),
         release_source="application_safe_decline",
         provenance_verdicts=verdicts,
         revision_count=revision_count,
@@ -239,7 +306,7 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
         for message in messages
         for part in message.parts
         if isinstance(part, ToolCallPart)
-        and part.tool_name in {"librarian_search", "serendipity_explore"}
+        and part.tool_name in {"librarian_search", "librarian_route", "serendipity_explore"}
     }
     return [
         {
@@ -251,8 +318,63 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
         for message in messages
         for part in message.parts
         if isinstance(part, ToolReturnPart)
-        and part.tool_name in {"librarian_search", "serendipity_explore"}
+        and part.tool_name in {"librarian_search", "librarian_route", "serendipity_explore"}
     ]
+
+
+def _routing_responses(
+    tool_results: list[dict[str, object]],
+) -> list[RoutedWork | ClarificationRequest | NoMatch]:
+    """Validate every `librarian_route` payload once for the checks below."""
+    responses: list[RoutedWork | ClarificationRequest | NoMatch] = []
+    for result in tool_results:
+        if result["tool_name"] != "librarian_route":
+            continue
+        try:
+            responses.append(
+                LIBRARIAN_ROUTING_RESPONSE_ADAPTER.validate_python(result["content"])
+            )
+        except Exception:
+            raise ReleaseValidationError(
+                "Librarian routing returned an invalid response"
+            ) from None
+    return responses
+
+
+def _required_clarification(
+    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+) -> str | None:
+    """Return the exact question Librarian issued via `librarian_route`, if any.
+
+    Clarifications now originate only from the tool flow: Librarian judged the
+    reader's request as book-dependent but could not resolve a spoiler
+    boundary, and returned a question for Muse to relay verbatim. Any
+    clarification among possibly several `librarian_route` calls this turn
+    binds the gate — the first one found, not the last.
+    """
+    for response in routing_responses:
+        if isinstance(response, ClarificationRequest):
+            return response.question
+    return None
+
+
+def _routed_release_scope(
+    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+) -> ReleaseScope | None:
+    """Derive a trusted release scope from a routed work, if Librarian found one.
+
+    This grants the same application-side authority `_infer_request_boundary`
+    used to grant under `boundary_source="librarian_inferred"`: Librarian's
+    own private, validated inference — never Muse's text — sets the ceiling.
+    """
+    for response in routing_responses:
+        if isinstance(response, RoutedWork):
+            return ReleaseScope(
+                work_id=response.work_id,
+                book_version_id=response.book_version_id,
+                chapter_max=response.max_chapter_inclusive,
+            )
+    return None
 
 
 def _librarian_grounding(
@@ -270,7 +392,7 @@ def _librarian_grounding(
             "response": result["content"],
         }
         for result in tool_results
-        if result["tool_name"] == "librarian_search"
+        if result["tool_name"] in ("librarian_search", "librarian_route")
     )
 
 
@@ -407,12 +529,13 @@ def _validate_release(
     release_scope: ReleaseScope | None,
     previously_released_evidence_ids: frozenset[str],
     required_clarification: str | None = None,
+    released_user_lines: tuple[str, ...] = (),
 ) -> None:
-    """Validate declared book citations after semantic approval."""
+    """Validate declared book and session-line citations after semantic approval."""
     if required_clarification is not None and (
         candidate.reply != required_clarification
         or candidate.evidence_uses
-        or tool_results
+        or any(result["tool_name"] != "librarian_route" for result in tool_results)
     ):
         raise ReleaseValidationError(
             "An unresolved spoiler boundary requires the exact clarification only"
@@ -423,6 +546,12 @@ def _validate_release(
         previously_released_evidence_ids,
     )
     for declared in candidate.evidence_uses:
+        if declared.source_kind == "session_line":
+            if not any(
+                declared.quote in line for line in released_user_lines
+            ):
+                raise ReleaseValidationError("Candidate cites an unresolved session line")
+            continue
         if declared.source_kind != "book_corpus":
             raise ReleaseValidationError("Candidate uses an unsupported evidence source")
         record = evidence.get(declared.evidence_id)
@@ -463,19 +592,63 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
         raise ReleaseValidationError("Provenance context is invalid") from None
 
 
+def _effective_review_context(
+    review_context: Mapping[str, object],
+    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+) -> Mapping[str, object]:
+    """Extend Provenance's trusted context with a same-turn routed boundary.
+
+    A reader-confirmed boundary already present in `review_context` always
+    wins — a routed inferred ceiling never widens or replaces it, matching
+    `_routed_release_scope`'s own priority. Only when no reading context was
+    resolved before Muse ran does a `RoutedWork` result grant Provenance the
+    same authority the deterministic release gate already trusts; Muse's own
+    text is never a source for this.
+    """
+    if not review_context or review_context.get("reading_context") is not None:
+        return review_context
+    routed = next(
+        (response for response in routing_responses if isinstance(response, RoutedWork)),
+        None,
+    )
+    if routed is None:
+        return review_context
+    policy = dict(review_context.get("policy_constraints") or {})
+    policy["spoiler_ceiling"] = routed.max_chapter_inclusive
+    policy["allow_retrieval"] = True
+    return {
+        **review_context,
+        "policy_constraints": policy,
+        "reading_context": {
+            "work_id": routed.work_id,
+            "chapter_max": routed.max_chapter_inclusive,
+            "boundary_source": "librarian_inferred",
+        },
+    }
+
+
 def _provenance_input(
     candidate: MuseCandidate,
     review_context: Mapping[str, object],
     tool_results: list[dict[str, object]],
     capture_source_text: str,
+    released_user_lines: tuple[str, ...],
 ) -> ProvenanceInput:
     """Build the sole typed envelope for one Provenance review."""
+    # librarian_route only identifies a work and boundary; it carries no book
+    # evidence or connection proposal for Provenance to inspect.
+    grounding_results = [
+        result for result in tool_results if result["tool_name"] != "librarian_route"
+    ]
     try:
         return ProvenanceInput.model_validate(
             {
                 "context": _provenance_context(review_context),
                 "canonical_book_evidence": tuple(turn_evidence().values()),
-                "untrusted_tool_outcomes": tool_results,
+                "canonical_session_lines": _verified_session_lines(
+                    candidate.evidence_uses, released_user_lines
+                ),
+                "untrusted_tool_outcomes": grounding_results,
                 "candidate": CandidateUnderReview(
                     response=candidate.reply,
                     evidence_uses=candidate.evidence_uses,
@@ -496,12 +669,14 @@ async def _review(
     review_context: Mapping[str, object],
     tool_results: list[dict[str, object]],
     capture_source_text: str,
+    released_user_lines: tuple[str, ...],
 ) -> ProvenanceReview:
     review_input = _provenance_input(
         candidate,
         review_context,
         tool_results,
         capture_source_text,
+        released_user_lines,
     )
     payload = json.dumps(
         review_input.model_dump(mode="json"),
@@ -680,6 +855,13 @@ async def _reflection_reply(
     span: Any,
 ) -> ReflectionRelease:
     """The release flow, with the parent span threaded through for attributes."""
+    # A session_line declaration may verify against wording released in an
+    # earlier turn, or against the current turn's own message: Provenance
+    # already receives that text as `current_line`, so verifying it here
+    # launders nothing and avoids declining an innocent same-turn echo.
+    released_user_lines = _released_user_lines(history) + (
+        (capture_source_text,) if capture_source_text else ()
+    )
     try:
         draft_input = MuseDraftInput.model_validate_json(message)
     except Exception:
@@ -718,6 +900,7 @@ async def _reflection_reply(
     try:
         candidate = _candidate(draft_result.output)
         draft_tool_results = _tool_results(draft_result)
+        draft_routing = _routing_responses(draft_tool_results)
     except Exception:
         return _record_release(
             span,
@@ -727,14 +910,20 @@ async def _reflection_reply(
                 failure_retryable=False,
             ),
         )
+    # A routed work grants the same application-side release authority
+    # `_infer_request_boundary` used to grant; an application-confirmed scope
+    # (an explicit reader declaration) always takes priority over it.
+    draft_release_scope = release_scope or _routed_release_scope(draft_routing)
+    draft_review_context = _effective_review_context(review_context, draft_routing)
     draft_nomination = _nomination(candidate)
     try:
         review = await _review(
             candidate,
             provenance,
-            review_context,
+            draft_review_context,
             draft_tool_results,
             capture_source_text,
+            released_user_lines,
         )
     except ReleaseValidationError:
         return _record_release(
@@ -778,7 +967,7 @@ async def _reflection_reply(
         capture_source_text=capture_source_text,
         source_event_id=source_event_id,
         tool_results=draft_tool_results,
-        release_scope=release_scope,
+        release_scope=draft_release_scope,
         previously_released_evidence_ids=previously_released_evidence_ids,
     )
 
@@ -787,9 +976,10 @@ async def _reflection_reply(
             _validate_release(
                 candidate,
                 draft_tool_results,
-                release_scope,
+                draft_release_scope,
                 previously_released_evidence_ids,
-                draft_input.context_resolution.clarification_question,
+                _required_clarification(draft_routing),
+                released_user_lines,
             )
         except ReleaseValidationError:
             return _record_release(
@@ -906,6 +1096,7 @@ async def _reflection_reply(
     try:
         revised_candidate = _candidate(revision_result.output)
         revised_tool_results = draft_tool_results + _tool_results(revision_result)
+        revised_routing = _routing_responses(revised_tool_results)
     except Exception:
         return _record_release(
             span,
@@ -926,15 +1117,18 @@ async def _reflection_reply(
             ),
         )
 
+    revised_release_scope = release_scope or _routed_release_scope(revised_routing)
+    revised_review_context = _effective_review_context(review_context, revised_routing)
     revised_nomination = _nomination(revised_candidate)
 
     try:
         revised_review = await _review(
             revised_candidate,
             provenance,
-            review_context,
+            revised_review_context,
             revised_tool_results,
             capture_source_text,
+            released_user_lines,
         )
     except ReleaseValidationError:
         return _record_release(
@@ -991,7 +1185,7 @@ async def _reflection_reply(
         capture_source_text=capture_source_text,
         source_event_id=source_event_id,
         tool_results=revised_tool_results,
-        release_scope=release_scope,
+        release_scope=revised_release_scope,
         previously_released_evidence_ids=previously_released_evidence_ids,
     )
 
@@ -1000,9 +1194,10 @@ async def _reflection_reply(
             _validate_release(
                 revised_candidate,
                 revised_tool_results,
-                release_scope,
+                revised_release_scope,
                 previously_released_evidence_ids,
-                draft_input.context_resolution.clarification_question,
+                _required_clarification(revised_routing),
+                released_user_lines,
             )
         except ReleaseValidationError:
             return _record_release(

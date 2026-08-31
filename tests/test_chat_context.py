@@ -10,7 +10,6 @@ from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException
 
 from apps.backend.config import get_settings
-from apps.backend.contracts import EvidenceBundle
 
 get_settings.cache_clear()
 with patch.dict(
@@ -23,60 +22,16 @@ with patch.dict(
     from apps.backend import chat_turn, main, sessions
     from apps.backend.schemas import ChatRequest
 
-from src.linger.contracts.librarian import (
-    BoundaryCandidate,
-    BoundarySupportLocation,
-    BoundaryUncertain,
-    EvidenceRecord,
-)
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
-from src.linger.contracts.reading import ReadingBoundary
-from src.linger.orchestration.grounding import _grounding_evidence, build_request
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.orchestration.turn_context import confirmed_reading, turn_evidence
-from src.linger.services.memory import (
-    AccountContext,
-    AutomaticMemoryCandidate,
-    MemoryPolicyService,
-)
+from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 
 EVIDENCE_ID = "pg11-v01b38ea4-ch05-ln0974-0975"
 PRIVATE_PASSAGE = "PRIVATE_REHYDRATED_PASSAGE_46f2"
-
-
-def inferred_boundary() -> BoundaryCandidate:
-    return BoundaryCandidate(
-        kind="candidate",
-        work_id="pg11",
-        book_version_id="pg11-v01b38ea4",
-        max_chapter_inclusive=5,
-        confidence=0.92,
-        authorization_basis="memory_supported",
-        supporting_memory_ids=("memory-boundary",),
-        supporting_locations=(
-            BoundarySupportLocation(
-                evidence_id=EVIDENCE_ID,
-                chapter_number=5,
-                location="Chapter 5, lines 974-975",
-            ),
-        ),
-    )
-
-
-def uncertain_boundary() -> BoundaryUncertain:
-    return BoundaryUncertain(
-        kind="uncertain",
-        work_id="pg11",
-        book_version_id="pg11-v01b38ea4",
-        reason_code="insufficient_context",
-        confidence=0.2,
-        clarification_question=(
-            "What is the latest chapter or scene in Alice's Adventures in Wonderland "
-            "that you have completed?"
-        ),
-    )
 
 
 def evidence_record() -> EvidenceRecord:
@@ -140,14 +95,8 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
         )
 
-        inference = AsyncMock(return_value=inferred_boundary())
-        with (
-            patch.object(chat_turn, "infer_spoiler_boundary", inference),
-            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
-        ):
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
             await self.call_chat(request)
-
-        inference.assert_not_awaited()
 
         self.assertEqual(
             ConfirmedReading(work_id="pg11", chapter_max=3),
@@ -178,7 +127,11 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(seen["value"])
         self.assertIsNone(seen["release_scope"])
 
-    async def test_uncertain_inference_exposes_no_retrieval_scope(self) -> None:
+    async def test_uncertain_message_exposes_no_retrieval_scope(self) -> None:
+        # Librarian routing no longer runs pre-Muse: a catalog-cue message with
+        # no explicit reader confirmation resolves to "unknown" here. Whether
+        # Muse asks Librarian at all is now its own tool decision, covered by
+        # tests/test_librarian_routing.py.
         seen: dict[str, object] = {}
 
         async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
@@ -188,198 +141,12 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         request = ChatRequest(session_id=self.session_id, message="Why is the Caterpillar so rude?")
 
-        with (
-            patch.object(
-                chat_turn,
-                "infer_spoiler_boundary",
-                AsyncMock(return_value=uncertain_boundary()),
-            ),
-            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
-        ):
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
             await self.call_chat(request)
 
         self.assertIsNone(seen["value"])
         self.assertIsNone(seen["release_scope"])
         self.assertIsNone(sessions.book_selection(self.session_id))
-
-    async def test_validated_inference_exposes_only_chapter_five_scope(self) -> None:
-        seen: dict[str, object] = {}
-
-        async def fake_reflection_reply(*args, **kwargs) -> ReflectionRelease:
-            seen["reading"] = confirmed_reading()
-            seen["release_scope"] = kwargs["release_scope"]
-            seen["muse_input"] = json.loads(args[0])
-            return released()
-
-        request = ChatRequest(
-            session_id=self.session_id,
-            message="Why does Alice keep struggling to explain who she is?",
-        )
-        with (
-            patch.object(
-                chat_turn,
-                "infer_spoiler_boundary",
-                AsyncMock(return_value=inferred_boundary()),
-            ),
-            patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)),
-        ):
-            response = await self.call_chat(request)
-
-        self.assertEqual(5, seen["reading"].chapter_max)  # type: ignore[union-attr]
-        self.assertEqual(5, seen["release_scope"].chapter_max)  # type: ignore[union-attr]
-        context = seen["muse_input"]["context_resolution"]  # type: ignore[index]
-        self.assertEqual("librarian_inferred", context["boundary_source"])
-        self.assertEqual(0.92, context["boundary_confidence"])
-        self.assertNotIn(PRIVATE_PASSAGE, response.model_dump_json())
-
-    async def test_second_search_is_clamped_to_inferred_chapter_five(self) -> None:
-        searched = []
-
-        class CapturingLibrarian:
-            @staticmethod
-            def supports_revision(work_id: str, version_id: str) -> bool:
-                return (work_id, version_id) == ("pg11", "pg11-v01b38ea4")
-
-            @staticmethod
-            def retrieve(request):
-                searched.append(request)
-                return EvidenceBundle(items=[], retrieval_note="bounded")
-
-        async def fake_reflection_reply(*_args, **_kwargs) -> ReflectionRelease:
-            response = await _grounding_evidence(
-                build_request(
-                    "Why does Alice keep struggling to explain who she is?",
-                    "pg11",
-                    "pg11-v01b38ea4",
-                    ReadingBoundary(chapter_number=12, chapter_state="completed"),
-                ),
-                librarian=CapturingLibrarian(),  # type: ignore[arg-type]
-            )
-            self.assertEqual(5, response.searched_scope.max_chapter_inclusive)  # type: ignore[union-attr]
-            return released()
-
-        with (
-            patch.object(
-                chat_turn,
-                "infer_spoiler_boundary",
-                AsyncMock(return_value=inferred_boundary()),
-            ),
-            patch.object(chat_turn, "reflection_reply", side_effect=fake_reflection_reply),
-        ):
-            await self.call_chat(
-                ChatRequest(
-                    session_id=self.session_id,
-                    message="Why does Alice keep struggling to explain who she is?",
-                )
-            )
-
-        self.assertEqual(1, len(searched))
-        self.assertEqual(5, searched[0].book_scopes[0].chapter_max)
-
-    async def test_boundary_inference_reads_only_the_trusted_account(self) -> None:
-        other = AccountContext("other-account")
-        for context, text in (
-            (self.account, "Alice and the Caterpillar made me think about identity."),
-            (other, "PRIVATE_OTHER_ACCOUNT_MEMORY"),
-        ):
-            self.service.set_capture_enabled(context, True)
-            self.service.save_automatic(
-                context,
-                AutomaticMemoryCandidate(
-                    text=text,
-                    source_event_id=f"event-{context.account_id}",
-                    review_allows_capture=True,
-                    contains_sensitive_content=False,
-                ),
-            )
-
-        resolution = chat_turn.resolve_reading_context(
-            ChatRequest(
-                session_id=self.session_id,
-                message="Why does Alice keep struggling to explain who she is?",
-            )
-        )
-
-        async def capture_memories(*_args, **kwargs):
-            texts = {memory.text for memory in kwargs["memories"]}
-            self.assertEqual(
-                {"Alice and the Caterpillar made me think about identity."},
-                texts,
-            )
-            return uncertain_boundary()
-
-        with patch.object(chat_turn, "infer_spoiler_boundary", side_effect=capture_memories):
-            await chat_turn._infer_request_boundary(
-                ChatRequest(
-                    session_id=self.session_id,
-                    message="Why does Alice keep struggling to explain who she is?",
-                ),
-                resolution,
-                self.service,
-                self.account,
-            )
-
-    async def test_personal_alice_memory_does_not_start_book_inference(self) -> None:
-        self.service.set_capture_enabled(self.account, True)
-        self.service.save_automatic(
-            self.account,
-            AutomaticMemoryCandidate(
-                text="My friend Alice is stressed about work.",
-                source_event_id="event-personal-alice",
-                review_allows_capture=True,
-                contains_sensitive_content=False,
-            ),
-        )
-        request = ChatRequest(
-            session_id=self.session_id,
-            message="My friend Alice is stressed again today.",
-        )
-        resolution = chat_turn.resolve_reading_context(request)
-        inference = AsyncMock(return_value=inferred_boundary())
-
-        with patch.object(chat_turn, "infer_spoiler_boundary", inference):
-            result = await chat_turn._infer_request_boundary(
-                request,
-                resolution,
-                self.service,
-                self.account,
-            )
-
-        inference.assert_not_awaited()
-        self.assertEqual("unknown", result.status)
-        self.assertIsNone(result.work_id)
-
-    async def test_generic_overlap_does_not_activate_a_book_memory(self) -> None:
-        self.service.set_capture_enabled(self.account, True)
-        self.service.save_automatic(
-            self.account,
-            AutomaticMemoryCandidate(
-                text=(
-                    "Alice and the Caterpillar's questions about identity stayed "
-                    "with me."
-                ),
-                source_event_id="event-book-memory",
-                review_allows_capture=True,
-                contains_sensitive_content=False,
-            ),
-        )
-        request = ChatRequest(
-            session_id=self.session_id,
-            message="Sketching by hand helps me slow down and think clearly.",
-        )
-        resolution = chat_turn.resolve_reading_context(request)
-        inference = AsyncMock(return_value=inferred_boundary())
-
-        with patch.object(chat_turn, "infer_spoiler_boundary", inference):
-            result = await chat_turn._infer_request_boundary(
-                request,
-                resolution,
-                self.service,
-                self.account,
-            )
-
-        inference.assert_not_awaited()
-        self.assertEqual("unknown", result.status)
 
     async def test_var_reset_after_successful_turn(self) -> None:
         request = ChatRequest(

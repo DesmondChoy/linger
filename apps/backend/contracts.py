@@ -32,11 +32,6 @@ class ContextResolution(StrictModel):
     boundary_confidence: float | None = Field(default=None, ge=0, le=1)
     boundary_supporting_memory_ids: tuple[str, ...] = ()
     boundary_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
-    candidate_chapter: int | None = Field(default=None, ge=1)
-    candidate_authorization_basis: Literal["memory_supported", "line_only"] | None = None
-    candidate_confidence: float | None = Field(default=None, ge=0, le=1)
-    candidate_supporting_memory_ids: tuple[str, ...] = ()
-    candidate_supporting_locations: tuple[BoundarySupportLocation, ...] = ()
     clarification_question: str | None = None
     explanation: str
 
@@ -74,34 +69,6 @@ class ContextResolution(StrictModel):
             or self.boundary_supporting_locations
         ):
             raise ValueError("only confirmed boundaries carry authorization metadata")
-        if self.candidate_chapter is None:
-            if (
-                self.candidate_authorization_basis is not None
-                or self.candidate_confidence is not None
-                or self.candidate_supporting_memory_ids
-                or self.candidate_supporting_locations
-            ):
-                raise ValueError("candidate metadata requires a candidate chapter")
-        elif (
-            self.status != "inferred"
-            or self.candidate_authorization_basis is None
-            or self.candidate_confidence is None
-            or not self.candidate_supporting_locations
-            or self.clarification_question is None
-        ):
-            raise ValueError(
-                "uncertain candidate requires basis, confidence, support, and clarification"
-            )
-        elif (
-            self.candidate_authorization_basis == "memory_supported"
-            and not self.candidate_supporting_memory_ids
-        ):
-            raise ValueError("memory-supported candidate requires supporting memories")
-        elif (
-            self.candidate_authorization_basis == "line_only"
-            and self.candidate_supporting_memory_ids
-        ):
-            raise ValueError("line-only candidate cannot cite supporting memories")
         return self
 
 

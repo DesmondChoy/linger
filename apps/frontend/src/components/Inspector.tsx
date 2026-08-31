@@ -39,9 +39,7 @@ function boundarySummary(turn: ChatResult) {
       : `${resolution.work_title ?? resolution.work_id} confirmed; book retrieval is off, while reflection and other permitted connections remain available.`
   }
   if (resolution.status === 'inferred') {
-    return resolution.candidate_chapter
-      ? `Possible ${resolution.candidate_authorization_basis === 'line_only' ? 'Line-only' : 'memory-supported'} ceiling: ${resolution.work_title}, Chapter ${resolution.candidate_chapter} — clarification required.`
-      : `Possible book: ${resolution.work_title}; spoiler boundary not validated.`
+    return `Possible book: ${resolution.work_title}; spoiler boundary not validated.`
   }
   return 'No book context; reflection and permitted public-web connections remain available.'
 }

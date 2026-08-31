@@ -294,8 +294,11 @@ spoiler boundary anew for each book-related request.
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
 finding codes. This record never stores passage text or reading progress.
-Only identifiers from successfully released Muse replies may be re-resolved on
-a later turn, and session reset removes these handles with the conversation.
+Only a turn released as a Muse candidate enters the conversational message
+history itself; an emotional-boundary or safe-decline turn keeps only its
+content-free record. Only identifiers from successfully released Muse replies
+may be re-resolved on a later turn, and session reset removes these handles
+with the conversation.
 
 ### 5.2 Memory record
 
@@ -402,12 +405,12 @@ untrusted internal material; Provenance reviews the later complete Muse draft.
 
 ### 6.1 Spoilers
 
-For each book-related request, application code first generates possible works
+When Muse decides a request depends on a book, it asks Librarian to route it
 from metadata. Exact supported titles, stable aliases, an active session
 selection, and canonical evidence references are strong signals. Common
 character, location, and catalogue words are weak candidates only: they cannot
 select a work or expose a memory by themselves. Multiple plausible works fail
-closed with a focused book clarification.
+closed as no match, and Muse keeps reflecting without consulting Librarian.
 
 Librarian then performs boundary inference. The complete immutable selected
 work is its search scope: Librarian cross-references all chapters against the
@@ -430,25 +433,54 @@ request. This separation lets evaluation compare Librarian's inferred ceiling
 with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
-The current implementation has both phases for the Alice corpus. Metadata-only
-routing separates weak work candidates from strong work selection. Librarian
-then receives the current Line and at most eight account-scoped memories backed
-by canonical book evidence or strong independent routing context, searches the
-complete immutable revision, and returns a typed candidate ceiling, evidence
-basis, confidence, supporting memory IDs, and content-free locations. Full-work
-candidate passage text remains private to this phase and is never copied into
-Muse, Inspect, the turn evidence ledger, or the release scope.
+The current implementation has both phases for the Alice corpus. Muse, not the
+application, decides whether a request depends on a specific book, and calls
+an argument-less `librarian_route` tool only then — never for an incidental
+word inside otherwise personal reflection. The application supplies the exact
+current reader message; Muse cannot substitute its own text. Metadata-only
+routing scores each catalogue candidate: an explicit title mention or a
+de-hyphenated work-id match is confidence `1.0`; otherwise confidence is
+`0.3 + 0.2 × overlap` over distinct matched catalog-cue *terms* (character,
+location, or retrieval-cue words; a two-word cue contributes 2), capped at
+`1.0`. Below a `0.6` threshold, or a full-evidence tie between two candidates,
+routing returns no match and Muse keeps reflecting without consulting
+Librarian. Separately, metadata-only work-candidate generation labels each
+candidate weak or strong for memory-backed boundary authorization, so a
+common catalogue word can never back a ceiling or expose a memory on its own.
+
+A routed work then enters boundary inference: Librarian receives the current
+Line and at most eight account-scoped memories that independently route to
+that work, searches the complete immutable revision, and returns a typed
+candidate ceiling, evidence basis, confidence, supporting memory IDs, and
+content-free supporting locations. Full-work candidate passage text remains
+private to this phase and is never copied into Muse, Inspect, the turn
+evidence ledger, or the release scope.
 
 Application code validates the returned work, version, memory identifiers,
 evidence identifiers, authorization basis, and candidate chapter. A Line-only
-candidate, confidence below the provisional `0.75` threshold, conflicting
-context, missing support, unreadable memory storage, retrieval failure, or an
-invalid model decision produces one fixed clarification and no evidence search.
-A validated memory-supported candidate creates only a request-scoped ceiling;
-it is not persisted as reading progress. Muse may then request the second
-search, which the application clamps to that ceiling before any passage becomes
-releasable evidence. Explicit reader confirmation remains authoritative and
-skips inference for that request.
+candidate, confidence below `0.75`, conflicting context, missing support,
+retrieval failure, or an invalid model decision produces one fixed
+clarification and no evidence search. Unreadable account-scoped memory storage
+no longer fails closed into a clarification: the application swallows the
+storage error and binds an empty memory set, and boundary inference proceeds
+with no memories available to it — which, because a ceiling must be
+memory-supported, can then only end in clarification. A validated
+memory-supported candidate creates only a request-scoped ceiling; it is not
+persisted as reading progress. Muse may then request the second search, which
+the application clamps to that ceiling before any passage becomes releasable
+evidence. Explicit reader confirmation remains authoritative and skips
+inference for that request, and a routed inferred ceiling never widens or
+replaces a boundary the reader already confirmed this turn.
+
+An unresolved routing or boundary clarification returns a typed
+`ClarificationRequest` from the tool call itself. The deterministic release
+gate binds on that exact question from the tool payload: the released reply
+must match it verbatim, carry no evidence declarations, and accompany no other
+tool call in the same turn — Librarian or Serendipity alike. A routed work
+also derives Provenance's
+review context after Muse runs, not before — a `RoutedWork` result grants the
+same reading-context and policy authority the application would otherwise
+have supplied only when no boundary was already resolved.
 
 ### 6.2 Citations and attribution
 
@@ -546,7 +578,7 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; a session-continuity runner is implemented and registered as a supported replay path; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -658,6 +690,21 @@ captures and exercise proposal, bound Provenance review, deterministic policy,
 all supported curation actions, audit verification, restoration, immutable
 sources, and the curated retrieval projection. Test verdicts do not adopt or
 rewrite synthetic Ground truth.
+
+A session-continuity runner replays `session_scoped_conversation_continuity`
+packages through the same production chat boundary. It accepts Lines only,
+runs each Scene in one persisted session so the Scene's ordered Lines build
+real conversation history, and leaves automatic capture disabled throughout.
+Scene roles come from the pairing topology: the multi-Line continuity Scene and
+the single-Line fresh comparison Scene that repeats its final Line. The
+Ground-truth grade binds only to the proposal-backed session boundary — the
+comparison Scene's session began clean — and a continuity Scene reports
+`not_applicable` rather than any grade, because the adopted key contains no
+typed continuity claim. Session-contract deviations are reported separately as
+structural findings and never change that grade. Whether a reply adopted the
+reader's correction, and whether a comparison reply leaked prior-session
+content, remain review judgments. This runner is registered in the Objective
+catalog as a supported replay path.
 
 The replay also records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool

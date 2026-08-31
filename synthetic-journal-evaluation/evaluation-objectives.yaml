@@ -95,6 +95,7 @@ developer_workflow:
     supported_replay_objectives:
       - reviewed_automatic_memory_capture
       - bounded_memory_curation
+      - session_scoped_conversation_continuity
     run_configuration_directory: synthetic-journal-evaluation/run-configurations
     report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true

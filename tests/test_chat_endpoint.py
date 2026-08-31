@@ -15,7 +15,6 @@ from fastapi.testclient import TestClient
 from logfire.testing import TestExporter
 
 from apps.backend.config import get_settings
-from src.linger.contracts.librarian import BoundarySupportLocation, BoundaryUncertain
 
 get_settings.cache_clear()
 with patch.dict(
@@ -268,7 +267,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             if trace["agent"] == "Librarian"
         )
         self.assertEqual("complete", librarian_trace["status"])
-        self.assertIn("librarian_search directly", librarian_trace["detail"])
+        self.assertIn("Librarian directly", librarian_trace["detail"])
 
     async def test_direct_grounding_failure_is_not_reported_complete(self) -> None:
         grounding_call = {
@@ -428,7 +427,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancellation_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="Why does the Cheshire Cat keep disappearing?",
+            message="I am reading Animal Farm and I have finished Chapter 2.",
         )
         entered = asyncio.Event()
         blocker = asyncio.Event()
@@ -437,36 +436,11 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await blocker.wait()
 
-        with (
-            patch.object(
-                chat_turn,
-                "infer_spoiler_boundary",
-                AsyncMock(
-                    return_value=BoundaryUncertain(
-                        kind="uncertain",
-                        work_id="pg11",
-                        book_version_id="pg11-v01b38ea4",
-                        reason_code="low_confidence",
-                        confidence=0.6,
-                        authorization_basis="memory_supported",
-                        supporting_memory_ids=("memory-boundary",),
-                        candidate_chapter=5,
-                        supporting_locations=(
-                            BoundarySupportLocation(
-                                evidence_id="pg11-v01b38ea4-ch05-ln0974-0975",
-                                chapter_number=5,
-                                location="Chapter 5, lines 974-975",
-                            ),
-                        ),
-                        clarification_question="What chapter have you completed?",
-                    )
-                ),
-            ),
-            patch.object(chat_turn, "reflection_reply", cancelled_gate),
-        ):
+        with patch.object(chat_turn, "reflection_reply", cancelled_gate):
             task = asyncio.create_task(self.call_chat(request))
             await asyncio.wait_for(entered.wait(), timeout=1)
-            self.assertIsNotNone(sessions.reading_candidate(self.session_id))
+            # resolve_reading_context already confirmed the chapter synchronously.
+            self.assertIsNotNone(sessions.book_selection(self.session_id))
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await task

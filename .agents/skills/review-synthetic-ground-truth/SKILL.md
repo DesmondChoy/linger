@@ -60,6 +60,11 @@ explains the provider-backed side effect.
 - For exactly `bounded_memory_curation`, run
   `evals.synthetic_journals.curation_replay` with `--adoption` and a fresh
   temporary output path.
+- For exactly `session_scoped_conversation_continuity`, run
+  `evals.synthetic_journals.continuity_replay` with `--adoption` and a fresh
+  temporary output path. The runner grades only the session boundary; correction
+  adoption and fresh-session leakage wording remain human reviewer judgments
+  read from the durable run artifact.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.
 
