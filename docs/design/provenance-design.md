@@ -16,7 +16,7 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **A1 is the next unblocked item.**
+what happened. **A3 is the next unblocked item** (A1 done).
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -104,6 +104,7 @@ table above is its direct measurement.
       member gating automatic capture, spec §6.5 lists it as its own release
       condition, and it is the primary 4.2.3 code. Its apparent vagueness was the
       fixture defect above.
+
 **Open, deliberately not being pushed further:**
 
 - [-] **S0.10 — Code-point offset arithmetic. BLOCKED on a contract decision.**
@@ -125,18 +126,28 @@ table above is its direct measurement.
 
 **A. Close the runtime gap (blocks the synthetic package, not Stage 0)**
 
-- [ ] **A1 — Reflection replay runner.** Add `evals/synthetic_journals/reflection_replay.py`,
+- [x] **A1 — Grounding ground-truth expectations.**
+      [`evals/reflection/harness.py`](../../evals/reflection/harness.py) defines
+      `GroundingExpectation`, added as an optional `grounding` field on
+      `GroundTruthProposal` beside `capture` and `curation`. Placed with the flow
+      it grades, following `CurationExpectation` in
+      [`evals/sculptor/harness.py`](../../evals/sculptor/harness.py), rather than
+      growing a fourth inline expectation in the package models.
+      The expected release is a **discriminated union** — `grounded_release`
+      (permitted evidence IDs + chapter ceiling), `ungrounded_release`,
+      `clarification_release`, `safe_decline` — so `retrieval_required`,
+      `release_source`, and `permitted_evidence_ids` are all *derived* rather
+      than separately assertable. A Scene cannot claim no retrieval while naming
+      permitted evidence. A cross-field validator additionally requires every
+      permitted evidence ID to be declared by the proposal's own `evidence`.
+      → [13 tests](../../tests/test_reflection_expectations.py); all three
+      existing packages still validate unchanged.
+- [ ] **A2 — Reflection replay runner.** Add `evals/synthetic_journals/reflection_replay.py`,
       modelled on [`replay.py`](../../evals/synthetic_journals/replay.py), accepting
       `grounded_book_reflection`, `spoiler_boundary_clarification`, and
       `weak_evidence_safe_decline`. Must place Props before the Scene (unlike
       capture replay, which rejects Props at [`replay.py:468`](../../evals/synthetic_journals/replay.py#L468)),
       send each Line in a fresh session, and record `TurnInspection`.
-- [ ] **A2 — Grounding ground-truth expectations.** Extend
-      [`models.py`](../../evals/synthetic_journals/models.py) with a discriminated
-      `GroundingExpectation` on `GroundTruthProposal` — sibling to `capture` and
-      `curation` — carrying expected `release_source`, whether retrieval was
-      required, the permitted evidence IDs, the expected chapter ceiling, and
-      forbidden post-boundary facts.
 - [ ] **A3 — Validator coverage.** Teach
       [`validate_package.py`](../../evals/synthetic_journals/validate_package.py)
       the three objectives, the way it already special-cases
@@ -151,10 +162,14 @@ table above is its direct measurement.
       field. Citation precision and post-boundary retrieval count are currently
       only derivable by parsing `librarian_grounding` payloads. Add a
       content-free `released_evidence_ids` + `resolved_chapter_max`.
-- [ ] **B2 — Confirm boundary-inference observability.** Verify that the
-      inferred ceiling and its `boundary_source` reach inspection, not just
-      `context_resolution`. `spoiler_boundary_clarification` grading needs the
-      inferred ceiling as a first-class field.
+- [ ] **B2 — Regression-test boundary observability.** *(Corrected: this was
+      written as missing plumbing; it is already present.)*
+      [`ContextResolution`](../../apps/backend/contracts.py#L19) already carries
+      `chapter_max`, `boundary_source`, `boundary_confidence`, and
+      `boundary_supporting_locations`, and already reaches `TurnInspection.
+      context_resolution`. `spoiler_boundary_clarification` can therefore grade
+      the inferred ceiling today. Remaining work is a test pinning those fields
+      so a future refactor cannot quietly drop them — no new code.
 
 **C. Author and run the package**
 
@@ -383,7 +398,8 @@ deterministic hard gates only:
 - Retrieval occurred / did not occur (`librarian_grounding` non-empty), matching
   the Scene's `retrieval_required` expectation.
 - Every released evidence ID ∈ the proposal's permitted set (needs B1).
-- Resolved ceiling equals the ground-truth ceiling (needs B2).
+- Resolved ceiling equals the ground-truth ceiling (available today via
+  `context_resolution.chapter_max`; B2 only pins it with a test).
 - `post_boundary_retrieval_count == 0`.
 - No `finding_codes` on a Scene expected to pass cleanly.
 
@@ -766,10 +782,11 @@ so D5 should wait on it.
 
 ## 6. Design decisions to confirm
 
-1. **Ceiling as first-class ground truth.** The catalog treats Librarian's
-   inferred ceiling as the graded artefact, but §6.1 keeps boundary inference
-   inside Librarian. Grading requires the ceiling to surface through inspection
-   without exposing post-boundary content to Muse — B2 must not become a
+1. **Ceiling as first-class ground truth — resolved.** The catalog treats
+   Librarian's inferred ceiling as the graded artefact, and §6.1 keeps boundary
+   inference inside Librarian. `ContextResolution` already reconciles the two: it
+   exposes the ceiling, its source, confidence, and content-free supporting
+   locations, without carrying post-boundary story text. Grading needs no new
    disclosure path.
 2. **Package split.** Keeping `weak_evidence_safe_decline` out of the first
    package avoids dragging Serendipity's fail-closed web path into a 4.2.1
