@@ -16,7 +16,7 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **B2 is the next unblocked item** (A1, A3, B1 done).
+what happened. **A2 (the runner) is the next item** — A1, A3, B1, B2 done.
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -181,14 +181,21 @@ table above is its direct measurement.
       `context_resolution.chapter_max` already carries it, see B2.)*
       → 2 tests in [`test_chat_endpoint.py`](../../tests/test_chat_endpoint.py),
       plus the existing exact-field-set assertion updated.
-- [ ] **B2 — Regression-test boundary observability.** *(Corrected: this was
-      written as missing plumbing; it is already present.)*
-      [`ContextResolution`](../../apps/backend/contracts.py#L19) already carries
+- [x] **B2 — Regression-test boundary observability.** *(Corrected earlier: this
+      was written as missing plumbing; it was already present.)*
+      [`ContextResolution`](../../apps/backend/contracts.py#L19) carries
       `chapter_max`, `boundary_source`, `boundary_confidence`, and
-      `boundary_supporting_locations`, and already reaches `TurnInspection.
-      context_resolution`. `spoiler_boundary_clarification` can therefore grade
-      the inferred ceiling today. Remaining work is a test pinning those fields
-      so a future refactor cannot quietly drop them — no new code.
+      `boundary_supporting_locations`, and reaches
+      `TurnInspection.context_resolution`, so
+      `spoiler_boundary_clarification` can grade the inferred ceiling today.
+      **No production code changed.**
+      [6 tests](../../tests/test_boundary_observability.py) pin the graded field
+      set, distinguish `librarian_inferred` from `reader_confirmed`, cover the
+      unresolved-clarification shape, and assert supporting locations stay
+      content-free (evidence ID, chapter number, location — never story text),
+      so locating a ceiling cannot become a post-boundary disclosure channel.
+      Verified by deleting `boundary_source` from the contract and watching all
+      six fail.
 
 **C. Author and run the package**
 
