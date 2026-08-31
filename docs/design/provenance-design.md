@@ -16,7 +16,7 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **A2 (the runner) is the next item** — A1, A3, B1, B2 done.
+what happened. **Phase A/B is complete** — C1 (run the skill) is next.
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -142,12 +142,29 @@ table above is its direct measurement.
       permitted evidence ID to be declared by the proposal's own `evidence`.
       → [13 tests](../../tests/test_reflection_expectations.py); all three
       existing packages still validate unchanged.
-- [ ] **A2 — Reflection replay runner.** Add `evals/synthetic_journals/reflection_replay.py`,
-      modelled on [`replay.py`](../../evals/synthetic_journals/replay.py), accepting
-      `grounded_book_reflection`, `spoiler_boundary_clarification`, and
-      `weak_evidence_safe_decline`. Must place Props before the Scene (unlike
-      capture replay, which rejects Props at [`replay.py:468`](../../evals/synthetic_journals/replay.py#L468)),
-      send each Line in a fresh session, and record `TurnInspection`.
+- [x] **A2 — Reflection replay runner.**
+      [`reflection_replay.py`](../../evals/synthetic_journals/reflection_replay.py)
+      accepts the three retrieval-family Objectives, reusing `replay.py`'s
+      Pydantic-Evals structure, prompt fingerprints, system variant, chat
+      handler, and adoption flow rather than restating them.
+      **Props are placed through the production `MemoryPolicyService`**
+      (`save_automatic`, the only public write) before a Scene's Lines run, so
+      boundary inference reads them exactly as it reads real memories. Capture is
+      re-disabled immediately, keeping a Prop pre-existing state rather than a
+      Scene outcome. A Scene may send an ordered sequence of Lines in one
+      session, not just a single Line.
+      **Each Scene gets its own account** (`…:<scene_id>`) so no Scene inherits
+      another's Props — §7.2.1 grades a Scene as a unit with its designated
+      Props. A post-Scene check asserts stored memory still equals exactly the
+      declared Props, catching an unexpected write.
+      Grading is `grade_scene`, six deterministic `GateFailure` codes:
+      `release_source_mismatch`, `unexpected_retrieval`, `missing_retrieval`,
+      `unpermitted_evidence`, `ceiling_mismatch`, `forbidden_fact_disclosed`.
+      The release path is judged on the **final** turn, so a clarification may
+      precede the graded release.
+      → [14 tests](../../tests/test_synthetic_reflection_replay.py) driving the
+      runner end to end with a fake chat handler — no provider needed. The CLI
+      fails closed on an Objective it cannot grade.
 - [x] **A3 — Validator coverage.**
       `_validate_reflection_grounding` in
       [`validate_package.py`](../../evals/synthetic_journals/validate_package.py)
