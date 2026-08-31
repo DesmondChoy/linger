@@ -16,7 +16,7 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **B1 is the next unblocked item** (A1, A3 done).
+what happened. **B2 is the next unblocked item** (A1, A3, B1 done).
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -166,11 +166,21 @@ table above is its direct measurement.
 
 **B. Make the flow observable enough to grade**
 
-- [ ] **B1 — Expose released evidence IDs in inspection.** `ReleaseInspection`
-      ([`schemas.py:37`](../../apps/backend/schemas.py#L37)) has no evidence
-      field. Citation precision and post-boundary retrieval count are currently
-      only derivable by parsing `librarian_grounding` payloads. Add a
-      content-free `released_evidence_ids` + `resolved_chapter_max`.
+- [x] **B1 — Expose released evidence IDs in inspection.** Added content-free
+      `released_evidence_ids` to `ReleaseInspection`
+      ([`schemas.py`](../../apps/backend/schemas.py)), populated in
+      [`main.py`](../../apps/backend/main.py) from the existing
+      `ReflectionRelease.evidence_ids`, and mirrored in the frontend
+      [`types.ts`](../../apps/frontend/src/types.ts) (`tsc --noEmit` clean).
+      **Gated on `release_source == "muse_candidate"`**: a rejected draft still
+      declares evidence, so copying the field unconditionally would report
+      citations for a reply that was never released — the same rule
+      `sessions.released_evidence_ids` already applies. Verified by removing the
+      gate and watching the leak test fail.
+      *(Scope note: `resolved_chapter_max` was dropped as duplication —
+      `context_resolution.chapter_max` already carries it, see B2.)*
+      → 2 tests in [`test_chat_endpoint.py`](../../tests/test_chat_endpoint.py),
+      plus the existing exact-field-set assertion updated.
 - [ ] **B2 — Regression-test boundary observability.** *(Corrected: this was
       written as missing plumbing; it is already present.)*
       [`ContextResolution`](../../apps/backend/contracts.py#L19) already carries

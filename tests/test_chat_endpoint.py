@@ -480,6 +480,41 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             review_context["policy_constraints"],
         )
 
+    async def test_released_citations_reach_inspection(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            evidence_ids=("ev-1", "ev-2"),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(
+            ("ev-1", "ev-2"), response.inspection.release.released_evidence_ids
+        )
+
+    async def test_rejected_draft_citations_never_reach_inspection(self) -> None:
+        """A blocked candidate still declares evidence; it was never released."""
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply=SAFE_DECLINE,
+            release_source="application_safe_decline",
+            provenance_verdicts=("reject",),
+            finding_codes=("spoiler",),
+            evidence_ids=("ev-rejected",),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual((), response.inspection.release.released_evidence_ids)
+        self.assertNotIn("ev-rejected", response.model_dump_json())
+
     async def test_safe_decline_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
@@ -589,12 +624,15 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 "boundary_origin",
                 "provenance_verdicts",
                 "finding_codes",
+                "released_evidence_ids",
                 "revision_count",
                 "failure_stage",
                 "capture",
             },
             set(response.inspection.release.model_dump()),
         )
+        # A safe decline released no reply, so it cites nothing.
+        self.assertEqual((), response.inspection.release.released_evidence_ids)
         self.assertNotIn(secret_quote, payload)
         self.assertNotIn(secret_explanation, payload)
         self.assertNotIn('"critiques"', payload)

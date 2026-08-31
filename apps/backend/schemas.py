@@ -47,6 +47,9 @@ class ReleaseInspection(BaseModel):
     boundary_origin: Literal["preflight", "candidate_review"] | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...]
     finding_codes: tuple[RiskCode, ...]
+    # Content-free handles for the evidence the released reply actually cited.
+    # Empty whenever nothing was released or the reply made no book claim.
+    released_evidence_ids: tuple[str, ...] = ()
     revision_count: int = Field(ge=0, le=1)
     failure_stage: Literal[
         "emotional_boundary_preflight",
