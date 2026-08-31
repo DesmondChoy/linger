@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import sys
 from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
 
+from evals.reflection.harness import GroundedRelease
 from evals.sculptor.harness import ExpectedCurationProposal, REQUIRED_BEHAVIORS
 from evals.synthetic_journals.models import (
     CaptureCandidate,
@@ -29,6 +31,15 @@ DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
     REPOSITORY_ROOT / "synthetic-journal-evaluation" / "run-configurations"
 )
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
+
+# Objectives whose Scenes are graded by the reflection-and-grounding runner.
+REFLECTION_OBJECTIVE_IDS = frozenset(
+    {
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification",
+        "weak_evidence_safe_decline",
+    }
+)
 
 
 class PackageValidationError(ValueError):
@@ -183,6 +194,9 @@ def validate_package(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
     failures.extend(
+        _validate_reflection_grounding(backstory, ground_truth, repository_root)
+    )
+    failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)
     )
     if failures:
@@ -315,6 +329,121 @@ def _validate_bounded_curation(
         failures.append(
             "bounded curation package must contain exactly one Scene for each "
             "accepted Sculptor behavior"
+        )
+    return failures
+
+
+def _corpus_chapter_counts(repository_root: Path) -> dict[str, int]:
+    """Read each shipped work's chapter count for deterministic ceiling checks."""
+    counts: dict[str, int] = {}
+    for catalog in (repository_root / "data" / "corpus").glob("*/*/catalog.json"):
+        try:
+            document = json.loads(catalog.read_text(encoding="utf-8"))
+            counts[str(document["book_version_id"])] = int(document["chapter_count"])
+        except (OSError, ValueError, KeyError):
+            continue
+    return counts
+
+
+def _validate_reflection_grounding(
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+    repository_root: Path,
+) -> list[str]:
+    """Check grounding Ground truth facts that resolve without judging Linger."""
+    failures: list[str] = []
+    reflection_scenes = [
+        scene
+        for scene in backstory.scenes
+        if REFLECTION_OBJECTIVE_IDS & set(scene.objective_ids)
+    ]
+    proposals = {
+        (proposal.scene_id, proposal.objective_id): proposal
+        for proposal in ground_truth.proposals
+    }
+
+    for proposal in ground_truth.proposals:
+        if (
+            proposal.objective_id not in REFLECTION_OBJECTIVE_IDS
+            and proposal.grounding is not None
+        ):
+            failures.append(
+                f"proposal {proposal.proposal_id} has grounding Ground truth for "
+                f"Objective {proposal.objective_id}"
+            )
+
+    if not reflection_scenes:
+        return failures
+
+    chapter_counts = _corpus_chapter_counts(repository_root)
+    for scene in reflection_scenes:
+        for objective_id in REFLECTION_OBJECTIVE_IDS & set(scene.objective_ids):
+            proposal = proposals.get((scene.scene_id, objective_id))
+            if proposal is None:  # Covered by the general proposal topology check.
+                continue
+            if proposal.grounding is None:
+                failures.append(
+                    f"reflection proposal {proposal.proposal_id} lacks typed "
+                    "grounding Ground truth"
+                )
+                continue
+
+            if not scene.line_ids:
+                failures.append(
+                    f"reflection Scene {scene.scene_id} requires at least one Line"
+                )
+            if scene.offline_input_ids:
+                failures.append(
+                    f"reflection Scene {scene.scene_id} cannot use offline inputs"
+                )
+            if proposal.capture is not None or proposal.curation is not None:
+                failures.append(
+                    f"reflection proposal {proposal.proposal_id} cannot contain "
+                    "capture or curation Ground truth"
+                )
+
+            expected = proposal.grounding.expected
+            if not isinstance(expected, GroundedRelease):
+                if proposal.evidence:
+                    failures.append(
+                        f"reflection proposal {proposal.proposal_id} declares "
+                        "evidence but expects no grounded release"
+                    )
+                continue
+
+            failures.extend(
+                _validate_permitted_evidence(proposal, expected, chapter_counts)
+            )
+
+    return failures
+
+
+def _validate_permitted_evidence(
+    proposal: GroundTruthProposal,
+    expected: GroundedRelease,
+    chapter_counts: dict[str, int],
+) -> list[str]:
+    """Check that permitted citations are corpus-backed and within the ceiling."""
+    failures: list[str] = []
+    permitted = set(expected.permitted_evidence_ids)
+    non_repository = sorted(
+        evidence.evidence_id
+        for evidence in proposal.evidence
+        if evidence.evidence_id in permitted
+        and not isinstance(evidence, RepositoryTextEvidence)
+    )
+    if non_repository:
+        failures.append(
+            f"reflection proposal {proposal.proposal_id} permits non-corpus "
+            f"evidence: {non_repository}"
+        )
+
+    # A ceiling is impossible only when no shipped work is long enough for it.
+    if chapter_counts and expected.chapter_max > max(chapter_counts.values()):
+        failures.append(
+            f"reflection proposal {proposal.proposal_id} expects chapter_max "
+            f"{expected.chapter_max} beyond every shipped work "
+            f"(longest is {max(chapter_counts.values())} chapters)"
         )
     return failures
 

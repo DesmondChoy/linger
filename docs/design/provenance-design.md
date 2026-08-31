@@ -16,7 +16,7 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **A3 is the next unblocked item** (A1 done).
+what happened. **B1 is the next unblocked item** (A1, A3 done).
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -148,12 +148,21 @@ table above is its direct measurement.
       `weak_evidence_safe_decline`. Must place Props before the Scene (unlike
       capture replay, which rejects Props at [`replay.py:468`](../../evals/synthetic_journals/replay.py#L468)),
       send each Line in a fresh session, and record `TurnInspection`.
-- [ ] **A3 — Validator coverage.** Teach
+- [x] **A3 — Validator coverage.**
+      `_validate_reflection_grounding` in
       [`validate_package.py`](../../evals/synthetic_journals/validate_package.py)
-      the three objectives, the way it already special-cases
-      `bounded_memory_curation` at line 201. Deterministic checks only:
-      `RepositoryTextEvidence` SHA-256 against `data/corpus/`, span bounds,
-      pairing fields, ceiling ≤ corpus chapter count.
+      covers the three objectives, following the `_validate_bounded_curation`
+      pattern. Deterministic checks only — no behavioural judgment:
+      a reflection Scene carries typed grounding Ground truth, has at least one
+      Line and no offline inputs, and carries no capture or curation labels;
+      permitted citations must be `RepositoryTextEvidence` (a Prop cannot
+      authorise a released book citation); `chapter_max` must not exceed the
+      longest shipped work; and a non-grounded Scene cannot declare evidence.
+      Grounding on a non-reflection Objective is rejected, mirroring the existing
+      curation rule. Existing `RepositoryTextEvidence` SHA-256 and span checks
+      already applied and were left untouched.
+      → [8 tests](../../tests/test_synthetic_reflection_package.py); all three
+      existing packages still validate through the CLI.
 
 **B. Make the flow observable enough to grade**
 
