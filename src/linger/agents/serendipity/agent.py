@@ -1,6 +1,7 @@
 """Search-and-rank Serendipity agent over bounded Librarian and Exa tools."""
 
 from pydantic_ai import Agent, ModelRetry, RunContext, Tool
+from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.models import Model
 
 from src.linger.agents.build import build_model
@@ -13,7 +14,16 @@ from src.linger.agents.serendipity.prompt import INSTRUCTIONS
 from src.linger.agents.serendipity.tools import (
     SerendipityDependencies,
     search_librarian,
+    search_memories,
 )
+
+
+def _prepare_memory_search(
+    ctx: RunContext[SerendipityDependencies],
+    definition: ToolDefinition,
+) -> ToolDefinition | None:
+    """Expose memory search only when application code granted active records."""
+    return definition if "memory" in ctx.deps.task.scope.allowed_sources else None
 
 
 def validate_serendipity_output(
@@ -59,7 +69,10 @@ def build_serendipity_agent(
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline],
         instructions=INSTRUCTIONS,
-        tools=[Tool(search_librarian, max_retries=1)],
+        tools=[
+            Tool(search_librarian, max_retries=1),
+            Tool(search_memories, max_retries=1, prepare=_prepare_memory_search),
+        ],
         retries=2,
     )
     agent.output_validator(validate_serendipity_output)

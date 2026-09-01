@@ -31,8 +31,10 @@ from src.linger.agents.serendipity.tools import (
     SearchTrace,
     SerendipityDependencies,
     search_librarian,
+    search_memories,
 )
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.services.memory import MemoryRecord
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
@@ -168,9 +170,14 @@ class SerendipityContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "book-corpus access"):
             ConnectionScope(allowed_sources=("book_corpus",))
 
-    def test_authorised_memory_cannot_be_granted_in_this_slice(self) -> None:
+    def test_unknown_authorised_memory_alias_is_rejected(self) -> None:
         with self.assertRaises(ValidationError):
             ConnectionScope(allowed_sources=("authorised_memory",))
+
+    def test_active_memory_source_can_be_granted(self) -> None:
+        scope = ConnectionScope(allowed_sources=("memory",))
+
+        self.assertEqual(("memory",), scope.allowed_sources)
 
     def test_proposal_exposes_the_rank_one_candidate_as_its_winner(self) -> None:
         result = proposal()
@@ -254,6 +261,7 @@ class WebReachPolicyTests(unittest.TestCase):
         settings = Settings(
             linger_model="google:gemini-2.5-flash",
             exa_api_key=SecretStr("test-exa-key"),
+            linger_web_search_enabled=False,
         )
 
         with patch(
@@ -546,6 +554,50 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("book_corpus", deps.searches[0].source)
         self.assertEqual("retrieval_unavailable", deps.searches[0].outcome)
 
+    def test_memory_search_returns_only_matching_authorized_records(self) -> None:
+        active_task = task(allowed_sources=("memory",))
+        memories = (
+            MemoryRecord(
+                memory_id="memory-alice",
+                account_key="account",
+                text="I noticed that repeated change made identity feel unstable.",
+                capture_type="automatic",
+                source_event_id="turn-1",
+                idempotency_key="key-1",
+                evidence_ids=(),
+                created_at="2026-09-01T00:00:00Z",
+                updated_at="2026-09-01T00:00:00Z",
+            ),
+            MemoryRecord(
+                memory_id="memory-birds",
+                account_key="account",
+                text="I enjoy watching shorebirds in the morning.",
+                capture_type="automatic",
+                source_event_id="turn-2",
+                idempotency_key="key-2",
+                evidence_ids=(),
+                created_at="2026-09-01T00:00:00Z",
+                updated_at="2026-09-01T00:00:00Z",
+            ),
+        )
+        deps = SerendipityDependencies(
+            task=active_task,
+            librarian=Librarian(),
+            memories=memories,
+        )
+
+        result = search_memories(
+            SimpleNamespace(deps=deps),
+            query="identity change",
+        )
+
+        self.assertEqual("evidence_found", result.outcome)
+        self.assertEqual(
+            ("memory-alice",),
+            tuple(item.evidence_id for item in result.evidence),
+        )
+        self.assertEqual("search_memories", deps.searches[0].operation)
+
     async def test_failed_exa_search_records_a_content_free_handoff(self) -> None:
         class FailingExaClient:
             async def search(self, *_args, **_kwargs):
@@ -767,7 +819,11 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
                     response=decision,
                     evidence=(item("chapter-4", 4), item("chapter-5", 5)),
                     searches=(
-                        SearchTrace(source="book_corpus", outcome="evidence_found"),
+                        SearchTrace(
+                            source="book_corpus",
+                            outcome="evidence_found",
+                            operation="search_librarian",
+                        ),
                     ),
                 )
 
@@ -827,6 +883,7 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
                         SearchTrace(
                             source="book_corpus",
                             outcome="evidence_found",
+                            operation="search_librarian",
                         ),
                     ),
                 )
@@ -890,6 +947,7 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
                         SearchTrace(
                             source="book_corpus",
                             outcome="evidence_found",
+                            operation="search_librarian",
                         ),
                     ),
                 )

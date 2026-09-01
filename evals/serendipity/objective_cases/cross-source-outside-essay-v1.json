@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "case_id": "cross-source-outside-essay-v1",
+  "objective_id": "cross_source_tentative_connection",
+  "messages": [
+    "I have finished Chapter 5 of Alice's Adventures in Wonderland. The Caterpillar's calm questioning makes Alice's confusion feel like a test. Connect it to an outside essay or philosophical source."
+  ],
+  "expected_release_source": "muse_candidate"
+}

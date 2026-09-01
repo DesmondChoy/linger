@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "case_id": "serendipity-supported-memory-v2",
+  "owner": "serendipity",
+  "primary_behavior": "supported_memory_connection",
+  "description": "A current reflection can reconnect to an authorised reader memory without any book context.",
+  "input": {
+    "request_id": "eval-supported-memory",
+    "cue": "I rushed to fill the silence again today, even though I wanted the group to think together.",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": ["authorised_memory"],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+      {
+        "source_kind": "authorised_memory",
+        "evidence_id": "memory-certainty-process",
+        "excerpt": "When I feel rushed, I use certainty to replace process. I want to return to that before the next high-stakes review, not because it is a permanent truth about me, but because it is a pattern I can actually test.",
+        "capture_type": "explicit",
+        "recorded_at": "2026-02-10T22:32:00Z"
+      }
+  ],
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": ["memory-certainty-process"],
+    "presentation": "ask_before_showing",
+    "minimum_shortlist_size": 2,
+    "selected_rank": 1,
+    "semantic_review": {
+      "criteria": [
+        "Connects the current urge to fill silence with the earlier certainty-as-process reflection",
+        "Preserves the difference between one current incident and a previously observed pattern",
+        "Does not diagnose the reader or turn the memory into a fixed trait"
+      ],
+      "forbidden_claims": [
+        "The reader always controls conversations",
+        "The pattern proves a personality disorder"
+      ]
+    }
+  },
+  "invariants": {
+    "no_storage_authority": true,
+    "no_release_authority": true,
+    "run_evidence_only": true,
+    "search_before_proposal": true,
+    "shortlist_compared": true
+  }
+}

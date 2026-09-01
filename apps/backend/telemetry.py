@@ -89,6 +89,36 @@ def configure_synthetic_evaluation_telemetry(agents: Sequence[Any]) -> None:
         )
 
 
+def configure_component_evaluation_telemetry(agent: Any) -> None:
+    """Enable content-bearing tracing for one explicit synthetic component run."""
+
+    name = getattr(agent, "name", None)
+    if name not in EVALUATION_AGENT_NAMES:
+        raise ValueError("component evaluation requires a named Linger agent")
+    token = get_settings().logfire_token
+    logfire.configure(
+        token=token.get_secret_value() if token else None,
+        send_to_logfire="if-token-present",
+        service_name=EVALUATION_SERVICE_NAME,
+        environment="synthetic-component-evaluation",
+        resource_attributes={
+            "content.classification": "synthetic",
+            "linger.telemetry.mode": "synthetic_component_evaluation",
+            "linger.evaluation.component": name,
+        },
+        console=False,
+        inspect_arguments=False,
+        distributed_tracing=False,
+    )
+    logfire.instrument_pydantic_ai(
+        agent,
+        include_content=True,
+        include_binary_content=False,
+        include_model_request_parameters=False,
+        version=5,
+    )
+
+
 def set_span_attrs(span: Any, attributes: Mapping[str, object | None]) -> None:
     """Set only populated attributes on a Logfire span."""
     for name, value in attributes.items():

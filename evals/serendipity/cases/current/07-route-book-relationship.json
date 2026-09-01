@@ -1,0 +1,65 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-route-book-relationship-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_book_relationship_to_librarian",
+  "contrast_group": "source-routing",
+  "description": "A relationship inside the current book starts with Librarian even when web access is also granted.",
+  "input": {
+    "cue": "How does Alice's uncertainty here relate to her earlier changes in size?",
+    "intent": "find_connection",
+    "presentation": "direct",
+    "scope": {
+      "allowed_sources": ["book_corpus", "web"],
+      "book_scopes": [{
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_max": 5
+      }]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "route-book-alice-ch4",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [916, 924],
+      "excerpt": "Alice has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "route-book-alice-ch5",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [968, 982],
+      "excerpt": "Alice says she hardly knows who she is because she has changed several times.",
+      "relevance": 0.98
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": ["search_librarian"],
+    "required_operations": ["search_librarian"],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": ["route-book-alice-ch4", "route-book-alice-ch5"],
+    "presentation": "direct",
+    "semantic_review": {
+      "criteria": ["Uses both bounded book passages", "Relates physical change to uncertainty about identity"],
+      "forbidden_claims": ["Claims evidence from outside the granted book scope"]
+    }
+  }
+}

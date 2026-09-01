@@ -22,9 +22,12 @@ from src.linger.agents.serendipity.models import (
     ConnectionDiscoveryInput,
     ConnectionEvidence,
     InternalSearchResult,
+    MemoryConnectionEvidence,
+    MemorySearchResult,
     SearchSourceKind,
     WebConnectionEvidence,
 )
+from src.linger.services.memory import MemoryRecord
 
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
@@ -57,6 +60,7 @@ class SearchTrace:
 
     source: SearchSourceKind
     outcome: str
+    operation: str
 
 
 @dataclass
@@ -65,6 +69,7 @@ class SerendipityDependencies:
 
     task: ConnectionDiscoveryInput
     librarian: Librarian
+    memories: tuple[MemoryRecord, ...] = ()
     evidence: dict[str, ConnectionEvidence] = field(default_factory=dict)
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
@@ -72,6 +77,7 @@ class SerendipityDependencies:
     def record(
         self,
         source: SearchSourceKind,
+        operation: str,
         outcome: str,
         evidence: tuple[ConnectionEvidence, ...],
     ) -> None:
@@ -80,15 +86,52 @@ class SerendipityDependencies:
             if existing is not None and existing != item:
                 raise ValueError("a run evidence ID resolved to conflicting records")
             self.evidence[item.evidence_id] = item
-        self.searches.append(SearchTrace(source=source, outcome=outcome))
+        self.searches.append(
+            SearchTrace(source=source, operation=operation, outcome=outcome)
+        )
 
     def record_search(
         self,
         source: SearchSourceKind,
+        operation: str,
         outcome: str,
     ) -> None:
         """Record a search that does not itself yield citable evidence."""
-        self.searches.append(SearchTrace(source=source, outcome=outcome))
+        self.searches.append(
+            SearchTrace(source=source, operation=operation, outcome=outcome)
+        )
+
+
+def search_memories(
+    ctx: RunContext[SerendipityDependencies],
+    query: str,
+    max_results_per_source: int = MAX_RESULTS_PER_SOURCE,
+) -> MemorySearchResult:
+    """Search only active memories supplied by the authenticated application."""
+    if not query.strip():
+        raise ModelRetry("Memory search requires a non-empty query.")
+    if "memory" not in ctx.deps.task.scope.allowed_sources:
+        raise ModelRetry("Memory search was not granted for this request.")
+    query_terms = set(_normalised_tokens(query))
+    ranked = sorted(
+        (
+            (len(query_terms & set(_normalised_tokens(record.text))), record)
+            for record in ctx.deps.memories
+        ),
+        key=lambda item: (-item[0], item[1].memory_id),
+    )
+    limit = max(1, min(max_results_per_source, MAX_RESULTS_PER_SOURCE))
+    evidence = tuple(
+        MemoryConnectionEvidence(
+            evidence_id=record.memory_id,
+            excerpt=record.text,
+        )
+        for overlap, record in ranked[:limit]
+        if overlap > 0
+    )
+    outcome = "evidence_found" if evidence else "no_evidence"
+    ctx.deps.record("memory", "search_memories", outcome, evidence)
+    return MemorySearchResult(outcome=outcome, evidence=evidence)
 
 
 def search_librarian(
@@ -123,6 +166,7 @@ def search_librarian(
     except Exception:
         ctx.deps.record_search(
             "book_corpus",
+            "search_librarian",
             "retrieval_unavailable",
         )
         return InternalSearchResult(
@@ -132,6 +176,7 @@ def search_librarian(
     book_items: tuple[EvidenceItem, ...] = tuple(bundle.items)
     ctx.deps.record(
         "book_corpus",
+        "search_librarian",
         "evidence_found" if book_items else "no_evidence",
         book_items,
     )
@@ -163,6 +208,9 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                 )
             if _query_contains_private_data(query) or _query_copies_reader_terms(
                 query, ctx.deps.task.cue
+            ) or any(
+                _query_copies_reader_terms(query, record.text)
+                for record in ctx.deps.memories
             ):
                 raise ModelRetry(
                     "Rewrite the web query using only a general, non-identifying "
@@ -181,6 +229,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
         except Exception:
             ctx.deps.record_search(
                 "web",
+                name,
                 "retrieval_unavailable",
             )
             raise
@@ -221,6 +270,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
             # Serendipity actually opened enters the citable ledger.
             ctx.deps.record(
                 "web",
+                name,
                 outcome,
                 web_evidence,
             )
@@ -228,6 +278,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
             ctx.deps.web_leads.update(item.evidence_id for item in web_evidence)
             ctx.deps.record_search(
                 "web",
+                name,
                 outcome,
             )
         return result

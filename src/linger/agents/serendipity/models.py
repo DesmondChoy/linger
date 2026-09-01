@@ -12,7 +12,7 @@ from src.linger.agents.contracts import StrictModel
 
 ConnectionIntent = Literal["find_connection", "get_recommendation"]
 PresentationMode = Literal["direct", "ask_before_showing"]
-SearchSourceKind = Literal["book_corpus", "web"]
+SearchSourceKind = Literal["memory", "book_corpus", "web"]
 DeclineReason = Literal[
     "no_permitted_evidence",
     "insufficient_evidence",
@@ -78,8 +78,17 @@ class WebConnectionEvidence(StrictModel):
     trust_level: Literal["external"] = "external"
 
 
+class MemoryConnectionEvidence(StrictModel):
+    """One active record authorized by the account-scoped memory service."""
+
+    source_kind: Literal["memory"] = "memory"
+    evidence_id: str = Field(min_length=1, max_length=200)
+    excerpt: str = Field(min_length=1, max_length=8_000)
+    trust_level: Literal["account_scoped"] = "account_scoped"
+
+
 ConnectionEvidence = Annotated[
-    EvidenceItem | WebConnectionEvidence,
+    EvidenceItem | MemoryConnectionEvidence | WebConnectionEvidence,
     Field(discriminator="source_kind"),
 ]
 
@@ -96,6 +105,21 @@ class InternalSearchResult(StrictModel):
             raise ValueError("evidence_found requires evidence")
         if self.outcome != "evidence_found" and self.evidence:
             raise ValueError(f"{self.outcome} cannot include evidence")
+        return self
+
+
+class MemorySearchResult(StrictModel):
+    """Eligible active memories returned by one bounded account-scoped search."""
+
+    outcome: Literal["evidence_found", "no_evidence"]
+    evidence: tuple[MemoryConnectionEvidence, ...] = ()
+
+    @model_validator(mode="after")
+    def outcome_matches_evidence(self) -> Self:
+        if self.outcome == "evidence_found" and not self.evidence:
+            raise ValueError("evidence_found requires evidence")
+        if self.outcome == "no_evidence" and self.evidence:
+            raise ValueError("no_evidence cannot include evidence")
         return self
 
 

@@ -26,8 +26,6 @@ _EMPTY_EVIDENCE: Mapping[str, EvidenceRecord] = MappingProxyType({})
 _turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
     contextvars.ContextVar("turn_evidence", default=None)
 )
-
-
 def set_confirmed_reading(value: ConfirmedReading | None) -> contextvars.Token:
     """Bind a fresh, single-slot cell as this turn's confirmed reading.
 
