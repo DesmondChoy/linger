@@ -8,7 +8,7 @@ missing, and how the missing part gets evaluated* through the
 [`generate-synthetic-journals`](../../.agents/skills/generate-synthetic-journals/SKILL.md)
 skill.
 
-Snapshot: 2026-08-29, branch `km-provenance-flows`.
+Snapshot: 2026-09-01, branch `km-provenance-reflection`.
 
 ---
 
@@ -16,7 +16,10 @@ Snapshot: 2026-08-29, branch `km-provenance-flows`.
 
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
-what happened. **Phase A/B is complete** — C1 (run the skill) is next.
+what happened. **Stage 0, Phase A/B, and C1–C4 are complete.** The first
+end-to-end replay exposed an observability gap (D7, fixed) and an evidence-ID
+namespace mismatch that was scoring correct behaviour as failure (D10, fixed).
+**C5 repeats the cycle for `spoiler_boundary_clarification`.**
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -216,14 +219,31 @@ table above is its direct measurement.
 
 **C. Author and run the package**
 
-- [ ] **C1 — Run the skill** for the three retrieval-family objectives, producing
-      one timestamped `pre-generation-report.md`. The report will now mark Scenes
-      *partially runnable* until A1–A3 land; that is the expected honest state.
-- [ ] **C2 — Generate + validate** `backstory.json` / `ground-truth.json` for a
-      corpus-backed Backstory over `data/corpus/alice-in-wonderland`.
-- [ ] **C3 — Adopt Ground truth** via
-      [`review-synthetic-ground-truth`](../../.agents/skills/review-synthetic-ground-truth/SKILL.md).
-- [ ] **C4 — Replay and report** the adopted package; record hard-gate grades.
+- [x] **C1 — Run the skill** (`grounded_book_reflection`).
+      [2026-08-31 report](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/pre-generation-report.md):
+      implementation **sufficient**, both Scenes plus pairing and Prop placement
+      `runnable`, prompt labelled *Runnable after human approval*. The earlier
+      prediction of *partially runnable* is superseded — A1/A2/A3 landed first.
+      *(One Objective per selector run, so `spoiler_boundary_clarification` needs
+      its own report — see C5.)*
+- [x] **C2/C3/C4 — Package generated, adopted, and replayed.** First end-to-end
+      4.2.1 measurement through the production chat path, graded against
+      **adopted** Ground truth (`adopted_hard_gate_grade`, dataset version
+      `5fa5eb15ef10`). **1 of 2 Scenes passed.** The failure was an
+      infrastructure fault, not a release-path defect: the Provenance model call
+      returned nothing and the application correctly failed closed. Analysis in
+      [§5.13](#513-c4-first-end-to-end-replay).
+
+| Scene | Behaviour | Result | Gates |
+|---|---|---|---|
+| `scene-personal-reflection` | non-grounded | `passes_hard_gates` | none |
+| `scene-grounded-quotation` | grounded | `fails_hard_gates` | `release_source_mismatch`, `missing_retrieval` |
+
+- [ ] **C5 — Repeat C1–C4 for `spoiler_boundary_clarification`.** The selector
+      confirms one Objective per run, so it needs its own report and package.
+      It is the Objective that actually exercises Prop-driven ceiling inference,
+      so it is the one that will test A2's Prop placement and B2's ceiling
+      observability against real behaviour.
 
 **D. Remaining coverage debt (after Stage 0)**
 
@@ -235,6 +255,67 @@ table above is its direct measurement.
       mocked contract tests, per specification §8. **Blocked on S0.10:** the pack
       reaches 12/12, but the intermittent offset error fails roughly one run in
       three, which would make the job flaky.
+
+**From the C4 replay ([§5.13](#513-c4-first-end-to-end-replay)):**
+
+- [x] **D7 — Surface `failure_stage` in the replay artifact.** A provider
+      failure and a semantic rejection previously produced identical gate codes,
+      which is what produced the wrong diagnosis of the C4 run (§5.13).
+      `ReleaseInspection` now also carries `failure_type` and `failure_retryable`
+      — the application already computed both
+      ([`reflection.py:755`](../../src/linger/orchestration/reflection.py#L755)
+      classifies a failed agent call as `model` / retryable) but neither reached
+      the API. `SceneTurn` records all three, and `SceneObservation.
+      infrastructure_failure` reports whether any turn declined because an agent
+      call never ran. The CLI summary now counts them separately.
+      Replaying the C4 trace through the new contract classifies it
+      `failure_stage=provenance_review`, `failure_type=model`,
+      `infrastructure_failure=True` — the distinction that was missing.
+      **An infrastructure failure still grades as `fails_hard_gates`**, which is
+      a deliberate decision, not an oversight: being able to identify one when
+      reading results is enough at this rate, and a separate `evaluation_error`
+      outcome would add scoring complexity for a rare case.
+      → 5 tests across
+      [`test_chat_endpoint.py`](../../tests/test_chat_endpoint.py) and
+      [`test_synthetic_reflection_replay.py`](../../tests/test_synthetic_reflection_replay.py),
+      including a semantic-rejection case proving the flag does *not* fire on a
+      deterministic-validation decline.
+- [x] **D10 — Evidence-ID namespace mismatch. Harness defect, now fixed.**
+      `permitted_evidence_ids` held the package's own labels
+      (`ev-caterpillar-explain-myself`) while `released_evidence_ids` carries
+      Linger's retrieval-window IDs (`pg11-v01b38ea4-ch05-ln0960-1016`). The two
+      namespaces can never match, so `unpermitted_evidence` fired on *correct*
+      grounded reflections — 2 of 6 runs — and a pass was only reachable when the
+      comparison never ran. Same shape as S0.8: the harness was measuring itself.
+      `resolve_corpus_evidence_ids` now maps a ground-truth span to every
+      retrieval window containing its text, using production `_windows` from
+      [`hybrid_librarian.py`](../../apps/backend/hybrid_librarian.py) so the IDs
+      are derived the same way Librarian derives them. Windows overlap, so one
+      span legitimately resolves to several citable IDs; text present in no
+      window fails closed.
+      **Verified end to end:** run-5 cited chapter 5 and now passes; run-6 cited
+      chapter 4 and still fails. Before the fix both would have failed.
+      → 4 tests in
+      [`test_synthetic_reflection_replay.py`](../../tests/test_synthetic_reflection_replay.py).
+
+- [x] **D8 — Failure rate measured across 8 runs of the adopted package.**
+      Artifacts `reflection-run.json` and `reflection-run-{0..6}.json` under the
+      package directory. `scene-personal-reflection` passed in all 8.
+      `scene-grounded-quotation` split four ways:
+
+| Outcome | Count | Meaning |
+|---|:-:|---|
+| agent-call failure (`provenance_review` / `model`) | 1/8 | provider fault; correctly failed closed |
+| `unpermitted_evidence` | 3/8 | 2 were the D10 harness defect; 1 a real chapter-4 miscitation |
+| `release_source_mismatch` + `missing_retrieval` | 2/8 | declined without retrieving |
+| pass | 2/8 | correct grounded reflection |
+
+      **Agent-call failures are ~1 in 8** — real but uncommon, and not the main
+      source of variance. The dominant finding was D10, which the rate
+      measurement is what exposed: two "failures" were the harness comparing
+      incomparable ID namespaces.
+      Post-fix runs are only 2, too few for a rate; re-measure before drawing
+      conclusions about the remaining decline modes.
 
 ---
 
@@ -287,40 +368,51 @@ path.** The gaps are all in *evaluation*.
 
 ## 3. Where the gaps are
 
-### 3.1 No live-model evaluation of the candidate gate
+> **Section 3 records the gap analysis that motivated Stages 0 and A/B.**
+> §3.1–§3.3 are **closed**; each says below what closed it. §3.4–§3.6 remain
+> partly open. Kept as the record of what was found and why, not as current
+> status — the TODO above is authoritative.
 
-`evals/provenance/` evaluates only the preflight. Every candidate-gate test is
-deterministic — it constructs a `ProvenanceReview` and checks the orchestration
-reacts correctly. Nothing measures whether the *model* returns the right verdict
-when handed a real overclaiming draft. Output-gate recall, which §8 names as a
-live-model measurement, is unmeasured for 4.2.1.
+### 3.1 No live-model evaluation of the candidate gate — ✅ closed by Stage 0
 
-### 3.2 No synthetic package can replay a 4.2.1 Scene
+*Was:* `evals/provenance/` evaluated only the preflight. Every candidate-gate
+test was deterministic — constructing a `ProvenanceReview` and checking the
+orchestration reacts correctly — so nothing measured whether the *model* returns
+the right verdict on a real overclaiming draft. Output-gate recall, which §8
+names as a live-model measurement, was unmeasured for 4.2.1.
 
-This is the hard blocker. Both existing runners are objective-locked:
+*Now:* [`evals/provenance/risk_codes.py`](../../evals/provenance/risk_codes.py)
+measures all five codes live and passes 12/12. It found two production prompt
+defects in the process (§5.9, §5.10).
 
-- [`replay.py:466`](../../evals/synthetic_journals/replay.py#L466) — `"capture replay requires only reviewed_automatic_memory_capture"`, and line 468 additionally **rejects any package containing Props**.
-- [`curation_replay.py:448`](../../evals/synthetic_journals/curation_replay.py#L448) — `bounded_memory_curation` only.
+### 3.2 No synthetic package can replay a 4.2.1 Scene — ✅ closed by A2
 
-A `grounded_book_reflection` Scene needs Props (the prior-reading memory that
-lets Librarian infer a ceiling) *and* the production chat path. Neither runner
-provides both. The four existing packages under
-[`synthetic-journal-evaluation/packages/`](../../synthetic-journal-evaluation/packages/)
-are all capture or curation; the newest (2026-08-25T224606) is a
-sensitive-inference package that reached the same "runner gap only" verdict.
+*Was:* the hard blocker. Both runners were objective-locked —
+[`replay.py:466`](../../evals/synthetic_journals/replay.py#L466) accepted only
+`reviewed_automatic_memory_capture` and line 468 **rejected any package
+containing Props**, while
+[`curation_replay.py:448`](../../evals/synthetic_journals/curation_replay.py#L448)
+accepted only `bounded_memory_curation`. A `grounded_book_reflection` Scene
+needs Props *and* the production chat path; neither runner provided both.
 
-### 3.3 Ground truth cannot express a grounding expectation
+*Now:*
+[`reflection_replay.py`](../../evals/synthetic_journals/reflection_replay.py)
+accepts the three retrieval-family Objectives and places Props through the
+production `MemoryPolicyService` before each Scene.
 
-`GroundTruthProposal` carries `capture: CaptureExpectation | None` and
-`curation: CurationExpectation | None`, but no grounding analogue. The generic
-fields get close — `evidence: tuple[EvidenceReference, ...]` with
-`RepositoryTextEvidence` already binds a corpus path + SHA-256 + span, and
-`ScenePairing` already expresses the grounded/non-grounded contrast via
-`difference_fields`. What is missing is the *typed expectation*: which
-`release_source` should result, whether retrieval was required at all, and what
-the inferred ceiling should be. Without it a grader has to interpret free-text
-`expected_outcomes`, which is exactly the semantic judgment the deterministic
-validator is forbidden from making.
+### 3.3 Ground truth cannot express a grounding expectation — ✅ closed by A1
+
+*Was:* `GroundTruthProposal` carried `capture` and `curation` but no grounding
+analogue. The generic fields got close — `RepositoryTextEvidence` binds a corpus
+path + SHA-256 + span, and `ScenePairing` expresses the grounded/non-grounded
+contrast — but the *typed expectation* was missing, leaving a grader to
+interpret free-text `expected_outcomes`, exactly the semantic judgment the
+deterministic validator is forbidden from making.
+
+*Now:* `grounding: GroundingExpectation | None` sits beside `capture` and
+`curation`, with `release_source`, `retrieval_required`, and
+`permitted_evidence_ids` **derived** from a discriminated expected release
+rather than separately assertable (§A1).
 
 ### 3.4 Release inspection is content-free to a fault
 
@@ -434,32 +526,34 @@ S1/S2 pair on `line_text` differing and `prop_ids` matching; S3/S4 likewise.
 
 ### 4.3 Grading contract
 
-The runner reads `ChatResponse.inspection.release` per Scene and grades
-deterministic hard gates only:
+The runner reads `ChatResponse.inspection` per Scene and grades deterministic
+hard gates only. **Implemented** as `grade_scene`'s six `GateFailure` codes:
 
-- `release_source` matches the expected value.
-- Retrieval occurred / did not occur (`librarian_grounding` non-empty), matching
-  the Scene's `retrieval_required` expectation.
-- Every released evidence ID ∈ the proposal's permitted set (needs B1).
-- Resolved ceiling equals the ground-truth ceiling (available today via
-  `context_resolution.chapter_max`; B2 only pins it with a test).
-- `post_boundary_retrieval_count == 0`.
-- No `finding_codes` on a Scene expected to pass cleanly.
+| Gate | `GateFailure` code | Source |
+|---|---|---|
+| Release path matches | `release_source_mismatch` | `release.release_source` (final turn) |
+| Retrieval only when required | `unexpected_retrieval` / `missing_retrieval` | `inspection.librarian_grounding` |
+| Citations within the permitted set | `unpermitted_evidence` | `release.released_evidence_ids` (B1) |
+| Ceiling matches ground truth | `ceiling_mismatch` | `context_resolution.chapter_max` (B2) |
+| No post-boundary disclosure | `forbidden_fact_disclosed` | released reply text |
 
 Semantic quality (is the reflection actually useful?) stays visible and
 separately reviewable, as the curation runner already does — an adopted
 hard-gate pass does not claim semantic quality.
 
-### 4.4 What the skill will report today
+### 4.4 What the skill reported — runnable
 
-If run now, the skill's readiness assessment should mark all four Scenes
-**partially runnable**: every graded behaviour exists in production code and is
-proven by focused tests, but no runner accepts the objective and Ground truth
-cannot express the expectation. That is the same verdict the 2026-08-25T224606
-package reached — an adapter gap, not a capability gap. The skill's own rule
-covers this: *"a current implementation gap does not weaken a confirmed
-Objective"*, so the report should still carry a complete target-state generator
-prompt with explicit non-runnable preconditions.
+This section previously predicted **partially runnable** Scenes pending A1–A3.
+That prediction is superseded: with A1, A2, A3, B1, and B2 landed, the
+[2026-08-31 report](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/pre-generation-report.md)
+for `grounded_book_reflection` assesses the implementation **sufficient**, marks
+both Scenes, their pairing, and Prop placement `runnable`, and labels its
+generator prompt *Runnable after human approval*.
+
+The report was run for `grounded_book_reflection` alone rather than the pair in
+§4.1, because the selector confirms one Objective at a time.
+`spoiler_boundary_clarification` therefore still needs its own report before its
+Scenes can be authored.
 
 ## 5. Stage 0 — the risk-code eval pack
 
@@ -822,6 +916,66 @@ make.
 **S0.10 is now the only thing between this pack and a green CI gate.** At roughly
 one intermittent failure per three runs it would make a live-model CI job flaky,
 so D5 should wait on it.
+
+### 5.13 C4 first end-to-end replay
+
+Two Scenes, adopted Ground truth, dataset version `5fa5eb15ef10`, artifact at
+[`reflection-run.json`](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/reflection-run.json).
+
+| Scene | Behaviour | Result | Gates |
+|---|---|---|---|
+| `scene-personal-reflection` | non-grounded | `passes_hard_gates` | none |
+| `scene-grounded-quotation` | grounded | `fails_hard_gates` | `release_source_mismatch`, `missing_retrieval` |
+
+S2 passed cleanly: no retrieval, `release_source=muse_candidate`, Provenance
+passed first time, a useful reply inventing no book content.
+
+**S1 — what the artifact shows.** Every stage upstream of the release gate
+succeeded:
+
+| Stage | Status | Detail |
+|---|---|---|
+| `emotional_boundary_preflight` | success | 377 → 44 tokens |
+| `boundary_inference` | success | chapter 5 |
+| `muse.draft` | success | one `librarian_search`, `evidence_found` / `sufficient` |
+| `evidence_strength` | success | passage contains the requested wording |
+| `provenance.review` | **failure** | `provenance_model_failed`, `usage: null`, `model_messages: []` |
+
+The Provenance model call returned nothing — no usage, no messages, no verdict.
+`_review` raised, and the application failed closed to
+`application_safe_decline`. **That is the contract working**: a review that
+cannot complete is treated exactly as a veto (agent README, "a review that fails
+to complete is treated exactly as a veto").
+
+Retrieval and evidence were sound throughout. `canonical_book_evidence` holds
+the chapter-5 record containing *"I can't explain myself, I'm afraid, sir," said
+Alice* — precisely what the Line asked for. Muse's draft paraphrased it and
+declared the evidence use, and Librarian rated the passage `sufficient`. Had the
+review completed, this turn would likely have released or been revised.
+
+**A correction worth recording.** This section previously described a
+revision-path deadlock — two retrievals, the second returning a worse segment,
+Muse and Provenance reasoning over different evidence. That narrative came from
+a different, unsaved run and **is not what this artifact shows**: there is one
+retrieval, no revision stage, and no Provenance verdict at all. The TODO item
+written against that narrative was removed.
+
+The methodological lesson is the same one §5.11 taught with the S0.8 fixtures:
+read the stored trace before diagnosing. The gate codes
+(`release_source_mismatch` + `missing_retrieval`) are accurate but describe the
+symptom, and they look identical whether the cause is a semantic rejection or a
+provider failure — which is exactly why D7 (surface `failure_stage`) is the
+highest-value follow-up.
+
+**Scope caveat.** One run, two Scenes, one model, one infrastructure failure.
+This says nothing about how often the provider fails; D8 exists to establish
+that, and until it does, an unknown infrastructure failure rate caps how much
+any end-to-end grade can be trusted.
+
+**The harness did its job.** It produced a durable, correlated trace detailed
+enough to falsify the first diagnosis — including per-stage status, usage, and
+the exact review input. No deterministic test in the 456-test suite covers a
+live provider failure mid-gate.
 
 ## 6. Design decisions to confirm
 

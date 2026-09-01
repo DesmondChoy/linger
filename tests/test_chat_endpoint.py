@@ -497,6 +497,44 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             ("ev-1", "ev-2"), response.inspection.release.released_evidence_ids
         )
 
+    async def test_agent_call_failure_is_distinguishable_from_a_verdict(self) -> None:
+        """A provider fault and a semantic rejection both decline; only one is
+        retryable, and inspection must say which."""
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply=SAFE_DECLINE,
+            release_source="application_safe_decline",
+            failure_stage="provenance_review",
+            failure_type="model",
+            failure_retryable=True,
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        release = response.inspection.release
+        self.assertEqual("provenance_review", release.failure_stage)
+        self.assertEqual("model", release.failure_type)
+        self.assertTrue(release.failure_retryable)
+
+    async def test_a_clean_release_carries_no_failure_classification(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved.",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ))
+
+        with patch.object(main, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        release = response.inspection.release
+        self.assertIsNone(release.failure_stage)
+        self.assertIsNone(release.failure_type)
+        self.assertIsNone(release.failure_retryable)
+
     async def test_rejected_draft_citations_never_reach_inspection(self) -> None:
         """A blocked candidate still declares evidence; it was never released."""
         gate = AsyncMock(return_value=ReflectionRelease(
@@ -627,6 +665,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 "released_evidence_ids",
                 "revision_count",
                 "failure_stage",
+                "failure_type",
+                "failure_retryable",
                 "capture",
             },
             set(response.inspection.release.model_dump()),

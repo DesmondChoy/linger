@@ -20,11 +20,18 @@ from evals.reflection.harness import (
     SafeDecline,
     UngroundedRelease,
 )
-from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
+from evals.synthetic_journals.models import (
+    ProposedGroundTruth,
+    RepositoryTextEvidence,
+    SyntheticBackstory,
+)
 from evals.synthetic_journals.reflection_replay import (
+    EvidenceResolutionError,
     SceneTurn,
     grade_scene,
+    permitted_corpus_ids,
     replay_reflection_scenes,
+    resolve_corpus_evidence_ids,
 )
 
 OBJECTIVE_ID = "grounded_book_reflection"
@@ -33,6 +40,8 @@ CORPUS_CHAPTER = (
     "01-down-the-rabbit-hole.md"
 )
 QUOTE = "a book of rules for shutting people up like telescopes"
+# One of the two overlapping retrieval windows containing QUOTE.
+CITED_WINDOW_ID = "pg11-v01b38ea4-ch01-ln0165-0192"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -133,6 +142,60 @@ class GradeSceneTests(unittest.TestCase):
         """A clarification turn may precede the graded release."""
         clarifying = turn(retrieved=False, evidence_ids=(), reply="Which chapter?")
         self.assertEqual((), grade_scene(grounded(), [clarifying, turn()]))
+
+
+class EvidenceIdResolutionTests(unittest.TestCase):
+    """Ground truth locates evidence by span; a citation names a window ID."""
+
+    def _evidence(self, quote: str) -> RepositoryTextEvidence:
+        source = (REPOSITORY_ROOT / CORPUS_CHAPTER).read_text(encoding="utf-8")
+        start = source.index(quote)
+        return RepositoryTextEvidence(
+            kind="repository_text",
+            evidence_id="ev-1",
+            repository_path=CORPUS_CHAPTER,
+            source_sha256=hashlib.sha256(
+                (REPOSITORY_ROOT / CORPUS_CHAPTER).read_bytes()
+            ).hexdigest(),
+            start_codepoint=start,
+            end_codepoint=start + len(quote),
+            text=quote,
+        )
+
+    def test_a_span_resolves_to_real_retrieval_window_ids(self) -> None:
+        resolved = resolve_corpus_evidence_ids(self._evidence(QUOTE))
+
+        self.assertTrue(resolved)
+        for evidence_id in resolved:
+            self.assertRegex(evidence_id, r"^pg11-v01b38ea4-ch\d\d-ln\d{4}-\d{4}$")
+
+    def test_resolution_bridges_the_two_id_namespaces(self) -> None:
+        """The package's own ID could never match a released citation."""
+        evidence = self._evidence(QUOTE)
+        self.assertNotIn(evidence.evidence_id, resolve_corpus_evidence_ids(evidence))
+
+    def test_text_absent_from_the_chapter_fails_closed(self) -> None:
+        evidence = self._evidence(QUOTE).model_copy(
+            update={"text": "a sentence Carroll never wrote"}
+        )
+        with self.assertRaisesRegex(EvidenceResolutionError, "no retrieval window"):
+            resolve_corpus_evidence_ids(evidence)
+
+    def test_only_permitted_evidence_is_translated(self) -> None:
+        expectation = GroundingExpectation(
+            primary_behavior="grounded_reflection",
+            expected=GroundedRelease(
+                kind="grounded_release",
+                permitted_evidence_ids=("ev-1",),
+                chapter_max=6,
+            ),
+        )
+        other = self._evidence(QUOTE).model_copy(update={"evidence_id": "ev-other"})
+
+        self.assertEqual(
+            resolve_corpus_evidence_ids(self._evidence(QUOTE)),
+            permitted_corpus_ids(expectation, [self._evidence(QUOTE), other]),
+        )
 
 
 def _content_document() -> dict[str, object]:
@@ -267,6 +330,10 @@ def _response(
     evidence_ids: tuple[str, ...],
     retrieved: bool,
     chapter_max: int | None,
+    release_source: str = "muse_candidate",
+    failure_stage: str | None = None,
+    failure_type: str | None = None,
+    failure_retryable: bool | None = None,
 ) -> ChatResponse:
     return ChatResponse(
         reply=reply,
@@ -277,12 +344,14 @@ def _response(
             librarian_grounding=[{"request": {}}] if retrieved else [],
             prompt="",
             release=ReleaseInspection(
-                release_source="muse_candidate",
+                release_source=release_source,
                 provenance_verdicts=("pass",),
                 finding_codes=(),
                 released_evidence_ids=evidence_ids,
                 revision_count=0,
-                failure_stage=None,
+                failure_stage=failure_stage,
+                failure_type=failure_type,
+                failure_retryable=failure_retryable,
                 capture=CaptureInspection(
                     nomination="no_candidate",
                     provenance_decision="no_candidate",
@@ -306,7 +375,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
             grounded_scene = "hoping to find" in request.message
             return _response(
                 reply="A reply.",
-                evidence_ids=("ev-1",) if grounded_scene else (),
+                evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
                 retrieved=grounded_scene,
                 chapter_max=6 if grounded_scene else None,
             )
@@ -335,7 +404,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
             grounded_scene = "hoping to find" in request.message
             return _response(
                 reply="A reply.",
-                evidence_ids=("ev-1",) if grounded_scene else (),
+                evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
                 retrieved=grounded_scene,
                 chapter_max=6 if grounded_scene else None,
             )
@@ -354,7 +423,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
             grounded_scene = "hoping to find" in request.message
             return _response(
                 reply="A reply.",
-                evidence_ids=("ev-1",) if grounded_scene else (),
+                evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
                 retrieved=grounded_scene,
                 chapter_max=6 if grounded_scene else None,
             )
@@ -386,6 +455,80 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("unexpected_retrieval", scene_two.gate_failures)
         self.assertIn("unpermitted_evidence", scene_two.gate_failures)
         self.assertEqual("differs_from_proposal", scene_two.ground_truth_result)
+
+    async def test_an_agent_call_failure_is_identifiable_in_the_artifact(self) -> None:
+        """The C4 replay declined from a failed Provenance call, but the gate
+        codes alone could not say so — this is what D7 closes."""
+        backstory, ground_truth = _package()
+
+        async def handler(request, service, account):
+            return _response(
+                reply="I'm sorry, but I can't provide a reliable response.",
+                evidence_ids=(),
+                retrieved=False,
+                chapter_max=5,
+                release_source="application_safe_decline",
+                failure_stage="provenance_review",
+                failure_type="model",
+                failure_retryable=True,
+            )
+
+        run = await replay_reflection_scenes(
+            backstory, ground_truth, chat_handler=handler
+        )
+
+        grounded_scene = run.scenes[0]
+        self.assertTrue(grounded_scene.infrastructure_failure)
+        turn = grounded_scene.turns[0]
+        self.assertEqual("provenance_review", turn.failure_stage)
+        self.assertEqual("model", turn.failure_type)
+        self.assertTrue(turn.failure_retryable)
+        # Still graded as a failure; the classification explains why (see D9).
+        self.assertEqual("differs_from_proposal", grounded_scene.ground_truth_result)
+
+    async def test_a_semantic_rejection_is_not_an_infrastructure_failure(self) -> None:
+        """A deterministic-validation decline is Linger's verdict, not a fault."""
+        backstory, ground_truth = _package()
+
+        async def handler(request, service, account):
+            return _response(
+                reply="I'm sorry, but I can't provide a reliable response.",
+                evidence_ids=(),
+                retrieved=False,
+                chapter_max=5,
+                release_source="application_safe_decline",
+                failure_stage="deterministic_validation",
+                failure_type="validation",
+                failure_retryable=False,
+            )
+
+        run = await replay_reflection_scenes(
+            backstory, ground_truth, chat_handler=handler
+        )
+
+        scene = run.scenes[0]
+        self.assertFalse(scene.infrastructure_failure)
+        self.assertEqual("validation", scene.turns[0].failure_type)
+
+    async def test_a_clean_scene_records_no_failure_classification(self) -> None:
+        backstory, ground_truth = _package()
+
+        async def handler(request, service, account):
+            grounded_scene = "hoping to find" in request.message
+            return _response(
+                reply="A reply.",
+                evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
+                retrieved=grounded_scene,
+                chapter_max=6 if grounded_scene else None,
+            )
+
+        run = await replay_reflection_scenes(
+            backstory, ground_truth, chat_handler=handler
+        )
+
+        for scene in run.scenes:
+            self.assertFalse(scene.infrastructure_failure)
+            self.assertIsNone(scene.turns[0].failure_stage)
 
     async def test_rejects_an_objective_the_runner_cannot_grade(self) -> None:
         content = _content_document()

@@ -935,6 +935,8 @@ async def chat(
         ),
         revision_count=release.revision_count,
         failure_stage=release.failure_stage,
+        failure_type=release.failure_type,
+        failure_retryable=release.failure_retryable,
         capture=capture.inspection,
     )
     verdict_path = " → ".join(release.provenance_verdicts)

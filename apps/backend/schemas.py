@@ -58,7 +58,21 @@ class ReleaseInspection(BaseModel):
         "muse_revision",
         "deterministic_validation",
     ] | None
+    # Why the stage failed. `model` marks an agent call that did not complete —
+    # infrastructure, not a semantic verdict — so a decline caused by a provider
+    # fault is distinguishable from one Provenance actually decided.
+    failure_type: Literal["application", "model", "validation"] | None = None
+    failure_retryable: bool | None = None
     capture: CaptureInspection
+
+    @model_validator(mode="after")
+    def validate_failure_fields(self) -> Self:
+        has_stage = self.failure_stage is not None
+        if has_stage != (self.failure_type is not None):
+            raise ValueError("failure_type is required only with failure_stage")
+        if has_stage != (self.failure_retryable is not None):
+            raise ValueError("failure_retryable is required only with failure_stage")
+        return self
 
     @model_validator(mode="after")
     def validate_boundary_origin(self) -> Self:

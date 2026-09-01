@@ -29,10 +29,13 @@ from pydantic_evals.dataset import set_eval_attribute
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from apps.backend import sessions
+from apps.backend.hybrid_librarian import _windows
+from apps.backend.librarian import _paragraphs
 from apps.backend.schemas import ChatRequest
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from evals.reflection.harness import GroundingExpectation, ReleaseSource
 from src.linger.agents.contracts import PromptFingerprint
+from src.linger.corpus.book import parse_chapter_markdown
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import (
     AccountContext,
@@ -45,9 +48,11 @@ from .adoption import (
     validate_ground_truth_adoption_files,
 )
 from .models import (
+    EvidenceReference,
     GroundTruthAdoption,
     Prop,
     ProposedGroundTruth,
+    RepositoryTextEvidence,
     StrictModel,
     SyntheticBackstory,
 )
@@ -65,8 +70,18 @@ from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_package import (
     PackageValidationError,
     REFLECTION_OBJECTIVE_IDS,
+    REPOSITORY_ROOT,
     validate_package_files,
 )
+
+FailureStage = Literal[
+    "emotional_boundary_preflight",
+    "muse_draft",
+    "provenance_review",
+    "muse_revision",
+    "deterministic_validation",
+]
+FailureType = Literal["application", "model", "validation"]
 
 GateFailure = Literal[
     "release_source_mismatch",
@@ -88,6 +103,16 @@ class SceneTurn(StrictModel):
     retrieved: bool
     released_evidence_ids: tuple[str, ...]
     resolved_chapter_max: int | None
+    # Which stage failed, and whether it was infrastructure or a real verdict.
+    # Without these a provider fault and a semantic rejection look identical.
+    failure_stage: FailureStage | None = None
+    failure_type: FailureType | None = None
+    failure_retryable: bool | None = None
+
+    @property
+    def infrastructure_failure(self) -> bool:
+        """Report whether this turn declined because an agent call never ran."""
+        return self.failure_type == "model"
 
 
 class SceneObservation(StrictModel):
@@ -102,6 +127,15 @@ class SceneObservation(StrictModel):
     gate_failures: tuple[GateFailure, ...]
     ground_truth_result: GroundTruthResult
     agent_exchanges: tuple[AgentExchange, ...]
+
+    @property
+    def infrastructure_failure(self) -> bool:
+        """Report whether any turn declined because an agent call never ran.
+
+        A Scene that failed this way measures the provider, not Linger; its gate
+        failures describe a decline nothing semantic caused (see D9).
+        """
+        return any(turn.infrastructure_failure for turn in self.turns)
 
 
 class EvaluationRun(StrictModel):
@@ -135,6 +169,8 @@ class ReflectionEvaluationExpected(StrictModel):
 
     grounding: GroundingExpectation
     ground_truth_status: GroundTruthStatus
+    # Permitted evidence translated into the IDs a released citation names.
+    permitted_evidence_ids: tuple[str, ...] = ()
 
 
 class ReflectionEvaluationOutput(StrictModel):
@@ -190,11 +226,67 @@ class ReflectionGroundTruthEvaluator(
         return "proposal_comparison"
 
 
+class EvidenceResolutionError(ValueError):
+    """Ground truth names a span no corpus paragraph can produce."""
+
+
+def resolve_corpus_evidence_ids(
+    evidence: RepositoryTextEvidence,
+    repository_root: Path = REPOSITORY_ROOT,
+) -> frozenset[str]:
+    """Map one package evidence span to every ID Librarian could cite for it.
+
+    Ground truth locates evidence by repository path and code-point span, while
+    a released citation names `{chapter_id}-ln{start}-{end}` built from the
+    Gutenberg source lines of the retrieved *window*. The two namespaces never
+    compare directly. Retrieval windows overlap and span several paragraphs, so
+    one span legitimately resolves to more than one citable ID — any window
+    containing the ground-truth text is a correct citation of it.
+    """
+    path = repository_root / evidence.repository_path
+    raw = path.read_text(encoding="utf-8")
+    metadata, body = parse_chapter_markdown(raw)
+    paragraphs = _paragraphs(metadata, body)
+    resolved = {
+        candidate.evidence_id
+        for candidate in _windows(metadata, paragraphs)
+        if evidence.text in candidate.text
+    }
+    if not resolved:
+        raise EvidenceResolutionError(
+            f"evidence {evidence.evidence_id} text is in no retrieval window of "
+            f"{evidence.repository_path}"
+        )
+    return frozenset(resolved)
+
+
+def permitted_corpus_ids(
+    grounding: GroundingExpectation,
+    evidence: Sequence[EvidenceReference],
+    repository_root: Path = REPOSITORY_ROOT,
+) -> frozenset[str]:
+    """Translate a proposal's permitted evidence into released-citation IDs."""
+    permitted = grounding.permitted_evidence_ids
+    return frozenset(
+        evidence_id
+        for item in evidence
+        if item.evidence_id in permitted
+        and isinstance(item, RepositoryTextEvidence)
+        for evidence_id in resolve_corpus_evidence_ids(item, repository_root)
+    )
+
+
 def grade_scene(
     grounding: GroundingExpectation,
     turns: Sequence[SceneTurn],
+    permitted_evidence_ids: frozenset[str] | None = None,
 ) -> tuple[GateFailure, ...]:
-    """Grade one Scene's turns against its expectation, deterministically."""
+    """Grade one Scene's turns against its expectation, deterministically.
+
+    `permitted_evidence_ids` holds released-citation IDs resolved by
+    `permitted_corpus_ids`. It defaults to the expectation's own IDs so unit
+    tests can grade without the corpus.
+    """
     failures: list[GateFailure] = []
     final = turns[-1]
 
@@ -207,7 +299,11 @@ def grade_scene(
     if grounding.retrieval_required and not retrieved:
         failures.append("missing_retrieval")
 
-    permitted = grounding.permitted_evidence_ids
+    permitted = (
+        grounding.permitted_evidence_ids
+        if permitted_evidence_ids is None
+        else permitted_evidence_ids
+    )
     cited = {
         evidence_id
         for turn in turns
@@ -295,6 +391,13 @@ async def replay_reflection_scenes(
                 expected_output=ReflectionEvaluationExpected(
                     grounding=proposal.grounding,
                     ground_truth_status=ground_truth_status,
+                    permitted_evidence_ids=tuple(
+                        sorted(
+                            permitted_corpus_ids(
+                                proposal.grounding, proposal.evidence
+                            )
+                        )
+                    ),
                 ),
                 metadata={
                     "objective_id": proposal.objective_id,
@@ -459,6 +562,9 @@ async def _replay_reflection_scene(
                         resolved_chapter_max=response.inspection.context_resolution.get(
                             "chapter_max"
                         ),
+                        failure_stage=release.failure_stage,
+                        failure_type=release.failure_type,
+                        failure_retryable=release.failure_retryable,
                     )
                 )
     finally:
@@ -471,7 +577,11 @@ async def _replay_reflection_scene(
             f"{len(inputs.prop_ids)} Props, found {len(stored)} records"
         )
 
-    gate_failures = grade_scene(expected.grounding, turns)
+    gate_failures = grade_scene(
+        expected.grounding,
+        turns,
+        frozenset(expected.permitted_evidence_ids),
+    )
     ground_truth_result = _ground_truth_result(
         matches=not gate_failures,
         ground_truth_status=expected.ground_truth_status,
@@ -480,6 +590,11 @@ async def _replay_reflection_scene(
     set_eval_attribute("ground_truth_result", ground_truth_result)
     set_eval_attribute("release_source", turns[-1].release_source)
     set_eval_attribute("retrieved", any(turn.retrieved for turn in turns))
+    set_eval_attribute("failure_stage", turns[-1].failure_stage)
+    set_eval_attribute(
+        "infrastructure_failure",
+        any(turn.infrastructure_failure for turn in turns),
+    )
     return SceneObservation(
         scene_id=inputs.scene_id,
         objective_id=inputs.objective_id,
@@ -562,8 +677,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(payload + "\n", encoding="utf-8")
     failed = sum(1 for scene in run.scenes if scene.gate_failures)
+    infrastructure = sum(1 for scene in run.scenes if scene.infrastructure_failure)
     print(
-        f"REFLECTION_REPLAY_OK={len(run.scenes)} scenes,{failed} with gate failures"
+        f"REFLECTION_REPLAY_OK={len(run.scenes)} scenes,{failed} with gate "
+        f"failures,{infrastructure} from agent-call failures"
     )
     return 0
 
