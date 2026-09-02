@@ -1,0 +1,4 @@
+interface:
+  display_name: "How"
+  short_description: "Explain codebase architecture and flows"
+  default_prompt: "Use $how to explain how this subsystem works and show me the relevant code paths."

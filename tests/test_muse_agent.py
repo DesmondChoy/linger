@@ -4,14 +4,16 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from pydantic import ValidationError
 from pydantic_ai import ModelRetry
 from pydantic_ai.messages import ToolReturnPart
 
 from apps.backend.config import Settings
 from src.linger.agents.muse.models import (
-    EvidenceUse,
+    BookEvidenceUse,
     MuseCandidate,
     NoMemoryCandidate,
+    SessionLineUse,
 )
 from src.linger.contracts.librarian import (
     EvidenceRecord,
@@ -104,6 +106,7 @@ class MuseInstructionTests(unittest.TestCase):
                 "# Context authority",
                 "# Optional book grounding and spoilers",
                 "# Probe when context is insufficient",
+                "# Routing with librarian_route",
                 "# Grounding with librarian_search",
                 "# Quotations and honesty",
                 "# Emotional safety",
@@ -139,6 +142,16 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("exact book text", lowered)
         self.assertIn("relay that honestly", lowered)
 
+    def test_instructions_require_declaring_session_line_evidence(self) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        self.assertIn("source kind `session_line`", lowered)
+        self.assertIn("verbatim from the released conversation", lowered)
+
+    def test_instructions_scope_session_line_to_prior_turns(self) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        self.assertIn("wording from prior released turns", lowered)
+        self.assertIn("current message needs no declaration", lowered)
+
     def test_instructions_define_draft_and_revision_envelopes(self) -> None:
         compact = " ".join(self.instructions.split())
         self.assertIn('mode="draft"', compact)
@@ -171,6 +184,20 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("without paraphrasing or broadening", lowered)
         self.assertIn("smallest evidence set", lowered)
         self.assertIn("directly supported by the cited records", lowered)
+
+
+class SessionLineUseTests(unittest.TestCase):
+    def test_rejects_a_trivial_fragment(self) -> None:
+        for fragment in ("I ", "the ", "yes it was"):
+            with self.subTest(fragment=fragment):
+                with self.assertRaises(ValidationError):
+                    SessionLineUse(source_kind="session_line", quote=fragment)
+
+    def test_accepts_a_substantive_quote(self) -> None:
+        use = SessionLineUse(
+            source_kind="session_line", quote="I lost my job last spring"
+        )
+        self.assertEqual("I lost my job last spring", use.quote)
 
 
 class MuseOutputValidationTests(unittest.TestCase):
@@ -224,7 +251,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             reply="Alice is unsure of herself.",
             memory=_no_memory(),
             evidence_uses=(
-                EvidenceUse(
+                BookEvidenceUse(
                     source_kind="book_corpus",
                     evidence_id="evidence-1",
                     source_location="Chapter 5, source lines 1-2",
@@ -245,7 +272,7 @@ class MuseOutputValidationTests(unittest.TestCase):
                     reply='The Caterpillar asks, "Who are you?"',
                     memory=_no_memory(),
                     evidence_uses=(
-                        EvidenceUse(
+                        BookEvidenceUse(
                             source_kind="book_corpus",
                             evidence_id="evidence-1",
                             source_location="Chapter 5, source lines 1-2",
@@ -264,7 +291,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             reply='The Caterpillar asks, "Who are you?"',
             memory=_no_memory(),
             evidence_uses=(
-                EvidenceUse(
+                BookEvidenceUse(
                     source_kind="book_corpus",
                     evidence_id=record.evidence_id,
                     source_location=record.location,
@@ -284,7 +311,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             reply="A supported paraphrase.",
             memory=_no_memory(),
             evidence_uses=(
-                EvidenceUse(
+                BookEvidenceUse(
                     source_kind="book_corpus",
                     evidence_id="unknown-evidence",
                     source_location=record.location,
@@ -303,7 +330,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             reply="A supported paraphrase.",
             memory=_no_memory(),
             evidence_uses=(
-                EvidenceUse(
+                BookEvidenceUse(
                     source_kind="book_corpus",
                     evidence_id=record.evidence_id,
                     source_location=record.location,

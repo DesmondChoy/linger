@@ -22,13 +22,27 @@ NoMemoryCandidateReasonCode = Literal[
 ]
 
 
-class EvidenceUse(StrictModel):
+class BookEvidenceUse(StrictModel):
     """One book-corpus record Muse declares as support for its reply."""
 
     source_kind: Literal["book_corpus"]
     evidence_id: str = Field(min_length=1, max_length=200)
     source_location: str = Field(min_length=1, max_length=500)
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
+
+
+class SessionLineUse(StrictModel):
+    """The reader's exact earlier wording Muse declares as support for its reply."""
+
+    source_kind: Literal["session_line"]
+    # A trivial fragment ("I ", "the ") would verify against nearly any line.
+    quote: str = Field(min_length=12, max_length=2_000)
+
+
+EvidenceUse = Annotated[
+    BookEvidenceUse | SessionLineUse,
+    Field(discriminator="source_kind"),
+]
 
 
 class MemoryCandidate(StrictModel):

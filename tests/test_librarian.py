@@ -1,12 +1,37 @@
 """Regression tests for canonical, spoiler-bounded Librarian retrieval."""
 
+import hashlib
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from apps.backend.contracts import BookScope, LibrarianRequest
-from apps.backend.librarian import CorpusScopeError, Librarian
+from apps.backend.librarian import CorpusRegistration, CorpusScopeError, Librarian
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
+from src.linger.corpus.book import BookCorpus
+
+
+def _fake_registration(tmp_path: Path, *, work_id: str, catalog: dict) -> CorpusRegistration:
+    """Build a minimal registered corpus: only `catalog.json` is ever read by routing."""
+    sha = hashlib.sha256(work_id.encode()).hexdigest()
+    book_version_id = f"{work_id}-v{sha[:8]}"
+    root = tmp_path / book_version_id
+    root.mkdir()
+    catalog = {**catalog, "work_id": work_id, "book_version_id": book_version_id}
+    (root / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
+    book = BookCorpus(
+        work_id=work_id,
+        book_version_id=book_version_id,
+        title=catalog.get("title", work_id),
+        author="Test Author",
+        source_path="fake.txt",
+        source_sha256=sha,
+        default_source=root / "source.txt",
+        default_output=root,
+        parse_source=lambda _path: (),
+    )
+    return CorpusRegistration(book=book, root=root)
 
 
 def request(
@@ -33,16 +58,182 @@ class LibrarianTests(unittest.TestCase):
         self.librarian = Librarian()
 
     def test_metadata_routes_alice_cues_without_opening_story_text(self) -> None:
-        scope = self.librarian.route_work(
-            "Why does Alice keep struggling to explain who she is?",
+        # "alice" alone is only one distinct cue (below threshold); pair it
+        # with a second genuine catalog cue to justify metadata-only routing.
+        decision = self.librarian.route_work(
+            "Why does Alice trust the White Rabbit near the riverbank?",
             (BOOK_VERSION_ID,),
         )
 
-        self.assertIsNotNone(scope)
-        assert scope is not None
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        scope = decision.scope
         self.assertEqual(WORK_ID, scope.work_id)
         self.assertEqual(BOOK_VERSION_ID, scope.book_version_id)
         self.assertEqual(12, scope.max_chapter)
+        self.assertGreaterEqual(decision.confidence, 0.6)
+
+    def test_explicit_title_mention_routes_with_full_confidence(self) -> None:
+        decision = self.librarian.route_work(
+            "Can we talk about Alice's Adventures in Wonderland today?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertEqual(WORK_ID, decision.scope.work_id)
+        self.assertEqual(1.0, decision.confidence)
+
+    def test_lone_generic_catalog_word_in_reflection_does_not_route(self) -> None:
+        decision = self.librarian.route_work(
+            "My afternoon in the garden while journaling about my grandmother "
+            "was calming.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_incidental_cue_fragments_in_reflection_do_not_route(self) -> None:
+        # Live replay regression: one incidental catalog cue ("garden") plus
+        # ordinary words from cue phrases must not accumulate confidence.
+        decision = self.librarian.route_work(
+            "I signed up for a plot in the community garden this spring, and "
+            "I keep going back and forth about whether I'm taking on more "
+            "than I can keep up with this season.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_word_boundary_prevents_substring_false_positive(self) -> None:
+        # "alice" inside "Malice", "pigeon" inside "pigeonholing" must not match.
+        decision = self.librarian.route_work(
+            "Malice and pigeonholing at work today.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_nested_cue_is_not_double_counted(self) -> None:
+        # "garden" and "rose garden" both match; only the maximal cue counts,
+        # leaving one distinct multi-word cue, below threshold.
+        decision = self.librarian.route_work(
+            "my grandmother tends her rose garden",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_generic_single_word_cues_do_not_route(self) -> None:
+        # cook/eggs/baby are catalog cues but also common English words
+        # (GENERIC_CUE_WORDS); none of them may count toward confidence.
+        decision = self.librarian.route_work(
+            "The kitchen cook made eggs for the baby.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_lone_generic_single_word_cue_does_not_route(self) -> None:
+        decision = self.librarian.route_work(
+            "The cook was busy today.",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNone(decision)
+
+    def test_distinctive_bare_single_word_names_route(self) -> None:
+        # Unlike generic words, two distinctive single-word character names
+        # (not in GENERIC_CUE_WORDS) must still clear the threshold.
+        decision = self.librarian.route_work(
+            "Why does the Dormouse annoy the Hatter?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertGreaterEqual(decision.confidence, 0.6)
+
+    def test_distinctive_multi_word_character_scene_routes(self) -> None:
+        decision = self.librarian.route_work(
+            "What does the Dormouse say to the Hatter at the tea party?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertGreaterEqual(decision.confidence, 0.6)
+
+    def test_bare_single_word_message_does_not_route(self) -> None:
+        # Confidence must be length-independent: a one-word message carries the
+        # same single incidental cue as a long one and must not route either.
+        decision = self.librarian.route_work("garden", (BOOK_VERSION_ID,))
+
+        self.assertIsNone(decision)
+
+    def test_long_genuine_multi_cue_request_routes_despite_its_length(self) -> None:
+        # A length-relative formula would dilute several genuine catalog cues
+        # across a long message and reject it; an absolute-evidence formula
+        # must still route it.
+        decision = self.librarian.route_work(
+            "I keep thinking about that scene where the caterpillar asks Alice "
+            "who she is, and she cannot explain herself, and it reminded me of "
+            "a much longer story I want to tell you about my own week and how "
+            "confusing it has felt lately, but first: does the caterpillar ever "
+            "explain why he keeps asking?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertIsNotNone(decision)
+        assert decision is not None
+        self.assertEqual(WORK_ID, decision.scope.work_id)
+        self.assertGreaterEqual(decision.confidence, 0.6)
+
+    def test_equally_evidenced_works_are_ambiguous_not_alphabetical(self) -> None:
+        import tempfile
+
+        catalog = {
+            "chapters": [
+                {
+                    "chapter_number": 1,
+                    "characters": ["Zorblatt", "Quendra"],
+                    "locations": [],
+                    "retrieval_cues": [],
+                }
+            ]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            fake_a = _fake_registration(tmp_path, work_id="alpha-book", catalog=catalog)
+            fake_b = _fake_registration(tmp_path, work_id="beta-book", catalog=catalog)
+            with patch(
+                "apps.backend.librarian.CORPORA",
+                {
+                    fake_a.book.work_id: fake_a,
+                    fake_b.book.work_id: fake_b,
+                },
+            ):
+                decision = self.librarian.route_work(
+                    "Why does Zorblatt trust Quendra so much?",
+                    (fake_a.book.book_version_id, fake_b.book.book_version_id),
+                )
+
+        # A tie in the full evidence signal (confidence and overlap) must be
+        # ambiguous. Comparing only (scope, confidence) would instead sort
+        # alphabetically by work_id and silently pick "alpha-book".
+        self.assertIsNone(decision)
+
+    def test_metadata_generates_strong_candidate_for_distinctive_cue(self) -> None:
+        candidates = self.librarian.work_candidates(
+            "Why does the Cheshire Cat keep disappearing?",
+            (BOOK_VERSION_ID,),
+        )
+
+        self.assertEqual(1, len(candidates))
+        self.assertEqual("strong", candidates[0].strength)
+        self.assertEqual(WORK_ID, candidates[0].scope.work_id)
+        self.assertEqual(BOOK_VERSION_ID, candidates[0].scope.book_version_id)
+        self.assertEqual(12, candidates[0].scope.max_chapter)
 
     def test_metadata_does_not_route_an_unrelated_line(self) -> None:
         unrelated_lines = (
@@ -55,6 +246,41 @@ class LibrarianTests(unittest.TestCase):
             with self.subTest(line=line):
                 self.assertIsNone(
                     self.librarian.route_work(line, (BOOK_VERSION_ID,))
+                )
+
+    def test_metadata_does_not_generate_an_unrelated_candidate(self) -> None:
+        unrelated_lines = (
+            "Repair the spaceship engine",
+            "Sketching by hand helps me slow down and think clearly.",
+            "My desk feels oddly quiet with the fan switched off.",
+        )
+
+        for line in unrelated_lines:
+            with self.subTest(line=line):
+                self.assertFalse(
+                    any(
+                        candidate.strength == "strong"
+                        for candidate in self.librarian.work_candidates(
+                            line,
+                            (BOOK_VERSION_ID,),
+                        )
+                    )
+                )
+
+    def test_common_catalog_words_are_weak_candidates_only(self) -> None:
+        for line in (
+            "My friend Alice is stressed about work.",
+            "What should I cook for dinner?",
+            "A mouse ran through the kitchen.",
+        ):
+            with self.subTest(line=line):
+                candidates = self.librarian.work_candidates(
+                    line,
+                    (BOOK_VERSION_ID,),
+                )
+                self.assertTrue(candidates)
+                self.assertTrue(
+                    all(candidate.strength == "weak" for candidate in candidates)
                 )
 
     def test_unrelated_query_returns_no_evidence_without_fallback(self) -> None:

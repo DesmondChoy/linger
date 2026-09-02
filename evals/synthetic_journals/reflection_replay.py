@@ -59,11 +59,11 @@ from .models import (
 from .replay import (
     RUNTIME_PROMPT_FINGERPRINTS,
     RUNTIME_SYSTEM_VARIANT,
-    ChatHandler,
+    ChatTurnHandler,
     GroundTruthResult,
     GroundTruthStatus,
     _ground_truth_result,
-    _production_chat_handler,
+    _production_chat_turn_handler,
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
@@ -333,7 +333,7 @@ async def replay_reflection_scenes(
     ground_truth: ProposedGroundTruth,
     *,
     adoption: GroundTruthAdoption | None = None,
-    chat_handler: ChatHandler | None = None,
+    chat_handler: ChatTurnHandler | None = None,
 ) -> EvaluationRun:
     """Run ordered reflection Scenes through Pydantic Evals and production chat."""
 
@@ -354,7 +354,7 @@ async def replay_reflection_scenes(
         else "proposal_comparison"
     )
     if chat_handler is None:
-        handler = _production_chat_handler()
+        handler = _production_chat_turn_handler()
         configure_synthetic_evaluation_telemetry(evaluation_agents())
     else:
         handler = chat_handler
@@ -521,7 +521,7 @@ async def _replay_reflection_scene(
     expected: ReflectionEvaluationExpected,
     *,
     run_id: str,
-    handler: ChatHandler,
+    handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
     props: dict[str, Prop],

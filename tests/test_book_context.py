@@ -13,7 +13,10 @@ with patch.dict(
     },
 ):
     from apps.backend import sessions
-    from apps.backend.main import _inspection_for, resolve_reading_context
+    from apps.backend.chat_turn import (
+        prepare_reflection_turn,
+        resolve_reading_context,
+    )
     from apps.backend.schemas import ChatRequest
 
 
@@ -26,6 +29,27 @@ class BookContextTests(unittest.TestCase):
             ChatRequest(session_id="context-test", turn_id="turn-1", message="I am reading The Left Hand of Darkness")
         )
         self.assertIsNone(context.chapter_max)
+
+    def test_common_catalog_words_do_not_select_alice(self) -> None:
+        for index, message in enumerate(
+            (
+                "My friend Alice is stressed about work.",
+                "What should I cook for dinner?",
+                "A mouse ran through the kitchen.",
+            ),
+            start=1,
+        ):
+            with self.subTest(message=message):
+                context = resolve_reading_context(
+                    ChatRequest(
+                        session_id=f"context-common-{index}",
+                        message=message,
+                    )
+                )
+                self.assertEqual("unknown", context.status)
+                self.assertIsNone(context.work_id)
+                self.assertIsNone(context.clarification_question)
+                sessions.clear(f"context-common-{index}")
 
     def test_book_and_chapter_without_completion_do_not_grant_the_whole_chapter(self) -> None:
         first = resolve_reading_context(
@@ -52,8 +76,27 @@ class BookContextTests(unittest.TestCase):
             ChatRequest(session_id="context-test", turn_id="turn-2", message="I've now finished Chapter 3.")
         )
         self.assertEqual(first.chapter_max, 2)
+        self.assertEqual("explicit_progress", first.boundary_authorization_basis)
         self.assertEqual(context.work_title, "Dune")
         self.assertEqual(context.chapter_max, 3)
+        self.assertEqual("explicit_progress", context.boundary_authorization_basis)
+
+    def test_active_book_preserves_an_indirect_follow_up(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+            ),
+        )
+
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", message="Why did she do that?")
+        )
+
+        self.assertEqual("inferred", context.status)
+        self.assertEqual("pg11", context.work_id)
+        self.assertIsNone(context.chapter_max)
 
     def test_completion_can_confirm_the_previous_scene_candidate(self) -> None:
         sessions.set_reading_candidate(
@@ -141,30 +184,34 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual(next_turn.work_id, "animal-farm")
         self.assertIsNone(next_turn.chapter_max)
 
-    def test_new_scene_candidate_replaces_stale_book_assumption(self) -> None:
+    def test_a_new_catalog_cue_does_not_override_the_active_book_pre_muse(self) -> None:
+        # Librarian routing no longer runs pre-Muse: a later message about a
+        # different book's characters does not override the session's active
+        # selection here. Whether Muse routes to the new book instead is its
+        # own tool decision, covered by tests/test_librarian_routing.py.
         resolve_reading_context(
             ChatRequest(
                 session_id="context-test",
                 message="I am reading Animal Farm and I have finished Chapter 3.",
             )
         )
-        inspection, _, review_context = _inspection_for(
+        inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
-                message="Why does the Caterpillar ask who Alice is?",
+                message="Why does the Cheshire Cat keep disappearing?",
             ),
             allow_memory_capture=False,
         )
 
         self.assertEqual("inferred", inspection.context_resolution["status"])
-        self.assertEqual("pg11", inspection.context_resolution["work_id"])
+        self.assertEqual("animal-farm", inspection.context_resolution["work_id"])
         self.assertIsNone(inspection.muse_turn["reading_context"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_connection"])
         self.assertIsNone(review_context["reading_context"])
 
     def test_reflection_without_a_source_does_not_grant_connection_search(self) -> None:
-        inspection, _, review_context = _inspection_for(
+        inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
                 message=(

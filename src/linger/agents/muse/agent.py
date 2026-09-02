@@ -1,8 +1,10 @@
 """Muse, the conversational agent behind the chat endpoint.
 
-Instructions plus two tools: `librarian_search`, which lets Muse ground its
-replies in the confirmed book's actual text, and `serendipity_explore`, which
-lets Muse propose tentative, evidence-backed connections.
+Instructions plus three tools: `librarian_route`, which lets Muse identify a
+book and reading boundary from the reader's own message; `librarian_search`,
+which lets Muse ground its replies in the confirmed book's actual text; and
+`serendipity_explore`, which lets Muse propose tentative, evidence-backed
+connections.
 """
 
 from pydantic_ai import ModelRetry, RunContext, Tool
@@ -10,7 +12,7 @@ from pydantic_ai import ModelRetry, RunContext, Tool
 from src.linger.agents.build import build_agent
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.prompt import INSTRUCTIONS
-from src.linger.agents.muse.tools import librarian_search, serendipity_explore
+from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import turn_evidence
 
@@ -19,7 +21,11 @@ muse_chat_agent = build_agent(
     INSTRUCTIONS,
     name="Muse",
     output_type=MuseCandidate,
-    tools=[Tool(librarian_search), Tool(serendipity_explore, sequential=True)],
+    tools=[
+        Tool(librarian_route),
+        Tool(librarian_search),
+        Tool(serendipity_explore, sequential=True),
+    ],
     retries={"tools": 1, "output": 3},
 )
 
@@ -27,7 +33,8 @@ muse_chat_agent = build_agent(
 def validate_exact_quote_declarations(output: MuseCandidate) -> MuseCandidate:
     """Reject quote metadata that does not describe visible reply text."""
     if any(
-        evidence.exact_quote is not None
+        evidence.source_kind == "book_corpus"
+        and evidence.exact_quote is not None
         and evidence.exact_quote not in output.reply
         for evidence in output.evidence_uses
     ):
@@ -52,6 +59,8 @@ def validate_muse_output(
     validate_exact_quote_declarations(output)
     available = _available_evidence()
     for declared in output.evidence_uses:
+        if declared.source_kind != "book_corpus":
+            continue
         record = available.get(declared.evidence_id)
         if record is None:
             raise ModelRetry(

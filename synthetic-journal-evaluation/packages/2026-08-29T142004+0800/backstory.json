@@ -1,0 +1,293 @@
+{
+  "objective_ids": [
+    "bounded_memory_curation"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-maya-pottery-open-house",
+    "person_id": "person-maya-iqbal",
+    "evaluation_account_id": "account-maya-iqbal-eval",
+    "context": "Maya Iqbal is a hobby potter who keeps practical personal notes while preparing a neighborhood pottery-studio open house. Her memories cover studio routines, event logistics, and unrelated parts of daily life. Each Scene presents a separate bounded selection of existing memories from Maya's evaluation account."
+  },
+  "props": [
+    {
+      "prop_id": "prop-exact-notebook-a",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-exact-notebook-b",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-exact-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-key-a",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I keep the spare studio key in the blue enamel mug on the top pantry shelf.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-paraphrase-key-b",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-paraphrased-duplicate",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-summary-date-original",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-fact-with-noise",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-summary-date-moved",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-fact-with-noise",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-summary-date-confirmed",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-fact-with-noise",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-summary-noise-posters",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "For the pottery open house, I chose indigo ink for the posters.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-fact-with-noise",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-summary-noise-tea",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I ordered jasmine tea for the volunteers at the pottery open house.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-evolving-fact-with-noise",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-topic-ramp",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-distinct-with-distractor",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-topic-large-print",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-distinct-with-distractor",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-topic-quiet-room",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I reserved the small side room as a quiet break space during the pottery open house.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-distinct-with-distractor",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-topic-distractor-receipt",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I saved the bakery receipt for the pottery open house refreshments in my tax folder.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-related-distinct-with-distractor",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-rib-tool",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "I use a wooden rib tool to smooth clay slabs before trimming them.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-similarity",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-superficial-rib-stretch",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "person_id": "person-maya-iqbal",
+      "evaluation_account_id": "account-maya-iqbal-eval",
+      "source_text": "My physiotherapist recommended rib stretches after rowing practice.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-superficial-similarity",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-exact-duplicate",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-exact-notebook-a",
+        "prop-exact-notebook-b"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-paraphrased-duplicate",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-paraphrase-key-a",
+        "prop-paraphrase-key-b"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-evolving-fact-with-noise",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-summary-date-original",
+        "prop-summary-date-moved",
+        "prop-summary-date-confirmed",
+        "prop-summary-noise-posters",
+        "prop-summary-noise-tea"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-related-distinct-with-distractor",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-topic-ramp",
+        "prop-topic-large-print",
+        "prop-topic-quiet-room",
+        "prop-topic-distractor-receipt"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-superficial-similarity",
+      "backstory_id": "backstory-maya-pottery-open-house",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-superficial-rib-tool",
+        "prop-superficial-rib-stretch"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [],
+  "offline_inputs": []
+}

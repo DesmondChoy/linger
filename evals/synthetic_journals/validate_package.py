@@ -31,6 +31,8 @@ DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
     REPOSITORY_ROOT / "synthetic-journal-evaluation" / "run-configurations"
 )
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
+GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID = "grounded_book_reflection"
+SPOILER_BOUNDARY_OBJECTIVE_ID = "spoiler_boundary_clarification"
 
 # Objectives whose Scenes are graded by the reflection-and-grounding runner.
 REFLECTION_OBJECTIVE_IDS = frozenset(
@@ -191,6 +193,9 @@ def validate_package(
             )
 
     failures.extend(
+        _validate_book_objectives(ground_truth, scenes, props)
+    )
+    failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
     failures.extend(
@@ -201,6 +206,145 @@ def validate_package(
     )
     if failures:
         raise PackageValidationError(failures)
+
+
+def _validate_book_objectives(
+    ground_truth: ProposedGroundTruth,
+    scenes: dict[str, Scene],
+    props: dict[str, Any],
+) -> list[str]:
+    """Validate typed Ground truth required by book replay Objectives."""
+
+    failures: list[str] = []
+    for proposal in ground_truth.proposals:
+        scene = scenes.get(proposal.scene_id)
+        if scene is None:
+            continue
+        grounded = proposal.grounded_book_reflection
+        spoiler = proposal.spoiler_boundary
+
+        if proposal.objective_id == GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID:
+            if grounded is None:
+                failures.append(
+                    f"grounded reflection proposal {proposal.proposal_id} lacks "
+                    "typed grounded_book_reflection Ground truth"
+                )
+            if spoiler is not None:
+                failures.append(
+                    f"grounded reflection proposal {proposal.proposal_id} has "
+                    "spoiler-boundary Ground truth"
+                )
+        elif grounded is not None:
+            failures.append(
+                f"proposal {proposal.proposal_id} has grounded reflection Ground "
+                f"truth for Objective {proposal.objective_id}"
+            )
+
+        if proposal.objective_id == SPOILER_BOUNDARY_OBJECTIVE_ID:
+            if spoiler is None:
+                failures.append(
+                    f"spoiler proposal {proposal.proposal_id} lacks typed "
+                    "spoiler_boundary Ground truth"
+                )
+            if grounded is not None:
+                failures.append(
+                    f"spoiler proposal {proposal.proposal_id} has grounded "
+                    "reflection Ground truth"
+                )
+        elif spoiler is not None:
+            failures.append(
+                f"proposal {proposal.proposal_id} has spoiler-boundary Ground "
+                f"truth for Objective {proposal.objective_id}"
+            )
+
+        evidence = {item.evidence_id: item for item in proposal.evidence}
+        if grounded is not None:
+            referenced_ids = set(grounded.permitted_evidence_ids)
+            failures.extend(
+                _require_repository_evidence_ids(
+                    proposal.proposal_id,
+                    "grounded reflection",
+                    referenced_ids,
+                    evidence,
+                )
+            )
+
+        if spoiler is None:
+            continue
+        unknown_props = set(spoiler.authorised_prop_ids) - set(scene.prop_ids)
+        if unknown_props:
+            failures.append(
+                f"spoiler proposal {proposal.proposal_id} authorises Props outside "
+                f"Scene {scene.scene_id}: {sorted(unknown_props)}"
+            )
+        for prop_id in spoiler.authorised_prop_ids:
+            prop = props.get(prop_id)
+            if prop is None or prop_id not in scene.prop_ids:
+                continue
+            lifecycle = next(
+                item for item in prop.lifecycle if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"spoiler Prop {prop_id} must be active for Scene {scene.scene_id}"
+                )
+
+        prop_span_ids = {
+            span.source_id
+            for span in proposal.exact_spans
+            if span.source_kind == "prop"
+        }
+        missing_prop_spans = set(spoiler.authorised_prop_ids) - prop_span_ids
+        if missing_prop_spans:
+            failures.append(
+                f"spoiler proposal {proposal.proposal_id} lacks exact spans for "
+                f"authorised Props: {sorted(missing_prop_spans)}"
+            )
+        if not any(
+            span.source_kind == "line" for span in proposal.exact_spans
+        ):
+            failures.append(
+                f"spoiler proposal {proposal.proposal_id} requires an exact Line span"
+            )
+
+        referenced_ids = set(spoiler.supporting_evidence_ids) | set(
+            spoiler.forbidden_later_evidence_ids
+        )
+        failures.extend(
+            _require_repository_evidence_ids(
+                proposal.proposal_id,
+                "spoiler boundary",
+                referenced_ids,
+                evidence,
+            )
+        )
+    return failures
+
+
+def _require_repository_evidence_ids(
+    proposal_id: str,
+    label: str,
+    evidence_ids: set[str],
+    evidence: dict[str, Any],
+) -> list[str]:
+    failures: list[str] = []
+    missing = evidence_ids - set(evidence)
+    if missing:
+        failures.append(
+            f"{label} proposal {proposal_id} references missing evidence IDs: "
+            f"{sorted(missing)}"
+        )
+    wrong_kind = sorted(
+        evidence_id
+        for evidence_id in evidence_ids & set(evidence)
+        if not isinstance(evidence[evidence_id], RepositoryTextEvidence)
+    )
+    if wrong_kind:
+        failures.append(
+            f"{label} proposal {proposal_id} requires repository-text evidence: "
+            f"{wrong_kind}"
+        )
+    return failures
 
 
 def _validate_bounded_curation(

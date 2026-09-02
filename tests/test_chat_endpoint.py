@@ -15,7 +15,6 @@ from fastapi.testclient import TestClient
 from logfire.testing import TestExporter
 
 from apps.backend.config import get_settings
-from src.linger.contracts.librarian import BoundarySupportLocation, BoundaryUncertain
 
 get_settings.cache_clear()
 with patch.dict(
@@ -25,7 +24,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import main, sessions
+    from apps.backend import chat_turn, main, sessions
     from apps.backend.schemas import ChatRequest
     from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
@@ -48,7 +47,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.memory_service = MemoryPolicyService(Path(self._memory_directory.name))
         self.memory_context = AccountContext("chat-endpoint-test")
         self._boundary_patcher = patch.object(
-            main,
+            chat_turn,
             "assess_emotional_boundary",
             AsyncMock(
                 return_value=EmotionalBoundaryAssessment(
@@ -96,7 +95,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         gate = AsyncMock(side_effect=RuntimeError(exception_marker))
 
         with self.assertLogs("linger.backend", level="ERROR") as captured:
-            with patch.object(main, "reflection_reply", gate):
+            with patch.object(chat_turn, "reflection_reply", gate):
                 response = TestClient(main.app).post(
                     f"/api/chat?debug={query_marker}",
                     json={
@@ -120,8 +119,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         ):
             self.assertNotIn(marker, payload)
             self.assertNotIn(marker, logs)
-        self.assertIn("agent_pipeline_failed", payload)
-        self.assertIn("agent_pipeline_failed", logs)
+        self.assertIn("chat_turn_failed", payload)
+        self.assertIn("chat_turn_failed", logs)
 
     def test_failure_returns_only_safe_trace_correlation(self) -> None:
         exporter = TestExporter()
@@ -135,7 +134,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         )
         gate = AsyncMock(side_effect=RuntimeError("private provider failure"))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = TestClient(main.app).post(
                 "/api/chat",
                 json={
@@ -156,10 +155,32 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             for span in exporter.exported_spans_as_dict()
             if span["name"] == "chat.request"
         )
+        turn_span = next(
+            span
+            for span in exporter.exported_spans_as_dict()
+            if span["name"] == "chat.turn"
+        )
         attributes = request_span["attributes"]
         self.assertEqual("/api/chat", attributes["http.route"])
         self.assertEqual(502, attributes["http.response.status_code"])
         self.assertEqual("failed", attributes["request.outcome"])
+        self.assertEqual(request_span["context"]["trace_id"], turn_span["context"]["trace_id"])
+        self.assertEqual(request_span["context"]["span_id"], turn_span["parent"]["span_id"])
+        self.assertEqual("chat_turn", turn_span["attributes"]["failure.stage"])
+
+    async def test_application_failure_uses_a_transport_independent_error(self) -> None:
+        gate = AsyncMock(side_effect=RuntimeError("private provider failure"))
+        request = ChatRequest(session_id=self.session_id, message="Private reader message")
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            with self.assertRaises(chat_turn.ChatTurnError) as caught:
+                await chat_turn.run_chat_turn(
+                    request,
+                    self.memory_service,
+                    self.memory_context,
+                )
+
+        self.assertRegex(caught.exception.trace.trace_id, r"^[0-9a-f]{32}$")
 
     async def test_success_stores_only_released_turn(self) -> None:
         request = ChatRequest(session_id=self.session_id, message="Hello")
@@ -169,7 +190,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(request)
 
         self.assertEqual("Approved reply", response.reply)
@@ -211,8 +232,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "web_reach_permitted", return_value=True):
-            with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "web_reach_permitted", return_value=True):
+            with patch.object(chat_turn, "reflection_reply", gate):
                 response = await self.call_chat(
                     ChatRequest(session_id=self.session_id, message="Recommend an essay")
                 )
@@ -236,7 +257,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             librarian_grounding_calls=(grounding_call,),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(request)
 
         self.assertEqual([grounding_call], response.inspection.librarian_grounding)
@@ -246,7 +267,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             if trace["agent"] == "Librarian"
         )
         self.assertEqual("complete", librarian_trace["status"])
-        self.assertIn("librarian_search directly", librarian_trace["detail"])
+        self.assertIn("Librarian directly", librarian_trace["detail"])
 
     async def test_direct_grounding_failure_is_not_reported_complete(self) -> None:
         grounding_call = {
@@ -265,7 +286,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             librarian_grounding_calls=(grounding_call,),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Search chapter 2")
             )
@@ -290,8 +311,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "reflection_reply", gate), patch.object(
-            main,
+        with patch.object(chat_turn, "reflection_reply", gate), patch.object(
+            chat_turn,
             "connection_inspections",
             return_value=(run,),
         ):
@@ -320,8 +341,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
-            with patch.object(main, "connection_inspections", return_value=(run,)):
+        with patch.object(chat_turn, "reflection_reply", gate):
+            with patch.object(chat_turn, "connection_inspections", return_value=(run,)):
                 response = await self.call_chat(
                     ChatRequest(session_id=self.session_id, message="Hello")
                 )
@@ -367,8 +388,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             librarian_grounding_calls=(grounding_call,),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
-            with patch.object(main, "connection_inspections", return_value=(run,)):
+        with patch.object(chat_turn, "reflection_reply", gate):
+            with patch.object(chat_turn, "connection_inspections", return_value=(run,)):
                 response = await self.call_chat(
                     ChatRequest(session_id=self.session_id, message="Hello")
                 )
@@ -393,7 +414,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         )
         gate = AsyncMock(side_effect=RuntimeError("model failed"))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             with self.assertRaises(HTTPException) as caught:
                 await self.call_chat(request)
 
@@ -406,7 +427,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancellation_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="Why does the Caterpillar ask who Alice is?",
+            message="I am reading Animal Farm and I have finished Chapter 2.",
         )
         entered = asyncio.Event()
         blocker = asyncio.Event()
@@ -415,34 +436,11 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await blocker.wait()
 
-        with (
-            patch.object(
-                main,
-                "infer_spoiler_boundary",
-                AsyncMock(
-                    return_value=BoundaryUncertain(
-                        kind="uncertain",
-                        work_id="pg11",
-                        book_version_id="pg11-v01b38ea4",
-                        reason_code="low_confidence",
-                        confidence=0.6,
-                        candidate_chapter=5,
-                        supporting_locations=(
-                            BoundarySupportLocation(
-                                evidence_id="pg11-v01b38ea4-ch05-ln0974-0975",
-                                chapter_number=5,
-                                location="Chapter 5, lines 974-975",
-                            ),
-                        ),
-                        clarification_question="What chapter have you completed?",
-                    )
-                ),
-            ),
-            patch.object(main, "reflection_reply", cancelled_gate),
-        ):
+        with patch.object(chat_turn, "reflection_reply", cancelled_gate):
             task = asyncio.create_task(self.call_chat(request))
             await asyncio.wait_for(entered.wait(), timeout=1)
-            self.assertIsNotNone(sessions.reading_candidate(self.session_id))
+            # resolve_reading_context already confirmed the chapter synchronously.
+            self.assertIsNotNone(sessions.book_selection(self.session_id))
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await task
@@ -465,7 +463,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             await self.call_chat(request)
 
         muse_payload = json.loads(gate.await_args.args[0])
@@ -488,7 +486,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             evidence_ids=("ev-1", "ev-2"),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
@@ -508,7 +506,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             failure_retryable=True,
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
@@ -525,7 +523,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             provenance_verdicts=("pass",),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
@@ -545,7 +543,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             evidence_ids=("ev-rejected",),
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
@@ -566,7 +564,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             failure_retryable=True,
         ))
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(request)
 
         self.assertEqual("Safe decline", response.reply)
@@ -587,7 +585,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )
@@ -632,7 +630,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
                 capture_decision="no_candidate",
             )
         )
-        _, muse_input, review_context = main._inspection_for(
+        _, muse_input, review_context = chat_turn.prepare_reflection_turn(
             ChatRequest(session_id=self.session_id, message="Hello"),
             allow_memory_capture=False,
         )
@@ -646,7 +644,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         )
         gate = AsyncMock(return_value=release)
 
-        with patch.object(main, "reflection_reply", gate):
+        with patch.object(chat_turn, "reflection_reply", gate):
             response = await self.call_chat(
                 ChatRequest(session_id=self.session_id, message="Hello")
             )

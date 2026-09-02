@@ -1,13 +1,4 @@
-"""Telemetry must carry operational metadata and no content.
-
-`docs/telemetry.md` bars raw personal memories, full user or assistant
-messages, photographs, raw book or web excerpts, credentials, API keys, and
-sensitive-inference content from logs and spans.
-
-These tests assert that prohibition against the real exported span payload
-rather than against the projection functions in isolation, so an unredacted
-field added anywhere in the pipeline fails here.
-"""
+"""Telemetry must carry operational metadata and no content (docs/telemetry.md), asserted against the real exported span payload."""
 
 import asyncio
 import json
@@ -58,6 +49,7 @@ from src.linger.contracts.emotional import (
 from src.linger.orchestration.emotional import assess_emotional_boundary
 from src.linger.orchestration import grounding as grounding_module
 from src.linger.orchestration.reflection import (
+    PIPELINE_FAILURE_DECLINE,
     SAFE_DECLINE,
     ReflectionRelease,
     reflection_reply as production_reflection_reply,
@@ -146,6 +138,8 @@ class TelemetryTestCase(unittest.IsolatedAsyncioTestCase):
         """Every exported span, as one JSON blob for substring assertions."""
         return json.dumps(self.exporter.exported_spans_as_dict(), default=str)
 
+
+class EmotionalPreflightTelemetryTests(TelemetryTestCase):
     async def test_emotional_preflight_exports_only_fixed_metadata(self) -> None:
         provenance = AsyncMock()
         provenance.run.return_value = result(
@@ -251,8 +245,6 @@ class ProjectionRedactionTests(TelemetryTestCase):
                         "kind": "text_span",
                         "source_field": "candidate.response",
                         "path": "",
-                        "start_codepoint": 0,
-                        "end_codepoint": len(SECRET_QUOTE),
                         "quote": SECRET_QUOTE,
                     },
                     explanation="explanatory prose about the quote",
@@ -560,8 +552,8 @@ class ReflectionSpanTests(TelemetryTestCase):
             review_context={},
         )
 
-        # Behaviour is unchanged: the reader still gets the safe decline.
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        # Behaviour is unchanged: the reader still gets a safe decline.
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("provenance_review", release.failure_stage)
         self.assertEqual("model", release.failure_type)
@@ -577,11 +569,7 @@ class ReflectionSpanTests(TelemetryTestCase):
         self.assertNotIn(SECRET_MESSAGE, payload)
 
     async def test_reject_reports_risk_codes_without_the_quote(self) -> None:
-        """A policy reject must be diagnosable from codes alone.
-
-        `failure_stage` stays None here: Provenance ran fine and decided to
-        block, which is not a failure.
-        """
+        """`failure_stage` stays None: Provenance ran fine and decided to block."""
         muse = AsyncMock()
         muse.run.return_value = result("A candidate reply")
         provenance = AsyncMock()

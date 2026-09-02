@@ -10,6 +10,14 @@ Use this skill only after a generator has written sibling `backstory.json` and
 reviewer must be independent of the generator. Neither proposed nor adopted
 Ground truth enters the system under evaluation.
 
+Before opening a review that can trigger a supported replay, ensure the
+developer has configured the Linger Logfire project as described in the
+[repository workflow](../../../README.md#human-gated-synthetic-evaluation).
+Confirmation immediately authorizes one provider-backed replay for a supported
+Objective. Without local Logfire project credentials or `LOGFIRE_TOKEN`, the
+runner retains its durable JSON output but cannot publish the experiment and
+synthetic traces to Logfire.
+
 ## Open the review
 
 1. Resolve `scripts/ground_truth_reviewer.py` relative to this file.
@@ -52,6 +60,11 @@ explains the provider-backed side effect.
 - For exactly `bounded_memory_curation`, run
   `evals.synthetic_journals.curation_replay` with `--adoption` and a fresh
   temporary output path.
+- For exactly `session_scoped_conversation_continuity`, run
+  `evals.synthetic_journals.continuity_replay` with `--adoption` and a fresh
+  temporary output path. The runner grades only the session boundary; correction
+  adoption and fresh-session leakage wording remain human reviewer judgments
+  read from the durable run artifact.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.
 

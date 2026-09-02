@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "43c536bb2526ce2fee6be79d5a95e8419b6d785232bf5a55cdd63f50032b8ba8",
+  "proposed_ground_truth_sha256": "f5042bd298304f9243f933e7a644c39c3e527c7c1a3f972212babfc3ec4a7054",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-08-29T15:31:25.345265+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-caterpillar-grounded-reflection",
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-caterpillar-spoiler-boundary",
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-ambiguous-spoiler-clarification",
+      "scene_id": "scene-ambiguous-after-change",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-personal-no-retrieval",
+      "scene_id": "scene-personal-changing-routines",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "4d88d5e3f5180482b390371e439545e98eafe8da7553e647db0377acdf510f3a"
+}

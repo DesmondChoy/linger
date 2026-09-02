@@ -1,0 +1,72 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-select-real-semantic-bridge-v3",
+  "owner": "serendipity",
+  "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+  "contrast_group": "book-specificity",
+  "description": "Connect Alice's repeated physical changes with her difficulty accounting for her identity.",
+  "input": {
+    "cue": "Why does the Caterpillar asking who Alice is feel unsettling?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": ["book_corpus"],
+      "book_scopes": [{
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_max": 5
+      }]
+    }
+  },
+  "tool_evidence": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch4-size",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+        "chapter": 4,
+        "location": "Chapter 4",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [916, 924],
+        "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+        "relevance": 0.91
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch5-identity",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "05-advice-from-a-caterpillar",
+        "chapter": 5,
+        "location": "Chapter 5",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [968, 982],
+        "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+        "relevance": 0.98
+      }
+  ],
+  "expected_searches": {
+    "allowed_operations": ["search_librarian"],
+    "required_operations": ["search_librarian"],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": ["alice-ch4-size", "alice-ch5-identity"],
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Connects physical change to unstable self-description",
+        "Names a meaningful difference between undergoing change and being asked to explain it",
+        "Presents the relationship tentatively"
+      ],
+      "forbidden_claims": [
+        "Carroll intended a clinical theory of identity",
+        "The reader has an identity disorder"
+      ]
+    }
+  }
+}

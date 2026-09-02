@@ -75,8 +75,45 @@ class TopicGroup(SourceMemoryAction):
     topic_label: str = Field(min_length=1, max_length=100)
 
 
+class RetrievalTombstone(SourceMemoryAction):
+    """Suppress one linked duplicate from retrieval without deleting it."""
+
+    action: Literal["tombstone_for_retrieval"]
+    memory_id: str = Field(min_length=1)
+    canonical_memory_id: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_linked_distinct_sources(self) -> Self:
+        if self.memory_id == self.canonical_memory_id:
+            raise ValueError("a retrieval tombstone requires a distinct canonical memory")
+        source_ids = set(self.source_memory_ids)
+        if {self.memory_id, self.canonical_memory_id} != source_ids:
+            raise ValueError(
+                "retrieval tombstone sources must be the target and canonical memory"
+            )
+        return self
+
+
+class RetrievalRestore(StrictModel):
+    """Restore one tombstoned original to the retrieval view."""
+
+    action: Literal["restore_to_retrieval"]
+    source_memory_ids: tuple[str] = Field(min_length=1, max_length=1)
+    memory_id: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_target_source(self) -> Self:
+        if self.source_memory_ids != (self.memory_id,):
+            raise ValueError("retrieval restore source must be the target memory")
+        return self
+
+
 CurationAction = Annotated[
-    DuplicateLink | DerivedSummary | TopicGroup,
+    DuplicateLink
+    | DerivedSummary
+    | TopicGroup
+    | RetrievalTombstone
+    | RetrievalRestore,
     Field(discriminator="action"),
 ]
 

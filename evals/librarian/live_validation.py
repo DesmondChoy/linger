@@ -22,8 +22,8 @@ from typing import Any
 from pydantic_ai.messages import ToolCallPart
 
 from apps.backend import sessions
+from apps.backend.chat_turn import prepare_reflection_turn
 from apps.backend.config import get_settings
-from apps.backend.main import _inspection_for
 from apps.backend.schemas import ChatRequest
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.muse.models import MuseCandidate
@@ -66,6 +66,15 @@ class RecordingAgent:
         result = await self.agent.run(*args, **kwargs)
         self.results.append(result)
         return result
+
+
+def _book_corpus_evidence_uses(candidate: MuseCandidate) -> list[Any]:
+    """Keep only book-corpus declarations; session-line uses have no evidence_id."""
+    return [
+        declared
+        for declared in candidate.evidence_uses
+        if declared.source_kind == "book_corpus"
+    ]
 
 
 def _p95(values: list[float]) -> float:
@@ -150,7 +159,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     session_id = f"librarian-live-eval-{case.case_id}"
     sessions.clear(session_id)
     request = ChatRequest(session_id=session_id, message=_chat_message(case))
-    inspection, muse_input, review_context = _inspection_for(
+    inspection, muse_input, review_context = prepare_reflection_turn(
         request,
         allow_memory_capture=False,
     )
@@ -224,7 +233,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
         for record in result.evidence
     }
     cited_ids = (
-        [item.evidence_id for item in released_candidate.evidence_uses]
+        [item.evidence_id for item in _book_corpus_evidence_uses(released_candidate)]
         if released_candidate is not None
         else []
     )
@@ -271,7 +280,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
     )
     candidate_declarations = []
     if final_candidate is not None:
-        for declared in final_candidate.evidence_uses:
+        for declared in _book_corpus_evidence_uses(final_candidate):
             record = evidence_by_id.get(declared.evidence_id)
             candidate_declarations.append(
                 {

@@ -10,7 +10,11 @@ import json
 from functools import cache
 from pathlib import Path
 
-from src.linger.agents.muse.models import EvidenceUse, NoMemoryCandidate
+from src.linger.agents.muse.models import (
+    BookEvidenceUse,
+    EvidenceUse,
+    NoMemoryCandidate,
+)
 from src.linger.agents.provenance.models import (
     CandidateUnderReview,
     CurrentLine,
@@ -106,7 +110,7 @@ def review_input(
 
 
 def use(record: EvidenceRecord, quote: str | None = None) -> EvidenceUse:
-    return EvidenceUse(
+    return BookEvidenceUse(
         source_kind="book_corpus",
         evidence_id=record.evidence_id,
         source_location=record.location,
@@ -200,7 +204,7 @@ def build_case_set() -> dict:
                 line="What does the Cat say about madness?",
                 records=(garden,),
                 uses=(
-                    EvidenceUse(
+                    BookEvidenceUse(
                         source_kind="book_corpus",
                         evidence_id="ev-ch06-missing",
                         source_location="Chapter 6",

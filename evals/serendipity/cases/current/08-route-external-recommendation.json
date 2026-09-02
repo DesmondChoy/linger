@@ -1,0 +1,42 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-route-external-recommendation-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_external_recommendation_to_web",
+  "contrast_group": "source-routing",
+  "description": "An explicit request for an outside source starts with web search and opens evidence before selection.",
+  "input": {
+    "cue": "Can you recommend an outside essay that offers a lens on Alice's uncertainty about identity?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {"allowed_sources": ["web"], "book_scopes": []}
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "web",
+      "evidence_id": "https://plato.stanford.edu/entries/identity-personal/",
+      "title": "Personal Identity",
+      "excerpt": "The source surveys questions about what makes a person at one time the same person at another time."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://plato.stanford.edu/entries/existentialism/",
+      "title": "Existentialism",
+      "excerpt": "The source describes identity as shaped through situated choices rather than received as a fixed definition."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": ["web_search", "get_page"],
+    "required_operations": ["web_search", "get_page"],
+    "primary_operation": "web_search"
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": ["https://plato.stanford.edu/entries/identity-personal/"],
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": ["Offers a relevant outside reading lens", "Distinguishes recommendation from proof about the novel"],
+      "forbidden_claims": ["Claims the external source establishes authorial intent"]
+    }
+  }
+}

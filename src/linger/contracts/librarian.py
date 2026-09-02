@@ -99,6 +99,8 @@ class BoundaryCandidate(StrictModel):
     book_version_id: str
     max_chapter_inclusive: int = Field(ge=1)
     confidence: float = Field(ge=0, le=1)
+    authorization_basis: Literal["memory_supported"]
+    supporting_memory_ids: tuple[str, ...] = Field(min_length=1)
     supporting_locations: tuple[BoundarySupportLocation, ...] = Field(min_length=1)
 
 
@@ -112,9 +114,12 @@ class BoundaryUncertain(StrictModel):
         "insufficient_context",
         "conflicting_context",
         "low_confidence",
+        "progress_unverified",
         "inference_unavailable",
     ]
     confidence: float | None = Field(default=None, ge=0, le=1)
+    authorization_basis: Literal["memory_supported", "line_only"] | None = None
+    supporting_memory_ids: tuple[str, ...] = ()
     candidate_chapter: int | None = Field(default=None, ge=1)
     supporting_locations: tuple[BoundarySupportLocation, ...] = ()
     clarification_question: str
@@ -122,10 +127,26 @@ class BoundaryUncertain(StrictModel):
     @model_validator(mode="after")
     def _candidate_fields_are_complete(self) -> "BoundaryUncertain":
         if self.candidate_chapter is None:
-            if self.supporting_locations:
+            if (
+                self.authorization_basis is not None
+                or self.supporting_memory_ids
+                or self.supporting_locations
+            ):
                 raise ValueError("uncertain result without a candidate cannot cite support")
-        elif self.confidence is None or not self.supporting_locations:
-            raise ValueError("uncertain candidate requires confidence and support")
+        else:
+            if (
+                self.confidence is None
+                or self.authorization_basis is None
+                or not self.supporting_locations
+            ):
+                raise ValueError("uncertain candidate requires confidence, basis, and support")
+            if self.authorization_basis == "memory_supported":
+                if not self.supporting_memory_ids:
+                    raise ValueError(
+                        "memory-supported candidate requires supporting memory IDs"
+                    )
+            elif self.supporting_memory_ids:
+                raise ValueError("line-only candidate cannot cite supporting memories")
         return self
 
 
@@ -153,4 +174,28 @@ class RetrievalFailure(StrictModel):
 LibrarianResponse = ClarificationRequest | RetrievalResult | RetrievalFailure
 LIBRARIAN_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[LibrarianResponse, Field(discriminator="kind")]
+)
+
+
+class RoutedWork(StrictModel):
+    """A confidently identified work with a resolved, request-scoped boundary."""
+
+    kind: Literal["routed"]
+    work_id: str
+    book_version_id: str
+    title: str
+    routing_confidence: float = Field(ge=0, le=1)
+    max_chapter_inclusive: int = Field(ge=1)
+    boundary_confidence: float = Field(ge=0, le=1)
+
+
+class NoMatch(StrictModel):
+    """No book intent was evident in the message; Muse should keep reflecting."""
+
+    kind: Literal["no_match"]
+
+
+LibrarianRoutingResponse = RoutedWork | ClarificationRequest | NoMatch
+LIBRARIAN_ROUTING_RESPONSE_ADAPTER = TypeAdapter(
+    Annotated[LibrarianRoutingResponse, Field(discriminator="kind")]
 )

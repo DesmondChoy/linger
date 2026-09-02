@@ -16,6 +16,7 @@ projection as of 28 August 2026.
 | Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
 | Initial Librarian implementation | 6 of 6 slices (100%) | Corpus, boundary, retrieval, Muse handling, five-way strategy selection, and live end-to-end validation are complete | `linger-ibq` |
 | Two-phase spoiler boundary | 1 of 1 implementation slice (100%) | Full-work private inference returns a validated content-free candidate or focused clarification before the second bounded search | `linger-lfh` |
+| Muse-initiated routing | 1 of 1 implementation slice (100%) | Application no longer routes eagerly; Muse calls a confidence-gated `librarian_route` tool only when a request appears book-dependent | |
 | Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
 
 The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
@@ -96,18 +97,28 @@ chapters.
 ```text
 User request + transient conversation context
                     ↓
-Application routes the possible work using metadata only
-                    ↓
 Explicit reader ceiling in this request?
         ├─ yes → Application validates explicit ceiling ───────────┐
-        └─ no  → Librarian privately searches the complete work    │
-                 using current Line + relevant account memories    │
+        └─ no  → Muse judges book intent conversationally and,     │
+                 only when the request appears to depend on a      │
+                 specific book, calls the argument-less             │
+                 `librarian_route` tool                             │
                                       ↓                            │
-                 Candidate ceiling + confidence + locations        │
-                                      ↓                            │
-                 Application validates inferred ceiling           │
-                     ↙ uncertain          validated ↘              │
-          Exact clarification to Muse       └──────────────────────┤
+                 Librarian scores confidence against the catalogue  │
+                 (title mention = 1.0; distinct catalog-cue overlap │
+                 = 0.3 + 0.2 × overlap, capped at 1.0); below 0.6   │
+                 or a full-evidence tie yields no match             │
+                     ↙ no match         routed work ↘               │
+              Muse keeps reflecting,   Librarian privately searches │
+              no boundary asked        the complete work using      │
+                                       current Line + relevant       │
+                                       account memories              │
+                                                    ↓                │
+                             Candidate ceiling + confidence + locations │
+                                                    ↓                │
+                             Application validates inferred ceiling │
+                                 ↙ uncertain          validated ↘    │
+              Exact clarification relayed by Muse       └──────────┤
                                                                   ↓
                                                      Eligible catalogue only
                                       ↓
@@ -132,7 +143,7 @@ truth, and non-selected indexes need not remain in the production path.
 | Corpus processor | Verifies the source, extracts exact chapter bodies, renders initial Markdown, and checks integrity |
 | Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
-| Muse | Supplies the exact question, invokes the granted Librarian adapter when grounding is useful, and presents any clarification or evidence result to the user |
+| Muse | Judges when a request depends on a book and calls `librarian_route`, supplies the exact question, invokes the granted Librarian adapter when grounding is useful, and presents any clarification or evidence result to the user |
 | Application boundary | Supplies access scope, validates explicit or inferred ceilings, and prevents every caller from widening them |
 | Librarian agent | Infers a private candidate ceiling, then judges the answerability of separately retrieved bounded evidence |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
@@ -355,12 +366,44 @@ A structural or integrity failure returns no ready corpus:
 
 ## 4. Online retrieval flow
 
-### 4.1 Input and output contracts
+### 4.1 Confidence-scored routing
 
-Before Muse receives a book retrieval grant, application code routes a possible
-work using metadata only. The private boundary phase receives the current Line,
-a bounded set of relevant account-scoped memories, and full-work retrieval
-candidates:
+The application no longer routes every turn eagerly. Muse decides whether a
+request depends on a specific book and, only then, calls the argument-less
+`librarian_route` tool; the application supplies the exact current reader
+message from a turn-scoped context variable, so Muse cannot substitute its own
+text. `route_work` scores each catalogue candidate: an explicit title or
+work-id mention is unambiguous (`confidence = 1.0`); otherwise confidence
+tracks the absolute strength of the evidence, `0.3 + 0.2 × overlap` where
+`overlap` is the count of distinct matched catalog-cue *terms* (character,
+location, or retrieval-cue words; a two-word cue contributes 2), capped at
+`1.0` — a long message and a short one with the same cues score the same.
+Below the `0.6` threshold, or a full-evidence tie between two candidates
+(same confidence and same cue overlap), the result is no match rather than a
+guess.
+
+`work_candidates` separately classifies possible works for the boundary
+phase: exact supported titles, stable aliases, distinctive multi-word
+catalogue phrases, and broad catalogue-context agreement are *strong*
+signals; common catalogue words are *weak* candidates that can neither select
+a work nor expose a memory on their own.
+
+A routed work then unconditionally enters the same private boundary
+phase described below; a `NoMatch` leaves Muse to keep reflecting without a
+book tool, and an unresolved boundary surfaces as a `ClarificationRequest`
+that Muse relays to the reader verbatim. A routed result grants no retrieval
+authority by itself — Muse still calls `librarian_search` with the returned
+`work_id`, `book_version_id`, and a `reading_boundary` built from
+`max_chapter_inclusive`.
+
+### 4.2 Input and output contracts
+
+The boundary phase runs exactly when `librarian_route` matched a work; an
+explicit reader-confirmed ceiling is authoritative and terminal for the
+request and never enters this phase. Once a work is routed, application code
+hands off to the private boundary phase. It receives the current Line,
+a bounded set of strongly routed account-scoped memories, and full-work
+retrieval candidates:
 
 ```json
 {
@@ -368,7 +411,8 @@ candidates:
   "relevant_memories": [
     {
       "memory_id": "mem_01K2...",
-      "text": "The Caterpillar's questions made me think about how uncertain I am about my identity."
+      "text": "The Caterpillar's questions made me think about how uncertain I am about my identity.",
+      "evidence_ids": ["pg11-v01b38ea4-ch05-ln0974-0981"]
     }
   ],
   "full_work_candidates": [
@@ -393,6 +437,8 @@ Its accepted output contains no passage text:
   "book_version_id": "pg11-v01b38ea4",
   "max_chapter_inclusive": 5,
   "confidence": 0.93,
+  "authorization_basis": "memory_supported",
+  "supporting_memory_ids": ["mem_01K2..."],
   "supporting_locations": [
     {
       "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0981",
@@ -403,9 +449,12 @@ Its accepted output contains no passage text:
 }
 ```
 
-Application code validates that candidate and either supplies a request-scoped
-retrieval grant or requires one exact clarification. Muse then supplies the
-exact question for the separate bounded evidence phase:
+Application code validates the selected registered work, supporting memory IDs,
+canonical evidence IDs, derived chapter, and authorization basis. A Line-only
+question can locate an event but cannot authorize a ceiling; it requires one
+exact clarification even at high model confidence. A validated
+memory-supported candidate receives a request-scoped retrieval grant. Muse then
+supplies the exact question for the separate bounded evidence phase:
 
 ```json
 {
@@ -431,16 +480,18 @@ exact question for the separate bounded evidence phase:
 output. Thresholds may be overridden by evaluated configuration, but no agent
 may lower them or enlarge scope.
 
-### 4.2 Boundary enforcement and clarification
+### 4.3 Boundary enforcement and clarification
 
 Boundary inference and evidence retrieval are separate calls:
 
 1. The inference search may inspect the complete immutable work, but its
    passages remain private and never enter the turn evidence ledger.
-2. Librarian selects only content-free supporting evidence IDs and locations.
+2. Librarian declares `memory_supported` or `line_only` and selects only input
+   memory IDs plus content-free supporting evidence IDs and locations.
 3. Application code derives the ceiling from those trusted records and rejects
-   invented IDs, a mismatched work or revision, and inconsistent chapters.
-4. Confidence below `0.75` or any ambiguity yields an exact clarification; the
+   invented memory or evidence IDs, a mismatched work or revision, an invalid
+   basis, and inconsistent chapters.
+4. Line-only curiosity, confidence below `0.75`, or any ambiguity yields an exact clarification; the
    release validator rejects a book answer or tool call in its place.
 5. A validated candidate enables a new search whose scope is clamped to the
    inferred ceiling. No boundary is persisted to later requests.
@@ -483,7 +534,7 @@ the answer through the same trusted boundary validator.
 Partial-current-chapter access remains unsupported until Linger has a stable,
 validated position format within a chapter.
 
-### 4.3 Retrieval, fusion, and deduplication
+### 4.4 Retrieval, fusion, and deduplication
 
 Direct bounded chapter selection is the control. The benchmark adds only
 disposable indexes:
@@ -511,7 +562,7 @@ keeps one canonical evidence record and records both retrieval methods and
 their scores. Strongly overlapping neighbouring windows are merged only after
 resolving their exact canonical range; text is never paraphrased during merge.
 
-### 4.4 Reranking versus evidence strength
+### 4.5 Reranking versus evidence strength
 
 These are separate decisions:
 
@@ -530,7 +581,7 @@ The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
 resolution.
 
-### 4.5 Evidence identity
+### 4.6 Evidence identity
 
 Final book evidence uses a revision-aware, line-resolvable identifier:
 
@@ -547,7 +598,7 @@ collision is a hard failure. Candidate-window IDs may exist inside a derived
 index, but Muse and Provenance receive the final canonical line-based evidence
 ID.
 
-### 4.6 Result contract
+### 4.7 Result contract
 
 When retrieval runs, Librarian returns `kind: result`. This is distinct from a
 clarification. A sufficient result looks like:
@@ -646,7 +697,7 @@ A retrieval failure is reserved for unavailable or corrupt dependencies, an
 unresolvable evidence ID, or another safe-completion failure. It is not used for
 ordinary `no_evidence`.
 
-### 4.7 Failure behaviour
+### 4.8 Failure behaviour
 
 Retrieval fails closed when the boundary or evidence location cannot be
 validated. Once a production strategy is selected, search or reranking failures
@@ -654,7 +705,7 @@ may degrade to direct chapter reads only when those reads remain inside the same
 validated scope. The failure response includes a stable error code and
 retryability flag, but no unvalidated excerpt.
 
-### 4.8 Online verification
+### 4.9 Online verification
 
 Before the online path is considered complete, tests must cover:
 

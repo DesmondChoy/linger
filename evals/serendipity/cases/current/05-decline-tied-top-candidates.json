@@ -1,0 +1,74 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-rank-tied-top-candidates-v3",
+  "owner": "serendipity",
+  "primary_behavior": "rank_the_strongest_supported_connection",
+  "contrast_group": "winner-clarity",
+  "description": "A vague cue and several unrelated passages should not force an arbitrary connection.",
+  "input": {
+    "cue": "What else does this remind you of?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": ["book_corpus"],
+      "book_scopes": [{
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_max": 5
+      }]
+    }
+  },
+  "tool_evidence": [
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch4-puppy-game",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+        "chapter": 4,
+        "location": "Chapter 4",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [894, 906],
+        "excerpt": "Alice plays with the enormous puppy using a stick while trying not to be run over.",
+        "relevance": 0.71
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch5-caterpillar-silence",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "05-advice-from-a-caterpillar",
+        "chapter": 5,
+        "location": "Chapter 5",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [960, 966],
+        "excerpt": "The Caterpillar and Alice look at each other in silence before it speaks.",
+        "relevance": 0.70
+      },
+      {
+        "source_kind": "book_corpus",
+        "evidence_id": "alice-ch5-pigeon-eggs",
+        "source_title": "Alice's Adventures in Wonderland",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "05-advice-from-a-caterpillar",
+        "chapter": 5,
+        "location": "Chapter 5",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [1198, 1210],
+        "excerpt": "The Pigeon calls Alice a serpent because of her neck and worries about its eggs.",
+        "relevance": 0.69
+      }
+  ],
+  "expected_searches": {
+    "allowed_operations": ["search_librarian"],
+    "required_operations": ["search_librarian"],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": ["no_clear_winner", "unsupported_cue"]
+  }
+}

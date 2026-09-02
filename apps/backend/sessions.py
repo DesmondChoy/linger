@@ -76,12 +76,13 @@ def append_turn(
     evidence_ids: tuple[str, ...] = (),
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
 ) -> None:
-    """Store the released chat plus content-free evidence and review handles."""
-    messages: list[ModelMessage] = [
-        ModelRequest(parts=[UserPromptPart(content=user_message)]),
-        ModelResponse(parts=[TextPart(content=assistant_message)]),
-    ]
-    _sessions.setdefault(session_id, []).extend(messages)
+    """Store content-free evidence and review handles; store chat only if released."""
+    if release_source == "muse_candidate":
+        messages: list[ModelMessage] = [
+            ModelRequest(parts=[UserPromptPart(content=user_message)]),
+            ModelResponse(parts=[TextPart(content=assistant_message)]),
+        ]
+        _sessions.setdefault(session_id, []).extend(messages)
     _turn_records.setdefault(session_id, []).append(
         TurnRecord(
             turn_id=turn_id,
@@ -109,11 +110,12 @@ def released_evidence_ids(session_id: str) -> tuple[str, ...]:
 
 
 def clear(session_id: str) -> bool:
-    """Drop a session's history. Returns whether anything was there."""
+    """Drop a session's messages, records, and evidence handles."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
-    _turn_records.pop(session_id, None)
-    return _sessions.pop(session_id, None) is not None
+    popped_records = _turn_records.pop(session_id, None)
+    popped_history = _sessions.pop(session_id, None)
+    return bool(popped_history or popped_records)
 
 
 def snapshot_reading_state(session_id: str) -> ReadingStateSnapshot:

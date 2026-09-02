@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from src.linger.corpus.alice import BOOK
 from src.linger.corpus.book import BookCorpus, ChapterFrontMatter, parse_chapter_markdown
@@ -29,6 +31,13 @@ STOP_WORDS = {
     "to", "too", "us", "was", "we", "were", "what", "when", "where", "which",
     "who", "why", "will", "with", "would", "you", "your",
 }
+# Single-word catalog cues that are also common English words: matching one
+# of these must not bear routing confidence, unlike a distinctive name like
+# "dormouse" that happens to also be one word.
+GENERIC_CUE_WORDS = {
+    "baby", "cook", "crab", "duck", "eggs", "five", "garden", "kitchen",
+    "mouse", "seven", "wood",
+}
 
 
 class CorpusScopeError(ValueError):
@@ -39,10 +48,15 @@ class CorpusScopeError(ValueError):
 class CorpusRegistration:
     book: BookCorpus
     root: Path
+    aliases: tuple[str, ...] = ()
 
 
 CORPORA = {
-    BOOK.work_id: CorpusRegistration(book=BOOK, root=BOOK.default_output),
+    BOOK.work_id: CorpusRegistration(
+        book=BOOK,
+        root=BOOK.default_output,
+        aliases=("alice in wonderland", "wonderland"),
+    ),
 }
 
 
@@ -62,12 +76,50 @@ class RegisteredCorpusScope:
     max_chapter: int
 
 
+# Below this, a matched catalog word explains too little of the message to
+# justify routing (e.g. one incidental word inside unrelated reflection).
+ROUTING_CONFIDENCE_THRESHOLD = 0.6
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """A routed work plus the confidence the evidence supports for it."""
+
+    scope: RegisteredCorpusScope
+    confidence: float
+
+
+@dataclass(frozen=True)
+class WorkRouteCandidate:
+    """Metadata-only possible work; weak matches never select a work alone."""
+
+    scope: RegisteredCorpusScope
+    strength: Literal["strong", "weak"]
+    reasons: tuple[str, ...]
+
+
 def _terms(text: str) -> set[str]:
     return {
         token.casefold()
         for token in TOKEN.findall(text)
         if len(token) > 1 and token.casefold() not in STOP_WORDS
     }
+
+
+def _phrase_tokens(text: str) -> tuple[str, ...]:
+    normalized = text.casefold().replace("’s", "").replace("'s", "")
+    return tuple(re.findall(r"[^\W_]+", normalized, re.UNICODE))
+
+
+def _contains_phrase(text_tokens: tuple[str, ...], phrase: str) -> bool:
+    phrase_tokens = _phrase_tokens(phrase)
+    if not phrase_tokens or len(phrase_tokens) > len(text_tokens):
+        return False
+    width = len(phrase_tokens)
+    return any(
+        text_tokens[index : index + width] == phrase_tokens
+        for index in range(len(text_tokens) - width + 1)
+    )
 
 
 def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Paragraph, ...]:
@@ -118,6 +170,45 @@ def _load_catalog(registration: CorpusRegistration) -> dict[str, object]:
     return catalog
 
 
+def _normalize(text: str) -> str:
+    """Casefold and unify apostrophe variants so cue matching is quote-agnostic."""
+    return text.casefold().replace("’", "'").replace("‘", "'").replace("ʼ", "'")
+
+
+@lru_cache(maxsize=None)
+def _routing_cues(
+    registration: CorpusRegistration,
+) -> tuple[frozenset[str], frozenset[str], re.Pattern[str]]:
+    """Precompute one corpus's title/catalog cue markers and a single matcher."""
+    book = registration.book
+    title_markers = frozenset(
+        {_normalize(book.title), book.work_id.replace("-", " ").casefold()}
+    )
+    catalog = _load_catalog(registration)
+    chapters = catalog.get("chapters")
+    assert isinstance(chapters, list)
+    catalog_markers: set[str] = set()
+    for chapter in chapters:
+        if not isinstance(chapter, dict):
+            continue
+        for field in ("characters", "locations", "retrieval_cues"):
+            values = chapter.get(field)
+            if isinstance(values, list):
+                catalog_markers.update(
+                    _normalize(value)
+                    for value in values
+                    if isinstance(value, str) and len(value.strip()) >= 4
+                )
+        # routing_description is free prose written for humans, not a
+        # catalog cue — counting its incidental words (e.g. "while",
+        # "much") as evidence would let unrelated reflection accrue
+        # confidence from common vocabulary alone.
+    all_markers = catalog_markers | title_markers
+    alternation = "|".join(re.escape(marker) for marker in sorted(all_markers, key=len, reverse=True))
+    pattern = re.compile(rf"(?<!\w)(?:{alternation})(?!\w)")
+    return frozenset(catalog_markers), title_markers, pattern
+
+
 class Librarian:
     """Retrieve exact passages only from a registered revision and chapter range."""
 
@@ -159,16 +250,16 @@ class Librarian:
             max_chapter=max(numbers),
         )
 
-    def route_work(
+    def work_candidates(
         self,
         text: str,
         allowed_book_version_ids: tuple[str, ...],
-    ) -> RegisteredCorpusScope | None:
-        """Route explicit literary cues using metadata only, never chapter text."""
-        lowered = text.casefold()
+    ) -> tuple[WorkRouteCandidate, ...]:
+        """Generate metadata-only candidates without granting a work selection."""
+        text_tokens = _phrase_tokens(text)
         query_terms = _terms(text)
         allowed = set(allowed_book_version_ids)
-        ranked: list[tuple[int, RegisteredCorpusScope]] = []
+        ranked: list[tuple[int, WorkRouteCandidate]] = []
         for registration in CORPORA.values():
             book = registration.book
             if book.book_version_id not in allowed:
@@ -179,10 +270,17 @@ class Librarian:
             chapters = catalog.get("chapters")
             assert isinstance(chapters, list)
 
-            direct_markers = {
-                book.title.casefold(),
-                book.work_id.replace("-", " ").casefold(),
-            }
+            strong_reasons: set[str] = set()
+            weak_reasons: set[str] = set()
+            title_markers = (
+                book.title,
+                book.work_id.replace("-", " "),
+                *registration.aliases,
+            )
+            for marker in title_markers:
+                if _contains_phrase(text_tokens, marker):
+                    strong_reasons.add("supported_title_or_alias")
+
             routing_terms: set[str] = set()
             for chapter in chapters:
                 if not isinstance(chapter, dict):
@@ -190,32 +288,109 @@ class Librarian:
                 for field in ("characters", "locations", "retrieval_cues"):
                     values = chapter.get(field)
                     if isinstance(values, list):
-                        direct_markers.update(
-                            value.casefold()
-                            for value in values
-                            if isinstance(value, str) and len(value.strip()) >= 4
-                        )
-                        routing_terms.update(
-                            term
-                            for value in values
-                            if isinstance(value, str)
-                            for term in _terms(value)
-                        )
+                        for value in values:
+                            if not isinstance(value, str) or len(value.strip()) < 4:
+                                continue
+                            routing_terms.update(_terms(value))
+                            if not _contains_phrase(text_tokens, value):
+                                continue
+                            if len(_phrase_tokens(value)) >= 2:
+                                strong_reasons.add("distinctive_catalog_phrase")
+                            else:
+                                weak_reasons.add("single_catalog_term")
                 description = chapter.get("routing_description")
                 if isinstance(description, str):
                     routing_terms.update(_terms(description))
 
-            direct = any(marker in lowered for marker in direct_markers)
             overlap = len(query_terms & routing_terms)
-            if direct:
-                ranked.append((100 + overlap, scope))
+            if overlap >= 3:
+                strong_reasons.add("catalog_context_agreement")
+            elif overlap:
+                weak_reasons.add("catalog_context_overlap")
+
+            reasons = strong_reasons or weak_reasons
+            if not reasons:
+                continue
+            strength: Literal["strong", "weak"] = (
+                "strong" if strong_reasons else "weak"
+            )
+            ranked.append(
+                (
+                    (100 if strength == "strong" else 0) + overlap,
+                    WorkRouteCandidate(
+                        scope=scope,
+                        strength=strength,
+                        reasons=tuple(sorted(reasons)),
+                    ),
+                )
+            )
+
+        ranked.sort(key=lambda item: (-item[0], item[1].scope.work_id))
+        return tuple(candidate for _, candidate in ranked)
+
+    def route_work(
+        self,
+        text: str,
+        allowed_book_version_ids: tuple[str, ...],
+    ) -> RoutingDecision | None:
+        """Route explicit literary cues using metadata only, never chapter text."""
+        lowered = _normalize(text)
+        allowed = set(allowed_book_version_ids)
+        ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
+        for registration in CORPORA.values():
+            book = registration.book
+            if book.book_version_id not in allowed:
+                continue
+            scope = self.registered_scope(book.work_id, book.book_version_id)
+            assert scope is not None
+            catalog_markers, title_markers, pattern = _routing_cues(registration)
+
+            all_matches = {match.group(0) for match in pattern.finditer(lowered)}
+            title_match = bool(all_matches & title_markers)
+            matched_markers = all_matches & catalog_markers
+            # Keep only maximal matches: drop a matched cue that is itself a
+            # substring of another matched cue (e.g. "garden" inside "rose
+            # garden") so nested catalog entries don't double-count.
+            matched_markers = {
+                marker
+                for marker in matched_markers
+                if not any(
+                    marker != other and marker in other for other in matched_markers
+                )
+            }
+            if not (title_match or matched_markers):
+                continue
+
+            if title_match:
+                # An explicit title or work-id mention is unambiguous.
+                confidence = 1.0
+                distinct_cues = len(matched_markers)
+            else:
+                # A single-word cue that is also common English (see
+                # GENERIC_CUE_WORDS) is too weak to count alone; a multi-word
+                # cue, or a distinctive single-word name, always counts.
+                counted_cues = {
+                    marker
+                    for marker in matched_markers
+                    if " " in marker or marker not in GENERIC_CUE_WORDS
+                }
+                distinct_cues = len(counted_cues)
+                confidence = min(1.0, 0.3 + 0.2 * distinct_cues)
+            ranked.append((scope, confidence, distinct_cues))
 
         if not ranked:
             return None
-        ranked.sort(key=lambda item: (-item[0], item[1].work_id))
-        if len(ranked) > 1 and ranked[0][0] == ranked[1][0]:
+        ranked.sort(key=lambda item: (-item[1], -item[2], item[0].work_id))
+        # Ambiguous only when the full evidence signal ties (confidence and
+        # distinct cue count); `work_id` is a deterministic tiebreaker for
+        # sorting only, never a reason by itself to call two distinct routes
+        # a tie.
+        if len(ranked) > 1 and ranked[0][1:] == ranked[1][1:]:
             return None
-        return ranked[0][1]
+        scope, confidence, _ = ranked[0]
+        if confidence < ROUTING_CONFIDENCE_THRESHOLD:
+            return None
+        return RoutingDecision(scope=scope, confidence=confidence)
 
     def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
         """Resolve one released handle without running retrieval again."""

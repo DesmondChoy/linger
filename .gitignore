@@ -21,3 +21,6 @@ data/gutenberg/pg*.metadata.json
 # Miscellaneous
 tmp/
 __pycache__/
+
+# Logfire local project credentials (from `logfire projects use`)
+.logfire/

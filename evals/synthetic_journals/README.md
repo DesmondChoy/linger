@@ -15,6 +15,51 @@ Checked-in authoring packages live under
 remain under `synthetic-journal-evaluation/run-configurations/` because packages
 reference them by ID and the validator applies them across packages.
 
+## Human-gated end-to-end workflow
+
+Configure the Linger Logfire project before starting a provider-backed
+evaluation. Local development uses the credentials created by:
+
+```bash
+uv run logfire --region us auth
+uv run logfire --region us projects use --org desmond-choy linger
+```
+
+Deployed and CI environments use `LOGFIRE_TOKEN`. Without either credential
+source, the replay may still produce its durable JSON output, but no result is
+available in Logfire.
+
+The complete workflow is:
+
+1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
+   Objectives in the loopback selector and confirms the complete selection.
+2. The skill creates a timestamped package directory containing only
+   `pre-generation-report.md`. Selection confirmation is not generation
+   approval.
+3. A human reads the report and approves its design and detached generator
+   prompt, requests changes, or abandons the attempt. Generation proceeds only
+   after separate approval and only when the prompt is runnable or all named
+   preconditions have been met.
+4. A separately authorized generator writes `backstory.json` and
+   `ground-truth.json` beside the report. Validate both files with the command
+   below.
+5. Invoke the `review-synthetic-ground-truth` skill. A human independent of the
+   generator approves or flags every proposed Ground truth row.
+6. **Make Changes** returns the decision without writing an adoption or starting
+   runtime. Confirmation writes `ground-truth-adoption.json`. For exactly one
+   supported Objective, the agent validates that adoption and starts one
+   provider-backed replay. The skill automatically routes reviewed automatic
+   capture and bounded memory curation; other selections stop after adoption.
+7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
+   providers, and Live views. Keep the runner's JSON output as the durable,
+   complete evaluation record.
+
+The local selectors and reviewer return decisions to the agent; neither browser
+server invokes a generator, model, or replay runner. The grounded-reflection and
+spoiler-boundary runner described below is implemented for explicit invocation
+after adoption, but it is not an automatic route owned by the current review
+skill.
+
 The Pydantic models in `models.py` are the schema authority. Validate a package
 from the repository root:
 
@@ -72,9 +117,15 @@ does not rewrite `ground-truth.json`.
 
 The loopback server only returns the decision. The agent validates the result
 and chooses a known objective-specific runner. The browser never receives
-runtime authority or provider credentials. Capture and bounded curation are the
-only implemented confirmed replay paths; other or mixed Objectives stop after
-adoption.
+runtime authority or provider credentials. Automatic post-confirmation routes
+cover capture and bounded curation. The grounded-reflection plus
+spoiler-boundary runner is available for explicit invocation after adoption;
+other or mixed Objectives stop after adoption.
+
+A session-continuity runner also exists below; registering it as a confirmed
+replay path in the Objective catalog and the review skill remains a pending
+human decision, so the review app still stops after adoption for that
+Objective.
 
 ## Capture replay
 
@@ -159,6 +210,74 @@ model and every deployed prompt fingerprint for lineage. `objective_execution`
 hashes the configured model, Sculptor prompt, and active curation contracts for
 behavioral comparison. Changing an inactive prompt changes the former but not
 the latter.
+
+## Session-continuity replay
+
+Replay a validated session-continuity package through the production chat
+boundary:
+
+```bash
+uv run python -m evals.synthetic_journals.continuity_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/session-scoped-conversation-continuity-run.json
+```
+
+This runner accepts Lines only and rejects Props, offline inputs, run
+configurations, and continued sessions. Each Scene runs in its own persisted
+session: one session ID carries the Scene's ordered Lines through production
+chat, capture stays disabled, and a committed memory is a hard failure. Within
+a pairing edge the multi-Line Scene is the continuity Scene and the single-Line
+Scene is its fresh comparison, whose Line must repeat the continuity Scene's
+final Line. The Ground-truth grade binds only to the session boundary the
+`ScenePairing` asserts — the comparison Scene's session began clean — while
+continuity Scenes report `not_applicable`. Session-contract deviations surface
+separately as `session_state_invariants` findings and never change the grade.
+Correction adoption and prior-session leakage remain review judgments; the
+artifact records every reply, exact Muse input, and per-turn exchange range a
+later judge needs, and grades neither.
+
+Logfire's default scrubber redacts exported attribute paths and values
+containing `session`, which hides this runner's objective ID, boundary fields,
+and `session_state_invariants` label in the Logfire view. The Ground-truth
+grade, adoption-authority fields, and durable artifact are unaffected; because
+the redaction is value-triggered, only a scrubbing-configuration decision, not
+a rename, can restore visibility.
+
+## Grounded reflection and spoiler-boundary replay
+
+Replay the validated three-Scene book package through the production
+application chat-turn boundary:
+
+```bash
+uv run python -m evals.synthetic_journals.book_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/book-reflection-spoiler-run.json
+```
+
+The package must select `grounded_book_reflection` followed by
+`spoiler_boundary_clarification`, with no run configuration. It contains one
+combined inference-and-grounding Scene, one ambiguous clarification comparison,
+and one personal no-retrieval comparison. All three use one Line in a fresh
+session. The two book-boundary Scenes share one active Prop; the personal Scene
+has no Prop.
+
+The runner seeds each Scene's designated Prop into fresh, account-scoped
+storage, disables automatic capture, and calls `run_chat_turn` directly. This
+is the same application workflow used by `POST /api/chat`, but replay does not
+construct an HTTP request or depend on FastAPI exception semantics.
+It records the content-free boundary handoff separately from bounded Librarian
+retrieval, released evidence, Provenance verdicts, and the response. Typed
+Ground truth grades the inference or clarification decision, exact ceiling,
+permitted and forbidden production evidence IDs, exact quotations, absence of
+retrieval, and unchanged Prop storage. Proposed labels never enter chat.
+
+Repository-text evidence uses a globally unique `evidence_id` for each review
+reference. The grader matches its hash-bound exact text against evidence
+observed from production, so packages do not depend on a particular retrieval
+index's window IDs. The command shares the other runners' proposal, adoption,
+and output behavior; it does not adopt or run independent review itself.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene

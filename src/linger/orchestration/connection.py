@@ -48,7 +48,11 @@ from src.linger.orchestration.inspection_context import (
     cached_connection_result,
     record_connection_inspection,
 )
-from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading
+from src.linger.orchestration.turn_context import (
+    active_memories,
+    add_turn_evidence,
+    confirmed_reading,
+)
 
 
 @dataclass(frozen=True)
@@ -93,6 +97,9 @@ def _build_task(
     reading = confirmed_reading()
     allowed_sources: list[str] = []
     book_scopes: tuple[BookScope, ...] = ()
+
+    if active_memories():
+        allowed_sources.append("memory")
 
     if reading is not None:
         book_version_id = librarian.version_for(reading.work_id)
@@ -149,6 +156,7 @@ async def _agent_explorer(
     deps = SerendipityDependencies(
         task=task,
         librarian=librarian,
+        memories=active_memories(),
     )
     capabilities = [_web_capability()] if "web" in task.scope.allowed_sources else []
     result = await run_agent_traced(

@@ -17,7 +17,7 @@ with patch.dict(
         "GOOGLE_API_KEY": "test-key",
     },
 ):
-    from apps.backend import main, sessions
+    from apps.backend import chat_turn, main, sessions
     from apps.backend.schemas import ChatRequest
     get_settings()
 
@@ -180,7 +180,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.service = MemoryPolicyService(Path(self._directory.name))
         self.account = AccountContext("chat-connection-test")
         self._boundary_patcher = patch.object(
-            main,
+            chat_turn,
             "assess_emotional_boundary",
             return_value=EmotionalBoundaryAssessment(
                 decision="continue_reflection"

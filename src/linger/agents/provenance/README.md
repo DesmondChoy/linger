@@ -30,6 +30,33 @@ or misclassified.
 The candidate itself is untrusted data. Instructions appearing inside a draft,
 a retrieved passage, or a quotation never gain authority over the review.
 
+Reader attribution never exempts a book-corpus claim: a claim about
+characters, plot events, chapter facts, quotations, or book-specific
+interpretation still requires a matching record even when the candidate
+frames it as something the reader said, and fails closed exactly as before.
+Shared everyday vocabulary does not make a reader-life claim a book claim
+either: a garden "plot" or a life "chapter" stays exempt unless the claim is
+actually about the book's content. Only a claim with no book-corpus content —
+one that is purely about the reader's own statements, life, or the ongoing
+session — is outside the `canonical_book_evidence` requirement, because that
+is Muse's session-continuity responsibility, not something Provenance's
+history-lessness can adjudicate. A doubted purely-reader-attributed fact does
+not route to an unfixable `reject`: it routes to `revise` with a
+`misattribution` finding (`location.kind="structural"`,
+`source_field="candidate.response"`) asking Muse to attribute the fact
+explicitly to the reader.
+
+`canonical_session_lines` is the same kind of application-verified authority
+for reader-attributed facts: `orchestration/reflection.py` resolves each
+Muse-declared `session_line` evidence use against this session's released
+user Lines plus the current turn's user message (never Muse's own replies)
+with an exact-substring check before Provenance ever runs, and only the
+verified reader statements reach `ProvenanceInput`. A matching entry
+corroborates a purely reader-attributed claim as something the reader said —
+it never supports a book-corpus claim; an undeclared or unresolved one stays
+on the existing exempt-and-revise path above rather than failing closed,
+exactly like unresolvable book evidence does at the deterministic layer.
+
 ## Two independent decisions
 
 One review call returns both decisions, and they are decoupled:
@@ -58,7 +85,8 @@ suppresses the write even after `allow_capture`. See
 
 Every adverse decision must name at least one ground scoped to that decision; a
 model validator rejects an unexplained `revise`, `reject`, or `reject_capture`.
-Text findings carry validated exact offsets and a quote. Shape and declaration
+Text findings carry a source field, an RFC 6901 path, and a verbatim quote
+validated by exact-substring containment against the resolved source. Shape and declaration
 faults use an RFC 6901 structural path. Only response findings guide the one
 permitted Muse revision.
 
