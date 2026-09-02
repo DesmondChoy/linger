@@ -1,7 +1,6 @@
 """Tests for the single Provenance review call and its two decisions."""
 
 import unittest
-from typing import get_args
 from unittest.mock import patch
 
 from pydantic import ValidationError
@@ -26,14 +25,14 @@ from src.linger.agents.provenance.prompt import INSTRUCTIONS
 from src.linger.agents.muse.models import NoMemoryCandidate
 
 SPEC_RISK_CODES = (
-    "unresolved_evidence",
-    "misattribution",
-    "spoiler",
-    "uncited_web_claim",
-    "unsupported_claim",
-    "sensitive_content",
-    "emotional_policy_violation",
-    "prompt_injection",
+    RiskCode.UNRESOLVED_EVIDENCE,
+    RiskCode.MISATTRIBUTION,
+    RiskCode.SPOILER,
+    RiskCode.UNCITED_WEB_CLAIM,
+    RiskCode.UNSUPPORTED_CLAIM,
+    RiskCode.SENSITIVE_CONTENT,
+    RiskCode.EMOTIONAL_POLICY_VIOLATION,
+    RiskCode.PROMPT_INJECTION,
 )
 
 
@@ -80,10 +79,10 @@ def provenance_input(response: str = "offending span") -> ProvenanceInput:
 class RiskTaxonomyTests(unittest.TestCase):
     def test_covers_every_specification_block_condition(self) -> None:
         """The specification and capture policy name this closed taxonomy."""
-        self.assertEqual(set(SPEC_RISK_CODES), set(get_args(RiskCode)))
+        self.assertEqual(set(SPEC_RISK_CODES), set(RiskCode))
 
     def test_sensitive_codes_are_part_of_the_taxonomy(self) -> None:
-        self.assertTrue(SENSITIVE_RISK_CODES.issubset(set(get_args(RiskCode))))
+        self.assertTrue(SENSITIVE_RISK_CODES.issubset(set(RiskCode)))
 
 
 class ProvenanceReviewTests(unittest.TestCase):

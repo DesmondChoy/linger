@@ -14,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 
+from evals.reflection.harness import GroundingExpectation
 from evals.sculptor.harness import CurationExpectation
 
 
@@ -510,6 +511,7 @@ class GroundTruthProposal(StrictModel):
     pairing: ScenePairing | None = None
     capture: CaptureExpectation | None = None
     curation: CurationExpectation | None = None
+    grounding: GroundingExpectation | None = None
     grounded_book_reflection: GroundedBookReflectionExpectation | None = None
     spoiler_boundary: SpoilerBoundaryExpectation | None = None
 
@@ -523,6 +525,19 @@ class GroundTruthProposal(StrictModel):
             "GroundTruthProposal Prop relevance IDs",
             tuple(item.prop_id for item in self.prop_relevance),
         )
+        return self
+
+    @model_validator(mode="after")
+    def validate_grounding_evidence(self) -> Self:
+        """Bind permitted citations to evidence this proposal actually declares."""
+        if self.grounding is None:
+            return self
+        declared = {item.evidence_id for item in self.evidence}
+        unknown = sorted(self.grounding.permitted_evidence_ids - declared)
+        if unknown:
+            raise ValueError(
+                f"grounding permits evidence absent from the proposal: {unknown}"
+            )
         return self
 
 

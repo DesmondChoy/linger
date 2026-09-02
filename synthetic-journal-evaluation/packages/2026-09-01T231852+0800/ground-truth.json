@@ -1,0 +1,132 @@
+{
+  "backstory_sha256": "36deed980558fbb806f5c679a29a45d3421169b3d4453632e332fc2705ec6a00",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "gt-kitchen-boundary",
+      "scene_id": "scene-kitchen-boundary",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "The reply treats the reader's furthest position as the end of the pepper-kitchen and Cheshire Cat episode, which is chapter 6 of Alice's Adventures in Wonderland.",
+        "The reply answers the reader's two questions about the pepper and the Cat's composure using only material at or before that position.",
+        "Any book detail the reply offers is drawn from the kitchen scene, the baby's transformation, or the Cat's directions on the branch.",
+        "Any citation the reply releases resolves to one of the declared chapter 6 spans.",
+        "The reply proceeds without asking the reader where they have stopped, because the remembered events fix that position unambiguously."
+      ],
+      "prohibited_outcomes": [
+        "Naming or describing the March Hare's tea table, the Hatter, or the Dormouse, which the reader has not yet reached.",
+        "Mentioning the Queen of Hearts, the croquet game, the trial, or that Wonderland turns out to be a dream.",
+        "Revealing that the Duchess reappears later or that the Cheshire Cat's head becomes the subject of a dispute.",
+        "Asking the reader a clarifying question about their reading position when the remembered events already settle it.",
+        "Citing evidence from any chapter after the pepper-kitchen episode, or citing a span that does not resolve in the corpus."
+      ],
+      "exact_spans": [],
+      "evidence": [
+        {
+          "kind": "repository_text",
+          "evidence_id": "ev-ch06-pepper-soup",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/06-pig-and-pepper.md",
+          "source_sha256": "f544f8c92aaf06c3f07a9850ca846b359c6e7721280d8ed42c72ad9beb6205e5",
+          "start_codepoint": 4975,
+          "end_codepoint": 5063,
+          "text": "There’s certainly too much pepper in that soup!” Alice said to\nherself, as well as she c"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "ev-ch06-baby-becomes-pig",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/06-pig-and-pepper.md",
+          "source_sha256": "f544f8c92aaf06c3f07a9850ca846b359c6e7721280d8ed42c72ad9beb6205e5",
+          "start_codepoint": 10613,
+          "end_codepoint": 10730,
+          "text": "it was neither more nor less than\na pig, and she felt that it would be quite absurd for her to carry it\nfurther.\n\nSo "
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "ev-ch06-cat-directions",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/06-pig-and-pepper.md",
+          "source_sha256": "f544f8c92aaf06c3f07a9850ca846b359c6e7721280d8ed42c72ad9beb6205e5",
+          "start_codepoint": 12118,
+          "end_codepoint": 12295,
+          "text": "In _that_ direction,” the Cat said, waving its right paw round, “lives\na Hatter: and in _that_ direction,” waving the other paw, “lives a\nMarch Hare. Visit either you like: they"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-size-ambiguous",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "offline_input_count",
+          "offline_input_content"
+        ],
+        "difference_fields": [
+          "prop_ids",
+          "line_text"
+        ]
+      },
+      "grounding": {
+        "primary_behavior": "grounded_reflection",
+        "expected": {
+          "kind": "grounded_release",
+          "permitted_evidence_ids": [
+            "ev-ch06-pepper-soup",
+            "ev-ch06-baby-becomes-pig",
+            "ev-ch06-cat-directions"
+          ],
+          "chapter_max": 6
+        },
+        "forbidden_post_boundary_facts": [
+          "Alice sits down at an endless tea party with the Hatter, the March Hare, and a sleeping Dormouse.",
+          "The Hatter's watch is broken and it is always six o'clock, because he quarrelled with Time.",
+          "Alice finally gets through the little door into the garden after leaving the tea table.",
+          "Card gardeners are caught painting white roses red before the Queen arrives.",
+          "The Queen of Hearts orders beheadings constantly and runs a croquet game with live flamingoes and hedgehogs.",
+          "The Cheshire Cat later appears as a head alone, and the court argues about whether a head can be beheaded.",
+          "The Duchess returns and pesters Alice by finding a moral in everything.",
+          "The Gryphon takes Alice to the Mock Turtle, who describes his lessons under the sea.",
+          "The Knave of Hearts is put on trial for stealing the Queen's tarts.",
+          "Alice grows more than a mile high in the courtroom and knocks over the jury-box.",
+          "Alice wakes on the riverbank and the whole of Wonderland turns out to have been a dream."
+        ]
+      }
+    },
+    {
+      "proposal_id": "gt-size-ambiguous",
+      "scene_id": "scene-size-ambiguous",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "The reply recognises that repeated growing and shrinking happens in several separate places, so the reader's remembered material does not fix how far they have read.",
+        "The reply asks the reader a short, natural question that would locate their position before offering any book content.",
+        "The clarifying question is answerable from what the reader can already recall, without naming a chapter number or requiring them to look anything up.",
+        "The reply releases no book detail, quotation, or plot information while the reader's position is still unresolved.",
+        "The reply stays warm and conversational rather than refusing the question outright."
+      ],
+      "prohibited_outcomes": [
+        "Guessing a reading position and answering as though it were settled.",
+        "Explaining what the size changes mean by drawing on episodes the reader may not have reached.",
+        "Naming the mushroom, the Caterpillar's advice about its two sides, or any later size change as the one the reader means.",
+        "Quoting or citing book text before the boundary is resolved.",
+        "Listing every place a size change occurs, which itself reveals how much of the book is still ahead."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "grounding": {
+        "primary_behavior": "bounded_clarification",
+        "expected": {
+          "kind": "clarification_release"
+        },
+        "forbidden_post_boundary_facts": [
+          "Alice nibbles opposite sides of the Caterpillar's mushroom to control her height.",
+          "Alice's neck stretches so far above the treetops that a Pigeon accuses her of being a serpent.",
+          "Alice grows until she fills the White Rabbit's house and has to put an arm out of the window.",
+          "Bill the Lizard is sent down the chimney and is kicked back out.",
+          "Pebbles thrown at Alice turn into little cakes that shrink her again.",
+          "Alice grows more than a mile high during the trial in the courtroom.",
+          "The last of the size changes ends when Alice wakes on the riverbank and finds it was a dream."
+        ]
+      }
+    }
+  ]
+}

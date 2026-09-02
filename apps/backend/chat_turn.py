@@ -776,8 +776,17 @@ async def run_chat_turn(
         boundary_origin=release.boundary_origin,
         provenance_verdicts=release.provenance_verdicts,
         finding_codes=release.finding_codes,
+        # A rejected draft still declares evidence, so report handles only for a
+        # reply that actually reached the reader.
+        released_evidence_ids=(
+            release.evidence_ids
+            if release.release_source == "muse_candidate"
+            else ()
+        ),
         revision_count=release.revision_count,
         failure_stage=release.failure_stage,
+        failure_type=release.failure_type,
+        failure_retryable=release.failure_retryable,
         capture=capture.inspection,
     )
     verdict_path = " → ".join(release.provenance_verdicts)

@@ -90,8 +90,11 @@ export type ReleaseInspection = {
   boundary_origin: 'preflight' | 'candidate_review' | null
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
   finding_codes: RiskCode[]
+  released_evidence_ids: string[]
   revision_count: number
   failure_stage: 'emotional_boundary_preflight' | 'muse_draft' | 'provenance_review' | 'muse_revision' | 'deterministic_validation' | null
+  failure_type: 'application' | 'model' | 'validation' | null
+  failure_retryable: boolean | null
   capture: CaptureInspection
 }
 

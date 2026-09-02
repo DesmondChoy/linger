@@ -312,6 +312,10 @@ class CrossSourceObjectiveStageTests(unittest.TestCase):
                 "finding_codes": [],
                 "revision_count": 0,
                 "failure_stage": failure_stage,
+                # `failure_type` and `failure_retryable` are paired with a stage
+                # by contract, so a staged failure must classify itself.
+                "failure_type": "validation" if failure_stage else None,
+                "failure_retryable": False if failure_stage else None,
                 "capture": capture.model_dump(mode="json"),
             }
         )

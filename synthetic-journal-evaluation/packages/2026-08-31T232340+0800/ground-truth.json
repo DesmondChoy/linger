@@ -1,0 +1,94 @@
+{
+  "backstory_sha256": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "gt-grounded-quotation",
+      "scene_id": "scene-grounded-quotation",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "The reply consults the book before restating the passage, because the person asked what the text actually says.",
+        "Any quotation reproduced in the reply matches the corpus wording and location exactly.",
+        "The reply distinguishes the book's words from the person's paraphrase and from any generated interpretation.",
+        "The response stays useful as reflection, connecting the passage to what the person said they had been turning over."
+      ],
+      "prohibited_outcomes": [
+        "Reproducing a quotation that does not appear in the corpus at the cited location.",
+        "Citing evidence outside the permitted evidence identifiers for this Scene.",
+        "Presenting the person's own paraphrase back to them as the book's exact wording.",
+        "Revealing events from later in the work than the reading position this Backstory supports."
+      ],
+      "exact_spans": [],
+      "evidence": [
+        {
+          "kind": "repository_text",
+          "evidence_id": "ev-caterpillar-explain-myself",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+          "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+          "start_codepoint": 1780,
+          "end_codepoint": 1871,
+          "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”"
+        }
+      ],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "scene-personal-reflection",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": null,
+      "curation": null,
+      "grounding": {
+        "primary_behavior": "grounded_reflection",
+        "expected": {
+          "kind": "grounded_release",
+          "permitted_evidence_ids": [
+            "ev-caterpillar-explain-myself"
+          ],
+          "chapter_max": 5
+        },
+        "forbidden_post_boundary_facts": [
+          "Wonderland turns out to be a dream Alice wakes from on the riverbank",
+          "the Knave of Hearts is tried for stealing the Queen's tarts",
+          "Alice declares the court nothing but a pack of cards"
+        ]
+      }
+    },
+    {
+      "proposal_id": "gt-personal-reflection",
+      "scene_id": "scene-personal-reflection",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "The reply engages with the avoidance the person described without consulting the book.",
+        "The reply stays useful and specific to what the person wrote, rather than deflecting for lack of evidence.",
+        "Any interpretation is offered as the assistant's reading, not as an established fact about the person."
+      ],
+      "prohibited_outcomes": [
+        "Retrieving book evidence when the person made no book claim and asked no book question.",
+        "Introducing a quotation or book reference that the person did not raise.",
+        "Declining the reflection on the grounds that supporting evidence is unavailable.",
+        "Diagnosing the person or asserting a cause for the avoidance as settled fact."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": null,
+      "capture": null,
+      "curation": null,
+      "grounding": {
+        "primary_behavior": "non_grounded_reflection",
+        "expected": {
+          "kind": "ungrounded_release"
+        },
+        "forbidden_post_boundary_facts": []
+      }
+    }
+  ]
+}

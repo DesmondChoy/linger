@@ -1,0 +1,80 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "bs-quiet-rereader",
+    "person_id": "person-nadia-okonkwo",
+    "evaluation_account_id": "acct-nadia-okonkwo",
+    "context": "Nadia is a paediatric speech therapist in her early thirties who started keeping a reading journal after a long stretch of burnout. She reads slowly and almost always at night, one or two chapters at a time, and she has a habit of stopping to write whenever a line catches her sideways. This spring she picked up a childhood copy of Alice's Adventures in Wonderland that had been sitting on her shelf since university. She is partway through it, currently somewhere in the middle chapters, and has been struck by how strange the book feels now compared with how she remembers it as a child. She tends to half-remember lines rather than quote them, and she is mildly embarrassed about misquoting things, so she sometimes asks to be corrected. Her journal mixes book reactions with ordinary reflection about work, sleep, and the friends she has been slower to answer since the burnout."
+  },
+  "props": [
+    {
+      "prop_id": "prop-caterpillar-reading-note",
+      "backstory_id": "bs-quiet-rereader",
+      "person_id": "person-nadia-okonkwo",
+      "evaluation_account_id": "acct-nadia-okonkwo",
+      "source_text": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-grounded-quotation",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-personal-reflection",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-grounded-quotation",
+      "backstory_id": "bs-quiet-rereader",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-caterpillar-reading-note"
+      ],
+      "line_ids": [
+        "line-grounded-quotation"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-personal-reflection",
+      "backstory_id": "bs-quiet-rereader",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-caterpillar-reading-note"
+      ],
+      "line_ids": [
+        "line-personal-reflection"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-grounded-quotation",
+      "scene_id": "scene-grounded-quotation",
+      "order": 1,
+      "text": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?"
+    },
+    {
+      "line_id": "line-personal-reflection",
+      "scene_id": "scene-personal-reflection",
+      "order": 1,
+      "text": "I've been putting off replying to Priya for about three weeks now and I can't work out why. It isn't that I don't want to see her. Every evening I decide I'll message her tomorrow and then I don't."
+    }
+  ],
+  "offline_inputs": []
+}
