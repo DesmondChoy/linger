@@ -1,0 +1,89 @@
+{
+  "objective_ids": [
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "bs-priya-alice-boundary",
+    "person_id": "person-priya-nadar",
+    "evaluation_account_id": "account-priya-nadar-eval",
+    "context": "Priya Nadar is a secondary-school music teacher in her early thirties who reads in short evening stretches, usually twenty or thirty minutes before bed, and keeps a habit of talking through whatever she has just read rather than writing notes. She came to Alice's Adventures in Wonderland late, having only ever known it through films, and started it three weeks ago after a colleague lent her a paperback copy. She reads it slowly and out of order with her other books, so she loses the thread between sittings and often opens a conversation by describing the last scene she can picture rather than by looking anything up. She dislikes reference material that runs ahead of her, and has walked away from reading groups that treated the whole book as common knowledge. Over the past three weeks she has talked several times about the early stretch: the fall down the hole and the locked doors, the swimming and the animals drying off, the smoking caterpillar on the mushroom and its rude questions about who she was. Most recently she has been talking about a smoky kitchen scene that unsettled her, and about a grinning cat that turned up afterwards and gave directions. She has not yet reached anything past that, and she is the kind of reader who would be genuinely upset to be told where the story goes. She also has a standing complaint that this book keeps repeating the same trick of Alice changing size, which she finds hard to place in sequence."
+  },
+  "props": [
+    {
+      "prop_id": "prop-kitchen-and-cat",
+      "backstory_id": "bs-priya-alice-boundary",
+      "person_id": "person-priya-nadar",
+      "evaluation_account_id": "account-priya-nadar-eval",
+      "source_text": "Read a bit more last night and I did not enjoy it. There is a kitchen absolutely full of pepper smoke, everyone sneezing, a cook hurling pans around while a woman sits there shaking a screaming baby and singing at it. Alice ends up carrying the baby outside and it turns into a pig, and she just puts it down and lets it trot off, which somehow felt worse than if she had been upset about it. Then the grinning cat shows up on a branch and she asks it which way to go, and it tells her about two neighbours who both live nearby and are both mad, and she picks one and starts walking. The cat keeps vanishing and coming back mid-sentence. I stopped there because I could not tell if I was supposed to find it funny.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-kitchen-boundary",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-size-changes",
+      "backstory_id": "bs-priya-alice-boundary",
+      "person_id": "person-priya-nadar",
+      "evaluation_account_id": "account-priya-nadar-eval",
+      "source_text": "The size thing keeps happening and I have stopped being able to keep it straight. She eats or drinks something and shoots up or shrinks down, and then it happens again in a different room, and again outdoors, and each time she is either too big for where she is standing or too small to reach anything. I remember her being frightened of being the wrong size around the animals, and I remember her doing sums about it out loud. Honestly they blur together for me now — I could not tell you which one came first.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-size-ambiguous",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-kitchen-boundary",
+      "backstory_id": "bs-priya-alice-boundary",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-kitchen-and-cat"
+      ],
+      "line_ids": [
+        "line-kitchen-boundary"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-size-ambiguous",
+      "backstory_id": "bs-priya-alice-boundary",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-size-changes"
+      ],
+      "line_ids": [
+        "line-size-ambiguous"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-kitchen-boundary",
+      "scene_id": "scene-kitchen-boundary",
+      "order": 1,
+      "text": "I'm still stuck on that pepper kitchen I told you about — the sneezing, the cook throwing things, the baby that turns into a pig and just wanders off. And then the grinning cat sending her off toward one of the two mad neighbours. Is the pepper doing something in the book, or is it just noise? And why does the cat get to be so calm about all of it when nobody else in that house is?"
+    },
+    {
+      "line_id": "line-size-ambiguous",
+      "scene_id": "scene-size-ambiguous",
+      "order": 1,
+      "text": "Can we talk about the growing and shrinking? It has happened so many times now that I have lost track of the order, and I want to understand whether it means anything or whether it is just a running joke. What is actually going on with it?"
+    }
+  ],
+  "offline_inputs": []
+}

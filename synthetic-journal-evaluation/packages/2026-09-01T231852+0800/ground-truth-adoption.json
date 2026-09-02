@@ -1,0 +1,26 @@
+{
+  "backstory_sha256": "36deed980558fbb806f5c679a29a45d3421169b3d4453632e332fc2705ec6a00",
+  "proposed_ground_truth_sha256": "450999695251ace1ead2e5f42de08ac6a5b5a6d703345abb12483a306b04bbce",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "km",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-01T23:55:02.714381+08:00",
+  "decisions": [
+    {
+      "proposal_id": "gt-kitchen-boundary",
+      "scene_id": "scene-kitchen-boundary",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "gt-size-ambiguous",
+      "scene_id": "scene-size-ambiguous",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "57b1d301e84e7dc057a4fd6e2a839ceb78272d46061f2ea86864e2f5348503f5"
+}

@@ -1,0 +1,26 @@
+{
+  "backstory_sha256": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+  "proposed_ground_truth_sha256": "82fd8dfee7ff377cad70d621c71f7f592089b5863db5d2faa328de2be5721949",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "km",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-01T21:59:17.983028+08:00",
+  "decisions": [
+    {
+      "proposal_id": "gt-grounded-quotation",
+      "scene_id": "scene-grounded-quotation",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "gt-personal-reflection",
+      "scene_id": "scene-personal-reflection",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "5fa5eb15ef102603e2a41c6b7efe1dfe3862a3413967c0a739c422d359625f03"
+}

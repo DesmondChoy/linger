@@ -8,7 +8,7 @@ missing, and how the missing part gets evaluated* through the
 [`generate-synthetic-journals`](../../.agents/skills/generate-synthetic-journals/SKILL.md)
 skill.
 
-Snapshot: 2026-09-01, branch `km-provenance-reflection`.
+Snapshot: 2026-09-02, branch `km-provenance-reflection`.
 
 ---
 
@@ -17,9 +17,9 @@ Snapshot: 2026-09-01, branch `km-provenance-reflection`.
 Test-driven order: the risk-code eval pack (**Stage 0**) was written first so its
 results would decide the open design questions instead of argument — which is
 what happened. **Stage 0, Phase A/B, and C1–C4 are complete.** The first
-end-to-end replay exposed an observability gap (D7, fixed) and an evidence-ID
-namespace mismatch that was scoring correct behaviour as failure (D10, fixed).
-**C5 repeats the cycle for `spoiler_boundary_clarification`.**
+end-to-end replays fixed two harness defects (D7, D10) and found one product
+defect: **boundary inference never resolves a ceiling for a reader who describes
+what they read in their own words (D11)** — the highest-priority open item.
 
 **Stage 0 — Candidate-gate risk-code eval pack — ✅ complete**
 
@@ -239,13 +239,42 @@ table above is its direct measurement.
 | `scene-personal-reflection` | non-grounded | `passes_hard_gates` | none |
 | `scene-grounded-quotation` | grounded | `fails_hard_gates` | `release_source_mismatch`, `missing_retrieval` |
 
-- [ ] **C5 — Repeat C1–C4 for `spoiler_boundary_clarification`.** The selector
-      confirms one Objective per run, so it needs its own report and package.
-      It is the Objective that actually exercises Prop-driven ceiling inference,
-      so it is the one that will test A2's Prop placement and B2's ceiling
-      observability against real behaviour.
+- [x] **C5 — `spoiler_boundary_clarification` package replayed.**
+      [2026-09-01 package](../../synthetic-journal-evaluation/packages/2026-09-01T231852+0800),
+      adopted Ground truth, dataset `57b1d301e84e`. **1 of 2 Scenes passed**, and
+      the failure is a real product defect — see
+      [§5.14](#514-c5-spoiler-boundary-replay).
+
+      | Scene | Behaviour | Result | Gates |
+      |---|---|---|---|
+      | `scene-size-ambiguous` | bounded clarification | `passes_hard_gates` | none |
+      | `scene-kitchen-boundary` | grounded reflection | `fails_hard_gates` | `missing_retrieval` |
+
+      This is the Objective that exercises Prop-driven ceiling inference, and it
+      found what `grounded_book_reflection` could not: boundary inference never
+      resolves a ceiling, so no book-grounded turn is reachable from a Line that
+      does not name its own chapter.
 
 **D. Remaining coverage debt (after Stage 0)**
+
+**From the C5 replay ([§5.14](#514-c5-spoiler-boundary-replay)):**
+
+- [ ] **D11 — Boundary inference uses the evidence-retrieval score threshold.
+      Product defect, highest priority.** `boundary.py:146` hardcodes
+      `retrieval_score_threshold=0.5` for the full-work localisation search. For
+      a Line describing remembered events in the reader's own words, the correct
+      chapter scores 0.26 — right answer, discarded. Retrieval returns nothing,
+      the judge returns `insufficient_context`, no ceiling is set, and no
+      book-grounded reply is reachable.
+      The two searches want different thresholds: evidence retrieval should
+      reject weak passages that cannot support a claim; boundary inference wants
+      the best available localisation signal and already has its own
+      confidence gate (`BOUNDARY_CONFIDENCE_THRESHOLD`) plus a clarification
+      fallback, so a weak candidate is not released as fact.
+      Fix is a separate, lower threshold for `purpose="boundary_inference"`.
+      **Needs a measured before/after** — lowering it changes which chapters the
+      judge sees, so re-run the C5 package and confirm the ceiling resolves to 6
+      without the ambiguous Scene losing its clarification.
 
 - [ ] **D2 — Injection overlay in the synthetic package.** Stage 0 covers
       `prompt_injection` at the gate in isolation; the end-to-end case still
@@ -976,6 +1005,69 @@ any end-to-end grade can be trusted.
 enough to falsify the first diagnosis — including per-stage status, usage, and
 the exact review input. No deterministic test in the 456-test suite covers a
 live provider failure mid-gate.
+
+### 5.14 C5 spoiler-boundary replay
+
+Two Scenes, adopted Ground truth, dataset `57b1d301e84e`, artifact at
+[`reflection-run.json`](../../synthetic-journal-evaluation/packages/2026-09-01T231852+0800/reflection-run.json).
+
+| Scene | Behaviour | Result | Gates |
+|---|---|---|---|
+| `scene-size-ambiguous` | bounded clarification | `passes_hard_gates` | none |
+| `scene-kitchen-boundary` | grounded reflection | `fails_hard_gates` | `missing_retrieval` |
+
+The ambiguous Scene passed: no retrieval, a clarification released through
+`muse_candidate`, exactly as the boundary contract intends.
+
+**The inferable Scene never got a ceiling.** Its artifact shows
+`resolved_chapter_max: null`, `retrieved: false`, and — unlike C4 — the
+`boundary_inference` stage is **absent from the exchanges entirely**, while
+Muse's policy shows `spoiler_ceiling: null, allow_retrieval: false`.
+
+Traced to the cause, with each step checked rather than inferred:
+
+| Step | Result |
+|---|---|
+| `resolve_reading_context` on the Line | routes to `pg11`, `status=inferred` — so `_infer_request_boundary` does run |
+| `relevant_memories` | the Prop passes `route_work` and reaches the judge (1 memory) |
+| `librarian.retrieve` for boundary inference | **0 candidates returned** |
+| judge verdict | `BoundaryUncertain`, `reason_code=insufficient_context`, no supporting locations |
+
+So the judge behaved correctly on an empty bundle. The defect is upstream:
+[`boundary.py:146`](../../src/linger/orchestration/boundary.py#L146) hardcodes
+`retrieval_score_threshold=0.5` for the full-work boundary search, and the
+scores for this Line plus its Prop are:
+
+| Threshold | Candidates | Top hits |
+|---|:-:|---|
+| 0.5 (production) | **0** | — |
+| 0.3 | 0 | — |
+| 0.1 | 2 | `ch06:0.26`, `ch09:0.13` |
+| 0.0 | 10 | `ch06:0.26`, `ch09:0.13`, … |
+
+**Retrieval is finding the right chapter.** The top hit is chapter 6 — the
+pepper kitchen — which is exactly the ground-truth ceiling. It is discarded by
+a threshold tuned for a different task.
+
+That threshold is defensible for *evidence* retrieval, where a weak passage
+should not support a factual claim. Boundary inference is a different problem:
+it needs the best available localisation signal, not a passage good enough to
+quote. A 0.26 lexical score against a paraphrased recollection is a strong
+localisation cue, since the reader is describing events in their own words —
+which is precisely what the Objective's brief asks the generator to write
+("give the person plausible recall of known events without asking them to name
+an exact chapter").
+
+**Consequence.** Any reader who describes what they have read in their own
+words, rather than naming a chapter, gets no ceiling, no retrieval, and no
+grounded answer. `grounded_book_reflection` never exposed this because its Lines
+were phrased so the reader's position was already resolvable. This is the
+Prop-driven inference path C5 existed to test, and it does not work end to end.
+
+**What is not wrong.** Prop placement (A2) works — the Prop was stored, routed,
+and reached the judge. Ceiling observability (B2) works — the artifact recorded
+`resolved_chapter_max: null` faithfully. The gate code `missing_retrieval` is
+accurate. Every part of the harness did its job; the product path is what fails.
 
 ## 6. Design decisions to confirm
 
