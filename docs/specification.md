@@ -229,19 +229,19 @@ autonomous scheduler in this slice.
 Serendipity supplies a proposed connection and evidence identifiers to Muse. Muse drafts the user-facing reply, which uses the same mandatory Provenance gate and deterministic checks as an ordinary reflection.
 
 The implemented discovery slice keeps a narrow release boundary. Serendipity may
-search only application-granted book-corpus or Exa web sources and returns a
-typed proposal or decline with request-local evidence for deterministic
+search active same-account memories supplied by the authenticated application,
+an application-granted book corpus, or application-granted Exa web sources. It
+returns a typed proposal or decline with request-local evidence for deterministic
 validation. The application, not Muse, supplies the exact current reader message
 as the cue. Each run is limited to eight model requests and six total tool calls.
 Muse may relay a typed decline. When every record cited by the selected candidate
 is book-corpus evidence, application code validates those exact selected records,
 adds them to the shared request-scoped evidence index, and allows Muse to draft a
 tentative connection for the ordinary Provenance and deterministic release path.
-Losing-candidate evidence is discarded. A selected candidate containing web
-evidence remains internal and fails closed; its content-bearing diagnostics are
-not returned by the application API. Stored-memory and image evidence also remain
-non-authoritative, and authorised-memory retrieval is not a current Serendipity
-grant.
+Losing-candidate evidence is discarded. Memory and web evidence may inform
+Serendipity's internal comparison, but neither enters the shared evidence index
+or authorises a released claim. Content-bearing connection diagnostics are not
+returned by the application API. Image evidence remains unsupported.
 
 #### 4.2.4 Developer corpus and inspection tools
 
@@ -263,13 +263,16 @@ Inspect is a developer-only, read-only projection of each completed chat turn.
 It exposes the reader message, `MuseTurn` policy contract, context resolution,
 assembled Muse dynamic input, application-recorded agent statuses, direct
 Librarian grounding calls, fixed Serendipity decline metadata, the released
-response, the actual Provenance verdict path, release source, failure stage,
-capture outcome, and server-generated trace ID. This diagnostic detail exists
-to debug request-scoped contracts and hand-offs; it is not end-user content. It
-does not expose Serendipity proposals, searches, web or private evidence
-payloads, rejected draft text, Provenance critiques, or memory content. Inspect
-metadata cannot authorize retrieval, release, capture, or storage, and its trace
-link follows the metadata-only backend telemetry contract in Section 8.1.
+response, the actual Provenance verdict path, release source, released book
+evidence identifiers, failure stage, capture outcome, and server-generated trace
+ID. For a failed stage, Inspect records whether the failure came from application
+code, a model call, or deterministic validation, and whether the failure is
+retryable. This diagnostic detail exists to debug request-scoped contracts and
+hand-offs; it is not end-user content. It does not expose Serendipity proposals,
+searches, web or private evidence payloads, rejected draft text, Provenance
+critiques, or memory content. Inspect metadata cannot authorize retrieval,
+release, capture, or storage, and its trace link follows the metadata-only backend
+telemetry contract in Section 8.1.
 
 ## 5. Core records
 
@@ -522,6 +525,10 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - retrieved content attempts to redirect agent behaviour.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
+A `spoiler` or `prompt_injection` finding requires an immediate `reject` verdict.
+Provenance never requests a revision for either finding because the unsafe draft
+cannot be corrected without trusting content that has already crossed the
+boundary.
 
 ### 6.6 Emotional content
 
@@ -578,7 +585,18 @@ The suggested measures in the [synthetic journal evaluation-objective catalog](.
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills, and future designs must use these terms instead of ad hoc synonyms such as *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the vocabulary, Backstory and Ground truth structures, deterministic package validator, and Ground truth authority lifecycle below. Interactive independent adoption, capture replay, and bounded-curation replay are implemented; a session-continuity runner is implemented and registered as a supported replay path; reusable generation, dataset freezing, and replay for other Objectives remain downstream decisions.
+Synthetic journal evaluation uses the following six terms. Documentation, skills,
+and future designs must use these terms instead of ad hoc synonyms such as
+*artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the
+vocabulary, Backstory and Ground truth structures, deterministic package
+validator, and Ground truth authority lifecycle below. Interactive independent
+adoption is implemented. The catalog registers capture, bounded-curation, and
+session-continuity replay as supported paths. The repository also contains
+reflection-and-grounding replay code for `grounded_book_reflection`,
+`spoiler_boundary_clarification`, and `weak_evidence_safe_decline`. This code is
+not a supported replay path until the overlapping Ground truth fields and
+validators use one canonical contract. Reusable generation, dataset freezing,
+and replay for other Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -722,8 +740,13 @@ The project still has not defined reusable workflow for:
 - line generation;
 - full-dataset assembly and layout;
 - freezing; or
-- replay of Props outside bounded curation, offline inputs, continued-session
-  Scenes, mixed Objective packages, or other Objectives.
+- replay of offline inputs, mixed Objective packages, or unsupported Objectives.
+
+Reflection-and-grounding replay code can place Props before a Scene and send
+ordered Lines through one session. The code remains unsupported while both
+objective-specific and generic `grounding` fields claim the same Ground truth
+authority. The package model and validator must select one contract before the
+catalog can register the reflection Objectives as supported replay paths.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined package models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 
