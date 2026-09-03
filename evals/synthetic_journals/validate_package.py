@@ -43,6 +43,18 @@ REFLECTION_OBJECTIVE_IDS = frozenset(
     }
 )
 
+# The exact Objective pair the book replay runner accepts, in its required
+# order. Two runners grade the shared book Objectives with different typed
+# Ground truth — book replay reads `grounded_book_reflection` and
+# `spoiler_boundary`, the reflection runner reads `grounding` — so a package
+# declaring this pair is validated for book replay and every other package for
+# the reflection runner. Without that split both answer keys would be required
+# on the same proposal at once, which no package can satisfy.
+BOOK_REPLAY_OBJECTIVE_IDS = (
+    GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID,
+    SPOILER_BOUNDARY_OBJECTIVE_ID,
+)
+
 
 class PackageValidationError(ValueError):
     """One or more deterministic package checks failed."""
@@ -192,14 +204,16 @@ def validate_package(
                 )
             )
 
-    failures.extend(
-        _validate_book_objectives(ground_truth, scenes, props)
-    )
+    if tuple(backstory.objective_ids) == BOOK_REPLAY_OBJECTIVE_IDS:
+        failures.extend(
+            _validate_book_objectives(ground_truth, scenes, props)
+        )
+    else:
+        failures.extend(
+            _validate_reflection_grounding(backstory, ground_truth, repository_root)
+        )
     failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
-    )
-    failures.extend(
-        _validate_reflection_grounding(backstory, ground_truth, repository_root)
     )
     failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)

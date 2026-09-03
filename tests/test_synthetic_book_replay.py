@@ -35,11 +35,7 @@ from evals.synthetic_journals.validate_package import (
 )
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.contracts.librarian import (
-    BoundaryCandidate,
-    BoundarySupportLocation,
-    BoundaryUncertain,
-)
+from src.linger.contracts.librarian import BoundarySupportLocation
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.services.memory import AccountContext, MemoryPolicyService
@@ -424,7 +420,10 @@ def _response(
             explanation="A request-scoped ceiling was inferred.",
         )
         reply = f"The passage says {QUOTE} That uncertainty can echo change."
-        grounding = [_grounding_call(request.message, searched_max=searched_max)]
+        grounding = [
+            _route_call(ceiling=5),
+            _grounding_call(request.message, searched_max=searched_max),
+        ]
         evidence_ids = (SUPPORT_ID,)
     elif kind == "clarify":
         _record_boundary(
@@ -443,7 +442,7 @@ def _response(
             explanation="The reading boundary remains uncertain.",
         )
         reply = CLARIFICATION
-        grounding = []
+        grounding = [_route_clarification_call()]
         evidence_ids = ()
     else:
         context = ContextResolution(
@@ -481,6 +480,39 @@ def _response(
         ),
         trace=TraceReference(trace_id="0" * 32),
     )
+
+
+def _route_call(*, ceiling: int = 5) -> dict[str, object]:
+    """The `librarian_route` outcome a routed turn exposes to Inspect."""
+    return {
+        "request": {},
+        "outcome": "success",
+        "response": {
+            "kind": "routed",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "title": "Alice's Adventures in Wonderland",
+            "routing_confidence": 0.7,
+            "max_chapter_inclusive": ceiling,
+            "boundary_confidence": 0.92,
+        },
+    }
+
+
+def _route_clarification_call() -> dict[str, object]:
+    """The `librarian_route` outcome when inference cannot set a ceiling."""
+    return {
+        "request": {},
+        "outcome": "success",
+        "response": {
+            "kind": "clarification",
+            "request_id": "routereq-synthetic",
+            "clarification_id": "clarify-synthetic",
+            "reason_code": "insufficient_context",
+            "question": CLARIFICATION,
+            "expected_answer": {"type": "free_text"},
+        },
+    }
 
 
 def _grounding_call(query: str, *, searched_max: int = 5) -> dict[str, object]:
@@ -645,14 +677,16 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
     backstory, ground_truth, _ = _models()
     from apps.backend import chat_turn
 
-    boundary_calls = 0
-
-    async def infer_boundary(current_line, **kwargs):
-        nonlocal boundary_calls
-        boundary_calls += 1
-        assert len(kwargs["memories"]) == 1
-        memory_id = kwargs["memories"][0].memory_id
-        if "quote" in current_line:
+    async def reflection(prompt, *_args, **_kwargs):
+        payload = json.loads(prompt)
+        line = payload["muse_turn"]["user_message"]
+        serialized = json.dumps(payload)
+        assert "expected_outcomes" not in serialized
+        assert "safe_ceiling_chapter" not in serialized
+        if "quote" in line:
+            # `librarian_route` records the inference exchange and reports the
+            # routed ceiling. Both are how the boundary reaches the runner now
+            # that inference runs inside Muse's own turn.
             _record_boundary(
                 BoundaryInferenceDecision(
                     outcome="candidate",
@@ -661,61 +695,33 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                     chapter_number=5,
                     confidence=0.92,
                     authorization_basis="memory_supported",
-                    supporting_memory_ids=(memory_id,),
+                    supporting_memory_ids=("memory-synthetic",),
                     supporting_evidence_ids=(SUPPORT_ID,),
                 )
             )
-            return BoundaryCandidate(
-                kind="candidate",
-                work_id="pg11",
-                book_version_id="pg11-v01b38ea4",
-                max_chapter_inclusive=5,
-                confidence=0.92,
-                authorization_basis="memory_supported",
-                supporting_memory_ids=(memory_id,),
-                supporting_locations=(
-                    BoundarySupportLocation(
-                        evidence_id=SUPPORT_ID,
-                        chapter_number=5,
-                        location="Chapter 5, source lines 974-975",
-                    ),
-                ),
-            )
-        _record_boundary(
-            BoundaryInferenceDecision(
-                outcome="uncertain",
-                confidence=0.4,
-                reason_code="insufficient_context",
-            )
-        )
-        return BoundaryUncertain(
-            kind="uncertain",
-            work_id="pg11",
-            book_version_id="pg11-v01b38ea4",
-            reason_code="insufficient_context",
-            confidence=0.4,
-            clarification_question=CLARIFICATION,
-        )
-
-    async def reflection(prompt, *_args, **_kwargs):
-        payload = json.loads(prompt)
-        line = payload["muse_turn"]["user_message"]
-        serialized = json.dumps(payload)
-        assert "expected_outcomes" not in serialized
-        assert "safe_ceiling_chapter" not in serialized
-        if "quote" in line:
             return ReflectionRelease(
                 reply=f"The passage says {QUOTE} That uncertainty can echo change.",
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
-                librarian_grounding_calls=(_grounding_call(line),),
+                librarian_grounding_calls=(
+                    _route_call(ceiling=5),
+                    _grounding_call(line),
+                ),
                 evidence_ids=(SUPPORT_ID,),
             )
         if "Alice's conversation" in line:
+            _record_boundary(
+                BoundaryInferenceDecision(
+                    outcome="uncertain",
+                    confidence=0.4,
+                    reason_code="insufficient_context",
+                )
+            )
             return ReflectionRelease(
                 reply=CLARIFICATION,
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
+                librarian_grounding_calls=(_route_clarification_call(),),
             )
         return ReflectionRelease(
             reply="Changing plans can make identity feel unsettled without defining you.",
@@ -733,7 +739,6 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                 )
             ),
         ),
-        patch.object(chat_turn, "infer_spoiler_boundary", side_effect=infer_boundary),
         patch.object(chat_turn, "reflection_reply", side_effect=reflection),
     ):
         result = asyncio.run(
@@ -744,9 +749,18 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
             )
         )
 
-    assert boundary_calls == 2
+    # Boundary inference itself runs inside Muse's own turn, which stubbing
+    # `reflection_reply` bypasses — `test_boundary_observability.py` covers it
+    # against the real routed path. What this test pins is that the production
+    # chat hand-off carries Props but no Ground truth, and that the runner
+    # grades the routed boundary that hand-off reports.
     assert all(
         scene.ground_truth_result == "matches_proposal" for scene in result.scenes
     )
+    assert [scene.boundary_decision for scene in result.scenes] == [
+        "infer",
+        "clarify",
+        "not_applicable",
+    ]
     assert result.scenes[0].boundary_handoff_content_free is True
     assert result.scenes[1].boundary_handoff_content_free is True
