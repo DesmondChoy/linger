@@ -117,6 +117,10 @@ class BookSceneObservation(StrictModel):
     seeded_props: tuple[SeededProp, ...]
     context_resolution: ContextResolution
     boundary_decision: Literal["infer", "clarify", "not_applicable"]
+    # The ceiling `librarian_route` actually granted, and the question it asked
+    # instead. Both are None when Muse never routed this Scene.
+    routed_ceiling: int | None = None
+    routed_clarification_question: str | None = None
     boundary_handoff_content_free: bool
     boundary_support_evidence: tuple[RuntimeEvidenceObservation, ...]
     grounding_calls: tuple[GroundingObservation, ...]
@@ -404,13 +408,14 @@ async def _replay_book_scene(
     )
     grounding = _grounding_observations(response)
     exchanges = recorder.exchanges
-    boundary_decision = _boundary_decision(context)
+    routed = _route_outcome(response)
+    boundary_decision = _boundary_decision(routed)
     content_free = _boundary_handoff_is_content_free(
         boundary_decision,
-        context,
+        routed,
         exchanges,
     )
-    boundary_support = _boundary_support_observations(context, exchanges)
+    boundary_support = _boundary_support_observations(exchanges)
 
     provisional = BookSceneObservation(
         scene_id=scene.scene_id,
@@ -420,6 +425,12 @@ async def _replay_book_scene(
         seeded_props=seeded,
         context_resolution=context,
         boundary_decision=boundary_decision,
+        routed_ceiling=(
+            routed.get("max_chapter_inclusive") if routed is not None else None
+        ),
+        routed_clarification_question=(
+            routed.get("question") if routed is not None else None
+        ),
         boundary_handoff_content_free=content_free,
         boundary_support_evidence=boundary_support,
         grounding_calls=grounding,
@@ -490,7 +501,21 @@ def _grounding_observations(
 ) -> tuple[GroundingObservation, ...]:
     observations = []
     for call in response.inspection.librarian_grounding:
-        parsed = LIBRARIAN_RESPONSE_ADAPTER.validate_python(call.get("response"))
+        outcome_payload = call.get("response")
+        # `librarian_route` shares this channel but reports a boundary, not
+        # retrieval. `_route_outcome` reads those; skip them here so a routed
+        # turn is not mistaken for one that searched. A route clarification has
+        # the same shape as a retrieval clarification, so the two are told apart
+        # by request-ID prefix: `routereq_` for routing, `libreq_` for search.
+        if isinstance(outcome_payload, dict) and (
+            outcome_payload.get("kind") == "routed"
+            or (
+                outcome_payload.get("kind") == "clarification"
+                and str(outcome_payload.get("request_id", "")).startswith("routereq")
+            )
+        ):
+            continue
+        parsed = LIBRARIAN_RESPONSE_ADAPTER.validate_python(outcome_payload)
         outcome = call.get("outcome")
         call_outcome = outcome if isinstance(outcome, str) else None
         if isinstance(parsed, RetrievalResult):
@@ -535,20 +560,26 @@ def _runtime_evidence(item: EvidenceRecord) -> RuntimeEvidenceObservation:
 
 
 def _boundary_support_observations(
-    context: ContextResolution,
     exchanges: tuple[AgentExchange, ...],
 ) -> tuple[RuntimeEvidenceObservation, ...]:
-    supporting_ids = {
-        item.evidence_id for item in context.boundary_supporting_locations
-    }
-    if not supporting_ids:
-        return ()
+    """Resolve the evidence the inference judge cited to set the ceiling.
+
+    The judge's decision names supporting evidence IDs; the records themselves
+    stay in the private full-work candidate set it was given. Neither reaches
+    `ContextResolution`, so both are read back off the boundary exchange.
+    """
     boundary_exchanges = tuple(
         exchange
         for exchange in exchanges
         if exchange.role == "Librarian" and exchange.stage == "boundary_inference"
     )
     if len(boundary_exchanges) != 1:
+        return ()
+    output = boundary_exchanges[0].output
+    if not isinstance(output, dict):
+        return ()
+    supporting_ids = set(output.get("supporting_evidence_ids") or ())
+    if not supporting_ids:
         return ()
     try:
         payload = json.loads(boundary_exchanges[0].input_prompt)
@@ -565,19 +596,39 @@ def _boundary_support_observations(
     )
 
 
+def _route_outcome(response: ChatResponse) -> dict[str, object] | None:
+    """Return the `librarian_route` outcome for this turn, if Muse called it.
+
+    Boundary inference runs mid-turn inside the `librarian_route` tool, so the
+    routed ceiling reaches Inspect through `librarian_grounding` rather than
+    through `ContextResolution` — which only ever carries a reader-confirmed
+    boundary and is empty for every inferred one.
+    """
+    for call in response.inspection.librarian_grounding:
+        outcome = call.get("response")
+        if isinstance(outcome, dict) and outcome.get("kind") in {
+            "routed",
+            "clarification",
+        }:
+            return outcome
+    return None
+
+
 def _boundary_decision(
-    context: ContextResolution,
+    routed: dict[str, object] | None,
 ) -> Literal["infer", "clarify", "not_applicable"]:
-    if context.boundary_source == "librarian_inferred":
+    if routed is None:
+        return "not_applicable"
+    if routed.get("kind") == "routed":
         return "infer"
-    if context.status == "inferred" and context.clarification_question is not None:
+    if routed.get("kind") == "clarification":
         return "clarify"
     return "not_applicable"
 
 
 def _boundary_handoff_is_content_free(
     decision: Literal["infer", "clarify", "not_applicable"],
-    context: ContextResolution,
+    routed: dict[str, object] | None,
     exchanges: tuple[AgentExchange, ...],
 ) -> bool:
     boundary_exchanges = tuple(
@@ -603,16 +654,25 @@ def _boundary_handoff_is_content_free(
     }
     if not isinstance(output, dict) or set(output) - allowed_output_fields:
         return False
-    serialized_context = context.model_dump(mode="json")
-    locations = (
-        serialized_context.get("boundary_supporting_locations", [])
-        or serialized_context.get("candidate_supporting_locations", [])
-    )
-    return all(
-        isinstance(location, dict)
-        and set(location) <= {"evidence_id", "chapter_number", "location"}
-        for location in locations
-    )
+    # The routed hand-off names the work and its ceiling by number and
+    # confidence only. Any story text appearing here would be a leak.
+    allowed_routed_fields = {
+        "kind",
+        "work_id",
+        "book_version_id",
+        "title",
+        "routing_confidence",
+        "max_chapter_inclusive",
+        "boundary_confidence",
+        "request_id",
+        "clarification_id",
+        "reason_code",
+        "question",
+        "expected_answer",
+    }
+    if routed is not None and set(routed) - allowed_routed_fields:
+        return False
+    return True
 
 
 def _grade_proposal(
@@ -701,30 +761,20 @@ def _grade_proposal(
             failures.append("boundary_decision_differs_from_ground_truth")
         if not observation.boundary_handoff_content_free:
             failures.append("boundary_handoff_not_content_free")
-        context = observation.context_resolution
         evidence = _repository_evidence(proposal)
         if expected.decision == "infer":
             safe_ceiling = expected.safe_ceiling_chapter
             if safe_ceiling is None:  # pragma: no cover - model invariant
                 raise RuntimeError("inferred boundary lacks a safe ceiling")
-            if context.chapter_max != safe_ceiling:
+            if observation.routed_ceiling != safe_ceiling:
                 failures.append("inferred_ceiling_differs_from_ground_truth")
-            actual_support = {
-                item.evidence_id for item in context.boundary_supporting_locations
-            }
             expected_support = tuple(
                 evidence[evidence_id]
                 for evidence_id in expected.supporting_evidence_ids
             )
-            observed_support_ids = {
-                item.evidence_id for item in observation.boundary_support_evidence
-            }
-            if (
-                actual_support != observed_support_ids
-                or not _evidence_sets_match(
-                    expected_support,
-                    observation.boundary_support_evidence,
-                )
+            if not _evidence_sets_match(
+                expected_support,
+                observation.boundary_support_evidence,
             ):
                 failures.append("boundary_support_differs_from_ground_truth")
             for call in observation.grounding_calls:
@@ -739,11 +789,12 @@ def _grade_proposal(
                 ):
                     failures.append("evidence_exceeded_safe_ceiling")
         else:
-            if context.chapter_max is not None or context.boundary_source is not None:
+            if observation.routed_ceiling is not None:
                 failures.append("clarification_scene_granted_retrieval_scope")
-            if context.clarification_question is None:
+            question = observation.routed_clarification_question
+            if question is None:
                 failures.append("clarification_question_missing")
-            elif observation.reply != context.clarification_question:
+            elif observation.reply != question:
                 failures.append("released_reply_differs_from_clarification")
             if observation.grounding_calls or observation.released_evidence_ids:
                 failures.append("clarification_scene_retrieved_evidence")
