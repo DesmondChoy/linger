@@ -121,6 +121,14 @@ class CandidateFromReviewTests(unittest.TestCase):
         )
         self.assertFalse(candidate.review_allows_capture)
 
+    def test_blank_unreviewed_candidate_fails_binding(self) -> None:
+        with self.assertRaisesRegex(CaptureBindingError, "blank"):
+            vetoed_candidate(
+                nomination=nomination(" \t\n"),
+                source_text=" \t\n",
+                source_event_id="turn-blank",
+            )
+
 
 class CapturePolicyIntegrationTests(unittest.TestCase):
     """Feed bound candidates into the real deterministic policy gates."""

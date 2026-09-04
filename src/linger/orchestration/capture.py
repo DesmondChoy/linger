@@ -4,6 +4,9 @@ The Memory & Policy Service enforces automatic-capture policy, but two of its
 gates read flags that must originate from Provenance rather than from the
 caller. This module is the only place those flags are set, so no caller can
 authorise its own capture (specification sections 4.1 and 4.2.2).
+
+Blank nominations fail binding. Substantive text retains its exact whitespace
+so the reviewed source span and stored text remain identical.
 """
 
 from __future__ import annotations
@@ -32,6 +35,8 @@ def candidate_from_review(
         return None
     if review.capture_decision == "no_candidate":
         raise CaptureBindingError("review ignored an existing nomination")
+    if not nomination.text.strip():
+        raise CaptureBindingError("nomination must not be blank")
     if source_text[nomination.start_codepoint : nomination.end_codepoint] != nomination.text:
         raise CaptureBindingError("nomination is not an exact source-text slice")
     if not set(nomination.evidence_ids).issubset(available_evidence_ids):
@@ -56,6 +61,8 @@ def vetoed_candidate(
     A review that never completed cannot authorise capture, so an unreviewed
     candidate is refused exactly as an explicit veto is.
     """
+    if not nomination.text.strip():
+        raise CaptureBindingError("nomination must not be blank")
     if source_text[nomination.start_codepoint : nomination.end_codepoint] != nomination.text:
         raise CaptureBindingError("nomination is not an exact source-text slice")
     return AutomaticMemoryCandidate(

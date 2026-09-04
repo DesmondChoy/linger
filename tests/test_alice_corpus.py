@@ -236,6 +236,32 @@ def test_initialization_rejects_an_unrelated_existing_file(tmp_path: Path) -> No
         _copy_initial_corpus(tmp_path)
 
 
+def test_check_rejects_a_symlinked_corpus_root(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    _copy_initial_corpus(corpus)
+    linked = tmp_path / "linked-corpus"
+    linked.symlink_to(corpus, target_is_directory=True)
+
+    errors = check_corpus(BOOK, DEFAULT_SOURCE, linked)
+
+    assert any("symbolic link" in error for error in errors)
+
+
+def test_catalog_rebuild_rejects_a_symlinked_root_without_writing(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    _copy_initial_corpus(corpus)
+    catalog_path = corpus / "catalog.json"
+    catalog_path.write_text("stale catalog\n", encoding="utf-8")
+    original_catalog = catalog_path.read_bytes()
+    linked = tmp_path / "linked-corpus"
+    linked.symlink_to(corpus, target_is_directory=True)
+
+    with pytest.raises(CorpusBuildError, match="symbolic link"):
+        build_catalog(BOOK, DEFAULT_SOURCE, linked)
+
+    assert catalog_path.read_bytes() == original_catalog
+
+
 def test_check_detects_tampered_or_missing_chapters(tmp_path: Path) -> None:
     _copy_initial_corpus(tmp_path)
     chapter_path = tmp_path / "chapters/01-down-the-rabbit-hole.md"

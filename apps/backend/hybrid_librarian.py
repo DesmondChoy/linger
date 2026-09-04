@@ -9,7 +9,12 @@ from typing import Protocol
 import bm25s
 import numpy as np
 
-from apps.backend.contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
+from apps.backend.contracts import (
+    BookScope,
+    EvidenceBundle,
+    EvidenceItem,
+    LibrarianRequest,
+)
 from apps.backend.librarian import (
     CORPORA,
     CorpusScopeError,
@@ -203,6 +208,19 @@ class HybridLibrarian(Librarian):
         )
 
     def _index(self, request: LibrarianRequest) -> HybridIndex:
+        scopes: list[BookScope] = []
+        for scope in request.book_scopes:
+            registered = self.registered_scope(scope.work_id, scope.book_version_id)
+            if registered is None:
+                raise CorpusScopeError(
+                    f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
+                )
+            scopes.append(
+                scope.model_copy(
+                    update={"chapter_max": min(scope.chapter_max, registered.max_chapter)}
+                )
+            )
+        request = request.model_copy(update={"book_scopes": scopes})
         key = self._scope_key(request)
         cached = self._indexes.get(key)
         if cached is not None:
