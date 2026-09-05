@@ -377,6 +377,73 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
 
+    async def test_ambiguous_identity_clarifies_before_any_boundary_inference(self) -> None:
+        sessions.set_book_selection(self.session_id, sessions.BookSelection(book_id="pg11"))
+        sessions.set_reading_candidate(
+            self.session_id, sessions.ReadingCandidate(book_id="pg11", chapter=5)
+        )
+        with (
+            patch(
+                "src.linger.orchestration.routing.infer_spoiler_boundary",
+                side_effect=AssertionError("Unresolved work must not read memories or chapters"),
+            ) as infer,
+            muse_chat_agent.override(model=FunctionModel(_muse_routes_then_relays_clarification())),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            response = await main.chat(
+                ChatRequest(session_id=self.session_id, message="What does Wonderland say about identity?"),
+                self.service, self.account,
+            )
+        infer.assert_not_called()
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIn("full title and author", response.reply)
+        self.assertEqual((), response.inspection.release.released_evidence_ids)
+        self.assertIsNone(sessions.book_selection(self.session_id))
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
+
+        with (
+            muse_chat_agent.override(model=FunctionModel(_plain_reply_model("Which chapter have you finished?"))),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            selected = await main.chat(
+                ChatRequest(session_id=self.session_id, message="Alice's Adventures in Wonderland."),
+                self.service, self.account,
+            )
+        self.assertEqual("pg11", selected.inspection.context_resolution["work_id"])
+        self.assertIsNone(selected.inspection.context_resolution["chapter_max"])
+        self.assertFalse(selected.inspection.muse_turn["policy"]["allow_retrieval"])
+
+        captured = []
+        with (
+            muse_chat_agent.override(model=FunctionModel(_muse_searches_directly(captured, chapter=3))),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+            patch("src.linger.orchestration.grounding.judge_evidence_strength", side_effect=_sufficient_strength),
+        ):
+            completed = await main.chat(
+                ChatRequest(session_id=self.session_id, message="I've finished Chapter 3."),
+                self.service, self.account,
+            )
+        self.assertEqual(3, completed.inspection.context_resolution["chapter_max"])
+        self.assertEqual("result", captured[0]["kind"])
+        self.assertLessEqual(captured[0]["searched_scope"]["max_chapter_inclusive"], 3)
+
+    async def test_provenance_pass_cannot_release_an_answer_instead_of_identity_clarification(self) -> None:
+        def ignore_clarification(messages, info):
+            if _last_tool_return(messages, "librarian_route") is None:
+                return ModelResponse(parts=[ToolCallPart("librarian_route", {})])
+            return _plain_reply_model("Alice has trouble explaining who she is.")(messages, info)
+
+        with (
+            muse_chat_agent.override(model=FunctionModel(ignore_clarification)),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            response = await main.chat(
+                ChatRequest(session_id=self.session_id, message="What does Wonderland say about identity?"),
+                self.service, self.account,
+            )
+        self.assertEqual("application_safe_decline", response.inspection.release.release_source)
+        self.assertEqual((), response.inspection.release.released_evidence_ids)
+
     async def test_lone_garden_word_releases_without_routing_or_clarification(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,

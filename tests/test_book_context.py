@@ -30,6 +30,99 @@ class BookContextTests(unittest.TestCase):
         )
         self.assertIsNone(context.chapter_max)
 
+    def test_unknown_book_does_not_invent_identity_or_reuse_previous_progress(self) -> None:
+        sessions.set_book_selection(
+            "context-test", sessions.BookSelection(book_id="pg11")
+        )
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message="I'm reading Winter Wonderland and I've finished Chapter 3.",
+        ))
+        self.assertIsNone(context.work_id)
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNone(sessions.book_selection("context-test"))
+
+    def test_full_title_answer_selects_identity_without_confirming_progress(self) -> None:
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test", message="Alice's Adventures in Wonderland."
+        ))
+        self.assertEqual("pg11", context.work_id)
+        self.assertIsNone(context.chapter_max)
+
+    def test_candidate_for_an_unavailable_book_cannot_be_confirmed(self) -> None:
+        sessions.set_reading_candidate(
+            "context-test", sessions.ReadingCandidate(book_id="unavailable", chapter=5)
+        )
+        context = resolve_reading_context(ChatRequest(session_id="context-test", message="Yes."))
+        self.assertIsNone(context.work_id)
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNone(sessions.reading_candidate("context-test"))
+
+    def test_read_through_is_progress_not_a_new_book_title(self) -> None:
+        sessions.set_book_selection("context-test", sessions.BookSelection(book_id="pg11"))
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test", message="I've read through Chapter 3."
+        ))
+        self.assertEqual("pg11", context.work_id)
+        self.assertEqual(3, context.chapter_max)
+
+    def test_registered_non_alice_book_uses_stable_identity(self) -> None:
+        from dataclasses import replace
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from corpus_fixtures import fake_registration
+        from apps.backend import chat_turn
+
+        with TemporaryDirectory() as directory:
+            registration = replace(fake_registration(Path(directory), work_id="pg999", catalog={
+                "title": "The Orchard Notebook",
+                "chapters": [{"chapter_number": 1}, {"chapter_number": 2}],
+            }), aliases=("orchard notebook",))
+            with (
+                patch("src.linger.corpus.registry.CORPORA", {"pg999": registration}),
+                patch.object(chat_turn.settings, "allowed_book_version_ids", (registration.book.book_version_id,)),
+            ):
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message="I'm reading Orchard Notebook and I've finished Chapter 2.",
+                ))
+            self.assertEqual("pg999", context.work_id)
+            self.assertEqual(registration.book.book_version_id, context.book_version_id)
+            self.assertEqual(2, context.chapter_max)
+
+    def test_title_after_chapter_does_not_inherit_the_previous_book(self) -> None:
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from corpus_fixtures import fake_registration
+        from apps.backend import chat_turn
+        from src.linger.corpus import registry
+
+        with TemporaryDirectory() as directory:
+            registration = fake_registration(Path(directory), work_id="pg999", catalog={
+                "title": "The Orchard Notebook",
+                "chapters": [{"chapter_number": 1}, {"chapter_number": 2}],
+            })
+            with (
+                patch.object(registry, "CORPORA", {**registry.CORPORA, "pg999": registration}),
+                patch.object(chat_turn.settings, "allowed_book_version_ids", (
+                    *chat_turn.settings.allowed_book_version_ids, registration.book.book_version_id,
+                )),
+            ):
+                for title, expected_work in (
+                    ("The Orchard Notebook", "pg999"),
+                    ("Winter Wonderland", None),
+                ):
+                    with self.subTest(title=title):
+                        sessions.set_book_selection(
+                            "context-test", sessions.BookSelection(book_id="pg11")
+                        )
+                        context = resolve_reading_context(ChatRequest(
+                            session_id="context-test",
+                            message=f"I've finished Chapter 2 of {title}.",
+                        ))
+                        self.assertEqual(expected_work, context.work_id)
+                        self.assertEqual(2 if expected_work else None, context.chapter_max)
+
     def test_common_catalog_words_do_not_select_alice(self) -> None:
         for index, message in enumerate(
             (
@@ -56,28 +149,28 @@ class BookContextTests(unittest.TestCase):
             ChatRequest(
                 session_id="context-test",
                 turn_id="turn-1",
-                message="I am reading The Left Hand of Darkness, chapter 5.",
+                message="I am reading Alice in Wonderland, chapter 5.",
             )
         )
         next_turn = resolve_reading_context(
-            ChatRequest(session_id="context-test", turn_id="turn-2", message="Why does Estraven feel distant?")
+            ChatRequest(session_id="context-test", turn_id="turn-2", message="Why does Alice feel distant?")
         )
         self.assertIsNone(first.chapter_max)
         self.assertIsNone(next_turn.chapter_max)
         selection = sessions.book_selection("context-test")
         assert selection is not None
-        self.assertEqual(selection.book_id, "the-left-hand-of-darkness")
+        self.assertEqual(selection.book_id, "pg11")
 
     def test_existing_context_can_be_advanced_without_repeating_the_title(self) -> None:
         first = resolve_reading_context(
-            ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm reading Dune and I've finished Chapter 2.")
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm reading Alice in Wonderland and I've finished Chapter 2.")
         )
         context = resolve_reading_context(
             ChatRequest(session_id="context-test", turn_id="turn-2", message="I've now finished Chapter 3.")
         )
         self.assertEqual(first.chapter_max, 2)
         self.assertEqual("explicit_progress", first.boundary_authorization_basis)
-        self.assertEqual(context.work_title, "Dune")
+        self.assertEqual(context.work_title, "Alice's Adventures in Wonderland")
         self.assertEqual(context.chapter_max, 3)
         self.assertEqual("explicit_progress", context.boundary_authorization_basis)
 
@@ -203,7 +296,7 @@ class BookContextTests(unittest.TestCase):
         first = resolve_reading_context(
             ChatRequest(
                 session_id="context-test",
-                message="I am reading Animal Farm and I have finished Chapter 3.",
+                message="I am reading Alice in Wonderland and I have finished Chapter 3.",
             )
         )
         next_turn = resolve_reading_context(
@@ -211,7 +304,7 @@ class BookContextTests(unittest.TestCase):
         )
 
         self.assertEqual(first.chapter_max, 3)
-        self.assertEqual(next_turn.work_id, "animal-farm")
+        self.assertEqual(next_turn.work_id, "pg11")
         self.assertIsNone(next_turn.chapter_max)
 
     def test_a_new_catalog_cue_does_not_override_the_active_book_pre_muse(self) -> None:
@@ -222,19 +315,19 @@ class BookContextTests(unittest.TestCase):
         resolve_reading_context(
             ChatRequest(
                 session_id="context-test",
-                message="I am reading Animal Farm and I have finished Chapter 3.",
+                message="I am reading Alice in Wonderland and I have finished Chapter 3.",
             )
         )
         inspection, _, review_context = prepare_reflection_turn(
             ChatRequest(
                 session_id="context-test",
-                message="Why does the Cheshire Cat keep disappearing?",
+                message="Why does Jay Gatsby keep waiting?",
             ),
             allow_memory_capture=False,
         )
 
         self.assertEqual("inferred", inspection.context_resolution["status"])
-        self.assertEqual("animal-farm", inspection.context_resolution["work_id"])
+        self.assertEqual("pg11", inspection.context_resolution["work_id"])
         self.assertIsNone(inspection.muse_turn["reading_context"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
         self.assertFalse(inspection.muse_turn["policy"]["allow_connection"])

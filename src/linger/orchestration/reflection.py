@@ -346,9 +346,9 @@ def _required_clarification(
 ) -> str | None:
     """Return the exact question Librarian issued via `librarian_route`, if any.
 
-    Clarifications now originate only from the tool flow: Librarian judged the
-    reader's request as book-dependent but could not resolve a spoiler
-    boundary, and returned a question for Muse to relay verbatim. Any
+    Muse judged the request as book-dependent, but application routing could
+    not resolve its identity or validate a spoiler boundary. The tool returned
+    a question for Muse to relay verbatim. Any
     clarification among possibly several `librarian_route` calls this turn
     binds the gate — the first one found, not the last.
     """
@@ -538,7 +538,7 @@ def _validate_release(
         or any(result["tool_name"] != "librarian_route" for result in tool_results)
     ):
         raise ReleaseValidationError(
-            "An unresolved spoiler boundary requires the exact clarification only"
+            "An unresolved book or spoiler boundary requires the exact clarification only"
         )
     evidence = _validated_book_evidence(
         tool_results,

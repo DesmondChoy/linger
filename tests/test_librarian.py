@@ -1,37 +1,16 @@
 """Regression tests for canonical, spoiler-bounded Librarian retrieval."""
 
-import hashlib
-import json
 import unittest
+import tempfile
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
 from apps.backend.contracts import BookScope, LibrarianRequest
-from apps.backend.librarian import CorpusRegistration, CorpusScopeError, Librarian
+from apps.backend.librarian import CorpusScopeError, Librarian
+from src.linger.corpus.registry import BookClarification
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
-from src.linger.corpus.book import BookCorpus
-
-
-def _fake_registration(tmp_path: Path, *, work_id: str, catalog: dict) -> CorpusRegistration:
-    """Build a minimal registered corpus: only `catalog.json` is ever read by routing."""
-    sha = hashlib.sha256(work_id.encode()).hexdigest()
-    book_version_id = f"{work_id}-v{sha[:8]}"
-    root = tmp_path / book_version_id
-    root.mkdir()
-    catalog = {**catalog, "work_id": work_id, "book_version_id": book_version_id}
-    (root / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
-    book = BookCorpus(
-        work_id=work_id,
-        book_version_id=book_version_id,
-        title=catalog.get("title", work_id),
-        author="Test Author",
-        source_path="fake.txt",
-        source_sha256=sha,
-        default_source=root / "source.txt",
-        default_output=root,
-        parse_source=lambda _path: (),
-    )
-    return CorpusRegistration(book=book, root=root)
+from corpus_fixtures import fake_registration
 
 
 def request(
@@ -83,6 +62,74 @@ class LibrarianTests(unittest.TestCase):
         assert decision is not None
         self.assertEqual(WORK_ID, decision.scope.work_id)
         self.assertEqual(1.0, decision.confidence)
+
+    def test_registered_aliases_route_with_full_confidence(self) -> None:
+        for alias in ("Alice in Wonderland", "ALICE IN WONDERLAND"):
+            with self.subTest(alias=alias):
+                decision = self.librarian.route_work(
+                    f"What does {alias} say about identity?", (BOOK_VERSION_ID,)
+                )
+                self.assertIsNotNone(decision)
+                assert decision is not None
+                self.assertEqual(WORK_ID, decision.scope.work_id)
+                self.assertEqual(1.0, decision.confidence)
+
+    def test_broad_or_unknown_names_do_not_select_alice(self) -> None:
+        for message in (
+            "Wonderland",
+            "I read Winter Wonderland yesterday.",
+            "The snow turned our street into a winter wonderland.",
+        ):
+            with self.subTest(message=message):
+                result = self.librarian.route_work(message, (BOOK_VERSION_ID,))
+                self.assertIsInstance(result, BookClarification)
+
+    def test_full_title_beats_an_alias_embedded_in_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = fake_registration(root, work_id="first", catalog={
+                "title": "The Orchard Notebook",
+                "chapters": [{"chapter_number": 1}],
+            })
+            second = replace(fake_registration(root, work_id="second", catalog={
+                "title": "A Different Garden",
+                "chapters": [{"chapter_number": 1, "characters": ["Quendra"]}],
+            }), aliases=("orchard",))
+            with patch("src.linger.corpus.registry.CORPORA", {"first": first, "second": second}):
+                result = self.librarian.route_work(
+                    "The Orchard Notebook reminds me of Quendra.",
+                    (first.book.book_version_id, second.book.book_version_id),
+                )
+            self.assertIsNotNone(result)
+            self.assertEqual("first", result.scope.work_id)
+
+    def test_shared_alias_and_multiple_named_books_do_not_choose_by_cue_count(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = replace(fake_registration(root, work_id="first", catalog={
+                "title": "The Orchard Notebook",
+                "chapters": [{"chapter_number": 1}],
+            }), aliases=("the notebook",))
+            second = replace(fake_registration(root, work_id="second", catalog={
+                "title": "The Garden Notebook",
+                "chapters": [{"chapter_number": 1, "characters": ["Quendra"]}],
+            }), aliases=("the notebook",))
+            with patch("src.linger.corpus.registry.CORPORA", {"first": first, "second": second}):
+                for message in (
+                    "The notebook reminds me of Quendra.",
+                    "Compare The Orchard Notebook and The Garden Notebook with Quendra.",
+                ):
+                    with self.subTest(message=message):
+                        result = self.librarian.route_work(
+                            message, (first.book.book_version_id, second.book.book_version_id)
+                        )
+                        self.assertIsInstance(result, BookClarification)
+
+    def test_aliases_respect_word_boundaries_and_revision_grants(self) -> None:
+        self.assertIsNone(
+            self.librarian.route_work("Wonderlandish scenery", (BOOK_VERSION_ID,))
+        )
+        self.assertIsNone(self.librarian.route_work("Alice in Wonderland", ()))
 
     def test_lone_generic_catalog_word_in_reflection_does_not_route(self) -> None:
         decision = self.librarian.route_work(
@@ -204,10 +251,10 @@ class LibrarianTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            fake_a = _fake_registration(tmp_path, work_id="alpha-book", catalog=catalog)
-            fake_b = _fake_registration(tmp_path, work_id="beta-book", catalog=catalog)
+            fake_a = fake_registration(tmp_path, work_id="alpha-book", catalog=catalog)
+            fake_b = fake_registration(tmp_path, work_id="beta-book", catalog=catalog)
             with patch(
-                "apps.backend.librarian.CORPORA",
+                "src.linger.corpus.registry.CORPORA",
                 {
                     fake_a.book.work_id: fake_a,
                     fake_b.book.work_id: fake_b,
@@ -218,10 +265,11 @@ class LibrarianTests(unittest.TestCase):
                     (fake_a.book.book_version_id, fake_b.book.book_version_id),
                 )
 
-        # A tie in the full evidence signal (confidence and overlap) must be
-        # ambiguous. Comparing only (scope, confidence) would instead sort
-        # alphabetically by work_id and silently pick "alpha-book".
-        self.assertIsNone(decision)
+        self.assertIsInstance(decision, BookClarification)
+        self.assertEqual(
+            {"alpha-book", "beta-book"},
+            {item.book.work_id for item in decision.candidates},
+        )
 
     def test_metadata_generates_strong_candidate_for_distinctive_cue(self) -> None:
         candidates = self.librarian.work_candidates(

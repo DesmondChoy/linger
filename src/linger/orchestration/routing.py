@@ -18,6 +18,7 @@ from src.linger.contracts.librarian import (
     RoutedWork,
 )
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import (
@@ -47,6 +48,19 @@ async def route_reader_message(
         if decision is None:
             span.set_attribute("tool.status", "no_match")
             return NoMatch(kind="no_match")
+        if isinstance(decision, BookClarification):
+            span.set_attribute("tool.status", "clarification")
+            current_session = session_id()
+            if current_session is not None:
+                sessions.clear_book_selection(current_session)
+            return ClarificationRequest(
+                kind="clarification",
+                request_id=f"routereq_{uuid4().hex}",
+                clarification_id=f"clarify_{uuid4().hex}",
+                reason_code="book_identity_unresolved",
+                question=decision.question,
+                expected_answer=ExpectedAnswer(type="free_text"),
+            )
 
         scope = decision.scope
         boundary = await infer_spoiler_boundary(

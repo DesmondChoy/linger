@@ -113,7 +113,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         request = ChatRequest(
             session_id=self.session_id,
-            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
+            message="I'm reading Alice's Adventures in Wonderland and I've finished Chapter 3.",
         )
 
         with patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=fake_reflection_reply)):
@@ -254,7 +254,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
     async def test_var_reset_after_successful_turn(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
+            message="I'm reading Alice's Adventures in Wonderland and I've finished Chapter 3.",
         )
 
         with patch.object(chat_turn, "reflection_reply", AsyncMock(return_value=released())):
@@ -275,7 +275,7 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         )
         request = ChatRequest(
             session_id=self.session_id,
-            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 3.",
+            message="I'm reading Alice's Adventures in Wonderland and I've finished Chapter 3.",
         )
 
         async def fail_with_evidence(*args, **kwargs) -> ReflectionRelease:

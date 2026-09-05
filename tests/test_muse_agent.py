@@ -122,9 +122,10 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("guessing", lowered)
         self.assertIn("do not probe for book context", lowered)
 
-    def test_instructions_keep_the_in_scope_identifiers(self) -> None:
-        self.assertIn('"pg11"', self.instructions)
-        self.assertIn('"pg11-v01b38ea4"', self.instructions)
+    def test_instructions_take_identifiers_from_validated_context(self) -> None:
+        self.assertIn("Copy `work_id` and `book_version_id`", self.instructions)
+        self.assertIn("application's `context_resolution`", self.instructions)
+        self.assertIn("Never derive identifiers", self.instructions)
 
     def test_instructions_keep_the_safety_and_honesty_rules(self) -> None:
         lowered = " ".join(self.instructions.lower().split())

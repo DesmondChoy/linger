@@ -9,8 +9,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from src.linger.corpus.alice import BOOK
-from src.linger.corpus.book import BookCorpus, ChapterFrontMatter, parse_chapter_markdown
+from src.linger.corpus import registry
+from src.linger.corpus.book import ChapterFrontMatter, parse_chapter_markdown
+from src.linger.corpus.registry import BookClarification, CorpusRegistration, ResolvedBook
 from src.linger.contracts.librarian import EvidenceRecord
 
 from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
@@ -42,22 +43,6 @@ GENERIC_CUE_WORDS = {
 
 class CorpusScopeError(ValueError):
     """Raised before chapter text is opened when a corpus scope is invalid."""
-
-
-@dataclass(frozen=True)
-class CorpusRegistration:
-    book: BookCorpus
-    root: Path
-    aliases: tuple[str, ...] = ()
-
-
-CORPORA = {
-    BOOK.work_id: CorpusRegistration(
-        book=BOOK,
-        root=BOOK.default_output,
-        aliases=("alice in wonderland", "wonderland"),
-    ),
-}
 
 
 @dataclass(frozen=True)
@@ -176,14 +161,10 @@ def _normalize(text: str) -> str:
 
 
 @lru_cache(maxsize=None)
-def _routing_cues(
+def _catalog_cues(
     registration: CorpusRegistration,
-) -> tuple[frozenset[str], frozenset[str], re.Pattern[str]]:
-    """Precompute one corpus's title/catalog cue markers and a single matcher."""
-    book = registration.book
-    title_markers = frozenset(
-        {_normalize(book.title), book.work_id.replace("-", " ").casefold()}
-    )
+) -> tuple[frozenset[str], re.Pattern[str]]:
+    """Precompute contextual cues; reviewed identities use the shared resolver."""
     catalog = _load_catalog(registration)
     chapters = catalog.get("chapters")
     assert isinstance(chapters, list)
@@ -203,24 +184,23 @@ def _routing_cues(
         # catalog cue — counting its incidental words (e.g. "while",
         # "much") as evidence would let unrelated reflection accrue
         # confidence from common vocabulary alone.
-    all_markers = catalog_markers | title_markers
-    alternation = "|".join(re.escape(marker) for marker in sorted(all_markers, key=len, reverse=True))
-    pattern = re.compile(rf"(?<!\w)(?:{alternation})(?!\w)")
-    return frozenset(catalog_markers), title_markers, pattern
+    alternation = "|".join(re.escape(marker) for marker in sorted(catalog_markers, key=len, reverse=True))
+    pattern = re.compile(rf"(?<!\w)(?:{alternation})(?!\w)" if alternation else r"(?!)")
+    return frozenset(catalog_markers), pattern
 
 
 class Librarian:
     """Retrieve exact passages only from a registered revision and chapter range."""
 
     def has_corpus(self, work_id: str) -> bool:
-        return work_id in CORPORA
+        return work_id in registry.CORPORA
 
     def supports_revision(self, work_id: str, book_version_id: str) -> bool:
-        registration = CORPORA.get(work_id)
+        registration = registry.CORPORA.get(work_id)
         return registration is not None and registration.book.book_version_id == book_version_id
 
     def version_for(self, work_id: str) -> str | None:
-        registration = CORPORA.get(work_id)
+        registration = registry.CORPORA.get(work_id)
         return registration.book.book_version_id if registration else None
 
     def registered_scope(
@@ -229,7 +209,7 @@ class Librarian:
         book_version_id: str,
     ) -> RegisteredCorpusScope | None:
         """Return trusted metadata without opening any canonical chapter body."""
-        registration = CORPORA.get(work_id)
+        registration = registry.CORPORA.get(work_id)
         if registration is None or registration.book.book_version_id != book_version_id:
             return None
         catalog = _load_catalog(registration)
@@ -256,11 +236,28 @@ class Librarian:
         allowed_book_version_ids: tuple[str, ...],
     ) -> tuple[WorkRouteCandidate, ...]:
         """Generate metadata-only candidates without granting a work selection."""
+        identity = registry.resolve_book_identity(text, allowed_book_version_ids)
+        if identity is not None:
+            registrations = (
+                (identity.registration,) if isinstance(identity, ResolvedBook)
+                else identity.candidates
+            )
+            candidates = []
+            for item in registrations:
+                scope = self.registered_scope(item.book.work_id, item.book.book_version_id)
+                assert scope is not None
+                resolved = isinstance(identity, ResolvedBook)
+                candidates.append(WorkRouteCandidate(
+                    scope=scope,
+                    strength="strong" if resolved else "weak",
+                    reasons=("resolved_book_identity" if resolved else "unresolved_book_identity",),
+                ))
+            return tuple(candidates)
         text_tokens = _phrase_tokens(text)
         query_terms = _terms(text)
         allowed = set(allowed_book_version_ids)
         ranked: list[tuple[int, WorkRouteCandidate]] = []
-        for registration in CORPORA.values():
+        for registration in registry.CORPORA.values():
             book = registration.book
             if book.book_version_id not in allowed:
                 continue
@@ -272,15 +269,6 @@ class Librarian:
 
             strong_reasons: set[str] = set()
             weak_reasons: set[str] = set()
-            title_markers = (
-                book.title,
-                book.work_id.replace("-", " "),
-                *registration.aliases,
-            )
-            for marker in title_markers:
-                if _contains_phrase(text_tokens, marker):
-                    strong_reasons.add("supported_title_or_alias")
-
             routing_terms: set[str] = set()
             for chapter in chapters:
                 if not isinstance(chapter, dict):
@@ -332,21 +320,30 @@ class Librarian:
         self,
         text: str,
         allowed_book_version_ids: tuple[str, ...],
-    ) -> RoutingDecision | None:
+    ) -> RoutingDecision | BookClarification | None:
         """Route explicit literary cues using metadata only, never chapter text."""
+        if not allowed_book_version_ids:
+            return None
+        identity = registry.resolve_book_identity(text, allowed_book_version_ids)
+        if isinstance(identity, BookClarification):
+            return identity
+        if isinstance(identity, ResolvedBook):
+            book = identity.registration.book
+            scope = self.registered_scope(book.work_id, book.book_version_id)
+            assert scope is not None
+            return RoutingDecision(scope=scope, confidence=1.0)
         lowered = _normalize(text)
         allowed = set(allowed_book_version_ids)
         ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
-        for registration in CORPORA.values():
+        for registration in registry.CORPORA.values():
             book = registration.book
             if book.book_version_id not in allowed:
                 continue
             scope = self.registered_scope(book.work_id, book.book_version_id)
             assert scope is not None
-            catalog_markers, title_markers, pattern = _routing_cues(registration)
+            catalog_markers, pattern = _catalog_cues(registration)
 
             all_matches = {match.group(0) for match in pattern.finditer(lowered)}
-            title_match = bool(all_matches & title_markers)
             matched_markers = all_matches & catalog_markers
             # Keep only maximal matches: drop a matched cue that is itself a
             # substring of another matched cue (e.g. "garden" inside "rose
@@ -358,38 +355,25 @@ class Librarian:
                     marker != other and marker in other for other in matched_markers
                 )
             }
-            if not (title_match or matched_markers):
+            if not matched_markers:
                 continue
-
-            if title_match:
-                # An explicit title or work-id mention is unambiguous.
-                confidence = 1.0
-                distinct_cues = len(matched_markers)
-            else:
-                # A single-word cue that is also common English (see
-                # GENERIC_CUE_WORDS) is too weak to count alone; a multi-word
-                # cue, or a distinctive single-word name, always counts.
-                counted_cues = {
-                    marker
-                    for marker in matched_markers
-                    if " " in marker or marker not in GENERIC_CUE_WORDS
-                }
-                distinct_cues = len(counted_cues)
-                confidence = min(1.0, 0.3 + 0.2 * distinct_cues)
-            ranked.append((scope, confidence, distinct_cues))
+            counted_cues = {
+                marker for marker in matched_markers
+                if " " in marker or marker not in GENERIC_CUE_WORDS
+            }
+            distinct_cues = len(counted_cues)
+            confidence = min(1.0, 0.3 + 0.2 * distinct_cues)
+            if confidence >= ROUTING_CONFIDENCE_THRESHOLD:
+                ranked.append((scope, confidence, distinct_cues))
 
         if not ranked:
             return None
         ranked.sort(key=lambda item: (-item[1], -item[2], item[0].work_id))
-        # Ambiguous only when the full evidence signal ties (confidence and
-        # distinct cue count); `work_id` is a deterministic tiebreaker for
-        # sorting only, never a reason by itself to call two distinct routes
-        # a tie.
-        if len(ranked) > 1 and ranked[0][1:] == ranked[1][1:]:
-            return None
+        if len(ranked) > 1:
+            return BookClarification(tuple(
+                registry.CORPORA[item[0].work_id] for item in ranked
+            ))
         scope, confidence, _ = ranked[0]
-        if confidence < ROUTING_CONFIDENCE_THRESHOLD:
-            return None
         return RoutingDecision(scope=scope, confidence=confidence)
 
     def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
@@ -409,7 +393,7 @@ class Librarian:
             return None
 
         matches: list[tuple[CorpusRegistration, dict[str, object]]] = []
-        for registration in CORPORA.values():
+        for registration in registry.CORPORA.values():
             catalog = _load_catalog(registration)
             chapters = catalog.get("chapters")
             if not isinstance(chapters, list):
@@ -487,7 +471,7 @@ class Librarian:
         selected: list[EvidenceItem] = []
 
         for scope in request.book_scopes:
-            registration = CORPORA.get(scope.work_id)
+            registration = registry.CORPORA.get(scope.work_id)
             if registration is None or registration.book.book_version_id != scope.book_version_id:
                 raise CorpusScopeError(
                     f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"

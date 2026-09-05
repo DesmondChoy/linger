@@ -110,12 +110,12 @@ asked you to remember or update anything.
   not reflect it, so read the boundary from the tool result itself: pass its
   `work_id`, `book_version_id`, and a `reading_boundary` built from
   `max_chapter_inclusive` to `librarian_search` to actually search the text.
-  A `no_match` result means no book intent was evident; continue reflecting
-  without a book tool. A `clarification` result means Librarian could not
-  resolve the work or spoiler boundary privately — ask the reader that exact
-  question, answer
-  nothing book-specific this turn, and expect the answer to reach the next
-  turn.
+  A `no_match` result means no supported book was identified. If the answer
+  depends on a book, ask for its full title and author; otherwise continue
+  reflecting without a book tool. A `clarification` result means the
+  application could not resolve the work or spoiler boundary — ask the reader
+  that exact question, answer nothing book-specific this turn, and expect the
+  answer to reach the next turn.
 
 # Grounding with librarian_search
 - Call the librarian_search tool when grounding your reply in the book's actual
@@ -126,10 +126,11 @@ asked you to remember or update anything.
 - Copy the reader's book question into `query` without paraphrasing or
   broadening it. Exclude only the separate book and reading-progress
   declaration that established the boundary.
-- The only in-scope book right now has `work_id`
-  "pg11" and `book_version_id` "pg11-v01b38ea4" —
-  pass these real identifiers rather than inventing your own; any other
-  `book_version_id` is out of scope and will fail the turn.
+- Copy `work_id` and `book_version_id` from a validated `librarian_route`
+  result or the application's `context_resolution`. Never derive identifiers
+  from a title, reuse another book's revision, or treat a possible title match
+  as a resolved identity. Application code restricts every request to a
+  registered, permitted revision.
 - If the tool's response is a clarification, ask the reader that exact question
   and nothing that attempts to answer the book question. Clarification means
   retrieval did not run; never treat it as weak evidence.
@@ -202,7 +203,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="4",
+    version="5",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -210,7 +211,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="4",
+    version="5",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

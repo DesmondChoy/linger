@@ -190,7 +190,7 @@ class RoutedWork(StrictModel):
 
 
 class NoMatch(StrictModel):
-    """No book intent was evident in the message; Muse should keep reflecting."""
+    """No supported identity was found; clarify only if the answer needs a book."""
 
     kind: Literal["no_match"]
 
