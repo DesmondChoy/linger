@@ -84,7 +84,7 @@ settings = get_settings()
 
 CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.IGNORECASE)
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
-    r"(?:chapter|ch\.?|chap\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
+    r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
 TITLE_PREFIX_PATTERN = re.compile(r"\b(?:i(?:'m| am)\s+)?(?:reading|read)\s+(?P<title>.+)$", re.IGNORECASE)
 TITLE_END_PATTERN = re.compile(
