@@ -52,10 +52,12 @@ not dictate the output shape: ranking includes both a clear-winner proposal and
 a tied-top decline, while eligibility filtering may either leave a valid winner
 or leave nothing safe to propose.
 
-Authorised-memory discovery is not part of the current baseline. The runtime
-`SearchSourceKind`, evidence union, tools, and policy flags do not support that
-source. A memory scenario may remain under `cases/future/`, but it must not load,
-run, or contribute to current results until those runtime contracts exist.
+The runtime supports authorised-memory discovery through `search_memories`,
+using the authenticated account's curated retrieval view. Memory evidence may
+inform Serendipity's internal comparison but cannot authorise a released claim.
+The current component cases cover book and web sources. The memory scenario in
+`cases/future/` remains outside that baseline until executable memory cases and
+their grading are added.
 
 ## Case contract
 

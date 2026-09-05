@@ -141,6 +141,11 @@ Adventures in Wonderland* ([Project Gutenberg ebook 11](https://www.gutenberg.or
 - Immutable revision: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/`
 - Canonical chapters: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/`
 - Derived routing catalogue: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/catalog.json`
+- Reviewed book identities and aliases: `src/linger/corpus/registry.py`
+
+See [Registering books and resolving their names](docs/book-registration.md)
+for the shared resolver, ambiguity handling, onboarding checks, and ownership
+boundaries.
 
 The shared corpus lifecycle preserves chapter layout, adds compact JSON front
 matter for routing, and validates every canonical artifact before publication.
@@ -154,6 +159,7 @@ Verify the checked-in corpus or rebuild its derived catalogue with:
 
 ```bash
 uv run python -m src.linger.corpus.book src.linger.corpus.alice check
+uv run python -m src.linger.corpus.registry
 uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 ```
 

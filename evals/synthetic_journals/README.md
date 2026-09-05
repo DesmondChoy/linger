@@ -118,14 +118,14 @@ does not rewrite `ground-truth.json`.
 The loopback server only returns the decision. The agent validates the result
 and chooses a known objective-specific runner. The browser never receives
 runtime authority or provider credentials. Automatic post-confirmation routes
-cover capture and bounded curation. The grounded-reflection plus
-spoiler-boundary runner is available for explicit invocation after adoption;
+cover capture, bounded curation, and session continuity. The grounded-reflection
+plus spoiler-boundary runner is available for explicit invocation after adoption;
 other or mixed Objectives stop after adoption.
 
-A session-continuity runner also exists below; registering it as a confirmed
-replay path in the Objective catalog and the review skill remains a pending
-human decision, so the review app still stops after adoption for that
-Objective.
+The Objective catalog and review skill register session continuity as a
+supported replay path. Confirming its Ground truth authorizes the agent to run
+`evals.synthetic_journals.continuity_replay` once with the validated adoption.
+The loopback server itself never invokes runtime.
 
 ## Capture replay
 

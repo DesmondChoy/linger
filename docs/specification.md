@@ -229,9 +229,9 @@ autonomous scheduler in this slice.
 Serendipity supplies a proposed connection and evidence identifiers to Muse. Muse drafts the user-facing reply, which uses the same mandatory Provenance gate and deterministic checks as an ordinary reflection.
 
 The implemented discovery slice keeps a narrow release boundary. Serendipity may
-search active same-account memories supplied by the authenticated application,
-an application-granted book corpus, or application-granted Exa web sources. It
-returns a typed proposal or decline with request-local evidence for deterministic
+search the curated memory retrieval view supplied by the authenticated
+application, an application-granted book corpus, or application-granted Exa web
+sources. It returns a typed proposal or decline with request-local evidence for deterministic
 validation. The application, not Muse, supplies the exact current reader message
 as the cue. Each run is limited to eight model requests and six total tool calls.
 Muse may relay a typed decline. When every record cited by the selected candidate
@@ -412,8 +412,9 @@ When Muse decides a request depends on a book, it asks Librarian to route it
 from metadata. Exact supported titles, stable aliases, an active session
 selection, and canonical evidence references are strong signals. Common
 character, location, and catalogue words are weak candidates only: they cannot
-select a work or expose a memory by themselves. Multiple plausible works fail
-closed as no match, and Muse keeps reflecting without consulting Librarian.
+select a work or expose a memory by themselves. Multiple plausible works
+produce a clarification before private boundary inference. If a book is not
+needed for the response, Muse can continue personal reflection without lookup.
 
 Librarian then performs boundary inference. The complete immutable selected
 work is its search scope: Librarian cross-references all chapters against the
@@ -440,24 +441,41 @@ The current implementation has both phases for the Alice corpus. Muse, not the
 application, decides whether a request depends on a specific book, and calls
 an argument-less `librarian_route` tool only then — never for an incidental
 word inside otherwise personal reflection. The application supplies the exact
-current reader message; Muse cannot substitute its own text. Metadata-only
-routing scores each catalogue candidate: an explicit title mention or a
-de-hyphenated work-id match is confidence `1.0`; otherwise confidence is
-`0.3 + 0.2 × overlap` over distinct matched catalog-cue *terms* (character,
-location, or retrieval-cue words; a two-word cue contributes 2), capped at
-`1.0`. Below a `0.6` threshold, or a full-evidence tie between two candidates,
-routing returns no match and Muse keeps reflecting without consulting
-Librarian. Separately, metadata-only work-candidate generation labels each
-candidate weak or strong for memory-backed boundary authorization, so a
-common catalogue word can never back a ceiling or expose a memory on its own.
+current reader message; Muse cannot substitute its own text. Both explicit
+reading declarations and Librarian routing use the deterministic
+[`book registry`](../src/linger/corpus/registry.py). It matches reviewed titles,
+stable IDs, and distinctive aliases; broad `candidate_aliases` require
+clarification. Longer names supersede contained shorter names, and canonical
+names take precedence over aliases at the same position. Separate explicit
+works or unresolved shared names remain ambiguous regardless of catalogue cue
+counts. Registered author names can distinguish books sharing a title.
+
+Unknown declarations do not manufacture work IDs or inherit the previous
+book's chapter candidate. A full-title answer can select a book, but cannot
+grant reading progress. Muse copies work and revision IDs from validated
+context or routing results. The [registration guide](book-registration.md)
+describes catalogue checks and the separation between human review, optional
+Sculptor metadata proposals, deterministic builds, and runtime routing.
+
+When no reviewed name is present, metadata-only routing retains the contextual
+score `0.3 + 0.2 × overlap`, capped at `1.0`, over distinct whole catalogue
+cues. A multi-word cue contributes one match, nested matches count once, and
+generic single-word cues do not contribute. If no candidate reaches `0.6`,
+routing returns no match; multiple qualifying candidates require clarification. A
+resolved reviewed name bypasses contextual ranking with score `1.0`. These are
+deterministic scores, not calibrated probabilities. Separately, memory work
+candidates use the same identity resolver; unresolved names cannot become
+strong memory support through incidental catalogue words.
 
 A routed work then enters boundary inference: Librarian receives the current
-Line and at most eight account-scoped memories that independently route to
-that work, searches the complete immutable revision, and returns a typed
-candidate ceiling, evidence basis, confidence, supporting memory IDs, and
+Line and at most eight items from the account's curated retrieval view that
+independently route to that work, searches the complete immutable revision, and
+returns a typed candidate ceiling, evidence basis, confidence, supporting memory IDs, and
 content-free supporting locations. Full-work candidate passage text remains
 private to this phase and is never copied into Muse, Inspect, the turn
 evidence ledger, or the release scope.
+The curated view applies retrieval tombstones and includes derived summaries.
+Curation and audit retain the immutable originals, including tombstoned records.
 
 Application code validates the returned work, version, memory identifiers,
 evidence identifiers, authorization basis, and candidate chapter. A Line-only
@@ -474,6 +492,11 @@ the application clamps to that ceiling before any passage becomes releasable
 evidence. Explicit reader confirmation remains authoritative and skips
 inference for that request, and a routed inferred ceiling never widens or
 replaces a boundary the reader already confirmed this turn.
+
+Only a memory-supported clarification that explicitly asks about a candidate
+chapter may retain that chapter for a follow-up affirmation. A generic progress
+question clears any previous chapter candidate. Naming the book or saying the
+chapter is unfinished does not confirm progress.
 
 An unresolved routing or boundary clarification returns a typed
 `ClarificationRequest` from the tool call itself. The deterministic release
