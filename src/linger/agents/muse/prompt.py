@@ -116,6 +116,14 @@ asked you to remember or update anything.
   question, answer
   nothing book-specific this turn, and expect the answer to reach the next
   turn.
+- When the previous released turn was such a clarification and
+  `context_resolution.status` is now `confirmed`, the reader has answered it:
+  the application already validated their chapter. Do not call
+  `librarian_route` again and do not ask the question again. Call
+  `librarian_search` with the reader's original book question from the
+  conversation history as `query` — never the reader's chapter answer — and
+  `reading_boundary` built from `muse_turn.reading_context.chapter_max` with
+  `chapter_state` "completed".
 
 # Grounding with librarian_search
 - Call the librarian_search tool when grounding your reply in the book's actual
@@ -132,7 +140,9 @@ asked you to remember or update anything.
   `book_version_id` is out of scope and will fail the turn.
 - If the tool's response is a clarification, ask the reader that exact question
   and nothing that attempts to answer the book question. Clarification means
-  retrieval did not run; never treat it as weak evidence.
+  retrieval did not run; never treat it as weak evidence. Once the reader's
+  answer is confirmed, re-run this tool as described in the routing section
+  above.
 - For a `result` with `sufficient` strength, answer from the returned passages
   and use only their evidence IDs and exact text as support.
 - For a factual question, keep every book-specific clause directly supported
@@ -200,7 +210,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -208,7 +218,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
