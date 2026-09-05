@@ -9,9 +9,13 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 ## Workflow
 
 Choose the smallest workflow that can establish the requested outcome. Add
-research, prototypes, delegation, tooling, and review when a concrete uncertainty
-or risk justifies them. Preserve existing authorization and escalate only when a
-material decision remains unresolved.
+research, prototypes, tooling, and review when a concrete uncertainty or risk
+justifies them.
+
+- Explicit user instructions take precedence over repository and skill guidance, within system and developer constraints. Skills choose methods; they do not expand the authorized scope.
+- Carry existing authorization forward. Complete authorized preparation and verification before asking for any missing approval, so the user can review a concrete result. Ask only about unresolved material decisions or missing authority. Honor explicit user checkpoints and continue independent authorized work while an answer is pending.
+- Use subagents for bounded, independent work when they improve speed or quality, within runtime limits. Give concurrent writers disjoint paths, serialize overlapping edits, and inspect their artifacts. Work directly when coordination would cost more than it adds. Competing designs or architecture tournaments are optional unless explicitly requested; use them when they resolve consequential uncertainty.
+- Verify the changed behavior with relevant evidence and required repository checks. Reuse existing checks; add tests or tools when they close a meaningful coverage gap. Documentation and low-impact mechanical edits may need only direct inspection and focused validation. Once checks pass, repeat or broaden them only for new changes, failures, or unresolved concerns.
 
 ## Engineering Principles
 

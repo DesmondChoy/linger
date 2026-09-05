@@ -19,18 +19,18 @@ Repository `AGENTS.md`, developer instructions, and the user's current request o
 
 Remaining triggers:
 
-- Nontrivial change, architecture decision, or "are we sure?" → the **how** skill.
+- Unclear subsystem behavior or ownership → the **how** skill. Use direct source inspection when the relevant local contract is already clear.
 - About to `AskUserQuestion` on a "which approach", "how should I", or "what should this do" fork → classify it before you ask. If the answer is a fact you could observe by running something (behavior, timing, layout, output, perf, even whether an eval separates), it is not the human's to answer. Sketch it via the Prototype playbook (`playbooks/prototype.md`) and let the result decide. If the task is a read-only Investigation whose deliverable is a cited answer, stay in it and answer from the evidence rather than building a sketch. Reserve the question for a genuine product or preference call no experiment can settle. The ask is the slow path. A throwaway probe usually answers faster, and it hands the human a result to react to instead of a decision to make.
 - Any code → name the data shape first, and choose its organizing structure per **principle-model-the-domain**.
-- Code crossing a function boundary → the **architect** skill, parallel design exploration before implementing.
+- Consequential unresolved choices in types, ownership, or module boundaries → the **architect** skill. Use **arena** when competing designs can resolve that uncertainty or the user asks for a tournament. An ordinary function call needs neither.
 - Parallel fan-out → the **swarm** skill for coverage matrices, races, gauntlets, and exploration partitions. Use **arena** for design or code bakeoffs with base selection and grafting.
 - Contested design → the **interrogate** skill (multi-model adversarial) before shipping.
-- Nontrivial multi-step → write the throughput checkpoint (Feature step 3).
+- Multi-step work → identify useful independent tasks and shared writes before delegating. Keep planning proportional; do not add a checkpoint report for dimensions that do not apply.
 - Any prose surface → the **unslop** skill. Your reply is a prose surface; write it per **Writing the reply**. For agent-facing skill prose, use the project-available **skill-creator** skill.
 - Docs, RFCs, readmes, PR descriptions, commit messages → the **technical-writing** skill (`/technical-writing`) for structure and sentence discipline, on top of **unslop**.
 - Before an authorized commit → run the repository's **quality** skill. The **deslop** skill may supplement it but never replaces repository quality gates.
-- Before review → the **no-comments** skill (`/no-comments`).
-- Shipping UI / IDE / CLI → drive the real surface. Run CLIs and TUIs directly; use the relevant Codex browser, computer-use, test, or runtime tool for UIs, as mapped in [`references/codex-tools.md`](references/codex-tools.md). For bug fixes, reproduce first on the same surface yourself; hand to the user only under the narrow Bug fix step 1 exception.
+- Explicit comment cleanup or a concrete maintainability concern in comments → the **no-comments** skill (`/no-comments`), within the authorized scope.
+- Changes to UI, IDE, or CLI behavior → exercise the affected surface when needed to establish correctness. Use a focused test when it exercises the changed contract adequately. For bug fixes, reproduce the failure where practical and state any limits, as described in Bug fix.
 - Any PR-status request → the **Babysit** playbook (`playbooks/babysit.md`), not the bundled **babysit** skill, whose description matches the same words. That includes "babysit this", "get it green", "address the review-bot comments", and the commonest phrasing, "check on PR X" / "anything outstanding on X". Never triggered by merely opening a PR. Declare its mode before polling; the playbook's step 1 owns the request-to-mode mapping. Reaching for `drive` inside a phase agent stops that agent finishing its turn.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - An automated PR-review bot or the agentic security review commented → skeptical posture. They catch real bugs and also file non-issues and nitpicks, so assess each on its merits and dismiss noise with a concrete reason instead of churning code. Triage fix / dismiss / ask per `references/bugbot-triage.md`.
@@ -50,8 +50,8 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 - **Minimize Reader Load** (**principle-minimize-reader-load**). Reviewing or shaping code that's hard to trace. Count layers and hidden state, collapse one-caller wrappers, shrink mutable scope.
 - **Outcome-Oriented Execution** (**principle-outcome-oriented-execution**). Planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture, don't preserve throwaway compatibility states.
 - **Experience First** (**principle-experience-first**). Product, UX, or feature-scope tradeoffs. Choose user delight over implementation convenience.
-- **Exhaust the Design Space** (**principle-exhaust-the-design-space**). A novel interaction or architectural decision with no precedent. Build 2-3 competing prototypes and compare before committing.
-- **Build the Lever** (**principle-build-the-lever**). Any non-trivial work. Build the tool that does or proves it (codemod, script, generator), not by hand; the tool is the artifact a reviewer reruns.
+- **Exhaust the Design Space** (**principle-exhaust-the-design-space**). Consequential unresolved alternatives. Compare approaches and build competing prototypes when the evidence can settle the choice; a fixed candidate count is optional.
+- **Build the Lever** (**principle-build-the-lever**). Repetition, error risk, or a verification gap that warrants automation. Reuse an existing tool or build the smallest useful one.
 
 **Architecture**
 
@@ -66,7 +66,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 - **Prove It Works** (**principle-prove-it-works**). After a task, before declaring done. Verify against the real artifact, not a proxy or "it compiles".
 - **Fix Root Causes** (**principle-fix-root-causes**). Debugging. Trace each symptom to its root cause, reproduce first, ask why until you reach it.
-- **Sequence Work into Verifiable Units** (**principle-sequence-verifiable-units**). Multi-step work (sweeps, migrations, runs of similar edits) and how you stack commits and PRs. Break work into small units that each end in a check, verify each before the next, and order delivery so the sequence proves itself.
+- **Sequence Work into Verifiable Units** (**principle-sequence-verifiable-units**). Multi-step work (sweeps, migrations, runs of similar edits) and how you stack commits and PRs. Group related edits into coherent units, verify before dependent work builds on them, and keep authorized delivery easy to review.
 
 **Delegation**
 
@@ -81,7 +81,7 @@ Read the leaf skill in full for any principle you apply. Each entry names when i
 
 Proceed with reversible, in-scope work that affects only the repository, files, systems, and people the user placed in scope. Read-only inspection is allowed when relevant. Do not infer permission for external writes, team messages, tracker updates, evaluations that change remote state, commits, pushes, pull requests, deployments, merges, or history rewrites.
 
-Pause when the task needs new authority, a product choice that changes the result, or a destructive action. Resolve exact targets before any deletion.
+Carry forward existing authorization for the same action and scope. Before asking about missing authority or a material product choice, finish authorized preparation and verification and present a concrete result or proposal. Preserve explicit user checkpoints. Continue independent authorized work while an answer is pending. Resolve exact targets and authority before deletion.
 
 **Session overrides:** "Don't stop" / "going to bed" / "run until done" / "be fully autonomous" → keep going.
 
@@ -89,7 +89,7 @@ Pause when the task needs new authority, a product choice that changes the resul
 
 ## Subagents
 
-Use collaboration agents only when the user, repository instructions, or the active skill explicitly calls for them. Codex has four collaboration slots including the main agent, so run at most three children at once. Children share this checkout. Do not create worktrees in Linger. Give writers disjoint paths and serialize overlapping edits.
+Use collaboration agents for bounded, independent work when they improve speed or quality, as encouraged by `AGENTS.md` and allowed by the runtime. Useful cases include independent evidence gathering, disjoint implementation, and focused review. Work directly when coordination would outweigh the benefit. Architecture tournaments remain optional unless requested or justified by unresolved design uncertainty. Codex has four collaboration slots including the main agent, so run at most three children at once. Children share this checkout. Do not create worktrees in Linger. Give writers disjoint paths and serialize overlapping edits.
 
 Omit model overrides by default so children inherit the parent. If `.agents/pstack-models.md` exists, use only valid configured overrides. Distinguish reviewers by their evidence lens and prompt even when the runtime exposes one model family.
 
@@ -114,7 +114,7 @@ Comments follow the same rule as the reply. Write them clean as you go; a flat "
 
 ## Playbooks
 
-For a nontrivial task, reflect the matched playbook's meaningful steps in Beads or the Codex plan. Preserve named verification and design gates. A step that does not apply may be omitted when the reason is obvious; otherwise record the reason briefly.
+For a nontrivial task, reflect the matched playbook's meaningful steps in Beads or the Codex plan. Preserve required repository checks, human evidence gates, and explicit user checkpoints. Select other design, delegation, and verification steps for the actual uncertainty and risk; omit unnecessary ceremony. Existing authorization carries through nested playbooks.
 
 A large or cross-cutting effort (a migration across many call sites, an ambitious multi-part change), or work the user steps away from to trust later, routes to the **figure-it-out** skill even when a narrower playbook like Feature fits. Use **figure-it-out** whenever no bundled playbook fits. It designs a bespoke, rigorous playbook for the task. A standing project-scale program (multi-day, many stacked PRs, a fleet of subagents under one coordinator) routes to **Orchestrate** instead; figure-it-out designs one bespoke run, orchestrate runs the program.
 

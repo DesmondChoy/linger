@@ -30,8 +30,8 @@ Inside poteto-mode, the **Babysit** playbook ([`../poteto-mode/playbooks/babysit
 2. **Triage in priority order.**
    - Merge conflicts (`mergeStateStatus == DIRTY`): inspect the conflict and propose the smallest safe resolution. Rebase, merge, or force-push only when the user explicitly authorized that exact history mutation.
    - Failing checks (`statusCheckRollup` entries with `conclusion: FAILURE`): pull logs with `gh run view <run-id> --log-failed`. Root-cause the failure. Change code, commit, and push only when the request authorizes those mutations and after repository quality and Beads sync requirements pass.
-   - Review comments (`gh pr view --json comments,reviews`): act only on feedback you actually agree with. When a comment has a single mechanical answer — a rename, a guard clause, a formatting nit — make the edit and quote the comment in the commit message. When it hinges on a judgement call, or you can't tell what's being asked, don't guess: leave it and reply with what you would have done.
-   - Review-bot comments (Bugbot and similar automation): classify fix/dismiss/ask before acting, per [`references/bugbot-triage.md`](references/bugbot-triage.md). Ask by default on security, data, and high-severity findings.
+   - Review comments: investigate feedback and act on findings supported by current code and evidence. Resolve ordinary implementation choices within existing authorization. When a material product decision or required authority remains missing, complete independent authorized preparation and ask about that specific gap. Reply externally only when messaging is authorized.
+   - Review-bot comments: classify fix/dismiss/ask per [`references/bugbot-triage.md`](references/bugbot-triage.md). Severity calls for stronger investigation and verification, not another approval by itself.
 
 3. **Monitor.** Use the Codex recurring mechanism that matches the request:
    - Active CI run: poll `gh pr checks --watch` (it blocks until checks finish, so no separate loop interval needed).
@@ -40,14 +40,13 @@ Inside poteto-mode, the **Babysit** playbook ([`../poteto-mode/playbooks/babysit
 
 4. **When to stop.**
    - Build is green, every comment resolved, branch merges cleanly → call it ready.
-   - You've run three rounds of fix → push → recheck and it still isn't fully green → stop, summarise what's still broken, and hand control back.
-   - The next fix would force a design choice → pause and put it to the user with `AskUserQuestion`.
+   - After repeated unsuccessful cycles, reassess the cause and verification method. Continue while making concrete progress within scope. Stop when the outcome is reached, the user asks, or an unresolved blocker requires user input or an external change. Preserve explicit user checkpoints.
 
 5. **Report.** Summarize fixes applied, comments addressed, comments deferred (with reason), current PR status. Cite each commit by SHA.
 
 ## Hard rules
 
-- Don't rewrite history on a branch others may have pulled. If a rebase or force-push looks necessary, clear it with the user first.
+- Do not rewrite history on a branch others may have pulled without explicit authorization. Reuse authorization already provided for the same history mutation and scope.
 - Don't tweak a test's expected values just to get a pass. Only change an assertion when the behaviour genuinely changed and the assertion was pinned to the old behaviour.
 - Never skip hooks (`--no-verify`).
 - Never bypass a failing check by marking it as not required.

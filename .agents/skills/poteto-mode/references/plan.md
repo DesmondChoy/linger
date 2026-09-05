@@ -1,28 +1,26 @@
 # Plan
 
-Produce a phased implementation plan grounded in the **Principles** section of the `poteto-mode` skill. The plan is the deliverable. Do not implement.
+Produce a phased implementation plan grounded in the **Principles** section of the `poteto-mode` skill. For a plan-only request, the plan is the deliverable. When planning is part of an already authorized implementation task, continue into implementation unless the user requested a checkpoint.
 
 Use Beads when repository instructions require durable plan tracking. Otherwise use a Codex plan only when it helps organize the planning work.
 
 ## 0. Triage
 
-Skip the plan when the change is one or two files with an obvious approach. Say so and stop.
-
-Plan when the change spans three or more files, introduces architecture, has competing approaches or unclear scope, or the user asked for one.
+Use a concise plan when the user asks for one or dependencies, uncertainty, or scope make planning useful. An obvious small change can proceed directly when implementation is authorized. File count alone does not determine the workflow.
 
 ## 1. Re-read principles
 
-Read the **Principles** section of the `poteto-mode` skill end to end, and the leaf `principle-*` skills it indexes. The principles govern every plan decision; cross-link them.
+Read the **Principles** section of `poteto-mode` and the leaf skills relevant to this plan. Apply the workflow and authority defaults in `AGENTS.md`; cite principles only when they explain a decision.
 
 ## 2. Scope and constraints
 
-State your read of scope and constraints in one paragraph. Use `request_user_input` when available only for genuinely ambiguous intent. Otherwise ask one concise plain-text question.
+State the scope and constraints from the request and available evidence. Ask only when a material ambiguity remains, after completing independent authorized preparation; use the question tools allowed by the current runtime.
 
 Resolve what is in scope vs explicitly out, technical or platform constraints, patterns to preserve, and the definition of done.
 
 ## 3. Explore in subagents
 
-Delegate codebase exploration (the **guard-the-context-window** principle skill).
+Delegate bounded independent exploration when it improves speed or quality. Keep useful local work moving while explorers run, and inspect their evidence. A narrow, well-understood plan can be grounded directly.
 
 - Use `spawn_agent` only when delegation is allowed. Run at most three read-only explorers and give each a distinct scope.
 - Omit model overrides by default. Apply only valid project-local overrides from `.agents/pstack-models.md`.
@@ -31,9 +29,7 @@ Each explorer returns file pointers, conventions, dependencies, test infrastruct
 
 ## 4. Write the plan
 
-The user specifies where the plan lives.
-
-Single file `NN-slug.md` for small plans. For three or more phases, a directory with `overview.md` plus phase files:
+Use the user's requested destination when supplied. Otherwise keep a small plan in the response or Beads; use a reviewable scratch artifact when a longer plan needs one. Create maintained plan documents only when useful and within scope. A larger plan may use one file or a directory such as:
 
 ```
 NN-slug/
@@ -45,17 +41,16 @@ NN-slug/
 
 ### Phase sizing
 
-- One function or type plus tests, or one bug fix. Not "one file".
-- Two to three files touched, max.
-- Prefer eight to ten small phases over three to four large ones to preserve option value (the **foundational-thinking** principle skill).
-- Split if a phase has more than five test cases or three functions.
+- Group coordinated changes into coherent units with meaningful verification.
+- Split at real dependency or ownership boundaries, especially before consequential uncertainty.
+- Avoid fixed quotas for files, functions, phases, or test cases. Each phase should produce evidence that supports dependent work.
 
 ### Overview file
 
 - **Context.** Problem and why now.
 - **Scope.** Included; explicitly excluded.
 - **Constraints.** Technical, platform, dependency, pattern.
-- **Alternatives.** Two or three approaches sketched, choice and rationale (the **exhaust-the-design-space** principle skill). Skip when constraints dictate one.
+- **Alternatives.** Compare meaningful contenders when the choice remains consequential and unresolved. A well-supported approach needs no fixed number of alternatives.
 - **Applicable skills.** Domain skills the implementer should invoke, by name.
 - **Phases.** Ordered standard-markdown links to phase files.
 - **Verification.** Project-level commands.
@@ -67,7 +62,7 @@ NN-slug/
 - **Goal.** What the phase accomplishes.
 - **Changes.** Files affected and the change at a high level. What and why, not how. No code snippets.
 - **Data structures.** Name the key types or schemas. One-line sketch only (the **foundational-thinking** principle skill).
-- **Verification.** Per section 6.
+- **Verification.** Per section 5.
 
 Order phases so infrastructure and shared types land first (the **foundational-thinking** principle skill). Each phase should be independently shippable.
 
@@ -77,18 +72,11 @@ If a phase creates or edits a skill, instruct the implementer to use **skill-cre
 
 ## 5. Verification per phase
 
-Each phase needs both:
+Choose verification for the phase's changed contract and concrete risk. Reuse existing checks and add coverage only for meaningful gaps. Name required repository gates and relevant focused tests, inspections, or runtime exercises.
 
-**Static.** Type check, lint, project tests pass.
+Exercise the real UI, CLI, or integration path when narrower checks cannot establish the changed behavior. Documentation and low-impact mechanical changes may need only direct inspection and focused validation. For a local bug fix, a regression test may be sufficient; an integration defect needs evidence across the affected boundary.
 
-**Runtime.** Exercise the feature on the matching surface via the relevant control skill:
-
-- Browser, Electron, and web UIs: use the available browser, computer-use, or test skill and inspect the real artifact.
-- CLIs and TUIs: run and drive the program with the available terminal tools.
-- Native mobile: whatever simulator-driving skill your team has.
-- No control skill for the touched surface: flag it in the plan.
-
-For bug fixes, the loop is reproduce on the surface, fix, verify on the same surface. Unit tests show a branch behaves a certain way; they do not prove the bug is gone (the **prove-it-works** principle skill).
+State unavailable checks and baseline failures accurately. Repeat or broaden verification only for new changes, failures, or unresolved concerns.
 
 ## 6. Implementation guidance
 
@@ -102,4 +90,4 @@ In the overview, name which poteto-mode non-negotiables the implementer must app
 
 ## 7. Hand back
 
-Summarize phases, scope boundaries, applicable skills, and verification. Stop. The user decides when implementation starts.
+Summarize phases, scope, relevant methods, and verification. Stop for a plan-only request or an explicit user checkpoint. Otherwise continue the already authorized implementation without a new approval step.

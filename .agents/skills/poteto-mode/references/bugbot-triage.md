@@ -4,13 +4,13 @@ Use this reference when the Babysit playbook (`../playbooks/babysit.md`) handles
 
 ## Decision rubric
 
-Classify each Bugbot thread before acting:
+Classify each Bugbot thread before acting. Code changes, replies, and thread resolution require the applicable authorization; the rubric itself grants none.
 
 - `fix`: The comment identifies a plausible correctness, security, privacy, data loss, auth, billing, migration, idempotency, race, or shipped-behavior issue. Fix it in the lowest owning PR, then reply with the commit SHA and resolve the thread.
 - `dismiss`: The comment matches a documented low-risk noisy pattern, and the current code/context proves the concern does not need a code change. Reply with a short reason and resolve the thread.
-- `ask`: The comment is novel, high-severity, security/privacy/data-related, or ambiguous. Ask the user instead of guessing.
+- `ask`: Investigation leaves a material product choice unresolved, required authority is missing, or the proposed action exceeds scope. Complete independent authorized work and present the concrete finding and options before asking.
 
-When in doubt, ask. Skipping a noisy code-quality comment is cheap; skipping a real data or security bug is not.
+When evidence is insufficient, investigate further. Novelty or severity alone does not require approval; ask when the remaining uncertainty requires the user's judgment or authority.
 
 ## Learned pattern format
 
@@ -72,9 +72,9 @@ Use `candidate` for one or two examples. Use `recurring` after multiple real dis
 - Do not skip when: The only evidence is a human saying "false positive" on a high-risk issue without explanation.
 - Example signal: A file-naming rule comment whose body says the file is already compliant.
 
-## Ask by default
+## Investigate carefully
 
-Do not auto-skip these categories, even if a previous PR dismissed something similar:
+Do not dismiss these categories solely because a previous PR dismissed something similar. Verify current behavior and relevant contracts; fix supported findings within existing authorization. Escalate only when a remaining choice or action requires user input or authority:
 
 - Security, privacy, auth, billing, data retention, training-data, and permission-boundary findings.
 - High-severity findings.

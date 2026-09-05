@@ -1,13 +1,13 @@
 ---
 name: principle-exhaust-the-design-space
-description: "Apply when facing a novel UI interaction or architectural decision with no precedent in the codebase. Build 2-3 competing prototypes and compare side by side before committing."
+description: "Apply when a novel interaction or architectural choice has consequential unresolved alternatives. Compare approaches, and use competing prototypes when they can resolve the uncertainty."
 ---
 
 # Exhaust the Design Space
 
-When a novel interaction or architectural decision has no established precedent, explore several concrete alternatives before implementation. Building the wrong thing costs more than exploring three options.
+Explore alternatives when choosing the wrong approach would be costly and current evidence does not identify a clear fit. Start with local constraints, prior art, or a short comparison. Build competing sketches or prototypes only when their results can resolve a concrete uncertainty. A fixed number of alternatives is not required unless the user asks for it.
 
-**The rule.** When the right answer is not obvious, build 2-3 competing prototypes or sketches. Compare them side by side. Only then commit. Design it twice is this rule by another name. A second flavor of the first shape does not count.
+Use independent designers when their perspectives improve the decision. A well-supported design can proceed directly; the absence of a local precedent alone does not require a tournament.
 
 **When it applies:**
 - Novel UI interactions (no prior art in the codebase)
