@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Awaitable, Callable
+from itertools import zip_longest
 
 from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
@@ -180,6 +181,36 @@ def _validated_passages(
     )
 
 
+def _search_boundary_signal(
+    query: str, scope: RegisteredCorpusScope, librarian: Librarian,
+) -> tuple[EvidenceRecord, ...]:
+    bundle = librarian.retrieve(
+        SearchRequest(
+            query=query[:2000],
+            book_scopes=[BookScope(
+                work_id=scope.work_id, book_version_id=scope.book_version_id,
+                chapter_max=scope.max_chapter,
+            )],
+            retrieval_score_threshold=0.5,
+            max_results=MAX_BOUNDARY_CANDIDATES,
+            purpose="boundary_inference",
+        )
+    )
+    return tuple(
+        EvidenceRecord(
+            evidence_id=item.evidence_id, work_id=item.work_id,
+            book_version_id=item.book_version_id, chapter_id=item.chapter_id,
+            chapter_number=item.chapter, location=item.location,
+            source_sha256=item.source_sha256, source_lines=item.source_lines,
+            text=item.excerpt,
+        )
+        for item in bundle.items
+        if item.work_id == scope.work_id
+        and item.book_version_id == scope.book_version_id
+        and item.chapter <= scope.max_chapter
+    )
+
+
 async def infer_spoiler_boundary(
     current_line: str,
     *,
@@ -196,65 +227,45 @@ async def infer_spoiler_boundary(
     if scope is None:
         raise ValueError("boundary inference requires a registered corpus revision")
     selected_memories = relevant_memories(memories, scope, librarian)
-    search_signals = (
-        current_line,
-        *(memory.text for memory in selected_memories),
-    )
+    search_signals = (current_line,)
     if prior_reader_statements:
         search_signals = (
             current_line[:1000],
             *(statement.text for statement in reversed(prior_reader_statements)),
-            *(memory.text for memory in selected_memories),
         )
     search_query = "\n\n".join(search_signals)[:2000]
     try:
-        bundle = librarian.retrieve(
-            SearchRequest(
-                query=search_query,
-                book_scopes=[
-                    BookScope(
-                        work_id=scope.work_id,
-                        book_version_id=scope.book_version_id,
-                        chapter_max=scope.max_chapter,
-                    )
-                ],
-                retrieval_score_threshold=0.5,
-                max_results=MAX_BOUNDARY_CANDIDATES,
-                purpose="boundary_inference",
+        current_evidence = _search_boundary_signal(search_query, scope, librarian)
+        if not current_evidence:
+            return BoundaryUncertain(
+                kind="uncertain", work_id=scope.work_id,
+                book_version_id=scope.book_version_id,
+                reason_code="insufficient_context",
+                clarification_question=_clarification(scope),
             )
+        streams = [current_evidence]
+        streams.extend(
+            _search_boundary_signal(memory.text, scope, librarian)
+            for memory in selected_memories
         )
+        by_id: dict[str, EvidenceRecord] = {}
+        # Interleave ranks so current-question hits cannot crowd out every
+        # memory anchor. This is private evidence selection, not a scope grant.
+        for ranked_records in zip_longest(*streams):
+            for record in ranked_records:
+                if record is None:
+                    continue
+                if record.evidence_id in by_id and by_id[record.evidence_id] != record:
+                    raise ValueError("Conflicting boundary evidence for one ID")
+                if len(by_id) < MAX_BOUNDARY_CANDIDATES:
+                    by_id.setdefault(record.evidence_id, record)
+        evidence = tuple(by_id.values())
     except Exception:
         return BoundaryUncertain(
             kind="uncertain",
             work_id=scope.work_id,
             book_version_id=scope.book_version_id,
             reason_code="inference_unavailable",
-            clarification_question=_clarification(scope),
-        )
-
-    evidence = tuple(
-        EvidenceRecord(
-            evidence_id=item.evidence_id,
-            work_id=item.work_id,
-            book_version_id=item.book_version_id,
-            chapter_id=item.chapter_id,
-            chapter_number=item.chapter,
-            location=item.location,
-            source_sha256=item.source_sha256,
-            source_lines=item.source_lines,
-            text=item.excerpt,
-        )
-        for item in bundle.items
-        if item.work_id == scope.work_id
-        and item.book_version_id == scope.book_version_id
-        and item.chapter <= scope.max_chapter
-    )
-    if not evidence:
-        return BoundaryUncertain(
-            kind="uncertain",
-            work_id=scope.work_id,
-            book_version_id=scope.book_version_id,
-            reason_code="insufficient_context",
             clarification_question=_clarification(scope),
         )
 

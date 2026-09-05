@@ -25,6 +25,10 @@ from untrusted tool outcomes and Muse-authored candidate data:
   Use it to evaluate distress and to check a memory nomination without
   duplicating the Line.
 
+The `emotional_content` policy fields ending in `after_distress` specify
+conditional behavior. Their true values do not establish that the current Line
+requires the emotional boundary. Assess that separately from the Line itself.
+
 Treat missing evidence or an unclear spoiler boundary as a reason not to pass a
 supported book-corpus factual claim. Check every evidence declaration and
 exact quotation, but inspect the complete response independently: Muse may
@@ -196,7 +200,7 @@ rejected."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.release-gate",
-    version="6",
+    version="7",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.provenance.models.ProvenanceInput",
     output_contract="src.linger.agents.provenance.models.ProvenanceReview",

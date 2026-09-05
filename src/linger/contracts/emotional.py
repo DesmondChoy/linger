@@ -7,7 +7,7 @@ from pydantic import Field
 from src.linger.contracts.base import StrictModel
 
 
-EMOTIONAL_CONTENT_POLICY_VERSION = "1"
+EMOTIONAL_CONTENT_POLICY_VERSION = "2"
 EMOTIONAL_BOUNDARY_RESPONSE_ID = "distressing_disclosure_v1"
 EMOTIONAL_BOUNDARY_RESPONSE = (
     "That sounds deeply distressing. I don’t want to keep probing, and I’m not "
@@ -17,16 +17,16 @@ EMOTIONAL_BOUNDARY_RESPONSE = (
 
 
 class EmotionalContentPolicy(StrictModel):
-    """Fixed request-local behavior; it grants no diagnosis or crisis authority."""
+    """Conditional behavior after distress, not the current Line's assessment."""
 
-    version: Literal["1"] = EMOTIONAL_CONTENT_POLICY_VERSION
+    version: Literal["2"] = EMOTIONAL_CONTENT_POLICY_VERSION
     boundary_response_id: Literal["distressing_disclosure_v1"] = (
         EMOTIONAL_BOUNDARY_RESPONSE_ID
     )
     prohibit_diagnosis: Literal[True] = True
     stop_probing_after_distress: Literal[True] = True
-    suppress_tools: Literal[True] = True
-    suppress_capture: Literal[True] = True
+    suppress_tools_after_distress: Literal[True] = True
+    suppress_capture_after_distress: Literal[True] = True
 
 
 class EmotionalBoundaryInput(StrictModel):

@@ -1,5 +1,6 @@
 """Tests for Muse's tool wiring and instruction invariants."""
 
+import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -213,14 +214,14 @@ class MuseInstructionTests(unittest.TestCase):
             lowered,
         )
 
-    def test_prompt_fingerprints_are_version_eleven(self) -> None:
+    def test_prompt_fingerprints_are_version_fourteen(self) -> None:
         from src.linger.agents.muse.prompt import (
             DRAFT_PROMPT_FINGERPRINT,
             REVISION_PROMPT_FINGERPRINT,
         )
 
-        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "11")
-        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "11")
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "14")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "14")
 
     def test_passage_routes_do_not_imply_chapter_completion(self) -> None:
         compact = " ".join(self.instructions.split())
@@ -296,7 +297,10 @@ class MuseOutputValidationTests(unittest.TestCase):
         )
 
     def test_retries_non_visible_exact_quote_metadata(self) -> None:
-        from src.linger.agents.muse.agent import validate_exact_quote_declarations
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record()
+        add_turn_evidence((record,))
 
         output = MuseCandidate(
             reply="Alice is unsure of herself.",
@@ -312,10 +316,13 @@ class MuseOutputValidationTests(unittest.TestCase):
         )
 
         with self.assertRaises(ModelRetry):
-            validate_exact_quote_declarations(output)
+            validate_muse_output(self.context(record), output)
 
     def test_accepts_visible_exact_quote_or_null(self) -> None:
-        from src.linger.agents.muse.agent import validate_exact_quote_declarations
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record()
+        add_turn_evidence((record,))
 
         for exact_quote in ("Who are you?", None):
             with self.subTest(exact_quote=exact_quote):
@@ -331,7 +338,47 @@ class MuseOutputValidationTests(unittest.TestCase):
                         ),
                     ),
                 )
-                self.assertIs(output, validate_exact_quote_declarations(output))
+                self.assertIs(output, validate_muse_output(self.context(record), output))
+
+    def test_quote_retry_supplies_exact_source_for_repair(self) -> None:
+        from src.linger.agents.muse.agent import validate_muse_output
+
+        record = self.record().model_copy(update={
+            "text": '“I am a sailor,” she said,\nrather _quietly_.',
+        })
+        add_turn_evidence((record,))
+        for reply, quote in (
+            (record.text.replace("\n", " "), record.text.replace("\n", " ")),
+            ("She names her new role.", record.text),
+            (record.text.replace("_", ""), record.text.replace("_", "")),
+            ("An invented sentence.", "An invented sentence."),
+        ):
+            with self.subTest(reply=reply, quote=quote):
+                candidate = MuseCandidate(
+                    reply=reply,
+                    memory=_no_memory(),
+                    evidence_uses=(BookEvidenceUse(
+                        source_kind="book_corpus",
+                        evidence_id=record.evidence_id,
+                        source_location=record.location,
+                        exact_quote=quote,
+                    ),),
+                )
+                with self.assertRaises(ModelRetry) as caught:
+                    validate_muse_output(self.context(record), candidate)
+                repair = json.loads(str(caught.exception))
+                source = repair["canonical_book_evidence"]
+                self.assertEqual(source["evidence_id"], record.evidence_id)
+                self.assertEqual(source["text"], record.text)
+                corrected = candidate.model_copy(update={
+                    "reply": source["text"],
+                    "evidence_uses": (candidate.evidence_uses[0].model_copy(update={
+                        "exact_quote": source["text"],
+                    }),),
+                })
+                self.assertIs(
+                    corrected, validate_muse_output(self.context(record), corrected)
+                )
 
     def test_live_validator_resolves_quote_location_and_evidence_id(self) -> None:
         from src.linger.agents.muse.agent import validate_muse_output

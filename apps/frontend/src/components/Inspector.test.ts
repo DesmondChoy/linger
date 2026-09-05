@@ -23,8 +23,9 @@ it('renders an application clarification as a successful question, not a decline
         policy: {
           spoiler_ceiling: null, allow_retrieval: false, allow_connection: false, allow_memory_capture: false,
           emotional_content: {
-            version: '1', boundary_response_id: 'distressing_disclosure_v1', prohibit_diagnosis: true,
-            stop_probing_after_distress: true, suppress_tools: true, suppress_capture: true,
+            version: '2', boundary_response_id: 'distressing_disclosure_v1', prohibit_diagnosis: true,
+            stop_probing_after_distress: true,
+            suppress_tools_after_distress: true, suppress_capture_after_distress: true,
           },
         },
       },

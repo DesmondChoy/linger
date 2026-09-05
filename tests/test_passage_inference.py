@@ -178,4 +178,4 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([PRIOR[0].model_dump()], payload["prior_reader_statements"])
         self.assertEqual([], payload["relevant_memories"])
         self.assertEqual("LibrarianBoundaryInferenceInput.v2", run.await_args.kwargs["input_contract"])
-        self.assertEqual("2", run.await_args.kwargs["prompt_version"])
+        self.assertEqual("3", run.await_args.kwargs["prompt_version"])

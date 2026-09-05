@@ -28,6 +28,7 @@ from evals.synthetic_journals.book_replay import (
     replay_book_scenes,
 )
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
+from evals.synthetic_journals.transcript import ToolExchange
 from evals.synthetic_journals.validate_package import (
     PackageValidationError,
     load_run_configurations,
@@ -150,6 +151,41 @@ def _record_boundary(output: BoundaryInferenceDecision) -> None:
     )
 
 
+def _record_muse_tools(calls, *, stage="draft") -> None:
+    from pydantic_ai.messages import (
+        ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart,
+    )
+
+    sink = active_evaluation_transcript_sink()
+    assert sink is not None
+    handle = sink.begin_agent_exchange(
+        role="Muse", stage=stage, input_origin="Application",
+        output_receiver="Application", input_contract="MuseDraftInput",
+        output_contract="MuseCandidate", prompt_template_id="muse.reflection",
+        prompt_version="test", prompt_digest="0" * 64,
+        input_prompt="synthetic", message_history=(),
+        trace_id="0" * 32, span_id="0" * 16,
+    )
+    messages = []
+    for index, call in enumerate(calls):
+        call_id = f"{stage}-{index}"
+        messages.extend((
+            ModelResponse(parts=[ToolCallPart(
+                call["tool_name"], call.get("request", {}), tool_call_id=call_id,
+            )]),
+            ModelRequest(parts=[ToolReturnPart(
+                call["tool_name"], call["response"], tool_call_id=call_id,
+            )]),
+        ))
+    sink.complete_agent_exchange(
+        handle,
+        result=SimpleNamespace(
+            output=None, new_messages=lambda: messages, usage=lambda: None,
+        ),
+        status="success", failure_code=None,
+    )
+
+
 def _response(
     request: ChatRequest,
     *,
@@ -223,6 +259,7 @@ def _response(
         grounding = []
         evidence_ids = ()
 
+    _record_muse_tools(grounding)
     sessions.append_turn(
         request.session_id,
         request.message,
@@ -241,6 +278,7 @@ def _response(
             prompt="synthetic",
             release=ReleaseInspection(
                 release_source="muse_candidate",
+                released_evidence_ids=evidence_ids,
                 provenance_verdicts=("pass",),
                 finding_codes=(),
                 revision_count=0,
@@ -269,6 +307,17 @@ def _route_call(*, ceiling: int = 5) -> dict[str, object]:
             "boundary_confidence": 0.92,
         },
     }
+
+
+def _tool_calls(calls) -> tuple[ToolExchange, ...]:
+    return tuple(
+        ToolExchange(
+            tool_call_id=f"call-{index}", tool_name=call["tool_name"],
+            arguments=call.get("request", {}), result=call["response"],
+            outcome=call.get("outcome", "success"),
+        )
+        for index, call in enumerate(calls)
+    )
 
 
 def _route_clarification_call() -> dict[str, object]:
@@ -433,7 +482,8 @@ def test_book_replay_rejects_wrong_scene_topology() -> None:
         compile_book_replay_plan(invalid, ground_truth)
 
 
-def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
+@pytest.mark.parametrize("declined", [False, True])
+def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> None:
     backstory, ground_truth, _ = _models()
     from apps.backend import chat_turn
 
@@ -462,14 +512,19 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                     supporting_evidence_ids=(SUPPORT_ID,),
                 )
             )
+            calls = (_route_call(ceiling=5), _grounding_call(line))
+            _record_muse_tools(calls)
+            if declined:
+                _record_muse_tools(calls, stage="revision")
             return ReflectionRelease(
-                reply=f"The passage says {QUOTE} That uncertainty can echo change.",
-                release_source="muse_candidate",
-                provenance_verdicts=("pass",),
-                librarian_grounding_calls=(
-                    _route_call(ceiling=5),
-                    _grounding_call(line),
+                reply=(
+                    "I’m sorry, but I can’t provide a reliable response to that right now."
+                    if declined else f"The passage says {QUOTE} That uncertainty can echo change."
                 ),
+                release_source="application_safe_decline" if declined else "muse_candidate",
+                provenance_verdicts=("revise", "revise") if declined else ("pass",),
+                revision_count=1 if declined else 0,
+                librarian_grounding_calls=calls + calls if declined else calls,
                 evidence_ids=(SUPPORT_ID,),
             )
         if "Alice's conversation" in line:
@@ -480,6 +535,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                     reason_code="insufficient_context",
                 )
             )
+            _record_muse_tools((_route_clarification_call(),))
             return ReflectionRelease(
                 reply=CLARIFICATION,
                 release_source="muse_candidate",
@@ -491,6 +547,15 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
             release_source="muse_candidate",
             provenance_verdicts=("pass",),
         )
+
+    responses = []
+
+    async def handler(request, service, account):
+        response = await chat_turn.run_chat_turn(request, service, account)
+        if declined and "quote" in request.message:
+            assert sessions.turn_records(request.session_id)[0].evidence_ids == (SUPPORT_ID,)
+        responses.append(response)
+        return response
 
     with (
         patch.object(
@@ -505,7 +570,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
         result = asyncio.run(
             replay_book_scenes(
                 compile_book_replay_plan(backstory, ground_truth),
-                chat_handler=chat_turn.run_chat_turn,
+                chat_handler=handler,
             )
         )
 
@@ -514,8 +579,27 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
     # against the real routed path. What this test pins is that the production
     # chat hand-off carries Props but no Ground truth, and that the runner
     # grades the routed boundary that hand-off reports.
+    if declined:
+        observation = result.scenes[0]
+        assert observation.route_called
+        assert observation.routed_ceiling == 5
+        assert len(observation.grounding_calls) == 2
+        assert observation.boundary_support_evidence[0].evidence_id == SUPPORT_ID
+        assert observation.boundary_support_memory_ids == (
+            observation.seeded_props[0].memory_id,
+        )
+        assert observation.released_evidence_ids == ()
+        assert responses[0].inspection.librarian_grounding == []
+        assert responses[0].inspection.release.released_evidence_ids == ()
+        assert all(not grade.hard_pass for grade in observation.grades)
+        failures = {failure for grade in observation.grades for failure in grade.failures}
+        assert any(failure.startswith("exact_quotation_missing_or_unreleased:") for failure in failures)
+        assert "required_grounding_evidence_not_retrieved" not in failures
+        assert "response_cited_unpermitted_evidence" not in failures
+    else:
+        assert result.scenes[0].ground_truth_result == "matches_proposal"
     assert all(
-        scene.ground_truth_result == "matches_proposal" for scene in result.scenes
+        scene.ground_truth_result == "matches_proposal" for scene in result.scenes[1:]
     )
     assert [scene.boundary_decision for scene in result.scenes] == [
         "infer",
@@ -708,18 +792,12 @@ def test_route_no_match_is_not_a_search():
         _route_outcome,
     )
 
-    response = SimpleNamespace(
-        inspection=SimpleNamespace(
-            librarian_grounding=[
-                {
-                    "tool_name": "librarian_route",
-                    "response": {"kind": "no_match", "request_id": "arbitrary"},
-                }
-            ]
-        )
-    )
-    assert _grounding_observations(response) == ()
-    assert _route_outcome(response)["kind"] == "no_match"
+    calls = _tool_calls([{
+        "tool_name": "librarian_route",
+        "response": {"kind": "no_match", "request_id": "arbitrary"},
+    }])
+    assert _grounding_observations(calls) == ()
+    assert _route_outcome(calls)["kind"] == "no_match"
 
 
 def test_passage_retrieval_records_exact_scope_without_a_chapter():
@@ -731,11 +809,42 @@ def test_passage_retrieval_records_exact_scope_without_a_chapter():
         work_id="pg11", book_version_id="pg11-v01b38ea4",
         evidence_ids=(SUPPORT_ID,),
     ).model_dump(mode="json")
-    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=[call]))
-    observation, = _grounding_observations(response)
+    observation, = _grounding_observations(_tool_calls([call]))
     assert observation.searched_max_chapter is None
     assert observation.searched_passage_ids == (SUPPORT_ID,)
     assert observation.evidence[0].evidence_id == SUPPORT_ID
+
+
+@pytest.mark.parametrize("outcome", [None, "failed"])
+def test_incomplete_private_tool_calls_do_not_look_like_success(outcome):
+    from evals.synthetic_journals.book_replay import _grounding_observations, _route_outcome
+
+    route, search = _tool_calls([_route_call(), _grounding_call("Find a passage.")])
+    calls = tuple(
+        call.model_copy(update={"result": None, "outcome": outcome})
+        for call in (route, search)
+    )
+    assert _route_outcome(calls) is None
+    observation, = _grounding_observations(calls)
+    assert observation.response_kind == "failure"
+    assert observation.evidence == ()
+    assert observation.failure_code == "tool_call_incomplete_or_failed"
+
+
+def test_private_projection_reads_only_current_muse_tool_exchanges(replay_observed):
+    from evals.synthetic_journals.book_replay import _librarian_calls
+
+    muse = next(
+        exchange for exchange in replay_observed[1].scenes[0].agent_exchanges
+        if exchange.role == "Muse"
+    )
+    nested = muse.model_copy(update={"role": "Serendipity"})
+    unrelated_stage = muse.model_copy(update={"stage": "another-stage"})
+    history_only = muse.model_copy(update={
+        "tool_exchanges": (), "message_history": muse.model_messages,
+    })
+    assert _librarian_calls((nested, unrelated_stage, history_only)) == ()
+    assert _librarian_calls((muse, nested, history_only)) == muse.tool_exchanges
 
 
 def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
@@ -753,8 +862,7 @@ def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
     route_call = {
         "tool_name": "librarian_route", "response": route.model_dump(mode="json"),
     }
-    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=[route_call]))
-    observed_route = _route_outcome(response)
+    observed_route = _route_outcome(_tool_calls([route_call]))
     assert observed_route == route.model_dump(mode="json")
     assert "max_chapter_inclusive" not in observed_route
     decision = _boundary_decision(observed_route)
@@ -763,8 +871,7 @@ def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
         [route_call, _route_clarification_call()],
         [_route_clarification_call(), route_call],
     ):
-        response.inspection.librarian_grounding = calls
-        assert _route_outcome(response)["kind"] == "clarification"
+        assert _route_outcome(_tool_calls(calls))["kind"] == "clarification"
     plan, run = replay_observed
     observation = run.scenes[0].model_copy(update={
         "boundary_decision": decision, "routed_ceiling": None,
@@ -858,8 +965,7 @@ def test_replay_clarification_precedes_routed_work(reverse):
     calls = [_route_call(), _route_clarification_call()]
     if reverse:
         calls.reverse()
-    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=calls))
-    assert _route_outcome(response)["kind"] == "clarification"
+    assert _route_outcome(_tool_calls(calls))["kind"] == "clarification"
 
 
 def test_stale_adoption_fails_before_chat(replay_observed):

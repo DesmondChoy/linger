@@ -43,8 +43,13 @@ text from another chapter or corpus version does not match.
 
 ## Runtime observation
 
-Librarian inspection retains the tool name for each released route or search
-call. Production and evaluation share one route reducer:
+The replay reads direct route and search attempts from Muse's private draft
+and revision transcript. These observations survive a safe decline. Frontend
+inspection continues to withhold rejected retrieval content. Released evidence
+IDs come from release inspection, because the stored turn audit can retain a
+rejected candidate's citations.
+
+Production and evaluation share one route reducer:
 
 1. The first clarification anywhere in the ordered route calls is binding.
 2. Otherwise, the first routed work supplies the scope.
