@@ -96,9 +96,10 @@ arguments cannot select the book by themselves.
 
 ![Shared book resolution and agent responsibilities](images/book-identity-and-agent-responsibilities.png)
 
-This diagram comes from the design discussion; its "Proposed" label predates
-the runtime resolver implementation. The offline Sculptor step describes
-optional metadata proposals for human review.
+This diagram reflects the runtime flow as of 5 September 2026, including
+chapter clarification carryover and application-owned identity, session-state,
+and release checks. The separate offline Sculptor step describes optional
+metadata proposals for human review.
 
 | Owner | Responsibility |
 |---|---|
