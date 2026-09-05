@@ -14,11 +14,22 @@ from apps.backend.schemas import (
     TraceReference,
     TurnInspection,
 )
+from apps.backend.librarian import Librarian
 from evals.reflection.harness import (
+    ClarificationRelease,
     GroundedRelease,
     GroundingExpectation,
     SafeDecline,
     UngroundedRelease,
+)
+from src.linger.contracts.librarian import (
+    ClarificationRequest,
+    ExpectedAnswer,
+    NoMatch,
+    RetrievalFailure,
+    RetrievalResult,
+    RoutedWork,
+    SearchedScope,
 )
 from evals.synthetic_journals.models import (
     ProposedGroundTruth,
@@ -101,6 +112,14 @@ class GradeSceneTests(unittest.TestCase):
         failures = grade_scene(grounded(), [turn(retrieved=False, evidence_ids=())])
         self.assertIn("missing_retrieval", failures)
 
+    def test_grounded_final_reply_must_cite_evidence(self) -> None:
+        failures = grade_scene(grounded(), [turn(), turn(evidence_ids=())])
+        self.assertIn("missing_citation", failures)
+
+    def test_grounded_final_reply_requires_a_resolved_ceiling(self) -> None:
+        failures = grade_scene(grounded(), [turn(chapter_max=None)])
+        self.assertIn("ceiling_mismatch", failures)
+
     def test_citing_evidence_outside_the_permitted_set_is_caught(self) -> None:
         failures = grade_scene(grounded(), [turn(evidence_ids=("ev-1", "ev-other"))])
         self.assertIn("unpermitted_evidence", failures)
@@ -140,8 +159,14 @@ class GradeSceneTests(unittest.TestCase):
 
     def test_only_the_final_turn_decides_the_release_path(self) -> None:
         """A clarification turn may precede the graded release."""
-        clarifying = turn(retrieved=False, evidence_ids=(), reply="Which chapter?")
+        clarifying = turn(
+            retrieved=False, evidence_ids=(), chapter_max=None, reply="Which chapter?"
+        )
         self.assertEqual((), grade_scene(grounded(), [clarifying, turn()]))
+
+    def test_final_reply_can_reuse_earlier_evidence_without_new_retrieval(self) -> None:
+        recall = turn(retrieved=False, chapter_max=None)
+        self.assertEqual((), grade_scene(grounded(), [turn(), recall]))
 
 
 class EvidenceIdResolutionTests(unittest.TestCase):
@@ -334,14 +359,36 @@ def _response(
     failure_stage: str | None = None,
     failure_type: str | None = None,
     failure_retryable: bool | None = None,
+    grounding: list[dict[str, object]] | None = None,
 ) -> ChatResponse:
+    if grounding is None:
+        grounding = []
+        if retrieved:
+            record = Librarian().fetch_by_id(CITED_WINDOW_ID)
+            assert record is not None
+            result = RetrievalResult(
+                kind="result",
+                request_id="libreq_test",
+                outcome="evidence_found",
+                evidence_strength="sufficient",
+                strength_reason="The passage supports the reflection.",
+                searched_scope=SearchedScope(
+                    work_id=record.work_id,
+                    book_version_id=record.book_version_id,
+                    max_chapter_inclusive=chapter_max or 6,
+                ),
+                evidence=(record,),
+            )
+            grounding.append(
+                {"outcome": "success", "response": result.model_dump(mode="json")}
+            )
     return ChatResponse(
         reply=reply,
         inspection=TurnInspection(
             muse_turn={"turn_id": "turn-1"},
             context_resolution={"status": "confirmed", "chapter_max": chapter_max},
             traces=[],
-            librarian_grounding=[{"request": {}}] if retrieved else [],
+            librarian_grounding=grounding,
             prompt="",
             release=ReleaseInspection(
                 release_source=release_source,
@@ -366,6 +413,132 @@ def _response(
 
 
 class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
+    async def test_routing_clarification_and_failure_are_not_retrieval(self) -> None:
+        outcomes = (
+            RoutedWork(
+                kind="routed",
+                work_id="pg11",
+                book_version_id="pg11-v01b38ea4",
+                title="Alice's Adventures in Wonderland",
+                routing_confidence=1,
+                max_chapter_inclusive=6,
+                boundary_confidence=0.9,
+            ),
+            NoMatch(kind="no_match"),
+            ClarificationRequest(
+                kind="clarification",
+                request_id="routereq_test",
+                clarification_id="clarify_test",
+                reason_code="progress_unverified",
+                question="Which chapter have you finished?",
+                expected_answer=ExpectedAnswer(type="free_text"),
+            ),
+            RetrievalFailure(
+                kind="failure",
+                request_id="libreq_test",
+                error_code="unavailable",
+                retryable=True,
+            ),
+        )
+        backstory, ground_truth = _package()
+        for outcome in outcomes:
+            with self.subTest(kind=outcome.kind):
+                async def handler(request, service, account):
+                    return _response(
+                        reply="Which chapter have you finished?",
+                        evidence_ids=(),
+                        retrieved=False,
+                        chapter_max=None,
+                        grounding=[{
+                            "outcome": "success",
+                            "response": outcome.model_dump(mode="json"),
+                        }],
+                    )
+
+                run = await replay_reflection_scenes(
+                    backstory, ground_truth, chat_handler=handler
+                )
+                self.assertFalse(run.scenes[0].turns[0].retrieved)
+                self.assertIn("missing_retrieval", run.scenes[0].gate_failures)
+                self.assertIn("missing_citation", run.scenes[0].gate_failures)
+
+    async def test_routing_clarification_passes_a_clarification_expectation(self) -> None:
+        backstory, ground_truth = _package()
+        proposal = ground_truth.proposals[0].model_copy(update={
+            "grounding": GroundingExpectation(
+                primary_behavior="bounded_clarification",
+                expected=ClarificationRelease(kind="clarification_release"),
+            ),
+            "evidence": (),
+        })
+        ground_truth = ground_truth.model_copy(update={
+            "proposals": (proposal, *ground_truth.proposals[1:]),
+        })
+        clarification = ClarificationRequest(
+            kind="clarification",
+            request_id="routereq_test",
+            clarification_id="clarify_test",
+            reason_code="progress_unverified",
+            question="Which chapter have you finished?",
+            expected_answer=ExpectedAnswer(type="free_text"),
+        )
+
+        async def handler(request, service, account):
+            return _response(
+                reply=clarification.question,
+                evidence_ids=(),
+                retrieved=False,
+                chapter_max=None,
+                grounding=[{
+                    "outcome": "success",
+                    "response": clarification.model_dump(mode="json"),
+                }],
+            )
+
+        run = await replay_reflection_scenes(backstory, ground_truth, chat_handler=handler)
+        self.assertEqual((), run.scenes[0].gate_failures)
+
+    async def test_inferred_ceiling_is_read_from_the_routed_outcome(self) -> None:
+        backstory, ground_truth = _package()
+        for explicit_ceiling, routed_ceiling, expected_ceiling in (
+            (None, 6, 6),
+            (None, 9, 9),
+            (6, 9, 6),
+        ):
+            with self.subTest(explicit=explicit_ceiling, routed=routed_ceiling):
+                async def handler(request, service, account):
+                    grounded_scene = "hoping to find" in request.message
+                    response = _response(
+                        reply="A reply.",
+                        evidence_ids=(CITED_WINDOW_ID,) if grounded_scene else (),
+                        retrieved=grounded_scene,
+                        chapter_max=explicit_ceiling,
+                    )
+                    if grounded_scene:
+                        routed = RoutedWork(
+                            kind="routed",
+                            work_id="pg11",
+                            book_version_id="pg11-v01b38ea4",
+                            title="Alice's Adventures in Wonderland",
+                            routing_confidence=1,
+                            max_chapter_inclusive=routed_ceiling,
+                            boundary_confidence=0.9,
+                        )
+                        response.inspection.librarian_grounding.insert(0, {
+                            "outcome": "success",
+                            "response": routed.model_dump(mode="json"),
+                        })
+                    return response
+
+                run = await replay_reflection_scenes(
+                    backstory, ground_truth, chat_handler=handler
+                )
+                scene = run.scenes[0]
+                self.assertEqual(expected_ceiling, scene.turns[0].resolved_chapter_max)
+                self.assertEqual(
+                    expected_ceiling != 6, "ceiling_mismatch" in scene.gate_failures
+                )
+
     async def test_replays_both_scenes_and_places_props(self) -> None:
         backstory, ground_truth = _package()
         seen_memory_counts: list[int] = []

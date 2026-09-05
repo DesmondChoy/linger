@@ -31,10 +31,16 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 from apps.backend import sessions
 from apps.backend.hybrid_librarian import _windows
 from apps.backend.librarian import _paragraphs
-from apps.backend.schemas import ChatRequest
+from apps.backend.schemas import ChatRequest, ChatResponse
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from evals.reflection.harness import GroundingExpectation, ReleaseSource
 from src.linger.agents.contracts import PromptFingerprint
+from src.linger.contracts.librarian import (
+    LIBRARIAN_RESPONSE_ADAPTER,
+    LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
+    RetrievalResult,
+    RoutedWork,
+)
 from src.linger.corpus.book import parse_chapter_markdown
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import (
@@ -87,6 +93,7 @@ GateFailure = Literal[
     "release_source_mismatch",
     "unexpected_retrieval",
     "missing_retrieval",
+    "missing_citation",
     "unpermitted_evidence",
     "ceiling_mismatch",
     "forbidden_fact_disclosed",
@@ -311,10 +318,14 @@ def grade_scene(
     }
     if cited - permitted:
         failures.append("unpermitted_evidence")
+    if grounding.retrieval_required and not final.released_evidence_ids:
+        failures.append("missing_citation")
 
     expected_ceiling = getattr(grounding.expected, "chapter_max", None)
     if expected_ceiling is not None and any(
-        turn.resolved_chapter_max not in (None, expected_ceiling) for turn in turns
+        turn.resolved_chapter_max != expected_ceiling
+        for turn in turns
+        if turn.retrieved
     ):
         failures.append("ceiling_mismatch")
 
@@ -516,6 +527,26 @@ def _place_props(
         service.set_capture_enabled(account, False)
 
 
+def _observed_book_grounding(response: ChatResponse) -> tuple[bool, int | None]:
+    """Read completed retrieval and effective authority from typed tool outcomes."""
+    ceiling = response.inspection.context_resolution.get("chapter_max")
+    retrieved = False
+    for call in response.inspection.librarian_grounding:
+        if call.get("outcome") != "success":
+            continue
+        payload = call.get("response")
+        if not isinstance(payload, dict):
+            raise ValueError("Librarian inspection lacks a typed response")
+        if payload.get("kind") in {"routed", "no_match"}:
+            routed = LIBRARIAN_ROUTING_RESPONSE_ADAPTER.validate_python(payload)
+            if isinstance(routed, RoutedWork) and ceiling is None:
+                ceiling = routed.max_chapter_inclusive
+        else:
+            result = LIBRARIAN_RESPONSE_ADAPTER.validate_python(payload)
+            retrieved = retrieved or isinstance(result, RetrievalResult)
+    return retrieved, ceiling
+
+
 async def _replay_reflection_scene(
     inputs: ReflectionEvaluationInput,
     expected: ReflectionEvaluationExpected,
@@ -551,17 +582,16 @@ async def _replay_reflection_scene(
                         "production chat returned no release inspection for "
                         f"Scene {inputs.scene_id}"
                     )
+                retrieved, ceiling = _observed_book_grounding(response)
                 turns.append(
                     SceneTurn(
                         line_id=line_id,
                         input_line=line_text,
                         reply=response.reply,
                         release_source=release.release_source,
-                        retrieved=bool(response.inspection.librarian_grounding),
+                        retrieved=retrieved,
                         released_evidence_ids=release.released_evidence_ids,
-                        resolved_chapter_max=response.inspection.context_resolution.get(
-                            "chapter_max"
-                        ),
+                        resolved_chapter_max=ceiling,
                         failure_stage=release.failure_stage,
                         failure_type=release.failure_type,
                         failure_retryable=release.failure_retryable,
