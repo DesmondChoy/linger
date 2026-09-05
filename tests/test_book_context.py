@@ -143,6 +143,19 @@ class BookContextTests(unittest.TestCase):
                         self.assertEqual(expected_work, context.work_id)
                         self.assertEqual(2 if expected_work else None, context.chapter_max)
 
+    def test_cold_start_explicit_progress_needs_no_memories(self) -> None:
+        context = resolve_reading_context(
+            ChatRequest(
+                session_id="context-test",
+                message="I'm reading Alice's Adventures in Wonderland, and I've finished Chapter 6.",
+            )
+        )
+
+        self.assertEqual("confirmed", context.status)
+        self.assertEqual(6, context.chapter_max)
+        self.assertEqual("reader_confirmed", context.boundary_source)
+        self.assertEqual("explicit_progress", context.boundary_authorization_basis)
+
     def test_common_catalog_words_do_not_select_alice(self) -> None:
         for index, message in enumerate(
             (

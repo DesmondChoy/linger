@@ -110,6 +110,61 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(result, NoMatch)
         self.assertTrue(result.request_id.startswith("routereq_"))
 
+    async def test_common_words_yield_no_match_without_inference(self) -> None:
+        for message in (
+            "My friend Alice is stressed about work.",
+            "What should I cook for dinner?",
+            "A mouse ran through the kitchen.",
+        ):
+            with self.subTest(message=message):
+                self._set_message(message)
+                with patch(
+                    "src.linger.orchestration.routing.infer_spoiler_boundary",
+                    new=AsyncMock(),
+                ) as infer:
+                    result = await librarian_route()
+
+                self.assertIsInstance(result, NoMatch)
+                infer.assert_not_awaited()
+
+    async def test_common_words_after_a_selection_still_route_only_to_that_selection(
+        self,
+    ) -> None:
+        sessions.set_book_selection(
+            "route-session",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        self._set_session("route-session")
+        reset_active_memories(self._token)
+        self._token = set_active_memories((_book_memory(),))
+        candidate = BoundaryCandidate(
+            kind="candidate", work_id="pg11", book_version_id="pg11-v01b38ea4",
+            max_chapter_inclusive=5, confidence=0.9, authorization_basis="memory_supported",
+            supporting_memory_ids=("memory-alice",),
+            supporting_locations=(BoundarySupportLocation(
+                evidence_id="pg11-v01b38ea4-ch05-ln0001-0002",
+                chapter_number=5, location="Chapter 5",
+            ),),
+        )
+        for message in (
+            "My friend Alice is stressed about work.",
+            "What should I cook for dinner?",
+            "A mouse ran through the kitchen.",
+        ):
+            with self.subTest(message=message):
+                self._set_message(message)
+                with patch(
+                    "src.linger.orchestration.routing.infer_spoiler_boundary",
+                    new=AsyncMock(return_value=candidate),
+                ) as infer:
+                    result = await librarian_route()
+
+                infer.assert_awaited_once()
+                self.assertEqual("pg11", infer.await_args.kwargs["work_id"])
+                self.assertIsInstance(result, RoutedWork)
+                assert isinstance(result, RoutedWork)
+                self.assertEqual("session_selection", result.selection_basis)
+
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
         async def confident_judge(_line, memories, evidence, _statements):
             return BoundaryInferenceDecision(
@@ -376,6 +431,43 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsInstance(result, NoMatch)
         infer.assert_not_awaited()
+
+    async def test_bare_adaptation_question_without_a_selection_is_no_match(self) -> None:
+        self._set_message("Why is time stuck at the Mad Tea Party?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary", new=AsyncMock(),
+        ) as infer:
+            result = await librarian_route()
+
+        self.assertIsInstance(result, NoMatch)
+        infer.assert_not_awaited()
+
+    async def test_quotation_style_question_naming_the_book_clarifies_progress(self) -> None:
+        async def line_only_judge(_line, _memories, evidence, _statements):
+            self.assertTrue(evidence, "retrieval must surface evidence for the judge to run")
+            return BoundaryInferenceDecision(
+                outcome="candidate",
+                work_id="pg11",
+                book_version_id="pg11-v01b38ea4",
+                chapter_number=evidence[0].chapter_number,
+                confidence=0.99,
+                authorization_basis="line_only",
+                supporting_evidence_ids=(evidence[0].evidence_id,),
+            )
+
+        self._set_message(
+            "Can we talk about the Mad Tea Party in Alice in Wonderland today?"
+        )
+        with patch(
+            "src.linger.orchestration.boundary.judge_spoiler_boundary",
+            side_effect=line_only_judge,
+        ):
+            result = await librarian_route()
+
+        self.assertIsInstance(result, ClarificationRequest)
+        assert isinstance(result, ClarificationRequest)
+        self.assertEqual("progress_unverified", result.reason_code)
+        self.assertIsNone(confirmed_reading())
 
 
 class EffectiveRouteResponseTests(unittest.TestCase):
