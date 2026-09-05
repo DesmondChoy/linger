@@ -533,8 +533,7 @@ def _validate_release(
 ) -> None:
     """Validate declared book and session-line citations after semantic approval."""
     if required_clarification is not None and (
-        candidate.reply != required_clarification
-        or candidate.evidence_uses
+        candidate.evidence_uses
         or any(result["tool_name"] != "librarian_route" for result in tool_results)
     ):
         raise ReleaseValidationError(
