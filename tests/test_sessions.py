@@ -115,5 +115,39 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
         self.assertEqual((), sessions.released_evidence_ids(self.session_id))
 
 
+class ReadingStateTests(unittest.TestCase):
+    session_id = "reading-state-test"
+
+    def tearDown(self) -> None:
+        sessions.clear(self.session_id)
+
+    def test_restore_reading_state_rolls_back_a_pending_clarification(self) -> None:
+        sessions.set_pending_clarification(
+            self.session_id,
+            sessions.PendingClarification(book_id="pg11", book_title="Alice", reason_code="insufficient_context"),
+        )
+        snapshot = sessions.snapshot_reading_state(self.session_id)
+        sessions.set_pending_clarification(
+            self.session_id,
+            sessions.PendingClarification(book_id="pg12", book_title="Other", reason_code="ambiguous_scene"),
+        )
+
+        sessions.restore_reading_state(self.session_id, snapshot)
+
+        restored = sessions.pending_clarification(self.session_id)
+        self.assertEqual("pg11", restored.book_id)
+        self.assertEqual("insufficient_context", restored.reason_code)
+
+    def test_clear_drops_a_pending_clarification(self) -> None:
+        sessions.set_pending_clarification(
+            self.session_id,
+            sessions.PendingClarification(book_id="pg11", book_title="Alice", reason_code="insufficient_context"),
+        )
+
+        sessions.clear(self.session_id)
+
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
+
+
 if __name__ == "__main__":
     unittest.main()
