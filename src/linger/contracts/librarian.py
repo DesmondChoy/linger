@@ -139,6 +139,7 @@ class BoundaryPassages(StrictModel):
     kind: Literal["passages"] = "passages"
     grant: PassageGrant
     confidence: float = Field(ge=0, le=1)
+    authorization_basis: Literal["session_supported"]
 
 
 class BoundarySupportLocation(StrictModel):
@@ -264,6 +265,7 @@ class RoutedPassages(PassageScope):
     routing_confidence: float = Field(ge=0, le=1)
     boundary_confidence: float = Field(ge=0, le=1)
     selection_basis: SelectionBasis
+    authorization_basis: Literal["session_supported"]
 
 
 LibrarianRoutingResponse = RoutedWork | RoutedPassages | ClarificationRequest | NoMatch

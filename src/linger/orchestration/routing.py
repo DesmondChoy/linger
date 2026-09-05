@@ -137,6 +137,7 @@ async def _route_reader_message(
                     title=scope.title, routing_confidence=decision.confidence,
                     boundary_confidence=boundary.confidence,
                     selection_basis=decision.basis,
+                    authorization_basis=boundary.authorization_basis,
                 )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")

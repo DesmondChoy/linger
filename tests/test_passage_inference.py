@@ -38,6 +38,7 @@ def decision(**changes):
 
     values = dict(
         outcome="passages", work_id=WORK, book_version_id=VERSION, confidence=0.98,
+        authorization_basis="session_supported",
         supporting_statement_ids=("reader-1",), supporting_evidence_ids=(ANCHOR,),
         passage_evidence_ids=(QUOTE,),
     )
@@ -84,6 +85,38 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(("reader-1",), result.grant.supporting_statement_ids)
         self.assertNotIn(ANCHOR, result.grant.scope.evidence_ids)
         self.assertIn(FIRST, self.search_request.query)
+        self.assertEqual("session_supported", result.authorization_basis)
+
+    async def test_reading_irrelevant_statement_cannot_support_passages(self) -> None:
+        prior = (ReaderStatement(statement_id="reader-1", text="I saw the film last night."),)
+        result = await self.infer(AsyncMock(return_value=decision()), prior=prior)
+        self.assertIsInstance(result, BoundaryUncertain)
+        self.assertEqual("progress_unverified", result.reason_code)
+        self.assertIsNone(result.candidate_chapter)
+
+    async def test_line_only_passage_decision_never_grants(self) -> None:
+        invalid = decision(authorization_basis="line_only", supporting_statement_ids=())
+        result = await self.infer(AsyncMock(return_value=invalid))
+        self.assertIsInstance(result, BoundaryUncertain)
+        self.assertEqual("progress_unverified", result.reason_code)
+
+    async def test_mixed_statements_require_every_cited_one_to_support_the_work(self) -> None:
+        prior = (
+            ReaderStatement(statement_id="reader-1", text=FIRST),
+            ReaderStatement(statement_id="reader-2", text="I saw the film last night."),
+        )
+        result = await self.infer(
+            AsyncMock(return_value=decision(supporting_statement_ids=("reader-1", "reader-2"))),
+            prior=prior,
+        )
+        self.assertIsInstance(result, BoundaryUncertain)
+        self.assertEqual("progress_unverified", result.reason_code)
+
+        result = await self.infer(
+            AsyncMock(return_value=decision(supporting_statement_ids=("reader-1",))),
+            prior=prior,
+        )
+        self.assertIsInstance(result, BoundaryPassages)
 
     async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
         for changes in (
@@ -139,6 +172,9 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
             {"supporting_statement_ids": ()},
             {"supporting_statement_ids": ("reader-1", "reader-1")},
             {"passage_evidence_ids": (QUOTE,) * 6},
+            {"authorization_basis": "memory_supported"},
+            {"authorization_basis": "line_only"},
+            {"authorization_basis": "session_supported", "supporting_statement_ids": ()},
         ):
             with self.subTest(changes=changes):
                 with self.assertRaises(ValidationError):
@@ -178,4 +214,4 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([PRIOR[0].model_dump()], payload["prior_reader_statements"])
         self.assertEqual([], payload["relevant_memories"])
         self.assertEqual("LibrarianBoundaryInferenceInput.v2", run.await_args.kwargs["input_contract"])
-        self.assertEqual("2", run.await_args.kwargs["prompt_version"])
+        self.assertEqual("3", run.await_args.kwargs["prompt_version"])

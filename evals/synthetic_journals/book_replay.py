@@ -696,7 +696,7 @@ def _boundary_handoff_is_content_free(
         allowed_fields = {
             "kind", "request_id", "work_id", "book_version_id", "title",
             "routing_confidence", "boundary_confidence", "evidence_ids",
-            "selection_basis",
+            "selection_basis", "authorization_basis",
         }
         return (
             routed is not None

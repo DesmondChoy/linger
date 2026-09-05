@@ -33,7 +33,9 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.grant = PassageGrant(
             records=(self.record,), supporting_statement_ids=("reader-1",)
         )
-        self.boundary = BoundaryPassages(grant=self.grant, confidence=0.98)
+        self.boundary = BoundaryPassages(
+            grant=self.grant, confidence=0.98, authorization_basis="session_supported",
+        )
         self.message = "What does Alice say to the Caterpillar in Alice's Adventures in Wonderland?"
         self.prior = (ReaderStatement(
             statement_id="reader-1", text="I reached Alice's conversation with the Caterpillar."
@@ -106,6 +108,17 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(result, RoutedPassages)
         assert isinstance(result, RoutedPassages)
         self.assertEqual("resolved_book_identity", result.selection_basis)
+
+    async def test_routed_passages_carry_the_authorization_basis(self) -> None:
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            new=AsyncMock(return_value=self.boundary),
+        ):
+            result = await librarian_route()
+
+        self.assertIsInstance(result, RoutedPassages)
+        assert isinstance(result, RoutedPassages)
+        self.assertEqual("session_supported", result.authorization_basis)
 
     async def test_repeated_route_cannot_replace_passages_with_a_chapter_grant(self) -> None:
         later = BoundaryCandidate(

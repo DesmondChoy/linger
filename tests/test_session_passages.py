@@ -125,7 +125,8 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(QUOTE_ID, {record.evidence_id for record in paragraphs})
             return PassageInferenceDecision(
                 outcome="passages", work_id="pg11", book_version_id="pg11-v01b38ea4",
-                confidence=0.98, supporting_statement_ids=(statements[0].statement_id,),
+                confidence=0.98, authorization_basis="session_supported",
+                supporting_statement_ids=(statements[0].statement_id,),
                 supporting_evidence_ids=(QUOTE_ID,), passage_evidence_ids=(QUOTE_ID,),
             )
 
@@ -162,6 +163,7 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", response.inspection.release.release_source)
         self.assertEqual(Librarian().fetch_by_id(QUOTE_ID).text, response.reply)
         self.assertEqual("passages", observed[0]["kind"])
+        self.assertEqual("session_supported", observed[0]["authorization_basis"])
         self.assertNotIn("max_chapter_inclusive", observed[0])
         self.assertEqual([QUOTE_ID], reviews[0]["context"]["passage_scope"]["evidence_ids"])
         self.assertIsNone(reviews[0]["context"]["reading_context"])
@@ -172,3 +174,38 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(sessions.pending_clarification(self.session_id))
         self.assertIsNone(passage_grant())
         self.assertEqual(0, len(self.service.list_active(self.account)))
+
+    async def test_film_statement_does_not_release_a_passage(self):
+        with (
+            muse_chat_agent.override(model=FunctionModel(_plain_reply_model("Hope it was fun."))),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            await chat_turn.run_chat_turn(
+                ChatRequest(session_id=self.session_id, message="I saw the film last night."),
+                self.service,
+                self.account,
+            )
+
+        async def judge(line, memories, paragraphs, statements):
+            return PassageInferenceDecision(
+                outcome="passages", work_id="pg11", book_version_id="pg11-v01b38ea4",
+                confidence=0.98, authorization_basis="session_supported",
+                supporting_statement_ids=(statements[0].statement_id,),
+                supporting_evidence_ids=(QUOTE_ID,), passage_evidence_ids=(QUOTE_ID,),
+            )
+
+        with (
+            patch("src.linger.orchestration.boundary.judge_spoiler_boundary", side_effect=judge),
+            muse_chat_agent.override(model=FunctionModel(_muse_routes_then_relays_clarification())),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            response = await chat_turn.run_chat_turn(
+                ChatRequest(session_id=self.session_id, message=SECOND_LINE), self.service, self.account,
+            )
+        self.assertEqual("application_clarification", response.inspection.release.release_source)
+        self.assertIn("latest chapter or scene", response.reply)
+        self.assertEqual((), sessions.released_evidence_ids(self.session_id))
+        self.assertIsNone(passage_grant())
+        pending = sessions.pending_clarification(self.session_id)
+        assert pending is not None
+        self.assertEqual("progress_unverified", pending.reason_code)

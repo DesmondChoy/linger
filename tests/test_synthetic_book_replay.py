@@ -750,6 +750,7 @@ def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
         evidence_ids=(SUPPORT_ID,), request_id="route-passages",
         title="Alice's Adventures in Wonderland", routing_confidence=1,
         boundary_confidence=1, selection_basis="resolved_book_identity",
+        authorization_basis="session_supported",
     )
     route_call = {
         "tool_name": "librarian_route", "response": route.model_dump(mode="json"),
@@ -802,7 +803,8 @@ def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
 
     decision = PassageInferenceDecision(
         outcome="passages", work_id="pg11", book_version_id="pg11-v01b38ea4",
-        confidence=1, supporting_statement_ids=("reader-1",),
+        confidence=1, authorization_basis="session_supported",
+        supporting_statement_ids=("reader-1",),
         supporting_evidence_ids=(SUPPORT_ID,), passage_evidence_ids=(SUPPORT_ID,),
     )
     route = RoutedPassages(
@@ -811,6 +813,7 @@ def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
         routing_confidence=1, boundary_confidence=1,
         evidence_ids=decision.passage_evidence_ids,
         selection_basis="resolved_book_identity",
+        authorization_basis="session_supported",
     ).model_dump(mode="json")
     exchange = replay_observed[1].scenes[0].agent_exchanges[0].model_copy(
         update={"output": decision.model_dump(mode="json")}
