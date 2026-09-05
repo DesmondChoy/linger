@@ -18,6 +18,7 @@ from src.linger.contracts.librarian import (
     RoutedWork,
 )
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.evaluation_transcript import bind_evaluation_correlation_id
 from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import (
@@ -38,6 +39,7 @@ async def route_reader_message(
     Grants no retrieval or write authority: a routed result only names the
     work and a validated chapter ceiling for `librarian_search` to use.
     """
+    request_id = f"routereq_{uuid4().hex}"
     with logfire.span(
         "librarian.route",
         **{"tool.name": "librarian_route", "status": "started"},
@@ -46,22 +48,23 @@ async def route_reader_message(
         decision = librarian.route_work(message, settings.allowed_book_version_ids)
         if decision is None:
             span.set_attribute("tool.status", "no_match")
-            return NoMatch(kind="no_match")
+            return NoMatch(kind="no_match", request_id=request_id)
 
         scope = decision.scope
-        boundary = await infer_spoiler_boundary(
-            message,
-            work_id=scope.work_id,
-            book_version_id=scope.book_version_id,
-            memories=active_memories(),
-            librarian=librarian,
-        )
+        with bind_evaluation_correlation_id(request_id):
+            boundary = await infer_spoiler_boundary(
+                message,
+                work_id=scope.work_id,
+                book_version_id=scope.book_version_id,
+                memories=active_memories(),
+                librarian=librarian,
+            )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
             _persist_uncertain_candidate(scope, boundary)
             return ClarificationRequest(
                 kind="clarification",
-                request_id=f"routereq_{uuid4().hex}",
+                request_id=request_id,
                 clarification_id=f"clarify_{uuid4().hex}",
                 reason_code=boundary.reason_code,
                 question=boundary.clarification_question,
@@ -100,6 +103,7 @@ async def route_reader_message(
             )
         return RoutedWork(
             kind="routed",
+            request_id=request_id,
             work_id=scope.work_id,
             book_version_id=scope.book_version_id,
             title=scope.title,

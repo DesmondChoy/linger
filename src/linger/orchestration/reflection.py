@@ -58,6 +58,7 @@ from src.linger.contracts.librarian import (
     NoMatch,
     RetrievalResult,
     RoutedWork,
+    effective_route_response,
 )
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
@@ -342,24 +343,19 @@ def _routing_responses(
 
 
 def _required_clarification(
-    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
 ) -> str | None:
-    """Return the exact question Librarian issued via `librarian_route`, if any.
+    """Return the binding route clarification, if the shared reducer chose one."""
 
-    Clarifications now originate only from the tool flow: Librarian judged the
-    reader's request as book-dependent but could not resolve a spoiler
-    boundary, and returned a question for Muse to relay verbatim. Any
-    clarification among possibly several `librarian_route` calls this turn
-    binds the gate — the first one found, not the last.
-    """
-    for response in routing_responses:
-        if isinstance(response, ClarificationRequest):
-            return response.question
-    return None
+    return (
+        route_response.question
+        if isinstance(route_response, ClarificationRequest)
+        else None
+    )
 
 
 def _routed_release_scope(
-    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
 ) -> ReleaseScope | None:
     """Derive a trusted release scope from a routed work, if Librarian found one.
 
@@ -367,14 +363,13 @@ def _routed_release_scope(
     used to grant under `boundary_source="librarian_inferred"`: Librarian's
     own private, validated inference — never Muse's text — sets the ceiling.
     """
-    for response in routing_responses:
-        if isinstance(response, RoutedWork):
-            return ReleaseScope(
-                work_id=response.work_id,
-                book_version_id=response.book_version_id,
-                chapter_max=response.max_chapter_inclusive,
-            )
-    return None
+    if not isinstance(route_response, RoutedWork):
+        return None
+    return ReleaseScope(
+        work_id=route_response.work_id,
+        book_version_id=route_response.book_version_id,
+        chapter_max=route_response.max_chapter_inclusive,
+    )
 
 
 def _librarian_grounding(
@@ -387,6 +382,7 @@ def _librarian_grounding(
     """
     return tuple(
         {
+            "tool_name": result["tool_name"],
             "request": result["args"],
             "outcome": result["outcome"],
             "response": result["content"],
@@ -594,7 +590,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
 
 def _effective_review_context(
     review_context: Mapping[str, object],
-    routing_responses: list[RoutedWork | ClarificationRequest | NoMatch],
+    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
 ) -> Mapping[str, object]:
     """Extend Provenance's trusted context with a same-turn routed boundary.
 
@@ -607,21 +603,17 @@ def _effective_review_context(
     """
     if not review_context or review_context.get("reading_context") is not None:
         return review_context
-    routed = next(
-        (response for response in routing_responses if isinstance(response, RoutedWork)),
-        None,
-    )
-    if routed is None:
+    if not isinstance(route_response, RoutedWork):
         return review_context
     policy = dict(review_context.get("policy_constraints") or {})
-    policy["spoiler_ceiling"] = routed.max_chapter_inclusive
+    policy["spoiler_ceiling"] = route_response.max_chapter_inclusive
     policy["allow_retrieval"] = True
     return {
         **review_context,
         "policy_constraints": policy,
         "reading_context": {
-            "work_id": routed.work_id,
-            "chapter_max": routed.max_chapter_inclusive,
+            "work_id": route_response.work_id,
+            "chapter_max": route_response.max_chapter_inclusive,
             "boundary_source": "librarian_inferred",
         },
     }
@@ -900,7 +892,9 @@ async def _reflection_reply(
     try:
         candidate = _candidate(draft_result.output)
         draft_tool_results = _tool_results(draft_result)
-        draft_routing = _routing_responses(draft_tool_results)
+        draft_routing = effective_route_response(
+            _routing_responses(draft_tool_results)
+        )
     except Exception:
         return _record_release(
             span,
@@ -1096,7 +1090,9 @@ async def _reflection_reply(
     try:
         revised_candidate = _candidate(revision_result.output)
         revised_tool_results = draft_tool_results + _tool_results(revision_result)
-        revised_routing = _routing_responses(revised_tool_results)
+        revised_routing = effective_route_response(
+            _routing_responses(revised_tool_results)
+        )
     except Exception:
         return _record_release(
             span,

@@ -6,7 +6,15 @@ from unittest.mock import patch
 from apps.backend.config import Settings
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
-from src.linger.contracts.librarian import ClarificationRequest, NoMatch, RoutedWork
+from src.linger.contracts.librarian import (
+    BoundaryUncertain,
+    ClarificationRequest,
+    ExpectedAnswer,
+    NoMatch,
+    RoutedWork,
+    effective_route_response,
+)
+from src.linger.evaluation_transcript import active_evaluation_correlation_id
 from src.linger.services.memory import MemoryRecord
 from src.linger.orchestration.turn_context import (
     reset_active_memories,
@@ -65,6 +73,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         result = await librarian_route()
 
         self.assertIsInstance(result, NoMatch)
+        self.assertTrue(result.request_id.startswith("routereq_"))
 
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
         async def confident_judge(_line, memories, evidence):
@@ -94,6 +103,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsInstance(result, RoutedWork)
         assert isinstance(result, RoutedWork)
+        self.assertTrue(result.request_id.startswith("routereq_"))
         self.assertEqual("pg11", result.work_id)
         self.assertEqual(1.0, result.routing_confidence)
         self.assertGreaterEqual(result.boundary_confidence, 0.75)
@@ -114,6 +124,88 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
             result = await librarian_route()
 
         self.assertIsInstance(result, ClarificationRequest)
+
+    async def test_route_request_id_scopes_boundary_evaluation_correlation(self) -> None:
+        seen_correlation_ids: list[str | None] = []
+
+        async def uncertain_boundary(*_args, **_kwargs):
+            seen_correlation_ids.append(active_evaluation_correlation_id())
+            return BoundaryUncertain(
+                kind="uncertain",
+                work_id="pg11",
+                book_version_id="pg11-v01b38ea4",
+                reason_code="insufficient_context",
+                clarification_question="How far have you read?",
+            )
+
+        self._set_message("Can we talk about Alice's Adventures in Wonderland?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=uncertain_boundary,
+        ):
+            result = await librarian_route()
+
+        self.assertEqual([result.request_id], seen_correlation_ids)
+        self.assertIsNone(active_evaluation_correlation_id())
+
+
+class EffectiveRouteResponseTests(unittest.TestCase):
+    @staticmethod
+    def routed(request_id: str, chapter: int) -> RoutedWork:
+        return RoutedWork(
+            kind="routed",
+            request_id=request_id,
+            work_id="pg11",
+            book_version_id="pg11-v01b38ea4",
+            title="Alice's Adventures in Wonderland",
+            routing_confidence=1.0,
+            max_chapter_inclusive=chapter,
+            boundary_confidence=0.9,
+        )
+
+    @staticmethod
+    def clarification(request_id: str, question: str) -> ClarificationRequest:
+        return ClarificationRequest(
+            kind="clarification",
+            request_id=request_id,
+            clarification_id=f"clarify-{request_id}",
+            reason_code="insufficient_context",
+            question=question,
+            expected_answer=ExpectedAnswer(type="free_text"),
+        )
+
+    def test_first_clarification_wins_even_after_a_routed_result(self) -> None:
+        first_routed = self.routed("routereq-routed", 5)
+        first_clarification = self.clarification(
+            "routereq-clarify-1", "How far have you read?"
+        )
+        second_clarification = self.clarification(
+            "routereq-clarify-2", "Which chapter did you finish?"
+        )
+
+        self.assertIs(
+            first_clarification,
+            effective_route_response(
+                (first_routed, first_clarification, second_clarification)
+            ),
+        )
+
+    def test_first_routed_result_wins_when_no_clarification_exists(self) -> None:
+        no_match = NoMatch(kind="no_match", request_id="routereq-none")
+        first_routed = self.routed("routereq-routed-1", 5)
+        second_routed = self.routed("routereq-routed-2", 7)
+
+        self.assertIs(
+            first_routed,
+            effective_route_response((no_match, first_routed, second_routed)),
+        )
+
+    def test_first_no_match_or_none_is_the_fallback(self) -> None:
+        first = NoMatch(kind="no_match", request_id="routereq-none-1")
+        second = NoMatch(kind="no_match", request_id="routereq-none-2")
+
+        self.assertIs(first, effective_route_response((first, second)))
+        self.assertIsNone(effective_route_response(()))
 
 
 if __name__ == "__main__":

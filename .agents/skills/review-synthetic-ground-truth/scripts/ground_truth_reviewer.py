@@ -29,10 +29,17 @@ from evals.synthetic_journals.adoption import (  # noqa: E402
     build_ground_truth_adoption,
     proposed_ground_truth_sha256,
 )
+from evals.synthetic_journals.book_contract import (  # noqa: E402
+    BOOK_OBJECTIVE_IDS,
+    compile_book_replay_plan,
+)
 from evals.synthetic_journals.models import (  # noqa: E402
     GroundTruthProposal,
     ProposedGroundTruth,
     SyntheticBackstory,
+)
+from evals.synthetic_journals.replay_support import (  # noqa: E402
+    replay_support_for,
 )
 from evals.synthetic_journals.validate_package import (  # noqa: E402
     PackageValidationError,
@@ -42,10 +49,6 @@ from evals.synthetic_journals.validate_package import (  # noqa: E402
 
 DEFAULT_UI = Path(__file__).resolve().parent.parent / "ui" / "dist"
 ADOPTION_FILENAME = "ground-truth-adoption.json"
-SUPPORTED_REPLAYS = {
-    "reviewed_automatic_memory_capture": "capture",
-    "bounded_memory_curation": "bounded curation",
-}
 
 
 class ReviewError(ValueError):
@@ -79,6 +82,16 @@ def _proposal_summary(proposal: GroundTruthProposal) -> str:
         )
         distractors = len(proposal.prop_relevance) - relevant
         return f"{relevant} relevant · {distractors} distractor"
+    if proposal.book_expectation is not None:
+        if proposal.book_expectation.kind == "grounded_book_reflection":
+            return (
+                "Book retrieval required"
+                if proposal.book_expectation.retrieval == "required"
+                else "Personal reflection without book retrieval"
+            )
+        return "Spoiler boundary"
+    if proposal.grounding is not None:
+        return proposal.grounding.primary_behavior.replace("_", " ").capitalize()
     return "Review expected behavior"
 
 
@@ -115,6 +128,15 @@ def build_review_payload(
 ) -> dict[str, Any]:
     """Join package entities into a legible, deterministic review projection."""
 
+    selected_objectives = frozenset(backstory.objective_ids)
+    replay = replay_support_for(selected_objectives)
+    book_plan_scenes = {}
+    if selected_objectives and selected_objectives <= BOOK_OBJECTIVE_IDS:
+        book_plan = compile_book_replay_plan(backstory, ground_truth)
+        book_plan_scenes = {
+            item.scene.scene_id: item for item in book_plan.scenes
+        }
+
     lines = {item.line_id: item for item in backstory.lines}
     props = {item.prop_id: item for item in backstory.props}
     offline_inputs = {
@@ -128,6 +150,16 @@ def build_review_payload(
     for scene in sorted(backstory.scenes, key=lambda item: item.order):
         for objective_id in scene.objective_ids:
             proposal = proposals[(scene.scene_id, objective_id)]
+            compiled_book_scene = book_plan_scenes.get(scene.scene_id)
+            book_scene_facts = None
+            if (
+                compiled_book_scene is not None
+                and compiled_book_scene.facts is not None
+            ):
+                book_scene_facts = compiled_book_scene.facts.model_dump(mode="json")
+                book_scene_facts["derived_safe_ceiling_chapter"] = (
+                    compiled_book_scene.safe_ceiling_chapter
+                )
             roles = _source_roles(proposal)
             inputs: list[dict[str, Any]] = []
             for line_id in scene.line_ids:
@@ -204,15 +236,21 @@ def build_review_payload(
                         if proposal.curation is not None
                         else None
                     ),
+                    "grounding": (
+                        proposal.grounding.model_dump(mode="json")
+                        if proposal.grounding is not None
+                        else None
+                    ),
+                    "bookSceneFacts": book_scene_facts,
+                    "bookExpectation": (
+                        proposal.book_expectation.model_dump(mode="json")
+                        if proposal.book_expectation is not None
+                        else None
+                    ),
                 }
             )
 
     objective_ids = list(backstory.objective_ids)
-    replay_name = (
-        SUPPORTED_REPLAYS.get(objective_ids[0])
-        if len(objective_ids) == 1
-        else None
-    )
     report_text = ""
     if report_path is not None:
         report_text = report_path.read_text(encoding="utf-8")
@@ -235,18 +273,28 @@ def build_review_payload(
             "text": report_text,
         },
         "replay": {
-            "supported": replay_name is not None,
-            "name": replay_name,
+            "supported": replay is not None,
+            "name": replay.name if replay is not None else None,
+            "module": replay.module if replay is not None else None,
+            "semanticReviewOptional": (
+                replay.accepts_semantic_review if replay is not None else False
+            ),
             "confirmLabel": (
                 "Confirm and run evaluation"
-                if replay_name is not None
+                if replay is not None
                 else "Confirm Ground truth"
             ),
             "note": (
                 "Confirmation returns to the agent, which will start one "
-                f"provider-backed {replay_name} replay. It may make billable "
+                f"provider-backed {replay.name} replay. It may make billable "
                 "model calls and write evaluation telemetry."
-                if replay_name is not None
+                + (
+                    " Optional semantic review is a separate, non-independent "
+                    "result and is not enabled by this confirmation."
+                    if replay.accepts_semantic_review
+                    else ""
+                )
+                if replay is not None
                 else "This Objective has no implemented replay. Confirmation "
                 "records adoption only."
             ),

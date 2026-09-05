@@ -1,0 +1,163 @@
+{
+  "record_kind": "synthetic_replay_summary",
+  "complete_artifact_sha256": "3a9166cc487decdd35b81df08a1ad363b10b6b68b740f0db3f6b6af3ee90b28d",
+  "complete_artifact_local_path": "/tmp/linger-book-replay.PSECz6/run.json",
+  "configured_model": "openai:gpt-5.6-luna",
+  "run_id": "fcb72e67a47c47b397145b09659a6b3b",
+  "trace_id": "01a06f5a6753ec83246c151a60b08b41",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "b034ba5c04f0afbd6732807923bfb9435f698859ef7d93498cda775cc118d5aa",
+  "ground_truth_status": "adopted",
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "routed_work_id": null,
+      "routed_book_version_id": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "required_grounding_evidence_not_retrieved",
+            "grounded_response_released_no_evidence",
+            "exact_quotation_missing_or_unreleased:pigeon"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "boundary_decision_differs_from_ground_truth",
+            "inferred_ceiling_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "ground_truth_result": "fails_hard_gates",
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "pigeon-reflection",
+          "proposal_id": "pigeon-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "seeded_prop_count": 1,
+      "boundary_exchanges": [
+        {
+          "correlation_id": "routereq_9b93b457035f41478413ddfba0177b2f",
+          "status": "success",
+          "relevant_memory_count": 0,
+          "output": {
+            "outcome": "candidate",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_number": 5,
+            "confidence": 0.99,
+            "authorization_basis": "line_only",
+            "supporting_memory_ids": [],
+            "supporting_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln1179-1219"
+            ],
+            "reason_code": null
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "routed_work_id": null,
+      "routed_book_version_id": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "ground_truth_result": "passes_hard_gates",
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "uncertain-growth",
+          "proposal_id": "growth-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "seeded_prop_count": 1,
+      "boundary_exchanges": []
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "routed_work_id": null,
+      "routed_book_version_id": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "That makes sense: a new title can feel awkward because saying it out loud makes the change feel public and real, while “designer” still names the part of your work that feels familiar. You don’t have to erase that identity to name the role you’re growing into.\n\nYou could try an introduction that holds both:\n\n> “Hi, I’m [name]. I’m a designer by background, and I’m now managing the team. I’m enjoying learning how to support the work from a different angle.”\n\nOr, more simply:\n\n> “I’m [name], the team manager. I came from design, so I still think like a designer while I’m learning this role.”\n\nThe goal isn’t to sound perfectly settled. It’s to use words that are true now and leave room for the identity to become more familiar.",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "ground_truth_result": "passes_hard_gates",
+      "semantic_spoiler_results": [],
+      "seeded_prop_count": 0,
+      "boundary_exchanges": []
+    }
+  ]
+}

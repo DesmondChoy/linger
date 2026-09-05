@@ -52,6 +52,91 @@ function OutcomeList({ title, items, tone }) {
   )
 }
 
+function IdList({ label, values }) {
+  if (!values?.length) return null
+  return (
+    <div className="source-id-list">
+      <span>{label}</span>
+      {values.map((id) => <code key={id}>{id}</code>)}
+    </div>
+  )
+}
+
+function GroundingExpectation({ value }) {
+  if (!value) return null
+  return (
+    <section className="typed-expectation">
+      <h4>Weak-evidence expectation</h4>
+      <div className="field-pair"><span>Primary behavior</span><strong>{value.primary_behavior.replaceAll('_', ' ')}</strong></div>
+      <div className="field-pair"><span>Expected release</span><strong>{value.expected.kind.replaceAll('_', ' ')}</strong></div>
+      {value.expected.chapter_max ? <div className="field-pair"><span>Chapter ceiling</span><strong>{value.expected.chapter_max}</strong></div> : null}
+      <IdList label="Permitted evidence" values={value.expected.permitted_evidence_ids} />
+      {value.forbidden_post_boundary_facts?.length ? (
+        <div className="fact-list">
+          <span>Forbidden post-boundary facts</span>
+          <ul>{value.forbidden_post_boundary_facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function BookExpectation({ value }) {
+  if (!value) return null
+  return (
+    <section className="typed-expectation book-expectation">
+      <h4>Book Objective expectation</h4>
+      <div className="field-pair"><span>Objective</span><strong>{value.kind.replaceAll('_', ' ')}</strong></div>
+      {value.retrieval ? <div className="field-pair"><span>Retrieval</span><strong>{value.retrieval.replaceAll('_', ' ')}</strong></div> : null}
+      <IdList label="Permitted evidence" values={value.permitted_evidence_ids} />
+      <IdList label="Exact quotations" values={value.exact_quotation_evidence_ids} />
+      <IdList label="Forbidden later evidence" values={value.forbidden_later_evidence_ids} />
+    </section>
+  )
+}
+
+function BookSceneFacts({ value }) {
+  if (!value) return null
+  const scope = value.scope
+  return (
+    <section className="typed-expectation book-scene-facts">
+      <h4>Shared book Scene facts</h4>
+      <div className="field-pair"><span>Scope</span><strong>{scope.kind.replaceAll('_', ' ')}</strong></div>
+      <div className="field-pair"><span>Work</span><code>{scope.work_id}</code></div>
+      <div className="field-pair"><span>Book version</span><code>{scope.book_version_id}</code></div>
+      <div className="field-pair">
+        <span>Safe chapter ceiling</span>
+        <strong>{value.derived_safe_ceiling_chapter ?? 'unresolved'}</strong>
+      </div>
+      {scope.kind === 'librarian_inferred' ? <p className="constraint">The compiler derives this ceiling from the supporting evidence chapters.</p> : null}
+      <IdList label="Authorised Props" values={scope.authorised_prop_ids} />
+      <IdList label="Supporting evidence" values={scope.supporting_evidence_ids} />
+      {value.basis_spans.length ? (
+        <div className="book-fact-records">
+          <h5>Boundary basis spans</h5>
+          {value.basis_spans.map((span) => (
+            <div className="span-record" key={`${span.source_kind}-${span.source_id}-${span.start_codepoint}`}>
+              <div><code>{span.source_kind}:{span.source_id}</code><span>{span.start_codepoint}–{span.end_codepoint}</span></div>
+              <blockquote>{span.text}</blockquote>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {value.evidence.length ? (
+        <div className="book-fact-records">
+          <h5>Corpus evidence</h5>
+          {value.evidence.map((item) => (
+            <div className="span-record" key={item.evidence_id}>
+              <div><code>{item.evidence_id}</code><code>{item.chapter_id}</code><span>{item.start_codepoint}–{item.end_codepoint}</span></div>
+              <blockquote>{item.text}</blockquote>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
 function CurationExpectation({ value }) {
   if (!value) return null
   const expected = value.expected
@@ -102,6 +187,9 @@ function GroundTruthDetails({ row }) {
         </section>
       ) : null}
       <CurationExpectation value={row.curation} />
+      <GroundingExpectation value={row.grounding} />
+      <BookSceneFacts value={row.bookSceneFacts} />
+      <BookExpectation value={row.bookExpectation} />
       {row.propRelevance.length ? (
         <section className="relevance-grid">
           <h4>Prop relevance</h4>

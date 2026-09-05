@@ -14,7 +14,7 @@ Before opening a review that can trigger a supported replay, ensure the
 developer has configured the Linger Logfire project as described in the
 [repository workflow](../../../README.md#human-gated-synthetic-evaluation).
 Confirmation immediately authorizes one provider-backed replay for a supported
-Objective. Without local Logfire project credentials or `LOGFIRE_TOKEN`, the
+Objective selection. Without local Logfire project credentials or `LOGFIRE_TOKEN`, the
 runner retains its durable JSON output but cannot publish the experiment and
 synthetic traces to Logfire.
 
@@ -65,6 +65,12 @@ explains the provider-backed side effect.
   temporary output path. The runner grades only the session boundary; correction
   adoption and fresh-session leakage wording remain human reviewer judgments
   read from the durable run artifact.
+- For exactly `grounded_book_reflection`, exactly
+  `spoiler_boundary_clarification`, or their two-Objective combination in either
+  order, run `evals.synthetic_journals.book_replay` with `--adoption` and a fresh
+  temporary output path. Do not add `--semantic-review` unless the developer
+  separately requests it. The optional semantic review makes another model call
+  and produces a separate, non-independent result.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.
 

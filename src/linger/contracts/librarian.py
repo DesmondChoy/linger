@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter, model_validator
@@ -181,6 +182,7 @@ class RoutedWork(StrictModel):
     """A confidently identified work with a resolved, request-scoped boundary."""
 
     kind: Literal["routed"]
+    request_id: str
     work_id: str
     book_version_id: str
     title: str
@@ -193,9 +195,42 @@ class NoMatch(StrictModel):
     """No book intent was evident in the message; Muse should keep reflecting."""
 
     kind: Literal["no_match"]
+    request_id: str
 
 
 LibrarianRoutingResponse = RoutedWork | ClarificationRequest | NoMatch
 LIBRARIAN_ROUTING_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[LibrarianRoutingResponse, Field(discriminator="kind")]
 )
+
+
+def effective_route_response(
+    responses: Sequence[LibrarianRoutingResponse],
+) -> LibrarianRoutingResponse | None:
+    """Reduce ordered route calls using the application release precedence.
+
+    Any clarification prevents a routed result from granting release scope. When
+    no clarification exists, the first routed result is authoritative. A no-match
+    is useful only when no stronger response exists.
+    """
+
+    clarification = next(
+        (
+            response
+            for response in responses
+            if isinstance(response, ClarificationRequest)
+        ),
+        None,
+    )
+    if clarification is not None:
+        return clarification
+    routed = next(
+        (response for response in responses if isinstance(response, RoutedWork)),
+        None,
+    )
+    if routed is not None:
+        return routed
+    return next(
+        (response for response in responses if isinstance(response, NoMatch)),
+        None,
+    )

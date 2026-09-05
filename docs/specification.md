@@ -590,13 +590,12 @@ and future designs must use these terms instead of ad hoc synonyms such as
 *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the
 vocabulary, Backstory and Ground truth structures, deterministic package
 validator, and Ground truth authority lifecycle below. Interactive independent
-adoption is implemented. The catalog registers capture, bounded-curation, and
-session-continuity replay as supported paths. The repository also contains
-reflection-and-grounding replay code for `grounded_book_reflection`,
-`spoiler_boundary_clarification`, and `weak_evidence_safe_decline`. This code is
-not a supported replay path until the overlapping Ground truth fields and
-validators use one canonical contract. Reusable generation, dataset freezing,
-and replay for other Objectives remain downstream decisions.
+adoption is implemented. The catalog registers capture, bounded-curation,
+session-continuity, grounded-book-reflection, and spoiler-boundary replay as
+supported paths. The book runner accepts either book Objective alone or both in
+either order. Reflection replay code for `weak_evidence_safe_decline` remains an
+unsupported path. Reusable generation, dataset freezing, and replay for other
+Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -619,6 +618,10 @@ The vocabulary encodes these boundaries:
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
 - The generator writes `backstory.json` and `ground-truth.json` together. The Ground truth file records exact spans, intended relationships, Scene pairings, and expected or prohibited outcomes needed to preserve the generator's intent.
+- A book package stores shared work, version, boundary, basis spans, and corpus
+  evidence once in `book_scene_facts`. Each book proposal stores only its
+  Objective-specific `book_expectation`. The validator derives an inferred safe
+  ceiling from the supporting corpus evidence chapters.
 - Deterministic validation checks facts that can be resolved without judging Linger, such as identifiers, references, span boundaries, pairwise differences, and schema constraints. It does not adopt behavioral judgments.
 - An independent reviewer adopts, revises, or rejects the proposed Ground truth. The system under evaluation receives neither the Ground truth file nor adopted Ground truth.
 
@@ -660,11 +663,11 @@ The end-to-end workflow has distinct human gates:
 5. The developer invokes `review-synthetic-ground-truth`. An independent human
    reviewer approves or flags every proposed Ground truth row.
 6. A change request writes no adoption and invokes no runtime. Confirmation
-   writes sibling `ground-truth-adoption.json`; for one Objective with an
-   automatic post-confirmation route, the agent validates the adoption and
-   starts one provider-backed replay. The review skill currently routes reviewed
-   automatic capture and bounded memory curation. Other selections stop after
-   adoption.
+   writes sibling `ground-truth-adoption.json`. For an exact supported selection,
+   the agent validates the adoption and starts one provider-backed replay. The
+   supported selections are reviewed automatic capture, bounded memory curation,
+   session continuity, either book Objective alone, and both book Objectives in
+   either order. Other selections stop after adoption.
 7. The durable replay output remains the complete evaluation record. Pydantic
    Evals and the `linger-evals` Logfire service provide interactive result,
    agent, provider, and trace views.
@@ -702,7 +705,21 @@ identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
 
-That proposal-quality runner remains read-only and does not apply Ground truth
+The book runner compiles each validated package before replay. The compiler
+accepts `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
+either order. `book_scene_facts` owns the shared work and version, the reader or
+inferred boundary, the exact basis spans, and corpus evidence. A
+`librarian_inferred` scope derives its safe ceiling from the chapters containing
+its supporting evidence. Each proposal's discriminated `book_expectation` owns
+only the grounded-retrieval or spoiler-boundary judgment. Generic `grounding`
+belongs only to `weak_evidence_safe_decline`.
+
+The book runner grades deterministic replay facts by default. Its optional
+`--semantic-review` flag makes a separate model call over the recorded result.
+That result is non-independent and does not change the deterministic Ground
+truth grade.
+
+The curation proposal-quality runner remains read-only and does not apply Ground truth
 or model output. Separate application-loop replay tests seed account-scoped
 captures and exercise proposal, bound Provenance review, deterministic policy,
 all supported curation actions, audit verification, restoration, immutable
@@ -740,13 +757,13 @@ The project still has not defined reusable workflow for:
 - line generation;
 - full-dataset assembly and layout;
 - freezing; or
-- replay of offline inputs, mixed Objective packages, or unsupported Objectives.
+- replay of offline inputs, unsupported mixed Objective selections, or
+  unsupported Objectives.
 
-Reflection-and-grounding replay code can place Props before a Scene and send
-ordered Lines through one session. The code remains unsupported while both
-objective-specific and generic `grounding` fields claim the same Ground truth
-authority. The package model and validator must select one contract before the
-catalog can register the reflection Objectives as supported replay paths.
+Book packages created before the canonical `book_scene_facts` and
+`book_expectation` contract remain unchanged as historical review records. They
+are obsolete replay inputs and do not validate against the current package
+model.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined package models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 

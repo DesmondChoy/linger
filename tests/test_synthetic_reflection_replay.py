@@ -34,7 +34,7 @@ from evals.synthetic_journals.reflection_replay import (
     resolve_corpus_evidence_ids,
 )
 
-OBJECTIVE_ID = "grounded_book_reflection"
+OBJECTIVE_ID = "weak_evidence_safe_decline"
 CORPUS_CHAPTER = (
     "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/"
     "01-down-the-rabbit-hole.md"

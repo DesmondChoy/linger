@@ -41,7 +41,11 @@ from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
 from src.linger.contracts.turn import ConfirmedReading
-from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+from src.linger.evaluation_transcript import (
+    active_evaluation_correlation_id,
+    bind_evaluation_correlation_id,
+    bind_evaluation_transcript_sink,
+)
 from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
     EmotionalContentPolicy,
@@ -348,6 +352,38 @@ class AgentInstrumentationTests(TelemetryTestCase):
             "zxcas private model output zxcas",
             json.dumps(exchange.model_messages),
         )
+
+    async def test_evaluation_correlation_is_recorded_without_entering_telemetry(self) -> None:
+        correlation_id = "routereq_evaluation_only"
+        agent = Agent(
+            FunctionModel(
+                lambda _messages, _info: ModelResponse(parts=[TextPart("ok")])
+            ),
+            instructions="Static instructions.",
+        )
+        recorder = SceneTranscriptRecorder()
+
+        with (
+            bind_evaluation_transcript_sink(recorder),
+            bind_evaluation_correlation_id(correlation_id),
+        ):
+            await run_agent_traced(
+                agent,
+                "synthetic prompt",
+                span_name="test.correlated-agent",
+                role="Librarian",
+                stage="boundary_inference",
+                input_contract="BoundaryInput.v1",
+                output_contract="BoundaryOutput.v1",
+                prompt_template_id="test.boundary",
+                prompt_version="1",
+                prompt_digest="0" * 64,
+                failure_code="test_boundary_failed",
+            )
+
+        self.assertEqual(correlation_id, recorder.exchanges[0].correlation_id)
+        self.assertIsNone(active_evaluation_correlation_id())
+        self.assertNotIn(correlation_id, self.exported_payload())
 
     async def test_explicit_agent_span_maps_failure_without_exception(self) -> None:
         def fail(_messages, _info):
