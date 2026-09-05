@@ -415,6 +415,12 @@ character, location, and catalogue words are weak candidates only: they cannot
 select a work or expose a memory by themselves. Multiple plausible works
 produce a clarification before private boundary inference. If a book is not
 needed for the response, Muse can continue personal reflection without lookup.
+A bare follow-up with no book name and no strong cue for a different work
+routes to the session's active selection and enters boundary inference like
+any other route. Boundary inference asks a chapter-progress clarification
+whenever it cannot locate the request in the book, whether because no
+supporting evidence is found before the judge runs or the judge itself
+remains uncertain.
 
 Librarian then performs boundary inference. The complete immutable selected
 work is its search scope: Librarian cross-references all chapters against the

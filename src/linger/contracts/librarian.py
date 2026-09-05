@@ -10,7 +10,7 @@ from pydantic import Field, TypeAdapter, model_validator
 from src.linger.contracts.base import StrictModel
 from src.linger.contracts.reading import ReadingBoundary
 
-SelectionBasis = Literal["resolved_book_identity", "distinctive_cue"]
+SelectionBasis = Literal["resolved_book_identity", "distinctive_cue", "session_selection"]
 
 
 class AccessScope(StrictModel):
