@@ -290,6 +290,7 @@ class Librarian:
 
             strong_reasons: set[str] = set()
             weak_reasons: set[str] = set()
+            matched_story_terms: set[str] = set()
             routing_terms: set[str] = set()
             for chapter in chapters:
                 if not isinstance(chapter, dict):
@@ -303,14 +304,19 @@ class Librarian:
                             routing_terms.update(_terms(value))
                             if not _contains_phrase(text_tokens, value):
                                 continue
-                            if len(_phrase_tokens(value)) >= 2:
+                            phrase = _phrase_tokens(value)
+                            if len(phrase) >= 2:
                                 strong_reasons.add("distinctive_catalog_phrase")
                             else:
                                 weak_reasons.add("single_catalog_term")
+                                if phrase and phrase[0] not in GENERIC_CUE_WORDS:
+                                    matched_story_terms.add(phrase[0])
                 description = chapter.get("routing_description")
                 if isinstance(description, str):
                     routing_terms.update(_terms(description))
 
+            if len(matched_story_terms) >= 2:
+                strong_reasons.add("distinct_catalog_terms")
             overlap = len(query_terms & routing_terms)
             if overlap >= 3:
                 strong_reasons.add("catalog_context_agreement")

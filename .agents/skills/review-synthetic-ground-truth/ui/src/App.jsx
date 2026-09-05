@@ -37,7 +37,21 @@ function InputRecord({ item }) {
         <code>{item.id}</code>
         {item.role ? <StatusPill tone={item.role === 'expected source' || item.role === 'relevant' ? 'positive' : 'neutral'}>{item.role}</StatusPill> : null}
       </header>
-      {item.text ? <blockquote>{item.text}</blockquote> : <p className="empty-copy">No free-text input.</p>}
+      {item.lifecycle ? <p className="constraint">Source state: {item.lifecycle}</p> : null}
+      {item.surfacingContext ? (
+        <section className="typed-expectation">
+          <div className="field-pair"><span>Decision time</span><strong>{item.surfacingContext.now}</strong></div>
+          <blockquote>{item.surfacingContext.current_context}</blockquote>
+          <h4>Prior surfacing history</h4>
+          {item.surfacingContext.history.length ? item.surfacingContext.history.map((prior) => (
+            <article className="input-record" key={prior.surfacing_id}>
+              <p>{prior.outcome} · {prior.occurred_at}</p>
+              <blockquote>{prior.suggestion}</blockquote>
+              {prior.suppress_until ? <p>Suppress until {prior.suppress_until}</p> : null}
+            </article>
+          )) : <p>No prior suggestions.</p>}
+        </section>
+      ) : item.text ? <blockquote>{item.text}</blockquote> : <p className="empty-copy">No free-text input.</p>}
       {item.propIds?.length ? <p className="record-links">Props: {item.propIds.join(', ')}</p> : null}
     </article>
   )
@@ -187,6 +201,7 @@ function GroundTruthDetails({ row }) {
         </section>
       ) : null}
       <CurationExpectation value={row.curation} />
+      <SurfacingExpectation value={row.surfacing} />
       <GroundingExpectation value={row.grounding} />
       <BookSceneFacts value={row.bookSceneFacts} />
       <BookExpectation value={row.bookExpectation} />
@@ -224,6 +239,23 @@ function GroundTruthDetails({ row }) {
         </details>
       ) : null}
     </div>
+  )
+}
+
+function SurfacingExpectation({ value }) {
+  if (!value) return null
+  return (
+    <section className="typed-expectation">
+      <h4>Proactive memory surfacing</h4>
+      <div className="field-pair"><span>Case</span><strong>{value.case_kind}</strong></div>
+      <div className="field-pair"><span>Expected decision</span><strong>{value.decision.replaceAll('_', ' ')}</strong></div>
+      {value.reason ? <p>Reason: {value.reason.replaceAll('_', ' ')}</p> : null}
+      <IdList label="Required sources" values={value.required_source_ids} />
+      <IdList label="Allowed sources" values={value.allowed_source_ids} />
+      {value.reconsideration ? <p>Reconsider {value.reconsideration.kind === 'time' ? `at ${value.reconsideration.at}` : `when ${value.reconsideration.condition}`}</p> : null}
+      <OutcomeList title="Independent semantic review criteria" items={value.semantic_criteria} tone="expected" />
+      {value.forbidden_claims.length ? <OutcomeList title="Forbidden claims" items={value.forbidden_claims} tone="prohibited" /> : null}
+    </section>
   )
 }
 

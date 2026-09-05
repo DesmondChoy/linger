@@ -16,6 +16,8 @@ from pydantic import (
 
 from evals.reflection.harness import GroundingExpectation
 from evals.sculptor.harness import CurationExpectation
+from evals.sculptor.surfacing_harness import SurfacingExpectation
+from src.linger.agents.sculptor.surfacing_models import SurfacingContext
 
 
 def _reject_blank(value: str) -> str:
@@ -102,11 +104,17 @@ class OfflineInput(StrictModel):
     kind: Identifier
     text: Text | None = None
     prop_ids: tuple[Identifier, ...] = ()
+    surfacing_context: SurfacingContext | None = None
 
     @model_validator(mode="after")
     def validate_payload(self) -> Self:
         _require_unique("OfflineInput prop_ids", self.prop_ids)
-        if self.text is None and not self.prop_ids:
+        if self.kind == "proactive_memory_surfacing":
+            if self.surfacing_context is None or self.text is not None:
+                raise ValueError("surfacing OfflineInput requires typed context and no text")
+        elif self.surfacing_context is not None:
+            raise ValueError("surfacing context requires proactive_memory_surfacing kind")
+        if self.text is None and not self.prop_ids and self.surfacing_context is None:
             raise ValueError("OfflineInput requires text or at least one Prop")
         return self
 
@@ -400,6 +408,9 @@ PairField = Literal[
     "line_text",
     "offline_input_count",
     "offline_input_content",
+    "surfacing_now",
+    "surfacing_current_context",
+    "surfacing_history",
 ]
 
 
@@ -573,6 +584,7 @@ class GroundTruthProposal(StrictModel):
     pairing: ScenePairing | None = None
     capture: CaptureExpectation | None = None
     curation: CurationExpectation | None = None
+    surfacing: SurfacingExpectation | None = None
     grounding: GroundingExpectation | None = None
     book_expectation: BookObjectiveExpectation | None = None
 
@@ -603,6 +615,13 @@ class GroundTruthProposal(StrictModel):
 
     @model_validator(mode="after")
     def validate_objective_authority(self) -> Self:
+        if self.objective_id == "proactive_memory_surfacing":
+            if self.surfacing is None:
+                raise ValueError("surfacing Objective requires typed surfacing expectation")
+            if any((self.capture, self.curation, self.grounding, self.book_expectation)) or self.prop_relevance:
+                raise ValueError("surfacing proposal contains unrelated Ground truth")
+        elif self.surfacing is not None:
+            raise ValueError("surfacing expectation requires proactive_memory_surfacing Objective")
         book_objectives = {
             "grounded_book_reflection",
             "spoiler_boundary_clarification",

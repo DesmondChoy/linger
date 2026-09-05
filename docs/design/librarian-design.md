@@ -397,9 +397,13 @@ same boundary phase, which is free to decline the request.
 
 `work_candidates` uses the same identity resolver for memory selection.
 Unresolved names remain weak candidates; catalogue words cannot promote them
-to strong support. Without name signals, distinctive catalogue phrases and
-broad contextual agreement can still provide strong candidates, while common
-catalogue words remain weak. The [registration guide](../book-registration.md)
+to strong support. Without name signals, a distinctive catalogue phrase, two
+different non-generic single-word catalogue cues, or broad contextual agreement
+can provide strong candidates. Repeated occurrences count once, and generic
+single-word cues do not count toward the pair. This selects memories for private
+assessment, not reading permission. Librarian must still justify any inferred
+boundary from supplied memories and canonical evidence.
+The [registration guide](../book-registration.md)
 describes the alias policy, collision checks, and agent responsibilities.
 
 A resolved work enters the private boundary phase described below. If a
@@ -423,6 +427,13 @@ request and never enters this phase. Once a work is routed, application code
 hands off to the private boundary phase. It receives the current Line,
 a bounded set of strongly routed account-scoped memories, original earlier
 reader statements from the same session, and full-work retrieval candidates.
+The current Line, with any earlier session statements, is searched separately
+from each selected saved memory. An empty current-query result returns
+`insufficient_context` before memory searches or model inference. Otherwise,
+application code interleaves results by rank and deduplicates evidence IDs
+under one ten-window limit. This prevents current-question matches from
+crowding out memory anchors. The searches remain private and grant no reading
+permission. Search errors or conflicting text for one ID fail closed.
 With earlier reader statements, candidates are narrowed to canonical paragraphs
 and the phase can grant exact passages without a completed chapter. See
 [Session-supported exact passages](session-passage-design.md). The chapter
@@ -601,6 +612,13 @@ A high retrieval or reranker score does not prove that the passage answers the
 question. It may match the same words while missing the requested relationship
 or explanation. Conversely, `weak` evidence still includes its full evidence
 details so Muse can explain the limitation instead of losing context.
+
+The evidence-strength judge selects the smallest set that supports the
+requested book answer. For a quotation, it selects records containing the
+requested words and narrator description. It includes another record only when
+that record adds distinct support the answer needs. Personal reflection does
+not by itself require more book passages. These are model selection
+instructions; the deterministic checks still validate every selected record.
 
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical

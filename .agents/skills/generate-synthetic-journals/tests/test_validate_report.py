@@ -4,6 +4,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "validate_report.py"
 SPEC = importlib.util.spec_from_file_location("validate_report", SCRIPT)
@@ -169,6 +171,67 @@ def test_accepts_offline_inputs_without_lines(tmp_path: Path) -> None:
     path = write_report(tmp_path, text)
 
     assert validate_report(path) == []
+
+
+SURFACING_PROMPT = """
+Create bounded authorized Props and offline inputs with no Lines.
+Use OfflineInput.surfacing_context with timezone-aware now, current_context,
+and history of prior surfaced or dismissed suggestions.
+Pair the timely and deferred Scenes with only now changed.
+Write decisions surface_now, defer, or do_not_surface in
+GroundTruthProposal.surfacing with required_source_ids and allowed_source_ids.
+For defer, propose reconsideration at a future time or under a condition.
+"""
+
+
+def test_requires_proactive_context_only_when_selected(tmp_path: Path) -> None:
+    path = write_report(tmp_path, report_text(extra="proactive_memory_surfacing"))
+
+    assert validate_report(path) == []
+    errors = validate_report(path, ("proactive_memory_surfacing",))
+    assert any("offline surfacing context" in error for error in errors)
+    assert any("timing-only Scene pair" in error for error in errors)
+
+
+def test_accepts_complete_proactive_prompt(tmp_path: Path) -> None:
+    text = report_text(prompt=SURFACING_PROMPT).replace(
+        "Create one Backstory, no Props, three Scenes, and one Line per Scene.",
+        "Create one Backstory and Scenes with one offline input per Scene.",
+    )
+    path = write_report(tmp_path, text)
+
+    assert validate_report(path, ("proactive_memory_surfacing",)) == []
+
+
+@pytest.mark.parametrize(
+    ("omitted", "error_label"),
+    [
+        ("OfflineInput.surfacing_context", "offline surfacing context"),
+        ("timezone-aware", "timezone-aware decision time"),
+        ("current_context", "current context"),
+        ("history", "prior surfacing history"),
+        ("surfaced", "surfaced history outcome"),
+        ("dismissed", "dismissed history outcome"),
+        ("no Lines", "offline Scenes without Lines"),
+        ("only now", "timing-only Scene pair"),
+        ("GroundTruthProposal.surfacing", "typed surfacing Ground truth"),
+        ("surface_now", "surface_now decision"),
+        ("defer", "defer decision"),
+        ("do_not_surface", "do_not_surface decision"),
+        ("required_source_ids", "required source identifiers"),
+        ("allowed_source_ids", "permitted source identifiers"),
+        ("reconsideration", "deferred reconsideration"),
+    ],
+)
+def test_proactive_prompt_requires_runtime_inputs_and_separate_ground_truth(
+    tmp_path: Path, omitted: str, error_label: str
+) -> None:
+    text = report_text(prompt=SURFACING_PROMPT.replace(omitted, "omitted"))
+    path = write_report(tmp_path, text)
+
+    errors = validate_report(path, ("proactive_memory_surfacing",))
+
+    assert any(error_label in error for error in errors)
 
 
 def test_rejects_prompt_without_sibling_package_paths(tmp_path: Path) -> None:

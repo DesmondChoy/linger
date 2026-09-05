@@ -23,7 +23,7 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from apps.backend import sessions
 from apps.backend.contracts import ContextResolution
-from apps.backend.schemas import CaptureInspection, ChatRequest, ChatResponse
+from apps.backend.schemas import CaptureInspection, ChatRequest
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.librarian.models import (
@@ -74,7 +74,7 @@ from .replay import (
     _production_chat_turn_handler,
     evaluation_agents,
 )
-from .transcript import AgentExchange, SceneTranscriptRecorder
+from .transcript import AgentExchange, SceneTranscriptRecorder, ToolExchange
 from .validate_package import PackageValidationError, validate_package_files
 
 GROUNDED_OBJECTIVE_ID = "grounded_book_reflection"
@@ -422,7 +422,6 @@ async def _replay_book_scene(
             raise RuntimeError(
                 f"Scene {scene.scene.scene_id} did not produce one production turn audit"
             )
-        released_evidence_ids = turn_records[0].evidence_ids
     finally:
         sessions.clear(session_id)
 
@@ -437,9 +436,10 @@ async def _replay_book_scene(
     if release is None:
         raise RuntimeError(f"Scene {scene.scene.scene_id} has no release inspection")
     context = ContextResolution.model_validate(response.inspection.context_resolution)
-    grounding = _grounding_observations(response)
     exchanges = recorder.exchanges
-    routed = _route_outcome(response)
+    calls = _librarian_calls(exchanges)
+    grounding = _grounding_observations(calls)
+    routed = _route_outcome(calls)
     boundary_decision = _boundary_decision(routed)
     content_free = _boundary_handoff_is_content_free(
         boundary_decision,
@@ -460,8 +460,7 @@ async def _replay_book_scene(
         routed_work_id=routed.get("work_id") if routed else None,
         routed_book_version_id=routed.get("book_version_id") if routed else None,
         route_called=any(
-            call.get("tool_name") == "librarian_route"
-            for call in response.inspection.librarian_grounding
+            call.tool_name == "librarian_route" for call in calls
         ),
         boundary_support_memory_ids=(
             tuple(selected_boundary.output.get("supporting_memory_ids", ()))
@@ -482,7 +481,7 @@ async def _replay_book_scene(
         boundary_handoff_content_free=content_free,
         boundary_support_evidence=boundary_support,
         grounding_calls=grounding,
-        released_evidence_ids=released_evidence_ids,
+        released_evidence_ids=release.released_evidence_ids,
         reply=response.reply,
         release_source=release.release_source,
         provenance_verdicts=release.provenance_verdicts,
@@ -543,17 +542,35 @@ def _seed_props(
     return tuple(seeded)
 
 
+def _librarian_calls(
+    exchanges: tuple[AgentExchange, ...],
+) -> tuple[ToolExchange, ...]:
+    """Read private attempts independently of reader-visible release filtering."""
+    return tuple(
+        call
+        for exchange in exchanges
+        if exchange.role == "Muse" and exchange.stage in {"draft", "revision"}
+        for call in exchange.tool_exchanges
+        if call.tool_name in {"librarian_route", "librarian_search"}
+    )
+
+
 def _grounding_observations(
-    response: ChatResponse,
+    calls: Sequence[ToolExchange],
 ) -> tuple[GroundingObservation, ...]:
     observations = []
-    for call in response.inspection.librarian_grounding:
-        outcome_payload = call.get("response")
-        if call["tool_name"] != "librarian_search":
+    for call in calls:
+        if call.tool_name != "librarian_search":
             continue
-        parsed = LIBRARIAN_RESPONSE_ADAPTER.validate_python(outcome_payload)
-        outcome = call.get("outcome")
-        call_outcome = outcome if isinstance(outcome, str) else None
+        if call.result is None or call.outcome != "success":
+            observations.append(GroundingObservation(
+                response_kind="failure",
+                call_outcome=call.outcome,
+                failure_code="tool_call_incomplete_or_failed",
+            ))
+            continue
+        parsed = LIBRARIAN_RESPONSE_ADAPTER.validate_python(call.result)
+        call_outcome = call.outcome
         if isinstance(parsed, RetrievalResult):
             scope = parsed.searched_scope
             observations.append(
@@ -646,11 +663,12 @@ def _boundary_support_observations(
     return selected
 
 
-def _route_outcome(response: ChatResponse) -> dict[str, object] | None:
+def _route_outcome(calls: Sequence[ToolExchange]) -> dict[str, object] | None:
     routes = [
-        LIBRARIAN_ROUTING_RESPONSE_ADAPTER.validate_python(call["response"])
-        for call in response.inspection.librarian_grounding
-        if call["tool_name"] == "librarian_route"
+        LIBRARIAN_ROUTING_RESPONSE_ADAPTER.validate_python(call.result)
+        for call in calls
+        if call.tool_name == "librarian_route"
+        and call.result is not None and call.outcome == "success"
     ]
     result = effective_route_response(routes)
     return result.model_dump(mode="json") if result is not None else None

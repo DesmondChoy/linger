@@ -1,21 +1,13 @@
 ### Feature
 
-**You own the design. Plan, review, verify.** Delegate implementation; stay in the lead.
+Own the requested outcome, implementation, review, and verification.
 
-1. `how` over the affected subsystem.
-2. `architect` for parallel design exploration. Skipping stays as `architect skipped: <reason>`; do not fold the design decision silently into implementation.
-3. Write the throughput checkpoint as four todo items. A dimension that genuinely does not apply (single file, no fan-out) keeps its item with `n/a: <reason>` rather than being dropped:
-   - **Blocking first steps.** Gates run before fan-out.
-   - **Independent workstreams.** Disjoint files, services, or layers parallelize. Shared writes serialize.
-   - **Shared mutable state.** Default to splitting the target (the **separate-before-serializing-shared-state** principle skill). Serialize only for real invariants.
-   - **Smallest safe decomposition.** If one worker is best, name why.
-4. Delegate code-writing to a subagent using your configured feature model (default in poteto-mode's Models section) with a specific scope (file paths, named data shape and its organizing structure per **principle-model-the-domain** — a state machine over scattered booleans, a table/registry over branching, a typed model over repeated shape assumptions, chosen before the delegate writes logic — and success criteria); review its diff yourself. When the implementation admits multiple valid shapes (error handling, abstraction layer, test structure), delegate via the **arena** skill instead so the runners surface the alternatives and the cross-judge guards the pick. Mandatory: no skip-with-reason escape, and Laziness Protocol does not override it (the gain is review separation, not lines saved). You can spawn a subagent even though you are one; "the app is small" and "a subagent cannot spawn one" are both wrong. A subagent forbidden to spawn satisfies this by owning the diff directly with the same review separation; no "standing by" reply that waits on a nested agent. Comments per **Comments**. Surgical edits, re-ground against the source for upstream-derived files. Port shared-primitive improvements to all consumers and verify each. Commit liberally.
-5. Verify on the matching surface. "Inconclusive" or wrong-surface is not a pass; flag it.
-6. Rebase into small, ordered commits; stack follow-ups.
-   Use the **sequence-verifiable-units** principle skill, building, verifying, and committing each small unit before the next.
-7. If the design is contested, `interrogate` before shipping.
-8. Run **Opening a PR**.
+1. Trace the affected contract and callers. Use **how** when the flow is unclear; follow an established local pattern when it already fits.
+2. Name the relevant data shape and ownership. Use **architect** for consequential unresolved design choices. Use **arena** when independent alternatives can resolve uncertainty or the user requests it.
+3. Identify bounded independent work that could improve speed or quality through delegation. Give writers disjoint paths, serialize shared edits, and keep useful local work moving while they run. Work directly when coordination would outweigh the benefit; no tournament or delegation quota is required.
+4. Implement the smallest change that meets the requirements. Give any delegate a concrete scope and success criteria, then inspect its artifacts and diff. Update affected consumers within scope and preserve unrelated work.
+5. Verify the changed contract with relevant tests or an exercise of the affected surface. Reuse existing checks and add coverage for meaningful gaps. Group coordinated edits into coherent units and verify before dependent work builds on them. Report inconclusive or unavailable checks accurately.
+6. Resolve routine implementation choices within existing authorization. If a material decision or missing authority requires the user, complete authorized preparation first and present the concrete result. Honor explicit checkpoints.
+7. Use **quality** for significant implementation changes and before an authorized commit. Add **interrogate** when a contested design warrants independent review. Run **Opening a PR** only for authorized git or PR actions.
 
-Code-coupled work (one feature, one migration) goes to a single owner with the checkpoint inline; that owner fans out internally after the blocking phase. Parent-level fan-out is for slices that produce independent artifacts (audits, cross-subsystem investigations, competing experiments). Rewrite the checkpoint at phase boundaries; spawn a fresh owner rather than chaining interrupts.
-
-**Reply:** what you built, what you chose and why, open decisions. Tables for design alternatives.
+**Reply:** what changed, consequential choices, verification, and any unresolved decisions or limits.

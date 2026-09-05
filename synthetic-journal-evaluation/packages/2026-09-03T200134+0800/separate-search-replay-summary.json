@@ -1,0 +1,445 @@
+{
+  "record_kind": "synthetic_replay_summary",
+  "complete_artifact_sha256": "944548f5b1e63a314bf860746762b4cac51b98c885f415f614b4b3ef97eea6c9",
+  "complete_artifact_local_path": "/tmp/linger-book-separated-rerun.CKymNb/run.json",
+  "configured_model": "openai:gpt-5.6-luna",
+  "git_head": "72e40680e9a6f34971e9b4cfb635c0bc0d8ebd09",
+  "working_tree_changes": [
+    "apps/backend/librarian.py: distinct catalogue cues for private memory selection",
+    "src/linger/orchestration/boundary.py: separate primary and memory searches, empty-primary guard, bounded interleaving"
+  ],
+  "metadata_local_path": "/tmp/linger-book-separated-rerun.CKymNb/metadata.json",
+  "metadata_sha256": "8a2aa231fcd3a71ec488ce68c4c2d2712d53a2b55103bf6638ce4a2f90a0a9ff",
+  "remote_telemetry": false,
+  "semantic_review": false,
+  "run_id": "7e3ee801a20e42a9901e588c99e73676",
+  "trace_id": "01a0702f5b45083abb80861768042f65",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "e302584f7085680c040b2d147d7fcc2e159d839679e6daf4779bea29b2a9dd0c",
+  "ground_truth_status": "adopted",
+  "runtime_prompt_fingerprints": [
+    {
+      "template_id": "librarian.boundary-inference",
+      "version": "2",
+      "digest": "e768a6e54b707db4baa4243cde6dd23944e2fa4fbf6b67179c873d43df788989"
+    },
+    {
+      "template_id": "librarian.evidence-strength",
+      "version": "1",
+      "digest": "02603f5535b65bb15e98cb97c84f9363b34bb117767ae709d3f8b3a8752af7e0"
+    },
+    {
+      "template_id": "muse.reflection",
+      "version": "11",
+      "digest": "7a48f74b0fc557bc5885c783639738739a8f3275688d296d11c87cae00879f6a"
+    },
+    {
+      "template_id": "muse.revision",
+      "version": "11",
+      "digest": "661a2971cf4b061d90cbc405e935c8651cfd2c005fa40777b7f34e3ad54050a0"
+    },
+    {
+      "template_id": "provenance.emotional-boundary",
+      "version": "1",
+      "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+    },
+    {
+      "template_id": "provenance.release-gate",
+      "version": "6",
+      "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+    },
+    {
+      "template_id": "provenance.curation-gate",
+      "version": "1",
+      "digest": "84a3d0a1dff92039a485993ad9445b98698165109317dfce9a2d3c47175d0ce4"
+    },
+    {
+      "template_id": "sculptor.curation",
+      "version": "3",
+      "digest": "256e9bb37509fa6df6649b15263fa88f746495138662a1bb26423aa94a2e6e87"
+    },
+    {
+      "template_id": "serendipity.search-rank-select",
+      "version": "1",
+      "digest": "2c96320a86ed6183904f3c6b243502081f81e476fa9b663275dfff00644b23f5"
+    }
+  ],
+  "interpretation_cautions": [
+    "Original grades and observation fields are preserved, not corrected or regraded.",
+    "For the declined Pigeon scene, route_called=false and grounding_calls=[] reflect release-filtered inspection, not absence of tool activity; see transcript_tool_observations.",
+    "The Pigeon released_evidence_ids field comes from the turn audit and contains a rejected candidate citation. Actual application release inspection exposed zero evidence IDs.",
+    "Boundary inference cited the Caterpillar anchor only, not both adopted support spans. Restored candidate coverage does not establish a full adopted boundary pass."
+  ],
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ],
+      "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+      "release_source": "application_safe_decline",
+      "provenance_verdicts": [
+        "revise",
+        "revise"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "response_not_released_from_allowed_source",
+            "provenance_did_not_pass_release",
+            "required_grounding_evidence_not_retrieved",
+            "response_cited_unpermitted_evidence",
+            "response_cited_no_permitted_evidence",
+            "exact_quotation_missing_or_unreleased:pigeon"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "response_not_released_from_allowed_source",
+            "provenance_did_not_pass_release",
+            "boundary_decision_differs_from_ground_truth",
+            "inferred_ceiling_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "pigeon-reflection",
+          "proposal_id": "pigeon-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_exchanges": [
+        {
+          "status": "success",
+          "output": {
+            "outcome": "candidate",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_number": 5,
+            "confidence": 0.96,
+            "authorization_basis": "memory_supported",
+            "supporting_memory_ids": [
+              "mem_fae473951af9518167a2cc660f1cd5fd6a4abb2091b86848bb9de2c3ddf309c9"
+            ],
+            "supporting_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0960-1016"
+            ],
+            "reason_code": null
+          },
+          "selected_memory_ids": [
+            "mem_fae473951af9518167a2cc660f1cd5fd6a4abb2091b86848bb9de2c3ddf309c9"
+          ],
+          "candidate_evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln0960-1016",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1094-1135",
+            "pg11-v01b38ea4-ch05-ln1151-1186",
+            "pg11-v01b38ea4-ch05-ln1004-1056"
+          ]
+        }
+      ],
+      "transcript_tool_observations": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "outcome": "success",
+          "result": {
+            "kind": "routed",
+            "request_id": "routereq_ee7c00e0a03e431da490df5136802cc1",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "title": "Alice's Adventures in Wonderland",
+            "routing_confidence": 0.7,
+            "max_chapter_inclusive": 5,
+            "boundary_confidence": 0.96
+          },
+          "evidence_ids": []
+        },
+        {
+          "stage": "draft",
+          "tool_name": "librarian_search",
+          "outcome": "success",
+          "result": {
+            "kind": "result",
+            "request_id": "libreq_d3dff9baa09844d2bd10ffaa7260b726",
+            "outcome": "evidence_found",
+            "evidence_strength": "sufficient",
+            "strength_reason": "The passages directly contain the requested sentence—“I—I’m a little girl,” said Alice, rather doubtfully—and the narrator’s description of her uncertainty. They also show why the naming feels awkward within the scene: Alice is being assigned an identity by the Pigeon, her appearance contradicts the label, and her recent changes make her hesitate, while she insists that the distinction matters to her.",
+            "searched_scope": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "max_chapter_inclusive": 5
+            },
+            "limitations": [
+              "The passages support a text-based reflection on awkwardly claiming an identity, but they do not directly explain the reader’s personal experience of becoming a manager."
+            ]
+          },
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1151-1186"
+          ]
+        },
+        {
+          "stage": "boundary_inference",
+          "tool_name": "final_result_BoundaryInferenceDecision",
+          "outcome": "success",
+          "result": "Final result processed.",
+          "evidence_ids": []
+        },
+        {
+          "stage": "revision",
+          "tool_name": "librarian_route",
+          "outcome": "success",
+          "result": {
+            "kind": "routed",
+            "request_id": "routereq_ee7c00e0a03e431da490df5136802cc1",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "title": "Alice's Adventures in Wonderland",
+            "routing_confidence": 0.7,
+            "max_chapter_inclusive": 5,
+            "boundary_confidence": 0.96
+          },
+          "evidence_ids": []
+        },
+        {
+          "stage": "revision",
+          "tool_name": "librarian_search",
+          "outcome": "success",
+          "result": {
+            "kind": "result",
+            "request_id": "libreq_b7a09de8a8c24eed8ba735d4f8b55a2a",
+            "outcome": "evidence_found",
+            "evidence_strength": "sufficient",
+            "strength_reason": "The passages directly contain the requested sentence—“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered the number of changes she had gone through that day—and the surrounding exchange shows why the naming feels awkward: Alice is being defined by someone else as a serpent, her body has changed, and she hesitates while trying to assert an identity that still matters deeply to her.",
+            "searched_scope": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "max_chapter_inclusive": 5
+            },
+            "limitations": []
+          },
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1151-1186"
+          ]
+        }
+      ],
+      "candidate_evidence_uses": [
+        {
+          "stage": "draft",
+          "evidence_uses": [
+            {
+              "source_kind": "book_corpus",
+              "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+              "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+              "exact_quote": null
+            }
+          ]
+        },
+        {
+          "stage": "revision",
+          "evidence_uses": [
+            {
+              "source_kind": "book_corpus",
+              "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+              "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+              "exact_quote": null
+            }
+          ]
+        }
+      ],
+      "provenance_reviews": [
+        {
+          "status": "success",
+          "output": {
+            "findings": [
+              {
+                "code": "unresolved_evidence",
+                "applies_to": "response",
+                "location": {
+                  "kind": "text_span",
+                  "source_field": "candidate.response",
+                  "path": "",
+                  "quote": "The sentence says that Alice identifies herself as a little girl, but does so hesitantly; the narrator adds that she is remembering how many changes she has undergone that day."
+                },
+                "explanation": "The response paraphrases the requested sentence but does not provide the exact quotation, despite the reader explicitly asking for the sentence including the narrator's description."
+              }
+            ],
+            "response_decision": "revise",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        },
+        {
+          "status": "success",
+          "output": {
+            "findings": [
+              {
+                "code": "unresolved_evidence",
+                "applies_to": "response",
+                "location": {
+                  "kind": "structural",
+                  "source_field": "candidate.response",
+                  "path": ""
+                },
+                "explanation": "The response paraphrases the requested passage but does not provide the exact sentence the reader explicitly asked to have quoted, including the narrator’s description of Alice speaking doubtfully and remembering her changes."
+              }
+            ],
+            "response_decision": "revise",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "application_clarification",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "uncertain-growth",
+          "proposal_id": "growth-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_exchanges": [],
+      "transcript_tool_observations": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "outcome": "success",
+          "result": {
+            "kind": "clarification",
+            "request_id": "routereq_a4e17a6ea7e84f6189b4f06937b37b37",
+            "clarification_id": "clarify_d03e2742b06b4556b50ba76b41ee50e5",
+            "reason_code": "insufficient_context",
+            "question": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+            "expected_answer": {
+              "type": "free_text",
+              "values": []
+            }
+          },
+          "evidence_ids": []
+        }
+      ],
+      "candidate_evidence_uses": [
+        {
+          "stage": "draft",
+          "evidence_uses": []
+        }
+      ],
+      "provenance_reviews": [
+        {
+          "status": "success",
+          "output": {
+            "findings": [],
+            "response_decision": "pass",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "It makes sense that “manager” feels awkward when “designer” still reflects a real part of how you see yourself. A new role can be genuine before it feels natural to say out loud; the hesitation doesn’t mean you’re failing to inhabit it.\n\nYou could try an introduction that gives both parts room:\n\n- “Hi, I’m [name]. I recently moved from design into managing the team, and I’m enjoying learning the role.”\n- “I’m [name], the team manager. My background is in design, so I’m especially interested in helping people do thoughtful, creative work.”\n- “I’m [name]. I used to introduce myself as a designer; now I manage this team, and I’m still getting used to saying that.”\n\nThe last one is honest without pretending the transition feels seamless. Which part feels most important to preserve when you introduce yourself: your design identity, your new responsibility, or the fact that you’re still in transition?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [],
+      "boundary_exchanges": [],
+      "transcript_tool_observations": [],
+      "candidate_evidence_uses": [
+        {
+          "stage": "draft",
+          "evidence_uses": []
+        }
+      ],
+      "provenance_reviews": [
+        {
+          "status": "success",
+          "output": {
+            "findings": [],
+            "response_decision": "pass",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    }
+  ]
+}

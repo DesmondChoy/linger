@@ -11,8 +11,8 @@ copy that content into this skill.
 
 ## Select objectives
 
-1. Read the complete catalog and confirm that it contains exactly ten unique
-   `evaluation_objectives`.
+1. Read the complete catalog and confirm that `evaluation_objectives` is a
+   non-empty list with unique IDs.
 2. Resolve `scripts/objective_selector.py` relative to this `SKILL.md` and run it
    with the repository's Python environment as a long-running local process.
    Surface the printed `OBJECTIVE_SELECTOR_URL` as a clickable link and wait for
@@ -24,11 +24,11 @@ copy that content into this skill.
    never use a non-loopback host, disable the sandbox, or ask the developer to
    change global security settings.
 3. The selector is the complete selection and confirmation surface. It displays
-   all ten objectives together, grouped by `menu_families`. A resting card shows
+   all catalog objectives together, grouped by `menu_families`. A resting card shows
    only the objective's icon and `menu.title`; hovering or focusing it reveals
    `menu.selection_hint`, `menu.summary`, and its
    `composition.combines_well_with` partners. The selector accepts one through
-   all ten objectives, shows the live selection count, surfaces every
+   all catalog objectives, shows the live selection count, surfaces every
    `selection_constraints` rule on the affected card before it is violated, and
    confirms the complete selection.
 4. Continue only after the process exits successfully with exactly one
@@ -141,6 +141,18 @@ authorize synthetic-data generation.
     `GroundTruthProposal.prop_relevance` entry for every available Prop in each
     Scene. Without this Objective, create only the Props required by the
     confirmed selection.
+    When `proactive_memory_surfacing` is selected, use supplied, bounded,
+    account-scoped Props and one offline input per Scene, with no Lines. Resolve
+    `OfflineInput.surfacing_context` using the current contract, including a
+    timezone-aware `now`, `current_context`, and prior surfaced or dismissed
+    `history`.
+    Keep proposed decisions and their reasons in `GroundTruthProposal.surfacing`,
+    separate from runtime inputs. Cover every catalog case kind and preserve
+    the paired timely and deferred Scenes with only `now` changed. This
+    Objective evaluates offline decision quality. Do not require automatic
+    capture, live retrieval, a scheduler, notifications, Muse wording, or
+    Provenance release. Its first replay supports this Objective alone; a mixed
+    selection needs a separately supported execution plan.
 13. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
     workflow inputs, translated Ground truth requirements, and the Backstory and

@@ -385,6 +385,19 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("A normal reviewed reflection.", response.reply)
         reflection.assert_awaited_once()
+        payload = json.loads(reflection.await_args.args[0])
+        emotional_policy = payload["muse_turn"]["policy"]["emotional_content"]
+        self.assertNotIn("suppress_tools", emotional_policy)
+        self.assertNotIn("suppress_capture", emotional_policy)
+        self.assertTrue(emotional_policy["suppress_tools_after_distress"])
+        self.assertTrue(emotional_policy["suppress_capture_after_distress"])
+        self.assertEqual("2", emotional_policy["version"])
+        self.assertEqual(
+            emotional_policy,
+            reflection.await_args.kwargs["review_context"]["policy_constraints"][
+                "emotional_content"
+            ],
+        )
 
     async def test_preflight_cancellation_restores_state_and_writes_nothing(self) -> None:
         with patch.object(

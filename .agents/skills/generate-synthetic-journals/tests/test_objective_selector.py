@@ -21,15 +21,16 @@ sys.modules[SPEC.name] = selector
 SPEC.loader.exec_module(selector)
 
 
-def test_current_catalog_has_ten_unique_objectives() -> None:
+def test_current_catalog_has_eleven_unique_objectives() -> None:
     catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
     document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
 
     assert "schema_version" not in document
-    assert len(catalog.objectives) == 10
-    assert len(set(catalog.ids)) == 10
+    assert len(catalog.objectives) == 11
+    assert len(set(catalog.ids)) == 11
     assert "session_scoped_conversation_continuity" in catalog.ids
     assert "longitudinal_memory_retrieval" in catalog.ids
+    assert "proactive_memory_surfacing" in catalog.ids
     assert "user_controlled_memory_lifecycle" not in catalog.ids
     assert "objective, backstory, prop, scene, line, ground truth" in document[
         "canonical_vocabulary"
@@ -47,6 +48,9 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
         "reviewed_automatic_memory_capture",
         "bounded_memory_curation",
         "session_scoped_conversation_continuity",
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification",
+        "proactive_memory_surfacing",
     ]
     assert set(document["ground_truth_lifecycle"]) == {
         "generation",
@@ -74,6 +78,70 @@ def test_current_catalog_has_ten_unique_objectives() -> None:
     assert "retrieval_prop_mix" in {
         prompt_input["id"] for prompt_input in retrieval["prompt_inputs"]
     }
+
+
+@pytest.mark.parametrize("count", [1, 12])
+def test_catalog_accepts_non_empty_objective_counts(tmp_path: Path, count: int) -> None:
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    template = document["evaluation_objectives"][0]
+    document["evaluation_objectives"] = [
+        {
+            **template,
+            "id": f"objective_{index}",
+            "composition": {"combines_well_with": []},
+        }
+        for index in range(count)
+    ]
+    path = tmp_path / "catalog.yaml"
+    path.write_text(yaml.safe_dump(document), encoding="utf-8")
+
+    catalog = selector.load_catalog(path)
+
+    assert len(catalog.ids) == count
+    assert selector.validate_selection(catalog, list(reversed(catalog.ids))) == catalog.ids
+
+
+@pytest.mark.parametrize("entries", [None, {}, [], "objectives"])
+def test_catalog_rejects_missing_empty_or_non_list_objectives(
+    tmp_path: Path, entries: object
+) -> None:
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    document["evaluation_objectives"] = entries
+    path = tmp_path / "catalog.yaml"
+    path.write_text(yaml.safe_dump(document), encoding="utf-8")
+
+    with pytest.raises(selector.SelectorError, match="non-empty list"):
+        selector.load_catalog(path)
+
+
+def test_catalog_rejects_duplicate_objective_ids(tmp_path: Path) -> None:
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    document["evaluation_objectives"].append(document["evaluation_objectives"][0])
+    path = tmp_path / "catalog.yaml"
+    path.write_text(yaml.safe_dump(document), encoding="utf-8")
+
+    with pytest.raises(selector.SelectorError, match="IDs must be unique"):
+        selector.load_catalog(path)
+
+
+def test_catalog_rejects_unknown_combination_partners(tmp_path: Path) -> None:
+    document = yaml.safe_load(selector.DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    document["evaluation_objectives"][0]["composition"]["combines_well_with"] = [
+        "invented_objective"
+    ]
+    path = tmp_path / "catalog.yaml"
+    path.write_text(yaml.safe_dump(document), encoding="utf-8")
+
+    with pytest.raises(selector.SelectorError, match="unknown objective"):
+        selector.load_catalog(path)
+
+
+def test_proactive_objective_is_selectable_without_capture() -> None:
+    catalog = selector.load_catalog(selector.DEFAULT_CATALOG)
+
+    assert selector.validate_selection(catalog, ["proactive_memory_surfacing"]) == (
+        "proactive_memory_surfacing",
+    )
 
 
 def test_catalog_exposes_grouping_and_choosing_aids() -> None:
@@ -164,7 +232,7 @@ def test_server_returns_catalog_and_confirmed_selection(tmp_path: Path) -> None:
         request = Request(f"{base_url}/api/catalog", headers={"X-Selector-Token": "test-token"})
         with urlopen(request) as response:
             payload = json.load(response)
-        assert len(payload["objectives"]) == 10
+        assert len(payload["objectives"]) == len(catalog.objectives)
         assert len(payload["families"]) == 3
         assert {"selectionHint", "family", "combinesWellWith"} <= set(payload["objectives"][0])
 

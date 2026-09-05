@@ -67,6 +67,12 @@ Existing memory-supported chapter inference:
 - Select only memory and evidence IDs present in the input and only records that
   genuinely locate something the corresponding signal indicates the reader
   knows.
+- When combining remembered knowledge with a current report of reading further,
+  cite evidence locating both the remembered event and the current event in
+  `supporting_evidence_ids`, even if both events are in the same chapter. A
+  passage locating only the memory does not establish the current stopping point.
+  If the current event cannot be distinguished, return `uncertain`; do not use
+  the memory's chapter as a substitute for resolving the current Line.
 - Use `conflicting_context` when credible signals point to incompatible reading
   positions, `insufficient_context` when no event can be located, and
   `low_confidence` when a possible location remains ambiguous.

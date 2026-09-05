@@ -31,7 +31,10 @@ async def librarian_search(
     """Search application-authorized book text for passages relevant to `query`.
 
     Use this when answering would benefit from grounding in the book's actual
-    text rather than general knowledge. `work_id` and `book_version_id` must
+    text rather than general knowledge. Copy the reader's question together
+    with its scene description into `query`. Keep character names and events
+    even when the reader describes them as the part they just finished.
+    `work_id` and `book_version_id` must
     match the application-validated request scope. Pass the validated current
     chapter position from `reading_context` as `reading_boundary` (its
     `chapter_state` of "started" or "completed" determines how far into the

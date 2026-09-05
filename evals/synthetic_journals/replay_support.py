@@ -34,6 +34,10 @@ _BOOK = ReplaySupport(
 )
 
 _SUPPORTED_REPLAYS = {
+    frozenset({"proactive_memory_surfacing"}): ReplaySupport(
+        name="proactive memory surfacing",
+        module="evals.synthetic_journals.surfacing_replay",
+    ),
     frozenset({"reviewed_automatic_memory_capture"}): _CAPTURE,
     frozenset({"bounded_memory_curation"}): _CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,

@@ -220,6 +220,53 @@ class CurationPolicyTests(unittest.TestCase):
             {memory_id: path.read_bytes() for memory_id, path in source_paths.items()},
         )
 
+    def test_opposite_tombstones_cannot_hide_every_duplicate(self) -> None:
+        first, second = self.seed("Same durable memory", "Same durable memory")
+        records = (first, second)
+        self.service.apply_curation(
+            self.alice,
+            self.approve(
+                records,
+                DuplicateLink(
+                    action="link_duplicates",
+                    source_memory_ids=(first.memory_id, second.memory_id),
+                ),
+            ),
+        )
+        self.service.apply_curation(
+            self.alice,
+            self.approve(
+                records,
+                RetrievalTombstone(
+                    action="tombstone_for_retrieval",
+                    source_memory_ids=(second.memory_id, first.memory_id),
+                    memory_id=second.memory_id,
+                    canonical_memory_id=first.memory_id,
+                ),
+            ),
+        )
+        opposite = self.approve(
+            records,
+            RetrievalTombstone(
+                action="tombstone_for_retrieval",
+                source_memory_ids=(first.memory_id, second.memory_id),
+                memory_id=first.memory_id,
+                canonical_memory_id=second.memory_id,
+            ),
+        )
+
+        with self.assertRaisesRegex(
+            CurationPolicyError, "tombstone_canonical_not_retrievable"
+        ):
+            self.service.apply_curation(self.alice, opposite)
+
+        self.assertEqual(
+            [first.memory_id],
+            [item.memory_id for item in self.service.list_for_retrieval(self.alice)],
+        )
+        self.assertEqual(2, len(self.service.list_active(self.alice)))
+        self.assertEqual(2, len(self.service.list_curation_audit(self.alice)))
+
     def test_tombstone_requires_an_existing_duplicate_link(self) -> None:
         canonical, duplicate = self.seed("Same", "Same")
         tombstone = self.approve(

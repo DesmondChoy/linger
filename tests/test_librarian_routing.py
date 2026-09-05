@@ -26,6 +26,7 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.corpus import registry
 from src.linger.evaluation_transcript import active_evaluation_correlation_id
+from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.orchestration.turn_context import (
     confirmed_reading,
     reset_active_memories,
@@ -356,13 +357,18 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         reset_active_memories(self._token)
         self._token = set_active_memories((_caterpillar_scene_memory(),))
         self._set_message("Help me repair my bicycle.")
+        # Inference must run for the session fallback; the boundary path declines
+        # before or at the judge because the unrelated line retrieves no evidence.
         with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            new=AsyncMock(wraps=infer_spoiler_boundary),
+        ) as infer, patch(
             "src.linger.orchestration.boundary.judge_spoiler_boundary",
             side_effect=declining_judge,
-        ) as judge:
+        ):
             result = await librarian_route()
 
-        self.assertEqual(1, judge.await_count)
+        self.assertEqual(1, infer.await_count)
         self.assertIsInstance(result, ClarificationRequest)
         self.assertIsNone(sessions.reading_candidate("route-session"))
         self.assertIsNone(confirmed_reading())
