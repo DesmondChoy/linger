@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import logfire
 
+from apps.backend import sessions
 from apps.backend.config import get_settings
 from apps.backend.contracts import BookScope, EvidenceItem
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
@@ -30,7 +31,7 @@ from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
     judge_evidence_strength,
 )
-from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading
+from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading, session_id
 
 MAX_FINAL_EVIDENCE = 5
 
@@ -117,6 +118,22 @@ async def _grounding_evidence(
 
     reading = confirmed_reading()
     if reading is None:
+        current_session = session_id()
+        if current_session is not None:
+            scope = librarian.registered_scope(request.work_id, request.book_version_id)
+            if scope is not None:
+                sessions.set_book_selection(
+                    current_session,
+                    sessions.BookSelection(book_id=scope.work_id, book_title=scope.title),
+                )
+                sessions.set_pending_clarification(
+                    current_session,
+                    sessions.PendingClarification(
+                        book_id=scope.work_id,
+                        book_title=scope.title,
+                        reason_code="reading_boundary_unconfirmed",
+                    ),
+                )
         return _clarification(
             request.request_id,
             "reading_boundary_unconfirmed",

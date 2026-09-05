@@ -83,6 +83,9 @@ logger = logging.getLogger(f"{ROOT_NAME}.backend")
 settings = get_settings()
 
 CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.IGNORECASE)
+BARE_CHAPTER_ANSWER_PATTERN = re.compile(
+    r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
+)
 TITLE_PREFIX_PATTERN = re.compile(r"\b(?:i(?:'m| am)\s+)?(?:reading|read)\s+(?P<title>.+)$", re.IGNORECASE)
 TITLE_END_PATTERN = re.compile(
     r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
@@ -154,6 +157,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     """
     candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
+    pending = sessions.pending_clarification(request.session_id)
     in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
     completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
 
@@ -177,6 +181,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
 
     if completed and chapter_match and selection:
         chapter = int(chapter_match.group(1))
+        sessions.clear_pending_clarification(request.session_id)
         if candidate and selection.book_id == candidate.book_id:
             sessions.clear_reading_candidate(request.session_id)
         return ContextResolution(
@@ -198,6 +203,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         and (completed or candidate_confirmed)
     ):
         sessions.clear_reading_candidate(request.session_id)
+        sessions.clear_pending_clarification(request.session_id)
         return ContextResolution(
             status="confirmed",
             work_id=candidate.book_id,
@@ -207,6 +213,31 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             boundary_source="reader_confirmed",
             boundary_authorization_basis="explicit_progress",
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
+        )
+
+    if (
+        pending
+        and chapter_match
+        and BARE_CHAPTER_ANSWER_PATTERN.fullmatch(request.message.strip())
+        and (selection is None or selection.book_id == pending.book_id)
+    ):
+        chapter = int(chapter_match.group(1))
+        selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title)
+        sessions.set_book_selection(request.session_id, selection)
+        sessions.clear_pending_clarification(request.session_id)
+        sessions.clear_reading_candidate(request.session_id)
+        return ContextResolution(
+            status="confirmed",
+            work_id=pending.book_id,
+            work_title=pending.book_title,
+            book_version_id=librarian_service.version_for(pending.book_id),
+            chapter_max=chapter,
+            boundary_source="reader_confirmed",
+            boundary_authorization_basis="explicit_progress",
+            explanation=(
+                "The reader answered Librarian's pending chapter question with an "
+                "explicit chapter in the current message."
+            ),
         )
 
     if selection:

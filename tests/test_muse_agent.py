@@ -185,6 +185,37 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("smallest evidence set", lowered)
         self.assertIn("directly supported by the cited records", lowered)
 
+    def test_instructions_carry_original_question_after_clarification_answer(
+        self,
+    ) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        self.assertIn(
+            "when the previous released turn was such a clarification and "
+            "`context_resolution.status` is now `confirmed`, the reader has "
+            "answered it: the application already validated their chapter. "
+            "do not call `librarian_route` again and do not ask the question "
+            "again. call `librarian_search` with the reader's original book "
+            "question from the conversation history as `query` — never the "
+            "reader's chapter answer — and `reading_boundary` built from "
+            "`muse_turn.reading_context.chapter_max` with `chapter_state` "
+            '"completed".',
+            lowered,
+        )
+        self.assertIn(
+            "once the reader's answer is confirmed, re-run this tool as "
+            "described in the routing section above.",
+            lowered,
+        )
+
+    def test_prompt_fingerprints_are_version_four(self) -> None:
+        from src.linger.agents.muse.prompt import (
+            DRAFT_PROMPT_FINGERPRINT,
+            REVISION_PROMPT_FINGERPRINT,
+        )
+
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "4")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "4")
+
 
 class SessionLineUseTests(unittest.TestCase):
     def test_rejects_a_trivial_fragment(self) -> None:
