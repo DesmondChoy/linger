@@ -51,12 +51,22 @@ _ACTIVE_SINK: ContextVar[EvaluationTranscriptSink | None] = ContextVar(
     "linger_evaluation_transcript_sink",
     default=None,
 )
+_ACTIVE_CORRELATION_ID: ContextVar[str | None] = ContextVar(
+    "linger_evaluation_correlation_id",
+    default=None,
+)
 
 
 def active_evaluation_transcript_sink() -> EvaluationTranscriptSink | None:
     """Return the case-scoped sink, if a synthetic runner bound one."""
 
     return _ACTIVE_SINK.get()
+
+
+def active_evaluation_correlation_id() -> str | None:
+    """Return the evaluation-only request correlation, when one is bound."""
+
+    return _ACTIVE_CORRELATION_ID.get()
 
 
 @contextmanager
@@ -70,3 +80,16 @@ def bind_evaluation_transcript_sink(
         yield
     finally:
         _ACTIVE_SINK.reset(token)
+
+
+@contextmanager
+def bind_evaluation_correlation_id(correlation_id: str) -> Iterator[None]:
+    """Correlate nested evaluation exchanges without changing their prompts."""
+
+    if not correlation_id:
+        raise ValueError("evaluation correlation ID must not be empty")
+    token = _ACTIVE_CORRELATION_ID.set(correlation_id)
+    try:
+        yield
+    finally:
+        _ACTIVE_CORRELATION_ID.reset(token)

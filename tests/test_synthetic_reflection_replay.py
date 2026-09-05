@@ -45,7 +45,7 @@ from evals.synthetic_journals.reflection_replay import (
     resolve_corpus_evidence_ids,
 )
 
-OBJECTIVE_ID = "grounded_book_reflection"
+OBJECTIVE_ID = "weak_evidence_safe_decline"
 CORPUS_CHAPTER = (
     "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/"
     "01-down-the-rabbit-hole.md"
@@ -417,6 +417,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
         outcomes = (
             RoutedWork(
                 kind="routed",
+                request_id="routereq_test",
                 work_id="pg11",
                 book_version_id="pg11-v01b38ea4",
                 title="Alice's Adventures in Wonderland",
@@ -424,7 +425,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                 max_chapter_inclusive=6,
                 boundary_confidence=0.9,
             ),
-            NoMatch(kind="no_match"),
+            NoMatch(kind="no_match", request_id="routereq_none"),
             ClarificationRequest(
                 kind="clarification",
                 request_id="routereq_test",
@@ -517,6 +518,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                     if grounded_scene:
                         routed = RoutedWork(
                             kind="routed",
+                            request_id="routereq_test",
                             work_id="pg11",
                             book_version_id="pg11-v01b38ea4",
                             title="Alice's Adventures in Wonderland",

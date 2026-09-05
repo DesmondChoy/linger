@@ -15,6 +15,11 @@ Checked-in authoring packages live under
 remain under `synthetic-journal-evaluation/run-configurations/` because packages
 reference them by ID and the validator applies them across packages.
 
+Book packages store shared Scene facts in `ProposedGroundTruth.book_scene_facts`.
+Each book proposal stores one discriminated `book_expectation` that matches its
+Objective ID. Generic `grounding` belongs only to
+`weak_evidence_safe_decline`.
+
 ## Human-gated end-to-end workflow
 
 Configure the Linger Logfire project before starting a provider-backed
@@ -46,19 +51,17 @@ The complete workflow is:
 5. Invoke the `review-synthetic-ground-truth` skill. A human independent of the
    generator approves or flags every proposed Ground truth row.
 6. **Make Changes** returns the decision without writing an adoption or starting
-   runtime. Confirmation writes `ground-truth-adoption.json`. For exactly one
-   supported Objective, the agent validates that adoption and starts one
-   provider-backed replay. The skill automatically routes reviewed automatic
-   capture and bounded memory curation; other selections stop after adoption.
+   runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
+   supported selection, the agent validates that adoption and starts one
+   provider-backed replay. Supported selections include capture, curation,
+   continuity, either book Objective alone, and both book Objectives in either
+   order. Other selections stop after adoption.
 7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
    providers, and Live views. Keep the runner's JSON output as the durable,
    complete evaluation record.
 
-The local selectors and reviewer return decisions to the agent; neither browser
-server invokes a generator, model, or replay runner. The grounded-reflection and
-spoiler-boundary runner described below is implemented for explicit invocation
-after adoption, but it is not an automatic route owned by the current review
-skill.
+The local selectors and reviewer return decisions to the agent. Neither browser
+server invokes a generator, model, or replay runner.
 
 The Pydantic models in `models.py` are the schema authority. Validate a package
 from the repository root:
@@ -116,16 +119,11 @@ adoption binds the human identity and decisions to the exact package hashes; it
 does not rewrite `ground-truth.json`.
 
 The loopback server only returns the decision. The agent validates the result
-and chooses a known objective-specific runner. The browser never receives
-runtime authority or provider credentials. Automatic post-confirmation routes
-cover capture, bounded curation, and session continuity. The grounded-reflection
-plus spoiler-boundary runner is available for explicit invocation after adoption;
-other or mixed Objectives stop after adoption.
-
-The Objective catalog and review skill register session continuity as a
-supported replay path. Confirming its Ground truth authorizes the agent to run
-`evals.synthetic_journals.continuity_replay` once with the validated adoption.
-The loopback server itself never invokes runtime.
+and chooses the registered runner for the exact Objective selection. The
+browser never receives runtime authority or provider credentials. Automatic
+post-confirmation routes cover capture, curation, continuity, either book
+Objective alone, and both book Objectives in either order. Other selections
+stop after adoption.
 
 ## Capture replay
 
@@ -246,7 +244,7 @@ a rename, can restore visibility.
 
 ## Grounded reflection and spoiler-boundary replay
 
-Replay the validated three-Scene book package through the production
+Replay a validated book package through the production
 application chat-turn boundary:
 
 ```bash
@@ -256,14 +254,14 @@ uv run python -m evals.synthetic_journals.book_replay \
   --output /tmp/book-reflection-spoiler-run.json
 ```
 
-The package must select `grounded_book_reflection` followed by
-`spoiler_boundary_clarification`, with no run configuration. It contains one
-combined inference-and-grounding Scene, one ambiguous clarification comparison,
-and one personal no-retrieval comparison. All three use one Line in a fresh
-session. The two book-boundary Scenes share one active Prop; the personal Scene
-has no Prop.
+Select `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
+either order, with no run configuration. Each Scene has one Line in a fresh
+session and only active Props. Grounded reflection requires retrieval and
+no-retrieval comparisons. Spoiler evaluation requires event-led inference and
+clarification comparisons. A combined package includes a shared inferred Scene.
+The runner does not require exactly one Prop or three Scenes.
 
-The runner seeds each Scene's designated Prop into fresh, account-scoped
+The runner seeds each Scene's designated Props into fresh, account-scoped
 storage, disables automatic capture, and calls `run_chat_turn` directly. This
 is the same application workflow used by `POST /api/chat`, but replay does not
 construct an HTTP request or depend on FastAPI exception semantics.
@@ -273,11 +271,24 @@ Ground truth grades the inference or clarification decision, exact ceiling,
 permitted and forbidden production evidence IDs, exact quotations, absence of
 retrieval, and unchanged Prop storage. Proposed labels never enter chat.
 
-Repository-text evidence uses a globally unique `evidence_id` for each review
-reference. The grader matches its hash-bound exact text against evidence
-observed from production, so packages do not depend on a particular retrieval
-index's window IDs. The command shares the other runners' proposal, adoption,
-and output behavior; it does not adopt or run independent review itself.
+`book_scene_facts` records shared work identity, scope, exact basis spans, and
+`corpus_text` excerpts. The compiler checks registered corpus integrity and
+resolves each excerpt to its exact source occurrence and supported paragraph
+or hybrid windows. The grader compares full evidence records, including work,
+version, chapter, source hash, location, source lines, and text. Equal text at
+another location cannot pass. Each proposal's `book_expectation` owns only its
+Objective-specific judgment.
+
+By default, spoiler checks cover scope, evidence, and exact forbidden text.
+With separate approval, add `--semantic-review` for an additional model review
+of paraphrased disclosure. Its `pass`, `fail`, `not_run`, or `error` result is
+stored separately and labeled non-independent. It does not change the hard
+grade or establish semantic accuracy. Human review remains necessary.
+
+The command shares the other runners' proposal, adoption, and output behavior.
+It does not adopt labels. Historical book packages using the removed fields
+remain unchanged but are obsolete replay inputs. New Ground truth requires new
+independent review; an old adoption cannot approve changed shared Scene facts.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene

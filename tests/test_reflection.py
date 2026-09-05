@@ -505,6 +505,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(1, len(release.librarian_grounding_calls))
         grounding_call = release.librarian_grounding_calls[0]
+        self.assertEqual("librarian_search", grounding_call["tool_name"])
         self.assertEqual(
             "the pool of tears", grounding_call["request"]["query"]
         )
@@ -752,6 +753,55 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(expected_source, release.release_source)
                 if expected_source == "application_safe_decline":
                     self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_route_clarification_overrides_an_earlier_routed_scope_everywhere(
+        self,
+    ) -> None:
+        question = "How far have you read?"
+        routed = ToolReturnPart(
+            "librarian_route",
+            {
+                "kind": "routed",
+                "request_id": "routereq-routed",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "title": "Alice's Adventures in Wonderland",
+                "routing_confidence": 1.0,
+                "max_chapter_inclusive": 5,
+                "boundary_confidence": 0.9,
+            },
+        )
+        clarification = ToolReturnPart(
+            "librarian_route",
+            {
+                "kind": "clarification",
+                "request_id": "routereq-clarify",
+                "clarification_id": "clarify-1",
+                "reason_code": "insufficient_context",
+                "question": question,
+                "expected_answer": {"type": "free_text", "values": []},
+            },
+        )
+        muse = AsyncMock()
+        muse.run.return_value = result(question, routed, clarification)
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Why does Alice struggle to explain who she is?",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual("muse_candidate", release.release_source)
+        review_payload = json.loads(provenance.run.await_args.args[0])
+        self.assertIsNone(review_payload["context"]["reading_context"])
+        self.assertFalse(review_payload["context"]["policy"]["allow_retrieval"])
+        self.assertEqual(
+            ["librarian_route", "librarian_route"],
+            [call["tool_name"] for call in release.librarian_grounding_calls],
+        )
 
     async def test_unresolved_or_non_librarian_evidence_fails_closed(self) -> None:
         self.register_evidence()

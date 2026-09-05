@@ -15,6 +15,7 @@ from pydantic_ai.messages import (
 )
 
 from src.linger.agents.contracts import PromptFingerprint
+from src.linger.evaluation_transcript import active_evaluation_correlation_id
 
 from .models import StrictModel
 
@@ -48,6 +49,7 @@ class AgentExchange(StrictModel):
     output_receiver: str
     input_contract: str
     output_contract: str
+    correlation_id: str | None = None
     prompt_fingerprint: PromptFingerprint
     input_prompt: str
     message_history: tuple[Any, ...]
@@ -70,6 +72,7 @@ class _PendingExchange:
     output_receiver: str
     input_contract: str
     output_contract: str
+    correlation_id: str | None
     prompt_fingerprint: PromptFingerprint
     input_prompt: str
     message_history: tuple[Any, ...]
@@ -109,6 +112,7 @@ class SceneTranscriptRecorder:
             output_receiver=output_receiver,
             input_contract=input_contract,
             output_contract=output_contract,
+            correlation_id=active_evaluation_correlation_id(),
             prompt_fingerprint=PromptFingerprint(
                 template_id=prompt_template_id,
                 version=prompt_version,
@@ -146,6 +150,7 @@ class SceneTranscriptRecorder:
             output_receiver=handle.output_receiver,
             input_contract=handle.input_contract,
             output_contract=handle.output_contract,
+            correlation_id=handle.correlation_id,
             prompt_fingerprint=handle.prompt_fingerprint,
             input_prompt=handle.input_prompt,
             message_history=_serialize_messages(handle.message_history),

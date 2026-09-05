@@ -15,7 +15,7 @@ from evals.synthetic_journals.validate_package import (
     validate_package,
 )
 
-OBJECTIVE_ID = "grounded_book_reflection"
+OBJECTIVE_ID = "weak_evidence_safe_decline"
 CORPUS_CHAPTER = "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/01-down-the-rabbit-hole.md"
 QUOTE = "a book of rules for shutting people up like telescopes"
 
@@ -196,9 +196,9 @@ def test_grounding_is_rejected_on_a_non_reflection_objective(
     content["scenes"][1]["objective_ids"] = ["bounded_memory_curation"]  # type: ignore[index]
     ground_truth["proposals"][1]["objective_id"] = "bounded_memory_curation"  # type: ignore[index]
 
-    with pytest.raises(PackageValidationError) as error:
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError, match="only for weak_evidence_safe_decline"):
         _validate(content, ground_truth, repository_root)
-    assert "has grounding Ground truth for Objective" in str(error.value)
 
 
 def test_permitted_evidence_must_be_corpus_backed(

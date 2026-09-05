@@ -100,9 +100,18 @@ blockquote { margin: 10px 0 0; color: #26352d; font-family: "Iowan Old Style", G
 .source-id-list code { border: 1px solid #ccd6cf; background: #edf3ef; padding: 4px 6px; }
 .constraint { color: #56655c; font-size: 12px; }
 .semantic-review { border-top: 1px solid #d8dfda; margin-top: 12px; padding-top: 10px; }
-.semantic-review h4, .relevance-grid h4, .span-list h4, .outcome-list h4 { margin: 0 0 8px; color: #4c5d53; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.semantic-review h4, .typed-expectation h4, .relevance-grid h4, .span-list h4, .outcome-list h4 { margin: 0 0 8px; color: #4c5d53; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 .semantic-review ul, .outcome-list ul { display: grid; gap: 5px; margin: 0; padding-left: 18px; color: #45544b; font-size: 12px; line-height: 1.43; }
 .exact-quote { border-left: 3px solid var(--forest); padding-left: 13px; }
+.book-scene-facts { border-top: 3px solid var(--forest); }
+.book-expectation { border-top: 3px solid #4f748d; }
+.book-scene-facts .field-pair code { color: #3f5c4c; font-size: 11px; overflow-wrap: anywhere; }
+.book-fact-records { border-top: 1px solid #d8dfda; margin-top: 12px; padding-top: 10px; }
+.book-fact-records h5, .fact-list > span { margin: 0 0 8px; color: #59685f; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.book-fact-records .span-record > div { align-items: center; }
+.book-fact-records .span-record > div code { color: #46594e; font-size: 10px; overflow-wrap: anywhere; }
+.fact-list { border-top: 1px solid #d8dfda; margin-top: 10px; padding-top: 10px; }
+.fact-list ul { display: grid; gap: 5px; margin: 0; padding-left: 18px; color: #45544b; font-size: 12px; line-height: 1.43; }
 .relevance-grid > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; border-top: 1px solid #e1e6e2; padding: 7px 0; }
 .span-record { border-top: 1px solid #e0e5e1; padding: 9px 0; }
 .span-record > div { display: flex; justify-content: space-between; gap: 12px; color: #6a776f; font-size: 10px; }

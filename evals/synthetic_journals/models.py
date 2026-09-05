@@ -422,8 +422,91 @@ class ScenePairing(StrictModel):
         return self
 
 
-class GroundedBookReflectionExpectation(StrictModel):
-    """Deterministic retrieval expectations for one grounded reflection Scene."""
+class CorpusTextEvidence(StrictModel):
+    """One exact excerpt in a chapter of the Scene's registered corpus."""
+
+    kind: Literal["corpus_text"]
+    evidence_id: Identifier
+    chapter_id: Identifier
+    start_codepoint: int = Field(ge=0)
+    end_codepoint: int = Field(gt=0)
+    text: Text
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> Self:
+        if self.end_codepoint <= self.start_codepoint:
+            raise ValueError("end_codepoint must be greater than start_codepoint")
+        return self
+
+
+class ReaderConfirmedBookScope(StrictModel):
+    """A chapter ceiling supplied by trusted reader/session context."""
+
+    kind: Literal["reader_confirmed"]
+    work_id: Identifier
+    book_version_id: Identifier
+    safe_ceiling_chapter: int = Field(ge=1)
+
+
+class LibrarianInferredBookScope(StrictModel):
+    """A ceiling derived from exact evidence supporting active Scene Props."""
+
+    kind: Literal["librarian_inferred"]
+    work_id: Identifier
+    book_version_id: Identifier
+    authorised_prop_ids: tuple[Identifier, ...] = Field(min_length=1)
+    supporting_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_unique_ids(self) -> Self:
+        _require_unique("book scope authorised Prop IDs", self.authorised_prop_ids)
+        _require_unique(
+            "book scope supporting evidence IDs", self.supporting_evidence_ids
+        )
+        return self
+
+
+class ClarificationBookScope(StrictModel):
+    """An unresolved boundary that must be clarified without retrieval."""
+
+    kind: Literal["clarification"]
+    work_id: Identifier
+    book_version_id: Identifier
+    authorised_prop_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_unique_ids(self) -> Self:
+        _require_unique("book scope authorised Prop IDs", self.authorised_prop_ids)
+        return self
+
+
+BookScopeExpectation = Annotated[
+    ReaderConfirmedBookScope | LibrarianInferredBookScope | ClarificationBookScope,
+    Field(discriminator="kind"),
+]
+
+
+class BookSceneFacts(StrictModel):
+    """The sole owner of book facts shared by a Scene's Objectives."""
+
+    scene_id: Identifier
+    scope: BookScopeExpectation
+    basis_spans: tuple[ExactSpan, ...] = ()
+    evidence: tuple[CorpusTextEvidence, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_local_uniqueness(self) -> Self:
+        _require_unique(
+            "BookSceneFacts evidence IDs",
+            tuple(item.evidence_id for item in self.evidence),
+        )
+        return self
+
+
+class GroundedBookExpectation(StrictModel):
+    """The retrieval judgment owned by grounded book reflection."""
+
+    kind: Literal["grounded_book_reflection"]
 
     retrieval: Literal["required", "not_required"]
     permitted_evidence_ids: tuple[Identifier, ...] = ()
@@ -455,46 +538,25 @@ class GroundedBookReflectionExpectation(StrictModel):
         return self
 
 
-class SpoilerBoundaryExpectation(StrictModel):
-    """Typed answer key for event-led inference or spoiler-safe clarification."""
+class SpoilerBoundaryBookExpectation(StrictModel):
+    """The later-story material owned by the spoiler-boundary Objective."""
 
-    decision: Literal["infer", "clarify"]
-    authorised_prop_ids: tuple[Identifier, ...] = Field(min_length=1)
-    safe_ceiling_chapter: int | None = Field(default=None, ge=1)
-    supporting_evidence_ids: tuple[Identifier, ...] = ()
+    kind: Literal["spoiler_boundary_clarification"]
     forbidden_later_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
     def validate_boundary_expectation(self) -> Self:
         _require_unique(
-            "spoiler boundary authorised Prop IDs",
-            self.authorised_prop_ids,
-        )
-        _require_unique(
-            "spoiler boundary supporting evidence IDs",
-            self.supporting_evidence_ids,
-        )
-        _require_unique(
             "spoiler boundary forbidden later evidence IDs",
             self.forbidden_later_evidence_ids,
         )
-        overlap = set(self.supporting_evidence_ids) & set(
-            self.forbidden_later_evidence_ids
-        )
-        if overlap:
-            raise ValueError(
-                "supporting and forbidden later evidence IDs must be disjoint"
-            )
-        if self.decision == "infer":
-            if self.safe_ceiling_chapter is None or not self.supporting_evidence_ids:
-                raise ValueError(
-                    "inferred boundary requires a safe ceiling and supporting evidence"
-                )
-        elif self.safe_ceiling_chapter is not None or self.supporting_evidence_ids:
-            raise ValueError(
-                "clarification boundary cannot declare a ceiling or supporting evidence"
-            )
         return self
+
+
+BookObjectiveExpectation = Annotated[
+    GroundedBookExpectation | SpoilerBoundaryBookExpectation,
+    Field(discriminator="kind"),
+]
 
 
 class GroundTruthProposal(StrictModel):
@@ -512,8 +574,7 @@ class GroundTruthProposal(StrictModel):
     capture: CaptureExpectation | None = None
     curation: CurationExpectation | None = None
     grounding: GroundingExpectation | None = None
-    grounded_book_reflection: GroundedBookReflectionExpectation | None = None
-    spoiler_boundary: SpoilerBoundaryExpectation | None = None
+    book_expectation: BookObjectiveExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:
@@ -540,12 +601,38 @@ class GroundTruthProposal(StrictModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def validate_objective_authority(self) -> Self:
+        book_objectives = {
+            "grounded_book_reflection",
+            "spoiler_boundary_clarification",
+        }
+        if self.objective_id in book_objectives:
+            if self.book_expectation is None:
+                raise ValueError("book Objective requires typed book_expectation")
+            if self.book_expectation.kind != self.objective_id:
+                raise ValueError("book_expectation kind must match objective_id")
+            if self.grounding is not None:
+                raise ValueError("generic grounding is reserved for weak evidence")
+            if self.evidence:
+                raise ValueError("book evidence must be owned by BookSceneFacts")
+            if self.exact_spans:
+                raise ValueError("book basis spans must be owned by BookSceneFacts")
+            if self.capture is not None or self.curation is not None or self.prop_relevance:
+                raise ValueError("book proposal contains unrelated Ground truth")
+        elif self.book_expectation is not None:
+            raise ValueError("book_expectation is valid only for book Objectives")
+        if self.grounding is not None and self.objective_id != "weak_evidence_safe_decline":
+            raise ValueError("generic grounding is valid only for weak_evidence_safe_decline")
+        return self
+
 
 class ProposedGroundTruth(StrictModel):
     """Proposed Ground truth for one backstory.json file."""
 
     backstory_sha256: Sha256
     ground_truth_status: Literal["proposed"]
+    book_scene_facts: tuple[BookSceneFacts, ...] = ()
     proposals: tuple[GroundTruthProposal, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -559,6 +646,10 @@ class ProposedGroundTruth(StrictModel):
             for proposal in self.proposals
         )
         _require_unique("GroundTruthProposal Scene/Objective pairs", keys)
+        _require_unique(
+            "BookSceneFacts Scene IDs",
+            tuple(facts.scene_id for facts in self.book_scene_facts),
+        )
         return self
 
 

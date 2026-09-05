@@ -25,6 +25,7 @@ from evals.synthetic_journals.models import (
     GroundTruthAdoption,
     HumanGroundTruthReviewer,
 )
+from evals.synthetic_journals.replay_support import replay_support_for
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,10 +49,178 @@ CAPTURE_PACKAGE = (
     / "packages"
     / "2026-08-23T182725+0800"
 )
+BOOK_VERSION = "pg11-v01b38ea4"
+BOOK_CHAPTER = (
+    ROOT
+    / "data"
+    / "corpus"
+    / "alice-in-wonderland"
+    / BOOK_VERSION
+    / "chapters"
+    / "05-advice-from-a-caterpillar.md"
+)
+BOOK_QUOTE = "“Who are _you?_” said the Caterpillar."
+
+
 def _copy_package(source: Path, destination: Path) -> None:
     destination.mkdir()
     for name in ("backstory.json", "ground-truth.json", "pre-generation-report.md"):
         shutil.copyfile(source / name, destination / name)
+
+
+def _write_book_package(destination: Path) -> None:
+    prop_text = "Alice and the Caterpillar's questions about identity stayed with me."
+    grounded_line = "Why does Alice struggle to explain who she is?"
+    personal_line = "I struggle to explain who I am when my plans change."
+    backstory = {
+        "objective_ids": ["grounded_book_reflection"],
+        "run_configuration_ids": [],
+        "backstory": {
+            "backstory_id": "backstory-book-review",
+            "person_id": "person-book-review",
+            "evaluation_account_id": "account-book-review",
+            "context": "A reader connects Alice's changing identity to personal change.",
+        },
+        "props": [
+            {
+                "prop_id": "prop-event",
+                "backstory_id": "backstory-book-review",
+                "person_id": "person-book-review",
+                "evaluation_account_id": "account-book-review",
+                "source_text": prop_text,
+                "lifecycle": [{"scene_id": "scene-grounded", "state": "active"}],
+            }
+        ],
+        "scenes": [
+            {
+                "scene_id": "scene-grounded",
+                "backstory_id": "backstory-book-review",
+                "objective_ids": ["grounded_book_reflection"],
+                "order": 1,
+                "fresh_session": True,
+                "prop_ids": ["prop-event"],
+                "line_ids": ["line-grounded"],
+                "offline_input_ids": [],
+            },
+            {
+                "scene_id": "scene-personal",
+                "backstory_id": "backstory-book-review",
+                "objective_ids": ["grounded_book_reflection"],
+                "order": 2,
+                "fresh_session": True,
+                "prop_ids": [],
+                "line_ids": ["line-personal"],
+                "offline_input_ids": [],
+            },
+        ],
+        "lines": [
+            {
+                "line_id": "line-grounded",
+                "scene_id": "scene-grounded",
+                "order": 1,
+                "text": grounded_line,
+            },
+            {
+                "line_id": "line-personal",
+                "scene_id": "scene-personal",
+                "order": 1,
+                "text": personal_line,
+            },
+        ],
+        "offline_inputs": [],
+    }
+    backstory_bytes = json.dumps(backstory, sort_keys=True).encode("utf-8")
+    chapter = BOOK_CHAPTER.read_text(encoding="utf-8")
+    quote_start = chapter.index(BOOK_QUOTE)
+    ground_truth = {
+        "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
+        "ground_truth_status": "proposed",
+        "book_scene_facts": [
+            {
+                "scene_id": "scene-grounded",
+                "scope": {
+                    "kind": "librarian_inferred",
+                    "work_id": "pg11",
+                    "book_version_id": BOOK_VERSION,
+                    "authorised_prop_ids": ["prop-event"],
+                    "supporting_evidence_ids": ["evidence-support"],
+                },
+                "basis_spans": [
+                    {
+                        "source_kind": "prop",
+                        "source_id": "prop-event",
+                        "start_codepoint": 0,
+                        "end_codepoint": len(prop_text),
+                        "text": prop_text,
+                    },
+                    {
+                        "source_kind": "line",
+                        "source_id": "line-grounded",
+                        "start_codepoint": 0,
+                        "end_codepoint": len(grounded_line),
+                        "text": grounded_line,
+                    },
+                ],
+                "evidence": [
+                    {
+                        "kind": "corpus_text",
+                        "evidence_id": "evidence-support",
+                        "chapter_id": f"{BOOK_VERSION}-ch05",
+                        "start_codepoint": quote_start,
+                        "end_codepoint": quote_start + len(BOOK_QUOTE),
+                        "text": BOOK_QUOTE,
+                    }
+                ],
+            }
+        ],
+        "proposals": [
+            {
+                "proposal_id": "proposal-grounded",
+                "scene_id": "scene-grounded",
+                "objective_id": "grounded_book_reflection",
+                "expected_outcomes": ["Use the permitted passage."],
+                "prohibited_outcomes": ["Use evidence beyond the ceiling."],
+                "pairing": {
+                    "paired_scene_id": "scene-personal",
+                    "match_fields": ["backstory_id", "fresh_session"],
+                    "difference_fields": ["prop_ids", "line_text"],
+                },
+                "book_expectation": {
+                    "kind": "grounded_book_reflection",
+                    "retrieval": "required",
+                    "permitted_evidence_ids": ["evidence-support"],
+                    "exact_quotation_evidence_ids": ["evidence-support"],
+                },
+            },
+            {
+                "proposal_id": "proposal-personal",
+                "scene_id": "scene-personal",
+                "objective_id": "grounded_book_reflection",
+                "expected_outcomes": ["Reflect without book retrieval."],
+                "prohibited_outcomes": ["Retrieve book evidence."],
+                "pairing": {
+                    "paired_scene_id": "scene-grounded",
+                    "match_fields": ["backstory_id", "fresh_session"],
+                    "difference_fields": ["prop_ids", "line_text"],
+                },
+                "book_expectation": {
+                    "kind": "grounded_book_reflection",
+                    "retrieval": "not_required",
+                },
+            },
+        ],
+    }
+
+    destination.mkdir()
+    (destination / "backstory.json").write_bytes(backstory_bytes)
+    (destination / "ground-truth.json").write_text(
+        json.dumps(ground_truth, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (destination / "pre-generation-report.md").write_text(
+        "# Pre-generation report\n\nTest-only book review package.\n",
+        encoding="utf-8",
+    )
 
 
 def _write_curation_package(destination: Path) -> None:
@@ -228,6 +397,96 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     }
     assert curation_payload["rows"][0]["curation"] is not None
     assert curation_payload["report"]["text"].startswith("# Pre-generation report")
+
+
+def test_review_payload_shows_shared_book_facts_and_expectation(
+    tmp_path: Path,
+    built_ui: Path,
+) -> None:
+    package = tmp_path / "book"
+    _write_book_package(package)
+
+    payload = _state(package, built_ui).payload
+    grounded = payload["rows"][0]
+
+    assert grounded["bookSceneFacts"]["scope"]["kind"] == "librarian_inferred"
+    assert grounded["bookSceneFacts"]["derived_safe_ceiling_chapter"] == 5
+    assert grounded["bookSceneFacts"]["basis_spans"][0]["source_id"] == "prop-event"
+    assert grounded["bookSceneFacts"]["evidence"][0]["chapter_id"].endswith("-ch05")
+    assert grounded["bookExpectation"] == {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": ["evidence-support"],
+        "exact_quotation_evidence_ids": ["evidence-support"],
+    }
+    assert grounded["grounding"] is None
+    assert payload["replay"] == {
+        "supported": True,
+        "name": "book reflection",
+        "module": "evals.synthetic_journals.book_replay",
+        "semanticReviewOptional": True,
+        "confirmLabel": "Confirm and run evaluation",
+        "note": payload["replay"]["note"],
+    }
+    assert "not enabled by this confirmation" in payload["replay"]["note"]
+
+
+@pytest.mark.parametrize(
+    ("objective_ids", "module"),
+    [
+        (("reviewed_automatic_memory_capture",), "evals.synthetic_journals.replay"),
+        (("bounded_memory_curation",), "evals.synthetic_journals.curation_replay"),
+        (
+            ("session_scoped_conversation_continuity",),
+            "evals.synthetic_journals.continuity_replay",
+        ),
+        (("grounded_book_reflection",), "evals.synthetic_journals.book_replay"),
+        (
+            ("spoiler_boundary_clarification",),
+            "evals.synthetic_journals.book_replay",
+        ),
+        (
+            ("grounded_book_reflection", "spoiler_boundary_clarification"),
+            "evals.synthetic_journals.book_replay",
+        ),
+        (
+            ("spoiler_boundary_clarification", "grounded_book_reflection"),
+            "evals.synthetic_journals.book_replay",
+        ),
+    ],
+)
+def test_supported_replay_selection_is_exact_and_order_independent(
+    objective_ids: tuple[str, ...],
+    module: str,
+) -> None:
+    support = replay_support_for(objective_ids)
+
+    assert support is not None
+    assert support.module == module
+
+
+def test_replay_selection_rejects_unknown_and_mixed_sets() -> None:
+    assert replay_support_for(("unknown",)) is None
+    assert replay_support_for(
+        ("grounded_book_reflection", "weak_evidence_safe_decline")
+    ) is None
+
+
+def test_review_rejects_book_package_changed_after_payload_creation(
+    tmp_path: Path,
+    built_ui: Path,
+) -> None:
+    package = tmp_path / "book"
+    _write_book_package(package)
+    state = _state(package, built_ui)
+    ground_truth_path = package / "ground-truth.json"
+    ground_truth_path.write_text(
+        ground_truth_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(reviewer.ReviewError, match="changed while review was open"):
+        reviewer._assert_package_unchanged(state)
 
 
 def test_make_changes_returns_to_agent_without_writing_adoption(

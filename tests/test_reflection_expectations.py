@@ -29,7 +29,7 @@ def proposal(**overrides: object) -> GroundTruthProposal:
     payload: dict[str, object] = {
         "proposal_id": "gt-1",
         "scene_id": "s1",
-        "objective_id": "grounded_book_reflection",
+        "objective_id": "weak_evidence_safe_decline",
         "expected_outcomes": ("releases a grounded reflection",),
         "prohibited_outcomes": ("cites unresolvable evidence",),
     }

@@ -22,9 +22,9 @@ from apps.backend.schemas import (
     TurnInspection,
 )
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
+from evals.synthetic_journals.book_contract import compile_book_replay_plan
 from evals.synthetic_journals.book_replay import (
     BOOK_OBJECTIVE_IDS,
-    _book_scene_cases,
     replay_book_scenes,
 )
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
@@ -41,273 +41,45 @@ from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
 ROOT = Path(__file__).resolve().parents[1]
-CHAPTER_FIVE_PATH = Path(
-    "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/"
-    "05-advice-from-a-caterpillar.md"
-)
-CHAPTER_EIGHT_PATH = Path(
-    "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/"
-    "08-the-queens-croquet-ground.md"
-)
-SUPPORT_ID = "pg11-v01b38ea4-ch05-ln0974-0975"
-FORBIDDEN_ID = "pg11-v01b38ea4-ch08-ln2010-2011"
+SUPPORT_ID = "pg11-v01b38ea4-ch05-ln0964-0964"
 QUOTE = "“Who are _you?_” said the Caterpillar."
-FORBIDDEN = "Off with her head!"
 CLARIFICATION = (
     "What is the latest chapter or scene in Alice's Adventures in Wonderland "
     "that you have completed?"
 )
 
 
-def _repository_evidence(
-    path: Path,
-    evidence_id: str,
-    text: str,
-) -> dict[str, object]:
-    source = (ROOT / path).read_text(encoding="utf-8")
-    start = source.index(text)
-    return {
-        "kind": "repository_text",
-        "evidence_id": evidence_id,
-        "repository_path": str(path),
-        "source_sha256": hashlib.sha256((ROOT / path).read_bytes()).hexdigest(),
-        "start_codepoint": start,
-        "end_codepoint": start + len(text),
-        "text": text,
-    }
+def _documents(
+    objective_ids=BOOK_OBJECTIVE_IDS,
+) -> tuple[dict[str, object], dict[str, object]]:
+    from tests.test_synthetic_book_contract import _documents as canonical_documents
 
-
-def _documents() -> tuple[dict[str, object], dict[str, object]]:
-    prop_text = (
-        "Alice and the Caterpillar's questions about identity stayed with me."
+    content, truth = canonical_documents(objective_ids=objective_ids)
+    encoded = json.dumps({"content": content, "truth": truth})
+    encoded = encoded.replace("scene-infer", "scene-infer-ground")
+    encoded = encoded.replace("line-infer", "line-infer-ground")
+    encoded = encoded.replace(
+        "Why does Alice struggle to explain who she is?",
+        "Why does Alice struggle to explain who she is, and can you quote the passage?",
     )
-    infer_line = (
-        "Why does Alice struggle to explain who she is, and can you quote the passage?"
+    documents = json.loads(encoded)
+    content, truth = documents["content"], documents["truth"]
+    line = content["lines"][0]["text"]
+    truth["book_scene_facts"][0]["basis_spans"][1].update(
+        text=line, end_codepoint=len(line)
     )
-    clarify_line = (
-        "What should I make of what happens after Alice's conversation about identity?"
-    )
-    personal_line = (
-        "I also struggle to explain who I am when my plans keep changing."
-    )
-    content: dict[str, object] = {
-        "objective_ids": list(BOOK_OBJECTIVE_IDS),
-        "run_configuration_ids": [],
-        "backstory": {
-            "backstory_id": "backstory-book-01",
-            "person_id": "person-book-01",
-            "evaluation_account_id": "account-book-01",
-            "context": "One reader connects a changing sense of identity to a novel.",
-        },
-        "props": [
-            {
-                "prop_id": "prop-event-memory",
-                "backstory_id": "backstory-book-01",
-                "person_id": "person-book-01",
-                "evaluation_account_id": "account-book-01",
-                "source_text": prop_text,
-                "lifecycle": [
-                    {"scene_id": "scene-infer-ground", "state": "active"},
-                    {"scene_id": "scene-clarify", "state": "active"},
-                ],
-            }
-        ],
-        "scenes": [
-            {
-                "scene_id": "scene-infer-ground",
-                "backstory_id": "backstory-book-01",
-                "objective_ids": list(BOOK_OBJECTIVE_IDS),
-                "order": 1,
-                "fresh_session": True,
-                "prop_ids": ["prop-event-memory"],
-                "line_ids": ["line-infer-ground"],
-                "offline_input_ids": [],
-            },
-            {
-                "scene_id": "scene-clarify",
-                "backstory_id": "backstory-book-01",
-                "objective_ids": ["spoiler_boundary_clarification"],
-                "order": 2,
-                "fresh_session": True,
-                "prop_ids": ["prop-event-memory"],
-                "line_ids": ["line-clarify"],
-                "offline_input_ids": [],
-            },
-            {
-                "scene_id": "scene-personal",
-                "backstory_id": "backstory-book-01",
-                "objective_ids": ["grounded_book_reflection"],
-                "order": 3,
-                "fresh_session": True,
-                "prop_ids": [],
-                "line_ids": ["line-personal"],
-                "offline_input_ids": [],
-            },
-        ],
-        "lines": [
-            {
-                "line_id": "line-infer-ground",
-                "scene_id": "scene-infer-ground",
-                "order": 1,
-                "text": infer_line,
-            },
-            {
-                "line_id": "line-clarify",
-                "scene_id": "scene-clarify",
-                "order": 1,
-                "text": clarify_line,
-            },
-            {
-                "line_id": "line-personal",
-                "scene_id": "scene-personal",
-                "order": 1,
-                "text": personal_line,
-            },
-        ],
-        "offline_inputs": [],
-    }
-    backstory_bytes = _json_bytes(content)
-    prop_span = {
-        "source_kind": "prop",
-        "source_id": "prop-event-memory",
-        "start_codepoint": 0,
-        "end_codepoint": len(prop_text),
-        "text": prop_text,
-    }
-    infer_span = {
-        "source_kind": "line",
-        "source_id": "line-infer-ground",
-        "start_codepoint": 0,
-        "end_codepoint": len(infer_line),
-        "text": infer_line,
-    }
-    clarify_span = {
-        "source_kind": "line",
-        "source_id": "line-clarify",
-        "start_codepoint": 0,
-        "end_codepoint": len(clarify_line),
-        "text": clarify_line,
-    }
-    grounded_support_ref = "evidence-grounded-support"
-    spoiler_support_ref = "evidence-spoiler-support"
-    spoiler_forbidden_ref = "evidence-spoiler-forbidden"
-    clarify_forbidden_ref = "evidence-clarify-forbidden"
-    grounded_support = _repository_evidence(
-        CHAPTER_FIVE_PATH,
-        grounded_support_ref,
-        QUOTE,
-    )
-    spoiler_support = _repository_evidence(
-        CHAPTER_FIVE_PATH,
-        spoiler_support_ref,
-        QUOTE,
-    )
-    spoiler_forbidden = _repository_evidence(
-        CHAPTER_EIGHT_PATH,
-        spoiler_forbidden_ref,
-        FORBIDDEN,
-    )
-    clarify_forbidden = _repository_evidence(
-        CHAPTER_EIGHT_PATH,
-        clarify_forbidden_ref,
-        FORBIDDEN,
-    )
-    proposals = [
-        {
-            "proposal_id": "proposal-infer-grounded",
-            "scene_id": "scene-infer-ground",
-            "objective_id": "grounded_book_reflection",
-            "expected_outcomes": ["Use exact permitted book evidence."],
-            "prohibited_outcomes": ["Use evidence outside the permitted set."],
-            "exact_spans": [],
-            "evidence": [grounded_support],
-            "pairing": {
-                "paired_scene_id": "scene-personal",
-                "match_fields": ["backstory_id", "fresh_session"],
-                "difference_fields": ["prop_ids", "line_text"],
-            },
-            "grounded_book_reflection": {
-                "retrieval": "required",
-                "permitted_evidence_ids": [grounded_support_ref],
-                "exact_quotation_evidence_ids": [grounded_support_ref],
-            },
-        },
-        {
-            "proposal_id": "proposal-infer-spoiler",
-            "scene_id": "scene-infer-ground",
-            "objective_id": "spoiler_boundary_clarification",
-            "expected_outcomes": ["Infer Chapter 5 as the safe ceiling."],
-            "prohibited_outcomes": ["Reveal a later event."],
-            "exact_spans": [prop_span, infer_span],
-            "evidence": [spoiler_support, spoiler_forbidden],
-            "pairing": {
-                "paired_scene_id": "scene-clarify",
-                "match_fields": ["backstory_id", "fresh_session", "prop_ids"],
-                "difference_fields": ["line_text"],
-            },
-            "spoiler_boundary": {
-                "decision": "infer",
-                "authorised_prop_ids": ["prop-event-memory"],
-                "safe_ceiling_chapter": 5,
-                "supporting_evidence_ids": [spoiler_support_ref],
-                "forbidden_later_evidence_ids": [spoiler_forbidden_ref],
-            },
-        },
-        {
-            "proposal_id": "proposal-clarify-spoiler",
-            "scene_id": "scene-clarify",
-            "objective_id": "spoiler_boundary_clarification",
-            "expected_outcomes": ["Ask for clarification without retrieval."],
-            "prohibited_outcomes": ["Reveal a later event."],
-            "exact_spans": [prop_span, clarify_span],
-            "evidence": [clarify_forbidden],
-            "pairing": {
-                "paired_scene_id": "scene-infer-ground",
-                "match_fields": ["backstory_id", "fresh_session", "prop_ids"],
-                "difference_fields": ["line_text"],
-            },
-            "spoiler_boundary": {
-                "decision": "clarify",
-                "authorised_prop_ids": ["prop-event-memory"],
-                "safe_ceiling_chapter": None,
-                "supporting_evidence_ids": [],
-                "forbidden_later_evidence_ids": [clarify_forbidden_ref],
-            },
-        },
-        {
-            "proposal_id": "proposal-personal-grounded",
-            "scene_id": "scene-personal",
-            "objective_id": "grounded_book_reflection",
-            "expected_outcomes": ["Respond without book retrieval."],
-            "prohibited_outcomes": ["Retrieve book evidence unnecessarily."],
-            "exact_spans": [],
-            "evidence": [],
-            "pairing": {
-                "paired_scene_id": "scene-infer-ground",
-                "match_fields": ["backstory_id", "fresh_session"],
-                "difference_fields": ["prop_ids", "line_text"],
-            },
-            "grounded_book_reflection": {
-                "retrieval": "not_required",
-                "permitted_evidence_ids": [],
-                "exact_quotation_evidence_ids": [],
-            },
-        },
-    ]
-    ground_truth = {
-        "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
-        "ground_truth_status": "proposed",
-        "proposals": proposals,
-    }
-    return content, ground_truth
+    truth["backstory_sha256"] = hashlib.sha256(_json_bytes(content)).hexdigest()
+    return content, truth
 
 
 def _json_bytes(document: dict[str, object]) -> bytes:
     return json.dumps(document, ensure_ascii=False, sort_keys=True).encode("utf-8")
 
 
-def _models() -> tuple[SyntheticBackstory, ProposedGroundTruth, bytes]:
-    content, ground_truth = _documents()
+def _models(
+    objective_ids=BOOK_OBJECTIVE_IDS,
+) -> tuple[SyntheticBackstory, ProposedGroundTruth, bytes]:
+    content, ground_truth = _documents(objective_ids)
     backstory_bytes = _json_bytes(content)
     backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
     proposed = ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth))
@@ -332,43 +104,40 @@ def _capture() -> CaptureInspection:
     )
 
 
+def _corpus_record():
+    from apps.backend.librarian import Librarian
+
+    return Librarian().fetch_by_id(SUPPORT_ID).model_dump(mode="json")
+
+
 def _record_boundary(output: BoundaryInferenceDecision) -> None:
     sink = active_evaluation_transcript_sink()
     assert sink is not None
     boundary_input = {
         "current_line": "synthetic current line",
         "relevant_memories": [],
-        "full_work_candidates": [
-            {
-                "evidence_id": SUPPORT_ID,
-                "work_id": "pg11",
-                "book_version_id": "pg11-v01b38ea4",
-                "chapter_id": "pg11-v01b38ea4-ch05",
-                "chapter_number": 5,
-                "location": "Chapter 5, source lines 974-975",
-                "source_sha256": "0" * 64,
-                "source_lines": [974, 975],
-                "text": QUOTE,
-            }
-        ],
+        "full_work_candidates": [_corpus_record()],
     }
-    handle = sink.begin_agent_exchange(
-        role="Librarian",
-        stage="boundary_inference",
-        input_origin="Application",
-        output_receiver="Application",
-        input_contract="LibrarianBoundaryInferenceInput.v1",
-        output_contract=(
-            "src.linger.agents.librarian.models.BoundaryInferenceDecision"
-        ),
-        prompt_template_id="librarian.boundary-inference",
-        prompt_version="1",
-        prompt_digest="0" * 64,
-        input_prompt=json.dumps(boundary_input),
-        message_history=(),
-        trace_id="0" * 32,
-        span_id="0" * 16,
-    )
+    from src.linger.evaluation_transcript import bind_evaluation_correlation_id
+
+    with bind_evaluation_correlation_id("route-synthetic"):
+        handle = sink.begin_agent_exchange(
+            role="Librarian",
+            stage="boundary_inference",
+            input_origin="Application",
+            output_receiver="Application",
+            input_contract="LibrarianBoundaryInferenceInput.v1",
+            output_contract=(
+                "src.linger.agents.librarian.models.BoundaryInferenceDecision"
+            ),
+            prompt_template_id="librarian.boundary-inference",
+            prompt_version="1",
+            prompt_digest="0" * 64,
+            input_prompt=json.dumps(boundary_input),
+            message_history=(),
+            trace_id="0" * 32,
+            span_id="0" * 16,
+        )
     sink.complete_agent_exchange(
         handle,
         result=SimpleNamespace(
@@ -386,6 +155,7 @@ def _response(
     *,
     kind: str,
     searched_max: int = 5,
+    supporting_memory_ids: tuple[str, ...] = (),
 ) -> ChatResponse:
     if kind == "infer":
         _record_boundary(
@@ -396,7 +166,7 @@ def _response(
                 chapter_number=5,
                 confidence=0.92,
                 authorization_basis="memory_supported",
-                supporting_memory_ids=("memory-synthetic",),
+                supporting_memory_ids=supporting_memory_ids,
                 supporting_evidence_ids=(SUPPORT_ID,),
             )
         )
@@ -409,7 +179,7 @@ def _response(
             boundary_source="librarian_inferred",
             boundary_authorization_basis="memory_supported",
             boundary_confidence=0.92,
-            boundary_supporting_memory_ids=("memory-synthetic",),
+            boundary_supporting_memory_ids=supporting_memory_ids,
             boundary_supporting_locations=(
                 BoundarySupportLocation(
                     evidence_id=SUPPORT_ID,
@@ -485,10 +255,12 @@ def _response(
 def _route_call(*, ceiling: int = 5) -> dict[str, object]:
     """The `librarian_route` outcome a routed turn exposes to Inspect."""
     return {
+        "tool_name": "librarian_route",
         "request": {},
         "outcome": "success",
         "response": {
             "kind": "routed",
+            "request_id": "route-synthetic",
             "work_id": "pg11",
             "book_version_id": "pg11-v01b38ea4",
             "title": "Alice's Adventures in Wonderland",
@@ -502,11 +274,12 @@ def _route_call(*, ceiling: int = 5) -> dict[str, object]:
 def _route_clarification_call() -> dict[str, object]:
     """The `librarian_route` outcome when inference cannot set a ceiling."""
     return {
+        "tool_name": "librarian_route",
         "request": {},
         "outcome": "success",
         "response": {
             "kind": "clarification",
-            "request_id": "routereq-synthetic",
+            "request_id": "route-synthetic",
             "clarification_id": "clarify-synthetic",
             "reason_code": "insufficient_context",
             "question": CLARIFICATION,
@@ -517,6 +290,7 @@ def _route_clarification_call() -> dict[str, object]:
 
 def _grounding_call(query: str, *, searched_max: int = 5) -> dict[str, object]:
     return {
+        "tool_name": "librarian_search",
         "request": {"query": query},
         "outcome": "success",
         "response": {
@@ -530,19 +304,7 @@ def _grounding_call(query: str, *, searched_max: int = 5) -> dict[str, object]:
                 "book_version_id": "pg11-v01b38ea4",
                 "max_chapter_inclusive": searched_max,
             },
-            "evidence": [
-                {
-                    "evidence_id": SUPPORT_ID,
-                    "work_id": "pg11",
-                    "book_version_id": "pg11-v01b38ea4",
-                    "chapter_id": "pg11-v01b38ea4-ch05",
-                    "chapter_number": 5,
-                    "location": "Chapter 5, source lines 974-975",
-                    "source_sha256": "0" * 64,
-                    "source_lines": [974, 975],
-                    "text": QUOTE,
-                }
-            ],
+            "evidence": [_corpus_record()],
             "limitations": [],
         },
     }
@@ -552,17 +314,12 @@ def test_package_validator_requires_typed_book_ground_truth() -> None:
     content, ground_truth = _documents()
     backstory_bytes = _json_bytes(content)
     proposal = ground_truth["proposals"][0]  # type: ignore[index]
-    proposal.pop("grounded_book_reflection")
+    proposal.pop("book_expectation")
     backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
-    proposed = ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth))
+    from pydantic import ValidationError
 
-    with pytest.raises(PackageValidationError, match="lacks typed"):
-        validate_package(
-            backstory,
-            proposed,
-            backstory_bytes=backstory_bytes,
-            run_configurations={},
-        )
+    with pytest.raises(ValidationError, match="typed book_expectation"):
+        ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth))
 
 
 def test_book_replay_isolates_props_accounts_sessions_and_ground_truth() -> None:
@@ -581,16 +338,19 @@ def test_book_replay_isolates_props_accounts_sessions_and_ground_truth() -> None
         kind = (
             "infer"
             if "quote" in request.message
-            else "clarify"
-            if "Alice's conversation" in request.message
-            else "personal"
+            else "clarify" if "Alice's conversation" in request.message else "personal"
         )
-        return _response(request, kind=kind)
+        return _response(
+            request,
+            kind=kind,
+            supporting_memory_ids=tuple(
+                record.memory_id for record in service.list_active(account)
+            ),
+        )
 
     result = asyncio.run(
         replay_book_scenes(
-            backstory,
-            ground_truth,
+            compile_book_replay_plan(backstory, ground_truth),
             chat_handler=handler,
         )
     )
@@ -631,21 +391,22 @@ def test_book_replay_uses_adopted_identity_and_grades_ceiling_failure() -> None:
         kind = (
             "infer"
             if "quote" in request.message
-            else "clarify"
-            if "Alice's conversation" in request.message
-            else "personal"
+            else "clarify" if "Alice's conversation" in request.message else "personal"
         )
         return _response(
             request,
             kind=kind,
             searched_max=6 if kind == "infer" else 5,
+            supporting_memory_ids=tuple(
+                record.memory_id for record in _service.list_active(_account)
+            ),
         )
 
     result = asyncio.run(
         replay_book_scenes(
-            backstory,
-            ground_truth,
+            compile_book_replay_plan(backstory, ground_truth),
             adoption=adoption,
+            ground_truth_bytes=ground_truth_bytes,
             chat_handler=handler,
         )
     )
@@ -660,8 +421,7 @@ def test_book_replay_uses_adopted_identity_and_grades_ceiling_failure() -> None:
     )
     assert "retrieval_exceeded_safe_ceiling" in spoiler_grade.failures
     assert all(
-        scene.ground_truth_result == "passes_hard_gates"
-        for scene in result.scenes[1:]
+        scene.ground_truth_result == "passes_hard_gates" for scene in result.scenes[1:]
     )
 
 
@@ -669,8 +429,8 @@ def test_book_replay_rejects_wrong_scene_topology() -> None:
     backstory, ground_truth, _ = _models()
     invalid = backstory.model_copy(update={"scenes": backstory.scenes[:2]})
 
-    with pytest.raises(ValueError, match="exactly three Scenes"):
-        _book_scene_cases(invalid, ground_truth)
+    with pytest.raises(ValueError):
+        compile_book_replay_plan(invalid, ground_truth)
 
 
 def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
@@ -678,6 +438,9 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
     from apps.backend import chat_turn
 
     async def reflection(prompt, *_args, **_kwargs):
+        from src.linger.orchestration.turn_context import active_memories
+
+        supporting_memory_ids = tuple(record.memory_id for record in active_memories())
         payload = json.loads(prompt)
         line = payload["muse_turn"]["user_message"]
         serialized = json.dumps(payload)
@@ -695,7 +458,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
                     chapter_number=5,
                     confidence=0.92,
                     authorization_basis="memory_supported",
-                    supporting_memory_ids=("memory-synthetic",),
+                    supporting_memory_ids=supporting_memory_ids,
                     supporting_evidence_ids=(SUPPORT_ID,),
                 )
             )
@@ -734,17 +497,14 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
             chat_turn,
             "assess_emotional_boundary",
             AsyncMock(
-                return_value=EmotionalBoundaryAssessment(
-                    decision="continue_reflection"
-                )
+                return_value=EmotionalBoundaryAssessment(decision="continue_reflection")
             ),
         ),
         patch.object(chat_turn, "reflection_reply", side_effect=reflection),
     ):
         result = asyncio.run(
             replay_book_scenes(
-                backstory,
-                ground_truth,
+                compile_book_replay_plan(backstory, ground_truth),
                 chat_handler=chat_turn.run_chat_turn,
             )
         )
@@ -764,3 +524,273 @@ def test_production_chat_path_receives_props_but_not_ground_truth() -> None:
     ]
     assert result.scenes[0].boundary_handoff_content_free is True
     assert result.scenes[1].boundary_handoff_content_free is True
+
+
+@pytest.fixture(scope="module")
+def replay_observed():
+    backstory, truth, _ = _models()
+    plan = compile_book_replay_plan(backstory, truth)
+
+    async def handler(request, service, account):
+        kind = (
+            "infer"
+            if "quote" in request.message
+            else "clarify" if "Alice's conversation" in request.message else "personal"
+        )
+        return _response(
+            request,
+            kind=kind,
+            supporting_memory_ids=tuple(
+                record.memory_id for record in service.list_active(account)
+            ),
+        )
+
+    return plan, asyncio.run(replay_book_scenes(plan, chat_handler=handler))
+
+
+@pytest.mark.parametrize(
+    "objective_ids",
+    [
+        ("grounded_book_reflection",),
+        ("spoiler_boundary_clarification",),
+        tuple(reversed(BOOK_OBJECTIVE_IDS)),
+    ],
+)
+def test_replay_each_supported_selection(objective_ids):
+    from pydantic_ai.models.test import TestModel
+
+    backstory, truth, _ = _models(objective_ids)
+    plan = compile_book_replay_plan(backstory, truth)
+
+    async def handler(request, service, account):
+        kind = (
+            "infer"
+            if "quote" in request.message
+            else "clarify" if "Alice's conversation" in request.message else "personal"
+        )
+        return _response(
+            request,
+            kind=kind,
+            supporting_memory_ids=tuple(
+                record.memory_id for record in service.list_active(account)
+            ),
+        )
+
+    result = asyncio.run(
+        replay_book_scenes(
+            plan,
+            chat_handler=handler,
+            run_semantic_review=True,
+            semantic_model=TestModel(
+                custom_output_args={
+                    "disclosed_evidence_ids": [],
+                    "explanation": "No later fact disclosed.",
+                }
+            ),
+        )
+    )
+    assert result.objective_ids == objective_ids
+    assert {grade.proposal_id for scene in result.scenes for grade in scene.grades} == {
+        proposal.proposal_id for proposal in truth.proposals
+    }
+    assert all(grade.hard_pass for scene in result.scenes for grade in scene.grades)
+    assert all(
+        review.status == "pass"
+        for scene in result.scenes
+        for review in scene.semantic_spoiler_results
+    )
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("work_id", "wrong-work"),
+        ("book_version_id", "wrong-version"),
+        ("chapter_id", "wrong-chapter"),
+        ("chapter_number", 9),
+        ("source_sha256", "f" * 64),
+        ("source_lines", (1, 2)),
+        ("location", "another occurrence"),
+        ("text", "Extra text: " + QUOTE),
+    ],
+)
+def test_equal_quote_with_wrong_source_fails(replay_observed, field, value):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    plan, run = replay_observed
+    observed = run.scenes[0]
+    call = observed.grounding_calls[0]
+    wrong = call.evidence[0].model_copy(update={field: value})
+    observed = observed.model_copy(
+        update={"grounding_calls": (call.model_copy(update={"evidence": (wrong,)}),)}
+    )
+    proposal = next(
+        item
+        for item in plan.scenes[0].proposals
+        if item.objective_id == "grounded_book_reflection"
+    )
+    grade = _grade_proposal(plan.scenes[0], proposal, observed)
+    assert not grade.hard_pass
+    assert "retrieval_used_unpermitted_evidence" in grade.failures
+
+
+def test_inference_must_use_the_authorised_prop(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    plan, run = replay_observed
+    observed = run.scenes[0].model_copy(
+        update={"boundary_support_memory_ids": ("another-account-memory",)}
+    )
+    assert all(
+        "boundary_memory_support_differs_from_authorised_props"
+        in _grade_proposal(plan.scenes[0], proposal, observed).failures
+        for proposal in plan.scenes[0].proposals
+    )
+
+
+def test_reader_confirmed_scope_requires_matching_trusted_context(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    content, truth = _documents(("grounded_book_reflection",))
+    truth["book_scene_facts"][0]["scope"] = {
+        "kind": "reader_confirmed",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "safe_ceiling_chapter": 5,
+    }
+    truth["book_scene_facts"][0]["basis_spans"] = []
+    plan = compile_book_replay_plan(
+        SyntheticBackstory.model_validate_json(json.dumps(content)),
+        ProposedGroundTruth.model_validate_json(json.dumps(truth)),
+    )
+    observed = replay_observed[1].scenes[0]
+    case = plan.scenes[0]
+    assert (
+        "reader_confirmed_scope_differs_from_ground_truth"
+        in _grade_proposal(case, case.proposals[0], observed).failures
+    )
+    context = ContextResolution(
+        status="confirmed",
+        work_id="pg11",
+        work_title="Alice's Adventures in Wonderland",
+        book_version_id="pg11-v01b38ea4",
+        chapter_max=5,
+        boundary_source="reader_confirmed",
+        boundary_authorization_basis="explicit_progress",
+        explanation="The reader explicitly confirmed chapter five.",
+    )
+    assert _grade_proposal(
+        case,
+        case.proposals[0],
+        observed.model_copy(update={"context_resolution": context}),
+    ).hard_pass
+
+
+def test_route_no_match_is_not_a_search():
+    from evals.synthetic_journals.book_replay import (
+        _grounding_observations,
+        _route_outcome,
+    )
+
+    response = SimpleNamespace(
+        inspection=SimpleNamespace(
+            librarian_grounding=[
+                {
+                    "tool_name": "librarian_route",
+                    "response": {"kind": "no_match", "request_id": "arbitrary"},
+                }
+            ]
+        )
+    )
+    assert _grounding_observations(response) == ()
+    assert _route_outcome(response)["kind"] == "no_match"
+
+
+def test_private_support_uses_only_the_correlated_exchange(replay_observed):
+    from evals.synthetic_journals.book_replay import _boundary_support_observations
+
+    _, run = replay_observed
+    exchange = run.scenes[0].agent_exchanges[0]
+    unrelated = exchange.model_copy(
+        update={"correlation_id": "another-route", "output": {}}
+    )
+    assert (
+        _boundary_support_observations(
+            (unrelated, exchange),
+            _route_call()["response"],
+        )
+        == run.scenes[0].boundary_support_evidence
+    )
+    forged = exchange.model_copy(
+        update={
+            "output": exchange.output
+            | {
+                "supporting_evidence_ids": [SUPPORT_ID, "unknown-source"],
+            }
+        }
+    )
+    assert _boundary_support_observations((forged,), _route_call()["response"]) == ()
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_replay_clarification_precedes_routed_work(reverse):
+    from evals.synthetic_journals.book_replay import _route_outcome
+
+    calls = [_route_call(), _route_clarification_call()]
+    if reverse:
+        calls.reverse()
+    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=calls))
+    assert _route_outcome(response)["kind"] == "clarification"
+
+
+def test_stale_adoption_fails_before_chat(replay_observed):
+    plan, _ = replay_observed
+    encoded = plan.ground_truth.model_dump_json().encode()
+    adoption = build_ground_truth_adoption(
+        plan.ground_truth, encoded, reviewer_id="test-reviewer"
+    )
+    handler = AsyncMock()
+    with pytest.raises(ValueError, match="exact file bytes"):
+        asyncio.run(
+            replay_book_scenes(
+                plan,
+                adoption=adoption,
+                ground_truth_bytes=encoded + b"\n",
+                chat_handler=handler,
+            )
+        )
+    handler.assert_not_called()
+
+
+def test_semantic_spoiler_result_is_separate_and_contains_paraphrase(replay_observed):
+    from pydantic_ai.models.test import TestModel
+    from evals.synthetic_journals.book_semantics import review_spoiler_semantics
+
+    plan, run = replay_observed
+    scene = plan.scenes[0]
+    proposal = next(
+        item
+        for item in scene.proposals
+        if item.objective_id == "spoiler_boundary_clarification"
+    )
+    model = TestModel(
+        custom_output_args={
+            "disclosed_evidence_ids": ["later"],
+            "explanation": "The reply paraphrases the forbidden execution order.",
+        }
+    )
+    result = asyncio.run(
+        review_spoiler_semantics(
+            scene,
+            proposal,
+            "The monarch demands that she be executed.",
+            model=model,
+        )
+    )
+    assert result.status == "fail"
+    assert result.proposal_id == proposal.proposal_id
+    assert result.independence == "non_independent_model_judge"
+    assert all(grade.hard_pass for grade in run.scenes[0].grades)
+    assert all(
+        result.status == "not_run" for result in run.scenes[0].semantic_spoiler_results
+    )

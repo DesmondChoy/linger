@@ -4,6 +4,7 @@
 # Secrets — `.env.example` stays tracked
 .env
 .env.local
+.logfire/
 data/gutenberg/pg*.txt
 data/gutenberg/pg*.metadata.json
 
