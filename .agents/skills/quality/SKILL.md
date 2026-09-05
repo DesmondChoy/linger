@@ -1,90 +1,59 @@
 ---
 name: quality
-description: Review recent code changes with "fresh eyes" and fix any issues found. Use before commits to catch bugs that accumulate during implementation.
+description: Review scoped code changes with fresh eyes and fix verified issues when edits are authorized. Use before commits or for requested quality reviews.
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Read, Edit, Glob, Grep
 ---
 
-Review all code changes with "fresh eyes" before committing. This catches bugs that accumulate during implementation when focus is on making things work.
-
-## Why This Matters
-
-During implementation, we focus on "does it work?" and can miss:
-
-- Logic errors that compile but behave incorrectly
-- Missing error handling for edge cases
-- Type mismatches or implicit conversions
-- Dead code or unused imports
-- Integration issues between components
+Review the changes covered by the current request with fresh eyes. Find correctness and integration issues while preserving unrelated work and any request for a report-only review.
 
 ## Process
 
-### 1. Identify Changed Files
+### 1. Establish the scope
+
+Use the user's named files, hunks, commit, or branch diff when supplied. Otherwise, review the current task's changes. Before a commit, review the changes intended for that commit.
+
+Inspect the checkout to locate those changes:
 
 ```bash
-git status
-git diff HEAD --name-only
+git status --short
 ```
 
-### 2. Read ENTIRE Files (Not Just Diffs)
+Choose the relevant working-tree, staged, or committed diff for that scope, and inspect any in-scope untracked files separately. Git status is an inventory, not authorization to review or fix every dirty file. When a file contains both task changes and unrelated edits, keep the review and fixes focused on the intended hunks and their effects.
 
-For each changed file, read the **complete file** to understand full context. Diffs show what changed but hide the surrounding code that may be affected.
+Resolve scope from the request and available evidence. Ask only if the intended changes cannot be distinguished and that ambiguity materially affects the review.
 
-### 3. Review Checklist
+### 2. Read the relevant context
 
-For each file, check:
+Read the scoped diff, surrounding definitions, relevant callers, contracts, tests, and configuration. Read complete files when needed to understand behavior or ownership. Expand inspection when a finding or unresolved uncertainty requires more context; do not read every changed file in full by default.
 
-**Logic & Correctness**
+Reading a related file for context does not add it to the authorized edit scope.
 
-- [ ] Does the logic match the intended behavior?
-- [ ] Are edge cases handled (null, empty, boundary values)?
-- [ ] Are error conditions caught and handled appropriately?
+### 3. Review correctness and integration
 
-**Type Safety**
+Check the concerns relevant to the change:
 
-- [ ] Are types consistent throughout the call chain?
-- [ ] Are there implicit type conversions that could fail?
+- Does the logic match the intended behavior, including reachable edge cases and error paths?
+- Are types, function signatures, and API contracts consistent across callers and consumers?
+- Do state updates and side effects preserve the required invariants?
+- Did the change introduce dead code, unintended debug output, or misleading comments?
+- Do the available tests or other checks cover the behavior that changed?
 
-**Integration**
+### 4. Act within the requested mode
 
-- [ ] Do function signatures match their call sites?
-- [ ] Are API contracts (request/response shapes) consistent?
-- [ ] Do state updates flow correctly between components?
+When fixes are authorized, correct verified issues within scope and preserve unrelated edits. Make routine implementation decisions from the evidence without another approval step.
 
-**Code Hygiene**
+For a report-only or read-only request, report findings without editing or staging files. Report issues outside the authorized scope separately. Ask only when a material decision remains unresolved or the next action needs new authority.
 
-- [ ] Remove dead code, unused imports, commented-out code
-- [ ] Remove debug statements (console.log, print, etc.)
-- [ ] Are variable names clear and consistent?
+### 5. Verify any fixes
 
-### 4. Fix Issues Immediately
+Run the checks appropriate to the changes made and inspect the resulting diff for unintended edits. Expand validation only when failures, integration risk, or new changes justify it. State which checks passed, failed, or could not run.
 
-When you find an issue:
+### 6. Report the result
 
-1. Fix it using the Edit tool
-2. Document what you fixed in the summary
+Summarize the reviewed scope, verified findings, fixes made, validation evidence, and any unresolved issues or limits. Distinguish findings from assumptions and distinguish completed fixes from proposed work.
 
-Do NOT just flag issues—fix them. Only flag issues that require human judgment (design decisions, unclear requirements).
+## When to run
 
-### 5. Report Summary
-
-After reviewing all files, provide:
-
-```
-## Quality Review Summary
-
-**Files Reviewed:** <list>
-
-**Issues Fixed:**
-- <file>: <what was fixed and why>
-
-**Issues for Human Review:** (if any)
-- <file>: <issue that requires human decision>
-
-**Confidence:** <High/Medium/Low> - <brief explanation>
-```
-
-## When to Run
-
-- Before any `git commit`
-- When requested with `/quality`
-- After completing a significant implementation task
+- Before a commit, on the changes intended for that commit.
+- When requested with `/quality`, in the requested review or repair mode.
+- After significant implementation work, on that task's changes.

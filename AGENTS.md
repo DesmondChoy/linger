@@ -6,16 +6,23 @@ more specific.
 
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
+## Workflow
+
+Choose the smallest workflow that can establish the requested outcome. Add
+research, prototypes, delegation, tooling, and review when a concrete uncertainty
+or risk justifies them. Preserve existing authorization and escalate only when a
+material decision remains unresolved.
+
 ## Engineering Principles
 
-- Do not preserve backward compatibility. Remove obsolete paths instead of adding compatibility layers, fallbacks, or migrations.
+- For obsolete internal interfaces whose callers we control, migrate the callers and remove the old paths in the same change. Do not keep compatibility layers solely for those callers. Preserve required external contracts and use data migrations when existing data must survive a change.
 - Choose the simplest implementation that fully meets the current requirements. Avoid speculative abstractions, configuration, and indirection.
 - Grow the system in layers. Start from the smallest version that works end to end, and add each new capability on top of a product that already works. Never trade a working product for unfinished complexity.
 - Keep components modular and concerns clearly separated.
 - Prefer established, well-maintained libraries when they reduce overall complexity or improve reliability. Do not reimplement common functionality without a clear reason.
 - Lean on the dependencies already in the project before writing your own implementation or adding packages. Do not assume a library lacks a capability without checking its documentation and types.
-- Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
-- Study how established products solve the problem before designing a solution. Adopt their proven patterns and conventions rather than inventing an approach from scratch.
+- Make production architectural decisions for the long term. Disposable experiments and prototypes may use temporary implementations to resolve uncertainty. Before promoting a prototype to production, bring it up to the production requirements; discard experiments that no longer serve a purpose.
+- For substantial, unfamiliar design decisions, study how established products solve the problem and adopt proven patterns where they fit. For routine changes with a clear local precedent, use the existing architecture without a separate prior-art research step.
 
 Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
 
