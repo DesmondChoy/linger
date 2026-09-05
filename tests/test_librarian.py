@@ -51,6 +51,7 @@ class LibrarianTests(unittest.TestCase):
         self.assertEqual(BOOK_VERSION_ID, scope.book_version_id)
         self.assertEqual(12, scope.max_chapter)
         self.assertGreaterEqual(decision.confidence, 0.6)
+        self.assertEqual("distinctive_cue", decision.basis)
 
     def test_explicit_title_mention_routes_with_full_confidence(self) -> None:
         decision = self.librarian.route_work(
@@ -62,6 +63,7 @@ class LibrarianTests(unittest.TestCase):
         assert decision is not None
         self.assertEqual(WORK_ID, decision.scope.work_id)
         self.assertEqual(1.0, decision.confidence)
+        self.assertEqual("resolved_book_identity", decision.basis)
 
     def test_registered_aliases_route_with_full_confidence(self) -> None:
         for alias in ("Alice in Wonderland", "ALICE IN WONDERLAND"):

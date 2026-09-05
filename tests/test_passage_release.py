@@ -26,7 +26,7 @@ class PassageReleaseTests(unittest.IsolatedAsyncioTestCase):
         self.route = RoutedPassages(
             **self.grant.scope.model_dump(), request_id="route-passages",
             title="Alice's Adventures in Wonderland", routing_confidence=0.99,
-            boundary_confidence=0.99,
+            boundary_confidence=0.99, selection_basis="resolved_book_identity",
         )
         self.reading_token = turn_context.set_confirmed_reading(None)
         self.routing_token = turn_context.set_routing_context()

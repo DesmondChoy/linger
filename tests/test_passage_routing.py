@@ -96,6 +96,17 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.grant, turn_context.passage_grant())
         self.assertIsNone(turn_context.confirmed_reading())
 
+    async def test_routed_passages_carry_the_selection_basis(self) -> None:
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            new=AsyncMock(return_value=self.boundary),
+        ):
+            result = await librarian_route()
+
+        self.assertIsInstance(result, RoutedPassages)
+        assert isinstance(result, RoutedPassages)
+        self.assertEqual("resolved_book_identity", result.selection_basis)
+
     async def test_repeated_route_cannot_replace_passages_with_a_chapter_grant(self) -> None:
         later = BoundaryCandidate(
             kind="candidate", work_id=self.record.work_id,

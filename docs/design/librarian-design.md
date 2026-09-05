@@ -408,7 +408,9 @@ Evidence declarations and non-route tool calls still block release.
 A route grants a scope, not source text. Muse calls `librarian_search` with the
 returned `work_id` and `book_version_id`. A chapter route supplies
 `max_chapter_inclusive` for `reading_boundary`; a passage route requires
-`reading_boundary=None` and permits only its exact paragraph IDs.
+`reading_boundary=None` and permits only its exact paragraph IDs. A routed
+result also names the deterministic `selection_basis` that identified the
+work — `resolved_book_identity` or `distinctive_cue`.
 
 ### 4.2 Input and output contracts
 

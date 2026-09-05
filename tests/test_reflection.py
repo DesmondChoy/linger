@@ -876,6 +876,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 "routing_confidence": 1.0,
                 "max_chapter_inclusive": 5,
                 "boundary_confidence": 0.9,
+                "selection_basis": "resolved_book_identity",
             },
         )
         clarification = ToolReturnPart(

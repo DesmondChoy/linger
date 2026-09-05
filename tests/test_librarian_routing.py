@@ -3,6 +3,9 @@
 import unittest
 from unittest.mock import patch
 
+import logfire
+from logfire.testing import TestExporter
+
 from apps.backend.config import Settings
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
@@ -92,6 +95,13 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
             "Can we talk about Alice's Adventures in Wonderland? I just "
             "finished the caterpillar's advice."
         )
+        exporter = TestExporter()
+        logfire.configure(
+            send_to_logfire=False,
+            console=False,
+            inspect_arguments=False,
+            additional_span_processors=[logfire.testing.SimpleSpanProcessor(exporter)],
+        )
         with patch(
             "src.linger.orchestration.boundary.judge_spoiler_boundary",
             side_effect=confident_judge,
@@ -104,6 +114,15 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("pg11", result.work_id)
         self.assertEqual(1.0, result.routing_confidence)
         self.assertGreaterEqual(result.boundary_confidence, 0.75)
+        self.assertEqual("resolved_book_identity", result.selection_basis)
+        route_span = next(
+            span
+            for span in exporter.exported_spans_as_dict()
+            if span["name"] == "librarian.route"
+        )
+        self.assertEqual(
+            "resolved_book_identity", route_span["attributes"]["routing.selection_basis"]
+        )
 
     async def test_low_confidence_boundary_yields_clarification(self) -> None:
         async def uncertain_judge(_line, _memories, _evidence, _statements):
@@ -158,6 +177,7 @@ class EffectiveRouteResponseTests(unittest.TestCase):
             routing_confidence=1.0,
             max_chapter_inclusive=chapter,
             boundary_confidence=0.9,
+            selection_basis="resolved_book_identity",
         )
 
     @staticmethod

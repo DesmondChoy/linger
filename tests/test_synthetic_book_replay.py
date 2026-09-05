@@ -267,6 +267,7 @@ def _route_call(*, ceiling: int = 5) -> dict[str, object]:
             "routing_confidence": 0.7,
             "max_chapter_inclusive": ceiling,
             "boundary_confidence": 0.92,
+            "selection_basis": "distinctive_cue",
         },
     }
 
@@ -748,7 +749,7 @@ def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
         work_id="pg11", book_version_id="pg11-v01b38ea4",
         evidence_ids=(SUPPORT_ID,), request_id="route-passages",
         title="Alice's Adventures in Wonderland", routing_confidence=1,
-        boundary_confidence=1,
+        boundary_confidence=1, selection_basis="resolved_book_identity",
     )
     route_call = {
         "tool_name": "librarian_route", "response": route.model_dump(mode="json"),
@@ -809,6 +810,7 @@ def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
         work_id=decision.work_id, book_version_id=decision.book_version_id,
         routing_confidence=1, boundary_confidence=1,
         evidence_ids=decision.passage_evidence_ids,
+        selection_basis="resolved_book_identity",
     ).model_dump(mode="json")
     exchange = replay_observed[1].scenes[0].agent_exchanges[0].model_copy(
         update={"output": decision.model_dump(mode="json")}

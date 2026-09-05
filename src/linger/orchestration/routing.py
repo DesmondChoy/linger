@@ -79,6 +79,7 @@ async def _route_reader_message(
             )
 
         scope = decision.scope
+        span.set_attribute("routing.selection_basis", decision.basis)
         with bind_evaluation_correlation_id(request_id):
             boundary = await infer_spoiler_boundary(
                 message,
@@ -111,6 +112,7 @@ async def _route_reader_message(
                         routing_confidence=decision.confidence,
                         max_chapter_inclusive=existing.chapter_max,
                         boundary_confidence=boundary.confidence,
+                        selection_basis=decision.basis,
                     )
             else:
                 bind_passage_grant(boundary.grant)
@@ -127,6 +129,7 @@ async def _route_reader_message(
                     **boundary.grant.scope.model_dump(), request_id=request_id,
                     title=scope.title, routing_confidence=decision.confidence,
                     boundary_confidence=boundary.confidence,
+                    selection_basis=decision.basis,
                 )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
@@ -179,6 +182,7 @@ async def _route_reader_message(
             routing_confidence=decision.confidence,
             max_chapter_inclusive=reported_ceiling,
             boundary_confidence=boundary.confidence,
+            selection_basis=decision.basis,
         )
 
 

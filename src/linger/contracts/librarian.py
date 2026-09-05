@@ -10,6 +10,8 @@ from pydantic import Field, TypeAdapter, model_validator
 from src.linger.contracts.base import StrictModel
 from src.linger.contracts.reading import ReadingBoundary
 
+SelectionBasis = Literal["resolved_book_identity", "distinctive_cue"]
+
 
 class AccessScope(StrictModel):
     """Trusted access grant. Built by application code, never model output."""
@@ -244,6 +246,7 @@ class RoutedWork(StrictModel):
     routing_confidence: float = Field(ge=0, le=1)
     max_chapter_inclusive: int = Field(ge=1)
     boundary_confidence: float = Field(ge=0, le=1)
+    selection_basis: SelectionBasis
 
 
 class NoMatch(StrictModel):
@@ -260,6 +263,7 @@ class RoutedPassages(PassageScope):
     title: str
     routing_confidence: float = Field(ge=0, le=1)
     boundary_confidence: float = Field(ge=0, le=1)
+    selection_basis: SelectionBasis
 
 
 LibrarianRoutingResponse = RoutedWork | RoutedPassages | ClarificationRequest | NoMatch
