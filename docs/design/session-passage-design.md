@@ -45,10 +45,13 @@ contiguous recent suffix rather than skip a large intervening message that
 could contain a correction. An oversized latest message yields no history.
 
 `PassageInferenceDecision` is private model output. It separates earlier reader
-statement IDs, reading-support paragraph IDs, and requested paragraph IDs.
+statement IDs, reading-support paragraph IDs, and requested paragraph IDs, and
+declares its own `authorization_basis` of `session_supported` or `line_only`.
 Librarian owns canonical window verification and paragraph decomposition.
 Boundary orchestration validates every selected ID, work, revision, and
-confidence before constructing `PassageGrant` from canonical records.
+confidence before constructing `PassageGrant` from canonical records; it
+rejects any `line_only` decision and any cited statement that does not itself
+refer to the work.
 
 `PassageScope` contains only eligible IDs, work, and revision. Retrieval re-fetches
 the exact grant records and requires full equality before strength review.

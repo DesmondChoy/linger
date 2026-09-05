@@ -424,6 +424,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                 routing_confidence=1,
                 max_chapter_inclusive=6,
                 boundary_confidence=0.9,
+                selection_basis="resolved_book_identity",
             ),
             NoMatch(kind="no_match", request_id="routereq_none"),
             ClarificationRequest(
@@ -525,6 +526,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                             routing_confidence=1,
                             max_chapter_inclusive=routed_ceiling,
                             boundary_confidence=0.9,
+                            selection_basis="resolved_book_identity",
                         )
                         response.inspection.librarian_grounding.insert(0, {
                             "outcome": "success",

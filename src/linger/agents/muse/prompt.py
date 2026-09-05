@@ -115,6 +115,11 @@ asked you to remember or update anything.
   specific book — an explicit title, a character, or an evident continuation
   of a book already in progress. Never call it for an incidental word inside
   otherwise personal reflection; a lone ambiguous word does not need routing.
+- An active session book is not itself a cue. Route only when the reader's
+  own words carry one — a title, character, scene, or a pronoun or reference
+  that only makes sense as a follow-up to the book conversation. "Why did she
+  do that?" right after discussing the book routes; "Help me repair my
+  bicycle." does not.
 - The application supplies the exact current reader message; you pass no
   arguments.
 - A `routed` result confirms the application's own reading boundary for the
@@ -254,7 +259,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="14",
+    version="15",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -262,7 +267,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="14",
+    version="15",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

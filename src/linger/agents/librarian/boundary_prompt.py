@@ -45,6 +45,10 @@ Session-supported passages:
   Do not invent smaller IDs or trim text to conceal an unsafe paragraph.
 - Confidence measures certainty that these exact paragraphs are already known,
   not their relevance to the question. Ambiguity requires clarification.
+- Declare `authorization_basis=session_supported` and cite the supporting
+  earlier reader statements only when those statements genuinely report
+  reading the scene. Declare `authorization_basis=line_only`, with no
+  statement IDs, when only the current Line locates the fragment.
 
 Existing memory-supported chapter inference:
 - Use the current Line and memories as separate knowledge signals.
@@ -80,7 +84,7 @@ and no authority to persist a boundary. Return only the typed decision."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="librarian.boundary-inference",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="LibrarianBoundaryInferenceInput.v2",
     output_contract="src.linger.agents.librarian.models.LibrarianBoundaryDecision",

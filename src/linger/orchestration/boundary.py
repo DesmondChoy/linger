@@ -6,6 +6,8 @@ import json
 from collections.abc import Awaitable, Callable
 from itertools import zip_longest
 
+from pydantic import ValidationError
+
 from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
 from apps.backend.telemetry import run_agent_traced
@@ -51,6 +53,17 @@ def _clarification(scope: RegisteredCorpusScope, *, chapter: int | None = None) 
     )
 
 
+def _has_strong_work_candidate(
+    text: str,
+    scope: RegisteredCorpusScope,
+    librarian: Librarian,
+) -> bool:
+    return any(
+        candidate.strength == "strong" and candidate.scope.work_id == scope.work_id
+        for candidate in librarian.work_candidates(text, (scope.book_version_id,))
+    )
+
+
 def _memory_mentions_work(
     memory: RetrievalMemory,
     scope: RegisteredCorpusScope,
@@ -67,13 +80,14 @@ def _memory_mentions_work(
             and record.book_version_id == scope.book_version_id
         ):
             return True
-    return any(
-        candidate.strength == "strong" and candidate.scope.work_id == scope.work_id
-        for candidate in librarian.work_candidates(
-            memory.text,
-            (scope.book_version_id,),
-        )
-    )
+    return _has_strong_work_candidate(memory.text, scope, librarian)
+
+
+def _statement_supports_work(
+    statement: ReaderStatement, scope: RegisteredCorpusScope, librarian: Librarian
+) -> bool:
+    """Accept a reader statement only when it strongly indicates this work."""
+    return _has_strong_work_candidate(statement.text, scope, librarian)
 
 
 def relevant_memories(
@@ -143,11 +157,12 @@ def _validated_passages(
     evidence: tuple[EvidenceRecord, ...],
     prior_reader_statements: tuple[ReaderStatement, ...],
     confidence_threshold: float,
+    librarian: Librarian,
 ) -> BoundaryPassages | BoundaryUncertain:
-    statement_ids = {statement.statement_id for statement in prior_reader_statements}
+    by_statement_id = {statement.statement_id: statement for statement in prior_reader_statements}
+    statement_ids = set(by_statement_id)
     by_id = {record.evidence_id: record for record in evidence}
     selections = (
-        decision.supporting_statement_ids,
         decision.supporting_evidence_ids,
         decision.passage_evidence_ids,
     )
@@ -166,18 +181,35 @@ def _validated_passages(
             kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
             reason_code="inference_unavailable", clarification_question=_clarification(scope),
         )
+    if (
+        decision.authorization_basis == "line_only"
+        or not all(
+            _statement_supports_work(by_statement_id[statement_id], scope, librarian)
+            for statement_id in decision.supporting_statement_ids
+        )
+    ):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="progress_unverified", clarification_question=_clarification(scope),
+        )
     if decision.confidence < confidence_threshold:
         return BoundaryUncertain(
             kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
             reason_code="low_confidence", confidence=decision.confidence,
             clarification_question=_clarification(scope),
         )
-    return BoundaryPassages(
-        grant=PassageGrant(
+    try:
+        grant = PassageGrant(
             records=tuple(by_id[evidence_id] for evidence_id in decision.passage_evidence_ids),
             supporting_statement_ids=decision.supporting_statement_ids,
-        ),
-        confidence=decision.confidence,
+        )
+    except ValidationError:
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable", clarification_question=_clarification(scope),
+        )
+    return BoundaryPassages(
+        grant=grant, confidence=decision.confidence, authorization_basis="session_supported",
     )
 
 
@@ -289,7 +321,7 @@ async def infer_spoiler_boundary(
 
     if isinstance(decision, PassageInferenceDecision):
         return _validated_passages(
-            decision, scope, evidence, prior_reader_statements, confidence_threshold
+            decision, scope, evidence, prior_reader_statements, confidence_threshold, librarian
         )
 
     if decision.outcome == "uncertain":

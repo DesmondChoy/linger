@@ -214,14 +214,18 @@ class MuseInstructionTests(unittest.TestCase):
             lowered,
         )
 
-    def test_prompt_fingerprints_are_version_fourteen(self) -> None:
+    def test_prompt_fingerprints_are_version_fifteen(self) -> None:
         from src.linger.agents.muse.prompt import (
             DRAFT_PROMPT_FINGERPRINT,
             REVISION_PROMPT_FINGERPRINT,
         )
 
-        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "14")
-        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "14")
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "15")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "15")
+
+    def test_instructions_require_a_book_cue_not_just_an_active_book(self) -> None:
+        lowered = " ".join(self.instructions.lower().split())
+        self.assertIn("an active session book is not itself a cue", lowered)
 
     def test_passage_routes_do_not_imply_chapter_completion(self) -> None:
         compact = " ".join(self.instructions.split())

@@ -58,8 +58,10 @@ async def librarian_route() -> LibrarianRoutingResponse:
     Call this only when the request appears to depend on a specific book — an
     explicit title, a character, or an evident continuation of a book already
     in progress. Never call it for an incidental word inside otherwise
-    personal reflection. The application supplies the exact current reader
-    message and earlier reader statements; the model cannot replace them.
+    personal reflection, and never call it solely because a book is active
+    in the session: the reader's own words must carry the book cue. The
+    application supplies the exact current reader message and earlier reader
+    statements; the model cannot replace them.
     Returns a chapter-scoped `routed` work, exact `passages` permission,
     a clarification, or no match. Call `librarian_search` with the returned
     `work_id` and `book_version_id`. For `routed`, build `reading_boundary` from

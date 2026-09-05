@@ -418,6 +418,12 @@ character, location, and catalogue words are weak candidates only: they cannot
 select a work or expose a memory by themselves. Multiple plausible works
 produce a clarification before private boundary inference. If a book is not
 needed for the response, Muse can continue personal reflection without lookup.
+A bare follow-up with no book name and no strong cue for a different work
+routes to the session's active selection and enters boundary inference like
+any other route. Boundary inference asks a chapter-progress clarification
+whenever it cannot locate the request in the book, whether because no
+supporting evidence is found before the judge runs or the judge itself
+remains uncertain.
 
 Librarian then performs boundary inference. The complete immutable selected
 work is its search scope: Librarian cross-references all chapters against the
@@ -449,12 +455,15 @@ memory capture and does not turn session messages into saved memories.
 
 For this path, Librarian converts private search windows into verified canonical
 paragraphs. Its private decision separately names earlier reading statements,
-paragraphs that locate those statements, and the exact requested paragraphs.
+paragraphs that locate those statements, and the exact requested paragraphs,
+and declares an `authorization_basis` of `session_supported` or `line_only`.
 Application code validates the supplied IDs and confidence before granting only
-the requested paragraphs. A `passages` route exposes IDs but no story text or
-chapter ceiling. `librarian_search` then re-fetches those exact records, checks
-their identity, and runs the existing evidence-strength review. Neither a new
-query nor a larger chapter argument can expand the grant.
+the requested paragraphs; a `line_only` decision, or one citing a statement that
+does not itself refer to the work, never grants passages. A `passages`
+route exposes IDs but no story text or chapter ceiling. `librarian_search`
+then re-fetches those exact records, checks their identity, and runs the
+existing evidence-strength review. Neither a new query nor a larger chapter
+argument can expand the grant.
 
 Provenance receives `passage_scope` with no chapter boundary. The deterministic
 release check accepts only matching canonical evidence within that exact scope,

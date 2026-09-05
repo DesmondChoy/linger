@@ -390,7 +390,10 @@ and generic single-word cues do not count. If no candidate reaches the `0.6`
 threshold, routing produces `NoMatch`; multiple qualifying candidates produce a typed
 identity clarification, even when their scores differ. A resolved reviewed
 name has score `1.0`. These scores are deterministic heuristics, not calibrated
-probabilities.
+probabilities. When `route_work` itself returns no match, application-side
+orchestration falls back to the session's active book selection unless a
+strong candidate names a different work; that fallback still hands off to the
+same boundary phase, which is free to decline the request.
 
 `work_candidates` uses the same identity resolver for memory selection.
 Unresolved names remain weak candidates; catalogue words cannot promote them
@@ -412,7 +415,9 @@ Evidence declarations and non-route tool calls still block release.
 A route grants a scope, not source text. Muse calls `librarian_search` with the
 returned `work_id` and `book_version_id`. A chapter route supplies
 `max_chapter_inclusive` for `reading_boundary`; a passage route requires
-`reading_boundary=None` and permits only its exact paragraph IDs.
+`reading_boundary=None` and permits only its exact paragraph IDs. A routed
+result also names the deterministic `selection_basis` that identified the
+work — `resolved_book_identity`, `distinctive_cue`, or `session_selection`.
 
 ### 4.2 Input and output contracts
 
