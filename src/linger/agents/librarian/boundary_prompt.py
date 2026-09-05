@@ -84,7 +84,7 @@ and no authority to persist a boundary. Return only the typed decision."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="librarian.boundary-inference",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="LibrarianBoundaryInferenceInput.v2",
     output_contract="src.linger.agents.librarian.models.LibrarianBoundaryDecision",

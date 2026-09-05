@@ -357,18 +357,19 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         reset_active_memories(self._token)
         self._token = set_active_memories((_caterpillar_scene_memory(),))
         self._set_message("Help me repair my bicycle.")
-        # Inference must run for the session fallback; the boundary path declines
-        # before or at the judge because the unrelated line retrieves no evidence.
+        # Inference runs through the session fallback, and the unrelated line
+        # retrieves no evidence, so the boundary path declines before the judge.
         with patch(
             "src.linger.orchestration.routing.infer_spoiler_boundary",
             new=AsyncMock(wraps=infer_spoiler_boundary),
         ) as infer, patch(
             "src.linger.orchestration.boundary.judge_spoiler_boundary",
             side_effect=declining_judge,
-        ):
+        ) as judge:
             result = await librarian_route()
 
         self.assertEqual(1, infer.await_count)
+        self.assertEqual(0, judge.await_count)
         self.assertIsInstance(result, ClarificationRequest)
         self.assertIsNone(sessions.reading_candidate("route-session"))
         self.assertIsNone(confirmed_reading())
