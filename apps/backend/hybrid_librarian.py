@@ -16,7 +16,6 @@ from apps.backend.contracts import (
     LibrarianRequest,
 )
 from apps.backend.librarian import (
-    CORPORA,
     CorpusScopeError,
     Librarian,
     Paragraph,
@@ -24,6 +23,7 @@ from apps.backend.librarian import (
     _paragraphs,
 )
 from src.linger.corpus.book import ChapterFrontMatter, parse_chapter_markdown
+from src.linger.corpus import registry
 
 
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
@@ -163,7 +163,7 @@ class HybridLibrarian(Librarian):
     def _eligible_windows(request: LibrarianRequest) -> list[Candidate]:
         candidates: list[Candidate] = []
         for scope in request.book_scopes:
-            registration = CORPORA.get(scope.work_id)
+            registration = registry.CORPORA.get(scope.work_id)
             if registration is None or registration.book.book_version_id != scope.book_version_id:
                 raise CorpusScopeError(
                     f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
@@ -339,7 +339,7 @@ class HybridLibrarian(Librarian):
                 work_id=candidate.metadata.work_id,
                 book_version_id=candidate.metadata.book_version_id,
                 chapter_id=candidate.metadata.chapter_id,
-                source_title=CORPORA[candidate.metadata.work_id].book.title,
+                source_title=registry.CORPORA[candidate.metadata.work_id].book.title,
                 location=(
                     f"Chapter {candidate.metadata.chapter_number} — "
                     f"{candidate.metadata.title}, source lines "

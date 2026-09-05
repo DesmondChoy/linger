@@ -211,6 +211,15 @@ class ReadingStateTests(unittest.TestCase):
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
 
+    def test_switching_books_discards_the_previous_books_pending_question(self) -> None:
+        sessions.set_book_selection(self.session_id, sessions.BookSelection(book_id="pg11"))
+        sessions.set_pending_clarification(
+            self.session_id,
+            sessions.PendingClarification(book_id="pg11", reason_code="insufficient_context"),
+        )
+        sessions.set_book_selection(self.session_id, sessions.BookSelection(book_id="pg12"))
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
+
     def test_restore_reading_state_rolls_back_a_pending_clarification(self) -> None:
         sessions.set_pending_clarification(
             self.session_id,

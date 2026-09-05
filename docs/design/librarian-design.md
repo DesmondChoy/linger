@@ -97,38 +97,38 @@ chapters.
 ```text
 User request + transient conversation context
                     ↓
-Explicit reader ceiling in this request?
-        ├─ yes → Application validates explicit ceiling ───────────┐
-        └─ no  → Muse judges book intent conversationally and,     │
-                 only when the request appears to depend on a      │
-                 specific book, calls the argument-less             │
-                 `librarian_route` tool                             │
-                                      ↓                            │
-                 Librarian scores confidence against the catalogue  │
-                 (title mention = 1.0; distinct catalog-cue overlap │
-                 = 0.3 + 0.2 × overlap, capped at 1.0); below 0.6   │
-                 or a full-evidence tie yields no match             │
-                     ↙ no match         routed work ↘               │
-              Muse keeps reflecting,   Librarian privately searches │
-              no boundary asked        the complete work using      │
-                                       current Line + relevant       │
-                                       account memories              │
-                                                    ↓                │
-                             Candidate ceiling + confidence + locations │
-                                                    ↓                │
-                             Application validates inferred ceiling │
-                                 ↙ uncertain          validated ↘    │
-              Exact clarification relayed by Muse       └──────────┤
+Reading declaration or full-title answer?
+        └─ Shared identity resolver → registered identity only
+                    ↓
+Explicit completion for the selected book in this request?
+        ├─ yes → Application validates chapter ceiling ────────────┐
+        └─ no  → Muse judges book intent                           │
+                    ↓ (lookup needed)                             │
+                 librarian_route                                  │
+                    ↓                                             │
+                 Shared identity resolver                         │
+                 (catalogue cues only if no name signal)          │
+                    ├─ unresolved → Exact identity clarification   │
+                    ├─ no match → Ask for title if needed          │
+                    └─ resolved work                              │
+                           ↓                                      │
+                 Private boundary inference                       │
+                 (current Line + eligible account memories        │
+                  + full-work candidates)                         │
+                           ↓                                      │
+                 Application validates candidate ceiling          │
+                    ├─ uncertain → Exact boundary clarification    │
+                    └─ validated ─────────────────────────────────┤
                                                                   ↓
-                                                     Eligible catalogue only
-                                      ↓
-                         Second, bounded evidence search
-                                      ↓
-                         Rerank candidate evidence
-                                      ↓
-                         Judge evidence strength
-                                      ↓
-                         Typed result returned to Muse
+                                                  Eligible catalogue only
+                                                                  ↓
+                                                  Bounded evidence search
+                                                                  ↓
+                                                  Rerank candidate evidence
+                                                                  ↓
+                                                  Judge evidence strength
+                                                                  ↓
+                                                  Typed result to Muse
 ```
 
 The benchmark search indexes supply candidate passages between catalogue
@@ -143,12 +143,14 @@ truth, and non-selected indexes need not remain in the production path.
 | Corpus processor | Verifies the source, extracts exact chapter bodies, renders initial Markdown, and checks integrity |
 | Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
-| Muse | Judges when a request depends on a book and calls `librarian_route`, supplies the exact question, invokes the granted Librarian adapter when grounding is useful, and presents any clarification or evidence result to the user |
-| Application boundary | Supplies access scope, validates explicit or inferred ceilings, and prevents every caller from widening them |
+| Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
+| Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
+| Application boundary | Supplies the original reader message and access scope, resolves identity, validates explicit or inferred ceilings, and enforces reply release |
 | Librarian agent | Infers a private candidate ceiling, then judges the answerability of separately retrieved bounded evidence |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
-| Sculptor | May later propose reviewed routing-metadata improvements; it never changes canonical chapter bodies |
-| Muse and Provenance | Draft and review the eventual response; neither treats routing metadata as evidence |
+| Sculptor | Optionally proposes semantic metadata offline for human review; deterministic tooling builds the catalogue. Runtime Sculptor handles memory curation |
+| Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
+| Serendipity | Proposes connections; has no book-registration or identity-resolution responsibility |
 
 ## 3. Offline corpus preparation
 
@@ -366,35 +368,47 @@ A structural or integrity failure returns no ready corpus:
 
 ## 4. Online retrieval flow
 
-### 4.1 Confidence-scored routing
+### 4.1 Book identity and contextual routing
 
 The application no longer routes every turn eagerly. Muse decides whether a
 request depends on a specific book and, only then, calls the argument-less
 `librarian_route` tool; the application supplies the exact current reader
 message from a turn-scoped context variable, so Muse cannot substitute its own
-text. `route_work` scores each catalogue candidate: an explicit title or
-work-id mention is unambiguous (`confidence = 1.0`); otherwise confidence
-tracks the absolute strength of the evidence, `0.3 + 0.2 × overlap` where
-`overlap` is the count of distinct matched catalog-cue *terms* (character,
-location, or retrieval-cue words; a two-word cue contributes 2), capped at
-`1.0` — a long message and a short one with the same cues score the same.
-Below the `0.6` threshold, or a full-evidence tie between two candidates
-(same confidence and same cue overlap), the result is no match rather than a
-guess.
+text. Explicit reading declarations and `route_work` share the deterministic
+book registry. Declarations and title-only replies use exact matching; routing
+finds reviewed names within the original message. A longer name takes
+precedence over names contained inside it, and a canonical title or work ID
+beats an alias at the same position. Registered authors can distinguish books
+sharing a title. Broad candidate aliases, unresolved shared names, and separate
+explicit book mentions require clarification before private boundary inference.
+Naming a book never confirms a chapter candidate.
 
-`work_candidates` separately classifies possible works for the boundary
-phase: exact supported titles, stable aliases, distinctive multi-word
-catalogue phrases, and broad catalogue-context agreement are *strong*
-signals; common catalogue words are *weak* candidates that can neither select
-a work nor expose a memory on their own.
+When there is no name signal, `route_work` retains catalogue scoring:
+`0.3 + 0.2 × overlap`, capped at `1.0`. Overlap counts distinct whole catalogue
+cues; a multi-word phrase contributes one match, nested matches count once,
+and generic single-word cues do not count. If no candidate reaches the `0.6`
+threshold, routing produces `NoMatch`; multiple qualifying candidates produce a typed
+identity clarification, even when their scores differ. A resolved reviewed
+name has score `1.0`. These scores are deterministic heuristics, not calibrated
+probabilities.
 
-A routed work then unconditionally enters the same private boundary
-phase described below; a `NoMatch` leaves Muse to keep reflecting without a
-book tool, and an unresolved boundary surfaces as a `ClarificationRequest`
-that Muse relays to the reader verbatim. A routed result grants no retrieval
-authority by itself — Muse still calls `librarian_search` with the returned
-`work_id`, `book_version_id`, and a `reading_boundary` built from
-`max_chapter_inclusive`.
+`work_candidates` uses the same identity resolver for memory selection.
+Unresolved names remain weak candidates; catalogue words cannot promote them
+to strong support. Without name signals, distinctive catalogue phrases and
+broad contextual agreement can still provide strong candidates, while common
+catalogue words remain weak. The [registration guide](../book-registration.md)
+describes the alias policy, collision checks, and agent responsibilities.
+
+A resolved work enters the private boundary phase described below. If a
+`NoMatch` leaves a book-dependent request unresolved, Muse asks for its full
+title and author; otherwise it can continue personal reflection. For identity
+and boundary clarifications from `librarian_route`, application code releases
+the validated question after Provenance passes. Muse need not copy it verbatim.
+Evidence declarations and non-route tool calls still block release.
+A route grants a scope, not source text. Muse calls `librarian_search` with the
+returned `work_id` and `book_version_id`. A chapter route supplies
+`max_chapter_inclusive` for `reading_boundary`; a passage route requires
+`reading_boundary=None` and permits only its exact paragraph IDs.
 
 ### 4.2 Input and output contracts
 

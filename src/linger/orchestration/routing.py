@@ -20,6 +20,7 @@ from src.linger.contracts.librarian import (
     RoutedPassages,
 )
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.corpus.registry import BookClarification
 from src.linger.evaluation_transcript import bind_evaluation_correlation_id
 from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.orchestration.grounding import librarian_service
@@ -63,6 +64,19 @@ async def _route_reader_message(
         if decision is None:
             span.set_attribute("tool.status", "no_match")
             return NoMatch(kind="no_match", request_id=request_id)
+        if isinstance(decision, BookClarification):
+            span.set_attribute("tool.status", "clarification")
+            current_session = session_id()
+            if current_session is not None:
+                sessions.clear_book_selection(current_session)
+            return ClarificationRequest(
+                kind="clarification",
+                request_id=request_id,
+                clarification_id=f"clarify_{uuid4().hex}",
+                reason_code="book_identity_unresolved",
+                question=decision.question,
+                expected_answer=ExpectedAnswer(type="free_text"),
+            )
 
         scope = decision.scope
         with bind_evaluation_correlation_id(request_id):
@@ -168,13 +182,10 @@ async def _route_reader_message(
         )
 
 
-def _persist_uncertain_candidate(scope: RegisteredCorpusScope, boundary: BoundaryUncertain) -> None:
-    """Persist the open question, and any partial candidate, for the next turn.
-
-    Only a pending question and a candidate chapter are remembered here, never
-    a confirmed boundary: `resolve_reading_context` confirms one from the
-    reader's own answer.
-    """
+def _persist_uncertain_candidate(
+    scope: RegisteredCorpusScope, boundary: BoundaryUncertain
+) -> None:
+    """Remember the question and only a chapter it explicitly asks to confirm."""
     current_session = session_id()
     if current_session is None:
         return
@@ -190,7 +201,11 @@ def _persist_uncertain_candidate(scope: RegisteredCorpusScope, boundary: Boundar
             reason_code=boundary.reason_code,
         ),
     )
-    if boundary.candidate_chapter is None:
+    if (
+        boundary.authorization_basis != "memory_supported"
+        or boundary.candidate_chapter is None
+    ):
+        sessions.clear_reading_candidate(current_session)
         return
     sessions.set_reading_candidate(
         current_session,

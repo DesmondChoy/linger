@@ -168,7 +168,16 @@ def book_selection(session_id: str) -> BookSelection | None:
 
 
 def set_book_selection(session_id: str, selection: BookSelection) -> None:
+    pending = _pending_clarifications.get(session_id)
+    if pending and pending.book_id != selection.book_id:
+        _pending_clarifications.pop(session_id, None)
     _book_selections[session_id] = selection
+
+
+def clear_book_selection(session_id: str) -> None:
+    _book_selections.pop(session_id, None)
+    _reading_candidates.pop(session_id, None)
+    _pending_clarifications.pop(session_id, None)
 
 
 def reading_candidate(session_id: str) -> ReadingCandidate | None:

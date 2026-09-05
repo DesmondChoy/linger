@@ -549,7 +549,7 @@ def _validate_release(
         or any(result["tool_name"] != "librarian_route" for result in tool_results)
     ):
         raise ReleaseValidationError(
-            "An unresolved spoiler boundary forbids evidence and non-route tools"
+            "An unresolved book or spoiler boundary forbids evidence and non-route tools"
         )
     evidence = _validated_book_evidence(
         tool_results,

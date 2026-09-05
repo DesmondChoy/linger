@@ -410,7 +410,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_failure_stores_nothing(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="I am reading Animal Farm and I have finished Chapter 2.",
+            message="I am reading Alice in Wonderland and I have finished Chapter 2.",
         )
         gate = AsyncMock(side_effect=RuntimeError("model failed"))
 
@@ -427,7 +427,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_cancellation_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,
-            message="I am reading Animal Farm and I have finished Chapter 2.",
+            message="I am reading Alice in Wonderland and I have finished Chapter 2.",
         )
         entered = asyncio.Event()
         blocker = asyncio.Event()
@@ -453,8 +453,8 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         request = ChatRequest(
             session_id=self.session_id,
             message=(
-                "I am reading Animal Farm and I have finished Chapter 3. "
-                "Why does the milk connect to power and equality?"
+                "I am reading Alice in Wonderland and I have finished Chapter 3. "
+                "Why do Alice's changes in size affect her sense of identity?"
             ),
         )
         gate = AsyncMock(return_value=ReflectionRelease(

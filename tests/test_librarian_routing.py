@@ -6,6 +6,7 @@ from unittest.mock import patch
 from apps.backend.config import Settings
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import (
     BoundaryUncertain,
     ClarificationRequest,
@@ -15,7 +16,6 @@ from src.linger.contracts.librarian import (
     effective_route_response,
 )
 from src.linger.evaluation_transcript import active_evaluation_correlation_id
-from src.linger.services.memory import MemoryRecord
 from src.linger.orchestration.turn_context import (
     reset_active_memories,
     reset_reader_message,
@@ -24,17 +24,14 @@ from src.linger.orchestration.turn_context import (
 )
 
 
-def _book_memory() -> MemoryRecord:
-    return MemoryRecord(
+def _book_memory() -> CuratedMemory:
+    return CuratedMemory(
         memory_id="memory-alice",
-        account_key="account-key",
+        kind="original",
         text="Alice and the Caterpillar made me think about identity.",
-        capture_type="automatic",
-        source_event_id="event-alice",
-        idempotency_key="key-alice",
+        source_memory_ids=("memory-alice",),
         evidence_ids=(),
         created_at="2026-08-28T00:00:00+00:00",
-        updated_at="2026-08-28T00:00:00+00:00",
     )
 
 

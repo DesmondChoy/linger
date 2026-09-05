@@ -7,8 +7,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from apps.backend.hybrid_librarian import _windows
-from apps.backend.librarian import CORPORA, Paragraph, _paragraphs
+from apps.backend.librarian import Paragraph, _paragraphs
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.corpus import registry
 from src.linger.corpus.book import check_corpus, parse_chapter_markdown
 
 from .models import CorpusTextEvidence
@@ -32,7 +33,7 @@ class BookEvidenceResolver:
         key = (work_id, version)
         if key in self._catalogs:
             return self._catalogs[key]
-        registration = CORPORA.get(work_id)
+        registration = registry.CORPORA.get(work_id)
         if registration is None or registration.book.book_version_id != version:
             raise ValueError("unregistered work or corpus version")
         book = registration.book

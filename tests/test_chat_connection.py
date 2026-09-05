@@ -196,7 +196,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         captured: list = []
         request = ChatRequest(
             session_id=self.session_id,
-            message="I'm reading Alice Adventures in Wonderland and I've finished Chapter 5",
+            message="I'm reading Alice's Adventures in Wonderland and I've finished Chapter 5",
         )
 
         with muse_chat_agent.override(model=FunctionModel(_muse_calls_serendipity(captured))):

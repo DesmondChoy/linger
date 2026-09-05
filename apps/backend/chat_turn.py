@@ -17,6 +17,7 @@ from src.linger.agents.provenance.emotional import emotional_boundary_agent
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
+from src.linger.corpus.registry import BookClarification, ResolvedBook, resolve_book_identity
 from src.linger.orchestration.connection import web_reach_permitted
 from src.linger.orchestration.emotional import (
     EmotionalBoundaryValidationError,
@@ -90,7 +91,11 @@ CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.I
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
     r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
-TITLE_PREFIX_PATTERN = re.compile(r"\b(?:i(?:'m| am)\s+)?(?:reading|read)\s+(?P<title>.+)$", re.IGNORECASE)
+TITLE_PREFIX_PATTERN = re.compile(
+    r"\b(?:i(?:'m| am)\s+)?(?:reading|read(?!\s+through\b))\s+(?P<title>.+)$",
+    re.IGNORECASE,
+)
+TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
 TITLE_END_PATTERN = re.compile(
     r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
     re.IGNORECASE,
@@ -113,42 +118,19 @@ AFFIRMATION_PATTERN = re.compile(
 )
 
 
-def _title_before_chapter(message: str, chapter_start: int) -> str | None:
-    title_match = TITLE_PREFIX_PATTERN.search(message[:chapter_start])
-    if title_match is None:
-        return None
-    title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(" \"'“”.,:;")
-    return title or None
-
-
-def _title_without_chapter(message: str) -> str | None:
-    title_match = TITLE_PREFIX_PATTERN.search(message)
+def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | None:
+    if chapter_match:
+        title_match = TITLE_SUFFIX_PATTERN.match(message[chapter_match.end():])
+        if title_match is None:
+            title_match = TITLE_PREFIX_PATTERN.search(message[:chapter_match.start()])
+    else:
+        title_match = TITLE_PREFIX_PATTERN.search(message)
     if title_match is None:
         return None
     title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(
         " \"'“”.,:;"
     )
     return title or None
-
-
-def _candidate_confirmed(message: str, candidate: sessions.ReadingCandidate) -> bool:
-    lowered = message.lower()
-    aliases = [candidate.book_id.replace("-", " ")]
-    if candidate.book_title:
-        aliases.append(candidate.book_title.lower())
-    return bool(
-        AFFIRMATION_PATTERN.search(message)
-        or any(alias in lowered for alias in aliases)
-        or "wonderland" in lowered and candidate.book_id == "pg11"
-    )
-
-
-def _work_id_for_title(title: str) -> str:
-    """Resolve known titles to stable corpus IDs; keep unknown books as slugs."""
-    words = set(re.findall(r"[a-z0-9]+", title.lower()))
-    if "alice" in words and "wonderland" in words:
-        return "pg11"
-    return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
 def resolve_reading_context(request: ChatRequest) -> ContextResolution:
@@ -161,26 +143,46 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     """
     candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
+    if selection and librarian_service.version_for(selection.book_id) not in settings.allowed_book_version_ids:
+        sessions.clear_book_selection(request.session_id)
+        selection = None
+        candidate = None
+    if candidate and librarian_service.version_for(candidate.book_id) not in settings.allowed_book_version_ids:
+        sessions.clear_reading_candidate(request.session_id)
+        candidate = None
     pending = sessions.pending_clarification(request.session_id)
+    if pending and librarian_service.version_for(pending.book_id) not in settings.allowed_book_version_ids:
+        sessions.clear_pending_clarification(request.session_id)
+        pending = None
     in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
     completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
 
     candidate_confirmed = bool(
-        candidate and _candidate_confirmed(request.message, candidate)
+        candidate and not in_progress and AFFIRMATION_PATTERN.search(request.message)
     )
     if candidate and candidate_confirmed:
         selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title)
         sessions.set_book_selection(request.session_id, selection)
 
     chapter_match = CHAPTER_PATTERN.search(request.message)
-    explicit_title = (
-        _title_before_chapter(request.message, chapter_match.start())
-        if chapter_match
-        else _title_without_chapter(request.message)
+    explicit_title = _declared_title(request.message, chapter_match)
+    identity = resolve_book_identity(
+        explicit_title or request.message, settings.allowed_book_version_ids, exact=True
     )
-    if explicit_title:
-        book_id = _work_id_for_title(explicit_title)
-        selection = sessions.BookSelection(book_id=book_id, book_title=explicit_title)
+    if explicit_title or identity is not None:
+        if not isinstance(identity, ResolvedBook):
+            sessions.clear_book_selection(request.session_id)
+            clarification = identity if isinstance(identity, BookClarification) else BookClarification()
+            return ContextResolution(
+                status="unknown",
+                clarification_question=clarification.question,
+                explanation="The book identity is unresolved; no chapter progress is authorized.",
+            )
+        book = identity.registration.book
+        if candidate and candidate.book_id != book.work_id:
+            sessions.clear_reading_candidate(request.session_id)
+            candidate = None
+        selection = sessions.BookSelection(book_id=book.work_id, book_title=book.title)
         sessions.set_book_selection(request.session_id, selection)
 
     if completed and chapter_match and selection:
@@ -644,7 +646,7 @@ async def _run_chat_pipeline(
         routing_token = set_routing_context()
         session_id_token = set_session_id(request.session_id)
         try:
-            active_memories = tuple(service.list_active(account))
+            active_memories = tuple(service.list_for_retrieval(account))
         except MemoryServiceError:
             active_memories = ()
         memories_token = set_active_memories(active_memories)

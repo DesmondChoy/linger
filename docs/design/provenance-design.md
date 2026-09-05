@@ -108,22 +108,20 @@ table above is its direct measurement.
       condition, and it is the primary 4.2.3 code. Its apparent vagueness was the
       fixture defect above.
 
-**Open, deliberately not being pushed further:**
+**Stage 0 contract decisions:**
 
-- [-] **S0.10 — Code-point offset arithmetic. BLOCKED on a contract decision.**
-      Correct `path`, miscounted `start`/`end` offsets on curly-quoted text;
-      self-corrected on retry (74→87). Intermittent — 2 errors in v3 run 1, 0 in
-      run 2. Not worth a prompt patch: the model already recovers via the
-      existing retry, and the failure is arithmetic on multi-byte punctuation,
-      which more instruction text is unlikely to fix. The real options are
-      raising the output-retry allowance or having the gate name the quote and
-      let application code compute offsets — a contract change outside Stage 0.
+- [x] **S0.10. Finding offsets removed in `6c9e4ff`.**
+      `TextSpanLocation` now carries a verbatim quote and an RFC 6901 path.
+      Application code resolves the path and verifies that the quote occurs in
+      the named string. The offset failures in the historical runs below
+      predate this contract change. Memory-capture nominations still use exact
+      Unicode-codepoint offsets against the current Line.
 - [x] **S0.11 — `prompt_injection` is a hard block.** Product decision, matching
       `spoiler`. Merged into one rule in
       [`prompt.py`](../../src/linger/agents/provenance/prompt.py) rather than a
       second one-off paragraph — a draft that has already followed injected
       instructions is untrustworthy as a whole, not in one correctable place.
-      Fingerprint `v4` (`62adfa4bb11c`). **The pack now passes 12/12** with
+      At fingerprint `v4` (`62adfa4bb11c`), the pack passed 12/12 with
       `targets_pass=true`, twice in three runs; the third run's only failure was
       the known S0.10 offset error.
 
@@ -375,7 +373,7 @@ index.
 |---|---|---|
 | Strict typed input, no tools, no history | [`provenance/models.py`](../../src/linger/agents/provenance/models.py), [`agent.py`](../../src/linger/agents/provenance/agent.py) | `test_provenance_review.py::test_provenance_has_no_tools`, `::test_rejects_unknown_top_level_fields` |
 | Closed 8-code risk taxonomy, `applies_to` scoping | `models.py:20-44`, `RiskFinding.source_matches_decision` | `::test_every_risk_code_is_accepted`, `::test_covers_every_specification_block_condition` |
-| Findings validated against the exact input (offsets, quote, RFC 6901 path) | `ProvenanceInput.validate_review_locations` | `::test_text_span_must_match_the_declared_source`, `::test_structural_path_must_exist` |
+| Findings validated against the exact input through quote containment and an RFC 6901 path | `ProvenanceInput.validate_review_locations` | `::test_text_span_must_match_the_declared_source`, `::test_structural_path_must_exist` |
 | Justification invariants (no unexplained non-pass; no findings on a pass) | `ProvenanceReview.require_decision_specific_justification` | `::test_each_blocked_decision_requires_its_own_finding` |
 | Decoupled response/capture decisions | same validator | `::test_decisions_are_independent`, `::test_critique_excludes_capture_findings` |
 | Pass / one revision / reject → safe decline | [`orchestration/reflection.py`](../../src/linger/orchestration/reflection.py) | `test_reflection.py::test_allows_one_reviewed_revision`, `::test_second_revision_request_returns_safe_decline`, `::test_reject_returns_safe_decline` |
@@ -556,14 +554,15 @@ S1/S2 pair on `line_text` differing and `prop_ids` matching; S3/S4 likewise.
 ### 4.3 Grading contract
 
 The runner reads `ChatResponse.inspection` per Scene and grades deterministic
-hard gates only. **Implemented** as `grade_scene`'s six `GateFailure` codes:
+hard gates only. `grade_scene` implements the following gates:
 
 | Gate | `GateFailure` code | Source |
 |---|---|---|
 | Release path matches | `release_source_mismatch` | `release.release_source` (final turn) |
-| Retrieval only when required | `unexpected_retrieval` / `missing_retrieval` | `inspection.librarian_grounding` |
+| Retrieval only when required | `unexpected_retrieval` / `missing_retrieval` | Successful typed `RetrievalResult` outcomes in `inspection.librarian_grounding`; routing, clarification, and failure are not retrieval |
+| Grounded final reply cites evidence | `missing_citation` | Final turn's `release.released_evidence_ids` |
 | Citations within the permitted set | `unpermitted_evidence` | `release.released_evidence_ids` (B1) |
-| Ceiling matches ground truth | `ceiling_mismatch` | `context_resolution.chapter_max` (B2) |
+| Retrieval ceiling matches ground truth | `ceiling_mismatch` | `context_resolution.chapter_max`, or the validated `RoutedWork` ceiling when no explicit boundary exists; missing authority fails |
 | No post-boundary disclosure | `forbidden_fact_disclosed` | released reply text |
 
 Semantic quality (is the reflection actually useful?) stays visible and

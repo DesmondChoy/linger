@@ -8,10 +8,10 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
 
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.turn import ConfirmedReading
-from src.linger.services.memory import MemoryRecord
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
     contextvars.ContextVar("confirmed_reading", default=None)
@@ -19,7 +19,7 @@ _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None]
 _reader_message: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "reader_message", default=None
 )
-_active_memories: contextvars.ContextVar[tuple[MemoryRecord, ...]] = contextvars.ContextVar(
+_active_memories: contextvars.ContextVar[tuple[CuratedMemory, ...]] = contextvars.ContextVar(
     "active_memories", default=()
 )
 _session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
@@ -132,12 +132,12 @@ def reset_reader_message(token: contextvars.Token) -> None:
     _reader_message.reset(token)
 
 
-def set_active_memories(value: tuple[MemoryRecord, ...]) -> contextvars.Token:
-    """Bind the account-scoped memories available to Muse's routing tool this turn."""
+def set_active_memories(value: tuple[CuratedMemory, ...]) -> contextvars.Token:
+    """Bind the curated account-scoped retrieval view for this turn's tools."""
     return _active_memories.set(value)
 
 
-def active_memories() -> tuple[MemoryRecord, ...]:
+def active_memories() -> tuple[CuratedMemory, ...]:
     return _active_memories.get()
 
 

@@ -27,7 +27,7 @@ from src.linger.agents.serendipity.models import (
     SearchSourceKind,
     WebConnectionEvidence,
 )
-from src.linger.services.memory import MemoryRecord
+from src.linger.contracts.curation import CuratedMemory
 
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
@@ -69,7 +69,7 @@ class SerendipityDependencies:
 
     task: ConnectionDiscoveryInput
     librarian: Librarian
-    memories: tuple[MemoryRecord, ...] = ()
+    memories: tuple[CuratedMemory, ...] = ()
     evidence: dict[str, ConnectionEvidence] = field(default_factory=dict)
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
@@ -107,7 +107,7 @@ def search_memories(
     query: str,
     max_results_per_source: int = MAX_RESULTS_PER_SOURCE,
 ) -> MemorySearchResult:
-    """Search only active memories supplied by the authenticated application."""
+    """Search only the application's account-scoped curated retrieval view."""
     if not query.strip():
         raise ModelRetry("Memory search requires a non-empty query.")
     if "memory" not in ctx.deps.task.scope.allowed_sources:

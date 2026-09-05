@@ -34,7 +34,7 @@ from src.linger.agents.serendipity.tools import (
     search_memories,
 )
 from src.linger.contracts.turn import ConfirmedReading
-from src.linger.services.memory import MemoryRecord
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
@@ -557,27 +557,21 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
     def test_memory_search_returns_only_matching_authorized_records(self) -> None:
         active_task = task(allowed_sources=("memory",))
         memories = (
-            MemoryRecord(
+            CuratedMemory(
                 memory_id="memory-alice",
-                account_key="account",
+                kind="original",
                 text="I noticed that repeated change made identity feel unstable.",
-                capture_type="automatic",
-                source_event_id="turn-1",
-                idempotency_key="key-1",
+                source_memory_ids=("memory-alice",),
                 evidence_ids=(),
                 created_at="2026-09-01T00:00:00Z",
-                updated_at="2026-09-01T00:00:00Z",
             ),
-            MemoryRecord(
+            CuratedMemory(
                 memory_id="memory-birds",
-                account_key="account",
+                kind="original",
                 text="I enjoy watching shorebirds in the morning.",
-                capture_type="automatic",
-                source_event_id="turn-2",
-                idempotency_key="key-2",
+                source_memory_ids=("memory-birds",),
                 evidence_ids=(),
                 created_at="2026-09-01T00:00:00Z",
-                updated_at="2026-09-01T00:00:00Z",
             ),
         )
         deps = SerendipityDependencies(
