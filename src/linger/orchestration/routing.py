@@ -126,13 +126,21 @@ async def route_reader_message(
 def _persist_uncertain_candidate(
     scope: RegisteredCorpusScope, boundary: BoundaryUncertain
 ) -> None:
-    """Remember only the chapter explicitly presented by a memory-backed question."""
+    """Remember the question and only a chapter it explicitly asks to confirm."""
     current_session = session_id()
     if current_session is None:
         return
     sessions.set_book_selection(
         current_session,
         sessions.BookSelection(book_id=scope.work_id, book_title=scope.title),
+    )
+    sessions.set_pending_clarification(
+        current_session,
+        sessions.PendingClarification(
+            book_id=scope.work_id,
+            book_title=scope.title,
+            reason_code=boundary.reason_code,
+        ),
     )
     if (
         boundary.authorization_basis != "memory_supported"

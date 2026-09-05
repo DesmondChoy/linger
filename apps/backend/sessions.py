@@ -22,6 +22,7 @@ from pydantic_ai.messages import (
 _sessions: dict[str, list[ModelMessage]] = {}
 _book_selections: dict[str, "BookSelection"] = {}
 _reading_candidates: dict[str, "ReadingCandidate"] = {}
+_pending_clarifications: dict[str, "PendingClarification"] = {}
 _turn_records: dict[str, list["TurnRecord"]] = {}
 
 
@@ -36,12 +37,19 @@ class ReadingCandidate(BookSelection):
     chapter: int = Field(ge=1)
 
 
+class PendingClarification(BookSelection):
+    """A Librarian boundary question awaiting the reader's chapter answer."""
+
+    reason_code: str
+
+
 @dataclass(frozen=True)
 class ReadingStateSnapshot:
     """Reading state to restore when a turn fails before release."""
 
     book_selection: BookSelection | None
     reading_candidate: ReadingCandidate | None
+    pending_clarification: PendingClarification | None
 
 
 @dataclass(frozen=True)
@@ -113,6 +121,7 @@ def clear(session_id: str) -> bool:
     """Drop a session's messages, records, and evidence handles."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
+    _pending_clarifications.pop(session_id, None)
     popped_records = _turn_records.pop(session_id, None)
     popped_history = _sessions.pop(session_id, None)
     return bool(popped_history or popped_records)
@@ -123,6 +132,7 @@ def snapshot_reading_state(session_id: str) -> ReadingStateSnapshot:
     return ReadingStateSnapshot(
         book_selection=_book_selections.get(session_id),
         reading_candidate=_reading_candidates.get(session_id),
+        pending_clarification=_pending_clarifications.get(session_id),
     )
 
 
@@ -130,10 +140,13 @@ def restore_reading_state(session_id: str, snapshot: ReadingStateSnapshot) -> No
     """Roll back tentative reading state after a failed turn."""
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
+    _pending_clarifications.pop(session_id, None)
     if snapshot.book_selection is not None:
         _book_selections[session_id] = snapshot.book_selection
     if snapshot.reading_candidate is not None:
         _reading_candidates[session_id] = snapshot.reading_candidate
+    if snapshot.pending_clarification is not None:
+        _pending_clarifications[session_id] = snapshot.pending_clarification
 
 
 def book_selection(session_id: str) -> BookSelection | None:
@@ -141,12 +154,16 @@ def book_selection(session_id: str) -> BookSelection | None:
 
 
 def set_book_selection(session_id: str, selection: BookSelection) -> None:
+    pending = _pending_clarifications.get(session_id)
+    if pending and pending.book_id != selection.book_id:
+        _pending_clarifications.pop(session_id, None)
     _book_selections[session_id] = selection
 
 
 def clear_book_selection(session_id: str) -> None:
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
+    _pending_clarifications.pop(session_id, None)
 
 
 def reading_candidate(session_id: str) -> ReadingCandidate | None:
@@ -159,3 +176,15 @@ def set_reading_candidate(session_id: str, candidate: ReadingCandidate) -> None:
 
 def clear_reading_candidate(session_id: str) -> None:
     _reading_candidates.pop(session_id, None)
+
+
+def pending_clarification(session_id: str) -> PendingClarification | None:
+    return _pending_clarifications.get(session_id)
+
+
+def set_pending_clarification(session_id: str, pending: PendingClarification) -> None:
+    _pending_clarifications[session_id] = pending
+
+
+def clear_pending_clarification(session_id: str) -> None:
+    _pending_clarifications.pop(session_id, None)

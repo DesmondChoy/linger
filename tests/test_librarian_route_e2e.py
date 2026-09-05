@@ -347,6 +347,51 @@ async def _low_confidence_candidate_judge(_line, memories, evidence):
     )
 
 
+async def _insufficient_context_judge(_line, _memories, _evidence):
+    return BoundaryInferenceDecision(
+        outcome="uncertain",
+        confidence=0.2,
+        reason_code="insufficient_context",
+    )
+
+
+def _muse_searches_cold_then_relays_clarification():
+    """Muse calls librarian_search before any route."""
+
+    def _respond(messages, info: AgentInfo) -> ModelResponse:
+        search_result = _last_tool_return(messages, "librarian_search")
+        if search_result is None:
+            return ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        "librarian_search",
+                        {
+                            "query": BOOK_REQUEST_MESSAGE,
+                            "work_id": "pg11",
+                            "book_version_id": "pg11-v01b38ea4",
+                            "reading_boundary": None,
+                            "max_final_evidence": 5,
+                        },
+                    )
+                ]
+            )
+        output_tool = info.output_tools[0]
+        return ModelResponse(
+            parts=[
+                ToolCallPart(
+                    output_tool.name,
+                    {
+                        "reply": search_result["question"],
+                        "evidence_uses": [],
+                        "memory": _no_memory(),
+                    },
+                )
+            ]
+        )
+
+    return _respond
+
+
 class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
     session_id = "librarian-route-e2e"
 
@@ -646,6 +691,120 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertNotIn("PRIVATE_OTHER_ACCOUNT_MEMORY", seen_memories)
 
+    async def test_bare_chapter_answer_after_route_clarification_reaches_bounded_search(
+        self,
+    ) -> None:
+        request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)
+
+        with patch(
+            "src.linger.orchestration.boundary.judge_spoiler_boundary",
+            side_effect=_insufficient_context_judge,
+        ):
+            with muse_chat_agent.override(
+                model=FunctionModel(_muse_routes_then_relays_clarification())
+            ):
+                with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                    first_response = await main.chat(request, self.service, self.account)
+
+        self.assertEqual("muse_candidate", first_response.inspection.release.release_source)
+        self.assertTrue(first_response.reply.endswith("?"))
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
+        pending = sessions.pending_clarification(self.session_id)
+        self.assertIsNotNone(pending)
+        assert pending is not None
+        self.assertEqual("pg11", pending.book_id)
+        self.assertEqual("insufficient_context", pending.reason_code)
+
+        captured: list = []
+        follow_up = ChatRequest(session_id=self.session_id, message="chapter 2")
+        with patch(
+            "src.linger.orchestration.grounding.judge_evidence_strength",
+            side_effect=_sufficient_strength,
+        ):
+            with muse_chat_agent.override(
+                model=FunctionModel(_muse_searches_directly(captured, chapter=2))
+            ):
+                with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                    second_response = await main.chat(follow_up, self.service, self.account)
+
+        context = second_response.inspection.context_resolution
+        self.assertEqual("confirmed", context["status"])
+        self.assertEqual("pg11", context["work_id"])
+        self.assertEqual(2, context["chapter_max"])
+        self.assertEqual("reader_confirmed", context["boundary_source"])
+        self.assertEqual("muse_candidate", second_response.inspection.release.release_source)
+        self.assertEqual(1, len(captured))
+        self.assertEqual("result", captured[0]["kind"])
+        self.assertEqual(2, captured[0]["searched_scope"]["max_chapter_inclusive"])
+        grounding = second_response.inspection.librarian_grounding
+        self.assertEqual(1, len(grounding))
+        self.assertEqual(BOOK_REQUEST_MESSAGE, grounding[0]["request"]["query"])
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
+
+    async def test_bare_chapter_answer_after_search_clarification_reaches_bounded_search(
+        self,
+    ) -> None:
+        request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)
+        sessions.set_reading_candidate(
+            self.session_id, sessions.ReadingCandidate(book_id="pg11", chapter=5)
+        )
+
+        with muse_chat_agent.override(
+            model=FunctionModel(_muse_searches_cold_then_relays_clarification())
+        ):
+            with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                first_response = await main.chat(request, self.service, self.account)
+
+        self.assertEqual("muse_candidate", first_response.inspection.release.release_source)
+        grounding = first_response.inspection.librarian_grounding
+        self.assertEqual(1, len(grounding))
+        self.assertEqual("clarification", grounding[0]["response"]["kind"])
+        self.assertEqual("reading_boundary_unconfirmed", grounding[0]["response"]["reason_code"])
+        pending = sessions.pending_clarification(self.session_id)
+        self.assertIsNotNone(pending)
+        assert pending is not None
+        self.assertEqual("pg11", pending.book_id)
+        self.assertEqual("reading_boundary_unconfirmed", pending.reason_code)
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
+
+        captured: list = []
+        follow_up = ChatRequest(session_id=self.session_id, message="chapter 2")
+        with patch(
+            "src.linger.orchestration.grounding.judge_evidence_strength",
+            side_effect=_sufficient_strength,
+        ):
+            with muse_chat_agent.override(
+                model=FunctionModel(_muse_searches_directly(captured, chapter=2))
+            ):
+                with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                    second_response = await main.chat(follow_up, self.service, self.account)
+
+        self.assertEqual("confirmed", second_response.inspection.context_resolution["status"])
+        self.assertEqual(2, second_response.inspection.context_resolution["chapter_max"])
+        self.assertEqual(1, len(captured))
+        self.assertEqual("result", captured[0]["kind"])
+        self.assertEqual(2, captured[0]["searched_scope"]["max_chapter_inclusive"])
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
+
+    async def test_cold_search_cannot_choose_a_book_for_an_ambiguous_reader_name(self) -> None:
+        with muse_chat_agent.override(
+            model=FunctionModel(_muse_searches_cold_then_relays_clarification())
+        ):
+            with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                response = await main.chat(
+                    ChatRequest(session_id=self.session_id, message="What does Wonderland say about identity?"),
+                    self.service,
+                    self.account,
+                )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIsNone(sessions.book_selection(self.session_id))
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
+        self.assertEqual(
+            "book_identity_unresolved",
+            response.inspection.librarian_grounding[0]["response"]["reason_code"],
+        )
+
     async def test_boundary_uncertain_clarification_then_followup_reaches_routed_work(
         self,
     ) -> None:
@@ -671,6 +830,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(selection)
         assert selection is not None
         self.assertEqual("pg11", selection.book_id)
+        self.assertIsNotNone(sessions.pending_clarification(self.session_id))
 
         captured: list = []
         follow_up = ChatRequest(
@@ -697,6 +857,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", second_response.inspection.release.release_source)
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
+        self.assertIsNone(sessions.pending_clarification(self.session_id))
 
     async def test_generic_clarification_does_not_leave_a_confirmable_chapter(self) -> None:
         async def line_only_judge(_line, _memories, evidence):

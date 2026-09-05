@@ -502,8 +502,16 @@ An unresolved routing or boundary clarification returns a typed
 `ClarificationRequest` from the tool call itself. The deterministic release
 gate binds on that exact question from the tool payload: the released reply
 must match it verbatim, carry no evidence declarations, and accompany no other
-tool call in the same turn — Librarian or Serendipity alike. A routed work
-also derives Provenance's
+tool call in the same turn — Librarian or Serendipity alike. For a resolved
+book, the application remembers a boundary question as a pending clarification
+for the session. A later reply consisting only of a chapter reference, such as
+"Chapter 2", counts as explicit completed progress for that available book,
+resolving the boundary as `reader_confirmed` before Muse runs. Unresolved
+identity or a book switch clears the pending question. Direct search also
+checks identity from the original reader message or validated session selection
+before recording a pending question. Muse then re-issues the original book
+question through `librarian_search` under that validated ceiling. A routed
+work also derives Provenance's
 review context after Muse runs, not before — a `RoutedWork` result grants the
 same reading-context and policy authority the application would otherwise
 have supplied only when no boundary was already resolved.

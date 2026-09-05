@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import logfire
 
+from apps.backend import sessions
 from apps.backend.config import get_settings
 from apps.backend.contracts import BookScope, EvidenceItem
 from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
@@ -26,11 +27,17 @@ from src.linger.contracts.librarian import (
     SearchedScope,
 )
 from src.linger.contracts.reading import ReadingBoundary
+from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
     judge_evidence_strength,
 )
-from src.linger.orchestration.turn_context import add_turn_evidence, confirmed_reading
+from src.linger.orchestration.turn_context import (
+    add_turn_evidence,
+    confirmed_reading,
+    reader_message,
+    session_id,
+)
 
 MAX_FINAL_EVIDENCE = 5
 
@@ -117,6 +124,46 @@ async def _grounding_evidence(
 
     reading = confirmed_reading()
     if reading is None:
+        current_session = session_id()
+        if current_session is not None:
+            decision = librarian.route_work(
+                reader_message() or "", request.access_scope.allowed_book_version_ids
+            )
+            if isinstance(decision, BookClarification):
+                sessions.clear_book_selection(current_session)
+                return _clarification(
+                    request.request_id,
+                    "book_identity_unresolved",
+                    decision.question,
+                    ExpectedAnswer(type="free_text"),
+                )
+            selection = sessions.book_selection(current_session)
+            resolved_work_id = (
+                decision.scope.work_id if decision is not None
+                else selection.book_id if selection is not None else None
+            )
+            scope = librarian.registered_scope(request.work_id, request.book_version_id)
+            if scope is None or resolved_work_id != scope.work_id:
+                sessions.clear_book_selection(current_session)
+                return _clarification(
+                    request.request_id,
+                    "book_identity_unresolved",
+                    BookClarification().question,
+                    ExpectedAnswer(type="free_text"),
+                )
+            sessions.set_book_selection(
+                current_session,
+                sessions.BookSelection(book_id=scope.work_id, book_title=scope.title),
+            )
+            sessions.clear_reading_candidate(current_session)
+            sessions.set_pending_clarification(
+                current_session,
+                sessions.PendingClarification(
+                    book_id=scope.work_id,
+                    book_title=scope.title,
+                    reason_code="reading_boundary_unconfirmed",
+                )
+            )
         return _clarification(
             request.request_id,
             "reading_boundary_unconfirmed",

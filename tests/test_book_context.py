@@ -34,6 +34,10 @@ class BookContextTests(unittest.TestCase):
         sessions.set_book_selection(
             "context-test", sessions.BookSelection(book_id="pg11")
         )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(book_id="pg11", reason_code="insufficient_context"),
+        )
         context = resolve_reading_context(ChatRequest(
             session_id="context-test",
             message="I'm reading Winter Wonderland and I've finished Chapter 3.",
@@ -41,6 +45,22 @@ class BookContextTests(unittest.TestCase):
         self.assertIsNone(context.work_id)
         self.assertIsNone(context.chapter_max)
         self.assertIsNone(sessions.book_selection("context-test"))
+        follow_up = resolve_reading_context(ChatRequest(
+            session_id="context-test", message="Chapter 2"
+        ))
+        self.assertIsNone(follow_up.work_id)
+        self.assertIsNone(follow_up.chapter_max)
+
+    def test_pending_question_for_an_unavailable_book_cannot_grant_progress(self) -> None:
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(book_id="unavailable", reason_code="insufficient_context"),
+        )
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test", message="Chapter 2"
+        ))
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNone(sessions.pending_clarification("context-test"))
 
     def test_full_title_answer_selects_identity_without_confirming_progress(self) -> None:
         context = resolve_reading_context(ChatRequest(
@@ -350,6 +370,200 @@ class BookContextTests(unittest.TestCase):
         self.assertFalse(inspection.muse_turn["policy"]["allow_connection"])
         self.assertEqual("complete", inspection.traces[0]["status"])
         self.assertIsNone(review_context["reading_context"])
+
+    def test_bare_chapter_answers_a_pending_clarification(self) -> None:
+        for message in ("chapter 2", "Chapter 2."):
+            with self.subTest(message=message):
+                sessions.set_book_selection(
+                    "context-test",
+                    sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+                )
+                sessions.set_pending_clarification(
+                    "context-test",
+                    sessions.PendingClarification(
+                        book_id="pg11",
+                        book_title="Alice's Adventures in Wonderland",
+                        reason_code="insufficient_context",
+                    ),
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", turn_id="turn-1", message=message)
+                )
+                self.assertEqual("confirmed", context.status)
+                self.assertEqual("pg11", context.work_id)
+                self.assertEqual(2, context.chapter_max)
+                self.assertEqual("reader_confirmed", context.boundary_source)
+                self.assertEqual("explicit_progress", context.boundary_authorization_basis)
+                self.assertIsNone(sessions.pending_clarification("context-test"))
+                sessions.clear("context-test")
+
+    def test_bare_chapter_without_a_pending_clarification_stays_inferred(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="chapter 2")
+        )
+        self.assertEqual("inferred", context.status)
+        self.assertIsNone(context.chapter_max)
+
+    def test_non_answer_chapter_mentions_keep_the_clarification_pending(self) -> None:
+        for message in (
+            "I'm still in chapter 2",
+            "I'm on chapter 3",
+            "I'm reading chapter 3",
+            "I just started chapter 4",
+            "maybe chapter 20?",
+        ):
+            with self.subTest(message=message):
+                sessions.set_book_selection(
+                    "context-test",
+                    sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+                )
+                sessions.set_pending_clarification(
+                    "context-test",
+                    sessions.PendingClarification(
+                        book_id="pg11",
+                        book_title="Alice's Adventures in Wonderland",
+                        reason_code="insufficient_context",
+                    ),
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", turn_id="turn-1", message=message)
+                )
+                self.assertEqual("inferred", context.status)
+                self.assertIsNone(context.chapter_max)
+                self.assertIsNotNone(sessions.pending_clarification("context-test"))
+                sessions.clear("context-test")
+
+    def test_a_chapter_free_message_keeps_the_clarification_pending(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                reason_code="insufficient_context",
+            ),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="what do you mean?")
+        )
+        self.assertEqual("inferred", context.status)
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNotNone(sessions.pending_clarification("context-test"))
+
+    def test_pending_clarification_for_a_different_book_is_not_consumed(self) -> None:
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from corpus_fixtures import fake_registration
+        from apps.backend import chat_turn
+        from src.linger.corpus import registry
+
+        with TemporaryDirectory() as directory:
+            other = fake_registration(Path(directory), work_id="animal-farm", catalog={
+                "title": "Animal Farm", "chapters": [{"chapter_number": 1}],
+            })
+            with (
+                patch.object(registry, "CORPORA", {**registry.CORPORA, "animal-farm": other}),
+                patch.object(chat_turn.settings, "allowed_book_version_ids", (
+                    *chat_turn.settings.allowed_book_version_ids, other.book.book_version_id,
+                )),
+            ):
+                sessions.set_book_selection(
+                    "context-test",
+                    sessions.BookSelection(book_id="animal-farm", book_title="Animal Farm"),
+                )
+                sessions.set_pending_clarification(
+                    "context-test",
+                    sessions.PendingClarification(
+                        book_id="pg11",
+                        book_title="Alice's Adventures in Wonderland",
+                        reason_code="insufficient_context",
+                    ),
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", turn_id="turn-1", message="chapter 2")
+                )
+        self.assertEqual("inferred", context.status)
+        self.assertEqual("animal-farm", context.work_id)
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNotNone(sessions.pending_clarification("context-test"))
+
+    def test_completed_chapter_confirmation_clears_a_pending_clarification(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                reason_code="insufficient_context",
+            ),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="I've finished chapter 2")
+        )
+        self.assertEqual("confirmed", context.status)
+        self.assertIsNone(sessions.pending_clarification("context-test"))
+
+    def test_candidate_completion_clears_a_pending_clarification(self) -> None:
+        sessions.set_reading_candidate(
+            "context-test",
+            sessions.ReadingCandidate(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                chapter=5,
+            ),
+        )
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                reason_code="insufficient_context",
+            ),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="I'm done with the chapter")
+        )
+        self.assertEqual("confirmed", context.status)
+        self.assertIsNone(sessions.pending_clarification("context-test"))
+
+    def test_pending_clarification_answer_overrides_a_stale_candidate(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        sessions.set_reading_candidate(
+            "context-test",
+            sessions.ReadingCandidate(book_id="pg11", book_title="Alice's Adventures in Wonderland", chapter=5),
+        )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                reason_code="low_confidence",
+            ),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="Chapter 2")
+        )
+        self.assertEqual("confirmed", context.status)
+        self.assertEqual(2, context.chapter_max)
+        self.assertIsNone(sessions.reading_candidate("context-test"))
+        self.assertIsNone(sessions.pending_clarification("context-test"))
 
 
 if __name__ == "__main__":

@@ -36,8 +36,8 @@ name signal, Librarian can still use its existing catalogue cues. Multiple
 qualifying catalogue candidates require clarification, even if their scores
 differ. Candidate aliases never become strong memory-identity evidence.
 
-An unresolved book declaration clears the previous selection and chapter
-candidate. A typed identity clarification from `librarian_route` occurs before
+An unresolved book declaration clears the previous selection, chapter
+candidate, and pending chapter question. A typed identity clarification from `librarian_route` occurs before
 private memory selection or full-work boundary inference. Muse must relay the
 exact question without book evidence or other tool calls; application code
 checks this even after a Provenance pass. When no supported route is found,
@@ -48,6 +48,13 @@ Naming a book establishes identity only. A later title answer does not confirm
 an earlier chapter guess. Retrieval still requires explicit current-turn
 completion or a validated memory-supported boundary, and application code
 enforces the permitted revision and chapter ceiling.
+
+A reply such as "Chapter 3" establishes completed progress only when answering
+a pending chapter question for that available book. Switching books discards
+the previous book's pending question. A direct `librarian_search` call without
+a boundary also checks identity from the original reader message or validated
+session selection before it can leave a pending chapter question; Muse's tool
+arguments cannot select the book by themselves.
 
 ## Add a book
 
