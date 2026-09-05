@@ -329,6 +329,8 @@ def _canonical_records(
 ) -> tuple[tuple[ParsedChapter, ...], tuple[ChapterFrontMatter, ...], tuple[str, ...]]:
     """Validate canonical chapters once for both checking and catalogue builds."""
     chapters = _load_chapters(book, source)
+    if output.is_symlink():
+        return chapters, (), ("unexpected symbolic link: corpus directory",)
     number_width = _chapter_number_width(chapters)
     expected_chapter_paths = {
         chapter_path(chapter, number_width) for chapter in chapters

@@ -9,6 +9,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+from fastapi import HTTPException
+
 from apps.backend.config import get_settings
 
 get_settings.cache_clear()
@@ -122,7 +124,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
     async def run_chat(
         self,
         request: ChatRequest,
-        candidate: MuseCandidate,
+        candidate: MuseCandidate | dict[str, object],
         provenance_review: ProvenanceReview,
     ):
         muse = AsyncMock()
@@ -217,6 +219,96 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             response.inspection.release.capture.reason_code,
         )
         self.assertIsNone(response.memory_capture)
+
+    async def test_blank_nomination_is_refused_without_blocking_reply(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        for index, blank in enumerate(("   ", "\t", "\r\n", "\u2003\u00a0")):
+            with self.subTest(blank=repr(blank)):
+                session_id = f"capture-blank-{index}"
+                self.addCleanup(sessions.clear, session_id)
+                source = f"I want to pause.{blank}I rush my answers."
+                with patch.object(
+                    self.service, "save_automatic", wraps=self.service.save_automatic
+                ) as save:
+                    response, _ = await self.run_chat(
+                        ChatRequest(session_id=session_id, message=source),
+                        muse_candidate(source, nominated=blank),
+                        review("allow_capture"),
+                    )
+
+                save.assert_not_called()
+                self.assertEqual("A reviewed reply.", response.reply)
+                capture = response.inspection.release.capture
+                self.assertEqual("invalid", capture.binding)
+                self.assertEqual("refused", capture.storage)
+                self.assertEqual("invalid_capture_binding", capture.reason_code)
+                self.assertIsNone(response.memory_capture)
+                self.assertEqual([], self.service.list_active(self.account))
+
+    async def test_empty_nomination_fails_output_validation_without_storage(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        session_id = "capture-empty"
+        self.addCleanup(sessions.clear, session_id)
+        source = "I want to pause before I answer."
+        candidate = muse_candidate(source, nominated=source).model_dump(mode="json")
+        candidate["memory"]["text"] = ""
+        candidate["memory"]["end_codepoint"] = 0
+
+        with patch.object(
+            self.service, "save_automatic", wraps=self.service.save_automatic
+        ) as save:
+            response, _ = await self.run_chat(
+                ChatRequest(session_id=session_id, message=source),
+                candidate,
+                review("allow_capture"),
+            )
+
+        save.assert_not_called()
+        self.assertEqual(
+            "application_safe_decline", response.inspection.release.release_source
+        )
+        self.assertEqual("validation", response.inspection.release.failure_type)
+        self.assertIsNone(response.memory_capture)
+        self.assertEqual([], self.service.list_active(self.account))
+        self.assertEqual([], sessions.history(session_id))
+
+    async def test_substantive_nomination_preserves_surrounding_whitespace(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        session_id = "capture-surrounding-whitespace"
+        self.addCleanup(sessions.clear, session_id)
+        nominated = " \tI want to pause before I answer.\n "
+        source = f"My reflection:{nominated}That matters to me."
+
+        response, _ = await self.run_chat(
+            ChatRequest(session_id=session_id, message=source),
+            muse_candidate(source, nominated=nominated),
+            review("allow_capture"),
+        )
+
+        self.assertEqual("committed", response.inspection.release.capture.storage)
+        self.assertEqual(
+            [nominated],
+            [record.text for record in self.service.list_active(self.account)],
+        )
+
+    async def test_unrelated_storage_value_error_still_surfaces(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        session_id = "capture-storage-error"
+        self.addCleanup(sessions.clear, session_id)
+        source = "I want to pause before I answer."
+        with patch.object(
+            self.service, "save_automatic", side_effect=ValueError("storage defect")
+        ):
+            with self.assertRaises(HTTPException) as caught:
+                await self.run_chat(
+                    ChatRequest(session_id=session_id, message=source),
+                    muse_candidate(source, nominated=source),
+                    review("allow_capture"),
+                )
+
+        self.assertEqual(502, caught.exception.status_code)
+        self.assertEqual([], sessions.history(session_id))
+        self.assertEqual([], self.service.list_active(self.account))
 
     async def test_substituted_text_fails_binding_without_blocking_reply(self) -> None:
         self.service.set_capture_enabled(self.account, True)

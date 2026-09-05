@@ -85,6 +85,48 @@ class HybridLibrarianTests(unittest.TestCase):
             [item.evidence_id for item in second.items],
         )
 
+    def test_equivalent_full_book_ceilings_reuse_embeddings(self) -> None:
+        embedding = self.librarian._embedding_model()
+        with patch.object(
+            embedding, "passage_embed", wraps=embedding.passage_embed
+        ) as embed:
+            bundles = [
+                self.librarian.retrieve(request("Alice", chapter_max=ceiling))
+                for ceiling in (12, 13, 1000)
+            ]
+
+        self.assertEqual(1, embed.call_count)
+        self.assertTrue(bundles[0].items)
+        self.assertEqual(bundles[0].items, bundles[1].items)
+        self.assertEqual(bundles[0].items, bundles[2].items)
+
+    def test_lower_ceiling_builds_separate_spoiler_bounded_index(self) -> None:
+        self.librarian.retrieve(request("Alice", chapter_max=1000))
+        opened: list[Path] = []
+        original = Path.read_text
+
+        def recording_read(path: Path, *args, **kwargs):
+            opened.append(path)
+            return original(path, *args, **kwargs)
+
+        embedding = self.librarian._embedding_model()
+        with (
+            patch.object(Path, "read_text", autospec=True, side_effect=recording_read),
+            patch.object(
+                embedding, "passage_embed", wraps=embedding.passage_embed
+            ) as embed,
+        ):
+            bundle = self.librarian.retrieve(request("Alice", chapter_max=4))
+
+        self.assertEqual(1, embed.call_count)
+        self.assertTrue(bundle.items)
+        self.assertTrue(all(item.chapter <= 4 for item in bundle.items))
+        chapter_paths = [path for path in opened if path.suffix == ".md"]
+        self.assertEqual(4, len(chapter_paths))
+        self.assertTrue(
+            all(int(path.name.split("-", 1)[0]) <= 4 for path in chapter_paths)
+        )
+
     def test_fetch_by_id_inherits_exact_lookup_without_initializing_models(self) -> None:
         librarian = HybridLibrarian()
 
