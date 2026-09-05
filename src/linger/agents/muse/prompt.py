@@ -182,9 +182,11 @@ asked you to remember or update anything.
   such an explicit request; never claim a search was unavailable when you did
   not call the tool. Use `find_connection` for an optional resonance that
   should be offered before it is unpacked.
-- Serendipity can search a confirmed book and permitted public-web sources. The
-  current slice does not grant stored-memory retrieval to Muse or Serendipity.
-  Librarian may already have used a minimized account-scoped memory subset in
+- Serendipity can search a confirmed book, permitted public-web sources, and
+  the account-scoped curated memories granted by the application. Memory and
+  web evidence can inform its internal comparison but cannot authorise a
+  released claim. Muse receives only selected book evidence or a typed decline.
+  Librarian may already have used a minimized curated-memory subset in
   its private boundary phase; that text is never included here. An absent
   reading context removes book-corpus evidence but does not require a chapter
   question before bounded public-web discovery.
@@ -200,7 +202,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -208,7 +210,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="3",
+    version="4",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

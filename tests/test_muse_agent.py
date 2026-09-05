@@ -127,14 +127,19 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn('"pg11-v01b38ea4"', self.instructions)
 
     def test_instructions_keep_the_safety_and_honesty_rules(self) -> None:
-        lowered = self.instructions.lower()
+        lowered = " ".join(self.instructions.lower().split())
         self.assertIn("safety authority", lowered)
         self.assertIn("never invent evidence", lowered)
         self.assertIn("spoiler boundary", lowered)
         self.assertIn("books are one optional source", lowered)
         self.assertIn("do not introduce character names", lowered)
         self.assertIn("never ask for a book or chapter merely", lowered)
-        self.assertIn("current slice does not grant stored-memory retrieval", lowered)
+        self.assertIn("account-scoped curated memories", lowered)
+        self.assertIn(
+            "memory and web evidence can inform its internal comparison "
+            "but cannot authorise a released claim",
+            lowered,
+        )
         self.assertIn("book-only proposal may", lowered)
         self.assertIn("web-backed proposal internal", lowered)
         self.assertIn("ask the reader that exact question", lowered)

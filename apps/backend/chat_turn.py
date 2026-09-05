@@ -603,7 +603,7 @@ async def _run_chat_pipeline(
         reader_message_token = set_reader_message(request.message)
         session_id_token = set_session_id(request.session_id)
         try:
-            active_memories = tuple(service.list_active(account))
+            active_memories = tuple(service.list_for_retrieval(account))
         except MemoryServiceError:
             active_memories = ()
         memories_token = set_active_memories(active_memories)

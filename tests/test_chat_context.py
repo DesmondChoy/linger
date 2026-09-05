@@ -26,8 +26,29 @@ from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease
-from src.linger.orchestration.turn_context import confirmed_reading, turn_evidence
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.agents.provenance.curation_models import CurationProvenanceReview
+from src.linger.agents.sculptor.models import (
+    CurationProposal,
+    DerivedSummary,
+    DuplicateLink,
+    RetrievalTombstone,
+)
+from src.linger.contracts.curation import (
+    ApprovedCuration,
+    CurationPlan,
+    CurationSourceSnapshot,
+)
+from src.linger.orchestration.turn_context import (
+    active_memories,
+    confirmed_reading,
+    turn_evidence,
+)
+from src.linger.services.memory import (
+    AccountContext,
+    AutomaticMemoryCandidate,
+    MemoryPolicyService,
+    memory_record_sha256,
+)
 
 
 EVIDENCE_ID = "pg11-v01b38ea4-ch05-ln0974-0975"
@@ -126,6 +147,88 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNone(seen["value"])
         self.assertIsNone(seen["release_scope"])
+
+    async def test_chat_uses_curated_memories_without_tombstoned_originals(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        records = tuple(
+            self.service.save_automatic(
+                self.account,
+                AutomaticMemoryCandidate(
+                    text=text,
+                    source_event_id=f"source-{index}",
+                    review_allows_capture=True,
+                    contains_sensitive_content=False,
+                ),
+            ).record
+            for index, text in enumerate(
+                (
+                    "Alice and the Caterpillar made me think about identity.",
+                    "Alice and the Caterpillar made me think about identity.",
+                    "Alice's changing size reminded me of changing roles at work.",
+                )
+            )
+        )
+        first, duplicate, third = records
+        actions = (
+            DuplicateLink(
+                action="link_duplicates",
+                source_memory_ids=(first.memory_id, duplicate.memory_id),
+            ),
+            RetrievalTombstone(
+                action="tombstone_for_retrieval",
+                source_memory_ids=(duplicate.memory_id, first.memory_id),
+                memory_id=duplicate.memory_id,
+                canonical_memory_id=first.memory_id,
+            ),
+            DerivedSummary(
+                action="update_derived_summary",
+                source_memory_ids=(first.memory_id, third.memory_id),
+                summary="Alice's changes and questions recalled my shifting work identity.",
+            ),
+        )
+        by_id = {record.memory_id: record for record in records}
+        for action in actions:
+            plan = CurationPlan(
+                account_key=first.account_key,
+                base_state_sha256=self.service.curation_state_sha256(self.account),
+                proposal=CurationProposal(kind="curation_proposal", action=action),
+                source_snapshots=tuple(
+                    CurationSourceSnapshot(
+                        memory_id=memory_id,
+                        record_sha256=memory_record_sha256(by_id[memory_id]),
+                    )
+                    for memory_id in action.source_memory_ids
+                ),
+            )
+            self.service.apply_curation(
+                self.account,
+                ApprovedCuration(
+                    plan=plan,
+                    review=CurationProvenanceReview(
+                        proposal_digest=plan.digest, decision="allow"
+                    ),
+                ),
+            )
+
+        seen = []
+
+        async def inspect_memories(*args, **kwargs):
+            seen.extend(active_memories())
+            return released()
+
+        with patch.object(chat_turn, "reflection_reply", side_effect=inspect_memories):
+            await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Reflect on identity.")
+            )
+
+        self.assertNotIn(duplicate.memory_id, {record.memory_id for record in seen})
+        self.assertEqual(self.service.list_for_retrieval(self.account), seen)
+        self.assertTrue(any(record.kind == "derived_summary" for record in seen))
+        self.assertEqual(
+            by_id,
+            {record.memory_id: record for record in self.service.list_active(self.account)},
+        )
+        self.assertEqual((), active_memories())
 
     async def test_uncertain_message_exposes_no_retrieval_scope(self) -> None:
         # Librarian routing no longer runs pre-Muse: a catalog-cue message with
