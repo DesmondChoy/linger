@@ -38,16 +38,19 @@ differ. Candidate aliases never become strong memory-identity evidence.
 
 An unresolved book declaration clears the previous selection, chapter
 candidate, and pending chapter question. A typed identity clarification from `librarian_route` occurs before
-private memory selection or full-work boundary inference. Muse must relay the
-exact question without book evidence or other tool calls; application code
-checks this even after a Provenance pass. When no supported route is found,
+private memory selection or full-work boundary inference. After Provenance
+passes, application code releases the validated question instead of Muse's
+wording. Evidence declarations and non-route tool calls still block release.
+When no supported route is found,
 Muse asks for a title and author if the answer requires a book, or continues
 personal reflection when it does not.
 
 Naming a book establishes identity only. A later title answer does not confirm
 an earlier chapter guess. Retrieval still requires explicit current-turn
-completion or a validated memory-supported boundary, and application code
-enforces the permitted revision and chapter ceiling.
+completion, a validated memory-supported boundary, or exact session-supported
+passage permission. Application code enforces the permitted revision and the
+chapter ceiling or exact passage IDs. Passage permission does not establish
+chapter completion.
 
 A reply such as "Chapter 3" establishes completed progress only when answering
 a pending chapter question for that available book. Switching books discards

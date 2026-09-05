@@ -79,3 +79,29 @@ class BoundaryInferenceDecision(StrictModel):
             if self.reason_code is None:
                 raise ValueError("uncertain outcome requires a reason code")
         return self
+
+
+class PassageInferenceDecision(StrictModel):
+    """Private reading anchors and requested paragraphs are separate selections."""
+
+    outcome: Literal["passages"]
+    work_id: str
+    book_version_id: str
+    confidence: float = Field(ge=0, le=1)
+    supporting_statement_ids: tuple[str, ...] = Field(min_length=1)
+    supporting_evidence_ids: tuple[str, ...] = Field(min_length=1)
+    passage_evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+
+    @model_validator(mode="after")
+    def _unique_selections(self) -> "PassageInferenceDecision":
+        for selected in (
+            self.supporting_statement_ids,
+            self.supporting_evidence_ids,
+            self.passage_evidence_ids,
+        ):
+            if len(selected) != len(set(selected)):
+                raise ValueError("passage inference selections must be unique")
+        return self
+
+
+LibrarianBoundaryDecision = BoundaryInferenceDecision | PassageInferenceDecision

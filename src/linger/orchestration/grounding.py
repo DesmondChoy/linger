@@ -21,6 +21,7 @@ from src.linger.contracts.librarian import (
     ExpectedAnswer,
     LibrarianRequest,
     LibrarianResponse,
+    PassageScope,
     RetrievalFailure,
     RetrievalOptions,
     RetrievalResult,
@@ -35,6 +36,8 @@ from src.linger.orchestration.evidence_strength import (
 from src.linger.orchestration.turn_context import (
     add_turn_evidence,
     confirmed_reading,
+    passage_grant,
+    routing_context,
     reader_message,
     session_id,
 )
@@ -122,7 +125,41 @@ async def _grounding_evidence(
             f"{request.book_version_id!r} is not a registered revision of {request.work_id!r}"
         )
 
+    route = routing_context()
+    if route is not None and isinstance(route.response, ClarificationRequest):
+        return route.response.model_copy(update={"request_id": request.request_id})
+
     reading = confirmed_reading()
+    grant = passage_grant()
+    if reading is None and grant is not None:
+        if (
+            request.work_id != grant.scope.work_id
+            or request.book_version_id != grant.scope.book_version_id
+        ):
+            raise BookVersionOutOfScope("The request does not match the granted passages")
+        try:
+            records = [librarian.fetch_by_id(record.evidence_id) for record in grant.records]
+        except Exception:
+            return RetrievalFailure(
+                kind="failure",
+                request_id=request.request_id,
+                error_code="retrieval_unavailable",
+                retryable=True,
+            )
+        if tuple(records) != grant.records:
+            return RetrievalFailure(
+                kind="failure",
+                request_id=request.request_id,
+                error_code="canonical_evidence_mismatch",
+                retryable=False,
+            )
+        return await _finish_retrieval(
+            request,
+            grant.records[: request.options.max_final_evidence],
+            grant.scope,
+            strength_judge,
+        )
+
     if reading is None:
         current_session = session_id()
         if current_session is not None:
@@ -245,6 +282,16 @@ async def _grounding_evidence(
         )
     ]
     records = records[: request.options.max_final_evidence]
+    return await _finish_retrieval(request, tuple(records), searched_scope, strength_judge)
+
+
+async def _finish_retrieval(
+    request: LibrarianRequest,
+    records: tuple[EvidenceRecord, ...],
+    searched_scope: SearchedScope | PassageScope,
+    strength_judge: StrengthJudge | None,
+) -> LibrarianResponse:
+    """Judge and register only the eligible canonical records actually selected."""
 
     if not records:
         result = RetrievalResult(
@@ -264,6 +311,10 @@ async def _grounding_evidence(
         decision = await (strength_judge or judge_evidence_strength)(
             request.query, tuple(records)
         )
+        if not set(decision.relevant_evidence_ids).issubset(
+            record.evidence_id for record in records
+        ):
+            raise ValueError("evidence-strength judge selected an unavailable record")
     except Exception:
         return RetrievalFailure(
             kind="failure",
@@ -383,7 +434,11 @@ async def grounding_evidence(
                         "tool.status": "success",
                         "scope.work_id": response.searched_scope.work_id,
                         "scope.book_version_id": response.searched_scope.book_version_id,
-                        "scope.chapter_max": response.searched_scope.max_chapter_inclusive,
+                        **(
+                            {"scope.chapter_max": response.searched_scope.max_chapter_inclusive}
+                            if isinstance(response.searched_scope, SearchedScope)
+                            else {"scope.kind": "passages"}
+                        ),
                         "retrieval.item_count": len(response.evidence),
                         "retrieval.evidence_ids": [
                             record.evidence_id for record in response.evidence

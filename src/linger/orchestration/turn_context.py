@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import contextvars
+import asyncio
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass, field
 from types import MappingProxyType
 
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
+from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.turn import ConfirmedReading
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
@@ -26,6 +29,63 @@ _EMPTY_EVIDENCE: Mapping[str, EvidenceRecord] = MappingProxyType({})
 _turn_evidence: contextvars.ContextVar[dict[str, EvidenceRecord] | None] = (
     contextvars.ContextVar("turn_evidence", default=None)
 )
+
+
+@dataclass
+class RoutingContext:
+    """One shared routing decision for the immutable input of this turn."""
+
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    response: LibrarianRoutingResponse | None = None
+    passage_grant: PassageGrant | None = None
+
+
+_routing_context: contextvars.ContextVar[RoutingContext | None] = contextvars.ContextVar(
+    "routing_context", default=None
+)
+_reader_statements: contextvars.ContextVar[tuple[ReaderStatement, ...]] = contextvars.ContextVar(
+    "reader_statements", default=()
+)
+
+
+def set_routing_context() -> contextvars.Token:
+    return _routing_context.set(RoutingContext())
+
+
+def routing_context() -> RoutingContext | None:
+    return _routing_context.get()
+
+
+def reset_routing_context(token: contextvars.Token) -> None:
+    _routing_context.reset(token)
+
+
+def passage_grant() -> PassageGrant | None:
+    context = routing_context()
+    return context.passage_grant if context is not None else None
+
+
+def bind_passage_grant(grant: PassageGrant) -> None:
+    context = routing_context()
+    if context is None:
+        raise RuntimeError("passage authorization requires an active routing context")
+    if context.passage_grant is not None and context.passage_grant != grant:
+        raise ValueError("a turn cannot replace its passage permission")
+    context.passage_grant = grant
+
+
+def set_reader_statements(value: tuple[ReaderStatement, ...]) -> contextvars.Token:
+    return _reader_statements.set(value)
+
+
+def reader_statements() -> tuple[ReaderStatement, ...]:
+    return _reader_statements.get()
+
+
+def reset_reader_statements(token: contextvars.Token) -> None:
+    _reader_statements.reset(token)
+
+
 def set_confirmed_reading(value: ConfirmedReading | None) -> contextvars.Token:
     """Bind a fresh, single-slot cell as this turn's confirmed reading.
 

@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import Field
 
 from src.linger.contracts.base import StrictModel
+
+ReleaseSource = Literal[
+    "muse_candidate",
+    "application_clarification",
+    "application_emotional_boundary",
+    "application_safe_decline",
+]
 
 
 class ConfirmedReading(StrictModel):

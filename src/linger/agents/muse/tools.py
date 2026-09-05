@@ -28,7 +28,7 @@ async def librarian_search(
     reading_boundary: ReadingBoundary | None,
     max_final_evidence: int = 5,
 ) -> LibrarianResponse:
-    """Search the confirmed book's text for passages relevant to `query`.
+    """Search application-authorized book text for passages relevant to `query`.
 
     Use this when answering would benefit from grounding in the book's actual
     text rather than general knowledge. `work_id` and `book_version_id` must
@@ -36,12 +36,14 @@ async def librarian_search(
     chapter position from `reading_context` as `reading_boundary` (its
     `chapter_state` of "started" or "completed" determines how far into the
     book the search is allowed to look — never chapters beyond what the
-    reader is known to have reached). If no request-scoped reading position was
-    validated, you may still call this tool with
-    `reading_boundary=None`; you will get back a clarification question to
-    ask the reader instead of search results. The response may be a
+    reader is known to have reached). After a `passages` route, pass
+    `reading_boundary=None` to fetch only the granted exact passages; this does
+    not establish chapter completion or allow neighboring text. Without either
+    permission, `reading_boundary=None` returns a clarification instead of search
+    results. The response may be a
     clarification request, a retrieval result (with or without evidence), or
     a retrieval failure — handle all three without assuming evidence exists.
+    For a clarification, ask its exact question without evidence or other tools.
     """
     request = build_request(query, work_id, book_version_id, reading_boundary, max_final_evidence)
     return await grounding_evidence(request)
@@ -54,13 +56,14 @@ async def librarian_route() -> LibrarianRoutingResponse:
     explicit title, a character, or an evident continuation of a book already
     in progress. Never call it for an incidental word inside otherwise
     personal reflection. The application supplies the exact current reader
-    message; the model cannot replace it. Returns a routed work with a
-    resolved reading boundary, a clarification question to relay to the
-    reader verbatim, or no match when no book intent is evident. This tool
-    only identifies the work and boundary; it grants no retrieval or write
-    authority — call `librarian_search` with the routed `work_id`,
-    `book_version_id`, and a `reading_boundary` built from
-    `max_chapter_inclusive` to actually search the text.
+    message and earlier reader statements; the model cannot replace them.
+    Returns a chapter-scoped `routed` work, exact `passages` permission,
+    a clarification, or no match. Call `librarian_search` with the returned
+    `work_id` and `book_version_id`. For `routed`, build `reading_boundary` from
+    `max_chapter_inclusive`; for `passages`, pass `reading_boundary=None`.
+    Routing returns no source text and grants no write authority. If clarification
+    is needed, stop book answering and other tools; after safety review the
+    application sends the validated question without requiring a verbatim copy.
     """
     message = reader_message()
     if message is None:
@@ -81,8 +84,9 @@ async def serendipity_explore(
     might deepen their reflection — not for routine grounding, which
     `librarian_search` already covers. The application supplies the exact current
     reader message as the cue; the model cannot replace it. The book, chapter,
-    and source scope are also fixed by the application. Serendipity chooses
-    bounded Librarian and optional Exa searches,
+    and source scope are also fixed by the application. Passage-only permission
+    does not grant Serendipity book search. Serendipity chooses bounded Librarian
+    and optional Exa searches within its authorized sources,
     compares a shortlist, and returns a validated proposal or decline together
     with its request-local evidence. Use `get_recommendation` when the reader
     explicitly asks for an essay, artwork, song, thinker, or other outside

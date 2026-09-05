@@ -55,12 +55,14 @@ from src.linger.contracts.librarian import (
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
     ClarificationRequest,
     EvidenceRecord,
-    NoMatch,
+    LibrarianRoutingResponse,
+    PassageScope,
     RetrievalResult,
     RoutedWork,
+    RoutedPassages,
     effective_route_response,
 )
-from src.linger.contracts.turn import ReleaseScope
+from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.grounding import evidence_record_from_item
 from src.linger.orchestration.turn_context import turn_evidence
@@ -96,11 +98,7 @@ class ReflectionRelease:
     """The released text and the real path that authorised it."""
 
     reply: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     boundary_origin: BoundaryOrigin | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...] = ()
     revision_count: int = 0
@@ -325,9 +323,9 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
 
 def _routing_responses(
     tool_results: list[dict[str, object]],
-) -> list[RoutedWork | ClarificationRequest | NoMatch]:
+) -> list[LibrarianRoutingResponse]:
     """Validate every `librarian_route` payload once for the checks below."""
-    responses: list[RoutedWork | ClarificationRequest | NoMatch] = []
+    responses: list[LibrarianRoutingResponse] = []
     for result in tool_results:
         if result["tool_name"] != "librarian_route":
             continue
@@ -343,7 +341,7 @@ def _routing_responses(
 
 
 def _required_clarification(
-    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
+    route_response: LibrarianRoutingResponse | None,
 ) -> str | None:
     """Return the binding route clarification, if the shared reducer chose one."""
 
@@ -355,14 +353,15 @@ def _required_clarification(
 
 
 def _routed_release_scope(
-    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
-) -> ReleaseScope | None:
-    """Derive a trusted release scope from a routed work, if Librarian found one.
-
-    This grants the same application-side authority `_infer_request_boundary`
-    used to grant under `boundary_source="librarian_inferred"`: Librarian's
-    own private, validated inference — never Muse's text — sets the ceiling.
-    """
+    route_response: LibrarianRoutingResponse | None,
+) -> ReleaseScope | PassageScope | None:
+    """Derive chapter or exact-passage permission from validated routing."""
+    if isinstance(route_response, RoutedPassages):
+        return PassageScope(
+            work_id=route_response.work_id,
+            book_version_id=route_response.book_version_id,
+            evidence_ids=route_response.evidence_ids,
+        )
     if not isinstance(route_response, RoutedWork):
         return None
     return ReleaseScope(
@@ -406,13 +405,17 @@ def _candidate(output: object) -> MuseCandidate:
 
 def _validate_record_scope(
     record: EvidenceRecord,
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
 ) -> None:
     start_line, end_line = record.source_lines
     if start_line < 1 or end_line < start_line:
         raise ReleaseValidationError("Book evidence has invalid source lines")
     if record.evidence_id in previously_released_evidence_ids:
+        return
+    if isinstance(release_scope, PassageScope):
+        if not release_scope.permits(record):
+            raise ReleaseValidationError("Book evidence exceeds the exact passage scope")
         return
     if release_scope is None or (
         record.work_id != release_scope.work_id
@@ -423,7 +426,7 @@ def _validate_record_scope(
 
 
 def _trusted_book_evidence(
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
 ) -> dict[str, EvidenceRecord]:
     """Read the application-owned evidence index, never model message history."""
@@ -439,7 +442,7 @@ def _trusted_book_evidence(
 
 def _validated_book_evidence(
     tool_results: list[dict[str, object]],
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
 ) -> dict[str, EvidenceRecord]:
     """Validate current tool handoffs against the shared trusted index."""
@@ -464,19 +467,32 @@ def _validated_book_evidence(
                     "Librarian result has no trusted release scope"
                 )
             searched = response.searched_scope
-            if (
-                searched.work_id != release_scope.work_id
-                or searched.book_version_id != release_scope.book_version_id
-                or searched.max_chapter_inclusive > release_scope.chapter_max
-            ):
+            if isinstance(release_scope, PassageScope):
+                within_scope = (
+                    isinstance(searched, PassageScope)
+                    and searched.work_id == release_scope.work_id
+                    and searched.book_version_id == release_scope.book_version_id
+                    and set(searched.evidence_ids) <= set(release_scope.evidence_ids)
+                )
+            else:
+                within_scope = not isinstance(searched, PassageScope) and (
+                    searched.work_id == release_scope.work_id
+                    and searched.book_version_id == release_scope.book_version_id
+                    and searched.max_chapter_inclusive <= release_scope.chapter_max
+                )
+            if not within_scope:
                 raise ReleaseValidationError("Librarian result exceeds the release scope")
             for record in response.evidence:
-                if (
-                    record.work_id != searched.work_id
-                    or record.book_version_id != searched.book_version_id
-                    or record.chapter_number > searched.max_chapter_inclusive
-                    or evidence.get(record.evidence_id) != record
-                ):
+                within_searched = (
+                    searched.permits(record)
+                    if isinstance(searched, PassageScope)
+                    else (
+                        record.work_id == searched.work_id
+                        and record.book_version_id == searched.book_version_id
+                        and record.chapter_number <= searched.max_chapter_inclusive
+                    )
+                )
+                if not within_searched or evidence.get(record.evidence_id) != record:
                     raise ReleaseValidationError(
                         "Librarian result is not registered in the turn evidence"
                     )
@@ -522,19 +538,18 @@ def _validated_book_evidence(
 def _validate_release(
     candidate: MuseCandidate,
     tool_results: list[dict[str, object]],
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
     required_clarification: str | None = None,
     released_user_lines: tuple[str, ...] = (),
 ) -> None:
     """Validate declared book and session-line citations after semantic approval."""
     if required_clarification is not None and (
-        candidate.reply != required_clarification
-        or candidate.evidence_uses
+        candidate.evidence_uses
         or any(result["tool_name"] != "librarian_route" for result in tool_results)
     ):
         raise ReleaseValidationError(
-            "An unresolved book or spoiler boundary requires the exact clarification only"
+            "An unresolved book or spoiler boundary forbids evidence and non-route tools"
         )
     evidence = _validated_book_evidence(
         tool_results,
@@ -574,7 +589,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
             ),
             reading_context=None,
         )
-    unexpected = set(review_context) - {"policy_constraints", "reading_context"}
+    unexpected = set(review_context) - {"policy_constraints", "reading_context", "passage_scope"}
     if unexpected:
         raise ReleaseValidationError("Provenance context contains unknown fields")
     try:
@@ -582,6 +597,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
             {
                 "policy": review_context["policy_constraints"],
                 "reading_context": review_context.get("reading_context"),
+                "passage_scope": review_context.get("passage_scope"),
             }
         )
     except Exception:
@@ -590,7 +606,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
 
 def _effective_review_context(
     review_context: Mapping[str, object],
-    route_response: RoutedWork | ClarificationRequest | NoMatch | None,
+    route_response: LibrarianRoutingResponse | None,
 ) -> Mapping[str, object]:
     """Extend Provenance's trusted context with a same-turn routed boundary.
 
@@ -603,6 +619,15 @@ def _effective_review_context(
     """
     if not review_context or review_context.get("reading_context") is not None:
         return review_context
+    if isinstance(route_response, RoutedPassages):
+        policy = dict(review_context.get("policy_constraints") or {})
+        policy["allow_retrieval"] = True
+        policy["spoiler_ceiling"] = None
+        return {
+            **review_context,
+            "policy_constraints": policy,
+            "passage_scope": _routed_release_scope(route_response).model_dump(mode="json"),
+        }
     if not isinstance(route_response, RoutedWork):
         return review_context
     policy = dict(review_context.get("policy_constraints") or {})
@@ -704,7 +729,7 @@ def _reviewed_capture(
     capture_source_text: str,
     source_event_id: str,
     tool_results: list[dict[str, object]],
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
 ) -> tuple[AutomaticMemoryCandidate | None, CaptureFailure | None]:
     """Bind one reviewed nomination to exact user words and trusted evidence."""
@@ -735,7 +760,7 @@ async def reflection_reply(
     muse: Agent[None, MuseCandidate],
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object] | None = None,
-    release_scope: ReleaseScope | None = None,
+    release_scope: ReleaseScope | PassageScope | None = None,
     previously_released_evidence_ids: frozenset[str] = frozenset(),
     capture_source_text: str = "",
     source_event_id: str = "",
@@ -796,7 +821,7 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
         {
             "status": (
                 "decline"
-                if release.release_source != "muse_candidate"
+                if release.release_source not in {"muse_candidate", "application_clarification"}
                 else "success"
             ),
             "release.source": release.release_source,
@@ -804,7 +829,7 @@ def _record_release(span: Any, release: ReflectionRelease) -> ReflectionRelease:
             "provenance.finding_codes": list(release.finding_codes),
             "validation.outcome": (
                 "passed"
-                if release.release_source == "muse_candidate"
+                if release.release_source in {"muse_candidate", "application_clarification"}
                 else (
                     "failed"
                     if release.failure_stage == "deterministic_validation"
@@ -840,7 +865,7 @@ async def _reflection_reply(
     muse: Agent[None, MuseCandidate],
     provenance: Agent[None, ProvenanceReview],
     review_context: Mapping[str, object],
-    release_scope: ReleaseScope | None,
+    release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
     capture_source_text: str,
     source_event_id: str,
@@ -895,6 +920,7 @@ async def _reflection_reply(
         draft_routing = effective_route_response(
             _routing_responses(draft_tool_results)
         )
+        draft_clarification = _required_clarification(draft_routing)
     except Exception:
         return _record_release(
             span,
@@ -972,7 +998,7 @@ async def _reflection_reply(
                 draft_tool_results,
                 draft_release_scope,
                 previously_released_evidence_ids,
-                _required_clarification(draft_routing),
+                draft_clarification,
                 released_user_lines,
             )
         except ReleaseValidationError:
@@ -996,8 +1022,16 @@ async def _reflection_reply(
         return _record_release(
             span,
             ReflectionRelease(
-                reply=candidate.reply,
-                release_source="muse_candidate",
+                reply=(
+                    draft_clarification
+                    if draft_clarification is not None
+                    else candidate.reply
+                ),
+                release_source=(
+                    "application_clarification"
+                    if draft_clarification is not None
+                    else "muse_candidate"
+                ),
                 provenance_verdicts=("pass",),
                 finding_codes=_codes(review),
                 capture_nomination=draft_nomination,
@@ -1093,6 +1127,7 @@ async def _reflection_reply(
         revised_routing = effective_route_response(
             _routing_responses(revised_tool_results)
         )
+        revised_clarification = _required_clarification(revised_routing)
     except Exception:
         return _record_release(
             span,
@@ -1192,7 +1227,7 @@ async def _reflection_reply(
                 revised_tool_results,
                 revised_release_scope,
                 previously_released_evidence_ids,
-                _required_clarification(revised_routing),
+                revised_clarification,
                 released_user_lines,
             )
         except ReleaseValidationError:
@@ -1217,8 +1252,16 @@ async def _reflection_reply(
         return _record_release(
             span,
             ReflectionRelease(
-                reply=revised_candidate.reply,
-                release_source="muse_candidate",
+                reply=(
+                    revised_clarification
+                    if revised_clarification is not None
+                    else revised_candidate.reply
+                ),
+                release_source=(
+                    "application_clarification"
+                    if revised_clarification is not None
+                    else "muse_candidate"
+                ),
                 provenance_verdicts=("revise", "pass"),
                 revision_count=1,
                 finding_codes=_codes(review, revised_review),

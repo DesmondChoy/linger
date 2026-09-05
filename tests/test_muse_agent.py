@@ -143,7 +143,7 @@ class MuseInstructionTests(unittest.TestCase):
         )
         self.assertIn("book-only proposal may", lowered)
         self.assertIn("web-backed proposal internal", lowered)
-        self.assertIn("ask the reader that exact question", lowered)
+        self.assertIn("you do not need to copy", lowered)
         self.assertIn("exact reader wording", lowered)
         self.assertIn("exact book text", lowered)
         self.assertIn("relay that honestly", lowered)
@@ -213,14 +213,28 @@ class MuseInstructionTests(unittest.TestCase):
             lowered,
         )
 
-    def test_prompt_fingerprints_are_version_six(self) -> None:
+    def test_prompt_fingerprints_are_version_eleven(self) -> None:
         from src.linger.agents.muse.prompt import (
             DRAFT_PROMPT_FINGERPRINT,
             REVISION_PROMPT_FINGERPRINT,
         )
 
-        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "6")
-        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "6")
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "11")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "11")
+
+    def test_passage_routes_do_not_imply_chapter_completion(self) -> None:
+        compact = " ".join(self.instructions.split())
+        self.assertIn("`reading_boundary=None`", compact)
+        self.assertIn("Do not ask for chapter completion", compact)
+        self.assertIn("wait for search evidence before quoting", compact)
+        self.assertIn("does not grant Serendipity book search", compact)
+
+    def test_clarification_copying_rule_depends_on_tool(self) -> None:
+        routing, grounding = self.instructions.split("# Grounding with librarian_search")
+        grounding = grounding.split("# Quotations and honesty")[0]
+        self.assertIn("You do not need to copy the question verbatim", routing)
+        self.assertIn("ask the reader that exact question", grounding)
+        self.assertNotIn("you do not need to copy", grounding)
 
 
 class SessionLineUseTests(unittest.TestCase):

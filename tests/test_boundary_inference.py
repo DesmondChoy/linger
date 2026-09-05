@@ -104,7 +104,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             (librarian.chapter_five.evidence_id,),
         )
 
-        async def judge(current_line, memories, evidence):
+        async def judge(current_line, memories, evidence, prior_reader_statements):
+            self.assertEqual((), prior_reader_statements)
             self.assertEqual((stored,), memories)
             self.assertEqual({5, 8}, {record.chapter_number for record in evidence})
             return BoundaryInferenceDecision(
@@ -210,7 +211,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         librarian = FakeLibrarian()
         unrelated = memory("memory-2", "I need to repair the spaceship tomorrow.")
 
-        async def judge(_line, memories, _evidence):
+        async def judge(_line, memories, _evidence, _prior_reader_statements):
             self.assertEqual((), memories)
             return BoundaryInferenceDecision(
                 outcome="uncertain",
@@ -244,7 +245,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             (librarian.chapter_eight.evidence_id,),
         )
 
-        async def judge(_line, memories, _evidence):
+        async def judge(_line, memories, _evidence, _prior_reader_statements):
             self.assertEqual(
                 (chapter_five_memory, later_memory),
                 memories,

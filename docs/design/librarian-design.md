@@ -144,7 +144,7 @@ truth, and non-selected indexes need not remain in the production path.
 | Canonical chapter files | Store authoritative chapter bodies and routing front matter in reviewable text files |
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
 | Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
-| Muse | Judges when a request depends on a book, calls `librarian_route`, relays exact clarification questions, and drafts replies using granted evidence |
+| Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
 | Application boundary | Supplies the original reader message and access scope, resolves identity, validates explicit or inferred ceilings, and enforces reply release |
 | Librarian agent | Infers a private candidate ceiling, then judges the answerability of separately retrieved bounded evidence |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
@@ -401,13 +401,14 @@ describes the alias policy, collision checks, and agent responsibilities.
 
 A resolved work enters the private boundary phase described below. If a
 `NoMatch` leaves a book-dependent request unresolved, Muse asks for its full
-title and author; otherwise it can continue personal reflection. Identity and
-boundary clarification requests must be relayed verbatim, and the application
-blocks an evidence-bearing answer while clarification is outstanding. A routed
-result grants no retrieval authority by itself — Muse still calls
-`librarian_search` with the returned
-`work_id`, `book_version_id`, and a `reading_boundary` built from
-`max_chapter_inclusive`.
+title and author; otherwise it can continue personal reflection. For identity
+and boundary clarifications from `librarian_route`, application code releases
+the validated question after Provenance passes. Muse need not copy it verbatim.
+Evidence declarations and non-route tool calls still block release.
+A route grants a scope, not source text. Muse calls `librarian_search` with the
+returned `work_id` and `book_version_id`. A chapter route supplies
+`max_chapter_inclusive` for `reading_boundary`; a passage route requires
+`reading_boundary=None` and permits only its exact paragraph IDs.
 
 ### 4.2 Input and output contracts
 
@@ -415,8 +416,12 @@ The boundary phase runs exactly when `librarian_route` matched a work; an
 explicit reader-confirmed ceiling is authoritative and terminal for the
 request and never enters this phase. Once a work is routed, application code
 hands off to the private boundary phase. It receives the current Line,
-a bounded set of strongly routed account-scoped memories, and full-work
-retrieval candidates:
+a bounded set of strongly routed account-scoped memories, original earlier
+reader statements from the same session, and full-work retrieval candidates.
+With earlier reader statements, candidates are narrowed to canonical paragraphs
+and the phase can grant exact passages without a completed chapter. See
+[Session-supported exact passages](session-passage-design.md). The chapter
+inference example below omits earlier reader statements:
 
 ```json
 {
@@ -544,8 +549,10 @@ A clarification contains no evidence, retrieval score, or evidence-strength
 label because no search occurred. Muse presents the focused question and sends
 the answer through the same trusted boundary validator.
 
-Partial-current-chapter access remains unsupported until Linger has a stable,
-validated position format within a chapter.
+General partial-current-chapter ceilings remain unsupported. Exact canonical
+paragraph IDs support the narrower session-passage permission described in
+[Session-supported exact passages](session-passage-design.md), without implying
+completion of the chapter or permission for neighboring text.
 
 ### 4.4 Retrieval, fusion, and deduplication
 
@@ -946,5 +953,5 @@ unreported rather than being estimated.
 
 | Decision | Status |
 |---|---|
-| Partial-current-chapter boundaries | Define only when resolvable positions are available |
+| Partial-current-chapter boundaries | General scene or line ceilings remain undefined. Exact canonical paragraph grants are supported without chapter progress. |
 | Latency and cost budgets | End-to-end mean and p95 are measured; set product budgets and obtain provider token/cost reporting in `linger-cnx` |

@@ -55,6 +55,8 @@ function decisionSummary(turn: ChatResult) {
 
 function releaseLabel(turn: ChatResult) {
   switch (turn.inspection.release?.release_source) {
+    case 'application_clarification':
+      return 'Clarification requested'
     case 'application_safe_decline':
       return 'Safe decline released'
     case 'application_emotional_boundary':
@@ -68,6 +70,9 @@ function releaseDecisionSummary(turn: ChatResult) {
   const source = turn.inspection.release?.release_source
   if (source === 'muse_candidate') {
     return `Provenance approved the Muse candidate (${turn.inspection.release?.provenance_verdicts.join(' → ')}).`
+  }
+  if (source === 'application_clarification') {
+    return "The application delivered Librarian's validated question after safety review."
   }
   if (source === 'application_emotional_boundary') {
     return turn.inspection.release?.boundary_origin === 'preflight'

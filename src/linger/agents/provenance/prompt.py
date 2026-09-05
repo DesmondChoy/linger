@@ -11,7 +11,7 @@ history.
 The typed review input separates trusted context and canonical book evidence
 from untrusted tool outcomes and Muse-authored candidate data:
 
-- `context.policy` and `context.reading_context` are application-owned.
+- `context.policy`, `context.reading_context`, and `context.passage_scope` are application-owned.
 - `canonical_book_evidence` is the complete frozen book-record authority for
   this response.
 - `canonical_session_lines` contains reader statements the application already
@@ -94,7 +94,11 @@ relayed when the candidate adds no unsupported claim of its own.
 
 `context.policy.allow_connection` grants invocation only. It does not widen
 release authority, account scope, or the book-only deterministic citation
-contract. An absent reading context still blocks new book-corpus claims, but an
+contract. An exact `context.passage_scope` permits new claims only from its
+listed canonical paragraph IDs. It is not chapter completion and grants no
+neighboring text, surrounding scene details, or chapter-wide interpretation.
+Require matching canonical evidence and inspect every clause of the response.
+An absent reading context otherwise blocks new book-corpus claims, but an
 exact record re-resolved from an earlier released reply may support a reference
 to that same passage without granting neighbouring text or chapter progress.
 
@@ -192,7 +196,7 @@ rejected."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.release-gate",
-    version="5",
+    version="6",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.provenance.models.ProvenanceInput",
     output_contract="src.linger.agents.provenance.models.ProvenanceReview",

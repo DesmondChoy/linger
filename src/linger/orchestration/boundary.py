@@ -9,15 +9,21 @@ from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
 from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.boundary_prompt import PROMPT_FINGERPRINT
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from src.linger.agents.librarian.models import (
+    LibrarianBoundaryDecision,
+    PassageInferenceDecision,
+)
 from src.linger.contracts.librarian import (
     BoundaryCandidate,
     BoundaryInferenceResult,
+    BoundaryPassages,
     BoundarySupportLocation,
     BoundaryUncertain,
     EvidenceRecord,
+    PassageGrant,
 )
 from src.linger.contracts.curation import CuratedMemory
+from src.linger.contracts.session import ReaderStatement
 from src.linger.services.memory import MemoryRecord
 
 BOUNDARY_CONFIDENCE_THRESHOLD = 0.75
@@ -27,8 +33,8 @@ MAX_BOUNDARY_CANDIDATES = 10
 RetrievalMemory = MemoryRecord | CuratedMemory
 
 BoundaryJudge = Callable[
-    [str, tuple[RetrievalMemory, ...], tuple[EvidenceRecord, ...]],
-    Awaitable[BoundaryInferenceDecision],
+    [str, tuple[RetrievalMemory, ...], tuple[EvidenceRecord, ...], tuple[ReaderStatement, ...]],
+    Awaitable[LibrarianBoundaryDecision],
 ]
 
 
@@ -87,13 +93,17 @@ async def judge_spoiler_boundary(
     current_line: str,
     memories: tuple[RetrievalMemory, ...],
     evidence: tuple[EvidenceRecord, ...],
-) -> BoundaryInferenceDecision:
+    prior_reader_statements: tuple[ReaderStatement, ...],
+) -> LibrarianBoundaryDecision:
     """Run Librarian's private boundary judgment without logging its content."""
     from src.linger.agents.librarian.agent import librarian_boundary_agent
 
     payload = json.dumps(
         {
             "current_line": current_line,
+            "prior_reader_statements": [
+                statement.model_dump(mode="json") for statement in prior_reader_statements
+            ],
             "relevant_memories": [
                 {
                     "memory_id": memory.memory_id,
@@ -114,9 +124,9 @@ async def judge_spoiler_boundary(
         span_name="librarian.boundary_inference",
         role="Librarian",
         stage="boundary_inference",
-        input_contract="LibrarianBoundaryInferenceInput.v1",
+        input_contract="LibrarianBoundaryInferenceInput.v2",
         output_contract=(
-            "src.linger.agents.librarian.models.BoundaryInferenceDecision"
+            "src.linger.agents.librarian.models.LibrarianBoundaryDecision"
         ),
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
         prompt_version=PROMPT_FINGERPRINT.version,
@@ -126,6 +136,50 @@ async def judge_spoiler_boundary(
     return result.output
 
 
+def _validated_passages(
+    decision: PassageInferenceDecision,
+    scope: RegisteredCorpusScope,
+    evidence: tuple[EvidenceRecord, ...],
+    prior_reader_statements: tuple[ReaderStatement, ...],
+    confidence_threshold: float,
+) -> BoundaryPassages | BoundaryUncertain:
+    statement_ids = {statement.statement_id for statement in prior_reader_statements}
+    by_id = {record.evidence_id: record for record in evidence}
+    selections = (
+        decision.supporting_statement_ids,
+        decision.supporting_evidence_ids,
+        decision.passage_evidence_ids,
+    )
+    if (
+        not prior_reader_statements
+        or len(statement_ids) != len(prior_reader_statements)
+        or decision.work_id != scope.work_id
+        or decision.book_version_id != scope.book_version_id
+        or any(not ids or len(ids) != len(set(ids)) for ids in selections)
+        or len(decision.passage_evidence_ids) > 5
+        or not set(decision.supporting_statement_ids) <= statement_ids
+        or not set(decision.supporting_evidence_ids) <= by_id.keys()
+        or not set(decision.passage_evidence_ids) <= by_id.keys()
+    ):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable", clarification_question=_clarification(scope),
+        )
+    if decision.confidence < confidence_threshold:
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="low_confidence", confidence=decision.confidence,
+            clarification_question=_clarification(scope),
+        )
+    return BoundaryPassages(
+        grant=PassageGrant(
+            records=tuple(by_id[evidence_id] for evidence_id in decision.passage_evidence_ids),
+            supporting_statement_ids=decision.supporting_statement_ids,
+        ),
+        confidence=decision.confidence,
+    )
+
+
 async def infer_spoiler_boundary(
     current_line: str,
     *,
@@ -133,17 +187,26 @@ async def infer_spoiler_boundary(
     book_version_id: str,
     memories: tuple[RetrievalMemory, ...],
     librarian: Librarian,
+    prior_reader_statements: tuple[ReaderStatement, ...] = (),
     judge: BoundaryJudge | None = None,
     confidence_threshold: float = BOUNDARY_CONFIDENCE_THRESHOLD,
 ) -> BoundaryInferenceResult:
-    """Search a complete work privately, then return no story text."""
+    """Privately validate chapter progress or a grant for exact known passages."""
     scope = librarian.registered_scope(work_id, book_version_id)
     if scope is None:
         raise ValueError("boundary inference requires a registered corpus revision")
     selected_memories = relevant_memories(memories, scope, librarian)
-    search_query = "\n\n".join(
-        (current_line, *(memory.text for memory in selected_memories))
+    search_signals = (
+        current_line,
+        *(memory.text for memory in selected_memories),
     )
+    if prior_reader_statements:
+        search_signals = (
+            current_line[:1000],
+            *(statement.text for statement in reversed(prior_reader_statements)),
+            *(memory.text for memory in selected_memories),
+        )
+    search_query = "\n\n".join(search_signals)[:2000]
     try:
         bundle = librarian.retrieve(
             SearchRequest(
@@ -196,10 +259,13 @@ async def infer_spoiler_boundary(
         )
 
     try:
+        if prior_reader_statements:
+            evidence = librarian.candidate_paragraphs(evidence)
         decision = await (judge or judge_spoiler_boundary)(
             current_line,
             selected_memories,
             evidence,
+            prior_reader_statements,
         )
     except Exception:
         return BoundaryUncertain(
@@ -208,6 +274,11 @@ async def infer_spoiler_boundary(
             book_version_id=scope.book_version_id,
             reason_code="inference_unavailable",
             clarification_question=_clarification(scope),
+        )
+
+    if isinstance(decision, PassageInferenceDecision):
+        return _validated_passages(
+            decision, scope, evidence, prior_reader_statements, confidence_threshold
         )
 
     if decision.outcome == "uncertain":

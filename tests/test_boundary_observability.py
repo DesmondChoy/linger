@@ -62,7 +62,7 @@ CEILING = 5
 PRIVATE_LATER_TEXT = "PRIVATE_LATER_CHAPTER_TEXT_MUST_NOT_ESCAPE"
 
 
-async def _confident_ceiling_judge(_line, memories, evidence):
+async def _confident_ceiling_judge(_line, memories, evidence, _statements):
     """Authorize exactly `CEILING`, citing only support at or below it."""
     within = [record for record in evidence if record.chapter_number <= CEILING]
     return BoundaryInferenceDecision(
@@ -77,7 +77,7 @@ async def _confident_ceiling_judge(_line, memories, evidence):
     )
 
 
-async def _uncertain_judge(_line, _memories, _evidence):
+async def _uncertain_judge(_line, _memories, _evidence, _statements):
     return BoundaryInferenceDecision(
         outcome="uncertain",
         confidence=0.4,
@@ -197,7 +197,7 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
         """
         saw_post_boundary = False
 
-        async def leak_probe_judge(line, memories, evidence):
+        async def leak_probe_judge(line, memories, evidence, statements):
             nonlocal saw_post_boundary
             later = EvidenceRecord(
                 evidence_id=f"{VERSION_ID}-ch08-ln0800-0801",
@@ -214,7 +214,7 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
             # The ceiling stays at CEILING: the later record is context the
             # judge reads, never support it may cite.
             return await _confident_ceiling_judge(
-                line, memories, (*evidence, later)
+                line, memories, (*evidence, later), statements
             )
 
         response = await self._routed_turn(leak_probe_judge)

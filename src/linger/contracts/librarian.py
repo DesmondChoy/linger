@@ -58,7 +58,7 @@ class ClarificationRequest(StrictModel):
     request_id: str
     clarification_id: str
     reason_code: str
-    question: str
+    question: str = Field(min_length=1, pattern=r"\S")
     expected_answer: ExpectedAnswer
 
 
@@ -82,6 +82,61 @@ class EvidenceRecord(StrictModel):
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     source_lines: tuple[int, int]
     text: str
+
+
+class PassageScope(StrictModel):
+    """Exact eligible paragraphs, without a claim of chapter completion."""
+
+    kind: Literal["passages"] = "passages"
+    work_id: str
+    book_version_id: str
+    evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
+
+    @model_validator(mode="after")
+    def _unique_ids(self) -> "PassageScope":
+        if len(set(self.evidence_ids)) != len(self.evidence_ids):
+            raise ValueError("passage scope requires unique evidence IDs")
+        return self
+
+    def permits(self, record: EvidenceRecord) -> bool:
+        return (
+            record.work_id == self.work_id
+            and record.book_version_id == self.book_version_id
+            and record.evidence_id in self.evidence_ids
+        )
+
+
+class PassageGrant(StrictModel):
+    """Private canonical matches validated against supplied reader statements."""
+
+    records: tuple[EvidenceRecord, ...] = Field(min_length=1, max_length=5)
+    supporting_statement_ids: tuple[str, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _one_revision(self) -> "PassageGrant":
+        scope = self.scope
+        if not all(scope.permits(record) for record in self.records):
+            raise ValueError("passage grant must contain one work and revision")
+        if len(set(self.supporting_statement_ids)) != len(self.supporting_statement_ids):
+            raise ValueError("passage grant requires unique statement IDs")
+        return self
+
+    @property
+    def scope(self) -> PassageScope:
+        first = self.records[0]
+        return PassageScope(
+            work_id=first.work_id,
+            book_version_id=first.book_version_id,
+            evidence_ids=tuple(record.evidence_id for record in self.records),
+        )
+
+
+class BoundaryPassages(StrictModel):
+    """Private narrow permission, never a completed-chapter inference."""
+
+    kind: Literal["passages"] = "passages"
+    grant: PassageGrant
+    confidence: float = Field(ge=0, le=1)
 
 
 class BoundarySupportLocation(StrictModel):
@@ -151,7 +206,7 @@ class BoundaryUncertain(StrictModel):
         return self
 
 
-BoundaryInferenceResult = BoundaryCandidate | BoundaryUncertain
+BoundaryInferenceResult = BoundaryCandidate | BoundaryPassages | BoundaryUncertain
 
 
 class RetrievalResult(StrictModel):
@@ -160,7 +215,7 @@ class RetrievalResult(StrictModel):
     outcome: Literal["evidence_found", "no_evidence"]
     evidence_strength: Literal["sufficient", "weak", "none"]
     strength_reason: str
-    searched_scope: SearchedScope
+    searched_scope: SearchedScope | PassageScope
     evidence: tuple[EvidenceRecord, ...] = ()
     limitations: tuple[str, ...] = ()
 
@@ -198,7 +253,16 @@ class NoMatch(StrictModel):
     request_id: str
 
 
-LibrarianRoutingResponse = RoutedWork | ClarificationRequest | NoMatch
+class RoutedPassages(PassageScope):
+    """Content-free passage permission; call search with no chapter boundary."""
+
+    request_id: str
+    title: str
+    routing_confidence: float = Field(ge=0, le=1)
+    boundary_confidence: float = Field(ge=0, le=1)
+
+
+LibrarianRoutingResponse = RoutedWork | RoutedPassages | ClarificationRequest | NoMatch
 LIBRARIAN_ROUTING_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[LibrarianRoutingResponse, Field(discriminator="kind")]
 )
@@ -225,7 +289,7 @@ def effective_route_response(
     if clarification is not None:
         return clarification
     routed = next(
-        (response for response in responses if isinstance(response, RoutedWork)),
+        (response for response in responses if isinstance(response, (RoutedWork, RoutedPassages))),
         None,
     )
     if routed is not None:

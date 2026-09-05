@@ -86,7 +86,7 @@ export type CaptureInspection = {
 }
 
 export type ReleaseInspection = {
-  release_source: 'muse_candidate' | 'application_emotional_boundary' | 'application_safe_decline'
+  release_source: 'muse_candidate' | 'application_clarification' | 'application_emotional_boundary' | 'application_safe_decline'
   boundary_origin: 'preflight' | 'candidate_review' | null
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
   finding_codes: RiskCode[]

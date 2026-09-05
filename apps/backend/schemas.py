@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.linger.agents.provenance.models import RiskCode
 from src.linger.agents.serendipity.models import DeclineReason
+from src.linger.contracts.turn import ReleaseSource
 
 
 class RequestBody(BaseModel):
@@ -39,11 +40,7 @@ class ReleaseInspection(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     boundary_origin: Literal["preflight", "candidate_review"] | None = None
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...]
     finding_codes: tuple[RiskCode, ...]

@@ -26,16 +26,21 @@ from apps.backend.contracts import ContextResolution
 from apps.backend.schemas import CaptureInspection, ChatRequest, ChatResponse
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from src.linger.agents.librarian.models import (
+    BoundaryInferenceDecision,
+    PassageInferenceDecision,
+)
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
     effective_route_response,
     ClarificationRequest,
     EvidenceRecord,
+    PassageScope,
     RetrievalFailure,
     RetrievalResult,
 )
+from src.linger.contracts.turn import ReleaseSource
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import (
     AccountContext,
@@ -97,6 +102,7 @@ class GroundingObservation(StrictModel):
     call_outcome: str | None
     retrieval_outcome: Literal["evidence_found", "no_evidence"] | None = None
     searched_max_chapter: int | None = Field(default=None, ge=0)
+    searched_passage_ids: tuple[str, ...] = ()
     work_id: str | None = None
     book_version_id: str | None = None
     evidence: tuple[RuntimeEvidenceObservation, ...] = ()
@@ -121,10 +127,11 @@ class BookSceneObservation(StrictModel):
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     seeded_props: tuple[SeededProp, ...]
     context_resolution: ContextResolution
-    boundary_decision: Literal["infer", "clarify", "not_applicable"]
+    boundary_decision: Literal["infer", "passages", "clarify", "not_applicable"]
     # The ceiling `librarian_route` actually granted, and the question it asked
     # instead. Both are None when Muse never routed this Scene.
     routed_ceiling: int | None = None
+    routed_passage_ids: tuple[str, ...] = ()
     routed_work_id: str | None = None
     routed_book_version_id: str | None = None
     route_called: bool = False
@@ -135,11 +142,7 @@ class BookSceneObservation(StrictModel):
     grounding_calls: tuple[GroundingObservation, ...]
     released_evidence_ids: tuple[str, ...]
     reply: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     provenance_verdicts: tuple[Literal["pass", "revise", "reject"], ...]
     capture: CaptureInspection
     agent_exchanges: tuple[AgentExchange, ...]
@@ -179,14 +182,10 @@ class BookEvaluationExpected(StrictModel):
 class BookEvaluationOutput(StrictModel):
     grades: tuple[ObjectiveGrade, ...]
     ground_truth_result: GroundTruthResult
-    boundary_decision: Literal["infer", "clarify", "not_applicable"]
+    boundary_decision: Literal["infer", "passages", "clarify", "not_applicable"]
     released_evidence_ids: tuple[str, ...]
     reply: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
 
 
 BookEvaluationResult = BookEvaluationExpected | BookEvaluationOutput
@@ -472,6 +471,11 @@ async def _replay_book_scene(
         routed_ceiling=(
             routed.get("max_chapter_inclusive") if routed is not None else None
         ),
+        routed_passage_ids=(
+            tuple(routed["evidence_ids"])
+            if routed is not None and routed.get("kind") == "passages"
+            else ()
+        ),
         routed_clarification_question=(
             routed.get("question") if routed is not None else None
         ),
@@ -551,14 +555,21 @@ def _grounding_observations(
         outcome = call.get("outcome")
         call_outcome = outcome if isinstance(outcome, str) else None
         if isinstance(parsed, RetrievalResult):
+            scope = parsed.searched_scope
             observations.append(
                 GroundingObservation(
                     response_kind="result",
                     call_outcome=call_outcome,
                     retrieval_outcome=parsed.outcome,
-                    searched_max_chapter=parsed.searched_scope.max_chapter_inclusive,
-                    work_id=parsed.searched_scope.work_id,
-                    book_version_id=parsed.searched_scope.book_version_id,
+                    searched_max_chapter=(
+                        None if isinstance(scope, PassageScope)
+                        else scope.max_chapter_inclusive
+                    ),
+                    searched_passage_ids=(
+                        scope.evidence_ids if isinstance(scope, PassageScope) else ()
+                    ),
+                    work_id=scope.work_id,
+                    book_version_id=scope.book_version_id,
                     evidence=tuple(_runtime_evidence(item) for item in parsed.evidence),
                 )
             )
@@ -647,18 +658,20 @@ def _route_outcome(response: ChatResponse) -> dict[str, object] | None:
 
 def _boundary_decision(
     routed: dict[str, object] | None,
-) -> Literal["infer", "clarify", "not_applicable"]:
+) -> Literal["infer", "passages", "clarify", "not_applicable"]:
     if routed is None:
         return "not_applicable"
     if routed.get("kind") == "routed":
         return "infer"
+    if routed.get("kind") == "passages":
+        return "passages"
     if routed.get("kind") == "clarification":
         return "clarify"
     return "not_applicable"
 
 
 def _boundary_handoff_is_content_free(
-    decision: Literal["infer", "clarify", "not_applicable"],
+    decision: Literal["infer", "passages", "clarify", "not_applicable"],
     routed: dict[str, object] | None,
     exchanges: tuple[AgentExchange, ...],
 ) -> bool:
@@ -668,6 +681,29 @@ def _boundary_handoff_is_content_free(
     if exchange is None:
         return decision == "clarify"
     output = exchange.output
+    if decision == "passages" or (
+        isinstance(output, dict) and output.get("outcome") == "passages"
+    ):
+        try:
+            parsed = PassageInferenceDecision.model_validate(output)
+            if decision == "clarify":
+                ClarificationRequest.model_validate(routed)
+                return True
+        except ValueError:
+            return False
+        if decision != "passages":
+            return False
+        allowed_fields = {
+            "kind", "request_id", "work_id", "book_version_id", "title",
+            "routing_confidence", "boundary_confidence", "evidence_ids",
+        }
+        return (
+            routed is not None
+            and not set(routed) - allowed_fields
+            and parsed.work_id == routed["work_id"]
+            and parsed.book_version_id == routed["book_version_id"]
+            and parsed.passage_evidence_ids == tuple(routed["evidence_ids"])
+        )
     allowed_output_fields = {
         "outcome",
         "work_id",
@@ -783,9 +819,23 @@ def _grade_proposal(
     proposal: GroundTruthProposal,
     observation: BookSceneObservation,
 ) -> ObjectiveGrade:
+    if observation.boundary_decision == "passages" or any(
+        call.searched_passage_ids for call in observation.grounding_calls
+    ):
+        return ObjectiveGrade(
+            proposal_id=proposal.proposal_id,
+            objective_id=proposal.objective_id,
+            hard_pass=False,
+            failures=("passage_scope_outside_chapter_objective",),
+        )
     failures = _scope_failures(scene, observation)
-    if observation.release_source != "muse_candidate":
-        failures.append("response_not_released_from_muse_candidate")
+    clarification_released = (
+        observation.release_source == "application_clarification"
+        and observation.boundary_decision == "clarify"
+        and observation.reply == observation.routed_clarification_question
+    )
+    if observation.release_source != "muse_candidate" and not clarification_released:
+        failures.append("response_not_released_from_allowed_source")
     if (
         not observation.provenance_verdicts
         or observation.provenance_verdicts[-1] != "pass"
