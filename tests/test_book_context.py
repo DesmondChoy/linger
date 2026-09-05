@@ -157,6 +157,36 @@ class BookContextTests(unittest.TestCase):
 
         self.assertIsNone(context.chapter_max)
 
+    def test_book_name_or_negated_affirmation_does_not_confirm_candidate_progress(self) -> None:
+        for message in (
+            "Alice in Wonderland.",
+            "I'm still reading Alice in Wonderland.",
+            "Yes, but I haven't finished the chapter.",
+        ):
+            with self.subTest(message=message):
+                sessions.set_reading_candidate(
+                    "context-test", sessions.ReadingCandidate(book_id="pg11", chapter=5)
+                )
+                sessions.set_book_selection(
+                    "context-test", sessions.BookSelection(book_id="pg11")
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", message=message)
+                )
+                self.assertIsNone(context.chapter_max)
+
+    def test_affirmation_confirms_a_presented_chapter_candidate(self) -> None:
+        sessions.set_reading_candidate(
+            "context-test", sessions.ReadingCandidate(book_id="pg11", chapter=5)
+        )
+        sessions.set_book_selection(
+            "context-test", sessions.BookSelection(book_id="pg11")
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", message="Yes.")
+        )
+        self.assertEqual(5, context.chapter_max)
+
     def test_non_reader_completion_language_does_not_set_progress(self) -> None:
         sessions.set_book_selection(
             "context-test",

@@ -631,6 +631,55 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
 
+    async def test_generic_clarification_does_not_leave_a_confirmable_chapter(self) -> None:
+        async def line_only_judge(_line, _memories, evidence):
+            record = next(item for item in evidence if item.chapter_number == 5)
+            return BoundaryInferenceDecision(
+                outcome="candidate",
+                work_id=record.work_id,
+                book_version_id=record.book_version_id,
+                chapter_number=5,
+                confidence=0.99,
+                authorization_basis="line_only",
+                supporting_evidence_ids=(record.evidence_id,),
+            )
+
+        # A new generic question must also clear an older chapter question.
+        sessions.set_reading_candidate(
+            self.session_id,
+            sessions.ReadingCandidate(book_id="pg11", chapter=8),
+        )
+        with (
+            patch(
+                "src.linger.orchestration.boundary.judge_spoiler_boundary",
+                side_effect=line_only_judge,
+            ),
+            muse_chat_agent.override(
+                model=FunctionModel(_muse_routes_then_relays_clarification())
+            ),
+            provenance_agent.override(model=FunctionModel(_provenance_pass)),
+        ):
+            response = await main.chat(
+                ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE),
+                self.service,
+                self.account,
+            )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIn("latest chapter or scene", response.reply)
+        self.assertNotIn("Chapter 5", response.reply)
+        self.assertIsNone(sessions.reading_candidate(self.session_id))
+        for message in ("Yes.", "I'm still reading Alice in Wonderland."):
+            with self.subTest(message=message):
+                resolution = chat_turn.resolve_reading_context(
+                    ChatRequest(session_id=self.session_id, message=message)
+                )
+                self.assertIsNone(resolution.chapter_max)
+        resolution = chat_turn.resolve_reading_context(
+            ChatRequest(session_id=self.session_id, message="I've finished Chapter 3.")
+        )
+        self.assertEqual(3, resolution.chapter_max)
+
 
 if __name__ == "__main__":
     unittest.main()

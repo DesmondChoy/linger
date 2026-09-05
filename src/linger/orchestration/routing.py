@@ -109,14 +109,10 @@ async def route_reader_message(
         )
 
 
-def _persist_uncertain_candidate(scope: RegisteredCorpusScope, boundary: BoundaryUncertain) -> None:
-    """Persist a partial candidate so a follow-up turn can confirm it directly.
-
-    Mirrors the session semantics `_infer_request_boundary` used: only a
-    candidate chapter is remembered here, never a confirmed boundary.
-    """
-    if boundary.candidate_chapter is None:
-        return
+def _persist_uncertain_candidate(
+    scope: RegisteredCorpusScope, boundary: BoundaryUncertain
+) -> None:
+    """Remember only the chapter explicitly presented by a memory-backed question."""
     current_session = session_id()
     if current_session is None:
         return
@@ -124,6 +120,12 @@ def _persist_uncertain_candidate(scope: RegisteredCorpusScope, boundary: Boundar
         current_session,
         sessions.BookSelection(book_id=scope.work_id, book_title=scope.title),
     )
+    if (
+        boundary.authorization_basis != "memory_supported"
+        or boundary.candidate_chapter is None
+    ):
+        sessions.clear_reading_candidate(current_session)
+        return
     sessions.set_reading_candidate(
         current_session,
         sessions.ReadingCandidate(

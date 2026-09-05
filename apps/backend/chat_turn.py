@@ -124,18 +124,6 @@ def _title_without_chapter(message: str) -> str | None:
     return title or None
 
 
-def _candidate_confirmed(message: str, candidate: sessions.ReadingCandidate) -> bool:
-    lowered = message.lower()
-    aliases = [candidate.book_id.replace("-", " ")]
-    if candidate.book_title:
-        aliases.append(candidate.book_title.lower())
-    return bool(
-        AFFIRMATION_PATTERN.search(message)
-        or any(alias in lowered for alias in aliases)
-        or "wonderland" in lowered and candidate.book_id == "pg11"
-    )
-
-
 def _work_id_for_title(title: str) -> str:
     """Resolve known titles to stable corpus IDs; keep unknown books as slugs."""
     words = set(re.findall(r"[a-z0-9]+", title.lower()))
@@ -158,7 +146,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
 
     candidate_confirmed = bool(
-        candidate and _candidate_confirmed(request.message, candidate)
+        candidate and not in_progress and AFFIRMATION_PATTERN.search(request.message)
     )
     if candidate and candidate_confirmed:
         selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title)
