@@ -60,6 +60,8 @@ def _sha256(payload: bytes) -> str:
 
 
 def _proposal_summary(proposal: GroundTruthProposal) -> str:
+    if proposal.surfacing is not None:
+        return proposal.surfacing.decision.replace("_", " ").capitalize()
     if proposal.capture is not None:
         return (
             "Capture candidate"
@@ -100,6 +102,9 @@ def _source_roles(proposal: GroundTruthProposal) -> dict[str, str]:
         item.prop_id: item.relevance.replace("_", " ")
         for item in proposal.prop_relevance
     }
+    if proposal.surfacing is not None:
+        roles.update({key: "allowed source" for key in proposal.surfacing.allowed_source_ids})
+        roles.update({key: "required source" for key in proposal.surfacing.required_source_ids})
     if proposal.curation is None:
         return roles
     expected = proposal.curation.expected
@@ -200,6 +205,10 @@ def build_review_payload(
                         "text": item.text,
                         "role": item.kind,
                         "propIds": list(item.prop_ids),
+                        "surfacingContext": (
+                            item.surfacing_context.model_dump(mode="json")
+                            if item.surfacing_context is not None else None
+                        ),
                     }
                 )
             rows.append(
@@ -235,6 +244,10 @@ def build_review_payload(
                         proposal.curation.model_dump(mode="json")
                         if proposal.curation is not None
                         else None
+                    ),
+                    "surfacing": (
+                        proposal.surfacing.model_dump(mode="json")
+                        if proposal.surfacing is not None else None
                     ),
                     "grounding": (
                         proposal.grounding.model_dump(mode="json")

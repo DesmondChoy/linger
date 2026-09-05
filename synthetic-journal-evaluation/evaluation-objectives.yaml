@@ -65,7 +65,7 @@ developer_workflow:
     confirmation_result: validated_catalog_ids
     guidance: >-
       Launch the repository-owned selector on 127.0.0.1 and present its URL. Show
-      all ten objectives together on one desktop page, grouped by menu_families,
+      all catalog objectives together on one desktop page, grouped by menu_families,
       with one checkbox and one title per objective and a live selected-count
       indicator. Reveal each objective's summary, selection hint, and compatible
       objectives on demand rather than in the resting card. Do not use a
@@ -98,6 +98,7 @@ developer_workflow:
       - session_scoped_conversation_continuity
       - grounded_book_reflection
       - spoiler_boundary_clarification
+      - proactive_memory_surfacing
     run_configuration_directory: synthetic-journal-evaluation/run-configurations
     report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true
@@ -860,3 +861,93 @@ evaluation_objectives:
       academic_value:
         - Privacy, bias mitigation, ethical handling, and governance.
         - Independent review and deterministic prevention of unsafe capture.
+
+  - id: proactive_memory_surfacing
+    menu:
+      title: Proactive memory surfacing
+      family: conversation_and_memory
+      summary: >-
+        Sculptor reviews supplied memories and the current context to decide
+        whether to suggest a useful next action now, reconsider it later, or
+        leave it unmentioned. This objective tests offline decision quality,
+        including when silence is appropriate.
+      selection_hint: >-
+        Use to test grounded, timely suggestions without a live scheduler,
+        notifications, or a new conversational request.
+    composition:
+      combines_well_with: []
+      constraints:
+        - The first replay supports this Objective alone. Combining it with capture, retrieval, curation, or conversation requires a separately supported staged evaluation.
+        - Supply bounded, active Props from one evaluation account directly to each offline Scene. Automatic capture and live retrieval are not prerequisites.
+        - Keep the Scene's decision time, current context, and prior surfacing history separate from proposed Ground truth.
+        - Grade the proposed decision only. Scheduling, notification delivery, Muse wording, and Provenance release are outside this Objective.
+    generation_brief:
+      purpose: >-
+        Create a personal history in which an earlier intention or reflection
+        can support a useful next action at an appropriate moment. Include
+        nearby situations where timing, changed plans, prior exposure, weak
+        evidence, or sensitive inference make a suggestion inappropriate.
+      minimum_scenes:
+        - A timely situation where supplied memories support a specific useful suggestion now.
+        - A matched earlier situation with the same Props, current context, and history, where only the decision time changes and the suggestion should be deferred.
+        - A cancelled or superseded intention that should not be resurfaced.
+        - An otherwise plausible suggestion that should not repeat after it was surfaced or dismissed within the supplied history's suppression period.
+        - Weak or unrelated evidence that should not become a suggestion through superficial thematic overlap.
+        - A sensitive or speculative inference that should remain unmentioned.
+      generation_requirements:
+        - Keep one coherent Backstory for one person and one evaluation account.
+        - Write Props as independently understandable source records, without suggested decisions or grading labels.
+        - Supply one offline input per Scene with an explicit timezone-aware decision time, natural current context, and any prior surfaced or dismissed suggestions.
+        - Keep the timely and deferred Scenes paired with only the decision time changed. In additional pairs, isolate and declare the change that affects the decision.
+        - Make cancellation, replacement, prior exposure, or dismissal explicit in the supplied records or context rather than relying on hidden Backstory facts.
+        - Include positive and negative decisions. A weak, obsolete, repetitive, or intrusive suggestion must not be made merely to avoid silence.
+        - Give deferred situations a meaningful future time or observable condition for reconsideration.
+      expected_generated_data:
+        - A memory-only Backstory and bounded, account-scoped Props for each Scene.
+        - Typed offline context containing the decision time, current situation, and prior surfacing or dismissal history.
+        - A declared timing pair and any additional controlled Scene pairings.
+      must_avoid:
+        - Lines asking the assistant what to remember, recommend, or do next.
+        - Hidden personal context that is necessary to choose the expected decision.
+        - Instructions or expected decisions embedded in Props or offline context.
+        - Unsupported personal claims, diagnoses, or sensitive-trait inferences.
+        - Actual notifications, continuous monitoring, memory writes, or claims of end-to-end product readiness.
+    prompt_inputs:
+      - id: surfacing_contract
+        supplied_by: generator_repository_access
+        description: The current typed offline input, bounded source rules, three decision variants, and reconsideration contract.
+      - id: surfacing_context_plan
+        supplied_by: workflow
+        description: Decision times with explicit timezones, natural current contexts, and prior surfaced or dismissed history without expected-decision labels.
+      - id: authorized_prop_plan
+        supplied_by: workflow
+        description: The bounded active Props authorized for each Scene, supplied directly without a capture or retrieval workflow.
+    evaluation_metadata:
+      expected_architecture:
+        primary_components: [sculptor]
+        supporting_components: []
+        mandatory_gates: []
+        deterministic_services: []
+      ground_truth_requirements:
+        - Propose a surface_now, defer, or do_not_surface decision for every Scene in GroundTruthProposal.surfacing, separate from runtime inputs.
+        - Cover timely, deferred, superseded, repeated, unsupported, and sensitive case kinds, with a matched timely and deferred pair whose only changed input is now.
+        - Propose required and allowed source identifiers for each suggestion and the source support needed to justify it.
+        - For defer, propose reconsideration at a future time or under a specific condition. For do_not_surface, propose a reason for silence.
+        - Record semantic criteria and prohibited claims for independent review, including usefulness, sensitivity, unsupported assumptions, repetition, and timing.
+      observable_outcomes:
+        - A surface_now decision names a useful grounded suggestion and cites only supplied authorized source identifiers.
+        - A defer decision gives a grounded suggestion and an appropriate future time or condition for reconsideration.
+        - Cancelled, superseded, repeated, weakly supported, or sensitive suggestions produce do_not_surface with a reason.
+        - The timing pair changes from defer to surface_now when only the supplied decision time changes.
+        - The offline run leaves every Prop unchanged and performs no notification, capture, retrieval, or user-facing release.
+      failure_conditions:
+        - A suggestion relies on hidden Backstory facts, proposed Ground truth, invented sources, or another account's records.
+        - The agent surfaces a cancelled plan, repeats a suppressed suggestion, or ignores the supplied decision time.
+        - A deferral has no meaningful future time or condition for reconsideration.
+        - Weak evidence or a sensitive inference becomes an unsupported personal claim.
+        - The agent always stays silent and misses the grounded timely opportunity.
+        - A proposal is treated as a delivered notification or authority to change memory.
+      suggested_measures: [decision_accuracy, surfacing_precision, missed_opportunity_rate, inappropriate_surfacing_rate, timing_contrast_accuracy, source_resolution]
+      academic_value:
+        - Context-dependent agent decisions and temporal reasoning over bounded personal memory.
+        - Independent Ground truth adoption, explicit negative cases, and proposal-only authority.

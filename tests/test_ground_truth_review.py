@@ -399,6 +399,30 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     assert curation_payload["report"]["text"].startswith("# Pre-generation report")
 
 
+def test_surfacing_review_shows_time_history_sources_and_semantic_rubric(
+    tmp_path: Path, built_ui: Path,
+) -> None:
+    from tests.surfacing_fixtures import surfacing_documents, json_bytes
+
+    package = tmp_path / "surfacing"
+    package.mkdir()
+    _, truth, payload = surfacing_documents()
+    (package / "backstory.json").write_bytes(payload)
+    (package / "ground-truth.json").write_bytes(json_bytes(truth))
+    (package / "pre-generation-report.md").write_text("Fixture report")
+    review = _state(package, built_ui).payload
+    assert review["replay"]["module"] == "evals.synthetic_journals.surfacing_replay"
+    assert review["rows"][0]["summary"] == "Defer"
+    assert review["rows"][0]["surfacing"]["reconsideration"]["kind"] == "time"
+    timely = review["rows"][1]
+    assert timely["inputs"][0]["role"] == "required source"
+    assert timely["surfacing"]["semantic_criteria"]
+    repeated = review["rows"][3]
+    context = repeated["inputs"][-1]["surfacingContext"]
+    assert context["now"].endswith("+08:00")
+    assert context["history"][0]["outcome"] == "dismissed"
+
+
 def test_review_payload_shows_shared_book_facts_and_expectation(
     tmp_path: Path,
     built_ui: Path,

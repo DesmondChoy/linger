@@ -654,10 +654,11 @@ and future designs must use these terms instead of ad hoc synonyms such as
 vocabulary, Backstory and Ground truth structures, deterministic package
 validator, and Ground truth authority lifecycle below. Interactive independent
 adoption is implemented. The catalog registers capture, bounded-curation,
-session-continuity, grounded-book-reflection, and spoiler-boundary replay as
-supported paths. The book runner accepts either book Objective alone or both in
-either order. Reflection replay code for `weak_evidence_safe_decline` remains an
-unsupported path. Reusable generation, dataset freezing, and replay for other
+session-continuity, grounded-book-reflection, spoiler-boundary, and offline
+proactive-memory-surfacing replay as supported paths. The book runner accepts
+either book Objective alone or both in either order. Reflection replay code for
+`weak_evidence_safe_decline` remains an unsupported path. Reusable generation,
+dataset freezing, and replay for other
 Objectives remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
@@ -667,10 +668,10 @@ Lines through production replay and the Ground truth lifecycle used for grading.
 
 | Term | Definition |
 |---|---|
-| **Objective** | One of the ten catalog entries in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
+| **Objective** | An entry in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
 | **Backstory** | The generated history for one person, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
-| **Prop** | A generated memory record pre-positioned in Linger's storage and available to the evaluation before a scene runs. Each prop belongs to the backstory's person and evaluation account. When lines are fed to Muse, a prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
-| **Scene** | One bounded test of one primary behavior, tied to an objective. A scene runs in a fresh session with its designated props and is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
+| **Prop** | A generated memory record made available before a scene through storage setup or a bounded offline input. Each prop belongs to the backstory's person and evaluation account. A prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
+| **Scene** | One bounded test of one primary behavior, tied to an objective. A scene uses its designated props and an isolated starting state: a fresh session for conversational input or a supplied snapshot for offline input. It is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input sent to Linger's production chat boundary within a scene. Most scenes contain one line; some contain an ordered sequence of lines. A policy preflight may stop a line before Muse. |
 | **Ground truth** | The answer-key data for a scene: intended relationships, expected outcomes, permitted evidence identifiers, exact spans, and failure conditions. The generator writes **proposed Ground truth** to `ground-truth.json` while creating `backstory.json`. Deterministic validation checks objective facts, then an independent reviewer adopts, revises, or rejects the proposal. Only **adopted Ground truth** is canonical for grading. Neither state is exposed to the running system. |
 
@@ -680,6 +681,10 @@ The vocabulary encodes these boundaries:
 - The backstory never enters the running system, and no backstory content becomes a prop by copying. A prop whose use or non-use is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
+- Offline surfacing Scenes supply `OfflineInput.surfacing_context` with a
+  timezone-aware `now`, `current_context`, and prior surfaced or dismissed
+  `history`. These fields describe the situation presented to Sculptor.
+  Expected decisions remain separate in `GroundTruthProposal.surfacing`.
 - The generator writes `backstory.json` and `ground-truth.json` together. The Ground truth file records exact spans, intended relationships, Scene pairings, and expected or prohibited outcomes needed to preserve the generator's intent.
 - A book package stores shared work, version, boundary, basis spans, and corpus
   evidence once in `book_scene_facts`. Each book proposal stores only its
@@ -708,7 +713,7 @@ Everything after a Line enters the production chat boundary — preflight, routi
 
 #### 7.2.2 Objective selection and downstream boundary
 
-The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for the ten synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules.
+The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules. The selector derives the available Objective count from the catalog and requires unique IDs.
 
 The end-to-end workflow has distinct human gates:
 
@@ -729,8 +734,8 @@ The end-to-end workflow has distinct human gates:
    writes sibling `ground-truth-adoption.json`. For an exact supported selection,
    the agent validates the adoption and starts one provider-backed replay. The
    supported selections are reviewed automatic capture, bounded memory curation,
-   session continuity, either book Objective alone, and both book Objectives in
-   either order. Other selections stop after adoption.
+   session continuity, proactive memory surfacing, either book Objective alone,
+   and both book Objectives in either order. Other selections stop after adoption.
 7. The durable replay output remains the complete evaluation record. Pydantic
    Evals and the `linger-evals` Logfire service provide interactive result,
    agent, provider, and trace views.
@@ -786,6 +791,39 @@ identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
 
+The [`proactive_memory_surfacing` runner](../evals/synthetic_journals/surfacing_replay.py)
+evaluates Sculptor's offline decisions over supplied, bounded, account-scoped
+Props. Each Scene contains exactly one
+offline input and no Lines. The input supplies a timezone-aware decision time,
+the current context, and any prior surfaced or dismissed suggestions. Sculptor
+returns `surface_now`, `defer`, or `do_not_surface`. A suggestion cites supplied
+source identifiers. A deferral includes a future time or condition for
+reconsideration, and a decision to remain silent includes a reason.
+
+Packages cover timely, deferred, superseded, repeated, unsupported, and
+sensitive situations. The required timely and deferred pair changes only
+`now`, so the evaluation can test whether time changes the decision. Proposed
+Ground truth records the expected decision, allowed and required source
+identifiers, reconsideration or a reason for silence, semantic criteria, and
+prohibited claims. Deterministic validation checks the package structure,
+references, and declared timing contrast. Independent adoption remains required
+before these expectations become canonical grading authority. Usefulness and
+sensitivity remain semantic review judgments, separate from structural checks.
+
+Decision accuracy and surfacing precision and recall compare every schema-valid
+emitted label with the expected decision, including labels on proposals rejected
+for invalid sources or timing. Malformed or missing outputs count as incorrect
+in overall and per-class accuracy. They also count as misses in recall whenever
+Ground truth expects `surface_now`. The hard-gate pass rate separately checks
+sources, timing, and input and Prop immutability. Semantic quality remains
+ungraded.
+
+This runner supports the surfacing Objective alone. It evaluates decision
+quality without capture, live memory retrieval, Muse, Provenance, a scheduler,
+or notification delivery. It leaves all Props unchanged and makes no claim of
+end-to-end product readiness. Section 9.2's scheduled product task remains a
+future direction.
+
 The book runner compiles each validated package before replay. The compiler
 accepts `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
 either order. `book_scene_facts` owns the shared work and version, the reader or
@@ -838,7 +876,7 @@ The project still has not defined reusable workflow for:
 - line generation;
 - full-dataset assembly and layout;
 - freezing; or
-- replay of offline inputs, unsupported mixed Objective selections, or
+- replay of unsupported offline inputs, unsupported mixed Objective selections, or
   unsupported Objectives.
 
 Book packages created before the canonical `book_scene_facts` and
@@ -921,8 +959,10 @@ Two loops are in scope.
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
 **Future product direction.** Sculptor is the proactive intelligence layer;
-Muse is how that intelligence speaks. A separately adopted scheduled product
-task could let Sculptor propose a grounded next action or timely resurfacing
+Muse is how that intelligence speaks. The offline `proactive_memory_surfacing`
+Objective in Section 7.2 tests the decision quality needed for this direction.
+A separately adopted scheduled product task could let Sculptor propose a
+grounded next action or timely resurfacing
 from a bounded, account-scoped memory set. Sculptor would not release the
 proposal itself: Muse would produce any user-facing wording, and Provenance and
 deterministic application checks would retain the ordinary release boundary.

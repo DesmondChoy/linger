@@ -159,6 +159,35 @@ def validate_report(
                 errors.append(
                     "fenced prompt lacks reviewed automatic capture run configuration"
                 )
+        if "proactive_memory_surfacing" in selected_objective_ids:
+            surfacing_requirements = (
+                ("offline surfacing context", r"\bOfflineInput\.surfacing_context\b"),
+                (
+                    "timezone-aware decision time",
+                    r"\bnow\b[^.]*\btimezone[- ]aware\b|"
+                    r"\btimezone[- ]aware\b[^.]*\bnow\b",
+                ),
+                ("current context", r"\bcurrent_context\b"),
+                ("prior surfacing history", r"\bhistory\b"),
+                ("surfaced history outcome", r"\bsurfaced\b"),
+                ("dismissed history outcome", r"\bdismissed\b"),
+                ("offline Scenes without Lines", r"\bno Lines\b"),
+                ("typed surfacing Ground truth", r"\bGroundTruthProposal\.surfacing\b"),
+                ("surface_now decision", r"\bsurface_now\b"),
+                ("defer decision", r"\bdefer\b"),
+                ("do_not_surface decision", r"\bdo_not_surface\b"),
+                ("permitted source identifiers", r"\ballowed_source_ids\b"),
+                ("required source identifiers", r"\brequired_source_ids\b"),
+                ("deferred reconsideration", r"\breconsideration\b"),
+                (
+                    "timing-only Scene pair",
+                    r"(?=[^.]*\bpair\w*\b)(?=[^.]*\btimely\b)"
+                    r"(?=[^.]*\bdeferred\b)(?=[^.]*\bonly\b[^.]*\bnow\b)",
+                ),
+            )
+            for label, pattern in surfacing_requirements:
+                if not re.search(pattern, prompt, flags=re.IGNORECASE):
+                    errors.append(f"fenced prompt lacks {label}")
     return errors
 
 

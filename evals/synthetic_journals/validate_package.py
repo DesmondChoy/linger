@@ -30,6 +30,11 @@ from evals.synthetic_journals.models import (
     Scene,
     SyntheticBackstory,
 )
+from evals.synthetic_journals.surfacing_contract import (
+    SURFACING_OBJECTIVE_ID,
+    SurfacingContractError,
+    compile_surfacing_scenes,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
@@ -218,6 +223,11 @@ def validate_package(
     failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
+    if SURFACING_OBJECTIVE_ID in backstory.objective_ids:
+        try:
+            compile_surfacing_scenes(backstory, ground_truth)
+        except SurfacingContractError as error:
+            failures.append(str(error))
     failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)
     )
@@ -625,10 +635,16 @@ def _pair_field(
                 offline_inputs[item_id].kind,
                 offline_inputs[item_id].text,
                 offline_inputs[item_id].prop_ids,
+                offline_inputs[item_id].surfacing_context,
             )
             for item_id in scene.offline_input_ids
         ),
     }
+    for name in ("now", "current_context", "history"):
+        values[f"surfacing_{name}"] = tuple(
+            getattr(offline_inputs[item_id].surfacing_context, name, None)
+            for item_id in scene.offline_input_ids
+        )
     return values[field]
 
 

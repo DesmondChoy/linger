@@ -60,6 +60,16 @@ explains the provider-backed side effect.
 - For exactly `bounded_memory_curation`, run
   `evals.synthetic_journals.curation_replay` with `--adoption` and a fresh
   temporary output path.
+- For exactly `proactive_memory_surfacing`, run
+  `evals.synthetic_journals.surfacing_replay` with positional `BACKSTORY_PATH`
+  and `GROUND_TRUTH_PATH`, `--adoption ADOPTION_PATH`, and
+  `--output OUTPUT_PATH`. Use a fresh temporary output path. This runs Sculptor
+  over supplied Props and typed offline context. It
+  does not run a scheduler, send notifications, or invoke Muse or Provenance.
+  Report the decision and deterministic hard-gate results separately from
+  semantic quality. Usefulness, appropriate timing, and sensitive inference
+  still require human review against the recorded `semantic_criteria` and
+  `forbidden_claims`. This runner has no `--semantic-review` option.
 - For exactly `session_scoped_conversation_continuity`, run
   `evals.synthetic_journals.continuity_replay` with `--adoption` and a fresh
   temporary output path. The runner grades only the session boundary; correction
