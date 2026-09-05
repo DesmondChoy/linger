@@ -193,8 +193,9 @@ server-side evaluation policy and idempotency, validates the request, and owns
 every write. The application reports a committed capture but offers no
 memory-management action.
 
-Sculptor is not part of capture. Product-side curation is the following
-application-owned flow:
+Sculptor is not part of capture. Curation is implemented as the callable
+`run_curation_loop` service below. Application-loop tests invoke it; the current
+chat handler does not initiate curation.
 
 1. The Memory & Policy Service resolves 2–12 requested memory identifiers to
    immutable originals within the authenticated account.
@@ -217,8 +218,10 @@ application-owned flow:
 
 Allowed actions are duplicate links, versioned derived summaries, topic groups,
 retrieval tombstones, and retrieval restoration. A tombstone requires a prior
-duplicate link to a distinct canonical original. It only suppresses the target
-from retrieval; restoration removes that suppression. Neither action changes
+duplicate link to a distinct canonical original that is still retrievable.
+The service rejects a tombstone whose canonical is already suppressed, so
+opposite tombstones cannot hide both duplicates. A tombstone only suppresses the
+target from retrieval; restoration removes that suppression. Neither action changes
 or deletes a source record. Generated summaries and topic labels remain
 separate retrieval items with explicit source-memory identifiers. There is no
 public memory CRUD endpoint, arbitrary agent tool, physical deletion, or
@@ -755,6 +758,24 @@ per Scene. Proposal mode emits `proposal_comparison` with
 the authority to `adopted`, uses the adopted Ground truth identity as the
 dataset version, and emits `adopted_hard_gate_grade` with
 `passes_hard_gates` or `fails_hard_gates`.
+
+Capture grading checks the final recorded Muse nomination against the exact
+proposed Line span, the review and binding decisions, the release source, and
+actual stored text and record count. A `capture_candidate` expects an allowed,
+exactly bound, committed capture with a normal Muse release. A `no_candidate`
+expects a normal release, no nomination, no capture review authorisation, and no
+write. Unexpected writes or changes to earlier records fail the Scene. Missing
+Muse output cannot pass. Dedicated veto and safe-decline expectations are outside
+this capture-only runner's supported cases.
+
+For an observed exact, allowed commit, the runner resubmits that stored record's
+account, source event, text, and evidence to Memory Policy. The retry must return
+the same unchanged record with `created=False` and leave the store unchanged.
+This checks policy idempotency; it does not establish server-owned HTTP retry
+identity. Artifact schema 2 records the complete capture expectation, observed
+nomination, failure reasons, and retry result. Older nomination-only runs do not
+provide evidence for these additional checks. The checked-in capture package
+remains proposed until an independent human adopts its Ground truth.
 
 The bounded-curation runner supplies only the isolated Scene's active,
 same-account Props to production `propose_curation`. It preserves and hashes

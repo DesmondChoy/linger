@@ -169,6 +169,31 @@ The Backstory and Ground truth never enter Muse. Proposal mode reports
 `matches_proposal` or `differs_from_proposal`. Adopted mode reports
 `passes_hard_gates` or `fails_hard_gates`. Neither runner adopts its own labels.
 
+Capture grades use the recorded Muse output and actual memory-store observations:
+
+| Typed expectation | Required outcome |
+|---|---|
+| `capture_candidate` | A normal Muse release; exactly the expected nominated text and offsets; `allow_capture`; exact binding; one committed record with the expected text; no other writes. |
+| `no_candidate` | A normal Muse release; a recorded `NoMemoryCandidate`; a `no_candidate` review decision; no binding or storage action; no writes. |
+
+Missing Muse output and changes to earlier stored records fail the Scene. The
+grader uses the final revision's nomination when Muse revises its draft. Veto
+and safe-decline expectations require a separate typed replay contract and are
+outside these supported cases.
+
+After an exact, allowed commit, the runner repeats the Memory Policy call using
+the observed record's account, source event, text, and evidence. It requires the
+same record, `created=False`, and unchanged stored records. This is a policy
+idempotency check, without another model call; HTTP retry identity remains a
+separate runtime concern. Ground truth never supplies a storage candidate.
+
+Artifact schema 2 records the complete typed expectation, observed nomination,
+per-Scene `hard_failures`, storage observations, and policy retry result. The
+native evaluation label uses the same failures as the durable artifact. Earlier
+nomination-only runs cannot establish these outcomes. The checked-in capture
+package remains proposed and needs independent human adoption and a fresh
+provider-backed run before it supplies adopted evaluation evidence.
+
 The capture command accepts `--adoption PATH` only for an adoption that validates
 against the exact Backstory and proposed Ground truth bytes. `--output PATH`
 writes the durable JSON artifact to that path; without it, the complete artifact

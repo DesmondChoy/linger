@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -31,7 +32,7 @@ from apps.backend.schemas import (
     TurnInspection,
 )
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
-from evals.synthetic_journals.models import CaptureCandidate
+from evals.synthetic_journals.models import CaptureCandidate, NoCandidate
 from evals.synthetic_journals.replay import main as replay_main
 from evals.synthetic_journals.replay import (
     CAPTURE_OBJECTIVE_ID,
@@ -43,12 +44,19 @@ from evals.synthetic_journals.transcript import SceneTranscriptRecorder
 from evals.synthetic_journals.validate_package import validate_package_files
 from src.linger.agents.muse.models import (
     MemoryCandidate,
+    MemoryNomination,
     MuseCandidate,
     NoMemoryCandidate,
 )
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.evaluation_transcript import active_evaluation_transcript_sink
+from src.linger.services.memory import (
+    AccountContext,
+    AutomaticMemoryCandidate,
+    MemoryConflictError,
+    MemoryPolicyService,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKSTORY_PATH = (
@@ -71,7 +79,37 @@ def _result(output: object) -> SimpleNamespace:
     return SimpleNamespace(output=output, new_messages=lambda: [])
 
 
-def _no_capture_response() -> ChatResponse:
+def _no_capture_response(
+    nomination: MemoryNomination | None = None, *, stage: str = "draft"
+) -> ChatResponse:
+    sink = active_evaluation_transcript_sink()
+    if sink is not None:
+        handle = sink.begin_agent_exchange(
+            role="Muse",
+            stage=stage,
+            input_origin="Application",
+            output_receiver="Application",
+            input_contract="Input.v1",
+            output_contract="src.linger.agents.muse.models.MuseCandidate",
+            prompt_template_id="muse.test",
+            prompt_version="1",
+            prompt_digest="0" * 64,
+            input_prompt="synthetic input",
+            message_history=(),
+            trace_id="0" * 32,
+            span_id="0" * 16,
+        )
+        sink.complete_agent_exchange(
+            handle,
+            result=_result(MuseCandidate(
+                reply="A synthetic reviewed reply.",
+                memory=nomination or NoMemoryCandidate(
+                    kind="no_memory_candidate", reason_code="transient_or_low_signal"
+                ),
+            )),
+            status="success",
+            failure_code=None,
+        )
     capture = CaptureInspection(
         nomination="no_candidate",
         provenance_decision="no_candidate",
@@ -90,7 +128,7 @@ def _no_capture_response() -> ChatResponse:
                 release_source="muse_candidate",
                 provenance_verdicts=("pass",),
                 finding_codes=(),
-                revision_count=0,
+                revision_count=int(stage == "revision"),
                 failure_stage=None,
                 capture=capture,
             ),
@@ -115,9 +153,11 @@ def test_scene_observation_requires_boundary_origin_for_boundary_release() -> No
             line_id="line",
             input_line="synthetic line",
             trace_id="0" * 32,
-            expected_capture_label="no_candidate",
+            expected_capture=NoCandidate(kind="no_candidate"),
             actual_capture_label="unavailable",
+            actual_nomination=None,
             ground_truth_result="differs_from_proposal",
+            hard_failures=("release_source_mismatch",),
             agent_exchanges=(),
             reply="boundary",
             release_source="application_emotional_boundary",
@@ -125,6 +165,10 @@ def test_scene_observation_requires_boundary_origin_for_boundary_release() -> No
             capture=capture,
             memory_id=None,
             stored_text=None,
+            stored_record_count=0,
+            created_memory_ids=(),
+            existing_memories_unchanged=True,
+            retry=None,
         )
 
 
@@ -274,6 +318,197 @@ def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
     }
 
 
+def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    positive = next(
+        proposal for proposal in ground_truth.proposals
+        if isinstance(proposal.capture, CaptureCandidate)
+    )
+    positive_line = next(
+        line.text for line in content.lines
+        if line.line_id == positive.capture.span.source_id
+    )
+
+    async def chat_handler(request, _service, _account):
+        response = _no_capture_response()
+        if request.message == positive_line:
+            response.inspection.release.capture = CaptureInspection(
+                nomination="candidate",
+                provenance_decision="reject_capture",
+                binding="invalid",
+                storage="refused",
+                reason_code="invalid_capture_binding",
+            )
+        return response
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    observation = next(s for s in result.scenes if s.scene_id == positive.scene_id)
+    assert result.final_active_memory_ids == ()
+    assert observation.ground_truth_result == "differs_from_proposal"
+    assert "capture_review_mismatch" in observation.hard_failures
+    assert "capture_binding_mismatch" in observation.hard_failures
+    assert "capture_storage_mismatch" in observation.hard_failures
+    assert "stored_record_count_mismatch" in observation.hard_failures
+
+
+@pytest.mark.parametrize(
+    ("fault", "failure"),
+    [
+        ("none", None),
+        ("revised_nomination", None),
+        ("wrong_offsets", "nominated_span_mismatch"),
+        ("wrong_text", "stored_text_mismatch"),
+        ("wrong_review", "capture_review_mismatch"),
+        ("wrong_binding", "capture_binding_mismatch"),
+        ("safe_decline", "release_source_mismatch"),
+        ("extra_write", "unexpected_memory_writes"),
+        ("wrong_event", "stored_record_count_mismatch"),
+        ("duplicate_retry", "capture_retry_not_idempotent"),
+        ("failed_retry", "capture_retry_not_idempotent"),
+    ],
+)
+def test_capture_replay_grades_observed_outcomes(
+    fault: str, failure: str | None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    proposal = next(
+        item for item in ground_truth.proposals
+        if isinstance(item.capture, CaptureCandidate)
+    )
+    assert isinstance(proposal.capture, CaptureCandidate)
+    span = proposal.capture.span
+    positive_line = next(
+        line.text for line in content.lines if line.line_id == span.source_id
+    )
+
+    async def chat_handler(request, service, account):
+        if request.message != positive_line:
+            return _no_capture_response()
+        nomination = MemoryCandidate(
+            kind="memory_candidate",
+            text=span.text,
+            start_codepoint=span.start_codepoint,
+            end_codepoint=span.end_codepoint,
+            reason_code="durable_reflection",
+        )
+        wrong_nomination = nomination.model_copy(update={
+            "start_codepoint": span.start_codepoint + 1,
+            "end_codepoint": span.end_codepoint + 1,
+        })
+        if fault == "revised_nomination":
+            _no_capture_response(wrong_nomination)
+        response = _no_capture_response(
+            wrong_nomination if fault == "wrong_offsets" else nomination,
+            stage="revision" if fault == "revised_nomination" else "draft",
+        )
+        candidate = AutomaticMemoryCandidate(
+            text="An unsupported substitute." if fault == "wrong_text" else span.text,
+            source_event_id=request.turn_id + (":wrong" if fault == "wrong_event" else ""),
+            review_allows_capture=True,
+            contains_sensitive_content=False,
+        )
+        service.save_automatic(account, candidate)
+        if fault == "extra_write":
+            service.save_automatic(
+                account, replace(candidate, source_event_id=request.turn_id + ":extra")
+            )
+        if fault == "duplicate_retry":
+            save = service.save_automatic
+
+            def duplicate_retry(context, retry_candidate):
+                return save(context, replace(
+                    retry_candidate, source_event_id=retry_candidate.source_event_id + ":duplicate"
+                ))
+
+            monkeypatch.setattr(service, "save_automatic", duplicate_retry)
+        elif fault == "failed_retry":
+            def failed_retry(_context, _candidate):
+                raise MemoryConflictError("conflicting retry")
+
+            monkeypatch.setattr(service, "save_automatic", failed_retry)
+        release = response.inspection.release
+        assert release is not None
+        release.capture = CaptureInspection(
+            nomination="candidate",
+            provenance_decision="reject_capture" if fault == "wrong_review" else "allow_capture",
+            binding="invalid" if fault == "wrong_binding" else "exact",
+            storage="committed",
+            reason_code=None,
+        )
+        if fault == "safe_decline":
+            release.release_source = "application_safe_decline"
+        return response
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    observation = next(scene for scene in result.scenes if scene.scene_id == proposal.scene_id)
+    if failure is None:
+        assert observation.ground_truth_result == "matches_proposal"
+        assert observation.hard_failures == ()
+        assert observation.retry is not None
+        assert observation.retry.created is False
+        assert observation.retry.store_unchanged
+        assert len(result.final_active_memory_ids) == 1
+    else:
+        assert observation.ground_truth_result == "differs_from_proposal"
+        assert failure in observation.hard_failures
+    assert result.artifact_schema_version == "2"
+    assert observation.expected_capture == proposal.capture
+    if fault == "failed_retry":
+        assert observation.retry.error == "MemoryConflictError"
+        assert observation.retry.store_unchanged
+        assert observation.retry.original_unchanged
+
+
+def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    calls = 0
+    stored = None
+
+    async def chat_handler(request, service, account):
+        nonlocal calls, stored
+        calls += 1
+        if calls == 1:
+            stored = service.save_automatic(account, AutomaticMemoryCandidate(
+                text="An unexpected memory.",
+                source_event_id=request.turn_id,
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            )).record
+        elif calls == 2:
+            path = service.root / stored.account_key / f"{stored.idempotency_key}.md"
+            path.write_text(path.read_text().replace(stored.text, "An altered memory."))
+        return _no_capture_response()
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    assert "unexpected_memory_writes" in result.scenes[0].hard_failures
+    assert "stored_record_count_mismatch" in result.scenes[0].hard_failures
+    assert "existing_memories_changed" in result.scenes[1].hard_failures
+    assert all(
+        scene.ground_truth_result == "differs_from_proposal"
+        for scene in result.scenes[:2]
+    )
+
+
+def test_replay_cannot_pass_without_recorded_muse_output() -> None:
+    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    response = _no_capture_response()
+
+    async def chat_handler(_request, _service, _account):
+        return response
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    assert all("muse_nomination_unavailable" in scene.hard_failures for scene in result.scenes)
+    assert all(scene.ground_truth_result == "differs_from_proposal" for scene in result.scenes)
+
+
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
     content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     first_scene = content.scenes[0].model_copy(
@@ -322,6 +557,7 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> No
     assert experiment["attributes"]["dataset_name"] == CAPTURE_OBJECTIVE_ID
     assert result.run_id in experiment["attributes"]["metadata"]
     assert ground_truth.backstory_sha256 in experiment["attributes"]["metadata"]
+    assert json.loads(experiment["attributes"]["metadata"])["artifact_schema_version"] == "2"
     assert len(cases) == 11
     assert {span["attributes"]["case_name"] for span in cases} == {
         scene.scene_id for scene in content.scenes
@@ -339,6 +575,13 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> No
         for span in cases
     }
     assert comparisons == {"matches_proposal", "differs_from_proposal"}
+    for case in cases:
+        expected = json.loads(case["attributes"]["expected_output"])
+        output = json.loads(case["attributes"]["output"])
+        assert "capture" in expected
+        assert output["ground_truth_result"] == (
+            "differs_from_proposal" if output["hard_failures"] else "matches_proposal"
+        )
 
 
 def test_cli_returns_nonzero_for_an_invalid_package(
