@@ -4,7 +4,10 @@ import json
 import unittest
 from dataclasses import asdict
 
+from pydantic import ValidationError
+
 from apps.backend import sessions
+from src.linger.contracts.turn import ReleaseSource
 
 
 class SessionEvidenceLedgerTests(unittest.TestCase):
@@ -113,6 +116,93 @@ class SessionEvidenceLedgerTests(unittest.TestCase):
 
         self.assertEqual((), sessions.turn_records(self.session_id))
         self.assertEqual((), sessions.released_evidence_ids(self.session_id))
+
+
+class ReaderStatementTests(unittest.TestCase):
+    session_id = "reader-statements-test"
+    other_session_id = "reader-statements-other"
+
+    def tearDown(self) -> None:
+        sessions.clear(self.session_id)
+        sessions.clear(self.other_session_id)
+
+    def append(
+        self, text: str, *, release_source: ReleaseSource = "muse_candidate"
+    ) -> None:
+        sessions.append_turn(
+            self.session_id,
+            text,
+            "Assistant words must not become reader support.",
+            turn_id="duplicate-client-turn-id",
+            release_source=release_source,
+        )
+
+    def test_only_retained_reader_words_are_returned(self) -> None:
+        original = "  I reached the Caterpillar.\nI stopped there.  "
+        self.append(original)
+        self.append("Failed user turn", release_source="application_safe_decline")
+        self.append("Private distress", release_source="application_emotional_boundary")
+        self.append("Chapter 5?", release_source="application_clarification")
+        sessions.append_turn(
+            self.other_session_id,
+            "Another reader's words",
+            "Other reply",
+            turn_id="other-turn",
+            release_source="muse_candidate",
+        )
+
+        statements = sessions.reader_statements(self.session_id)
+
+        self.assertIsInstance(statements, tuple)
+        self.assertEqual([original, "Chapter 5?"], [item.text for item in statements])
+        self.assertEqual(2, len({item.statement_id for item in statements}))
+        self.assertEqual((), sessions.reader_statements("unknown-session"))
+
+    def test_ids_are_stable_as_recent_window_moves_and_turn_ids_repeat(self) -> None:
+        for number in range(8):
+            self.append(f"Reader message {number}")
+        before = sessions.reader_statements(self.session_id)
+        self.append("Ninth reader message")
+        after = sessions.reader_statements(self.session_id)
+
+        self.assertEqual(8, len(after))
+        self.assertEqual(before[1:], after[:-1])
+        self.assertNotIn(after[-1].statement_id, {item.statement_id for item in before})
+        self.assertEqual("Reader message 0", before[0].text)
+        with self.assertRaises(ValidationError):
+            before[0].text = "changed"
+
+    def test_total_budget_keeps_complete_contiguous_recent_suffix(self) -> None:
+        self.append("older short statement")
+        self.append("x" * 15_001)
+        self.append("y" * 1_000)
+
+        statements = sessions.reader_statements(self.session_id)
+
+        self.assertEqual(["y" * 1_000], [item.text for item in statements])
+
+    def test_exact_character_budget_preserves_both_complete_statements(self) -> None:
+        self.append("x" * 15_000)
+        self.append("y" * 1_000)
+
+        statements = sessions.reader_statements(self.session_id)
+
+        self.assertEqual([15_000, 1_000], [len(item.text) for item in statements])
+
+    def test_oversized_latest_statement_does_not_expose_stale_older_context(self) -> None:
+        self.append("I finished this book.")
+        self.append("x" * 16_001)
+
+        self.assertEqual((), sessions.reader_statements(self.session_id))
+
+    def test_clear_removes_statements_without_mutating_existing_snapshot(self) -> None:
+        self.append("A retained reader statement")
+        snapshot = sessions.reader_statements(self.session_id)
+
+        sessions.clear(self.session_id)
+
+        self.assertEqual((), sessions.reader_statements(self.session_id))
+        self.assertEqual("A retained reader statement", snapshot[0].text)
 
 
 class ReadingStateTests(unittest.TestCase):

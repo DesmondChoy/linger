@@ -436,6 +436,30 @@ request. This separation lets evaluation compare Librarian's inferred ceiling
 with event-derived Ground truth while preventing full-work inference access from
 becoming full-work disclosure authority.
 
+Earlier reader messages can support a narrower permission without establishing
+chapter progress. Before Muse runs, application code snapshots at most eight
+complete retained reader messages, up to 16,000 characters, from the same
+session. Each original message has a stable reader-ordinal ID. Assistant text,
+failed turns, and other sessions are excluded. This handoff does not depend on
+memory capture and does not turn session messages into saved memories.
+
+For this path, Librarian converts private search windows into verified canonical
+paragraphs. Its private decision separately names earlier reading statements,
+paragraphs that locate those statements, and the exact requested paragraphs.
+Application code validates the supplied IDs and confidence before granting only
+the requested paragraphs. A `passages` route exposes IDs but no story text or
+chapter ceiling. `librarian_search` then re-fetches those exact records, checks
+their identity, and runs the existing evidence-strength review. Neither a new
+query nor a larger chapter argument can expand the grant.
+
+Provenance receives `passage_scope` with no chapter boundary. The deterministic
+release check accepts only matching canonical evidence within that exact scope,
+plus the existing exception for exact previously released passages. Passage
+permission does not enable Serendipity book search or persist chapter progress.
+Ambiguous reading support still requires clarification. See
+[Session-supported exact passages](design/session-passage-design.md) for the
+ownership and failure rules.
+
 The current implementation has both phases for the Alice corpus. Muse, not the
 application, decides whether a request depends on a specific book, and calls
 an argument-less `librarian_route` tool only then — never for an incidental
@@ -466,8 +490,9 @@ retrieval failure, or an invalid model decision produces one fixed
 clarification and no evidence search. Unreadable account-scoped memory storage
 no longer fails closed into a clarification: the application swallows the
 storage error and binds an empty memory set, and boundary inference proceeds
-with no memories available to it — which, because a ceiling must be
-memory-supported, can then only end in clarification. A validated
+with no memories available to it. A chapter ceiling still requires memory
+support, but earlier reader statements may independently support exact passages.
+Without either form of support, Librarian requests clarification. A validated
 memory-supported candidate creates only a request-scoped ceiling; it is not
 persisted as reading progress. Muse may then request the second search, which
 the application clamps to that ceiling before any passage becomes releasable
@@ -476,11 +501,15 @@ inference for that request, and a routed inferred ceiling never widens or
 replaces a boundary the reader already confirmed this turn.
 
 An unresolved routing or boundary clarification returns a typed
-`ClarificationRequest` from the tool call itself. The deterministic release
-gate binds on that exact question from the tool payload: the released reply
-must match it verbatim, carry no evidence declarations, and accompany no other
-tool call in the same turn — Librarian or Serendipity alike. The application
-remembers that question as a pending clarification for the session; a reader
+`ClarificationRequest` from `librarian_route`. After Provenance passes the
+candidate, application code releases the validated tool question as
+`application_clarification`, replacing Muse's wording. Muse does not need to
+copy the question verbatim. Evidence declarations and non-route tool calls
+still fail deterministic validation, and an emotional boundary takes priority.
+Clarifications suppress automatic memory capture with
+`clarification_capture_suppressed`. The application
+retains the released question and original reader message in session history
+and keeps the pending clarification state. A reader
 reply on a later turn consisting only of a chapter number is treated as
 explicit completed progress for that book, resolving the boundary
 as `reader_confirmed` before Muse runs. Muse then re-issues the original book

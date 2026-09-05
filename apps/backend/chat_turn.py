@@ -39,11 +39,15 @@ from src.linger.orchestration.turn_context import (
     reset_active_memories,
     reset_confirmed_reading,
     reset_reader_message,
+    reset_reader_statements,
+    reset_routing_context,
     reset_session_id,
     reset_turn_evidence,
     set_active_memories,
     set_confirmed_reading,
     set_reader_message,
+    set_reader_statements,
+    set_routing_context,
     set_session_id,
     set_turn_evidence,
 )
@@ -376,14 +380,18 @@ def _commit_automatic_capture(
                 reason_code="not_applicable" if decision == "no_candidate" else None,
             )
         )
-    if release.release_source == "application_safe_decline":
+    if release.release_source in {"application_safe_decline", "application_clarification"}:
         return AutomaticCaptureExecution(
             inspection=CaptureInspection(
                 nomination=nomination,
                 provenance_decision=decision,
                 binding="exact",
                 storage="suppressed",
-                reason_code="safe_decline_capture_suppressed",
+                reason_code=(
+                    "clarification_capture_suppressed"
+                    if release.release_source == "application_clarification"
+                    else "safe_decline_capture_suppressed"
+                ),
             )
         )
     try:
@@ -514,7 +522,7 @@ def _finalize_librarian_inspection(
     ) or "failure" in direct_kinds
     direct_clarified = "clarification" in direct_kinds
     direct_no_match = direct_kinds and all(kind == "no_match" for kind in direct_kinds)
-    released = release.release_source == "muse_candidate"
+    released = release.release_source in {"muse_candidate", "application_clarification"}
     inspection.librarian_grounding = (
         list(direct_calls) if released else []
     )
@@ -632,6 +640,8 @@ async def _run_chat_pipeline(
         )
         evidence_token = set_turn_evidence(prior_evidence)
         reader_message_token = set_reader_message(request.message)
+        statements_token = set_reader_statements(sessions.reader_statements(request.session_id))
+        routing_token = set_routing_context()
         session_id_token = set_session_id(request.session_id)
         try:
             active_memories = tuple(service.list_active(account))
@@ -658,6 +668,8 @@ async def _run_chat_pipeline(
             reset_connection_inspection(connection_token)
             reset_active_memories(memories_token)
             reset_reader_message(reader_message_token)
+            reset_reader_statements(statements_token)
+            reset_routing_context(routing_token)
             reset_session_id(session_id_token)
             reset_turn_evidence(evidence_token)
             reset_confirmed_reading(token)
@@ -674,7 +686,7 @@ async def _run_chat_pipeline(
         release,
         connection_book_outcomes=connection_book_outcomes,
     )
-    if release.release_source != "muse_candidate":
+    if release.release_source not in {"muse_candidate", "application_clarification"}:
         sessions.restore_reading_state(request.session_id, reading_state)
     capture = _commit_automatic_capture(release, service, account)
     sessions.append_turn(
@@ -829,6 +841,14 @@ async def run_chat_turn(
                 "Provenance and deterministic release validation approved the "
                 "candidate that was released."
             ),
+        }
+        provenance_status = "complete"
+        provenance_detail = f"Recorded review path: {verdict_path}."
+    elif release.release_source == "application_clarification":
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "complete",
+            "detail": "The application released Librarian's validated clarification question.",
         }
         provenance_status = "complete"
         provenance_detail = f"Recorded review path: {verdict_path}."

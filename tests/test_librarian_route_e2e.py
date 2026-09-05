@@ -247,7 +247,7 @@ def _muse_calls_route_then_replies():
     return _respond
 
 
-def _muse_routes_then_relays_clarification():
+def _muse_routes_then_relays_clarification(reply: str | None = None):
     def _respond(messages, info: AgentInfo) -> ModelResponse:
         route_result = _last_tool_return(messages, "librarian_route")
         if route_result is None:
@@ -258,7 +258,7 @@ def _muse_routes_then_relays_clarification():
                 ToolCallPart(
                     output_tool.name,
                     {
-                        "reply": route_result["question"],
+                        "reply": reply if reply is not None else route_result["question"],
                         "evidence_uses": [],
                         "memory": _no_memory(),
                     },
@@ -321,7 +321,7 @@ def _muse_searches_directly(captured: list, *, chapter: int):
     return _respond
 
 
-async def _confident_judge(_line, memories, evidence):
+async def _confident_judge(_line, memories, evidence, _statements):
     return BoundaryInferenceDecision(
         outcome="candidate",
         work_id="pg11",
@@ -334,7 +334,7 @@ async def _confident_judge(_line, memories, evidence):
     )
 
 
-async def _low_confidence_candidate_judge(_line, memories, evidence):
+async def _low_confidence_candidate_judge(_line, memories, evidence, _statements):
     return BoundaryInferenceDecision(
         outcome="candidate",
         work_id="pg11",
@@ -347,7 +347,7 @@ async def _low_confidence_candidate_judge(_line, memories, evidence):
     )
 
 
-async def _insufficient_context_judge(_line, _memories, _evidence):
+async def _insufficient_context_judge(_line, _memories, _evidence, _statements):
     return BoundaryInferenceDecision(
         outcome="uncertain",
         confidence=0.2,
@@ -604,9 +604,9 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
         seen_memories: list = []
 
-        async def capturing_judge(_line, memories, evidence):
+        async def capturing_judge(_line, memories, evidence, statements):
             seen_memories.extend(memory.text for memory in memories)
-            return await _confident_judge(_line, memories, evidence)
+            return await _confident_judge(_line, memories, evidence, statements)
 
         request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)
         with patch(
@@ -634,13 +634,23 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
             side_effect=_insufficient_context_judge,
         ):
             with muse_chat_agent.override(
-                model=FunctionModel(_muse_routes_then_relays_clarification())
+                model=FunctionModel(_muse_routes_then_relays_clarification(
+                    "Before we continue, which chapter have you finished?"
+                ))
             ):
                 with provenance_agent.override(model=FunctionModel(_provenance_pass)):
                     first_response = await main.chat(request, self.service, self.account)
 
-        self.assertEqual("muse_candidate", first_response.inspection.release.release_source)
-        self.assertTrue(first_response.reply.endswith("?"))
+        self.assertEqual("application_clarification", first_response.inspection.release.release_source)
+        route = first_response.inspection.librarian_grounding[0]["response"]
+        self.assertEqual(route["question"], first_response.reply)
+        self.assertNotEqual("Before we continue, which chapter have you finished?", first_response.reply)
+        self.assertEqual((), first_response.inspection.release.released_evidence_ids)
+        self.assertIsNone(first_response.inspection.release.failure_stage)
+        history = sessions.history(self.session_id)
+        self.assertEqual(2, len(history))
+        self.assertEqual(BOOK_REQUEST_MESSAGE, history[0].parts[0].content)
+        self.assertEqual(first_response.reply, history[1].parts[0].content)
         self.assertIsNone(sessions.reading_candidate(self.session_id))
         pending = sessions.pending_clarification(self.session_id)
         self.assertIsNotNone(pending)
@@ -730,7 +740,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 with provenance_agent.override(model=FunctionModel(_provenance_pass)):
                     first_response = await main.chat(request, self.service, self.account)
 
-        self.assertEqual("muse_candidate", first_response.inspection.release.release_source)
+        self.assertEqual("application_clarification", first_response.inspection.release.release_source)
         self.assertTrue(first_response.reply.endswith("?"))
         candidate = sessions.reading_candidate(self.session_id)
         self.assertIsNotNone(candidate)

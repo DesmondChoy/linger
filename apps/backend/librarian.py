@@ -150,6 +150,26 @@ def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Parag
     return tuple(paragraphs)
 
 
+def _record_from_paragraphs(
+    metadata: ChapterFrontMatter, paragraphs: tuple[Paragraph, ...]
+) -> EvidenceRecord:
+    start, end = paragraphs[0].source_lines[0], paragraphs[-1].source_lines[1]
+    return EvidenceRecord(
+        evidence_id=f"{metadata.chapter_id}-ln{start:04d}-{end:04d}",
+        work_id=metadata.work_id,
+        book_version_id=metadata.book_version_id,
+        chapter_id=metadata.chapter_id,
+        chapter_number=metadata.chapter_number,
+        location=(
+            f"Chapter {metadata.chapter_number} — {metadata.title}, "
+            f"source lines {start}-{end}"
+        ),
+        source_sha256=metadata.source_sha256,
+        source_lines=(start, end),
+        text="\n\n".join(paragraph.text for paragraph in paragraphs),
+    )
+
+
 def _score(query_terms: set[str], paragraph: str) -> float:
     """Return a bounded lexical score; zero means no textual anchor exists."""
     if not query_terms:
@@ -392,8 +412,10 @@ class Librarian:
             return None
         return RoutingDecision(scope=scope, confidence=confidence)
 
-    def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
-        """Resolve one released handle without running retrieval again."""
+    def _resolve_evidence_paragraphs(
+        self, evidence_id: str
+    ) -> tuple[ChapterFrontMatter, tuple[Paragraph, ...]] | None:
+        """Resolve an exact canonical window without extending its boundaries."""
         match = EVIDENCE_ID.fullmatch(evidence_id)
         if match is None:
             return None
@@ -466,20 +488,27 @@ class Librarian:
         if not selected or selected[-1].source_lines[1] != end:
             return None
 
-        return EvidenceRecord(
-            evidence_id=evidence_id,
-            work_id=metadata.work_id,
-            book_version_id=metadata.book_version_id,
-            chapter_id=metadata.chapter_id,
-            chapter_number=metadata.chapter_number,
-            location=(
-                f"Chapter {metadata.chapter_number} — {metadata.title}, "
-                f"source lines {start}-{end}"
-            ),
-            source_sha256=metadata.source_sha256,
-            source_lines=(start, end),
-            text="\n\n".join(paragraph.text for paragraph in selected),
-        )
+        return metadata, tuple(selected)
+
+    def fetch_by_id(self, evidence_id: str) -> EvidenceRecord | None:
+        """Resolve one released handle without running retrieval again."""
+        resolved = self._resolve_evidence_paragraphs(evidence_id)
+        return None if resolved is None else _record_from_paragraphs(*resolved)
+
+    def candidate_paragraphs(
+        self, candidates: tuple[EvidenceRecord, ...]
+    ) -> tuple[EvidenceRecord, ...]:
+        """Narrow verified private windows to canonical paragraphs, never neighbors."""
+        records: dict[str, EvidenceRecord] = {}
+        for candidate in candidates:
+            resolved = self._resolve_evidence_paragraphs(candidate.evidence_id)
+            if resolved is None or _record_from_paragraphs(*resolved) != candidate:
+                raise CorpusScopeError("candidate does not match its canonical evidence")
+            metadata, paragraphs = resolved
+            for paragraph in paragraphs:
+                record = _record_from_paragraphs(metadata, (paragraph,))
+                records.setdefault(record.evidence_id, record)
+        return tuple(records.values())
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
         """Search eligible chapter bodies without opening a forbidden chapter."""

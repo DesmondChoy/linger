@@ -31,7 +31,8 @@ from src.linger.agents.muse.models import (
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate, MemoryPolicyService
+from src.linger.orchestration.reflection import ReflectionRelease
 
 
 def result(output: object) -> SimpleNamespace:
@@ -120,6 +121,27 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             "capture-safe-6",
         ):
             sessions.clear(session_id)
+
+    def test_application_clarification_suppresses_eligible_capture(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        release = ReflectionRelease(
+            reply="How far have you read?",
+            release_source="application_clarification",
+            provenance_verdicts=("pass",),
+            capture_nomination="candidate",
+            capture_decision="allow_capture",
+            automatic_capture_candidate=AutomaticMemoryCandidate(
+                text="Naming my new role feels awkward.",
+                source_event_id="clarification-capture-test",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
+        capture = chat_turn._commit_automatic_capture(release, self.service, self.account)
+        self.assertEqual("suppressed", capture.inspection.storage)
+        self.assertEqual("clarification_capture_suppressed", capture.inspection.reason_code)
+        self.assertIsNone(capture.record)
+        self.assertEqual([], self.service.list_active(self.account))
 
     async def run_chat(
         self,

@@ -134,6 +134,20 @@ def result(output: object, *tool_returns: ToolReturnPart) -> SimpleNamespace:
     return SimpleNamespace(output=output, new_messages=lambda: messages)
 
 
+def route_clarification(question: str) -> ToolReturnPart:
+    return ToolReturnPart(
+        "librarian_route",
+        {
+            "kind": "clarification",
+            "request_id": "routereq_test",
+            "clarification_id": "clarify_test",
+            "reason_code": "insufficient_context",
+            "question": question,
+            "expected_answer": {"type": "free_text", "values": []},
+        },
+    )
+
+
 def evidence_record(
     *,
     evidence_id: str = EVIDENCE_ID,
@@ -719,23 +733,15 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", release.release_source)
         self.assertIsNone(release.failure_stage)
 
-    async def test_unresolved_boundary_releases_only_the_exact_clarification(self) -> None:
+    async def test_unresolved_boundary_releases_application_question_not_muse_text(self) -> None:
         question = "Have you completed Chapter 5, or are you still earlier?"
-        librarian_clarification = ToolReturnPart(
-            "librarian_route",
-            {
-                "kind": "clarification",
-                "request_id": "routereq_1",
-                "clarification_id": "clarify_1",
-                "reason_code": "insufficient_context",
-                "question": question,
-                "expected_answer": {"type": "free_text", "values": []},
-            },
-        )
+        librarian_clarification = route_clarification(question)
 
-        for reply, expected_source in (
-            (question, "muse_candidate"),
-            ("I think the answer is in Chapter 5.", "application_safe_decline"),
+        for reply in (
+            question,
+            "Before we continue, have you finished Chapter 5?",
+            "I think the answer is in Chapter 5.",
+            "At the end, Alice wakes up and realizes it was a dream.",
         ):
             with self.subTest(reply=reply):
                 muse = AsyncMock()
@@ -750,9 +756,110 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                     provenance=provenance,
                 )
 
-                self.assertEqual(expected_source, release.release_source)
-                if expected_source == "application_safe_decline":
-                    self.assertEqual("deterministic_validation", release.failure_stage)
+                self.assertEqual("application_clarification", release.release_source)
+                self.assertEqual(question, release.reply)
+                self.assertEqual((), release.evidence_ids)
+                self.assertIsNone(release.failure_stage)
+
+    async def test_revision_releases_application_clarification(self) -> None:
+        question = "How far have you read?"
+        clarification = route_clarification(question)
+        muse = AsyncMock()
+        muse.run.side_effect = [
+            result("An unsupported book answer."),
+            result("Which chapter have you finished?", clarification),
+        ]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [result(review("revise")), result(review("pass"))]
+
+        release = await reflection_reply(
+            "Why does Alice struggle to explain who she is?",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual("application_clarification", release.release_source)
+        self.assertEqual(question, release.reply)
+        self.assertEqual(("revise", "pass"), release.provenance_verdicts)
+        self.assertEqual(1, release.revision_count)
+
+    async def test_clarification_keeps_evidence_tool_and_review_guards(self) -> None:
+        question = "How far have you read?"
+        clarification = route_clarification(question)
+        cases = (
+            (
+                candidate(question, evidence_id=EVIDENCE_ID), (),
+                review("pass"), "deterministic_validation",
+            ),
+            (
+                candidate(question),
+                (ToolReturnPart("librarian_search", retrieval_result()),),
+                review("pass"), "deterministic_validation",
+            ),
+            (
+                candidate(question),
+                (ToolReturnPart("serendipity_explore", connection_result()),),
+                review("pass"), "deterministic_validation",
+            ),
+            (candidate(question), (), review("reject"), None),
+        )
+        for draft, other_tools, verdict, expected_stage in cases:
+            with self.subTest(evidence=draft.evidence_uses, tools=other_tools, verdict=verdict):
+                muse = AsyncMock()
+                muse.run.return_value = result(draft, clarification, *other_tools)
+                provenance = AsyncMock()
+                provenance.run.return_value = result(verdict)
+                release = await reflection_reply(
+                    "Why does Alice struggle to explain who she is?", [],
+                    muse=muse, provenance=provenance,
+                )
+                self.assertEqual("application_safe_decline", release.release_source)
+                self.assertEqual(expected_stage, release.failure_stage)
+                self.assertNotEqual(question, release.reply)
+
+    async def test_emotional_boundary_takes_priority_over_clarification(self) -> None:
+        message = "I am distressed."
+        clarification = route_clarification("How far have you read?")
+        muse = AsyncMock()
+        muse.run.return_value = result("Which chapter have you finished?", clarification)
+        provenance = AsyncMock()
+        provenance.run.return_value = result(
+            ProvenanceReview(
+                findings=(RiskFinding(
+                    code="emotional_policy_violation",
+                    applies_to="response",
+                    location={
+                        "kind": "text_span", "source_field": "current_line.text",
+                        "path": "", "quote": message,
+                    },
+                    explanation="The current Line requires the emotional boundary.",
+                ),),
+                response_decision="reject",
+                emotional_boundary_decision="required",
+                capture_decision="no_candidate",
+            )
+        )
+        release = await reflection_reply(message, [], muse=muse, provenance=provenance)
+        self.assertEqual("application_emotional_boundary", release.release_source)
+        self.assertEqual("candidate_review", release.boundary_origin)
+
+    async def test_blank_route_question_cannot_release_muse_text(self) -> None:
+        for question in ("", " \n"):
+            with self.subTest(question=question):
+                muse = AsyncMock()
+                muse.run.return_value = result(
+                    "At the end, Alice wakes up.",
+                    route_clarification(question),
+                )
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review("pass"))
+                release = await reflection_reply(
+                    "Why does Alice change?", [], muse=muse, provenance=provenance,
+                )
+                self.assertEqual("application_safe_decline", release.release_source)
+                self.assertEqual("muse_draft", release.failure_stage)
+                provenance.run.assert_not_awaited()
 
     async def test_route_clarification_overrides_an_earlier_routed_scope_everywhere(
         self,
@@ -794,7 +901,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             provenance=provenance,
         )
 
-        self.assertEqual("muse_candidate", release.release_source)
+        self.assertEqual("application_clarification", release.release_source)
         review_payload = json.loads(provenance.run.await_args.args[0])
         self.assertIsNone(review_payload["context"]["reading_context"])
         self.assertFalse(review_payload["context"]["policy"]["allow_retrieval"])

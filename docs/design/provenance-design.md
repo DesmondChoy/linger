@@ -382,7 +382,7 @@ index.
 | Deterministic post-pass citation validation | `_validate_release`, `_validated_book_evidence` (reflection.py:289-425) | `::test_valid_book_quote_passes_deterministic_validation`, `::test_quote_and_location_mismatches_fail_closed`, `::test_work_revision_and_spoiler_mismatches_fail_closed` |
 | Evidence index cannot be widened by message history | `_trusted_book_evidence` | `::test_evidence_from_message_history_cannot_authorize_release` |
 | Session re-resolution grants only the exact prior passage | `previously_released_evidence_ids` | `::test_exact_previously_released_evidence_can_authorize_later_turn` |
-| Unresolved boundary → exact clarification only | `_validate_release(required_clarification=…)` | `::test_unresolved_boundary_releases_only_the_exact_clarification` |
+| Unresolved route boundary → application releases the validated question, without requiring Muse to copy it | `_validate_release(required_clarification=…)` and application-owned reply selection after semantic approval | `::test_unresolved_boundary_releases_application_question_not_muse_text` |
 | Every Librarian branch reaches the gate unchanged | prompt.py:36-45 | `test_provenance_agent.py::test_release_gate_enforces_every_librarian_response_branch`, `test_reflection.py::test_every_librarian_branch_reaches_provenance_unchanged` |
 | Preflight classifier + live case pack | [`provenance/emotional.py`](../../src/linger/agents/provenance/emotional.py), [`evals/provenance/`](../../evals/provenance/) | 8 versioned cases, metadata-only report |
 

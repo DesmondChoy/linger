@@ -10,7 +10,7 @@ from pydantic import Field, JsonValue, model_validator
 from src.linger.agents.contracts import StrictModel
 from src.linger.agents.muse.models import EvidenceUse, MemoryNomination
 from src.linger.contracts.emotional import EmotionalContentPolicy
-from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.librarian import EvidenceRecord, PassageScope
 
 # Closed release and capture risk taxonomy.
 class RiskCode(StrEnum):
@@ -201,6 +201,15 @@ class ProvenanceContext(StrictModel):
 
     policy: ProvenancePolicy
     reading_context: ProvenanceReadingContext | None
+    passage_scope: PassageScope | None = None
+
+    @model_validator(mode="after")
+    def _one_current_permission(self) -> "ProvenanceContext":
+        if self.passage_scope is not None and (
+            self.reading_context is not None or self.policy.spoiler_ceiling is not None
+        ):
+            raise ValueError("exact passage permission cannot imply a chapter ceiling")
+        return self
 
 
 class UntrustedToolOutcome(StrictModel):

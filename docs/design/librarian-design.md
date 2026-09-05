@@ -402,8 +402,12 @@ The boundary phase runs exactly when `librarian_route` matched a work; an
 explicit reader-confirmed ceiling is authoritative and terminal for the
 request and never enters this phase. Once a work is routed, application code
 hands off to the private boundary phase. It receives the current Line,
-a bounded set of strongly routed account-scoped memories, and full-work
-retrieval candidates:
+a bounded set of strongly routed account-scoped memories, original earlier
+reader statements from the same session, and full-work retrieval candidates.
+With earlier reader statements, candidates are narrowed to canonical paragraphs
+and the phase can grant exact passages without a completed chapter. See
+[Session-supported exact passages](session-passage-design.md). The chapter
+inference example below omits earlier reader statements:
 
 ```json
 {
@@ -531,8 +535,10 @@ A clarification contains no evidence, retrieval score, or evidence-strength
 label because no search occurred. Muse presents the focused question and sends
 the answer through the same trusted boundary validator.
 
-Partial-current-chapter access remains unsupported until Linger has a stable,
-validated position format within a chapter.
+General partial-current-chapter ceilings remain unsupported. Exact canonical
+paragraph IDs support the narrower session-passage permission described in
+[Session-supported exact passages](session-passage-design.md), without implying
+completion of the chapter or permission for neighboring text.
 
 ### 4.4 Retrieval, fusion, and deduplication
 
@@ -933,5 +939,5 @@ unreported rather than being estimated.
 
 | Decision | Status |
 |---|---|
-| Partial-current-chapter boundaries | Define only when resolvable positions are available |
+| Partial-current-chapter boundaries | General scene or line ceilings remain undefined. Exact canonical paragraph grants are supported without chapter progress. |
 | Latency and cost budgets | End-to-end mean and p95 are measured; set product budgets and obtain provider token/cost reporting in `linger-cnx` |

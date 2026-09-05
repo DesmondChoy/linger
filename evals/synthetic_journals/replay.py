@@ -50,6 +50,7 @@ from src.linger.agents.sculptor.prompt import (
 from src.linger.agents.serendipity.prompt import (
     PROMPT_FINGERPRINT as SERENDIPITY_PROMPT_FINGERPRINT,
 )
+from src.linger.contracts.turn import ReleaseSource
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
@@ -113,11 +114,7 @@ class SceneObservation(StrictModel):
     ground_truth_result: GroundTruthResult
     agent_exchanges: tuple[AgentExchange, ...]
     reply: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     boundary_origin: Literal["preflight", "candidate_review"] | None
     capture: CaptureInspection
     memory_id: str | None
@@ -172,11 +169,7 @@ class CaptureEvaluationOutput(StrictModel):
     actual_capture_label: Literal["candidate", "no_candidate", "unavailable"]
     ground_truth_result: GroundTruthResult
     reply: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     capture: CaptureInspection
 
 

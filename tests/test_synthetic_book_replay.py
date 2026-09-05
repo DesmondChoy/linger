@@ -648,6 +648,22 @@ def test_inference_must_use_the_authorised_prop(replay_observed):
     )
 
 
+@pytest.mark.parametrize("valid_question", [True, False])
+def test_application_clarification_is_graded_against_the_route_question(replay_observed, valid_question):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    plan, run = replay_observed
+    observation = run.scenes[1].model_copy(update={
+        "release_source": "application_clarification",
+        "reply": CLARIFICATION if valid_question else "An unrelated reply?",
+    })
+    for proposal in plan.scenes[1].proposals:
+        grade = _grade_proposal(plan.scenes[1], proposal, observation)
+        assert grade.hard_pass is valid_question
+        if not valid_question:
+            assert "response_not_released_from_allowed_source" in grade.failures
+
+
 def test_reader_confirmed_scope_requires_matching_trusted_context(replay_observed):
     from evals.synthetic_journals.book_replay import _grade_proposal
 
@@ -704,6 +720,109 @@ def test_route_no_match_is_not_a_search():
     )
     assert _grounding_observations(response) == ()
     assert _route_outcome(response)["kind"] == "no_match"
+
+
+def test_passage_retrieval_records_exact_scope_without_a_chapter():
+    from evals.synthetic_journals.book_replay import _grounding_observations
+    from src.linger.contracts.librarian import PassageScope
+
+    call = _grounding_call("Quote the Caterpillar's question.")
+    call["response"]["searched_scope"] = PassageScope(
+        work_id="pg11", book_version_id="pg11-v01b38ea4",
+        evidence_ids=(SUPPORT_ID,),
+    ).model_dump(mode="json")
+    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=[call]))
+    observation, = _grounding_observations(response)
+    assert observation.searched_max_chapter is None
+    assert observation.searched_passage_ids == (SUPPORT_ID,)
+    assert observation.evidence[0].evidence_id == SUPPORT_ID
+
+
+def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
+    from evals.synthetic_journals.book_replay import (
+        BookEvaluationOutput, _boundary_decision, _grade_proposal, _route_outcome,
+    )
+    from src.linger.contracts.librarian import RoutedPassages
+
+    route = RoutedPassages(
+        work_id="pg11", book_version_id="pg11-v01b38ea4",
+        evidence_ids=(SUPPORT_ID,), request_id="route-passages",
+        title="Alice's Adventures in Wonderland", routing_confidence=1,
+        boundary_confidence=1,
+    )
+    route_call = {
+        "tool_name": "librarian_route", "response": route.model_dump(mode="json"),
+    }
+    response = SimpleNamespace(inspection=SimpleNamespace(librarian_grounding=[route_call]))
+    observed_route = _route_outcome(response)
+    assert observed_route == route.model_dump(mode="json")
+    assert "max_chapter_inclusive" not in observed_route
+    decision = _boundary_decision(observed_route)
+    assert decision == "passages"
+    for calls in (
+        [route_call, _route_clarification_call()],
+        [_route_clarification_call(), route_call],
+    ):
+        response.inspection.librarian_grounding = calls
+        assert _route_outcome(response)["kind"] == "clarification"
+    plan, run = replay_observed
+    observation = run.scenes[0].model_copy(update={
+        "boundary_decision": decision, "routed_ceiling": None,
+        "routed_passage_ids": route.evidence_ids,
+    })
+    grades = tuple(
+        _grade_proposal(plan.scenes[0], proposal, observation)
+        for proposal in plan.scenes[0].proposals
+    )
+    for grade in grades:
+        assert not grade.hard_pass
+        assert grade.failures == ("passage_scope_outside_chapter_objective",)
+    observation = observation.model_copy(update={
+        "grades": grades, "ground_truth_result": "differs_from_proposal",
+    })
+    output = BookEvaluationOutput.model_validate(
+        observation.model_dump(include=set(BookEvaluationOutput.model_fields))
+    )
+    assert output.boundary_decision == "passages"
+    assert BookEvaluationOutput.model_validate_json(output.model_dump_json()) == output
+    with patch(
+        "evals.synthetic_journals.book_replay._replay_book_scene",
+        new=AsyncMock(side_effect=(observation, *run.scenes[1:])),
+    ):
+        replayed = asyncio.run(replay_book_scenes(plan, chat_handler=AsyncMock()))
+    assert replayed.scenes[0].boundary_decision == "passages"
+    assert replayed.scenes[0].ground_truth_result == "differs_from_proposal"
+
+
+def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
+    from evals.synthetic_journals.book_replay import _boundary_handoff_is_content_free
+    from src.linger.agents.librarian.models import PassageInferenceDecision
+    from src.linger.contracts.librarian import RoutedPassages
+
+    decision = PassageInferenceDecision(
+        outcome="passages", work_id="pg11", book_version_id="pg11-v01b38ea4",
+        confidence=1, supporting_statement_ids=("reader-1",),
+        supporting_evidence_ids=(SUPPORT_ID,), passage_evidence_ids=(SUPPORT_ID,),
+    )
+    route = RoutedPassages(
+        request_id="route-synthetic", title="Alice's Adventures in Wonderland",
+        work_id=decision.work_id, book_version_id=decision.book_version_id,
+        routing_confidence=1, boundary_confidence=1,
+        evidence_ids=decision.passage_evidence_ids,
+    ).model_dump(mode="json")
+    exchange = replay_observed[1].scenes[0].agent_exchanges[0].model_copy(
+        update={"output": decision.model_dump(mode="json")}
+    )
+    assert _boundary_handoff_is_content_free("passages", route, (exchange,))
+    assert _boundary_handoff_is_content_free(
+        "clarify", _route_clarification_call()["response"], (exchange,)
+    )
+    assert not _boundary_handoff_is_content_free(
+        "passages", route | {"text": QUOTE}, (exchange,)
+    )
+    assert not _boundary_handoff_is_content_free(
+        "passages", route | {"evidence_ids": ["different-paragraph"]}, (exchange,)
+    )
 
 
 def test_private_support_uses_only_the_correlated_exchange(replay_observed):

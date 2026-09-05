@@ -16,11 +16,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-ReleaseSource = Literal[
-    "muse_candidate",
-    "application_emotional_boundary",
-    "application_safe_decline",
-]
+from src.linger.contracts.turn import ReleaseSource
 
 PrimaryBehavior = Literal[
     "grounded_reflection",

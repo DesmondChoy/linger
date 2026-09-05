@@ -8,7 +8,6 @@ database means changing this module and nothing else.
 """
 
 from dataclasses import dataclass
-from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_ai.messages import (
@@ -18,6 +17,9 @@ from pydantic_ai.messages import (
     TextPart,
     UserPromptPart,
 )
+
+from src.linger.contracts.session import ReaderStatement
+from src.linger.contracts.turn import ReleaseSource
 
 _sessions: dict[str, list[ModelMessage]] = {}
 _book_selections: dict[str, "BookSelection"] = {}
@@ -57,11 +59,7 @@ class TurnRecord:
     """Content-free evidence and review handles for one released turn."""
 
     turn_id: str
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ]
+    release_source: ReleaseSource
     evidence_ids: tuple[str, ...]
     review_finding_codes: tuple[tuple[str, ...], ...]
 
@@ -70,22 +68,38 @@ def history(session_id: str) -> list[ModelMessage]:
     return _sessions.get(session_id, [])
 
 
+def reader_statements(session_id: str) -> tuple[ReaderStatement, ...]:
+    """Snapshot a bounded, contiguous suffix of original retained reader words."""
+    retained = [
+        part.content
+        for message in history(session_id)
+        if isinstance(message, ModelRequest)
+        for part in message.parts
+        if isinstance(part, UserPromptPart) and isinstance(part.content, str)
+    ]
+    selected: list[ReaderStatement] = []
+    remaining_chars = 16_000
+    for ordinal in range(len(retained), max(0, len(retained) - 8), -1):
+        text = retained[ordinal - 1]
+        if len(text) > remaining_chars:
+            break
+        selected.append(ReaderStatement(statement_id=f"reader-{ordinal}", text=text))
+        remaining_chars -= len(text)
+    return tuple(reversed(selected))
+
+
 def append_turn(
     session_id: str,
     user_message: str,
     assistant_message: str,
     *,
     turn_id: str,
-    release_source: Literal[
-        "muse_candidate",
-        "application_emotional_boundary",
-        "application_safe_decline",
-    ],
+    release_source: ReleaseSource,
     evidence_ids: tuple[str, ...] = (),
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
 ) -> None:
     """Store content-free evidence and review handles; store chat only if released."""
-    if release_source == "muse_candidate":
+    if release_source in {"muse_candidate", "application_clarification"}:
         messages: list[ModelMessage] = [
             ModelRequest(parts=[UserPromptPart(content=user_message)]),
             ModelResponse(parts=[TextPart(content=assistant_message)]),

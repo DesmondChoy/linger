@@ -10,12 +10,14 @@ from apps.backend import sessions
 from apps.backend.config import get_settings
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
 from src.linger.contracts.librarian import (
+    BoundaryPassages,
     BoundaryUncertain,
     ClarificationRequest,
     ExpectedAnswer,
     LibrarianRoutingResponse,
     NoMatch,
     RoutedWork,
+    RoutedPassages,
 )
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.evaluation_transcript import bind_evaluation_correlation_id
@@ -24,7 +26,10 @@ from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import (
     active_memories,
     bind_confirmed_reading,
+    bind_passage_grant,
     confirmed_reading,
+    reader_statements,
+    routing_context,
     session_id,
 )
 
@@ -34,11 +39,20 @@ async def route_reader_message(
     *,
     librarian: Librarian = librarian_service,
 ) -> LibrarianRoutingResponse:
-    """Identify a confirmed work and boundary from the reader's message, or ask.
+    """Route the fixed reader input once, including concurrent Muse calls."""
+    context = routing_context()
+    if context is None:
+        return await _route_reader_message(message, librarian=librarian)
+    async with context.lock:
+        if context.response is None:
+            context.response = await _route_reader_message(message, librarian=librarian)
+        return context.response
 
-    Grants no retrieval or write authority: a routed result only names the
-    work and a validated chapter ceiling for `librarian_search` to use.
-    """
+
+async def _route_reader_message(
+    message: str, *, librarian: Librarian,
+) -> LibrarianRoutingResponse:
+    """Identify a work and chapter or exact-passage permission, or ask."""
     request_id = f"routereq_{uuid4().hex}"
     with logfire.span(
         "librarian.route",
@@ -57,8 +71,49 @@ async def route_reader_message(
                 work_id=scope.work_id,
                 book_version_id=scope.book_version_id,
                 memories=active_memories(),
+                prior_reader_statements=reader_statements(),
                 librarian=librarian,
             )
+        if isinstance(boundary, BoundaryPassages):
+            existing = confirmed_reading()
+            if existing is not None:
+                # Explicit chapter progress remains the authority. Do not add
+                # a second permission or silently cross that stated boundary.
+                if any(
+                    record.work_id != existing.work_id
+                    or record.chapter_number > existing.chapter_max
+                    for record in boundary.grant.records
+                ):
+                    boundary = BoundaryUncertain(
+                        kind="uncertain", work_id=scope.work_id,
+                        book_version_id=scope.book_version_id,
+                        reason_code="conflicting_context",
+                        clarification_question="Have you read the passage you are asking about, or are you still earlier in the book?",
+                    )
+                else:
+                    return RoutedWork(
+                        kind="routed", request_id=request_id, work_id=scope.work_id,
+                        book_version_id=scope.book_version_id, title=scope.title,
+                        routing_confidence=decision.confidence,
+                        max_chapter_inclusive=existing.chapter_max,
+                        boundary_confidence=boundary.confidence,
+                    )
+            else:
+                bind_passage_grant(boundary.grant)
+                current_session = session_id()
+                if current_session is not None:
+                    sessions.set_book_selection(
+                        current_session,
+                        sessions.BookSelection(book_id=scope.work_id, book_title=scope.title),
+                    )
+                    sessions.clear_pending_clarification(current_session)
+                    sessions.clear_reading_candidate(current_session)
+                span.set_attribute("tool.status", "routed")
+                return RoutedPassages(
+                    **boundary.grant.scope.model_dump(), request_id=request_id,
+                    title=scope.title, routing_confidence=decision.confidence,
+                    boundary_confidence=boundary.confidence,
+                )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
             _persist_uncertain_candidate(scope, boundary)

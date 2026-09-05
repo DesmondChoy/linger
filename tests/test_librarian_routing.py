@@ -76,7 +76,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.request_id.startswith("routereq_"))
 
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
-        async def confident_judge(_line, memories, evidence):
+        async def confident_judge(_line, memories, evidence, _statements):
             return BoundaryInferenceDecision(
                 outcome="candidate",
                 work_id="pg11",
@@ -109,7 +109,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(result.boundary_confidence, 0.75)
 
     async def test_low_confidence_boundary_yields_clarification(self) -> None:
-        async def uncertain_judge(_line, _memories, _evidence):
+        async def uncertain_judge(_line, _memories, _evidence, _statements):
             return BoundaryInferenceDecision(
                 outcome="uncertain",
                 confidence=0.2,

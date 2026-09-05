@@ -23,6 +23,7 @@ from apps.backend import sessions
 from apps.backend.schemas import CaptureInspection, ChatRequest, ChatResponse
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
+from src.linger.contracts.turn import ReleaseSource
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import AccountContext, MemoryPolicyService
 
@@ -53,11 +54,6 @@ from .validate_package import PackageValidationError, validate_package_files
 CONTINUITY_OBJECTIVE_ID = "session_scoped_conversation_continuity"
 MESSAGES_PER_EXCHANGE = 2
 
-ReleaseSource = Literal[
-    "muse_candidate",
-    "application_emotional_boundary",
-    "application_safe_decline",
-]
 SceneRole = Literal["continuity", "comparison"]
 ContinuityGroundTruthResult = GroundTruthResult | Literal["not_applicable"]
 
@@ -517,10 +513,9 @@ def _structural_findings(
     findings: list[str] = []
     expected_before = 0
     for turn in turns:
-        expected_appended = (
-            MESSAGES_PER_EXCHANGE if turn.release_source == "muse_candidate" else 0
-        )
-        if turn.release_source != "muse_candidate":
+        released = turn.release_source in {"muse_candidate", "application_clarification"}
+        expected_appended = MESSAGES_PER_EXCHANGE if released else 0
+        if not released:
             findings.append(f"unreleased_turn:{turn.line_id}")
         if (
             turn.store_messages_appended != expected_appended
