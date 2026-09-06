@@ -149,7 +149,7 @@ Use this shape unless a current consumer requires less:
   "chapter_count": 12,
   "chapters": [
     {
-      "chapter_id": "stable-document-id-ch01",
+      "chapter_id": "stable-work-id-v1234abcd-ch01",
       "chapter_number": 1,
       "title": "Source chapter title",
       "routing_description": "Concrete body-grounded routing summary.",

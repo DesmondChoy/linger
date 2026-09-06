@@ -119,3 +119,7 @@ The catalogue remains a deterministic projection of canonical chapter metadata.
 Reviewed book aliases live in the registry, not in model-generated catalogue
 JSON. Runtime Sculptor still handles memory curation; this change does not add
 an automatic book-cataloguing agent, fuzzy matching, or arbitrary uploads.
+
+## Mixed literary sections
+
+Works with letters and prefatory material can use the [canonical section format](corpus/canonical-sections.md). Its schema 2 artifacts are not eligible for this chapter-based runtime registration workflow until runtime section identities and reading boundaries are implemented.

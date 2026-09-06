@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "work_id": "pga0100011",
+  "book_version_id": "pga0100011-vc7ff4da7",
+  "title": "Animal Farm",
+  "author": "George Orwell",
+  "source_path": "data/gutenberg/animal-farm.txt",
+  "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+  "chapter_count": 10,
+  "chapters": [
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "chapter_number": 1,
+      "title": "Chapter I",
+      "routing_description": "Old Major gathers the farm animals in the barn, describes their exploitation by humans, urges rebellion and unity, and teaches them Beasts of England before Jones interrupts the singing with gunfire.",
+      "characters": [
+        "Old Major",
+        "Mr. Jones",
+        "Boxer",
+        "Clover",
+        "Benjamin",
+        "Mollie"
+      ],
+      "locations": [
+        "Manor Farm",
+        "big barn"
+      ],
+      "retrieval_cues": [
+        "Major's dream",
+        "Are rats comrades",
+        "Beasts of England",
+        "all animals are equal"
+      ],
+      "word_count": 2689,
+      "path": "chapters/01-chapter-i.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "chapter_number": 2,
+      "title": "Chapter II",
+      "routing_description": "After Major's death, the pigs teach Animalism. Hungry animals drive Jones off the farm, destroy the implements of their captivity, inspect the farmhouse, and adopt the name Animal Farm and Seven Commandments; the milk disappears.",
+      "characters": [
+        "Snowball",
+        "Napoleon",
+        "Squealer",
+        "Moses",
+        "Mollie",
+        "Boxer",
+        "Mr. Jones"
+      ],
+      "locations": [
+        "Manor Farm",
+        "Animal Farm",
+        "farmhouse",
+        "Sugarcandy Mountain"
+      ],
+      "retrieval_cues": [
+        "Rebellion",
+        "Seven Commandments",
+        "Sugarcandy Mountain",
+        "missing milk",
+        "farmhouse museum"
+      ],
+      "word_count": 2554,
+      "path": "chapters/02-chapter-ii.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "chapter_number": 3,
+      "title": "Chapter III",
+      "routing_description": "The animals bring in a successful harvest while pigs supervise. Snowball organises committees and literacy classes, Napoleon takes the puppies away to educate them, and Squealer justifies reserving milk and apples for pigs.",
+      "characters": [
+        "Boxer",
+        "Snowball",
+        "Napoleon",
+        "Squealer",
+        "Benjamin",
+        "Mollie",
+        "Jessie",
+        "Bluebell"
+      ],
+      "locations": [
+        "Animal Farm",
+        "harness-room",
+        "orchard",
+        "barn"
+      ],
+      "retrieval_cues": [
+        "I will work harder",
+        "Four legs good, two legs bad",
+        "milk and apples",
+        "nine puppies",
+        "reading classes"
+      ],
+      "word_count": 2289,
+      "path": "chapters/03-chapter-iii.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch04",
+      "chapter_number": 4,
+      "title": "Chapter IV",
+      "routing_description": "News of the Rebellion spreads to neighbouring farms. Snowball directs the successful defence against Jones and his allies in the Battle of the Cowshed; Boxer fears he has killed a boy, and the animals award medals.",
+      "characters": [
+        "Snowball",
+        "Boxer",
+        "Mr. Jones",
+        "Mr. Pilkington",
+        "Mr. Frederick",
+        "Mollie"
+      ],
+      "locations": [
+        "Animal Farm",
+        "Foxwood",
+        "Pinchfield",
+        "Willingdon",
+        "cowshed"
+      ],
+      "retrieval_cues": [
+        "Battle of the Cowshed",
+        "Julius Caesar's campaigns",
+        "Animal Hero, First Class",
+        "stunned stable-lad"
+      ],
+      "word_count": 1757,
+      "path": "chapters/04-chapter-iv.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+      "chapter_number": 5,
+      "title": "Chapter V",
+      "routing_description": "Mollie leaves the farm. During the windmill debate Napoleon's dogs chase Snowball away, and Napoleon abolishes debates at Sunday meetings. He later orders the windmill built while Squealer claims it was his plan all along.",
+      "characters": [
+        "Mollie",
+        "Clover",
+        "Snowball",
+        "Napoleon",
+        "Squealer",
+        "Boxer",
+        "Benjamin"
+      ],
+      "locations": [
+        "Animal Farm",
+        "incubator shed",
+        "big barn",
+        "Willingdon"
+      ],
+      "retrieval_cues": [
+        "windmill debate",
+        "Snowball expelled",
+        "Napoleon is always right",
+        "three-day week",
+        "Tactics"
+      ],
+      "word_count": 3153,
+      "path": "chapters/05-chapter-v.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch06",
+      "chapter_number": 6,
+      "title": "Chapter VI",
+      "routing_description": "The animals haul stone for the windmill and work longer hours. Napoleon starts trading through Whymper, and the pigs move into farmhouse beds. After a gale destroys the windmill, Napoleon blames Snowball and orders rebuilding.",
+      "characters": [
+        "Boxer",
+        "Napoleon",
+        "Squealer",
+        "Mr. Whymper",
+        "Clover",
+        "Muriel",
+        "Benjamin"
+      ],
+      "locations": [
+        "Animal Farm",
+        "quarry",
+        "windmill",
+        "farmhouse"
+      ],
+      "retrieval_cues": [
+        "sixty-hour week",
+        "voluntary Sunday work",
+        "beds with sheets",
+        "trade with humans",
+        "windmill in ruins"
+      ],
+      "word_count": 2839,
+      "path": "chapters/06-chapter-vi.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch07",
+      "chapter_number": 7,
+      "title": "Chapter VII",
+      "routing_description": "Food shortages are concealed from Whymper. The hens resist surrendering their eggs, Snowball is accused of sabotage and treachery, and Napoleon's dogs execute animals after confessions. Beasts of England is banned.",
+      "characters": [
+        "Napoleon",
+        "Squealer",
+        "Boxer",
+        "Clover",
+        "Mr. Whymper",
+        "Snowball",
+        "Minimus"
+      ],
+      "locations": [
+        "Animal Farm",
+        "store-shed",
+        "yard",
+        "windmill knoll"
+      ],
+      "retrieval_cues": [
+        "sand in grain bins",
+        "hens' rebellion",
+        "confessions and executions",
+        "Snowball's secret agents",
+        "Beasts of England abolished"
+      ],
+      "word_count": 3665,
+      "path": "chapters/07-chapter-vii.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch08",
+      "chapter_number": 8,
+      "title": "Chapter VIII",
+      "routing_description": "Napoleon is celebrated in Minimus's poem and sells timber to Frederick for forged banknotes. Frederick's men blow up the windmill before being driven off. The pigs discover whisky, and the alcohol commandment gains an exception.",
+      "characters": [
+        "Napoleon",
+        "Squealer",
+        "Minimus",
+        "Mr. Frederick",
+        "Mr. Pilkington",
+        "Mr. Whymper",
+        "Boxer",
+        "Muriel",
+        "Benjamin"
+      ],
+      "locations": [
+        "Animal Farm",
+        "windmill",
+        "farmhouse",
+        "Foxwood",
+        "Pinchfield"
+      ],
+      "retrieval_cues": [
+        "WITHOUT CAUSE",
+        "Comrade Napoleon poem",
+        "forged banknotes",
+        "Battle of the Windmill",
+        "TO EXCESS",
+        "broken ladder and paint"
+      ],
+      "word_count": 4101,
+      "path": "chapters/08-chapter-viii.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch09",
+      "chapter_number": 9,
+      "title": "Chapter IX",
+      "routing_description": "Rations shrink as privileges for pigs grow, and Napoleon becomes President. Moses returns. Boxer collapses while working and is taken away in a slaughterer's van; Squealer claims he died in hospital, and the pigs obtain whisky.",
+      "characters": [
+        "Boxer",
+        "Clover",
+        "Benjamin",
+        "Squealer",
+        "Napoleon",
+        "Moses",
+        "Alfred Simmonds"
+      ],
+      "locations": [
+        "Animal Farm",
+        "quarry",
+        "Boxer's stall",
+        "Willingdon",
+        "Sugarcandy Mountain"
+      ],
+      "retrieval_cues": [
+        "retirement pension",
+        "Spontaneous Demonstration",
+        "Boxer's collapse",
+        "Horse Slaughterer and Glue Boiler",
+        "memorial banquet"
+      ],
+      "word_count": 3661,
+      "path": "chapters/09-chapter-ix.md"
+    },
+    {
+      "chapter_id": "pga0100011-vc7ff4da7-ch10",
+      "chapter_number": 10,
+      "title": "Chapter X",
+      "routing_description": "Years later the farm prospers while ordinary animals remain poor. Pigs walk on two legs, carry whips, and replace the Commandments with a rule of unequal equality. At dinner with farmers Napoleon restores the name Manor Farm, and the watching animals cannot distinguish pigs from men.",
+      "characters": [
+        "Clover",
+        "Benjamin",
+        "Napoleon",
+        "Squealer",
+        "Mr. Pilkington"
+      ],
+      "locations": [
+        "Animal Farm",
+        "Manor Farm",
+        "farmhouse dining-room",
+        "barn"
+      ],
+      "retrieval_cues": [
+        "two legs BETTER",
+        "more equal than others",
+        "pigs and men",
+        "ace of spades",
+        "Manor Farm restored"
+      ],
+      "word_count": 3372,
+      "path": "chapters/10-chapter-x.md"
+    }
+  ]
+}

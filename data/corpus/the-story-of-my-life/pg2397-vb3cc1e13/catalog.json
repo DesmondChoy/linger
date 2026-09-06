@@ -1,0 +1,2741 @@
+{
+  "schema_version": 2,
+  "work_id": "pg2397",
+  "book_version_id": "pg2397-vb3cc1e13",
+  "title": "The Story of My Life",
+  "author": "Helen Keller",
+  "source_path": "data/gutenberg/the-story-of-my-life.txt",
+  "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+  "section_count": 140,
+  "sections": [
+    {
+      "section_id": "pg2397-vb3cc1e13-sec001",
+      "section_number": 1,
+      "title": "To ALEXANDER GRAHAM BELL",
+      "routing_description": "Helen dedicates her life story to Alexander Graham Bell for his work with speech and hearing.",
+      "characters": [
+        "Alexander Graham Bell"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "deaf to speak",
+        "Atlantic",
+        "Rockies"
+      ],
+      "word_count": 28,
+      "path": "sections/001-dedication.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec002",
+      "section_number": 2,
+      "title": "Editor's Preface",
+      "routing_description": "John Albert Macy explains the three-part book, his editorial responsibility, and the friends and publishers who supplied letters and records.",
+      "characters": [
+        "John Albert Macy",
+        "Anne Mansfield Sullivan",
+        "Helen Keller"
+      ],
+      "locations": [
+        "Cambridge",
+        "Massachusetts"
+      ],
+      "retrieval_cues": [
+        "three parts",
+        "reports and letters",
+        "Volta Bureau"
+      ],
+      "word_count": 348,
+      "path": "sections/002-editors-preface.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec003",
+      "section_number": 3,
+      "title": "CHAPTER I",
+      "routing_description": "Helen recounts her family origins, childhood home and garden, and the illness at nineteen months that took her sight and hearing.",
+      "characters": [
+        "Helen",
+        "Arthur H. Keller",
+        "Kate Adams"
+      ],
+      "locations": [
+        "Tuscumbia",
+        "Ivy Green"
+      ],
+      "retrieval_cues": [
+        "wah-wah",
+        "acute congestion",
+        "climbing roses"
+      ],
+      "word_count": 1494,
+      "path": "sections/003-part-i-chapter-01.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec004",
+      "section_number": 4,
+      "title": "CHAPTER II",
+      "routing_description": "Helen describes childhood signs and mischief with Martha Washington, her family, and her early jealousy of her sister Mildred.",
+      "characters": [
+        "Helen",
+        "Martha Washington",
+        "Mildred",
+        "Belle"
+      ],
+      "locations": [
+        "pantry",
+        "kitchen"
+      ],
+      "retrieval_cues": [
+        "locked my mother",
+        "Nancy",
+        "paper dolls"
+      ],
+      "word_count": 2268,
+      "path": "sections/004-part-i-chapter-02.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec005",
+      "section_number": 5,
+      "title": "CHAPTER III",
+      "routing_description": "As signs become inadequate, Helen’s parents seek help from Dr. Chisholm and Alexander Graham Bell, leading them to Perkins and a teacher.",
+      "characters": [
+        "Helen",
+        "Dr. Chisholm",
+        "Alexander Graham Bell",
+        "Mr. Anagnos"
+      ],
+      "locations": [
+        "Baltimore",
+        "Washington",
+        "Perkins Institution"
+      ],
+      "retrieval_cues": [
+        "American Notes",
+        "Laura Bridgman",
+        "a teacher had been found"
+      ],
+      "word_count": 920,
+      "path": "sections/005-part-i-chapter-03.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec006",
+      "section_number": 6,
+      "title": "CHAPTER IV",
+      "routing_description": "Anne Sullivan arrives, teaches finger spelling, and helps Helen connect the word water with the stream at the well-house. Helen then regrets breaking her doll.",
+      "characters": [
+        "Helen",
+        "Anne Mansfield Sullivan"
+      ],
+      "locations": [
+        "well-house"
+      ],
+      "retrieval_cues": [
+        "d-o-l-l",
+        "w-a-t-e-r",
+        "repentance and sorrow"
+      ],
+      "word_count": 1060,
+      "path": "sections/006-part-i-chapter-04.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec007",
+      "section_number": 7,
+      "title": "CHAPTER V",
+      "routing_description": "Helen learns about nature, is frightened by a thunderstorm while waiting in a tree, and later overcomes her fear by climbing a flowering mimosa.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan"
+      ],
+      "locations": [
+        "Tennessee River",
+        "wild cherry tree",
+        "mimosa tree"
+      ],
+      "retrieval_cues": [
+        "thunderstorm",
+        "mimosa blossoms",
+        "tree of paradise"
+      ],
+      "word_count": 995,
+      "path": "sections/007-part-i-chapter-05.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec008",
+      "section_number": 8,
+      "title": "CHAPTER VI",
+      "routing_description": "Helen learns the abstract meanings of think and love. She explains how Sullivan uses conversation spelled into her hand to teach language.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan"
+      ],
+      "locations": [
+        "garden"
+      ],
+      "retrieval_cues": [
+        "stringing beads",
+        "What is love",
+        "Think"
+      ],
+      "word_count": 994,
+      "path": "sections/008-part-i-chapter-06.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec009",
+      "section_number": 9,
+      "title": "CHAPTER VII",
+      "routing_description": "Raised-letter slips lead Helen to reading. Sullivan teaches geography, natural science, and other lessons through outdoor play, objects, stories, and observation.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan"
+      ],
+      "locations": [
+        "Keller’s Landing",
+        "Tennessee River"
+      ],
+      "retrieval_cues": [
+        "Reader for Beginners",
+        "raised maps",
+        "The Chambered Nautilus",
+        "tadpoles"
+      ],
+      "word_count": 2032,
+      "path": "sections/009-part-i-chapter-07.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec010",
+      "section_number": 10,
+      "title": "CHAPTER VIII",
+      "routing_description": "Helen enjoys preparing and receiving Christmas surprises, then cares for her canary Little Tim until a cat takes him.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Little Tim"
+      ],
+      "locations": [
+        "Tuscumbia"
+      ],
+      "retrieval_cues": [
+        "Merry Christmas",
+        "canary",
+        "chickweed"
+      ],
+      "word_count": 564,
+      "path": "sections/010-part-i-chapter-08.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec011",
+      "section_number": 11,
+      "title": "CHAPTER IX",
+      "routing_description": "Helen visits Boston and Perkins, communicates directly with blind children, and explores Bunker Hill, Plymouth, and the Endicotts’ home.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "William Endicott",
+        "Laura Bridgman"
+      ],
+      "locations": [
+        "Boston",
+        "Perkins Institution",
+        "Plymouth",
+        "Beverly Farms"
+      ],
+      "retrieval_cues": [
+        "manual alphabet",
+        "Plymouth Rock",
+        "City of Kind Hearts"
+      ],
+      "word_count": 1110,
+      "path": "sections/011-part-i-chapter-09.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec012",
+      "section_number": 12,
+      "title": "CHAPTER X",
+      "routing_description": "At Brewster Helen first enters the ocean, is overwhelmed by waves, and later catches a horseshoe crab that escapes from its trough.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Mrs. Hopkins"
+      ],
+      "locations": [
+        "Brewster",
+        "Cape Cod"
+      ],
+      "retrieval_cues": [
+        "Who put salt in the water",
+        "horseshoe crab",
+        "bathing-suit"
+      ],
+      "word_count": 705,
+      "path": "sections/012-part-i-chapter-10.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec013",
+      "section_number": 13,
+      "title": "CHAPTER XI",
+      "routing_description": "Helen recalls hunting gatherings and riding at Fern Quarry, then describes escaping a train with Mildred and Sullivan while crossing a trestle.",
+      "characters": [
+        "Helen",
+        "Mildred",
+        "Miss Sullivan",
+        "Black Beauty"
+      ],
+      "locations": [
+        "Fern Quarry",
+        "Tuscumbia"
+      ],
+      "retrieval_cues": [
+        "barbecue",
+        "trestle",
+        "crossbraces"
+      ],
+      "word_count": 1422,
+      "path": "sections/013-part-i-chapter-11.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec014",
+      "section_number": 14,
+      "title": "CHAPTER XII",
+      "routing_description": "Helen experiences a New England winter, a snowstorm that isolates the household, and the exhilaration of tobogganing over a frozen lake.",
+      "characters": [
+        "Helen"
+      ],
+      "locations": [
+        "New England village"
+      ],
+      "retrieval_cues": [
+        "tobogganing",
+        "snowstorm",
+        "forest of icicles"
+      ],
+      "word_count": 675,
+      "path": "sections/014-part-i-chapter-12.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec015",
+      "section_number": 15,
+      "title": "CHAPTER XIII",
+      "routing_description": "Inspired by Ragnhild Kaata, Helen begins speech lessons with Sarah Fuller, practises with Sullivan, and returns home able to speak to her family.",
+      "characters": [
+        "Helen",
+        "Ragnhild Kaata",
+        "Sarah Fuller",
+        "Miss Sullivan"
+      ],
+      "locations": [
+        "Horace Mann School",
+        "Tuscumbia"
+      ],
+      "retrieval_cues": [
+        "It is warm",
+        "I am not dumb now",
+        "manual alphabet"
+      ],
+      "word_count": 1440,
+      "path": "sections/015-part-i-chapter-13.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec016",
+      "section_number": 16,
+      "title": "CHAPTER XIV",
+      "routing_description": "Helen recounts the plagiarism accusation over The Frost King, the investigation at Perkins, and her lasting uncertainty about memory, imitation, and original writing.",
+      "characters": [
+        "Helen",
+        "Mr. Anagnos",
+        "Miss Sullivan",
+        "Margaret T. Canby",
+        "Sophia C. Hopkins"
+      ],
+      "locations": [
+        "Perkins Institution",
+        "Brewster"
+      ],
+      "retrieval_cues": [
+        "The Frost King",
+        "The Frost Fairies",
+        "court of investigation",
+        "assimilation and imitation"
+      ],
+      "word_count": 2744,
+      "path": "sections/016-part-i-chapter-14.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec017",
+      "section_number": 17,
+      "title": "CHAPTER XV",
+      "routing_description": "Sullivan encourages Helen to write an account of her life. Helen describes Niagara and exploring exhibits at the World’s Fair with Alexander Graham Bell.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Alexander Graham Bell",
+        "Mr. Higinbotham"
+      ],
+      "locations": [
+        "Alabama",
+        "Niagara",
+        "World’s Fair"
+      ],
+      "retrieval_cues": [
+        "Youth's Companion",
+        "Santa Maria",
+        "Midway Plaisance",
+        "mining diamonds"
+      ],
+      "word_count": 1254,
+      "path": "sections/017-part-i-chapter-15.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec018",
+      "section_number": 18,
+      "title": "CHAPTER XVI",
+      "routing_description": "Helen moves from informal French and history study to scheduled lessons with Mr. Irons in Latin, arithmetic, and critical reading.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "William Wade",
+        "Mr. Irons"
+      ],
+      "locations": [
+        "Hulton",
+        "Pennsylvania"
+      ],
+      "retrieval_cues": [
+        "In Memoriam",
+        "Latin grammar",
+        "Gallic War"
+      ],
+      "word_count": 517,
+      "path": "sections/018-part-i-chapter-16.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec019",
+      "section_number": 19,
+      "title": "CHAPTER XVII",
+      "routing_description": "Helen attends Wright-Humason in New York, studies languages and geography while struggling with speech and arithmetic, and mourns John P. Spaulding.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Miss Reamy",
+        "Madame Olivier",
+        "John P. Spaulding"
+      ],
+      "locations": [
+        "Wright-Humason School",
+        "Central Park",
+        "Hudson River"
+      ],
+      "retrieval_cues": [
+        "lip-reading",
+        "Wilhelm Tell",
+        "physical geography"
+      ],
+      "word_count": 779,
+      "path": "sections/019-part-i-chapter-17.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec020",
+      "section_number": 20,
+      "title": "CHAPTER XVIII",
+      "routing_description": "Helen prepares for Radcliffe at the Cambridge School, shares lessons and recreation with other girls, and passes preliminary examinations with Gilman interpreting.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Mr. Gilman",
+        "Frau Gröte",
+        "Mildred"
+      ],
+      "locations": [
+        "Cambridge School",
+        "Radcliffe"
+      ],
+      "retrieval_cues": [
+        "No. 233",
+        "honours",
+        "typewriter",
+        "preliminary examinations"
+      ],
+      "word_count": 1751,
+      "path": "sections/020-part-i-chapter-18.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec021",
+      "section_number": 21,
+      "title": "CHAPTER XIX",
+      "routing_description": "Access problems and a disagreement about Helen’s workload lead her to leave Cambridge School. Tutoring with Merton Keith prepares her for finals complicated by unfamiliar braille notation.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Mr. Gilman",
+        "Merton S. Keith",
+        "Eugene C. Vining"
+      ],
+      "locations": [
+        "Wrentham",
+        "Boston",
+        "Radcliffe College"
+      ],
+      "retrieval_cues": [
+        "braille writer",
+        "American notation",
+        "Geometry, Algebra and Advanced Greek"
+      ],
+      "word_count": 1534,
+      "path": "sections/021-part-i-chapter-19.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec022",
+      "section_number": 22,
+      "title": "CHAPTER XX",
+      "routing_description": "Helen describes studying at Radcliffe, using a Hammond typewriter and interpreted lectures, and weighs the pleasures of literature against cramming, examinations, and lack of reflection time.",
+      "characters": [
+        "Helen",
+        "Mr. Keith",
+        "Charles Townsend Copeland",
+        "George L. Kittredge",
+        "Josiah Royce"
+      ],
+      "locations": [
+        "Radcliffe"
+      ],
+      "retrieval_cues": [
+        "Hammond typewriter",
+        "Huss",
+        "knowledge is happiness",
+        "lack of time"
+      ],
+      "word_count": 2474,
+      "path": "sections/022-part-i-chapter-20.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec023",
+      "section_number": 23,
+      "title": "CHAPTER XXI",
+      "routing_description": "Helen traces her reading from embossed beginners’ books and Little Lord Fauntleroy to classical poetry, the Bible, Shakespeare, history, and European literature, explaining her preferences.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "Mr. Anagnos",
+        "Shakespeare",
+        "Mark Twain"
+      ],
+      "locations": [
+        "Boston",
+        "Institution library"
+      ],
+      "retrieval_cues": [
+        "Little Lord Fauntleroy",
+        "Iliad",
+        "literature is my Utopia",
+        "La Fontaine"
+      ],
+      "word_count": 3816,
+      "path": "sections/023-part-i-chapter-21.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec024",
+      "section_number": 24,
+      "title": "CHAPTER XXII",
+      "routing_description": "Helen describes rowing, sailing, country walks, adapted games, sculpture, and theatre, including a storm at Halifax and actors who let her follow performances by touch.",
+      "characters": [
+        "Helen",
+        "Miss Sullivan",
+        "J. E. Chamberlin",
+        "Ellen Terry",
+        "Henry Irving",
+        "Mr. Jefferson",
+        "Elsie Leslie"
+      ],
+      "locations": [
+        "Wrentham",
+        "Halifax",
+        "Red Farm",
+        "King Philip’s Pond"
+      ],
+      "retrieval_cues": [
+        "tandem bicycle",
+        "braille symbols",
+        "Rip Van Winkle",
+        "regatta",
+        "self-forgetfulness"
+      ],
+      "word_count": 3696,
+      "path": "sections/024-part-i-chapter-22.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec025",
+      "section_number": 25,
+      "title": "CHAPTER XXIII",
+      "routing_description": "Helen recalls friendships with religious teachers, writers, inventors, and benefactors, including visits to Holmes and Whittier and Bell’s kite experiments.",
+      "characters": [
+        "Helen",
+        "Bishop Brooks",
+        "Oliver Wendell Holmes",
+        "Whittier",
+        "Edward Everett Hale",
+        "Alexander Graham Bell",
+        "Laurence Hutton",
+        "Mark Twain"
+      ],
+      "locations": [
+        "Cape Breton Island",
+        "New York",
+        "Lyndhurst"
+      ],
+      "retrieval_cues": [
+        "religion of love",
+        "The Chambered Nautilus",
+        "fly kites",
+        "spiritual liberator"
+      ],
+      "word_count": 2567,
+      "path": "sections/025-part-i-chapter-23.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec026",
+      "section_number": 26,
+      "title": "INTRODUCTION",
+      "routing_description": "Macy explains selecting Helen's letters to show her developing thought and expression, preserving early letters intact and excerpting later correspondence.",
+      "characters": [
+        "Helen Keller",
+        "Bishop Brooks",
+        "Dr. Holmes",
+        "Whittier"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "chronological order",
+        "punctuation",
+        "select and cut"
+      ],
+      "word_count": 635,
+      "path": "sections/026-letters-introduction.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec027",
+      "section_number": 27,
+      "title": "TO HER COUSIN ANNA, MRS. GEORGE T. TURNER",
+      "routing_description": "Helen's first pencil letter mentions apples, candy, and medicine and a new dress for Mildred.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "first pencil letter",
+        "no signature",
+        "Mildred"
+      ],
+      "word_count": 76,
+      "path": "sections/027-letter-001-to-her-cousin-anna-mrs-george-t-turner.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec028",
+      "section_number": 28,
+      "title": "TO MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen writes to her mother about a train journey, family visits, and coming home.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "train ticket",
+        "lemonade",
+        "Huntsville"
+      ],
+      "word_count": 125,
+      "path": "sections/028-letter-002-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec029",
+      "section_number": 29,
+      "title": "TO THE BLIND GIRLS AT THE PERKINS INSTITUTION IN SOUTH BOSTON",
+      "routing_description": "Helen anticipates visiting the blind girls in Boston and describes spelling, riding, and playing with dogs.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "blind girls",
+        "finger spelling",
+        "Boston visit"
+      ],
+      "word_count": 189,
+      "path": "sections/029-letter-003-to-the-blind-girls-at-the-perkins-institution-in-south-boston.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec030",
+      "section_number": 30,
+      "title": "TO THE BLIND GIRLS AT THE PERKINS INSTITUTION",
+      "routing_description": "Helen thanks the blind girls for a desk and describes her doll Nancy, church, and family news.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "pretty desk",
+        "Nancy",
+        "church collection"
+      ],
+      "word_count": 194,
+      "path": "sections/030-letter-004-to-the-blind-girls-at-the-perkins-institution.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec031",
+      "section_number": 31,
+      "title": "TO MR. MICHAEL ANAGNOS, DIRECTOR OF THE PERKINS INSTITUTION",
+      "routing_description": "Helen tells Anagnos about photographs, occupations, her doll, and reading a fox story.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Michael Anagnos, Director Of The Perkins Institution"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "photographer",
+        "wheel barrow",
+        "fox and box"
+      ],
+      "word_count": 145,
+      "path": "sections/031-letter-005-to-mr-michael-anagnos-director-of-the-perkins-institution.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec032",
+      "section_number": 32,
+      "title": "TO DR. ALEXANDER GRAHAM BELL",
+      "routing_description": "Helen recalls Bell's watch in Washington and describes her reading, pets, and planned Boston visit.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Alexander Graham Bell"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "watch",
+        "Washington",
+        "baby pigeons"
+      ],
+      "word_count": 155,
+      "path": "sections/032-letter-006-to-dr-alexander-graham-bell.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec033",
+      "section_number": 33,
+      "title": "TO MISS SARAH TOMLINSON",
+      "routing_description": "Helen describes Christmas gifts and parties, explains wool and cotton manufacture, and reports family news.",
+      "characters": [
+        "Helen Keller",
+        "Miss Sarah Tomlinson"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Christmas-tree",
+        "wool",
+        "cotton"
+      ],
+      "word_count": 332,
+      "path": "sections/033-letter-007-to-miss-sarah-tomlinson.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec034",
+      "section_number": 34,
+      "title": "TO DR. EDWARD EVERETT HALE",
+      "routing_description": "Helen tells Hale about reading animal stories, visiting Memphis, and exploring a steamboat.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Edward Everett Hale"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Memphis",
+        "steamboat",
+        "Mildred"
+      ],
+      "word_count": 214,
+      "path": "sections/034-letter-008-to-dr-edward-everett-hale.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec035",
+      "section_number": 35,
+      "title": "TO MR. MICHAEL ANAGNOS",
+      "routing_description": "Helen writes in braille about dolls, a Memphis visit, a steamboat, gardening, and plant lessons.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Michael Anagnos"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Braille",
+        "Adeline Keller",
+        "steam boat"
+      ],
+      "word_count": 350,
+      "path": "sections/035-letter-009-to-mr-michael-anagnos.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec036",
+      "section_number": 36,
+      "title": "TO MR. MORRISON HEADY",
+      "routing_description": "Helen writes to Uncle Morrie about Anagnos's visit, Boston plans, family, and playmates.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Morrison Heady"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Uncle Morrie",
+        "Boston",
+        "ants"
+      ],
+      "word_count": 282,
+      "path": "sections/036-letter-010-to-mr-morrison-heady.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec037",
+      "section_number": 37,
+      "title": "TO MR. MICHAEL ANAGNOS",
+      "routing_description": "Helen recounts a woodland picnic and learning tree names, then describes family plans and dolls.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Michael Anagnos"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "picnic",
+        "tree names",
+        "swing"
+      ],
+      "word_count": 322,
+      "path": "sections/037-letter-011-to-mr-michael-anagnos.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec038",
+      "section_number": 38,
+      "title": "TO MISS MARY C. MOORE",
+      "routing_description": "Helen describes Mildred, imagined travels, and bathing at Brewster before returning to Boston.",
+      "characters": [
+        "Helen Keller",
+        "Miss Mary C. Moore"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Brewster",
+        "bathing",
+        "Africa"
+      ],
+      "word_count": 549,
+      "path": "sections/038-letter-012-to-miss-mary-c-moore.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec039",
+      "section_number": 39,
+      "title": "TO MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen recounts visiting West Newton, riding a pony, meeting children, and learning about China.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "West Newton",
+        "Mollie",
+        "Chinese nurse"
+      ],
+      "word_count": 531,
+      "path": "sections/039-letter-013-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec040",
+      "section_number": 40,
+      "title": "TO MR. MORRISON HEADY",
+      "routing_description": "Helen recounts visiting Plymouth and retells the Pilgrims' voyage and Peregrine White's birth.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Morrison Heady"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Plymouth",
+        "Mayflower",
+        "Peregrine White"
+      ],
+      "word_count": 618,
+      "path": "sections/040-letter-014-to-mr-morrison-heady.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec041",
+      "section_number": 41,
+      "title": "TO MR. MICHAEL ANAGNOS",
+      "routing_description": "Helen describes the blind kindergarten and imagines European travels while trying French and Greek phrases.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Michael Anagnos"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Edith Thomas",
+        "Fauntleroy",
+        "French and Greek"
+      ],
+      "word_count": 494,
+      "path": "sections/041-letter-015-to-mr-michael-anagnos.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec042",
+      "section_number": 42,
+      "title": "TO MISS EVELINA H. KELLER",
+      "routing_description": "Helen anticipates returning home and gives examples of French, Greek, Latin, and German words.",
+      "characters": [
+        "Helen Keller",
+        "Miss Evelina H. Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Se agapo",
+        "Mutter",
+        "languages"
+      ],
+      "word_count": 128,
+      "path": "sections/042-letter-016-to-miss-evelina-h-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec043",
+      "section_number": 43,
+      "title": "TO MRS. SOPHIA C. HOPKINS",
+      "routing_description": "Helen describes her pets and explains iron smelting and the formation and mining of coal.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Sophia C. Hopkins"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "furnace",
+        "iron ore",
+        "coal"
+      ],
+      "word_count": 311,
+      "path": "sections/043-letter-017-to-mrs-sophia-c-hopkins.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec044",
+      "section_number": 44,
+      "title": "TO MISS DELLA BENNETT",
+      "routing_description": "Helen explains astronomy and telescopes, then discusses bells, accidents, and a broken doll.",
+      "characters": [
+        "Helen Keller",
+        "Miss Della Bennett"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "astronomers",
+        "telescope",
+        "bells"
+      ],
+      "word_count": 357,
+      "path": "sections/044-letter-018-to-miss-della-bennett.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec045",
+      "section_number": 45,
+      "title": "TO DR. EDWARD EVERETT HALE",
+      "routing_description": "Helen describes her family, lessons in patience and courage, Christmas gifts, dolls, and school subjects.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Edward Everett Hale"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "courage",
+        "Fauntleroy",
+        "dolls"
+      ],
+      "word_count": 488,
+      "path": "sections/045-letter-019-to-dr-edward-everett-hale.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec046",
+      "section_number": 46,
+      "title": "TO MR. MICHAEL ANAGNOS",
+      "routing_description": "Helen sends Anagnos messages for European royalty and describes a picnic, family news, and named roses.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Michael Anagnos"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Europe",
+        "Wilhelmina",
+        "roses"
+      ],
+      "word_count": 497,
+      "path": "sections/046-letter-020-to-mr-michael-anagnos.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec047",
+      "section_number": 47,
+      "title": "TO MISS FANNIE S. MARRETT",
+      "routing_description": "Helen retells a story about a girl whose brother puts her doll in a tree and frightens her with elves.",
+      "characters": [
+        "Helen Keller",
+        "Miss Fannie S. Marrett"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "doll",
+        "elves",
+        "teasing brother"
+      ],
+      "word_count": 387,
+      "path": "sections/047-letter-021-to-miss-fannie-s-marrett.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec048",
+      "section_number": 48,
+      "title": "TO MISS MARY E. RILEY",
+      "routing_description": "Helen imagines sharing Tuscumbia's garden, berries, flowers, and pets with Miss Riley.",
+      "characters": [
+        "Helen Keller",
+        "Miss Mary E. Riley"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "raspberries",
+        "mocking-birds",
+        "Tuscumbia"
+      ],
+      "word_count": 247,
+      "path": "sections/048-letter-022-to-miss-mary-e-riley.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec049",
+      "section_number": 49,
+      "title": "TO MISS ANNE MANSFIELD SULLIVAN",
+      "routing_description": "Separated from Sullivan, Helen describes pets and family, requests Heidi, and longs for her teacher's return.",
+      "characters": [
+        "Helen Keller",
+        "Miss Anne Mansfield Sullivan"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "separation",
+        "Heidi",
+        "typewriter"
+      ],
+      "word_count": 650,
+      "path": "sections/049-letter-023-to-miss-anne-mansfield-sullivan.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec050",
+      "section_number": 50,
+      "title": "TO MISS MILDRED KELLER",
+      "routing_description": "Helen sends Mildred birthday presents and describes her daily school and gymnasium schedule.",
+      "characters": [
+        "Helen Keller",
+        "Miss Mildred Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "birthday gift",
+        "gymnasium",
+        "zoology"
+      ],
+      "word_count": 271,
+      "path": "sections/050-letter-024-to-miss-mildred-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec051",
+      "section_number": 51,
+      "title": "TO MR. WILLIAM WADE",
+      "routing_description": "Helen thanks Wade for a mastiff puppy and reports new vocabulary, zoology, and French studies.",
+      "characters": [
+        "Helen Keller",
+        "Mr. William Wade"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Lioness",
+        "mastiff",
+        "Carnivora"
+      ],
+      "word_count": 278,
+      "path": "sections/051-letter-025-to-mr-william-wade.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec052",
+      "section_number": 52,
+      "title": "TO JOHN GREENLEAF WHITTIER",
+      "routing_description": "Helen tells Whittier how his poems and the fragrance of flowers bring her happiness.",
+      "characters": [
+        "Helen Keller",
+        "John Greenleaf Whittier"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "In School Days",
+        "My Playmate",
+        "flowers"
+      ],
+      "word_count": 246,
+      "path": "sections/052-letter-026-to-john-greenleaf-whittier.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec053",
+      "section_number": 53,
+      "title": "TO MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen describes visiting nobility, gifts, a warship service, and a fatal Boston fire.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Countess of Meath",
+        "warship",
+        "fire"
+      ],
+      "word_count": 357,
+      "path": "sections/053-letter-027-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec054",
+      "section_number": 54,
+      "title": "TO MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen describes handmade Christmas gifts, missing home, and Sullivan's illness.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "watch-case",
+        "Christmas tree",
+        "sore throat"
+      ],
+      "word_count": 440,
+      "path": "sections/054-letter-028-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec055",
+      "section_number": 55,
+      "title": "TO DR. EDWARD EVERETT HALE",
+      "routing_description": "Helen thanks Hale for shells, recalls Columbus, and offers to teach him braille.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Edward Everett Hale"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "shells",
+        "Columbus",
+        "Braille"
+      ],
+      "word_count": 207,
+      "path": "sections/055-letter-029-to-dr-edward-everett-hale.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec056",
+      "section_number": 56,
+      "title": "TO DR. OLIVER WENDELL HOLMES",
+      "routing_description": "Helen recalls visiting Holmes, reading Little Jakey, and learning about butterflies and suffering.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Oliver Wendell Holmes"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Little Jakey",
+        "butterflies",
+        "zoology"
+      ],
+      "word_count": 382,
+      "path": "sections/056-letter-030-to-dr-oliver-wendell-holmes.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec057",
+      "section_number": 57,
+      "title": "TO MISS SARAH FULLER",
+      "routing_description": "Helen celebrates learning to speak and explains how touching moving lips and hearing of Ragnhild Kaata inspired her.",
+      "characters": [
+        "Helen Keller",
+        "Miss Sarah Fuller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "articulation",
+        "Ragnhild Kaata",
+        "moon"
+      ],
+      "word_count": 551,
+      "path": "sections/057-letter-031-to-miss-sarah-fuller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec058",
+      "section_number": 58,
+      "title": "TO  REV. PHILLIPS BROOKS",
+      "routing_description": "Helen describes speaking to her family, asks Brooks about God and suffering, and recounts riding her donkey.",
+      "characters": [
+        "Helen Keller",
+        "Rev. Phillips Brooks"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "God",
+        "Little Jakey",
+        "Neddy"
+      ],
+      "word_count": 517,
+      "path": "sections/058-letter-032-to-rev-phillips-brooks.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec059",
+      "section_number": 59,
+      "title": "DR. BROOKS'S REPLY",
+      "routing_description": "Phillips Brooks answers Helen's religious questions by describing divine love, goodness, happiness, and suffering.",
+      "characters": [
+        "Helen Keller",
+        "Phillips Brooks"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "God is Love",
+        "Jesus",
+        "London"
+      ],
+      "word_count": 845,
+      "path": "sections/059-letter-033-dr-brooks-s-reply.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec060",
+      "section_number": 60,
+      "title": "DR. HOLMES'S REPLY",
+      "routing_description": "Oliver Wendell Holmes replies to a lost letter, praises Helen's speech and language, and reflects on her education.",
+      "characters": [
+        "Helen Keller",
+        "Oliver Wendell Holmes"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "speech",
+        "consonants",
+        "vowels"
+      ],
+      "word_count": 397,
+      "path": "sections/060-letter-034-dr-holmes-s-reply.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec061",
+      "section_number": 61,
+      "title": "TO MESSRS. BRADSTREET",
+      "routing_description": "Helen thanks the Bradstreets for naming a lumber ship after her and sends wishes for its sailors.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "HELEN KELLER",
+        "ship",
+        "Maine"
+      ],
+      "word_count": 177,
+      "path": "sections/061-letter-035-to-messrs-bradstreet.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec062",
+      "section_number": 62,
+      "title": "TO  MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen recounts a delayed journey to Boston, a watch from Anagnos, and damage to her typewriter.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "train delays",
+        "watch",
+        "broken typewriter"
+      ],
+      "word_count": 572,
+      "path": "sections/062-letter-036-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec063",
+      "section_number": 63,
+      "title": "TO  JOHN GREENLEAF WHITTIER",
+      "routing_description": "Helen greets Whittier on his eighty-third birthday and describes a celebration of his poems.",
+      "characters": [
+        "Helen Keller",
+        "John Greenleaf Whittier"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "birthday",
+        "eighty-three",
+        "snow"
+      ],
+      "word_count": 360,
+      "path": "sections/063-letter-037-to-john-greenleaf-whittier.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec064",
+      "section_number": 64,
+      "title": "WHITTIER'S REPLY",
+      "routing_description": "Whittier describes his birthday at Oak Knoll, letters and gifts, and memories of his boyhood.",
+      "characters": [
+        "Helen Keller",
+        "John G. Whittier"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Oak Knoll",
+        "birthday",
+        "Haverhill"
+      ],
+      "word_count": 191,
+      "path": "sections/064-letter-038-whittier-s-reply.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec065",
+      "section_number": 65,
+      "title": "TO MR. GEORGE R. KREHL",
+      "routing_description": "Helen thanks Krehl for offering a dog and explains redirecting gifts toward Tommy's education.",
+      "characters": [
+        "Helen Keller",
+        "Mr. George R. Krehl"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Tommy",
+        "Lioness",
+        "education fund"
+      ],
+      "word_count": 667,
+      "path": "sections/065-letter-039-to-mr-george-r-krehl.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec066",
+      "section_number": 66,
+      "title": "TO  DR. OLIVER WENDELL HOLMES",
+      "routing_description": "Helen praises Holmes's spring poems and invites him to meet Tommy at the kindergarten.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Oliver Wendell Holmes"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Spring Has Come",
+        "Tommy",
+        "baby Tom"
+      ],
+      "word_count": 213,
+      "path": "sections/066-letter-040-to-dr-oliver-wendell-holmes.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec067",
+      "section_number": 67,
+      "title": "TO  SIR JOHN EVERETT MILLAIS",
+      "routing_description": "Helen thanks Millais for helping Tommy, quotes a poem about England, and describes the child's learning.",
+      "characters": [
+        "Helen Keller",
+        "Sir John Everett Millais"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Tommy",
+        "England",
+        "British oak"
+      ],
+      "word_count": 355,
+      "path": "sections/067-letter-041-to-sir-john-everett-millais.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec068",
+      "section_number": 68,
+      "title": "TO  REV. PHILLIPS BROOKS",
+      "routing_description": "Helen congratulates Brooks on becoming a bishop and hopes his work will make people happy.",
+      "characters": [
+        "Helen Keller",
+        "Rev. Phillips Brooks"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "bishop",
+        "May-day",
+        "heavenly Father"
+      ],
+      "word_count": 180,
+      "path": "sections/068-letter-042-to-rev-phillips-brooks.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec069",
+      "section_number": 69,
+      "title": "TO MR. JOHN H. HOLMES",
+      "routing_description": "Helen asks the Boston Herald to print a subscriber list and continue supporting Tommy's education.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John H. Holmes"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Boston Herald",
+        "subscribers",
+        "Tommy"
+      ],
+      "word_count": 276,
+      "path": "sections/069-letter-043-to-mr-john-h-holmes.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec070",
+      "section_number": 70,
+      "title": "TO DR. OLIVER WENDELL HOLMES",
+      "routing_description": "Helen thanks Holmes for helping Tommy, recalls Andover, and invites him to the blind children's commencement.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Oliver Wendell Holmes"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Tommy",
+        "Andover",
+        "Tremont Temple"
+      ],
+      "word_count": 376,
+      "path": "sections/070-letter-044-to-dr-oliver-wendell-holmes.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec071",
+      "section_number": 71,
+      "title": "TO REV. PHILLIPS BROOKS",
+      "routing_description": "Helen sends Brooks her picture and reflects on beauty felt in the heart and the meaning of motion.",
+      "characters": [
+        "Helen Keller",
+        "Rev. Phillips Brooks"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "picture",
+        "felt in the heart",
+        "motion"
+      ],
+      "word_count": 255,
+      "path": "sections/071-letter-045-to-rev-phillips-brooks.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec072",
+      "section_number": 72,
+      "title": "TO  MR. ALBERT H. MUNSELL",
+      "routing_description": "Helen imagines Neptune and Winter resisting Spring while writing to Munsell from Brewster.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Albert H. Munsell"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Neptune",
+        "Winter",
+        "Spring"
+      ],
+      "word_count": 340,
+      "path": "sections/072-letter-046-to-mr-albert-h-munsell.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec073",
+      "section_number": 73,
+      "title": "To St. Nicholas",
+      "routing_description": "Helen explains how blind children use a grooved board and their fingers to form and align pencil letters.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "grooved board",
+        "pencil",
+        "St. Nicholas"
+      ],
+      "word_count": 251,
+      "path": "sections/073-letter-047-to-st-nicholas.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec074",
+      "section_number": 74,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen urges Derby to help make a fundraising tea for blind children successful.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "tea",
+        "kindergarten",
+        "Bishop Brooks"
+      ],
+      "word_count": 317,
+      "path": "sections/074-letter-048-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec075",
+      "section_number": 75,
+      "title": "TO  MR. JOHN P. SPAULDING",
+      "routing_description": "Helen asks Spaulding to help find a larger house for her fundraising tea.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John P. Spaulding"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "tea",
+        "fifty people",
+        "Mrs. Spaulding"
+      ],
+      "word_count": 254,
+      "path": "sections/075-letter-049-to-mr-john-p-spaulding.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec076",
+      "section_number": 76,
+      "title": "TO MR. EDWARD H. CLEMENT",
+      "routing_description": "Helen announces preparations for her fundraising tea and asks for support for blind children.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Edward H. Clement"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "tea",
+        "Transcript",
+        "kindergarten"
+      ],
+      "word_count": 238,
+      "path": "sections/076-letter-050-to-mr-edward-h-clement.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec077",
+      "section_number": 77,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen describes rain at home, riding, her mastiff Eumer, and writing on a grooved board and typewriter.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Eumer",
+        "grooved board",
+        "type-written letter"
+      ],
+      "word_count": 502,
+      "path": "sections/077-letter-051-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec078",
+      "section_number": 78,
+      "title": "TO  MRS. GROVER CLEVELAND",
+      "routing_description": "Helen thanks Mrs. Cleveland for a message, sends gifts, and describes naming her brother after Phillips Brooks.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Grover Cleveland"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Ruth",
+        "Phillips Brooks",
+        "picture"
+      ],
+      "word_count": 160,
+      "path": "sections/078-letter-052-to-mrs-grover-cleveland.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec079",
+      "section_number": 79,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen describes writing her Youth's Companion sketch, corrects reports about her health, and discusses books and pets.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Youth's Companion",
+        "Silent Worker",
+        "parrot"
+      ],
+      "word_count": 713,
+      "path": "sections/079-letter-053-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec080",
+      "section_number": 80,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen mourns Phillips Brooks and recalls his support for her fundraising tea.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Phillips Brooks",
+        "bereavement",
+        "monument"
+      ],
+      "word_count": 275,
+      "path": "sections/080-letter-054-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec081",
+      "section_number": 81,
+      "title": "TO  MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen recounts traveling with Bell, feeling Niagara Falls, and crossing the suspension bridge into Canada.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Niagara Falls",
+        "suspension bridge",
+        "Canada"
+      ],
+      "word_count": 745,
+      "path": "sections/081-letter-055-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec082",
+      "section_number": 82,
+      "title": "TO THE CHIEFS OF THE DEPARTMENTS AND OFFICERS IN CHARGE OF BUILDINGS AND EXHIBITS",
+      "routing_description": "Exposition president Higinbotham asks officials to let Helen inspect exhibits and provide assistance.",
+      "characters": [
+        "Helen Keller",
+        "H. N. Higinbotham"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Exposition",
+        "Higinbotham",
+        "exhibits"
+      ],
+      "word_count": 193,
+      "path": "sections/082-letter-056-to-the-chiefs-of-the-departments-and-officers-in-charge-of-buildings-and-exhibits.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec083",
+      "section_number": 83,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen describes touching World's Fair exhibits, exploring buildings, riding a camel and the Ferris wheel, and sailing.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "World's Fair",
+        "Tiffany diamond",
+        "Ferris wheel"
+      ],
+      "word_count": 427,
+      "path": "sections/083-letter-057-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec084",
+      "section_number": 84,
+      "title": "TO  MRS. CHARLES E. INCHES",
+      "routing_description": "Helen describes studies in Hulton and answers questions about establishing Tuscumbia's free public library.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Charles E. Inches"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "public library",
+        "Tuscumbia",
+        "building fund"
+      ],
+      "word_count": 571,
+      "path": "sections/084-letter-058-to-mrs-charles-e-inches.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec085",
+      "section_number": 85,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen thanks Derby for a Columbus souvenir and wonders why she is called a discoverer.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Columbus",
+        "shield",
+        "discoverer"
+      ],
+      "word_count": 84,
+      "path": "sections/085-letter-059-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec086",
+      "section_number": 86,
+      "title": "TO  DR. EDWARD EVERETT HALE",
+      "routing_description": "Helen describes letters prompted by her published story, Latin study, and gratitude for Hale's book.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Edward Everett Hale"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Youth's Companion",
+        "Caesar",
+        "sixty-one letters"
+      ],
+      "word_count": 216,
+      "path": "sections/086-letter-060-to-dr-edward-everett-hale.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec087",
+      "section_number": 87,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen describes her New York school and climbing the Statue of Liberty.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Wright-Humason",
+        "Liberty",
+        "Bedloe's Island"
+      ],
+      "word_count": 343,
+      "path": "sections/087-letter-061-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec088",
+      "section_number": 88,
+      "title": "TO  MISS CAROLINE DERBY",
+      "routing_description": "Helen reports speech lessons, reading, a dog show, and a visit to the Metropolitan Club.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "lip-reading",
+        "Dog Show",
+        "Millionaires' Club"
+      ],
+      "word_count": 398,
+      "path": "sections/088-letter-062-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec089",
+      "section_number": 89,
+      "title": "TO  MRS. KATE ADAMS KELLER",
+      "routing_description": "Helen recounts meeting Mark Twain and William Dean Howells at the Huttons' home.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Kate Adams Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Mark Twain",
+        "Howells",
+        "Hutton"
+      ],
+      "word_count": 401,
+      "path": "sections/089-letter-063-to-mrs-kate-adams-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec090",
+      "section_number": 90,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes a quiet vacation, plans for another year in New York, and a typewriter that cannot make periods.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "vacation",
+        "New York",
+        "typewriter"
+      ],
+      "word_count": 352,
+      "path": "sections/090-letter-064-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec091",
+      "section_number": 91,
+      "title": "TO MRS. WILLIAM THAW",
+      "routing_description": "Helen recounts returning to New York from Hulton and receiving books Wade had printed in England.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. William Thaw"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Philadelphia",
+        "Hulton",
+        "printed in England"
+      ],
+      "word_count": 273,
+      "path": "sections/091-letter-065-to-mrs-william-thaw.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec092",
+      "section_number": 92,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen describes meeting Ellen Terry and Henry Irving, seeing King Charles the First, and reading Ivanhoe.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Ellen Terry",
+        "Henry Irving",
+        "Ivanhoe"
+      ],
+      "word_count": 293,
+      "path": "sections/092-letter-066-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec093",
+      "section_number": 93,
+      "title": "TO  MRS. GEORGE H. BRADFORD",
+      "routing_description": "Helen thanks Bradford for keepsakes after a friend's death and describes returning to schoolwork.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. George H. Bradford"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "keepsakes",
+        "bereavement",
+        "school work"
+      ],
+      "word_count": 161,
+      "path": "sections/093-letter-067-to-mrs-george-h-bradford.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec094",
+      "section_number": 94,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen mourns King John, describes a poultry show, and recounts meeting Warner and Burroughs.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "King John",
+        "poultry-show",
+        "Burroughs"
+      ],
+      "word_count": 292,
+      "path": "sections/094-letter-068-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec095",
+      "section_number": 95,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen describes learning French through lip-reading and persisting with speech training.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "French",
+        "lip-reading",
+        "Moliere"
+      ],
+      "word_count": 188,
+      "path": "sections/095-letter-069-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec096",
+      "section_number": 96,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen recounts a Philadelphia speech, a large reception, travel to Brewster, and a writers' picnic at Wrentham.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Philadelphia",
+        "speech",
+        "Wrentham"
+      ],
+      "word_count": 536,
+      "path": "sections/096-letter-070-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec097",
+      "section_number": 97,
+      "title": "TO  CHARLES DUDLEY WARNER",
+      "routing_description": "Helen writes of grief after her father's death while she was away from home.",
+      "characters": [
+        "Helen Keller",
+        "Charles Dudley Warner"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "father",
+        "death",
+        "Tuscumbia"
+      ],
+      "word_count": 196,
+      "path": "sections/097-letter-071-to-charles-dudley-warner.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec098",
+      "section_number": 98,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes entering the Cambridge School, passing practice examinations, and her demanding reading workload.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Cambridge School",
+        "Harvard papers",
+        "raised print"
+      ],
+      "word_count": 253,
+      "path": "sections/098-letter-072-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec099",
+      "section_number": 99,
+      "title": "TO MRS. WILLIAM THAW",
+      "routing_description": "Helen describes inaccessible textbooks, Sullivan's strained eyes, and her school subjects.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. William Thaw"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "textbooks",
+        "raised print",
+        "arithmetic"
+      ],
+      "word_count": 183,
+      "path": "sections/099-letter-073-to-mrs-william-thaw.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec100",
+      "section_number": 100,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes examination preparation and recalls enjoying the Players' Club.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "examinations",
+        "Players' Club",
+        "Johnson"
+      ],
+      "word_count": 106,
+      "path": "sections/100-letter-074-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec101",
+      "section_number": 101,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen announces passing her examinations and credits Sullivan's work and inspiration.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "examinations",
+        "Teacher",
+        "Wrentham"
+      ],
+      "word_count": 174,
+      "path": "sections/101-letter-075-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec102",
+      "section_number": 102,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes studying in Wrentham, enjoying Greek, and tobogganing on a frozen pond.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Greek",
+        "toboggan",
+        "Wrentham"
+      ],
+      "word_count": 335,
+      "path": "sections/102-letter-076-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec103",
+      "section_number": 103,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen compares progress with Keith to her former classes and welcomes raised-print mathematics books.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Mr. Keith",
+        "Algebra",
+        "raised print"
+      ],
+      "word_count": 112,
+      "path": "sections/103-letter-077-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec104",
+      "section_number": 104,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen celebrates solving geometry problems alone while questioning mathematics' value beside language.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Geometry",
+        "isosceles triangle",
+        "new word"
+      ],
+      "word_count": 155,
+      "path": "sections/104-letter-078-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec105",
+      "section_number": 105,
+      "title": "TO  CHARLES DUDLEY WARNER",
+      "routing_description": "Helen discusses choosing a tandem bicycle, seats, handlebars, and divided skirts.",
+      "characters": [
+        "Helen Keller",
+        "Charles Dudley Warner"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "tandem",
+        "Columbia",
+        "sociable"
+      ],
+      "word_count": 323,
+      "path": "sections/105-letter-079-to-charles-dudley-warner.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec106",
+      "section_number": 106,
+      "title": "TO MISS CAROLINE DERBY",
+      "routing_description": "Helen recounts tandem riding and falls, swimming, diving, and rowing during her vacation.",
+      "characters": [
+        "Helen Keller",
+        "Miss Caroline Derby"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "tandem",
+        "swimming",
+        "rowing"
+      ],
+      "word_count": 150,
+      "path": "sections/106-letter-080-to-miss-caroline-derby.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec107",
+      "section_number": 107,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes moving to Boston, comparing the Iliad and Aeneid, and missing Wrentham's open country.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Iliad",
+        "Aeneid",
+        "Public Gardens"
+      ],
+      "word_count": 469,
+      "path": "sections/107-letter-081-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec108",
+      "section_number": 108,
+      "title": "TO MRS. WILLIAM THAW",
+      "routing_description": "Helen wishes for other girls' amusements but reflects on her happiness, studies, and blessings.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. William Thaw"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "rough-rider",
+        "other girls",
+        "happiness"
+      ],
+      "word_count": 213,
+      "path": "sections/108-letter-082-to-mrs-william-thaw.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec109",
+      "section_number": 109,
+      "title": "TO MRS. WILLIAM THAW",
+      "routing_description": "Helen reproaches herself for wishing for more happiness while others have less.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. William Thaw"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Oliver Twist",
+        "more",
+        "happiness"
+      ],
+      "word_count": 142,
+      "path": "sections/109-letter-083-to-mrs-william-thaw.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec110",
+      "section_number": 110,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen celebrates enjoying mathematics and credits Keith for teaching her quadratic equations.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "quadratic equations",
+        "Mr. Keith",
+        "Mathematics"
+      ],
+      "word_count": 127,
+      "path": "sections/110-letter-084-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec111",
+      "section_number": 111,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Inspired by Kipling and Khartoum's college, Helen proposes a Maine Memorial College in Havana.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Maine Memorial College",
+        "Havana",
+        "Kipling"
+      ],
+      "word_count": 293,
+      "path": "sections/111-letter-085-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec112",
+      "section_number": 112,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen recounts touching classical sculptures at the Boston Art Museum and questions removing the Elgin marbles.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Boston Art Museum",
+        "Venus",
+        "Elgin"
+      ],
+      "word_count": 370,
+      "path": "sections/112-letter-086-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec113",
+      "section_number": 113,
+      "title": "TO MR. WILLIAM WADE",
+      "routing_description": "Helen thanks Wade for embossed classical texts and compares manual and two-handed alphabets.",
+      "characters": [
+        "Helen Keller",
+        "Mr. William Wade"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Eclogues",
+        "embossed",
+        "two-handed alphabet"
+      ],
+      "word_count": 265,
+      "path": "sections/113-letter-087-to-mr-william-wade.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec114",
+      "section_number": 114,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen worries about Sullivan's worsening eyes, discusses Sargent portraits, and welcomes Kipling's recovery.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Teacher's eyes",
+        "Sargent",
+        "Jungle-Book"
+      ],
+      "word_count": 356,
+      "path": "sections/114-letter-088-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec115",
+      "section_number": 115,
+      "title": "TO DR. DAVID H. GREER",
+      "routing_description": "Helen discusses Homer and Virgil, examination work, and a summer reunion while Sullivan rests.",
+      "characters": [
+        "Helen Keller",
+        "Dr. David H. Greer"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Odyssey",
+        "Aeneid",
+        "vacation"
+      ],
+      "word_count": 445,
+      "path": "sections/115-letter-089-to-dr-david-h-greer.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec116",
+      "section_number": 116,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes a demanding lesson with Keith and the difficulty of translating Cicero.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Cicero",
+        "Latin",
+        "Greek Grammar"
+      ],
+      "word_count": 101,
+      "path": "sections/116-letter-090-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec117",
+      "section_number": 117,
+      "title": "TO MR. WILLIAM WADE",
+      "routing_description": "Helen discusses Linnie Haguewood, sign language and the manual alphabet, and Ragnhild Kaata's accomplishments.",
+      "characters": [
+        "Helen Keller",
+        "Mr. William Wade"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Linnie Haguewood",
+        "manual alphabet",
+        "Ragnhild Kaata"
+      ],
+      "word_count": 364,
+      "path": "sections/117-letter-091-to-mr-william-wade.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec118",
+      "section_number": 118,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen reports passing examinations despite difficult braille mathematics papers and describes a family summer by the lake.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "braille",
+        "examinations",
+        "Wrentham"
+      ],
+      "word_count": 292,
+      "path": "sections/118-letter-092-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec119",
+      "section_number": 119,
+      "title": "TO  MRS. SAMUEL RICHARD FULLER",
+      "routing_description": "Helen recounts Dean Irwin's advice to replace a full degree with special study and discusses alternative lessons.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Samuel Richard Fuller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Dean Irwin",
+        "Radcliffe",
+        "special course"
+      ],
+      "word_count": 329,
+      "path": "sections/119-letter-093-to-mrs-samuel-richard-fuller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec120",
+      "section_number": 120,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen explains braille notation problems in her Radcliffe entrance examinations and corrects claims about her schooling.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "American braille",
+        "English braille",
+        "entrance examinations"
+      ],
+      "word_count": 671,
+      "path": "sections/120-letter-094-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec121",
+      "section_number": 121,
+      "title": "TO MISS MILDRED KELLER",
+      "routing_description": "Helen tells Mildred about studies, winter dresses, and the excitement of a Harvard-Yale football game.",
+      "characters": [
+        "Helen Keller",
+        "Miss Mildred Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "football",
+        "Harvard",
+        "winter dresses"
+      ],
+      "word_count": 520,
+      "path": "sections/121-letter-095-to-miss-mildred-keller.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec122",
+      "section_number": 122,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen recounts visiting friends in New York and feeling organ vibrations at St. Bartholomew's.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "St. Bartholomew's",
+        "organ",
+        "Dr. Greer"
+      ],
+      "word_count": 207,
+      "path": "sections/122-letter-096-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec123",
+      "section_number": 123,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen discusses reading Horace, French works, The Faery Queen, and newly acquired books.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Horace",
+        "Faery Queen",
+        "books"
+      ],
+      "word_count": 309,
+      "path": "sections/123-letter-097-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec124",
+      "section_number": 124,
+      "title": "TO THE CHAIRMAN OF THE ACADEMIC BOARD OF RADCLIFFE COLLEGE",
+      "routing_description": "Helen requests accommodations to take Radcliffe's regular courses, including an interpreter and typewritten work.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Radcliffe",
+        "interpreter",
+        "typewriter"
+      ],
+      "word_count": 253,
+      "path": "sections/124-letter-098-to-the-chairman-of-the-academic-board-of-radcliffe-college.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec125",
+      "section_number": 125,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen awaits Radcliffe's response and mentions accommodation offers from Cornell and Chicago.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Academic Board",
+        "Cornell",
+        "Chicago"
+      ],
+      "word_count": 129,
+      "path": "sections/125-letter-099-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec126",
+      "section_number": 126,
+      "title": "TO MR. JOHN HITZ",
+      "routing_description": "Helen discusses an advisory committee and Bell's plan to train teachers for deaf-blind children at home.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John Hitz"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "advisory committee",
+        "Dr. Bell",
+        "home education"
+      ],
+      "word_count": 680,
+      "path": "sections/126-letter-100-to-mr-john-hitz.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec127",
+      "section_number": 127,
+      "title": "TO MR. JOHN D. WRIGHT",
+      "routing_description": "Helen describes enjoying Radcliffe's regular degree course and choosing subjects while leaving mathematics behind.",
+      "characters": [
+        "Helen Keller",
+        "Mr. John D. Wright"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Radcliffe",
+        "degree",
+        "elective courses"
+      ],
+      "word_count": 363,
+      "path": "sections/127-letter-101-to-mr-john-d-wright.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec128",
+      "section_number": 128,
+      "title": "TO MR. WILLIAM WADE",
+      "routing_description": "Helen reports on deaf-blind children Ruby Rice, Maud Scott, Katie McGirr, and Tommy Stringer.",
+      "characters": [
+        "Helen Keller",
+        "Mr. William Wade"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Ruby Rice",
+        "Maud Scott",
+        "Katie McGirr"
+      ],
+      "word_count": 527,
+      "path": "sections/128-letter-102-to-mr-william-wade.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec129",
+      "section_number": 129,
+      "title": "TO  MR. CHARLES T. COPELAND",
+      "routing_description": "Helen explains stopping formulaic themes and resolves to write from her own observations and experience.",
+      "characters": [
+        "Helen Keller",
+        "Mr. Charles T. Copeland"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "themes",
+        "originality",
+        "own observations"
+      ],
+      "word_count": 305,
+      "path": "sections/129-letter-103-to-mr-charles-t-copeland.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec130",
+      "section_number": 130,
+      "title": "TO  MRS. LAURENCE HUTTON",
+      "routing_description": "Helen describes a class luncheon, a party dress, and proposals to support deaf-blind children.",
+      "characters": [
+        "Helen Keller",
+        "Mrs. Laurence Hutton"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Freshman Class",
+        "party dress",
+        "deaf and blind"
+      ],
+      "word_count": 366,
+      "path": "sections/130-letter-104-to-mrs-laurence-hutton.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec131",
+      "section_number": 131,
+      "title": "TO MR. WILLIAM WADE",
+      "routing_description": "Helen advocates a common braille system and asks about print for readers with less sensitive fingers.",
+      "characters": [
+        "Helen Keller",
+        "Mr. William Wade"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "English braille",
+        "interpointing",
+        "different prints"
+      ],
+      "word_count": 164,
+      "path": "sections/131-letter-105-to-mr-william-wade.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec132",
+      "section_number": 132,
+      "title": "To THE GREAT ROUND WORLD",
+      "routing_description": "Helen welcomes an embossed edition of The Great Round World and considers support beyond blind subscribers.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Great Round World",
+        "embossed edition",
+        "subscribers"
+      ],
+      "word_count": 341,
+      "path": "sections/132-letter-106-to-the-great-round-world.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec133",
+      "section_number": 133,
+      "title": "TO MISS NINA RHOADES",
+      "routing_description": "Helen recounts a Halifax warship visit and helping Bell fly experimental kites at Cape Breton.",
+      "characters": [
+        "Helen Keller",
+        "Miss Nina Rhoades"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Indiana",
+        "Cape Breton",
+        "kites"
+      ],
+      "word_count": 286,
+      "path": "sections/133-letter-107-to-miss-nina-rhoades.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec134",
+      "section_number": 134,
+      "title": "TO DR. EDWARD EVERETT HALE",
+      "routing_description": "Helen honors Samuel Gridley Howe's work educating Laura Bridgman and its importance to her own opportunities.",
+      "characters": [
+        "Helen Keller",
+        "Dr. Edward Everett Hale"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "Howe",
+        "Laura Bridgman",
+        "centenary"
+      ],
+      "word_count": 411,
+      "path": "sections/134-letter-108-to-dr-edward-everett-hale.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec135",
+      "section_number": 135,
+      "title": "TO THE HON. GEORGE FRISBIE HOAR",
+      "routing_description": "Helen discusses her Howe tribute, the importance of her typewriter, and changing political opinions.",
+      "characters": [
+        "Helen Keller"
+      ],
+      "locations": [],
+      "retrieval_cues": [
+        "typewriter",
+        "politics",
+        "Civil Government"
+      ],
+      "word_count": 239,
+      "path": "sections/135-letter-109-to-the-hon-george-frisbie-hoar.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec136",
+      "section_number": 136,
+      "title": "CHAPTER I. The Writing of the Book",
+      "routing_description": "John Albert Macy explains how Keller composed and revised her autobiography using a typewriter, braille manuscripts, and Sullivan's assistance. He distinguishes reconstructed childhood memories from teaching records and describes her editorial independence.",
+      "characters": [
+        "Helen Keller",
+        "Anne Sullivan",
+        "William Wade",
+        "John Albert Macy"
+      ],
+      "locations": [
+        "Radcliffe"
+      ],
+      "retrieval_cues": [
+        "writing the autobiography",
+        "braille manuscript",
+        "destroyed notes",
+        "magazine proofs",
+        "revision and editorial independence",
+        "idealized childhood memory"
+      ],
+      "word_count": 994,
+      "path": "sections/136-part-iii-chapter-01.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec137",
+      "section_number": 137,
+      "title": "CHAPTER II. PERSONALITY",
+      "routing_description": "Macy describes Keller's humour, persistence, friendships, reasoning, and daily habits. He examines her use of touch, smell, music, the manual alphabet, braille, a typewriter, and adapted watches, and disputes claims of a mysterious extra sense.",
+      "characters": [
+        "Helen Keller",
+        "Anne Sullivan",
+        "Mark Twain",
+        "Charles Dudley Warner",
+        "Arthur Gilman",
+        "Mr. Keith"
+      ],
+      "locations": [
+        "Radcliffe",
+        "Niagara",
+        "Museum of Fine Arts in Boston",
+        "Wright-Humason School"
+      ],
+      "retrieval_cues": [
+        "personality and humour",
+        "tactile memory",
+        "manual alphabet",
+        "braille systems",
+        "music vibrations",
+        "sixth sense",
+        "adapted watches",
+        "Boer independence"
+      ],
+      "word_count": 4653,
+      "path": "sections/137-part-iii-chapter-02.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec138",
+      "section_number": 138,
+      "title": "CHAPTER III. EDUCATION",
+      "routing_description": "John Albert Macy traces Samuel Gridley Howe’s work with Laura Bridgman, then presents Anne Sullivan’s early letters and educational reports on Helen Keller. These document discipline in the garden-house, the water-pump naming breakthrough, language learned through everyday conversation and books, sensory observations, and questions about birth, death and religion; Macy closes by assessing Sullivan’s teaching principles and Keller’s abilities.",
+      "characters": [
+        "Helen Keller",
+        "Anne Mansfield Sullivan",
+        "Samuel Gridley Howe",
+        "Laura Bridgman",
+        "Michael Anagnos",
+        "Sophia C. Hopkins",
+        "Captain Keller",
+        "Mrs. Keller",
+        "Mildred",
+        "Alexander Graham Bell",
+        "Phillips Brooks",
+        "John D. Wright"
+      ],
+      "locations": [
+        "Perkins Institution for the Blind",
+        "Tuscumbia",
+        "Ivy Green garden-house",
+        "pump-house",
+        "Keller’s Landing",
+        "Huntsville",
+        "Boston",
+        "Brewster",
+        "Memphis",
+        "Cincinnati"
+      ],
+      "retrieval_cues": [
+        "raised labels and manual alphabet",
+        "letters to Sophia Hopkins",
+        "table manners and obedience",
+        "mug milk water",
+        "April 5 1887 pump-house breakthrough",
+        "everything has a name",
+        "natural method of teaching language",
+        "complete sentences and imitation",
+        "learning through play and books",
+        "braille and square-hand writing",
+        "muscular sense and emotion",
+        "Mother Nature and religious questions",
+        "1894 Chautauqua paper",
+        "ability versus teaching method"
+      ],
+      "word_count": 36426,
+      "path": "sections/138-part-iii-chapter-03.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec139",
+      "section_number": 139,
+      "title": "CHAPTER IV. SPEECH",
+      "routing_description": "Macy assesses Keller's voice and pronunciation. Sullivan recounts her early sounds, determination to speak, Sarah Fuller's lessons, and continued practice; Keller's 1896 Mount Airy address explains the personal value of spoken communication.",
+      "characters": [
+        "Helen Keller",
+        "Anne Sullivan",
+        "Sarah Fuller",
+        "Ragnhild Kaata",
+        "John Hitz",
+        "Dr. Humason",
+        "President Roosevelt"
+      ],
+      "locations": [
+        "Horace Mann School",
+        "Wright-Humason School",
+        "Chautauqua",
+        "Mt. Airy, Philadelphia"
+      ],
+      "retrieval_cues": [
+        "speech lessons",
+        "pronunciation and inflection",
+        "lip-reading by touch",
+        "manual alphabet and articulation",
+        "Ragnhild Kaata",
+        "eleven lessons",
+        "Mt. Airy address"
+      ],
+      "word_count": 3748,
+      "path": "sections/139-part-iii-chapter-04.md"
+    },
+    {
+      "section_id": "pg2397-vb3cc1e13-sec140",
+      "section_number": 140,
+      "title": "CHAPTER V. LITERARY STYLE",
+      "routing_description": "Macy traces Keller's literary style through reading, revision, and college composition. Documents and parallel stories examine the Frost King controversy and remembered language; excerpts from her early autobiography, essays, Horace translation, and accounts of dreams illustrate her writing.",
+      "characters": [
+        "Helen Keller",
+        "Anne Sullivan",
+        "Margaret T. Canby",
+        "Michael Anagnos",
+        "Mrs. S. C. Hopkins",
+        "Charles T. Copeland",
+        "Alexander Graham Bell"
+      ],
+      "locations": [
+        "Tuscumbia",
+        "Brewster",
+        "Perkins Institution",
+        "Radcliffe",
+        "Fern Quarry"
+      ],
+      "retrieval_cues": [
+        "The Frost King",
+        "The Frost Fairies",
+        "The Rose Fairies",
+        "plagiarism accusation",
+        "unconscious imitation",
+        "literary style",
+        "Youth's Companion sketch",
+        "Horace Book II-18",
+        "dreams"
+      ],
+      "word_count": 15519,
+      "path": "sections/140-part-iii-chapter-05.md"
+    }
+  ]
+}
