@@ -411,7 +411,10 @@ def test_surfacing_review_shows_time_history_sources_and_semantic_rubric(
     (package / "ground-truth.json").write_bytes(json_bytes(truth))
     (package / "pre-generation-report.md").write_text("Fixture report")
     review = _state(package, built_ui).payload
-    assert review["replay"]["module"] == "evals.synthetic_journals.surfacing_replay"
+    assert review["replay"]["supported"] is False
+    assert review["replay"]["module"] is None
+    assert review["replay"]["confirmLabel"] == "Confirm Ground truth"
+    assert "records adoption only" in review["replay"]["note"]
     assert review["rows"][0]["summary"] == "Defer"
     assert review["rows"][0]["surfacing"]["reconsideration"]["kind"] == "time"
     timely = review["rows"][1]

@@ -22,6 +22,11 @@ memory search remain later slices. The implemented curation slice selects a
 bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
 Memory & Policy Service, and materialises the resulting retrieval view.
+The adopted conversational memory target in Section 4.2.5 adds curation after a
+durable capture and proactive surfacing during a later conversation. Its chat
+triggers, personal-memory evidence release, and complete evaluation path are
+not yet implemented. The existing offline surfacing runner tests only the
+decision component of that target.
 
 ## 1. Purpose and positioning
 
@@ -66,6 +71,8 @@ approval. Content about sensitive traits is never captured.
 - immutable original memories, versioned generated summaries, duplicate links,
   topic groups, reversible retrieval tombstones, and progressive disclosure;
 - conversation- or photograph-triggered connections using internal evidence and optional general web search;
+- the bounded conversational memory target in Section 4.2.5, with curation after
+  a successful durable capture and relevant memory surfacing during a later Line;
 - a mandatory, context-restricted output gate, deterministic post-checks, at most one revision, and an application-authored safe decline;
 - a simple web interface, multiple test accounts, CI/CD, and reproducible test deployment;
 - adversarial, output-gate, reflection, retrieval, memory-quality, connection-quality, cost, and latency evaluation;
@@ -85,7 +92,8 @@ approval. Content about sensitive traits is never captured.
 - the full Project Gutenberg catalogue;
 - copyrighted books, lyrics, or copyrighted-audio analysis without permission;
 - general shell, browser-control, or external-action capabilities;
-- continuous monitoring or unsolicited resurfacing;
+- continuous monitoring or unsolicited resurfacing outside an active user
+  conversation, including notifications;
 - end-user memory-management settings and explicit save, review, correction, or deletion controls;
 - mental-health profiling, diagnosis, or crisis-resource routing;
 - autonomous prompt or skill self-modification — the self-improvement loops in Section 9 produce human-reviewed proposals only and never apply changes themselves;
@@ -100,7 +108,7 @@ The system contains five reasoning agents and one deterministic service:
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
 | **Librarian** | Infers request-scoped reading boundaries by cross-referencing authorised memories with the complete corpus, then plans, executes, fuses, and reranks evidence retrieval within the inferred ceiling. | None |
-| **Sculptor** | Curates bounded sets of existing memories for retrieval by proposing derived summaries, duplicate links, topic groups, or reversible retrieval tombstones and restorations while preserving originals. A scheduled Sculptor task, run outside user conversations, also curates the system playbook of operational lessons (Section 9.2). | May propose curation changes and playbook pull requests; no direct writes |
+| **Sculptor** | Curates bounded sets of existing memories for retrieval while preserving originals. In the conversational target, it also judges whether a supplied memory is useful now or should remain unsurfaced. Its separate scheduled system-playbook task runs outside user conversations (Section 9.2). | May propose curation changes, surfacing decisions, and playbook pull requests; no direct writes or user-facing release |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. It separately reviews complete Sculptor curation proposals against their exact source snapshots and returns an `allow`, `revise`, or `reject` verdict bound to the proposal digest. | None |
 | **Memory & Policy Service** | Authenticates account scope and deterministically enforces automatic-capture and curation policy, access, storage, idempotency, source freshness, audit verification, and the retrieval projection. It accepts only reviewed commands whose immutable proposal digest matches an `allow` verdict. | Commits validated writes |
@@ -123,7 +131,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
 | **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
-| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal`. | Pydantic AI typed input and output contracts |
+| **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter currently has an offline execution path only. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
@@ -131,7 +139,13 @@ Exa is the sole general web-search integration for the prototype. Install the `p
 
 Agents are logical roles, not necessarily separate models or processes. Muse handles ordinary interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed. Provenance runs the request-local emotional-boundary preflight for every Line and the release review for every Muse candidate.
 
-The five roles separate conversation and optional memory nomination, retrieval, post-capture memory curation, connection generation, and independent verification. Each agent is handed only the task in front of it, never the whole conversation; deterministic application code enforces access, capture, writes, and output release.
+The five roles separate conversation and optional memory nomination, retrieval,
+memory curation and usefulness decisions, connection generation, and independent
+verification. Librarian and application services select authorised evidence.
+Sculptor judges the supplied memories' usefulness, timing, and repetition.
+Serendipity proposes broader connections. Each agent receives only the task in
+front of it, never the whole conversation. Deterministic application code
+enforces access, capture, writes, and output release.
 
 Each hand-off uses a strict, discriminated envelope and carries only the fields required by the next step. Muse receives either a draft envelope or one revision envelope that preserves the same turn and context authority. Full transcripts and unrestricted working context are not passed between agents.
 
@@ -142,7 +156,8 @@ Provenance shares no model working context with the other agents and has no tool
 Before Muse or any Muse-accessible tool runs, Provenance classifies the current
 Line against the versioned emotional-content policy. `continue_reflection`
 enters the ordinary Muse flow. `apply_boundary` skips Muse, Librarian,
-Serendipity, ordinary candidate review, and memory nomination; application code
+Serendipity, target conversational Sculptor work, ordinary candidate review,
+and memory nomination; application code
 releases the canonical response from Section 6.6 and records
 `application_emotional_boundary`. A preflight failure fails closed to the
 application safe decline before Muse runs. This narrow application-owned path
@@ -276,6 +291,57 @@ searches, web or private evidence payloads, rejected draft text, Provenance
 critiques, or memory content. Inspect metadata cannot authorize retrieval,
 release, capture, or storage, and its trace link follows the metadata-only backend
 telemetry contract in Section 8.1.
+
+#### 4.2.5 Conversational memory curation and surfacing target
+
+This adopted target makes Sculptor's work observable through a conversation.
+It does not require Sculptor to remain offline. Application code owns when it
+runs and which evidence it receives. Curation changes the retrieval view;
+surfacing decides whether existing evidence would help the current conversation.
+Neither operation grants Sculptor tools, write authority, or direct release.
+
+The bounded demonstration follows this sequence:
+
+1. Earlier same-account memories establish a preference. The user then sends a
+   natural Line describing a changed preference, without requesting a save or
+   instructing an agent. The normal emotional preflight, Muse nomination,
+   Provenance review, and deterministic capture policy apply.
+2. Only a successful new durable capture triggers application-owned curation.
+   The application supplies the new original and relevant earlier originals
+   through the existing bounded selection contract. It does not curate on
+   every Line or treat an idempotent retry as another change.
+3. Sculptor proposes a supported curation action or no change. A proposal passes
+   the separate, exactly bound curation-specific Provenance gate before the
+   Memory & Policy Service applies and verifies it. Originals remain immutable;
+   derived records retain their source references and the audit records the
+   actual outcome. A revision, rejection, or failed validation does not authorise
+   a curation write. An application or verification failure cannot be reported
+   as successful curation. No-change is a valid outcome.
+4. In a later fresh chat, the user sends a natural Line for which the updated
+   preference may matter, without explicitly asking for recall. After preflight,
+   Librarian and application services retrieve authorised candidates from the
+   actual stored state. The application gives Sculptor a bounded memory set,
+   current context, decision time, and prior surfacing or dismissal history.
+5. Sculptor proposes surfacing now, deferral, or silence. Muse may use a validated
+   suggestion to draft an evidence-backed response. Provenance reviews the
+   complete candidate, and deterministic checks resolve its personal-memory
+   evidence before release. Deferral and silence produce no inserted suggestion
+   and schedule no notification. The ordinary conversation may continue.
+
+If capture is absent, vetoed, suppressed, or fails, the workflow records that
+outcome and does not invent a new memory or run capture-triggered curation.
+The later chat can use only the state that actually exists. Retrieval failure,
+invalid source references, and unsupported release evidence fail closed under
+the ordinary response policy. A curation success never authorises a response
+without the separate release gate.
+
+Current code provides reviewed capture, a callable reviewed curation loop, and
+an offline surfacing decision function. The complete sequence still requires
+conversational triggers, a typed hand-off of personal-memory sources into Muse
+and Provenance, and deterministic personal-memory release support. Its evaluation
+also needs package support for carrying observed outcomes between Scenes,
+Ground truth for those dependencies, and a runner that grades the complete path.
+Section 7.2 records these gaps without changing the existing package models.
 
 ## 5. Core records
 
@@ -663,9 +729,11 @@ and future designs must use these terms instead of ad hoc synonyms such as
 vocabulary, Backstory and Ground truth structures, deterministic package
 validator, and Ground truth authority lifecycle below. Interactive independent
 adoption is implemented. The catalog registers capture, bounded-curation,
-session-continuity, grounded-book-reflection, spoiler-boundary, and offline
-proactive-memory-surfacing replay as supported paths. The book runner accepts
-either book Objective alone or both in either order. Reflection replay code for
+session-continuity, grounded-book-reflection, and spoiler-boundary replay as
+supported paths. Existing offline proactive-memory-surfacing replay provides
+component evidence only; it does not execute the adopted conversational
+Objective. The book runner accepts either book Objective alone or both in either
+order. Reflection replay code for
 `weak_evidence_safe_decline` remains an unsupported path. Reusable generation,
 dataset freezing, and replay for other
 Objectives remain downstream decisions.
@@ -680,7 +748,7 @@ Lines through production replay and the Ground truth lifecycle used for grading.
 | **Objective** | An entry in [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml). An objective specifies the behavior that a group of scenes must demonstrate. |
 | **Backstory** | The generated history for one person, plus reading history only when relevant, that makes scenes coherent. One backstory represents one person and one evaluation account. The backstory informs generation only; the running system never receives it. |
 | **Prop** | A generated memory record made available before a scene through storage setup or a bounded offline input. Each prop belongs to the backstory's person and evaluation account. A prop may be used or remain untouched; Ground truth records the expected use or non-use for that scene. |
-| **Scene** | One bounded test of one primary behavior, tied to an objective. A scene uses its designated props and an isolated starting state: a fresh session for conversational input or a supplied snapshot for offline input. It is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
+| **Scene** | One bounded test of one primary behavior, tied to an objective. A scene uses its designated props and a declared starting state: a fresh session for conversational input or a supplied snapshot for offline input. A fresh chat does not erase the account's durable memories. An ordered target sequence may require observed outcomes from an earlier Scene; this dependency requires package and runner support. A scene is graded as a unit. Objectives typically require paired scenes, such as a grounded scene and a non-grounded comparison scene. |
 | **Line** | One generated user input sent to Linger's production chat boundary within a scene. Most scenes contain one line; some contain an ordered sequence of lines. A policy preflight may stop a line before Muse. |
 | **Ground truth** | The answer-key data for a scene: intended relationships, expected outcomes, permitted evidence identifiers, exact spans, and failure conditions. The generator writes **proposed Ground truth** to `ground-truth.json` while creating `backstory.json`. Deterministic validation checks objective facts, then an independent reviewer adopts, revises, or rejects the proposal. Only **adopted Ground truth** is canonical for grading. Neither state is exposed to the running system. |
 
@@ -689,9 +757,15 @@ The vocabulary encodes these boundaries:
 - One backstory represents one person and one evaluation account. Every prop, scene, and line belongs to that backstory.
 - The backstory never enters the running system, and no backstory content becomes a prop by copying. A prop whose use or non-use is under evaluation must be generated as separate source text.
 - Props are placed before a scene runs. Memory records that the system creates while a scene runs are recorded outcomes, not props, and are never hand-authored.
+- In the conversational surfacing target, the captured preference update and
+  any resulting derived records are runtime outcomes. Later Scenes must use
+  those actual outcomes, not generated substitutes or reseeded Props. The
+  generator may propose expectations about outcomes but cannot write them into
+  the starting store.
 - Lines are conversational input only. Session reset and evaluation-controlled capture policy are workflow state, not Lines.
-- Offline surfacing Scenes supply `OfflineInput.surfacing_context` with a
-  timezone-aware `now`, `current_context`, and prior surfaced or dismissed
+- Existing offline surfacing component Scenes supply
+  `OfflineInput.surfacing_context` with a timezone-aware `now`, `current_context`,
+  and prior surfaced or dismissed
   `history`. These fields describe the situation presented to Sculptor.
   Expected decisions remain separate in `GroundTruthProposal.surfacing`.
 - The generator writes `backstory.json` and `ground-truth.json` together. The Ground truth file records exact spans, intended relationships, Scene pairings, and expected or prohibited outcomes needed to preserve the generator's intent.
@@ -742,9 +816,12 @@ The end-to-end workflow has distinct human gates:
 6. A change request writes no adoption and invokes no runtime. Confirmation
    writes sibling `ground-truth-adoption.json`. For an exact supported selection,
    the agent validates the adoption and starts one provider-backed replay. The
-   supported selections are reviewed automatic capture, bounded memory curation,
-   session continuity, proactive memory surfacing, either book Objective alone,
-   and both book Objectives in either order. Other selections stop after adoption.
+   supported complete selections are reviewed automatic capture, bounded memory
+   curation, session continuity, either book Objective alone, and both book
+   Objectives in either order. Surfacing is not registered for automatic replay
+   because its existing runner covers only the offline component. Other
+   selections stop after adoption; unsupported package contracts prevent
+   generation earlier.
 7. The durable replay output remains the complete evaluation record. Pydantic
    Evals and the `linger-evals` Logfire service provide interactive result,
    agent, provider, and trace views.
@@ -800,17 +877,26 @@ identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
 
-The [`proactive_memory_surfacing` runner](../evals/synthetic_journals/surfacing_replay.py)
-evaluates Sculptor's offline decisions over supplied, bounded, account-scoped
-Props. Each Scene contains exactly one
-offline input and no Lines. The input supplies a timezone-aware decision time,
+The adopted `proactive_memory_surfacing` Objective evaluates the conversational
+sequence in Section 4.2.5. Earlier Props establish a preference, a natural Line
+changes it, reviewed capture commits the change, and application-triggered
+curation preserves the originals while updating their retrieval representation.
+A later Line in a fresh chat tests whether Sculptor and Muse use the resulting
+memory state appropriately. The evaluated outcome includes the actual storage
+and curation transitions, grounded conversational release, and appropriate
+silence. It ends at the released response, with no notification or scheduler.
+
+The existing [`surfacing runner`](../evals/synthetic_journals/surfacing_replay.py)
+evaluates only Sculptor's offline decision component over supplied, bounded,
+account-scoped Props. Its accepted Scenes contain exactly one offline input and
+no Lines. The input supplies a timezone-aware decision time,
 the current context, and any prior surfaced or dismissed suggestions. Sculptor
 returns `surface_now`, `defer`, or `do_not_surface`. A suggestion cites supplied
 source identifiers. A deferral includes a future time or condition for
 reconsideration, and a decision to remain silent includes a reason.
 
-Packages cover timely, deferred, superseded, repeated, unsupported, and
-sensitive situations. The required timely and deferred pair changes only
+Its component packages cover timely, deferred, superseded, repeated,
+unsupported, and sensitive situations. Their timely and deferred pair changes only
 `now`, so the evaluation can test whether time changes the decision. Proposed
 Ground truth records the expected decision, allowed and required source
 identifiers, reconsideration or a reason for silence, semantic criteria, and
@@ -827,11 +913,33 @@ Ground truth expects `surface_now`. The hard-gate pass rate separately checks
 sources, timing, and input and Prop immutability. Semantic quality remains
 ungraded.
 
-This runner supports the surfacing Objective alone. It evaluates decision
-quality without capture, live memory retrieval, Muse, Provenance, a scheduler,
-or notification delivery. It leaves all Props unchanged and makes no claim of
-end-to-end product readiness. Section 9.2's scheduled product task remains a
-future direction.
+This runner accepts only a surfacing selection and leaves all Props unchanged.
+It omits capture, triggered curation, live memory retrieval, Muse, and Provenance
+release, so its result cannot establish the adopted Objective. These omissions
+are evaluation gaps because the conversational Objective now requires them.
+The absence of a scheduler or notification delivery is not a gap.
+
+The complete Objective is currently blocked by the following work:
+
+- Add application triggers after an observed durable capture and during the
+  later chat. Prove that vetoes, safe declines, retries, and no-change or rejected
+  curation do not manufacture state changes.
+- Add the typed personal-memory source hand-off and deterministic release
+  checks. Prove same-account source resolution, immutable-original lineage,
+  correct attribution, and ordinary Provenance review of every Muse candidate.
+- Extend the adopted package contract and validator to express ordered Scene
+  outcome dependencies and their proposed Ground truth. Keep runtime-created
+  identifiers and records as observed outcomes, separate from seeded Props.
+- Add replay and grading for the entire sequence, including actual capture,
+  curation review and application, later retrieval, surfacing or silence, and
+  released wording. Structural checks do not establish semantic usefulness.
+
+Until these prerequisites exist, pre-generation reports must mark the complete
+plan insufficient and the prompt **Target state — do not run**. Existing
+`models.py` and `validate_package.py` remain the contracts to inspect unchanged;
+the authoring workflow must report their gaps, not invent a parallel schema or
+replace the required Lines with offline inputs. Existing component packages and
+reports remain historical evidence, not approval for the expanded target.
 
 The book runner compiles each validated package before replay. The compiler
 accepts `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
@@ -967,17 +1075,16 @@ Two loops are in scope.
 
 **Relationship to Sculptor's product role.** The curation contract is unchanged — propose, never commit; preserve originals; work within a bounded context. Only the corpus differs: one curation agent, two memory stores — user memories and the system's memory of itself — under the same safeguards. The playbook task never receives raw personal memories, full transcripts, photographs, or sensitive-inference content, consistent with Sections 6.3 and 8.1.
 
-**Future product direction.** Sculptor is the proactive intelligence layer;
-Muse is how that intelligence speaks. The offline `proactive_memory_surfacing`
-Objective in Section 7.2 tests the decision quality needed for this direction.
-A separately adopted scheduled product task could let Sculptor propose a
-grounded next action or timely resurfacing
-from a bounded, account-scoped memory set. Sculptor would not release the
-proposal itself: Muse would produce any user-facing wording, and Provenance and
-deterministic application checks would retain the ordinary release boundary.
-This is not current prototype behaviour and does not alter Sculptor's
-proposal-only, no-write authority or Section 3.3's exclusion of continuous
-monitoring and unsolicited resurfacing.
+**Product direction.** Section 4.2.5 adopts a bounded conversational target:
+Sculptor curates after a successful durable capture and judges relevant memories
+during a later user conversation. Muse produces user-facing wording; Provenance
+and deterministic application checks retain the release boundary. The expanded
+`proactive_memory_surfacing` Objective evaluates that complete path. Its existing
+offline runner remains component evidence while the integration is unimplemented.
+Sculptor's product work need not run offline, and it gains no write or release
+authority. The scheduled operational playbook remains a separate task. Continuous
+monitoring and unsolicited out-of-conversation resurfacing remain excluded by
+Section 3.3.
 
 **Relationship to failure-to-eval promotion.** If the project adopts the workflow in Section 9.1, failure-to-eval promotion will produce regression coverage, while Section 9.2 will continue to curate operational guidance. The two concerns remain separate.
 

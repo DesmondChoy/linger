@@ -173,31 +173,36 @@ def test_accepts_offline_inputs_without_lines(tmp_path: Path) -> None:
     assert validate_report(path) == []
 
 
-SURFACING_PROMPT = """
-Create bounded authorized Props and offline inputs with no Lines.
-Use OfflineInput.surfacing_context with timezone-aware now, current_context,
-and history of prior surfaced or dismissed suggestions.
-Pair the timely and deferred Scenes with only now changed.
-Write decisions surface_now, defer, or do_not_surface in
-GroundTruthProposal.surfacing with required_source_ids and allowed_source_ids.
-For defer, propose reconsideration at a future time or under a condition.
-"""
+def conversational_surfacing_report() -> str:
+    return report_text(prompt="""
+Objective: proactive_memory_surfacing. Stop until adopted repository contracts
+represent the complete conversation workflow and its evaluation runner exists.
+Current contracts only describe the offline component and cannot represent
+this plan. Do not invent a schema, edit those contracts, or create any files
+while these prerequisites remain unmet.
 
+After those prerequisites and human approval, author one person's Backstory
+and separately sourced Props for one evaluation account. An initial Scene
+contains an update Line; later Scenes start fresh chats with natural Lines
+while preserving the actual durable memory state. The application must review and capture
+the update, review and apply curation, and make the resulting memory available
+to a timely surfacing decision before Muse drafts and Provenance reviews the
+reply for deterministic release. Runtime-created memories are outcomes, not
+Props. Include negative contrasts for cancellation, repetition, weak support,
+sensitive inference, and rejected capture or curation. Describe each expected
+terminal response, source support, state change, and unchanged original.
 
-def test_requires_proactive_context_only_when_selected(tmp_path: Path) -> None:
-    path = write_report(tmp_path, report_text(extra="proactive_memory_surfacing"))
-
-    assert validate_report(path) == []
-    errors = validate_report(path, ("proactive_memory_surfacing",))
-    assert any("offline surfacing context" in error for error in errors)
-    assert any("timing-only Scene pair" in error for error in errors)
-
-
-def test_accepts_complete_proactive_prompt(tmp_path: Path) -> None:
-    text = report_text(prompt=SURFACING_PROMPT).replace(
+Keep proposed Ground truth separate from the Backstory and all runtime inputs.
+Anchor proposed labels to the adopted contract's Scene and source identifiers
+and exact spans. Do not grade recorded behavior or claim label adoption.
+""").replace(
         "Create one Backstory, no Props, three Scenes, and one Line per Scene.",
-        "Create one Backstory and Scenes with one offline input per Scene.",
+        "Plan one Backstory with Props and conversational Scenes containing Lines.",
     )
+
+
+def test_accepts_blocked_conversational_surfacing_target(tmp_path: Path) -> None:
+    text = conversational_surfacing_report()
     path = write_report(tmp_path, text)
 
     assert validate_report(path, ("proactive_memory_surfacing",)) == []
@@ -206,27 +211,18 @@ def test_accepts_complete_proactive_prompt(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("omitted", "error_label"),
     [
-        ("OfflineInput.surfacing_context", "offline surfacing context"),
-        ("timezone-aware", "timezone-aware decision time"),
-        ("current_context", "current context"),
-        ("history", "prior surfacing history"),
-        ("surfaced", "surfaced history outcome"),
-        ("dismissed", "dismissed history outcome"),
-        ("no Lines", "offline Scenes without Lines"),
-        ("only now", "timing-only Scene pair"),
-        ("GroundTruthProposal.surfacing", "typed surfacing Ground truth"),
-        ("surface_now", "surface_now decision"),
-        ("defer", "defer decision"),
-        ("do_not_surface", "do_not_surface decision"),
-        ("required_source_ids", "required source identifiers"),
-        ("allowed_source_ids", "permitted source identifiers"),
-        ("reconsideration", "deferred reconsideration"),
+        ("evals/synthetic_journals/models.py", "package models"),
+        (
+            "evals/synthetic_journals/validate_package.py",
+            "deterministic package validator",
+        ),
+        ("PACKAGE_DIRECTORY/ground-truth.json", "package Ground truth path"),
     ],
 )
-def test_proactive_prompt_requires_runtime_inputs_and_separate_ground_truth(
+def test_blocked_surfacing_prompt_still_requires_shared_package_contract(
     tmp_path: Path, omitted: str, error_label: str
 ) -> None:
-    text = report_text(prompt=SURFACING_PROMPT.replace(omitted, "omitted"))
+    text = conversational_surfacing_report().replace(omitted, "omitted")
     path = write_report(tmp_path, text)
 
     errors = validate_report(path, ("proactive_memory_surfacing",))

@@ -141,18 +141,23 @@ authorize synthetic-data generation.
     `GroundTruthProposal.prop_relevance` entry for every available Prop in each
     Scene. Without this Objective, create only the Props required by the
     confirmed selection.
-    When `proactive_memory_surfacing` is selected, use supplied, bounded,
-    account-scoped Props and one offline input per Scene, with no Lines. Resolve
-    `OfflineInput.surfacing_context` using the current contract, including a
-    timezone-aware `now`, `current_context`, and prior surfaced or dismissed
-    `history`.
-    Keep proposed decisions and their reasons in `GroundTruthProposal.surfacing`,
-    separate from runtime inputs. Cover every catalog case kind and preserve
-    the paired timely and deferred Scenes with only `now` changed. This
-    Objective evaluates offline decision quality. Do not require automatic
-    capture, live retrieval, a scheduler, notifications, Muse wording, or
-    Provenance release. Its first replay supports this Objective alone; a mixed
-    selection needs a separately supported execution plan.
+    When `proactive_memory_surfacing` is selected, derive the conversational
+    Scene sequence and its required outcomes from the current catalog and
+    `docs/specification.md` Section 4.2.5. Selecting this Objective alone
+    includes its capture and curation prerequisites; do not add another
+    Objective or its run configuration merely because the path uses it.
+    Distinguish initial Props from observed captures and curation results.
+    Trace how later fresh-session Lines consume the actual durable state,
+    with trusted decision time and prior surfacing or dismissal history.
+    Inspect the existing offline `OfflineInput.surfacing_context`,
+    `GroundTruthProposal.surfacing`, compiler, and replay as component assets.
+    Their no-Line topology does not satisfy the conversational Objective.
+    Check for adopted outcome references, personal-memory evidence release,
+    and complete replay/grading before declaring the plan runnable. If those
+    contracts or paths are missing, describe the complete target and name each
+    gap inside a **Target state — do not run** prompt. Do not invent JSON
+    fields, fabricate runtime records, or replace required Lines with offline
+    inputs to make the existing validator pass.
 13. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
     workflow inputs, translated Ground truth requirements, and the Backstory and
@@ -316,6 +321,10 @@ word count. Then verify the semantic requirements that the script cannot prove:
   `run_configuration_ids` and its exact entity counts are translated into the
   fenced prompt. For longitudinal retrieval, both Scenes share the same 11
   active Props and proposed relevance covers all 11 Props in each Scene.
+- For conversational surfacing, initial Props remain distinct from captures
+  and curation results observed during execution. Later fresh chats preserve
+  the actual durable state while clearing conversation history. The report
+  assesses the complete catalog endpoint, not only the offline component.
 
 Report the path and selected Objective IDs, then stop. The repository defines
 the Backstory and Ground truth contracts and deterministic validator.

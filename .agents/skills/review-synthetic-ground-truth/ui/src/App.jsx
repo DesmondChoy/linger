@@ -375,7 +375,7 @@ function App() {
       <main className="completed-screen">
         <div className={`completion-mark ${confirmed ? '' : 'is-revision'}`} aria-hidden="true">{confirmed ? '✓' : '↺'}</div>
         <p className="eyebrow">{confirmed ? 'Ground truth confirmed' : 'Changes requested'}</p>
-        <h1>{confirmed ? 'The agent can now continue to the supported evaluation.' : 'The agent will return to discuss your corrections.'}</h1>
+        <h1>{confirmed ? 'Your Ground truth adoption has been recorded.' : 'The agent will return to discuss your corrections.'}</h1>
         <p>This local review server is closing. Return to Codex when this page becomes unavailable.</p>
       </main>
     )

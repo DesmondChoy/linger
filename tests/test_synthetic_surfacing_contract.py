@@ -124,7 +124,6 @@ def test_condition_meaning_is_not_exact_string_graded():
     assert grade.semantic_review_required
 
 
-def test_surfacing_replay_support_is_standalone():
-    support = replay_support_for(["proactive_memory_surfacing"])
-    assert support.module == "evals.synthetic_journals.surfacing_replay"
+def test_offline_runner_does_not_register_complete_conversational_replay():
+    assert replay_support_for(["proactive_memory_surfacing"]) is None
     assert replay_support_for(["proactive_memory_surfacing", "bounded_memory_curation"]) is None

@@ -98,7 +98,11 @@ developer_workflow:
       - session_scoped_conversation_continuity
       - grounded_book_reflection
       - spoiler_boundary_clarification
-      - proactive_memory_surfacing
+    component_replay_coverage:
+      proactive_memory_surfacing: >-
+        evals/synthetic_journals/surfacing_replay.py retains the earlier offline
+        decision test. It does not execute the adopted conversational Objective
+        and is not a supported automatic replay for that complete selection.
     run_configuration_directory: synthetic-journal-evaluation/run-configurations
     report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true
@@ -867,87 +871,103 @@ evaluation_objectives:
       title: Proactive memory surfacing
       family: conversation_and_memory
       summary: >-
-        Sculptor reviews supplied memories and the current context to decide
-        whether to suggest a useful next action now, reconsider it later, or
-        leave it unmentioned. This objective tests offline decision quality,
-        including when silence is appropriate.
+        A new reflection updates a person's memory through reviewed capture and
+        Sculptor curation. In a later fresh chat, Sculptor decides whether that
+        history can help the conversation, and Muse responds through the normal
+        review gates. This objective tests the complete flow and appropriate silence.
       selection_hint: >-
-        Use to test grounded, timely suggestions without a live scheduler,
-        notifications, or a new conversational request.
+        Use to demonstrate a natural Line changing durable memory, followed by
+        a later Line that benefits from the updated history without asking for recall.
     composition:
       combines_well_with: []
       constraints:
-        - The first replay supports this Objective alone. Combining it with capture, retrieval, curation, or conversation requires a separately supported staged evaluation.
-        - Supply bounded, active Props from one evaluation account directly to each offline Scene. Automatic capture and live retrieval are not prerequisites.
-        - Keep the Scene's decision time, current context, and prior surfacing history separate from proposed Ground truth.
-        - Grade the proposed decision only. Scheduling, notification delivery, Muse wording, and Provenance release are outside this Objective.
+        - This Objective includes its capture and curation prerequisites; selecting their separate Objectives is not required for this demonstration.
+        - Keep one Backstory, one person, and one evaluation account throughout the ordered workflow. Reset conversation history before later surfacing Scenes while preserving the observed durable account state.
+        - Seed only earlier source records as Props. Captured memories, curation proposals, derived records, and source identifiers created during execution are observed outcomes, never generator-authored Props.
+        - Trigger curation only after a successful new durable capture, not on every Line or an idempotent retry. Preserve originals and require the separate curation review and policy gates.
+        - Supply only bounded authorised candidate memories to Sculptor. Librarian and application services own retrieval; Sculptor decides usefulness, timing, repetition, or silence; Muse owns conversational wording.
+        - Evaluate actual capture, curation application, later memory use, and reviewed response release. The existing offline runner is narrower component evidence and cannot establish this Objective.
+        - Keep scheduler-driven work, out-of-conversation notifications, and continuous monitoring outside this Objective.
     generation_brief:
       purpose: >-
-        Create a personal history in which an earlier intention or reflection
-        can support a useful next action at an appropriate moment. Include
-        nearby situations where timing, changed plans, prior exposure, weak
-        evidence, or sensitive inference make a suggestion inappropriate.
+        Create a coherent personal history in which a person's preference evolves.
+        A natural new reflection should update durable memory through the product's
+        capture and curation flow. Later conversation should benefit from that
+        refinement while respecting cancellation, feedback, weak evidence, and
+        sensitive uncertainty.
       minimum_scenes:
-        - A timely situation where supplied memories support a specific useful suggestion now.
-        - A matched earlier situation with the same Props, current context, and history, where only the decision time changes and the suggestion should be deferred.
-        - A cancelled or superseded intention that should not be resurfaced.
-        - An otherwise plausible suggestion that should not repeat after it was surfaced or dismissed within the supplied history's suppression period.
-        - Weak or unrelated evidence that should not become a suggestion through superficial thematic overlap.
-        - A sensitive or speculative inference that should remain unmentioned.
+        - An initial conversational Scene with earlier Props and a natural preference-update Line that warrants durable capture and a source-preserving curation summary or other justified action.
+        - A later fresh-session Scene whose natural Line makes the updated preference useful without restating it or explicitly requesting recall.
+        - A matched earlier fresh-session Scene with the same Line, available memory state, and prior history, where only the supplied decision time changes and a suggestion should be deferred.
+        - A later fresh-session Scene with explicit cancellation or replacement that defeats an otherwise plausible suggestion.
+        - A later fresh-session Scene where supplied prior surfacing or dismissal history makes repeating a suggestion inappropriate.
+        - A nearby fresh-session Scene where superficial thematic overlap does not justify using the stored history.
+        - A fresh-session Scene where a suggested connection would require a sensitive or speculative inference and should remain unmentioned.
       generation_requirements:
-        - Keep one coherent Backstory for one person and one evaluation account.
-        - Write Props as independently understandable source records, without suggested decisions or grading labels.
-        - Supply one offline input per Scene with an explicit timezone-aware decision time, natural current context, and any prior surfaced or dismissed suggestions.
-        - Keep the timely and deferred Scenes paired with only the decision time changed. In additional pairs, isolate and declare the change that affects the decision.
-        - Make cancellation, replacement, prior exposure, or dismissal explicit in the supplied records or context rather than relying on hidden Backstory facts.
-        - Include positive and negative decisions. A weak, obsolete, repetitive, or intrusive suggestion must not be made merely to avoid silence.
-        - Give deferred situations a meaningful future time or observable condition for reconsideration.
+        - Write one memory-only Backstory with independently understandable earlier Props and natural conversational Lines.
+        - Make the new preference a meaningful refinement of earlier source material. Keep it useful outside the initial conversation and avoid explicit save or memory-management requests.
+        - Make later Lines test the refined preference in a fresh chat without copying the earlier wording or revealing the expected suggestion.
+        - Plan later Scenes against the actual captured and curated outcomes of the initial Scene. Do not fabricate a successful state transition or substitute pre-seeded derived records when capture or curation fails.
+        - Keep the timely and deferred Scenes paired with only the supplied decision time changed. Keep both times after the prerequisite capture and curation, with identical Lines, candidate state, current situation, and prior history.
+        - Make cancellation, replacement, prior exposure, or dismissal explicit in supplied source records, Lines, or trusted workflow context. Do not rely on hidden Backstory facts.
+        - Preserve a useful ordinary conversation when no memory should be surfaced. Deferral or silence must not become a blanket refusal to respond.
+        - Keep capture enablement, session reset, decision time, and prior feedback as workflow state rather than conversational controls. Put proposed decisions and reasons only in separate Ground truth.
       expected_generated_data:
-        - A memory-only Backstory and bounded, account-scoped Props for each Scene.
-        - Typed offline context containing the decision time, current situation, and prior surfacing or dismissal history.
-        - A declared timing pair and any additional controlled Scene pairings.
+        - One memory-only Backstory and earlier same-account Props positioned before their designated Scenes.
+        - A natural preference-update Line and later fresh-session Lines for useful, deferred, cancelled, repeated, unsupported, and sensitive situations.
+        - An ordered Scene dependency plan that refers to runtime outcomes without manufacturing their records or identifiers.
+        - Declared timing and comparison relationships with independent proposed Ground truth for source use, state transitions, and released behavior.
       must_avoid:
-        - Lines asking the assistant what to remember, recommend, or do next.
-        - Hidden personal context that is necessary to choose the expected decision.
-        - Instructions or expected decisions embedded in Props or offline context.
+        - Offline context replacing the required Lines or an explicit request telling the system which memory to recall.
+        - Generator-authored captures, derived summaries, or curation results masquerading as observed outcomes or seeded Props.
+        - Instructions, internal agent names, or expected decisions embedded in Props or Lines.
         - Unsupported personal claims, diagnoses, or sensitive-trait inferences.
-        - Actual notifications, continuous monitoring, memory writes, or claims of end-to-end product readiness.
+        - Treating a curation proposal as an applied change or a surfacing proposal as a released response.
+        - Inventing a parallel package schema or claiming that the current offline package contract represents the complete sequence.
     prompt_inputs:
-      - id: surfacing_contract
+      - id: conversational_memory_contract
         supplied_by: generator_repository_access
-        description: The current typed offline input, bounded source rules, three decision variants, and reconsideration contract.
-      - id: surfacing_context_plan
+        description: The maintained conversational target, capture policy, curation source-preservation rules, memory-evidence release boundary, and existing package models and validator; identify missing contracts before generation.
+      - id: initial_memory_and_capture_plan
         supplied_by: workflow
-        description: Decision times with explicit timezones, natural current contexts, and prior surfaced or dismissed history without expected-decision labels.
-      - id: authorized_prop_plan
+        description: Earlier active same-account Prop roles and server-controlled capture enablement for the evaluation account, without expected capture spans or curation labels in runtime inputs.
+      - id: scene_dependency_plan
         supplied_by: workflow
-        description: The bounded active Props authorized for each Scene, supplied directly without a capture or retrieval workflow.
+        description: Ordered execution with actual capture and curation outcomes carried into later fresh chats, plus declared snapshot comparisons. Outcome identifiers must be resolved from execution, never supplied as fabricated memories.
+      - id: conversational_surfacing_context
+        supplied_by: workflow
+        description: Timezone-aware decision times, current situations derived from each Line and bounded application context, and recorded surfaced or dismissed history, without expected decisions.
     evaluation_metadata:
       expected_architecture:
-        primary_components: [sculptor]
-        supporting_components: []
-        mandatory_gates: []
-        deterministic_services: []
+        primary_components: [muse, sculptor]
+        supporting_components: [librarian]
+        mandatory_gates: [provenance]
+        deterministic_services: [memory_and_policy, session_state]
       ground_truth_requirements:
-        - Propose a surface_now, defer, or do_not_surface decision for every Scene in GroundTruthProposal.surfacing, separate from runtime inputs.
-        - Cover timely, deferred, superseded, repeated, unsupported, and sensitive case kinds, with a matched timely and deferred pair whose only changed input is now.
-        - Propose required and allowed source identifiers for each suggestion and the source support needed to justify it.
-        - For defer, propose reconsideration at a future time or under a specific condition. For do_not_surface, propose a reason for silence.
-        - Record semantic criteria and prohibited claims for independent review, including usefulness, sensitivity, unsupported assumptions, repetition, and timing.
+        - Propose the exact durable span in the initial Line, capture review and storage expectations, and the earlier source facts refined by it.
+        - Propose the justified curation action and required source relationships, immutable-original expectations, and observable application outcome. Bind runtime-created sources through an adopted outcome-reference contract rather than invented identifiers.
+        - Propose surface_now, defer, or do_not_surface decisions for the later Scenes, with required and allowed source lineage, useful suggestion criteria, reconsideration, or reasons for silence.
+        - Cover timely, deferred, superseded, repeated, unsupported, and sensitive situations, preserving the timing pair and its identical Line, memory state, context, and history.
+        - Propose expected and prohibited released behavior, correct attribution of recalled words versus interpretation, and the exact fresh-session boundary.
+        - Keep Ground truth separate from runtime inputs. The existing GroundTruthProposal.surfacing contract covers offline decisions only and cannot replace capture, curation, dependency, and conversational release expectations.
       observable_outcomes:
-        - A surface_now decision names a useful grounded suggestion and cites only supplied authorized source identifiers.
-        - A defer decision gives a grounded suggestion and an appropriate future time or condition for reconsideration.
-        - Cancelled, superseded, repeated, weakly supported, or sensitive suggestions produce do_not_surface with a reason.
-        - The timing pair changes from defer to surface_now when only the supplied decision time changes.
-        - The offline run leaves every Prop unchanged and performs no notification, capture, retrieval, or user-facing release.
+        - The initial Line enters the normal preflight and Muse path. Only an exact, approved durable span is stored through the authenticated capture policy.
+        - A successful new capture triggers bounded curation. Only an exactly reviewed and policy-approved proposal changes the retrieval view; originals remain unchanged and audit verification succeeds.
+        - No nomination, veto, suppressed capture, retries, rejected curation, and no-change branches record their real outcomes without invented memory or duplicate changes.
+        - The later chat starts without earlier conversation history, retrieves authorised evidence from actual durable state, and supplies only bounded candidate memories and current context to Sculptor.
+        - A useful surfacing proposal reflects the updated preference and reaches Muse with resolvable source lineage. Provenance and deterministic memory-evidence checks control the released wording.
+        - Deferred, cancelled, repeated, weakly supported, or sensitive suggestions stay unmentioned while the ordinary conversation remains helpful when policy permits it.
+        - The timing pair changes the surfacing decision when only the supplied decision time changes; no deferral schedules work or sends a notification.
       failure_conditions:
-        - A suggestion relies on hidden Backstory facts, proposed Ground truth, invented sources, or another account's records.
-        - The agent surfaces a cancelled plan, repeats a suppressed suggestion, or ignores the supplied decision time.
-        - A deferral has no meaningful future time or condition for reconsideration.
-        - Weak evidence or a sensitive inference becomes an unsupported personal claim.
-        - The agent always stays silent and misses the grounded timely opportunity.
-        - A proposal is treated as a delivered notification or authority to change memory.
-      suggested_measures: [decision_accuracy, surfacing_precision, missed_opportunity_rate, inappropriate_surfacing_rate, timing_contrast_accuracy, source_resolution]
+        - Raw Line text bypasses capture, a nomination exceeds its exact span, or a vetoed or suppressed candidate is stored.
+        - Curation runs as an unreviewed write, rewrites an original, loses source lineage, or reports a failed or rejected operation as applied.
+        - Later Scenes depend on retained chat history, hidden Backstory facts, proposed Ground truth, another account, or fabricated prerequisite outcomes.
+        - The conversation repeats the obsolete preference, resurfaces a cancelled plan, repeats a suppressed suggestion, or misses the grounded useful opportunity.
+        - A surfacing proposal bypasses Muse or the normal Provenance and deterministic evidence-release boundary.
+        - The released response makes an unsupported or sensitive claim, misattributes generated interpretation to the person, or refuses the comparison without a policy reason.
+        - Offline decision scores are reported as proof of capture, curation application, memory-backed release, or the complete conversational Objective.
+      suggested_measures: [capture_outcome_accuracy, curation_application_accuracy, source_preservation, fresh_session_memory_use, decision_accuracy, inappropriate_surfacing_rate, timing_contrast_accuracy, grounded_release_accuracy]
       academic_value:
-        - Context-dependent agent decisions and temporal reasoning over bounded personal memory.
-        - Independent Ground truth adoption, explicit negative cases, and proposal-only authority.
+        - An observable sequence from a natural Line through reviewed memory change to a later useful conversation.
+        - Distinct agent responsibilities, application-controlled orchestration, inspectable source lineage, and appropriate silence.
+        - Separate deterministic state and release checks from independent human judgments of usefulness and sensitive inference.

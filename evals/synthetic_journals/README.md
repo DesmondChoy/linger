@@ -63,6 +63,17 @@ The complete workflow is:
 The local selectors and reviewer return decisions to the agent. Neither browser
 server invokes a generator, model, or replay runner.
 
+The adopted `proactive_memory_surfacing` Objective now includes a conversational
+sequence: a preference-update Line, reviewed capture and curation, and memory
+use in a later fresh chat. The current package contract and runner do not
+represent that sequence. Its pre-generation report must describe the target
+and name those gaps before generation can be approved. See
+[the conversational target](../../docs/specification.md#425-conversational-memory-curation-and-surfacing-target).
+The direct `surfacing_replay` module remains an offline component test for
+existing packages. It does not establish the expanded Objective and is not
+automatically dispatched by Ground truth review. Existing adoption records
+remain bound to the component expectations they approved.
+
 The Pydantic models in `models.py` are the schema authority. Validate a package
 from the repository root:
 
