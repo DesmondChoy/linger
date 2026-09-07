@@ -8,7 +8,7 @@ parts of a book.
 A source adapter selects this format with `BookCorpus(unit_kind="section")`.
 The shared `src.linger.corpus.book` commands still initialize the canonical
 files, rebuild the catalog from reviewed front matter, and check integrity.
-Existing chapter corpora retain schema 1 and their established paths and IDs.
+Chapter corpora use schema 1 with chapter paths and IDs.
 
 ## File contract
 
@@ -46,13 +46,62 @@ The checker rejects schema 1 keys in schema 2 front matter, source changes,
 body changes, incorrect ranges or IDs, missing sections, unexpected artifacts,
 and stale catalogs. A corpus cannot be initialized over existing files.
 
-Section corpora are formatting artifacts. They are not registered with the
-chapter-based Librarian runtime by this change. Runtime support would require
-an explicit contract for section identities and request-scoped reading boundaries
-before registration. See [book registration](../book-registration.md).
+Section corpora are formatting artifacts outside the chapter-based Librarian
+runtime. Registration requires an explicit runtime contract for section
+identities and request-scoped reading boundaries. Alice is the only registered
+work. Animal Farm and Pinocchio also remain outside the runtime registry even
+though they use schema 1. See [book registration](../book-registration.md).
+
+## Adapters and source audits
+
+The shared command loads a source-specific `BOOK` from one of these modules:
+
+| Adapter | Format | Source audit |
+| --- | --- | --- |
+| `src.linger.corpus.alice` | Chapter schema 1 | Source ranges and routing metadata in `src/linger/corpus/alice.py` |
+| `src.linger.corpus.animal_farm` | Chapter schema 1 | [Animal Farm](animal-farm-source-audit.md) |
+| `src.linger.corpus.pinocchio` | Chapter schema 1 | [Pinocchio](pinocchio-source-audit.md) |
+| `src.linger.corpus.douglass` | Section schema 2 | [Frederick Douglass](douglass-source-audit.md) |
+| `src.linger.corpus.story_of_my_life` | Section schema 2 | [The Story of My Life](story-of-my-life-source-audit.md) |
+
+The audits record source boundaries, retained material, and source-specific
+preservation decisions. Adapter defaults point to the immutable text under
+`data/gutenberg/` and its versioned directory under `data/corpus/`.
+
+## Commands
+
+```sh
+uv run python -m src.linger.corpus.book ADAPTER COMMAND [--source PATH] [--output PATH]
+```
+
+| Argument | Meaning |
+| --- | --- |
+| `ADAPTER` | Importable module from the table above |
+| `init` | Render canonical files and build the catalogue in an empty destination |
+| `build-catalog` | Rebuild `catalog.json` from reviewed canonical front matter |
+| `check` | Verify source integrity, canonical content, metadata, file inventory, and catalogue consistency |
+| `--source PATH` | Override the adapter's source path; the adapter's integrity checks still apply |
+| `--output PATH` | Override the corpus directory for the selected command |
+
+For example, check Douglass or rebuild its derived catalogue:
+
+```sh
+uv run python -m src.linger.corpus.book src.linger.corpus.douglass check
+uv run python -m src.linger.corpus.book src.linger.corpus.douglass build-catalog
+```
+
+To render a separate copy, choose an empty output directory:
+
+```sh
+uv run python -m src.linger.corpus.book src.linger.corpus.story_of_my_life init \
+	--output /tmp/linger-story-of-my-life
+```
+
+Successful commands return `0`, canonical-artifact check findings return `1`,
+and source, adapter, build, or file errors return `2`.
 
 Run the section lifecycle tests with:
 
 ```sh
-.venv/bin/python -m pytest tests/test_section_corpus.py
+uv run pytest tests/test_section_corpus.py tests/test_section_runtime_boundary.py
 ```

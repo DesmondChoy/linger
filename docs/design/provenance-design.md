@@ -8,7 +8,16 @@ missing, and how the missing part gets evaluated* through the
 [`generate-synthetic-journals`](../../.agents/skills/generate-synthetic-journals/SKILL.md)
 skill.
 
-Snapshot: 2026-09-02, branch `km-provenance-reflection`.
+Historical evaluation snapshot: 2026-09-02, branch `km-provenance-reflection`.
+
+The measurements and investigation below describe that dated run. For current
+runtime behavior, use the [Provenance design overview](provenance-design.html),
+[Librarian design](librarian-design.md), and
+[synthetic book replay contract](synthetic-book-replay-contract.md).
+The runtime supports memory-backed chapter inference, session-supported exact
+passages, application-delivered clarification, and a separate curation review.
+Current book packages use shared Scene facts and Objective-owned expectations;
+the historical generic-grounding examples below are not the authoring contract.
 
 ---
 

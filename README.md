@@ -7,14 +7,14 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 - **Runtime:** Python 3.12, FastAPI, and Pydantic AI
 - **Reasoning:** five focused agents, with deterministic application control
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
-- **Corpus milestone:** *Alice's Adventures in Wonderland* from Project Gutenberg
+- **Corpus:** five validated works, with Alice registered for chat retrieval
 - **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
 - **Synthetic evaluation:** validated packages, independent Ground truth review,
-  and production-boundary capture and curation replay
+  chat replay, and bounded curation and surfacing evaluations
 - **Issue tracking:** [Beads](https://github.com/gastownhall/beads), backed by a local Dolt database
 
 Linger keeps authority over account boundaries, memory writes, validation, and
-user-visible output in application code—not in an agent.
+user-visible output in application code.
 
 ## What the prototype does
 
@@ -22,17 +22,25 @@ user-visible output in application code—not in an agent.
   Muse, optional specialists, Provenance, and deterministic release checks.
   Failed or rejected candidates produce application-owned responses.
 - **Ground:** retrieves exact, spoiler-bounded book passages through Librarian.
-  Evidence remains request-scoped and every released quotation must resolve to
-  the canonical corpus.
-- **Reconnect:** lets Serendipity explore bounded book evidence and, when
-  explicitly configured, public web evidence through Exa. Private wording is
-  blocked from web-search queries.
+  Chapter boundaries and exact-passage grants remain request-scoped. Book
+  evidence declarations resolve to the canonical corpus; declarations of earlier
+  reader wording must match a retained Line in the same session.
+- **Reconnect:** lets Serendipity explore account-scoped curated memories,
+  bounded book evidence, and configured public-web evidence through Exa.
+  Private wording is blocked from web-search queries. Released connections
+  require book-only evidence.
 - **Capture:** supports reviewed automatic memory capture only through
   server-controlled evaluation policy. The interactive POC keeps capture
   disabled and exposes no memory-management actions.
+- **Curate:** supports application-owned curation over bounded stored originals.
+  Sculptor proposes summaries, duplicate links, topic groups, or retrieval
+  tombstones. Provenance reviews the proposal before deterministic policy can
+  apply it. Originals remain intact, and retrieval uses the curated view.
 - **Evaluate:** validates synthetic Backstory packages, records independent
   human adoption without rewriting generated files, and replays supported
-  capture and bounded-curation Objectives through their production boundaries.
+  capture, curation, book, and session-continuity Objectives. Manual runners
+  cover weak-evidence reflection, cross-source execution, and offline surfacing
+  decisions with the limits described in the evaluation guides.
 
 ## Developer tools
 
@@ -92,6 +100,10 @@ LINGER_WEB_SEARCH_ENABLED=true
 prototype. `LINGER_ALLOWED_ORIGINS` accepts a comma-separated list of browser
 origins and defaults to `http://localhost:5173`.
 
+`ALLOWED_BOOK_VERSION_IDS` accepts a JSON array of permitted registered corpus
+revisions and defaults to `["pg11-v01b38ea4"]`. This setting restricts retrieval;
+it does not register a corpus. See [app configuration](apps/README.md).
+
 To send the backend's metadata-only telemetry and synthetic evaluation telemetry
 to the Linger Logfire project:
 
@@ -134,47 +146,68 @@ For Beads setup and usage, ask your coding agent to consult the
 
 ## Corpus
 
-The first corpus contains one book: Lewis Carroll's *Alice's
-Adventures in Wonderland* ([Project Gutenberg ebook 11](https://www.gutenberg.org/ebooks/11)).
+The repository contains five validated literary corpora. Immutable source files
+live in `data/gutenberg/`; canonical chapters or sections and their derived
+`catalog.json` files live in `data/corpus/<work-slug>/<book-version-id>/`.
 
-- Immutable source: `data/gutenberg/alice-in-wonderland.txt`
-- Immutable revision: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/`
-- Canonical chapters: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/`
-- Derived routing catalogue: `data/corpus/alice-in-wonderland/pg11-v01b38ea4/catalog.json`
-- Reviewed book identities and aliases: `src/linger/corpus/registry.py`
+| Work | Adapter under `src.linger.corpus` | Revision | Canonical units |
+| --- | --- | --- | --- |
+| *Alice's Adventures in Wonderland* | `alice` | `pg11-v01b38ea4` | 12 chapters |
+| *Animal Farm* | `animal_farm` | `pga0100011-vc7ff4da7` | 10 chapters |
+| *The Adventures of Pinocchio* | `pinocchio` | `pg500-v6bdc1734` | 36 chapters |
+| *Narrative of the Life of Frederick Douglass, an American Slave* | `douglass` | `pg23-vd3f08ac3` | 16 sections |
+| *The Story of My Life* | `story_of_my_life` | `pg2397-vb3cc1e13` | 140 sections |
+
+Only Alice is registered in `src/linger/corpus/registry.py` and available to
+chat retrieval and Reader. The other four works are validated formatting
+artifacts. Chapter corpora use schema 1; mixed works use schema 2 to preserve
+prefaces, letters, and chapter titles in source order. Section corpora require
+a section-aware runtime contract before registration.
 
 See [Registering books and resolving their names](docs/book-registration.md)
 for the shared resolver, ambiguity handling, onboarding checks, and ownership
 boundaries.
 
-The shared corpus lifecycle preserves chapter layout, adds compact JSON front
-matter for routing, and validates every canonical artifact before publication.
-Alice supplies a small Gutenberg-specific adapter for its wrapper, contents,
-headings, and boundaries. Each future book supplies its own source-specific
-adapter while reusing the same renderer, catalogue builder, and integrity
-checks. BM25 paragraph windows, embeddings, and hybrid indexes may be generated
-as derived artifacts; none is a source of truth or a publication requirement.
+The shared corpus lifecycle preserves source layout, uses compact JSON front
+matter for routing, and validates canonical artifacts against their immutable
+source. Each adapter defines source-specific wrappers, headings, and boundaries
+while using the shared renderer, catalogue builder, and integrity checks.
+BM25 paragraph windows, embeddings, and hybrid indexes are derived artifacts.
 
-Verify the checked-in corpus or rebuild its derived catalogue with:
+Verify all checked-in corpora and the runtime registry with:
 
 ```bash
-uv run python -m src.linger.corpus.book src.linger.corpus.alice check
+for adapter in alice animal_farm pinocchio douglass story_of_my_life; do
+	uv run python -m src.linger.corpus.book "src.linger.corpus.$adapter" check
+done
 uv run python -m src.linger.corpus.registry
-uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 ```
 
-For a book-related request without explicit progress, the Librarian privately
-searches the complete selected work using the current Line and relevant
-account-scoped memories. Common catalogue words can nominate a possible work
-but cannot select it or expose a memory on their own. Librarian returns only a
-candidate chapter ceiling, its memory-or-Line evidence basis, confidence, and
-content-free supporting locations. Application code accepts explicit progress
-or a validated memory-supported candidate; a curiosity-only Line always
-requires focused clarification. The Librarian then runs a separate BM25 and
-semantic search bounded to the accepted ceiling. Later chapters never enter the
-answer-evidence candidate set. The
-eligible candidates are fused, reranked, resolved against the immutable corpus,
-and returned to Muse as a typed evidence response.
+The shared command accepts `init`, `build-catalog`, or `check`, with optional
+`--source` and `--output` paths. `init` requires an empty destination;
+`build-catalog` rebuilds only the derived catalogue from reviewed canonical
+metadata. For source-preservation rules, audits, and examples, see
+[canonical corpus formats](docs/corpus/canonical-sections.md).
+
+Muse routes a request when the reader's words indicate that it depends on a
+book. An active book selection alone is insufficient. The shared resolver
+matches reviewed names and aliases; ambiguous catalogue words require
+clarification. An indirect book follow-up can use the session's active
+selection, but that selection grants no passage access or reading progress.
+
+For a book request without explicit progress, Librarian privately searches the
+complete selected work with the current Line, relevant account-scoped memories,
+and bounded earlier reader statements. Application code can accept a
+memory-supported chapter ceiling or grant exact paragraphs supported by earlier
+reading statements. A curiosity-only Line grants neither. The second retrieval
+searches only the accepted chapter range or re-fetches the exact granted
+paragraphs, then reviews evidence strength before returning text to Muse.
+
+An unresolved boundary produces an application-owned clarification. A valid
+chapter answer resumes the original book question. See the
+[spoiler and routing contract](docs/specification.md#61-spoilers) for validation
+rules and the distinction between chapter boundaries, exact-passage grants, and
+previously released evidence.
 
 ## Librarian notebook
 
@@ -214,10 +247,10 @@ adoption, and execution behind separate human decisions:
    skill. An independent human reviewer approves or flags every proposed Ground
    truth row in the local review app.
 5. **Make Changes** stops without adoption or replay. Confirmation writes the
-   sibling `ground-truth-adoption.json`. For a single supported Objective, the
-   skill then starts one provider-backed replay; automatic post-confirmation
-   routing currently supports reviewed automatic capture and bounded memory
-   curation. Other Objective selections stop after adoption.
+   sibling `ground-truth-adoption.json`. For an exact supported selection, the
+   skill starts one provider-backed replay. Automatic routing supports capture,
+   bounded curation, session continuity, either book Objective alone, and both
+   book Objectives in either order. Other selections stop after adoption.
 6. Inspect the accepted replay in Pydantic Evals and Logfire, and retain the
    runner's JSON output as the durable evaluation record.
 
@@ -248,6 +281,12 @@ uv run python -m evals.librarian.live_validation
 # Provider-backed emotional-boundary classification
 uv run python -m evals.provenance.emotional_boundary
 
+# Provider-backed Provenance risk-code classification
+uv run python -m evals.provenance.risk_codes --report /tmp/provenance-risk-codes.json
+
+# Provider-backed Serendipity component cases with fixture evidence
+uv run python -m evals.serendipity.runner --output /tmp/serendipity-components.json
+
 # Validate a synthetic package
 uv run python -m evals.synthetic_journals.validate_package \
   path/to/backstory.json path/to/ground-truth.json
@@ -266,36 +305,75 @@ uv run python -m evals.synthetic_journals.replay \
 
 # Replay a bounded-curation package through production Sculptor
 uv run python -m evals.synthetic_journals.curation_replay \
-  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
-  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
+  path/to/backstory.json path/to/ground-truth.json \
   --output /tmp/bounded-memory-curation-run.json
 
-# Replay grounded reflection plus spoiler-boundary Scenes through the same boundary
+# Replay grounded reflection, spoiler clarification, or their combined selection
 uv run python -m evals.synthetic_journals.book_replay \
   path/to/backstory.json path/to/ground-truth.json \
   --adoption path/to/ground-truth-adoption.json \
   --output /tmp/book-reflection-spoiler-run.json
+
+# Replay ordered conversation Lines and a fresh-session comparison
+uv run python -m evals.synthetic_journals.continuity_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --output /tmp/session-continuity-run.json
+
+# Manually replay weak-evidence reflection Scenes
+uv run python -m evals.synthetic_journals.reflection_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --output /tmp/weak-evidence-reflection-run.json
+
+# Evaluate offline Sculptor surfacing decisions over supplied Props
+uv run python -m evals.synthetic_journals.surfacing_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --output /tmp/offline-memory-surfacing-run.json
+
+# Manually exercise the cross-source application path
+uv run python -m evals.serendipity.objective_replay \
+  evals/serendipity/objective_cases/cross-source-outside-essay-v1.json \
+  --output /tmp/cross-source-run.json
 ```
 
 The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
 and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
-`--limit`, and `--report`; the Provenance evaluation accepts `--report`.
+`--limit`, and `--report`; both Provenance evaluations accept `--report`.
+The Serendipity component runner requires `--output` and accepts `--no-logfire`
+and `--semantic-review`. Book replay also accepts `--semantic-review` for a
+separate model review that does not change deterministic grades.
 Synthetic package validation accepts `--run-configuration-directory`. The
 Ground truth reviewer requires `--reviewer-id`; `--adoption` selects a sibling
 output path, `--ui` selects a built UI directory, and `--timeout` sets the
-loopback review lifetime in seconds. All replay commands accept an optional
-hash-validated `--adoption` and write JSON to stdout unless `--output` is
-supplied.
+loopback review lifetime in seconds. The `evals.synthetic_journals` replay
+commands accept an optional hash-validated `--adoption` and write JSON to stdout
+unless `--output` is supplied. Cross-source `objective_replay` requires
+`--output` and has no adoption option.
 
 Without `--adoption`, replay compares observed hard gates with proposed Ground
 truth. A complete independent adoption changes the dataset identity and grades
 the same gates as adopted Ground truth. Capture replay accepts only the
 `reviewed_automatic_memory_capture` topology; curation replay accepts only
 isolated `bounded_memory_curation` Scenes containing two to twelve active Props
-and no Lines or offline inputs. Book replay accepts the ordered
-`grounded_book_reflection` plus `spoiler_boundary_clarification` three-Scene
-design, seeds its designated Prop in isolated storage, and disables capture
-before each fresh-session Line. See
+and no Lines or offline inputs. Book replay compiles `book_scene_facts` and
+`book_expectation` for `grounded_book_reflection`,
+`spoiler_boundary_clarification`, or both in either order. It grades chapter
+boundaries and completed retrieval, including the final released answer's
+declared support. Exact-passage grants are outside that chapter-scoped Objective.
+
+Continuity replay keeps each Scene's ordered Lines in one session and compares
+with a fresh-session Scene. Its adopted grade covers the specified session
+boundary; conversational correction and leakage remain review judgments.
+Reflection replay accepts only `weak_evidence_safe_decline`. Offline surfacing
+replay accepts one offline input per Scene and no Lines, evaluates
+`surface_now`, `defer`, or `do_not_surface`, and leaves Props unchanged.
+
+The conversational `proactive_memory_surfacing` Objective requires reviewed
+capture, triggered curation, and appropriate memory use in a later chat. That
+complete path remains unimplemented. The offline runner measures only its
+decision component. Cross-source replay exercises ordered Lines through the
+chat boundary, but its checks cover stage statuses and the final response;
+they do not establish an adopted synthetic Objective grade or semantic quality.
+See
 [`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
 the README in each `evals/` subdirectory for the complete contracts and
 artifact boundaries.
@@ -340,7 +418,7 @@ linger/
 │   │   ├── sculptor/
 │   │   ├── serendipity/
 │   │   └── provenance/
-│   ├── corpus/                     # Canonical chapter processing and checks
+│   ├── corpus/                     # Canonical chapter and section processing
 │   ├── orchestration/              # Reflection, capture, and connection flows
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations

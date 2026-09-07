@@ -5,8 +5,10 @@ Status: **Deferred design; outside the current POC**
 Progress: **Deferred.** No implementation work is planned for the current POC.
 
 This document preserves a possible future durable-memory design. The current
-POC exposes no memory-management interface and implements only reviewed
-automatic capture. The canonical current scope is in
+POC exposes no public memory-management interface. It implements reviewed
+automatic capture, reviewed curation through an internal application workflow,
+and an account-scoped retrieval view that preserves original records. The
+canonical current scope is in
 [`docs/specification.md`](../specification.md).
 
 ## 1. Design position
@@ -332,12 +334,15 @@ error classes, but never raw memory bodies.
 
 ## 11. Current implementation gap
 
-`src/linger/services/memory.py` already provides hashed account directories,
-explicit and policy-gated automatic capture, idempotent writes, corrections,
-account isolation, and cascading family deletion.
+`src/linger/services/memory.py` provides hashed account directories,
+policy-gated automatic capture, exact retry reuse, and immutable source records.
+The internal curation workflow binds a Sculptor proposal to source hashes,
+the account, and the current curation state. An independent Provenance `allow`
+review is required before the service appends an immutable curation event.
+`list_for_retrieval` materializes original memories, derived summaries, and
+topic groups. Duplicate links preserve source text in the retrieval view.
 
-It does not yet implement this adopted target contract. The implementation must
-replace the current per-version `memory_id` model with:
+This deferred versioned-memory contract requires:
 
 - one stable live `memory_id` and a distinct immutable `version_id`;
 - a live record pointing to `current_version_id`;
@@ -346,5 +351,6 @@ replace the current per-version `memory_id` model with:
 - separate version and derivation storage; and
 - the minimum read-only agent projection.
 
-This is a Memory & Policy Service implementation task. It does not belong to
-Librarian, Muse, or the corpus processor.
+These deferred operations belong to the Memory & Policy Service. Public
+correction, deletion, Undo, and live-memory version migration are outside the
+current POC.

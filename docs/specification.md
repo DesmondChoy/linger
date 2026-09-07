@@ -15,14 +15,17 @@ validates book evidence against one request-scoped index, and lets the
 deterministic Memory & Policy Service enforce automatic capture. That index may
 contain direct Librarian results, the selected records from a book-only
 Serendipity proposal, or exact records re-resolved from evidence identifiers
-cited by an earlier released reply in the same session. Stored-memory, web, and
-image evidence are not citation authorities in this slice and therefore fail
-closed. Declared claims, richer sensitive-inference flags, and account-scoped
-memory search remain later slices. The implemented curation slice selects a
-bounded set of stored originals, obtains a Sculptor proposal and independent
+cited by an earlier released reply in the same session. Exact earlier reader
+wording has a separate `session_line` declaration, checked against retained
+reader Lines from that session. Stored-memory, web, and image evidence are not
+citation authorities in this slice and therefore fail closed. Declared claims
+and richer sensitive-inference flags remain target fields. Account-scoped
+curated-memory retrieval supports private boundary inference and Serendipity
+exploration without granting memory-backed response release. The curation slice
+selects a bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
 Memory & Policy Service, and materialises the resulting retrieval view.
-The adopted conversational memory target in Section 4.2.5 adds curation after a
+The adopted conversational memory target in Section 4.2.5 requires curation after a
 durable capture and proactive surfacing during a later conversation. Its chat
 triggers, personal-memory evidence release, and complete evaluation path are
 not yet implemented. The existing offline surfacing runner tests only the
@@ -34,7 +37,16 @@ Linger is an academic prototype of a personal reflection and memory companion, g
 
 General-purpose AI agents already offer memory, image understanding, web search, and delegated tasks. Linger is not trying to be another general personal agent. It is a purpose-built reflection and memory application: a **provenance-first reflection companion** that keeps the user's words, source evidence, and generated interpretation distinct. Before any Muse-generated response reaches the user, Provenance — a separate model call — reviews the complete draft for quotations, factual claims, sensitive inferences, attribution, privacy, spoiler, and prompt-injection risks. Application code then performs deterministic checks where applicable. A non-factual reflection may pass without retrieval, but never without review.
 
-[Project Gutenberg](https://www.gutenberg.org/) supplies the literary corpus. Implementation begins with a one-book corpus containing Lewis Carroll's *Alice's Adventures in Wonderland* (Project Gutenberg ebook 11). Once ingestion, retrieval, spoiler filtering, citation validation, and evaluation work end to end for that book, the corpus expands to the planned total of 3–5 deliberately selected public-domain books. The prototype records source metadata and discloses that this small, older corpus may contain dated cultural perspectives.
+The repository contains five validated literary corpora: *Alice's Adventures in
+Wonderland*, *Animal Farm*, *The Adventures of Pinocchio*, *Narrative of the Life
+of Frederick Douglass, an American Slave*, and *The Story of My Life*. Their
+immutable source files come from Project Gutenberg and Project Gutenberg
+Australia. Alice is the only work registered for chat retrieval and Reader.
+The other works remain formatting artifacts pending runtime registration and,
+for mixed works, a section-aware runtime contract. The
+[corpus format guide](corpus/canonical-sections.md) links source audits and
+describes the chapter and section schemas. This small, older corpus may contain
+dated cultural perspectives.
 
 ## 2. Product hypothesis and journey
 
@@ -64,7 +76,9 @@ approval. Content about sensitive traits is never captured.
 ### 3.1 In scope
 
 - ongoing Muse conversations using text and user-supplied photographs, with semantic Provenance review of every candidate response;
-- cited retrieval across the initial *Alice's Adventures in Wonderland* corpus and structured memories, followed by expansion to a total of 3–5 Project Gutenberg books;
+- cited retrieval across the registered *Alice's Adventures in Wonderland*
+  corpus, with broader book registration and personal-memory citation release
+  as target capabilities;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
 - reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
@@ -432,6 +446,14 @@ never the passage text.
 
 ### 5.4 Muse candidate response
 
+`MuseCandidate` contains `reply`, `evidence_uses`, and `memory`. An evidence use
+is either a `book_corpus` declaration with an evidence ID, source location, and
+optional exact quotation, or a `session_line` declaration with exact earlier
+reader wording. Application code checks a session quotation against retained
+reader Lines from successful turns in the same session. Book quotations must
+occur in both the canonical record and the visible reply. Provenance reviews
+the complete wording and attribution, including claims with no declaration.
+
 At target completion, every candidate response contains:
 
 - the complete proposed user-facing text;
@@ -477,16 +499,21 @@ untrusted internal material; Provenance reviews the later complete Muse draft.
 
 ### 6.1 Spoilers
 
-When Muse decides a request depends on a book, it asks Librarian to route it
-from metadata. Exact supported titles, stable aliases, an active session
-selection, and canonical evidence references are strong signals. Common
+When the reader's words indicate that a request depends on a book, Muse asks
+Librarian to route it from metadata. A title, character, scene, or contextual
+pronoun can supply that cue. An active session book alone does not justify a
+route call. This intent rule lives in Muse's instructions; application code
+validates selection and access after the call. Exact supported titles, stable
+aliases, an active session selection, and canonical evidence references are
+strong signals. Common
 character, location, and catalogue words are weak candidates only: they cannot
 select a work or expose a memory by themselves. Multiple plausible works
 produce a clarification before private boundary inference. If a book is not
 needed for the response, Muse can continue personal reflection without lookup.
-A bare follow-up with no book name and no strong cue for a different work
-routes to the session's active selection and enters boundary inference like
-any other route. Boundary inference asks a chapter-progress clarification
+A book-related follow-up with no book name and no strong cue for a different
+work can route to the session's active selection and enter boundary inference.
+Pronoun-only follow-ups still have an open end-to-end routing issue tracked as
+`linger-3yyi`. Boundary inference asks a chapter-progress clarification
 whenever it cannot locate the request in the book, whether because no
 supporting evidence is found before the judge runs or the judge itself
 remains uncertain.
@@ -523,9 +550,12 @@ For this path, Librarian converts private search windows into verified canonical
 paragraphs. Its private decision separately names earlier reading statements,
 paragraphs that locate those statements, and the exact requested paragraphs,
 and declares an `authorization_basis` of `session_supported` or `line_only`.
-Application code validates the supplied IDs and confidence before granting only
-the requested paragraphs; a `line_only` decision, or one citing a statement that
-does not itself refer to the work, never grants passages. A `passages`
+The boundary model's instructions require a statement that describes reading
+the scene, excluding curiosity, unread intent, and hearsay. Application code
+checks the declared authorization basis, supplied IDs, work identity, and
+confidence before granting only the requested paragraphs. A `line_only`
+decision or a statement that does not independently identify the work never
+grants passages. A `passages`
 route exposes IDs but no story text or chapter ceiling. `librarian_search`
 then re-fetches those exact records, checks their identity, and runs the
 existing evidence-strength review. Neither a new query nor a larger chapter
@@ -583,10 +613,9 @@ Application code validates the returned work, version, memory identifiers,
 evidence identifiers, authorization basis, and candidate chapter. A Line-only
 candidate, confidence below `0.75`, conflicting context, missing support,
 retrieval failure, or an invalid model decision produces one fixed
-clarification and no evidence search. Unreadable account-scoped memory storage
-no longer fails closed into a clarification: the application swallows the
-storage error and binds an empty memory set, and boundary inference proceeds
-with no memories available to it. A chapter ceiling still requires memory
+clarification and no evidence search. When account-scoped memory storage is
+unreadable, the application binds an empty memory set, and boundary inference
+proceeds with no memories available to it. A chapter ceiling still requires memory
 support, but earlier reader statements may independently support exact passages.
 Without either form of support, Librarian requests clarification. A validated
 memory-supported candidate creates only a request-scoped ceiling; it is not
@@ -916,7 +945,7 @@ ungraded.
 This runner accepts only a surfacing selection and leaves all Props unchanged.
 It omits capture, triggered curation, live memory retrieval, Muse, and Provenance
 release, so its result cannot establish the adopted Objective. These omissions
-are evaluation gaps because the conversational Objective now requires them.
+are evaluation gaps because the conversational Objective requires them.
 The absence of a scheduler or notification delivery is not a gap.
 
 The complete Objective is currently blocked by the following work:
@@ -953,7 +982,11 @@ belongs only to `weak_evidence_safe_decline`.
 The book runner grades deterministic replay facts by default. Its optional
 `--semantic-review` flag makes a separate model call over the recorded result.
 That result is non-independent and does not change the deterministic Ground
-truth grade.
+truth grade. Grading distinguishes completed retrieval from routing alone and
+checks the final released answer's declared evidence and requested quotations.
+Its chapter-scoped Objectives reject exact-passage outcomes with
+`passage_scope_outside_chapter_objective`; runtime support for passage grants
+does not establish evaluation coverage for them.
 
 The curation proposal-quality runner remains read-only and does not apply Ground truth
 or model output. Separate application-loop replay tests seed account-scoped
@@ -977,7 +1010,23 @@ reader's correction, and whether a comparison reply leaked prior-session
 content, remain review judgments. This runner is registered in the Objective
 catalog as a supported replay path.
 
-The replay also records a durable JSON transcript containing each synthetic
+The manual `reflection_replay` runner accepts only
+`weak_evidence_safe_decline`. It executes ordered Scene Lines through the chat
+boundary with capture disabled and supports optional hash-bound adoption.
+Its Ground truth retains separate judgments for completed retrieval and
+response behavior. It is outside automatic post-confirmation dispatch.
+
+The manual Serendipity `objective_replay` command accepts a
+`CrossSourceReplayCase` and requires an output path. It executes ordered Lines
+through the chat boundary, then checks the final response's stage statuses and
+expected release source. It has no synthetic-package adoption argument. Its
+`objective_pass` field records those status checks, not an adopted Objective
+grade or semantic-quality judgment. See the
+[Serendipity evaluation guide](../evals/serendipity/README.md) for its exact
+checks and the [synthetic replay guide](../evals/synthetic_journals/README.md)
+for supported package commands and options.
+
+Synthetic chat replay records a durable JSON transcript containing each synthetic
 Line, the exact model-visible agent inputs and messages, typed outputs, tool
 calls and results, usage, release and capture decisions, and correlated
 Logfire trace and span IDs. It never gives Muse the Backstory or proposed

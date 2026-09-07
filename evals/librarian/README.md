@@ -5,11 +5,14 @@ configurations on the same Alice query set. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
-The frozen benchmark and provider-backed release report evaluate the second
-phase with a known chapter ceiling. The request-scoped full-work inference
-phase is covered by deterministic and integration tests, but it does not yet
-have adopted typed Ground truth or a provider-backed live scorecard. That
-evaluation contract remains tracked by `linger-kow`.
+The frozen benchmark and provider-backed release report evaluate retrieval
+with a known chapter ceiling. The separate
+[synthetic book replay](../synthetic_journals/README.md#grounded-reflection-and-spoiler-boundary-replay)
+evaluates production book routing, full-work boundary inference, clarification,
+grounding, and release against typed proposed or independently adopted Ground
+truth. Its chapter-scoped grades do not cover runtime passage grants. Each
+report's package, adoption, model, and prompt identity determine its evidence
+scope.
 
 ## Manual notebook
 
@@ -50,10 +53,12 @@ uv run python -m evals.librarian.benchmark
 
 The benchmark options are:
 
-- `--output <path>` for the JSON report;
-- `--repetitions <count>` for warm-query measurement repeats;
-- `--target-words <count>` for derived paragraph-window size; and
-- `--overlap-words <count>` for adjacent-window overlap.
+- `--output <path>` selects the JSON report, defaulting to
+  `evals/librarian/report.json`.
+- `--repetitions <count>` sets warm-query measurement repeats, defaulting to 3.
+- `--target-words <count>` sets the derived paragraph-window size, defaulting
+  to 350 words.
+- `--overlap-words <count>` sets adjacent-window overlap, defaulting to 60 words.
 
 The generated `report.json` records every model and threshold, per-case evidence
 IDs, safety and citation gates, evidence recall, citation precision,
@@ -84,6 +89,6 @@ the metadata-only JSON report location. The default report is
 The report excludes prompts, replies, evidence text, and credentials. It records
 case outcomes, release metrics, latency, and any provider usage the SDK exposes.
 
-Indexes and model caches are derived artifacts. Canonical chapter Markdown
-remains the source of truth, and the query boundary filters eligible windows
-before BM25 scoring, semantic similarity, fusion, or reranking.
+Indexes and model caches are derived artifacts. Canonical chapter or section
+Markdown remains the source of truth, and the query boundary filters eligible
+windows before BM25 scoring, semantic similarity, fusion, or reranking.

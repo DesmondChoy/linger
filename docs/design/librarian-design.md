@@ -1,23 +1,23 @@
 # Librarian Subsystem Design
 
-Status: **Two-phase Alice Librarian implemented; broader evaluation and corpus expansion remain**
+Status: **Alice runtime retrieval with chapter and exact-passage authority; five prepared corpora**
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
 responsibilities and safeguards in [`../specification.md`](../specification.md).
 
-### Progress snapshot
+### Implementation scope
 
-Beads is the durable source of truth; this table is its human-readable design
-projection as of 28 August 2026.
+The runtime registry contains Alice. Routing resolves reviewed book identities
+and catalogue cues, with active session selection available for indirect book
+follow-ups. Private inference supports memory-backed chapter ceilings and
+session-supported exact paragraphs. Application code validates every grant
+before a separate evidence search and deterministic release checks.
 
-| Track | Progress | Current state | Beads |
-|---|---:|---|---|
-| Design foundation | 4 of 4 (100%) | Corpus lifecycle generalized; Anthropic-inspired memory schema adopted; Librarian response union defined; Markdown and HTML aligned | `linger-tz2`, `linger-5gj`, `linger-hfo`, `linger-7bm` |
-| Initial Librarian implementation | 6 of 6 slices (100%) | Corpus, boundary, retrieval, Muse handling, five-way strategy selection, and live end-to-end validation are complete | `linger-ibq` |
-| Two-phase spoiler boundary | 1 of 1 implementation slice (100%) | Full-work private inference returns a validated content-free candidate or focused clarification before the second bounded search | `linger-lfh` |
-| Muse-initiated routing | 1 of 1 implementation slice (100%) | Application no longer routes eagerly; Muse calls a confidence-gated `librarian_route` tool only when a request appears book-dependent | |
-| Memory schema adoption | 1 of 2 stages (50%) | Design adopted; Memory & Policy Service migration is ready and independent of Librarian | `linger-5gj`, `linger-4sp` |
+The corpus lifecycle prepares five books, including section-based works.
+Preparation does not register a book for runtime use. The versioned-memory
+design remains deferred and independent of Librarian. Beads owns delivery
+status; `bd ready` and `bd list --status open` show current work.
 
 The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
 reciprocal-rank fusion, overlap deduplication, and local cross-encoder reranking.
@@ -39,8 +39,9 @@ The subsystem has two deliberately separate flows:
    focused clarification or inspect only eligible chapters and return a typed
    evidence result to Muse.
 
-The current vertical slice implements both flows for Project Gutenberg ebook
-11. Direct canonical reads remain the benchmark control; the measured
+The runtime vertical slice uses Project Gutenberg ebook 11. Offline preparation
+also supports Animal Farm, Pinocchio, Frederick Douglass's Narrative, and
+The Story of My Life. Direct canonical reads remain the benchmark control; the measured
 production path uses bounded BM25 and local embeddings, reciprocal-rank fusion,
 overlap deduplication, and a local cross-encoder reranker before the independent
 Librarian evidence-strength decision.
@@ -76,9 +77,9 @@ Immutable Gutenberg source + download metadata
                     ↓
 Verify source hash and book structure
                     ↓
-Extract 12 chapters deterministically
+Extract natural chapters or sections deterministically
                     ↓
-Canonical Markdown chapters
+Canonical Markdown chapters or sections
 (exact layout + compact JSON front matter)
                     ↓
 Derived metadata-only catalogue
@@ -113,10 +114,11 @@ Explicit completion for the selected book in this request?
                     └─ resolved work                              │
                            ↓                                      │
                  Private boundary inference                       │
-                 (current Line + eligible account memories        │
+                 (current Line + earlier reader statements        │
+                  + eligible account memories                     │
                   + full-work candidates)                         │
                            ↓                                      │
-                 Application validates candidate ceiling          │
+                 Application validates chapter or passage grant   │
                     ├─ uncertain → Exact boundary clarification    │
                     └─ validated ─────────────────────────────────┤
                                                                   ↓
@@ -145,8 +147,8 @@ truth, and non-selected indexes need not remain in the production path.
 | Catalogue builder | Projects canonical front matter into a body-free routing catalogue |
 | Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
 | Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
-| Application boundary | Supplies the original reader message and access scope, resolves identity, validates explicit or inferred ceilings, and enforces reply release |
-| Librarian agent | Infers a private candidate ceiling, then judges the answerability of separately retrieved bounded evidence |
+| Application boundary | Supplies the original reader message and access scope, resolves identity, validates chapter or exact-passage scope, and enforces reply release |
+| Librarian agent | Proposes a private chapter ceiling or exact-passage selection, then judges the answerability of separately retrieved bounded evidence |
 | Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
 | Sculptor | Optionally proposes semantic metadata offline for human review; deterministic tooling builds the catalogue. Runtime Sculptor handles memory curation |
 | Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
@@ -156,7 +158,7 @@ truth, and non-selected indexes need not remain in the production path.
 
 ### 3.1 Checked-in artifacts
 
-The first corpus is:
+Alice's canonical artifacts are:
 
 ```text
 data/gutenberg/
@@ -269,9 +271,16 @@ rewrites chapter files.
 
 ### 3.5 Lifecycle commands
 
-The reusable lifecycle accepts a source-specific adapter. Alice uses
-`src.linger.corpus.alice`; a future chapter-based book supplies its own adapter
-without copying rendering, catalogue, or integrity code:
+The reusable lifecycle accepts a source-specific adapter. The same commands
+apply to each prepared book:
+
+| Book | Adapter | Canonical unit |
+|---|---|---|
+| Alice's Adventures in Wonderland | `src.linger.corpus.alice` | Chapters, schema 1 |
+| Animal Farm | `src.linger.corpus.animal_farm` | Chapters, schema 1 |
+| The Adventures of Pinocchio | `src.linger.corpus.pinocchio` | Chapters, schema 1 |
+| Narrative of the Life of Frederick Douglass | `src.linger.corpus.douglass` | Sections, schema 2 |
+| The Story of My Life | `src.linger.corpus.story_of_my_life` | Sections, schema 2 |
 
 ```bash
 # One-time creation; refuses to overwrite any existing corpus artifact
@@ -282,7 +291,16 @@ uv run python -m src.linger.corpus.book src.linger.corpus.alice build-catalog
 
 # Read-only source, chapter, front-matter, and catalogue verification
 uv run python -m src.linger.corpus.book src.linger.corpus.alice check
+
+# Verify a section-based work
+uv run python -m src.linger.corpus.book src.linger.corpus.douglass check
 ```
+
+`--source` and `--output` override the adapter's input and output paths.
+Section corpora use `sections/`, `section_id`, and `section_number`; their
+catalogues use `section_count` and `sections`. Runtime chapter readers reject
+section files. A prepared corpus needs deliberate registration and compatible
+runtime support before it can supply chat evidence.
 
 After initial creation, routing metadata may be edited in the canonical chapter
 files and the catalogue rebuilt. The integrity check still requires every
@@ -370,11 +388,14 @@ A structural or integrity failure returns no ready corpus:
 
 ### 4.1 Book identity and contextual routing
 
-The application no longer routes every turn eagerly. Muse decides whether a
-request depends on a specific book and, only then, calls the argument-less
+Muse decides whether the reader's own words carry a book cue and, only then,
+calls the argument-less
 `librarian_route` tool; the application supplies the exact current reader
 message from a turn-scoped context variable, so Muse cannot substitute its own
-text. Explicit reading declarations and `route_work` share the deterministic
+text. An active book selection alone does not justify a tool call. Incidental
+words in personal reflection do not require book routing. This intent decision
+belongs to Muse's instructions; deterministic routing still validates the
+resulting work and access scope. Explicit reading declarations and `route_work` share the deterministic
 book registry. Declarations and title-only replies use exact matching; routing
 finds reviewed names within the original message. A longer name takes
 precedence over names contained inside it, and a canonical title or work ID

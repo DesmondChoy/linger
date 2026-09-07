@@ -32,6 +32,7 @@ The remaining backend settings are:
 |---|---|---|
 | `LINGER_ACCOUNT_ID` | Server-owned account for the single-user prototype | `local-prototype-user` |
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
+| `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | `["pg11-v01b38ea4"]` |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
 | `EXA_API_KEY` | Exa credential for optional public-web search | unset |
 | `LOGFIRE_TOKEN` | Logfire write token for deployed or CI runs | unset |
@@ -39,6 +40,11 @@ The remaining backend settings are:
 Local Logfire credentials can come from `uv run logfire projects use` instead
 of `LOGFIRE_TOKEN`. Backend telemetry is metadata-only under
 [`../docs/telemetry.md`](../docs/telemetry.md).
+
+The runtime registry and default grant contain *Alice's Adventures in
+Wonderland*. Corpus files for other works do not enable chat retrieval. See
+[book registration](../docs/book-registration.md) for the registration and
+revision checks. Section-based corpora are outside the chapter-based runtime.
 
 ## Running
 
@@ -78,11 +84,32 @@ part of the user-facing frontend contract. A product frontend should omit them.
   capture decisions, and server-generated trace ID. These diagnostics cannot
   authorize retrieval, release, capture, or storage.
 
+Muse invokes `librarian_route` when the reader's words depend on a book. An
+active book can resolve an indirect follow-up, but does not require a lookup
+for an unrelated personal reflection. Routing returns a chapter ceiling,
+permission for exact passages, a clarification, or no match. A subsequent
+`librarian_search` supplies source text. Exact passage permission requires
+earlier reader statements that support having read the scene and does not
+authorize its whole chapter or Serendipity book search.
+
+Serendipity can search active account-scoped curated memories, a permitted
+chapter range, and optional public-web sources. Its search grants do not widen
+the release contract. Only proposals supported entirely by canonical book
+records can pass deterministic release validation.
+
 The application returns whole replies only after release approval. Distressing
 first-person disclosures receive the fixed application-owned emotional boundary.
 Rejected, failed, or deterministically invalid candidates receive the generic
 application safe decline. Neither application-owned response can commit an
 automatic memory or display a save notice.
+
+Muse returns a typed candidate with a complete reply, book or session-Line
+evidence declarations, and one memory nomination or no-nomination reason.
+Application code verifies declared source locations, quotations, and exact
+reader wording after Provenance review. A validated routing clarification is
+released as the application's own question after safety review. Such a turn
+cannot declare evidence or call tools other than `librarian_route`.
+It also suppresses automatic capture and displays no save notice.
 
 ## API
 

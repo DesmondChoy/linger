@@ -46,7 +46,7 @@ returned evidence.
 
 The loader requires at least one case for every required behavior and permits
 multiple cases per behavior. Contrast pairs should differ in one material
-condition—for example, a specific supported bridge beside a generic-theme
+condition, such as a specific supported bridge beside a generic-theme
 decline, or a clear winner beside a tied-winner decline. A behavior name does
 not dictate the output shape: ranking includes both a clear-winner proposal and
 a tied-top decline, while eligibility filtering may either leave a valid winner
@@ -116,27 +116,42 @@ an objective pass.
 
 ## Cross-source production replay
 
-The objective-specific replay for `cross_source_tentative_connection` is a
-separate mode from the fixture-backed component suite. It drives the production
-path and records the first failed stage using this closed taxonomy:
+The direct `cross_source_tentative_connection` replay drives ordered synthetic
+messages through production chat in an isolated account, memory store, and
+session:
 
-1. `invocation` — Muse did not request Serendipity when the adopted scenario
-   required it, or invoked it outside policy.
-2. `retrieval` — a required permitted source was unavailable, returned no
-   usable evidence, violated scope, or failed exact resolution.
-3. `serendipity_selection` — Serendipity produced the wrong decision, cited
-   unknown evidence, changed presentation, or selected no clear eligible winner.
-4. `muse_presentation` — Muse omitted, distorted, overstated, or misattributed
-   the validated connection.
-5. `provenance_review` — independent review failed to detect or correctly
-   classify support, privacy, spoiler, injection, or sensitive-inference risk.
-6. `deterministic_release` — application release validation accepted an invalid
-   declaration or rejected a fully valid reviewed candidate.
+```bash
+uv run python -m evals.serendipity.objective_replay \
+	evals/serendipity/objective_cases/cross-source-outside-essay-v1.json \
+	--output /tmp/cross-source-production-run.json
+```
 
-Reports record every reached stage as `passed`, `failed`, or `not_reached`, plus
-one `first_failure_stage`. A component case can be linked as supporting
-diagnostic evidence, but its grade is never substituted for any production
-stage result.
+The positional `case` contains a `CrossSourceReplayCase`, including ordered
+messages, an expected decision, and an expected release source. `--output` is
+required. This command has no synthetic-package or `--adoption` argument.
+Provider-backed chat uses `LINGER_MODEL` and its matching API key. Actual web
+tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
+
+The report grades the final response's inspection metadata in this order:
+
+| Stage | Recorded check |
+| --- | --- |
+| `invocation` | A Serendipity trace exists and is not skipped. |
+| `retrieval` | Librarian reports completion and Serendipity does not report failure. |
+| `serendipity_selection` | Serendipity reports completion. A decline expectation also requires a recorded connection decline. |
+| `muse_presentation` | Release inspection exists without a Muse draft or revision failure. |
+| `provenance_review` | Release inspection contains a verdict without a Provenance review failure. |
+| `deterministic_release` | The actual release source matches the expected source without a deterministic validation failure. |
+
+Stages report `passed`, `failed`, or `not_reached`, with one
+`first_failure_stage`. Later stages are `not_reached` after the first failed
+check. The JSON retains the final reply, release source, and trace ID.
+
+These status checks support production diagnosis. They do not independently
+grade semantic presentation, exact source selection, the correctness of a
+Provenance verdict, or every earlier turn. `objective_pass` means that all
+listed checks passed. It is not an independently adopted synthetic-package
+grade. Fixture-backed component grades remain separate.
 
 The current release intentionally fails closed for any selected web evidence.
 Therefore the component suite may prove that Serendipity correctly selects and
@@ -156,8 +171,21 @@ Run the production Serendipity agent with fixture-backed tools:
 
 ```bash
 uv run python -m evals.serendipity.runner \
-  --output evals/serendipity/reports/latest.json
+	--output evals/serendipity/reports/latest.json
 ```
+
+The component command accepts these options:
+
+- `--output PATH` is required and writes the durable report.
+- `--semantic-review` requests an additional model judgment against the case's
+  semantic criteria. The CLI uses the configured model for this review, so the
+  result is not independent of that model. It cannot override a hard failure.
+- `--no-logfire` skips the runner's Logfire configuration. The component model
+  still runs and writes its JSON report.
+
+The component tools return fixture evidence, so they require no Exa credential
+or live retrieval. The Serendipity agent uses the configured `LINGER_MODEL` and
+matching provider API key.
 
 The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,

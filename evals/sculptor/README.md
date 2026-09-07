@@ -31,9 +31,9 @@ same-account Props into `AccountScopedMemories` and calls production
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
-  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/backstory.json \
-  synthetic-journal-evaluation/packages/2026-08-25T092910+0800/ground-truth.json \
-  --output /tmp/bounded-memory-curation-run.json
+	path/to/backstory.json path/to/ground-truth.json \
+	--adoption path/to/ground-truth-adoption.json \
+	--output /tmp/bounded-memory-curation-run.json
 ```
 
 The command records source hashes before and after every call, the complete
@@ -49,6 +49,28 @@ configured model, Sculptor prompt, and active curation contracts for behavioral
 comparison. See
 [`evals/synthetic_journals/README.md`](../synthetic_journals/README.md) for the
 package topology, review command, and replay options.
+
+## Offline memory-surfacing decisions
+
+`surfacing_harness.py` grades the separate Sculptor decision contract for
+`surface_now`, `defer`, and `do_not_surface`. Its cases cover timely, deferred,
+superseded, repeated, unsupported, and sensitive situations. Hard gates check
+source selection, decision, refusal reason, and deferral kind and time.
+Suggestion quality and the meaning of a deferral condition require independent
+review.
+
+The provider-backed
+[offline surfacing replay](../synthetic_journals/README.md#offline-memory-surfacing-component-replay)
+supplies bounded synthetic memories, current context, decision time, and prior
+surfacing history to the tool-free agent. It records source preservation,
+decision metrics, hard failures, and complete agent exchanges. The command
+grants no retrieval, memory writes, conversational release, scheduling, or
+notification authority.
+
+The conversational `proactive_memory_surfacing` Objective requires reviewed
+capture, curation application, later fresh-session memory use, and reviewed
+response release. Offline component scores do not establish that complete
+workflow.
 
 ## Versioning
 
