@@ -71,6 +71,17 @@ explains the provider-backed side effect.
   temporary output path. Do not add `--semantic-review` unless the developer
   separately requests it. The optional semantic review makes another model call
   and produces a separate, non-independent result.
+- For exactly `cross_source_tentative_connection`, run
+  `evals.serendipity.objective_replay` with `--adoption` and a fresh temporary
+  output path. The runner seeds only the reviewed Scene Props, sends only Lines
+  through production chat, and records the six production stages. It also
+  records every outbound public-web query with an `issued` or `blocked`
+  verdict, and fails the `retrieval` stage when wording the package declared
+  private appears in an issued query. Each Scene report carries a
+  `semantic_review` block holding `require_tentative` and the proposed public
+  claims: those are never scored, so human review remains responsible for
+  semantic connection quality, honest tentative framing, and whether the
+  proposed public claims are realistic.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.
 

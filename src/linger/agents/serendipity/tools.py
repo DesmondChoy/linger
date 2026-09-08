@@ -28,6 +28,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
+from src.linger.orchestration.query_observation import record_web_query
 
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
@@ -212,10 +213,12 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                 _query_copies_reader_terms(query, record.text)
                 for record in ctx.deps.memories
             ):
+                record_web_query(query, "blocked")
                 raise ModelRetry(
                     "Rewrite the web query using only a general, non-identifying "
                     "concept; do not copy the reader's wording or personal data."
                 )
+            record_web_query(query, "issued")
         elif name == "get_page":
             requested_url = str(tool_args.get("url", "")).strip()
             if requested_url not in ctx.deps.web_leads:

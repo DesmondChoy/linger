@@ -123,7 +123,9 @@ path and records the first failed stage using this closed taxonomy:
 1. `invocation` — Muse did not request Serendipity when the adopted scenario
    required it, or invoked it outside policy.
 2. `retrieval` — a required permitted source was unavailable, returned no
-   usable evidence, violated scope, or failed exact resolution.
+   usable evidence, violated scope, or failed exact resolution. Wording the
+   adopted package declared private that reaches an issued public-web query
+   also fails here, with reason code `private_wording_in_public_query`.
 3. `serendipity_selection` — Serendipity produced the wrong decision, cited
    unknown evidence, changed presentation, or selected no clear eligible winner.
 4. `muse_presentation` — Muse omitted, distorted, overstated, or misattributed
@@ -138,11 +140,34 @@ one `first_failure_stage`. A component case can be linked as supporting
 diagnostic evidence, but its grade is never substituted for any production
 stage result.
 
-The current release intentionally fails closed for any selected web evidence.
-Therefore the component suite may prove that Serendipity correctly selects and
-flags a book-to-web candidate, while the objective replay must still report the
-actual deterministic-release outcome. The component result does not claim that
-web-backed content is releasable.
+### Observing outbound web queries
+
+Grading the privacy gate needs the exact queries Serendipity issued, but
+`TurnInspection` deliberately carries no query text. The replay therefore starts
+the evaluation-only observer in
+[`query_observation.py`](../../src/linger/orchestration/query_observation.py)
+around each Scene. Production starts no observer and retains nothing, and the
+runtime never learns which wording a package forbade: the comparison happens in
+the grader, so adopted Ground truth stays outside the system under evaluation.
+
+Each observation records the query and one verdict. A `blocked` query is the
+runtime privacy gate refusing to search and asking the model to generalise, so
+it is evidence the gate works, not a leak; only an `issued` query can fail the
+`retrieval` stage. Reports keep both.
+
+### What the replay does not score
+
+`require_tentative` and `public_claims` reach the report as
+`semantic_review` and are never scored. Whether a connection is framed honestly
+and whether a public claim is realistic are review judgments, consistent with
+the separation above, and a semantic judgment never overrides a failed hard
+gate.
+
+A selected web page is releasable: Muse must declare and visibly cite the exact
+URL opened in that turn, and application code validates the URL and any exact
+quotation against the page excerpt before release. The component suite may prove
+that Serendipity correctly selects and flags a book-to-web candidate, but only
+the objective replay reports the actual deterministic-release outcome.
 
 ## Running and reports
 

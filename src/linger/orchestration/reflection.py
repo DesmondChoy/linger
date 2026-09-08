@@ -48,6 +48,7 @@ from src.linger.agents.provenance.prompt import (
 from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
+    WebConnectionEvidence,
 )
 from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
@@ -150,12 +151,12 @@ def _review_codes(*reviews: ProvenanceReview) -> tuple[tuple[RiskCode, ...], ...
 
 
 def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
-    """Keep declared book-corpus evidence handles; session lines have no ID."""
+    """Keep declared resolvable evidence handles; session lines have no ID."""
     return tuple(
         dict.fromkeys(
             use.evidence_id
             for use in candidate.evidence_uses
-            if use.source_kind == "book_corpus"
+            if use.source_kind in {"book_corpus", "web"}
         )
     )
 
@@ -522,10 +523,10 @@ def _validated_book_evidence(
                 "Serendipity proposal evidence does not match its selected candidate"
             )
         for item in exploration.evidence:
+            if isinstance(item, WebConnectionEvidence):
+                continue
             if not isinstance(item, EvidenceItem):
-                raise ReleaseValidationError(
-                    "Serendipity web evidence is not a citation authority"
-                )
+                raise ReleaseValidationError("Serendipity returned unknown evidence")
             record = evidence_record_from_item(item)
             _validate_record_scope(record, release_scope, frozenset())
             if evidence.get(record.evidence_id) != record:
@@ -533,6 +534,32 @@ def _validated_book_evidence(
                     "Serendipity evidence is not registered in the turn evidence"
                 )
     return evidence
+
+
+def _resolved_web_evidence(
+    tool_results: list[dict[str, object]],
+) -> dict[str, WebConnectionEvidence]:
+    """Resolve only the web pages selected in this exact Serendipity run."""
+
+    resolved: dict[str, WebConnectionEvidence] = {}
+    for tool_result in tool_results:
+        if tool_result["tool_name"] != "serendipity_explore":
+            continue
+        try:
+            exploration = ConnectionExplorationResult.model_validate(
+                tool_result["content"]
+            )
+        except Exception:
+            raise ReleaseValidationError(
+                "Serendipity returned an invalid response"
+            ) from None
+        if not isinstance(exploration.decision, ConnectionProposal):
+            continue
+        selected = set(exploration.decision.selected_candidate.evidence_ids)
+        for item in exploration.evidence:
+            if isinstance(item, WebConnectionEvidence) and item.evidence_id in selected:
+                resolved[item.evidence_id] = item
+    return resolved
 
 
 def _validate_release(
@@ -556,12 +583,37 @@ def _validate_release(
         release_scope,
         previously_released_evidence_ids,
     )
+    web_evidence = _resolved_web_evidence(tool_results)
+    declared_web_ids = {
+        declared.evidence_id
+        for declared in candidate.evidence_uses
+        if declared.source_kind == "web"
+    }
+    if web_evidence and declared_web_ids != set(web_evidence):
+        raise ReleaseValidationError(
+            "Candidate must declare every selected web evidence URL"
+        )
     for declared in candidate.evidence_uses:
         if declared.source_kind == "session_line":
             if not any(
                 declared.quote in line for line in released_user_lines
             ):
                 raise ReleaseValidationError("Candidate cites an unresolved session line")
+            continue
+        if declared.source_kind == "web":
+            record = web_evidence.get(declared.evidence_id)
+            if record is None:
+                raise ReleaseValidationError("Candidate cites unresolved web evidence")
+            if (
+                declared.source_location != record.evidence_id
+                or declared.source_location not in candidate.reply
+            ):
+                raise ReleaseValidationError("Candidate web citation does not match reply")
+            if declared.exact_quote is not None and (
+                declared.exact_quote not in candidate.reply
+                or declared.exact_quote not in record.excerpt
+            ):
+                raise ReleaseValidationError("Candidate web quotation is not supported")
             continue
         if declared.source_kind != "book_corpus":
             raise ReleaseValidationError("Candidate uses an unsupported evidence source")

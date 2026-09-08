@@ -40,6 +40,11 @@ from src.linger.orchestration.inspection_context import (
     connection_inspections,
     reset_connection_inspection,
 )
+from src.linger.orchestration.query_observation import (
+    begin_web_query_observation,
+    reset_web_query_observation,
+    web_query_observations,
+)
 from src.linger.orchestration.turn_context import (
     reset_turn_evidence,
     reset_reader_message,
@@ -532,6 +537,90 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
 
                 self.assertIsInstance(result.output, ConnectionDecline)
                 self.assertEqual(0, search_calls)
+
+    async def test_web_queries_are_observable_only_while_an_evaluation_collects(
+        self,
+    ) -> None:
+        url = "https://example.org/identity"
+
+        class FakeExaClient:
+            async def search(self, *_args, **_kwargs):
+                return SimpleNamespace(
+                    results=[
+                        SimpleNamespace(
+                            url=url,
+                            title="Identity and change",
+                            published_date=None,
+                            author=None,
+                            highlights=["A short search-result lead."],
+                        )
+                    ],
+                    output=None,
+                )
+
+        def respond(messages, info: AgentInfo) -> ModelResponse:
+            retried = any(
+                isinstance(part, RetryPromptPart)
+                for message in messages
+                for part in getattr(message, "parts", ())
+            )
+            if not retried:
+                # The reader's own cue wording, which the gate must refuse.
+                return ModelResponse(
+                    parts=[ToolCallPart("web_search", {"query": "identity change"})]
+                )
+            returns = [
+                part
+                for message in messages
+                for part in getattr(message, "parts", ())
+                if isinstance(part, ToolReturnPart)
+            ]
+            if not any(part.tool_name == "web_search" for part in returns):
+                return ModelResponse(
+                    parts=[
+                        ToolCallPart("web_search", {"query": "philosophy of selfhood"})
+                    ]
+                )
+            output_tool = info.output_tools[1]
+            return ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        output_tool.name,
+                        ConnectionDecline(
+                            reason="insufficient_evidence",
+                            safe_next_step="Keep reading before drawing a link.",
+                        ).model_dump(mode="json"),
+                    )
+                ]
+            )
+
+        active_task = task(allowed_sources=("web",)).model_copy(
+            update={"cue": "identity change"}
+        )
+
+        async def explore() -> None:
+            await build_serendipity_agent(FunctionModel(respond)).run(
+                active_task.model_dump_json(),
+                deps=self.deps(active_task),
+                capabilities=[GuardedExaSearch(client=FakeExaClient())],
+            )
+
+        # Production starts no observer, so no query text is retained anywhere.
+        await explore()
+        self.assertEqual((), web_query_observations())
+
+        token = begin_web_query_observation()
+        try:
+            await explore()
+            observed = web_query_observations()
+        finally:
+            reset_web_query_observation(token)
+
+        self.assertEqual(
+            [("identity change", "blocked"), ("philosophy of selfhood", "issued")],
+            [(item.query, item.verdict) for item in observed],
+        )
+        self.assertEqual((), web_query_observations())
 
     def test_failed_librarian_search_records_a_content_free_handoff(self) -> None:
         class FailingLibrarian:

@@ -31,6 +31,15 @@ class BookEvidenceUse(StrictModel):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
+class WebEvidenceUse(StrictModel):
+    """One opened public page Muse cites visibly in its reply."""
+
+    source_kind: Literal["web"]
+    evidence_id: str = Field(min_length=1, max_length=2_000)
+    source_location: str = Field(min_length=1, max_length=2_000)
+    exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
+
+
 class SessionLineUse(StrictModel):
     """The reader's exact earlier wording Muse declares as support for its reply."""
 
@@ -40,7 +49,7 @@ class SessionLineUse(StrictModel):
 
 
 EvidenceUse = Annotated[
-    BookEvidenceUse | SessionLineUse,
+    BookEvidenceUse | WebEvidenceUse | SessionLineUse,
     Field(discriminator="source_kind"),
 ]
 

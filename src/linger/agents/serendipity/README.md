@@ -259,12 +259,12 @@ after a semantic pass. There is no Serendipity-to-reader bypass.
 Serendipity cannot save or curate memory. Telemetry and fixed request-local
 outcome metadata report a decision but never authorise search, storage, or release.
 
-In the current release slice, Serendipity cannot widen citation or public-
-release authority. A book-only proposal uses the existing book contract; a
-proposal containing web evidence fails closed, and its content-bearing
-diagnostics are not returned by the API. Stored-memory and image evidence remain
-unsupported. A validated decline may still be relayed with fixed inspection
-metadata.
+Serendipity cannot widen citation or public-release authority. A selected web
+page can support a release only when Muse visibly cites its exact opened URL and
+application code resolves that declaration against the current run. Provenance
+still treats the page as untrusted evidence. Stored-memory and image evidence do
+not become reader-visible citations. A validated decline may still be relayed
+with fixed inspection metadata.
 
 ## Related
 

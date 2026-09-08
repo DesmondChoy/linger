@@ -38,6 +38,7 @@ DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID = "grounded_book_reflection"
 SPOILER_BOUNDARY_OBJECTIVE_ID = "spoiler_boundary_clarification"
+CROSS_SOURCE_CONNECTION_OBJECTIVE_ID = "cross_source_tentative_connection"
 
 # Objectives whose Scenes are graded by the reflection-and-grounding runner.
 REFLECTION_OBJECTIVE_IDS = frozenset(
@@ -200,6 +201,15 @@ def validate_package(
         for span in facts.basis_spans:
             failures.extend(_validate_span(span, scene, props, lines, offline_inputs))
 
+    for proposal in ground_truth.proposals:
+        if proposal.connection is None:
+            continue
+        scene = scenes.get(proposal.scene_id)
+        if scene is None:
+            continue
+        for span in proposal.connection.forbidden_web_query_spans:
+            failures.extend(_validate_span(span, scene, props, lines, offline_inputs))
+
     selected_book_objectives = set(backstory.objective_ids) & BOOK_OBJECTIVE_IDS
     if ground_truth.book_scene_facts and not selected_book_objectives:
         failures.append("book Scene facts require a selected book Objective")
@@ -216,6 +226,9 @@ def validate_package(
         _validate_reflection_grounding(backstory, ground_truth, repository_root)
     )
     failures.extend(
+        _validate_cross_source_connections(ground_truth, scenes, props, offline_inputs)
+    )
+    failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
     failures.extend(
@@ -223,6 +236,120 @@ def validate_package(
     )
     if failures:
         raise PackageValidationError(failures)
+
+
+def _validate_cross_source_connections(
+    ground_truth: ProposedGroundTruth,
+    scenes: dict[str, Scene],
+    props: dict[str, Any],
+    offline_inputs: dict[str, Any],
+) -> list[str]:
+    """Validate cross-source topology without putting runtime policy in packages."""
+
+    failures: list[str] = []
+    connection_scenes = [
+        scene
+        for scene in scenes.values()
+        if CROSS_SOURCE_CONNECTION_OBJECTIVE_ID in scene.objective_ids
+    ]
+    proposals = [
+        proposal
+        for proposal in ground_truth.proposals
+        if proposal.objective_id == CROSS_SOURCE_CONNECTION_OBJECTIVE_ID
+    ]
+    if not connection_scenes:
+        return failures
+    if len(connection_scenes) != 2:
+        failures.append("cross-source package requires exactly two Scenes")
+    if len(proposals) != len(connection_scenes):
+        return failures
+
+    decisions: list[str] = []
+    for proposal in proposals:
+        scene = scenes.get(proposal.scene_id)
+        if scene is None:
+            continue
+        if proposal.connection is None:
+            failures.append(
+                f"cross-source proposal {proposal.proposal_id} lacks typed connection "
+                "Ground truth"
+            )
+            continue
+        expectation = proposal.connection
+        decisions.append(expectation.expected_decision)
+        if not scene.fresh_session or len(scene.line_ids) != 1:
+            failures.append(
+                f"cross-source Scene {scene.scene_id} requires one Line in a fresh session"
+            )
+        if proposal.pairing is None:
+            failures.append(
+                f"cross-source proposal {proposal.proposal_id} requires a paired Scene"
+            )
+        if not scene.prop_ids:
+            failures.append(f"cross-source Scene {scene.scene_id} requires a Prop")
+        for prop_id in scene.prop_ids:
+            prop = props[prop_id]
+            lifecycle = next(
+                item for item in prop.lifecycle if item.scene_id == scene.scene_id
+            )
+            if lifecycle.state != "active":
+                failures.append(
+                    f"cross-source Prop {prop_id} must be active for Scene {scene.scene_id}"
+                )
+        if not any(
+            offline_inputs[item_id].kind == "public_evidence"
+            for item_id in scene.offline_input_ids
+        ):
+            failures.append(
+                f"cross-source Scene {scene.scene_id} requires public-evidence offline input"
+            )
+
+        evidence = {item.evidence_id: item for item in proposal.evidence}
+        missing = set(expectation.required_evidence_ids) - set(evidence)
+        if missing:
+            failures.append(
+                f"cross-source proposal {proposal.proposal_id} requires missing "
+                f"evidence IDs: {sorted(missing)}"
+            )
+        actual_kinds = {
+            "memory"
+            if isinstance(item, PropEvidence)
+            else "book_corpus"
+            if isinstance(item, RepositoryTextEvidence)
+            else "web"
+            if isinstance(item, OfflineInputEvidence)
+            else "unknown"
+            for item in evidence.values()
+        }
+        required = set(expectation.required_source_kinds)
+        if not required.issubset(actual_kinds):
+            failures.append(
+                f"cross-source proposal {proposal.proposal_id} lacks required source "
+                f"kinds: {sorted(required - actual_kinds)}"
+            )
+        for claim in expectation.public_claims:
+            unknown = set(claim.supporting_evidence_ids) - set(evidence)
+            if unknown:
+                failures.append(
+                    f"public claim in {proposal.proposal_id} references missing "
+                    f"evidence IDs: {sorted(unknown)}"
+                )
+            if any(
+                not isinstance(evidence[evidence_id], OfflineInputEvidence)
+                for evidence_id in set(claim.supporting_evidence_ids) & set(evidence)
+            ):
+                failures.append(
+                    f"public claim in {proposal.proposal_id} requires public offline evidence"
+                )
+        if proposal.capture is not None or proposal.curation is not None or proposal.prop_relevance:
+            failures.append(
+                f"cross-source proposal {proposal.proposal_id} contains unrelated Ground truth"
+            )
+    if sorted(decisions) != ["decline", "proposal"]:
+        failures.append(
+            "cross-source package requires one proposal Scene and one decline Scene"
+        )
+    return failures
 
 
 def _validate_bounded_curation(

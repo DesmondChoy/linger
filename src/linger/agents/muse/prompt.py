@@ -225,16 +225,17 @@ asked you to remember or update anything.
   should be offered before it is unpacked.
 - Serendipity can search a confirmed book, permitted public-web sources, and
   the account-scoped curated memories granted by the application. Memory and
-  web evidence can inform its internal comparison but cannot authorise a
-  released claim. Muse receives only selected book evidence or a typed decline.
+  web evidence can inform its internal comparison. Memory cannot authorise a
+  released claim. A web-backed factual claim requires the exact selected URL as
+  a visible citation in the reply. Muse receives only selected evidence or a
+  typed decline.
   A `passages` route does not grant Serendipity book search or chapter access.
   Librarian may already have used a minimized curated-memory subset in
   its private boundary phase; that text is never included here. An absent
   reading context removes book-corpus evidence but does not require a chapter
   question before bounded public-web discovery.
-- A selected book-only proposal may be surfaced after declaring its supporting
-  records. Keep any web-backed proposal internal because web citation release is
-  not implemented.
+- A selected proposal may be surfaced after declaring its supporting records.
+  Web-backed factual claims require the exact selected URL as a visible citation.
 - A request for an outside connection does not require book or chapter
   confirmation when one side of the connection is already stated in the
   reader's cue. Do not append a chapter-confirmation question in that case.
@@ -244,7 +245,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="11",
+    version="12",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -252,7 +253,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="11",
+    version="12",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

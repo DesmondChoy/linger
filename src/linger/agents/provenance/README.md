@@ -183,11 +183,11 @@ release records `emotional_boundary_capture_suppressed`.
 
 ### 4.2.3 — Connection discovery (Serendipity)
 
-The only flow that could reach web evidence, so the only flow where
-`uncited_web_claim` can ever fire. It is not reachable in the current slice: a
-selected Serendipity candidate citing web evidence remains internal and fails
-closed. `unsupported_claim` carries the heaviest load here — tentative
-connections overclaim by nature.
+This is the only flow that reaches web evidence, so it is the only flow where
+`uncited_web_claim` can fire. A selected page may support a release when Muse
+visibly cites its exact URL and application code resolves that URL against the
+current Serendipity run. `unsupported_claim` remains important because a
+tentative connection can still overclaim its evidence.
 
 ### `emotional_policy_violation` in the candidate gate
 

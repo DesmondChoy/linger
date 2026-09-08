@@ -136,13 +136,10 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("do not introduce character names", lowered)
         self.assertIn("never ask for a book or chapter merely", lowered)
         self.assertIn("account-scoped curated memories", lowered)
-        self.assertIn(
-            "memory and web evidence can inform its internal comparison "
-            "but cannot authorise a released claim",
-            lowered,
-        )
-        self.assertIn("book-only proposal may", lowered)
-        self.assertIn("web-backed proposal internal", lowered)
+        self.assertIn("memory cannot authorise a released claim", lowered)
+        self.assertIn("exact selected url as a visible citation", lowered)
+        self.assertIn("proposal may be surfaced", lowered)
+        self.assertIn("web-backed factual claims require", lowered)
         self.assertIn("you do not need to copy", lowered)
         self.assertIn("exact reader wording", lowered)
         self.assertIn("exact book text", lowered)
@@ -213,14 +210,14 @@ class MuseInstructionTests(unittest.TestCase):
             lowered,
         )
 
-    def test_prompt_fingerprints_are_version_eleven(self) -> None:
+    def test_prompt_fingerprints_are_version_twelve(self) -> None:
         from src.linger.agents.muse.prompt import (
             DRAFT_PROMPT_FINGERPRINT,
             REVISION_PROMPT_FINGERPRINT,
         )
 
-        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "11")
-        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "11")
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "12")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "12")
 
     def test_passage_routes_do_not_imply_chapter_completion(self) -> None:
         compact = " ".join(self.instructions.split())

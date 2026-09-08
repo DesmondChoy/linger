@@ -27,6 +27,7 @@ from src.linger.agents.muse.models import (
     MuseCandidate,
     NoMemoryCandidate,
     SessionLineUse,
+    WebEvidenceUse,
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import (
@@ -120,6 +121,23 @@ def session_line_candidate(reply: str, *, quote: str) -> MuseCandidate:
     return MuseCandidate(
         reply=reply,
         evidence_uses=(SessionLineUse(source_kind="session_line", quote=quote),),
+        memory=NoMemoryCandidate(
+            kind="no_memory_candidate",
+            reason_code="transient_or_low_signal",
+        ),
+    )
+
+
+def web_candidate(reply: str, *, url: str) -> MuseCandidate:
+    return MuseCandidate(
+        reply=reply,
+        evidence_uses=(
+            WebEvidenceUse(
+                source_kind="web",
+                evidence_id=url,
+                source_location=url,
+            ),
+        ),
         memory=NoMemoryCandidate(
             kind="no_memory_candidate",
             reason_code="transient_or_low_signal",
@@ -550,6 +568,29 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_opened_web_evidence_with_visible_citation_can_release(self) -> None:
+        url = "https://example.com/source"
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            web_candidate(
+                f"This may be a useful tentative connection. Source: {url}",
+                url=url,
+            ),
+            ToolReturnPart("serendipity_explore", connection_result(web=True)),
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+
+        release = await reflection_reply(
+            "Find me an outside connection",
+            [],
+            muse=muse,
+            provenance=provenance,
+        )
+
+        self.assertEqual("muse_candidate", release.release_source)
+        self.assertEqual((url,), release.evidence_ids)
 
     async def test_book_serendipity_proposal_can_authorize_release(self) -> None:
         self.register_evidence()

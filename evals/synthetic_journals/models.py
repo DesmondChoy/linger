@@ -559,6 +559,47 @@ BookObjectiveExpectation = Annotated[
 ]
 
 
+class PublicClaimExpectation(StrictModel):
+    """One public factual claim that must retain its declared source support."""
+
+    claim: Text
+    supporting_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_evidence_ids(self) -> Self:
+        _require_unique(
+            "public claim supporting evidence IDs", self.supporting_evidence_ids
+        )
+        return self
+
+
+class ConnectionExpectation(StrictModel):
+    """Typed answer-key facts for a cross-source connection Scene."""
+
+    expected_decision: Literal["proposal", "decline"]
+    required_source_kinds: tuple[Literal["memory", "book_corpus", "web"], ...] = ()
+    required_evidence_ids: tuple[Identifier, ...] = ()
+    public_claims: tuple[PublicClaimExpectation, ...] = ()
+    forbidden_web_query_spans: tuple[ExactSpan, ...] = ()
+    require_tentative: bool
+
+    @model_validator(mode="after")
+    def validate_connection_expectation(self) -> Self:
+        _require_unique("connection required source kinds", self.required_source_kinds)
+        _require_unique("connection required evidence IDs", self.required_evidence_ids)
+        if self.expected_decision == "decline" and (
+            self.required_source_kinds
+            or self.required_evidence_ids
+            or self.public_claims
+        ):
+            raise ValueError(
+                "a declined connection cannot require sources, evidence, or public claims"
+            )
+        if self.public_claims and "web" not in self.required_source_kinds:
+            raise ValueError("public claims require web source evidence")
+        return self
+
+
 class GroundTruthProposal(StrictModel):
     """Generator-authored candidate answer-key data for one Scene and Objective."""
 
@@ -575,6 +616,7 @@ class GroundTruthProposal(StrictModel):
     curation: CurationExpectation | None = None
     grounding: GroundingExpectation | None = None
     book_expectation: BookObjectiveExpectation | None = None
+    connection: ConnectionExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:
@@ -622,6 +664,11 @@ class GroundTruthProposal(StrictModel):
                 raise ValueError("book proposal contains unrelated Ground truth")
         elif self.book_expectation is not None:
             raise ValueError("book_expectation is valid only for book Objectives")
+        if self.objective_id == "cross_source_tentative_connection":
+            if self.connection is None:
+                raise ValueError("cross-source Objective requires typed connection")
+        elif self.connection is not None:
+            raise ValueError("connection is valid only for cross-source Objective")
         if self.grounding is not None and self.objective_id != "weak_evidence_safe_decline":
             raise ValueError("generic grounding is valid only for weak_evidence_safe_decline")
         return self

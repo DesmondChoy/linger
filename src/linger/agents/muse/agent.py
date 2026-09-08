@@ -15,6 +15,8 @@ from src.linger.agents.muse.prompt import INSTRUCTIONS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import turn_evidence
+from src.linger.orchestration.inspection_context import cached_connection_result
+from src.linger.agents.serendipity.models import WebConnectionEvidence
 
 
 muse_chat_agent = build_agent(
@@ -58,7 +60,31 @@ def validate_muse_output(
     """Retry citation-copy errors while the model can still repair its output."""
     validate_exact_quote_declarations(output)
     available = _available_evidence()
+    cached_connection = cached_connection_result()
+    available_web = {
+        item.evidence_id: item
+        for item in (
+            cached_connection[1].evidence if cached_connection is not None else ()
+        )
+        if isinstance(item, WebConnectionEvidence)
+    }
     for declared in output.evidence_uses:
+        if declared.source_kind == "web":
+            record = available_web.get(declared.evidence_id)
+            if (
+                record is None
+                or declared.source_location != record.evidence_id
+                or declared.source_location not in output.reply
+                or (
+                    declared.exact_quote is not None
+                    and declared.exact_quote not in record.excerpt
+                )
+            ):
+                raise ModelRetry(
+                    "Every web declaration must cite one exact opened URL visibly "
+                    "in reply, and an exact quote must occur in that page excerpt."
+                )
+            continue
         if declared.source_kind != "book_corpus":
             continue
         record = available.get(declared.evidence_id)

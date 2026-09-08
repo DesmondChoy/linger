@@ -151,22 +151,21 @@ requires the ordinary Provenance gate.
 
 At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
-The current book-corpus slice implements the smallest release contract needed by
-its active consumer: the complete response text plus declared evidence
-identifiers, exact quotations, and source locations. After each passing original
-or revised Provenance verdict, application code resolves every declaration
-against one application-owned, request-scoped evidence index. The index accepts
-only exact book records from the current direct Librarian result, the selected
-records from a current book-only Serendipity proposal, or records that Librarian
-re-resolved from identifiers cited by an earlier successfully released reply in
-the same session. New retrieval and Serendipity records must match the current
-trusted work, book version, and chapter ceiling. A re-resolved session record
-authorises only that exact previously released passage; it does not establish
-current reading progress or grant neighbouring text. Application code also
-validates source lines, source location, and any exact quotation before release.
-Unsupported, ambiguous, web-backed, or otherwise unverifiable evidence fails
-closed to the application-authored safe decline. This staged contract does not
-remove the remaining target fields above.
+The current release contract carries the complete response text plus declared
+evidence identifiers, exact quotations, and source locations. After each
+passing original or revised Provenance verdict, application code resolves every
+declaration against request-scoped evidence. The index accepts exact book records
+from the direct Librarian result, selected book records from Serendipity, or a
+book record that Librarian re-resolved from an earlier released reply. New book
+records must match the trusted work, version, and chapter ceiling. A re-resolved
+record authorises only that passage.
+
+For a selected web page, Muse must declare and visibly cite the exact URL that
+Serendipity opened in the current turn. Application code validates the URL and
+any exact quotation against the selected page excerpt. Provenance still treats
+the page as untrusted evidence and rejects unsupported, ambiguous, or unsafe
+claims. Any unresolved declaration fails closed to the application-authored safe
+decline. This contract does not remove the remaining target fields above.
 
 Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
@@ -651,11 +650,13 @@ and future designs must use these terms instead of ad hoc synonyms such as
 vocabulary, Backstory and Ground truth structures, deterministic package
 validator, and Ground truth authority lifecycle below. Interactive independent
 adoption is implemented. The catalog registers capture, bounded-curation,
-session-continuity, grounded-book-reflection, and spoiler-boundary replay as
-supported paths. The book runner accepts either book Objective alone or both in
-either order. Reflection replay code for `weak_evidence_safe_decline` remains an
-unsupported path. Reusable generation, dataset freezing, and replay for other
-Objectives remain downstream decisions.
+session-continuity, grounded-book-reflection, spoiler-boundary, and
+cross-source-connection replay as supported paths. The book runner accepts
+either book Objective alone or both in either order. The cross-source runner
+accepts only its own Objective and no run configuration. Reflection replay code
+for `weak_evidence_safe_decline` remains an unsupported path. Reusable
+generation, dataset freezing, and replay for other Objectives remain downstream
+decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
