@@ -60,6 +60,17 @@ explains the provider-backed side effect.
 - For exactly `bounded_memory_curation`, run
   `evals.synthetic_journals.curation_replay` with `--adoption` and a fresh
   temporary output path.
+- For `proactive_memory_surfacing`, stop after adoption. Its adopted target
+  includes conversational capture, curation, and later memory-backed release;
+  no complete replay is implemented. Existing offline packages may still be
+  reviewed as component evidence, but their adoption does not approve the
+  expanded Objective. Run `evals.synthetic_journals.surfacing_replay` only when
+  the developer separately authorizes that offline component evaluation.
+  It accepts `BACKSTORY_PATH`, `GROUND_TRUTH_PATH`, `--adoption ADOPTION_PATH`,
+  and `--output OUTPUT_PATH`, using a fresh temporary output path. Its decision
+  and hard-gate results remain separate from human review of usefulness,
+  timing, and sensitive inference against `semantic_criteria` and
+  `forbidden_claims`. It has no `--semantic-review` option.
 - For exactly `session_scoped_conversation_continuity`, run
   `evals.synthetic_journals.continuity_replay` with `--adoption` and a fresh
   temporary output path. The runner grades only the session boundary; correction

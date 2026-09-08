@@ -156,6 +156,7 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(VERSION_ID, routed["book_version_id"])
         self.assertEqual(CEILING, routed["max_chapter_inclusive"])
         self.assertIsInstance(routed["boundary_confidence"], float)
+        self.assertEqual("distinctive_cue", routed["selection_basis"])
 
     async def test_routed_ceiling_governs_the_evidence_actually_searched(self) -> None:
         """A ceiling nobody enforces is not observability, it is decoration."""

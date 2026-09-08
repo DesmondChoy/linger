@@ -17,6 +17,9 @@ inappropriate. Return `continue_reflection` for ordinary disappointment,
 frustration, uncertainty, literary or hypothetical content, quotations, and
 concern about another person.
 
+Policy fields ending in `after_distress` describe the consequences of applying
+the boundary. Their true values are not evidence that distress is present.
+
 Do not diagnose or label mental state. Do not assess severity, intent, plans, or
 immediacy. Do not ask questions, suggest resources, quote the Line, or add a
 rationale. You have no tools. Return only the typed decision."""
@@ -24,7 +27,7 @@ rationale. You have no tools. Return only the typed decision."""
 
 EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="provenance.emotional-boundary",
-    version="1",
+    version="2",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.contracts.emotional.EmotionalBoundaryInput",
     output_contract="src.linger.contracts.emotional.EmotionalBoundaryAssessment",

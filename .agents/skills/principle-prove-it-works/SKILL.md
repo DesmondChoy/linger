@@ -16,17 +16,15 @@ Check the real thing, not a proxy:
 - Read the actual value, not a cached or derived representation
 - When verification fails, suspect the observation method before suspecting the system
 
-Code and features:
-1. Build it (necessary but not sufficient)
-2. Run it and exercise the actual feature path
-3. Check the full chain: does data flow from input to output?
-4. For integrations, test the full communication path end-to-end
+Select checks that establish the changed behavior or contract. Run required repository checks and the smallest relevant build, test, or feature exercise. Exercise the full communication path when the change affects integration behavior and narrower evidence cannot establish correctness. For documentation and mechanical changes, direct inspection, diff review, and relevant validation may be sufficient.
+
+Once checks pass, repeat or broaden them only for new changes, failures, or unresolved concerns. Distinguish baseline failures and unavailable checks from passes; do not create tests that merely mirror the implementation or add no meaningful signal.
 
 Delegation: trust artifacts, not self-reports.
 When verifying delegated work, inspect the actual output artifact (git diff, file contents, runtime behavior), not the delegate's summary. Agents report what they intended, not always what happened.
 
 ## Script the check when you can
 
-The strongest proof is a deterministic script that re-runs the same comparison, not a one-time eyeball. Write the script, run it, and keep its output as an artifact a reviewer can re-run instead of trusting your word. A script comparing the old and new compiled output catches what a glance misses.
+Prefer existing deterministic checks when they establish the result. Add a reusable script only when repeated verification or a concrete evidence gap justifies its maintenance cost. Direct inspection is sufficient when it reliably verifies a low-impact artifact.
 
-Keep the artifact visible for the human. Commit it only for large or complex work where the trail has to be auditable later, like a big port or migration (the **show-me-your-work** skill). Most work just needs it visible, not committed.
+Keep the artifact visible for the human. Commit it only when commits are authorized and the trail needs to remain auditable, as for a large port or migration (the **show-me-your-work** skill). Most work just needs it visible, not committed.

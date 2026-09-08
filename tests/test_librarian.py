@@ -51,6 +51,7 @@ class LibrarianTests(unittest.TestCase):
         self.assertEqual(BOOK_VERSION_ID, scope.book_version_id)
         self.assertEqual(12, scope.max_chapter)
         self.assertGreaterEqual(decision.confidence, 0.6)
+        self.assertEqual("distinctive_cue", decision.basis)
 
     def test_explicit_title_mention_routes_with_full_confidence(self) -> None:
         decision = self.librarian.route_work(
@@ -62,6 +63,7 @@ class LibrarianTests(unittest.TestCase):
         assert decision is not None
         self.assertEqual(WORK_ID, decision.scope.work_id)
         self.assertEqual(1.0, decision.confidence)
+        self.assertEqual("resolved_book_identity", decision.basis)
 
     def test_registered_aliases_route_with_full_confidence(self) -> None:
         for alias in ("Alice in Wonderland", "ALICE IN WONDERLAND"):
@@ -320,6 +322,10 @@ class LibrarianTests(unittest.TestCase):
             "My friend Alice is stressed about work.",
             "What should I cook for dinner?",
             "A mouse ran through the kitchen.",
+            "I saw a caterpillar outside.",
+            "Alice, Alice, Alice.",
+            "Alice saw a mouse.",
+            "Wonderland: Alice and the Caterpillar.",
         ):
             with self.subTest(line=line):
                 candidates = self.librarian.work_candidates(
@@ -330,6 +336,27 @@ class LibrarianTests(unittest.TestCase):
                 self.assertTrue(
                     all(candidate.strength == "weak" for candidate in candidates)
                 )
+
+    def test_separate_story_cues_select_non_alice_memory_candidates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            registration = fake_registration(
+                Path(directory), work_id="other-book", catalog={
+                    "chapters": [{
+                        "chapter_number": 1,
+                        "characters": ["Zorblatt", "Quendra"],
+                    }],
+                },
+            )
+            with patch("src.linger.corpus.registry.CORPORA", {"other-book": registration}):
+                candidates = self.librarian.work_candidates(
+                    "Zorblatt spoke to Quendra.", (registration.book.book_version_id,),
+                )
+                self.assertEqual(1, len(candidates))
+                self.assertEqual("strong", candidates[0].strength)
+                self.assertEqual("other-book", candidates[0].scope.work_id)
+                self.assertEqual((), self.librarian.work_candidates(
+                    "Zorblatt spoke to Quendra.", (BOOK_VERSION_ID,),
+                ))
 
     def test_unrelated_query_returns_no_evidence_without_fallback(self) -> None:
         bundle = self.librarian.retrieve(request("zyxwvu qqqqq"))

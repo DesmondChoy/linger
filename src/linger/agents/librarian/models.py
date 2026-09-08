@@ -88,7 +88,8 @@ class PassageInferenceDecision(StrictModel):
     work_id: str
     book_version_id: str
     confidence: float = Field(ge=0, le=1)
-    supporting_statement_ids: tuple[str, ...] = Field(min_length=1)
+    authorization_basis: Literal["session_supported", "line_only"]
+    supporting_statement_ids: tuple[str, ...] = ()
     supporting_evidence_ids: tuple[str, ...] = Field(min_length=1)
     passage_evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=5)
 
@@ -101,6 +102,13 @@ class PassageInferenceDecision(StrictModel):
         ):
             if len(selected) != len(set(selected)):
                 raise ValueError("passage inference selections must be unique")
+        if self.authorization_basis == "session_supported":
+            if not self.supporting_statement_ids:
+                raise ValueError(
+                    "session-supported passages require supporting statement IDs"
+                )
+        elif self.supporting_statement_ids:
+            raise ValueError("line-only passages cannot cite supporting statements")
         return self
 
 

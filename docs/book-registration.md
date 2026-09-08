@@ -6,9 +6,12 @@ Librarian routing, and identity checks on memories. The registry lives in
 stable work ID comes from its registration; chat never manufactures an ID
 from an unknown title.
 
-The current library contains Alice. Adding a book requires a validated corpus,
-a registration, and an application grant for its exact revision. Registration
-does not automatically grant retrieval access.
+The runtime registry and default application grant contain *Alice's Adventures
+in Wonderland*. The repository also contains validated corpora for *Animal
+Farm*, *The Adventures of Pinocchio*, *Narrative of the Life of Frederick
+Douglass*, and *The Story of My Life*. These artifacts are not runtime
+registrations. Book retrieval requires a validated chapter corpus, a
+registration, and an application grant for its exact revision.
 
 ## Identity and ambiguity
 
@@ -36,6 +39,18 @@ name signal, Librarian can still use its existing catalogue cues. Multiple
 qualifying catalogue candidates require clarification, even if their scores
 differ. Candidate aliases never become strong memory-identity evidence.
 
+Muse calls the argument-free `librarian_route` only when the reader's words
+carry a book cue, such as a title, character, scene, or indirect follow-up to
+the book conversation. An active book alone is not a reason to route an
+unrelated reflection. The application supplies the original reader message
+and caches one routing result for the turn, including concurrent calls.
+
+When current-message routing finds no work, application code can use the
+session's active selection if its revision remains allowed and no strong cue
+contradicts it. A routed result records its deterministic `selection_basis` as
+`resolved_book_identity`, `distinctive_cue`, or `session_selection`. This field
+explains book selection; it does not establish reading progress.
+
 An unresolved book declaration clears the previous selection, chapter
 candidate, and pending chapter question. A typed identity clarification from `librarian_route` occurs before
 private memory selection or full-work boundary inference. After Provenance
@@ -51,6 +66,24 @@ completion, a validated memory-supported boundary, or exact session-supported
 passage permission. Application code enforces the permitted revision and the
 chapter ceiling or exact passage IDs. Passage permission does not establish
 chapter completion.
+
+Private Librarian inference can grant up to five exact canonical paragraphs
+when earlier reader statements support having read the requested scene. The
+model identifies the earlier statement IDs, the paragraphs locating that
+reading, and the exact requested paragraphs separately. The model assesses
+whether the reader reports reading rather than curiosity, an adaptation,
+second-hand information, or a reading plan. Application code
+checks the supplied IDs, work, revision, and confidence before binding the
+grant for the turn. Current-Line-only evidence cannot authorize the grant.
+The supplied session context contains at most eight earlier reader messages
+and 16,000 characters, preserving complete messages in a contiguous suffix.
+The grant neither exposes surrounding paragraphs nor permits Serendipity book
+search. Explicit completed-chapter context remains authoritative when present.
+
+Routing returns no passage text. Muse uses the returned identifiers with
+`librarian_search`, passing a completed `reading_boundary` for a `routed`
+chapter result or `reading_boundary=None` for a `passages` result. The latter
+search can return only the granted evidence IDs.
 
 A reply such as "Chapter 3" establishes completed progress only when answering
 a pending chapter question for that available book. Switching books discards
@@ -92,17 +125,18 @@ arguments cannot select the book by themselves.
    The normal test suite also checks the shipped registry for registration
    errors.
 5. Enable its exact revision in `allowed_book_version_ids` when the corpus is
-   ready for use. Muse obtains identifiers from validated context and tool
-   results; adding a book requires no new book-specific prompt or router branch.
+   ready for use. Configure the setting through the `ALLOWED_BOOK_VERSION_IDS`
+   environment variable as a JSON array of revision IDs. Muse obtains
+   identifiers from validated context and tool results; each registered book
+   uses the shared prompt and routing implementation.
 
 ## Responsibility boundaries
 
 ![Shared book resolution and agent responsibilities](images/book-identity-and-agent-responsibilities.png)
 
-This diagram reflects the runtime flow as of 5 September 2026, including
-chapter clarification carryover and application-owned identity, session-state,
-and release checks. The separate offline Sculptor step describes optional
-metadata proposals for human review.
+The diagram shows chapter clarification carryover and application-owned
+identity, session-state, and release checks. The separate offline Sculptor
+step describes optional metadata proposals for human review.
 
 | Owner | Responsibility |
 |---|---|
@@ -117,5 +151,14 @@ metadata proposals for human review.
 
 The catalogue remains a deterministic projection of canonical chapter metadata.
 Reviewed book aliases live in the registry, not in model-generated catalogue
-JSON. Runtime Sculptor still handles memory curation; this change does not add
-an automatic book-cataloguing agent, fuzzy matching, or arbitrary uploads.
+JSON. Runtime Sculptor handles memory curation. Book registration is a reviewed
+source-code workflow and does not accept arbitrary uploads or fuzzy name matches.
+
+## Mixed literary sections
+
+Works with letters and prefatory material use the
+[canonical section format](corpus/canonical-sections.md). *Narrative of the Life
+of Frederick Douglass* and *The Story of My Life* use schema 2 section artifacts.
+The chapter-based runtime rejects section metadata, including a section file
+placed beneath a chapter catalogue. Section IDs and section reading boundaries
+are outside this registration workflow.

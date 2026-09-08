@@ -1,0 +1,325 @@
+{
+  "artifact_kind": "book_replay_summary",
+  "complete_artifact_local_path": "/tmp/linger-book-quote-rerun.LWEL4m/run.json",
+  "complete_artifact_sha256": "2e1c6fe5ec0b9c2f575a4cbaa0b09a57ce6e5a07aa8ebb6be12f650730f76bb6",
+  "metadata_local_path": "/tmp/linger-book-quote-rerun.LWEL4m/metadata.json",
+  "metadata_sha256": "3b737f2ef5d09e658cfc1e84c60580da2c594bb4713c8b65b697a1f998ca2658",
+  "configured_model": "openai:gpt-5.6-luna",
+  "git_head": "72e40680e9a6f34971e9b4cfb635c0bc0d8ebd09",
+  "remote_telemetry": false,
+  "semantic_review": false,
+  "package_sha256": {
+    "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+    "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+    "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+  },
+  "run_id": "a489fabc6c574088b6c4a3c987883193",
+  "trace_id": "01a07041552668fca104dc41c20a0950",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "d2896623a78f3176ecc44c768d9aacc1bf34a49c01301050684c1a32ed0b0d2e",
+  "ground_truth_status": "adopted",
+  "runtime_prompt_fingerprints": [
+    {
+      "template_id": "librarian.boundary-inference",
+      "version": "3",
+      "digest": "a51ace5ec9030832a3618219b087557ca7290cb55b8e306c1f3a4fac10d28237"
+    },
+    {
+      "template_id": "librarian.evidence-strength",
+      "version": "1",
+      "digest": "02603f5535b65bb15e98cb97c84f9363b34bb117767ae709d3f8b3a8752af7e0"
+    },
+    {
+      "template_id": "muse.reflection",
+      "version": "12",
+      "digest": "0e5ae81c403edca5b5f862931742452940e8d29a28a7ef201d740dc3357504fc"
+    },
+    {
+      "template_id": "muse.revision",
+      "version": "12",
+      "digest": "f677eeaf19ef6fa792aba0898afbc9dd1fdf9b41de5c55be049a1802b3a69190"
+    },
+    {
+      "template_id": "provenance.emotional-boundary",
+      "version": "1",
+      "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+    },
+    {
+      "template_id": "provenance.release-gate",
+      "version": "6",
+      "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+    },
+    {
+      "template_id": "provenance.curation-gate",
+      "version": "1",
+      "digest": "84a3d0a1dff92039a485993ad9445b98698165109317dfce9a2d3c47175d0ce4"
+    },
+    {
+      "template_id": "sculptor.curation",
+      "version": "3",
+      "digest": "256e9bb37509fa6df6649b15263fa88f746495138662a1bb26423aa94a2e6e87"
+    },
+    {
+      "template_id": "serendipity.search-rank-select",
+      "version": "1",
+      "digest": "2c96320a86ed6183904f3c6b243502081f81e476fa9b663275dfff00644b23f5"
+    }
+  ],
+  "interpretation_cautions": [
+    "This is one model-backed replay, with raw grades preserved. It does not establish reliable prose quality or semantic spoiler safety.",
+    "The Pigeon boundary now meets both adopted support requirements. Grounding returned no evidence after Muse omitted the scene description from its query.",
+    "Muse received no grounding passage and made no exact-quote repair attempt in this run. The quotation-repair change remains unverified against the provider.",
+    "Muse prompt version 13 was written after this run to preserve scene descriptions in grounding queries. This run used version 12."
+  ],
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "infer",
+      "routed_ceiling": 5,
+      "route_called": true,
+      "boundary_support_memory_ids": [
+        "mem_f81c5cb04c4b0410578cc3439f052e4fac23cd6f5a80caef5a81e177c0b92b1e"
+      ],
+      "released_evidence_ids": [],
+      "reply": "I couldn’t verify the exact sentence within the portion you’ve read, so I don’t want to invent or misquote it.\n\nOn the role itself: “manager” can feel awkward because saying it makes a change sound settled before it feels settled inside you. The title may be accurate while still feeling borrowed, oversized, or unlike your usual way of describing yourself. Sometimes the awkwardness is simply the lag between taking on a role and inhabiting it.\n\nYou might try saying it in lower-stakes forms—“I’m managing this project,” or “I’m learning to be a manager”—and notice which version feels more truthful. What part feels most awkward: the word itself, the authority it implies, or the fear that others will expect you to already know how to do it?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "required_grounding_evidence_not_retrieved",
+            "grounded_response_released_no_evidence",
+            "exact_quotation_missing_or_unreleased:pigeon"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "pigeon-reflection",
+          "proposal_id": "pigeon-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_support_evidence": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "chapter_number": 5,
+          "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+          "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+          "source_lines": [
+            1179,
+            1219
+          ]
+        },
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln0960-1016",
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "chapter_number": 5,
+          "location": "Chapter 5 — Advice from a Caterpillar, source lines 960-1016",
+          "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+          "source_lines": [
+            960,
+            1016
+          ]
+        }
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "call_outcome": "success",
+          "retrieval_outcome": "no_evidence",
+          "searched_max_chapter": 5,
+          "searched_passage_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "clarification_question": null,
+          "failure_code": null,
+          "evidence_ids": []
+        }
+      ],
+      "boundary_exchanges": [
+        {
+          "status": "success",
+          "output": {
+            "outcome": "candidate",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_number": 5,
+            "confidence": 0.98,
+            "authorization_basis": "memory_supported",
+            "supporting_memory_ids": [
+              "mem_f81c5cb04c4b0410578cc3439f052e4fac23cd6f5a80caef5a81e177c0b92b1e"
+            ],
+            "supporting_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0960-1016",
+              "pg11-v01b38ea4-ch05-ln1179-1219"
+            ],
+            "reason_code": null
+          },
+          "selected_memory_ids": [
+            "mem_f81c5cb04c4b0410578cc3439f052e4fac23cd6f5a80caef5a81e177c0b92b1e"
+          ],
+          "candidate_evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln0960-1016",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1094-1135",
+            "pg11-v01b38ea4-ch05-ln1151-1186",
+            "pg11-v01b38ea4-ch05-ln1004-1056"
+          ]
+        }
+      ],
+      "muse_tool_calls": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "arguments": {},
+          "outcome": "success"
+        },
+        {
+          "stage": "draft",
+          "tool_name": "librarian_search",
+          "arguments": {
+            "query": "Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "reading_boundary": {
+              "chapter_number": 5,
+              "chapter_state": "completed"
+            },
+            "max_final_evidence": 5
+          },
+          "outcome": "success"
+        }
+      ],
+      "muse_retry_count": 0
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "application_clarification",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "uncertain-growth",
+          "proposal_id": "growth-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "boundary_exchanges": [],
+      "muse_tool_calls": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "arguments": {},
+          "outcome": "success"
+        }
+      ],
+      "muse_retry_count": 0
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "released_evidence_ids": [],
+      "reply": "That awkwardness makes sense: a role change can be real before it feels familiar in your own voice. “Designer” may still be part of your story, while “manager” names what you’re doing now—not everything you are.\n\nYou could try an introduction that bridges the two:\n\n- “I’m [Name], and I recently moved from design into management. I’m enjoying helping the team do its best work.”\n- “I’m [Name]. My background is in design, and I’m now managing the team.”\n- “I’m [Name], the team’s manager. I came from a design background, so I’m especially interested in how we make good work together.”\n\nThe first may feel most honest if you’re still growing into the title: it doesn’t force you to pretend the transition is complete emotionally. You could also practice saying it privately a few times—not to convince yourself, but to let the words become less surprising. Which part feels truest: naming the transition, naming your design background, or naming what you hope to contribute as a manager?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "boundary_exchanges": [],
+      "muse_tool_calls": [],
+      "muse_retry_count": 0
+    }
+  ],
+  "offline_query_comparison": {
+    "source_run_id": "a489fabc6c574088b6c4a3c987883193",
+    "provider_calls": 0,
+    "threshold": 0.5,
+    "chapter_ceiling": 5,
+    "queries": {
+      "recorded_tool_query": {
+        "query": "Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+        "evidence_ids": [],
+        "relevance": []
+      },
+      "full_current_line": {
+        "query": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+        "evidence_ids": [
+          "pg11-v01b38ea4-ch05-ln1179-1219",
+          "pg11-v01b38ea4-ch05-ln1208-1237",
+          "pg11-v01b38ea4-ch05-ln1151-1186"
+        ],
+        "relevance": [
+          0.9777089877724512,
+          0.9701788376149124,
+          0.9664003697875632
+        ]
+      }
+    }
+  },
+  "judgments_passed": 3,
+  "judgments_total": 4
+}

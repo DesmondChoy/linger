@@ -8,7 +8,9 @@ interaction and backend debugging; a user-facing frontend should omit both.
   capture notices, and trace-correlated errors.
 - Reader lets developers browse the public Project Gutenberg edition of
   *Alice's Adventures in Wonderland* by chapter and exercise corpus behavior.
-  It reveals a summary only after an explicit spoiler warning.
+  It has a chapter selector, an expandable reading panel, and a source link.
+  It reveals a summary only after an explicit spoiler warning and hides the
+  summary when the developer selects another chapter.
 - Inspect lets developers trace request contracts, context resolution, agent
   hand-offs, direct Librarian calls, fixed Serendipity outcomes, and actual
   release decisions for completed turns. Its raw diagnostics are not intended
@@ -19,6 +21,10 @@ Selecting or revealing a chapter does not establish a spoiler ceiling for chat,
 and diagnostic output cannot grant retrieval, release, capture, or storage
 authority. The backend accepts only the request-scoped reading context described
 in the system specification.
+
+Reader's library contains Alice only. Canonical corpora elsewhere in the
+repository do not populate this panel, and it does not display section-based
+works.
 
 ## Commands
 
@@ -44,6 +50,11 @@ Vite 8 requires Node 20.19+ or 22.12+.
 The browser creates one UUID-backed session per page load. Reloading or choosing
 **New chat** starts a fresh session. A failed chat request is removed from the
 local timeline because the backend commits no conversation turn on failure.
+
+Book identity and progress come from the reader's chat messages and validated
+backend context. An active book can resolve an indirect book follow-up without
+establishing completed reading progress. When identity or progress remains
+unresolved, chat displays the application's reviewed clarification question.
 
 For backend setup, API behavior, and configuration, see
 [`../README.md`](../README.md).

@@ -5,11 +5,11 @@ permitted sources, removes ineligible evidence, constructs possible
 connections, compares the strongest two or three with an anchored rubric, and
 returns exactly one `ConnectionProposal` or one `ConnectionDecline`.
 
-The current slice permits spoiler-bounded book evidence and optional public-web
-discovery. A selected book-only proposal may enter the ordinary Muse,
-Provenance, and deterministic release path. Web-backed proposals remain
-internal and fail closed. Account-scoped stored-memory and image evidence remain
-later slices.
+Serendipity can search active account-scoped curated memories, spoiler-bounded
+book evidence, and optional public-web sources. A selected book-only proposal
+may enter the ordinary Muse, Provenance, and deterministic release path.
+Proposals citing memory or web evidence fail deterministic release. Image
+evidence is unsupported.
 
 Serendipity has no write or release authority. Muse owns the conversation,
 Librarian owns internal retrieval, Exa supplies public-web search, application
@@ -44,6 +44,13 @@ raise a chapter ceiling, or change presentation policy. The canonical Librarian
 service is supplied through `SerendipityDependencies`, which tool code can
 access but the model cannot see or supply.
 
+The application grants `memory` only when its active account-scoped curated
+retrieval view contains records. It grants `book_corpus` only with confirmed
+chapter context; an exact-passage grant does not permit Serendipity book search.
+Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
+`get_recommendation` uses `presentation=direct`, while `find_connection` uses
+`ask_before_showing`. Presentation policy does not bypass release checks.
+
 ## Search ownership
 
 The ownership boundary is:
@@ -51,6 +58,7 @@ The ownership boundary is:
 | Component | Search responsibility |
 | --- | --- |
 | Application | Supplies the exact current reader message as the cue and owns source grants |
+| Memory & Policy Service | Supplies the active account-scoped curated retrieval view |
 | Librarian | Spoiler-bounded book corpora |
 | Serendipity | Chooses useful permitted searches and compares their results |
 | Exa | Public-web search and page retrieval for Serendipity |
@@ -74,6 +82,7 @@ Application grants source permissions
 Static instructions + ConnectionDiscoveryInput
                 ↓
         Serendipity chooses permitted tools to conduct searches
+          ├─ Memory: Active account-scoped curated records
           ├─ Librarian: Internal evidence - spoiler-bounded book excerpts
           └─ Exa: External evidence - public web (web_search, get_page)
                 ↓
@@ -97,7 +106,7 @@ Static instructions + ConnectionDiscoveryInput
                 ↓
     Deterministic release validation
        ├─ selected book records: eligible for release
-       └─ any web record: fail closed
+       └─ any memory or web record: fail closed
 ```
 
 Source grants are permissions, not mandatory search steps. Serendipity should
@@ -110,6 +119,13 @@ result is only a lead; Serendipity must use `get_page` to read a promising URL
 before that URL enters the Serendipity evidence ledger. Entry in that ledger
 does not grant public-release authority.
 
+`search_memories(query, max_results_per_source=5)` searches only the supplied
+curated records. It ranks positive normalized-token overlaps, breaks ties by
+memory ID, and clamps the requested limit to one through five. The tool is
+absent when memory access is not granted. `search_librarian` uses the same
+per-source result limit. Repeated `serendipity_explore` calls with the same
+intent reuse the result for the turn; a different intent receives a decline.
+
 ### Source-routing policy
 
 Serendipity chooses one primary source from the reader's requested relationship,
@@ -117,6 +133,7 @@ not from the order of `allowed_sources`:
 
 | Cue or intent | Primary search | Expansion rule |
 | --- | --- | --- |
+| Connection to the reader's authorized prior context | `search_memories` | Keep private memory wording out of public-web queries. |
 | External recommendation: essay, artwork, song, thinker, public source, or outside idea | Exa | Add the confirmed book only when the reader explicitly asks for that comparison or the web result is insufficient and the book comparison is materially useful. |
 | Relationship within a confirmed work | Librarian: `book_corpus` | Add web only when the cue explicitly asks to cross that domain or the bounded book evidence is insufficient. |
 | Explicit comparison across domains | Every named, permitted domain | Do not add unnamed domains merely because they are granted. |
@@ -200,7 +217,7 @@ boundary.
 Tool calls populate an application-owned evidence ledger. After the model
 returns, orchestration verifies that:
 
-- every shortlisted evidence ID came from Librarian or Exa in this run;
+- every shortlisted evidence ID came from a permitted search tool in this run;
 - every returned record belongs to a granted source;
 - every book record matches its revision and spoiler ceiling;
 - a proposal followed at least one recorded permitted search;
@@ -209,10 +226,10 @@ returns, orchestration verifies that:
 - presentation policy is unchanged.
 
 Only the exact records cited by the selected candidate leave this ledger. If
-they are all book-corpus records, orchestration converts them to the canonical
-frozen `EvidenceRecord` contract and adds them to the request-scoped book-
-evidence index. A selected web record is validated as Serendipity input but is
-not added to that trusted release index.
+they include book-corpus records, orchestration converts those records to the
+canonical `EvidenceRecord` contract and adds them to the request-scoped book
+evidence index. Selected memory and web records stay outside that index. The
+complete proposal must be book-only to pass deterministic release.
 
 Exa URLs are their web evidence IDs. Search-result metadata supplies
 request-local page leads, while only a successfully opened `get_page` result is
@@ -259,12 +276,14 @@ after a semantic pass. There is no Serendipity-to-reader bypass.
 Serendipity cannot save or curate memory. Telemetry and fixed request-local
 outcome metadata report a decision but never authorise search, storage, or release.
 
-Serendipity cannot widen citation or public-release authority. A selected web
-page can support a release only when Muse visibly cites its exact opened URL and
-application code resolves that declaration against the current run. Provenance
-still treats the page as untrusted evidence. Stored-memory and image evidence do
-not become reader-visible citations. A validated decline may still be relayed
-with fixed inspection metadata.
+Serendipity cannot widen citation or public-release authority. A book-only
+proposal uses the canonical book contract. A selected web page can support a
+release only when Muse visibly cites its exact opened URL and application code
+resolves that declaration against the current run. Provenance still treats the
+page as untrusted evidence. Stored-memory and image evidence do not become
+reader-visible citations, and their content-bearing diagnostics are not returned
+by the API. A validated decline may still be relayed with fixed inspection
+metadata.
 
 ## Related
 

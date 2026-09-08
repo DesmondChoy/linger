@@ -1,4 +1,4 @@
-# Linger Telemetry Data Contract
+# Linger telemetry data contract
 
 Status: **Canonical telemetry contract**
 
@@ -35,7 +35,7 @@ the exported-payload test are updated together.
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
 | Agent and model | Agent role and stage; provider and model; prompt-template ID, version, and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
-| Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome |
+| Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage and code; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Objective ID, case ID, dataset version, run ID, system variant, Ground truth status, expected and actual fixed labels, proposal comparison or adopted-label pass/fail, aggregate counts and metrics, latency, tokens, and cost |
@@ -54,6 +54,14 @@ application-owned orchestrator. It does not imply that agents communicate
 autonomously or transfer authority. Origins, receivers, and contract names are
 fixed application enums or repository-owned identifiers; payloads remain
 absent.
+
+`routing.selection_basis` records `resolved_book_identity`, `distinctive_cue`,
+or `session_selection`. It explains how the application chose a book, not
+whether the reader completed a chapter. `search.allowed_sources` and
+`search.source_kinds` can contain `memory`, `book_corpus`, and `web`.
+Recording a memory search never permits
+memory IDs or excerpts in backend telemetry. `serendipity.shortlist_size`
+records only the number of shortlisted candidates.
 
 ## 3. What the backend service does not record
 
@@ -81,7 +89,7 @@ the user's content.
 
 ## 4. Synthetic evaluation transcripts
 
-The capture and bounded-curation replay runners use the same Logfire project
+Synthetic replay runners use the same Logfire project
 under the separate `linger-evals` service, `synthetic-evaluation` environment,
 and `content.classification=synthetic` resource attribute. No production
 configuration or environment flag enables this service or its recorder.
@@ -115,6 +123,21 @@ trace IDs. Both artifacts omit thinking parts. Logfire may display only
 thinking content that the provider actually returned; absence does not
 establish that a model performed no internal reasoning.
 
+Book-grounding replay records routing selection, boundary authorization,
+completed retrieval, final permitted citations, and release outcomes. Its
+chapter-based Objective rejects passage-only authorization as
+`passage_scope_outside_chapter_objective`. Safe-decline reflection replay also
+retains failure stage, owner type, and retryability for each turn. Successful
+intermediate retrieval does not establish a successful final release.
+
+Offline proactive-memory component replay records source and input hashes,
+full agent exchanges, deployment and execution identities, and separate
+decision-label and hard-gate results. Model failures remain in the denominator.
+These records describe component behavior, not delivery of a conversational
+reminder. The conversational proactive-memory Objective has no automatic
+post-adoption replay dispatch. Component and manual release-path runs do not
+substitute for that Objective's end-to-end evidence.
+
 Proposed authoring labels remain explicitly `proposed`. Comparison is reported
 as `matches_proposal` or `differs_from_proposal`, never as an adopted Ground
 truth pass.
@@ -129,7 +152,8 @@ Logfire project:
   evaluator labels, operational metrics, and run comparison.
 - **Agents** groups invocations by fixed agent name. It shows only agents
   exercised by the selected workflow and time range: capture normally shows
-  Muse and Provenance, while bounded curation shows Sculptor.
+  Muse and Provenance, bounded curation shows Sculptor, and connection discovery
+  shows Serendipity with any invoked Librarian calls.
 - **LLMs and providers** aggregates model calls, latency, tokens, cost, and
   provider reliability data.
 - **Live** shows the complete nested experiment, case, application, agent, and

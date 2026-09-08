@@ -55,8 +55,11 @@ class BookCorpus:
     default_source: Path
     default_output: Path
     parse_source: Callable[[Path], tuple[ParsedChapter, ...]]
+    unit_kind: Literal["chapter", "section"] = "chapter"
 
     def __post_init__(self) -> None:
+        if self.unit_kind not in ("chapter", "section"):
+            raise ValueError("unit_kind must be chapter or section")
         valid_work_id = re.fullmatch(
             r"[a-z0-9]+(?:-[a-z0-9]+)*", self.work_id
         )
@@ -97,6 +100,20 @@ class ChapterFrontMatter(BaseModel):
     body_lines: tuple[int, int]
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     body_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class SectionFrontMatter(ChapterFrontMatter):
+    """Schema 2 names mixed literary divisions as sections on disk.
+
+    The lifecycle uses the same ordinal and identity attributes internally;
+    aliases keep chapter terminology out of section files and catalogs.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True, serialize_by_alias=True)
+
+    schema_version: Literal[2] = 2
+    chapter_id: str = Field(alias="section_id")
+    chapter_number: int = Field(ge=1, alias="section_number")
 
 
 def sha256(value: bytes | str) -> str:
@@ -154,16 +171,18 @@ def _chapter_number_width(chapters: Sequence[ParsedChapter]) -> int:
     return max(2, len(str(len(chapters))))
 
 
-def chapter_path(chapter: ParsedChapter, number_width: int = 2) -> Path:
+def chapter_path(
+    chapter: ParsedChapter, number_width: int = 2, unit_kind: str = "chapter"
+) -> Path:
     """Return the stable canonical path for one parsed chapter."""
-    return Path("chapters") / f"{chapter.number:0{number_width}d}-{chapter.slug}.md"
+    return Path(f"{unit_kind}s") / f"{chapter.number:0{number_width}d}-{chapter.slug}.md"
 
 
 def chapter_metadata(
     book: BookCorpus, chapter: ParsedChapter, number_width: int = 2
 ) -> ChapterFrontMatter:
     """Build exact canonical front matter for one parsed chapter."""
-    return ChapterFrontMatter(
+    metadata = ChapterFrontMatter(
         work_id=book.work_id,
         book_version_id=book.book_version_id,
         chapter_id=f"{book.book_version_id}-ch{chapter.number:0{number_width}d}",
@@ -180,6 +199,14 @@ def chapter_metadata(
         source_sha256=book.source_sha256,
         body_sha256=sha256(chapter.body),
     )
+    if book.unit_kind == "section":
+        values = metadata.model_dump()
+        values["schema_version"] = 2
+        values.pop("chapter_id")
+        values["section_id"] = f"{book.book_version_id}-sec{chapter.number:0{number_width}d}"
+        values["section_number"] = values.pop("chapter_number")
+        return SectionFrontMatter.model_validate(values)
+    return metadata
 
 
 def render_chapter(
@@ -198,31 +225,35 @@ def render_chapter(
     return metadata, markdown
 
 
-def parse_chapter_markdown(markdown: str) -> tuple[ChapterFrontMatter, str]:
-    """Read exact-version JSON front matter and the remaining Markdown body."""
+def parse_chapter_markdown(
+    markdown: str, *, unit_kind: Literal["chapter", "section"] = "chapter"
+) -> tuple[ChapterFrontMatter, str]:
+    """Read the expected schema; chapter runtime callers reject section files."""
     if not markdown.startswith("---\n"):
         raise CorpusBuildError("chapter is missing front matter")
     try:
         encoded, body = markdown[4:].split("\n---\n\n", maxsplit=1)
-        metadata = ChapterFrontMatter.model_validate_json(encoded)
+        model = SectionFrontMatter if unit_kind == "section" else ChapterFrontMatter
+        metadata = model.model_validate_json(encoded)
     except (ValueError, json.JSONDecodeError) as exc:
         raise CorpusBuildError("chapter front matter is invalid") from exc
     return metadata, body
 
 
 def _catalog_chapter(
-    metadata: ChapterFrontMatter, chapter: ParsedChapter, number_width: int
+    metadata: ChapterFrontMatter, chapter: ParsedChapter, number_width: int,
+    unit_kind: str,
 ) -> dict[str, Any]:
     return {
-        "chapter_id": metadata.chapter_id,
-        "chapter_number": metadata.chapter_number,
+        f"{unit_kind}_id": metadata.chapter_id,
+        f"{unit_kind}_number": metadata.chapter_number,
         "title": metadata.title,
         "routing_description": metadata.routing_description,
         "characters": list(metadata.characters),
         "locations": list(metadata.locations),
         "retrieval_cues": list(metadata.retrieval_cues),
         "word_count": metadata.word_count,
-        "path": chapter_path(chapter, number_width).as_posix(),
+        "path": chapter_path(chapter, number_width, unit_kind).as_posix(),
     }
 
 
@@ -236,16 +267,16 @@ def render_catalog(
         raise CorpusBuildError("chapter and metadata counts differ")
     number_width = _chapter_number_width(chapters)
     catalog = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": 2 if book.unit_kind == "section" else SCHEMA_VERSION,
         "work_id": book.work_id,
         "book_version_id": book.book_version_id,
         "title": book.title,
         "author": book.author,
         "source_path": book.source_path,
         "source_sha256": book.source_sha256,
-        "chapter_count": len(metadata),
-        "chapters": [
-            _catalog_chapter(record, chapter, number_width)
+        f"{book.unit_kind}_count": len(metadata),
+        f"{book.unit_kind}s": [
+            _catalog_chapter(record, chapter, number_width, book.unit_kind)
             for chapter, record in zip(chapters, metadata, strict=True)
         ],
     }
@@ -262,7 +293,7 @@ def render_initial_corpus(
     metadata: list[ChapterFrontMatter] = []
     for chapter in chapters:
         front_matter, markdown = render_chapter(book, chapter, number_width)
-        artifacts[chapter_path(chapter, number_width)] = markdown
+        artifacts[chapter_path(chapter, number_width, book.unit_kind)] = markdown
         metadata.append(front_matter)
     artifacts[Path("catalog.json")] = render_catalog(book, chapters, metadata)
     return artifacts
@@ -291,10 +322,10 @@ def initialise_corpus(
 
 
 def _artifact_errors(
-    output: Path, expected_files: set[Path]
+    output: Path, expected_files: set[Path], unit_kind: str = "chapter"
 ) -> list[str]:
     errors: list[str] = []
-    expected_directories = {Path("chapters")}
+    expected_directories = {Path(f"{unit_kind}s")}
     actual_files: set[Path] = set()
     actual_directories: set[Path] = set()
     if output.exists():
@@ -312,13 +343,13 @@ def _artifact_errors(
     for path in sorted(expected_files - actual_files):
         if path == Path("catalog.json"):
             continue
-        errors.append(f"missing chapter file: {path.as_posix()}")
+        errors.append(f"missing {unit_kind} file: {path.as_posix()}")
     for path in sorted(actual_files - expected_files):
         errors.append(f"unexpected file: {path.as_posix()}")
     for path in sorted(actual_directories - expected_directories):
         errors.append(f"unexpected directory: {path.as_posix()}")
-    if Path("chapters") not in actual_directories:
-        errors.append("missing chapter directory: chapters")
+    if Path(f"{unit_kind}s") not in actual_directories:
+        errors.append(f"missing {unit_kind} directory: {unit_kind}s")
     return errors
 
 
@@ -333,20 +364,20 @@ def _canonical_records(
         return chapters, (), ("unexpected symbolic link: corpus directory",)
     number_width = _chapter_number_width(chapters)
     expected_chapter_paths = {
-        chapter_path(chapter, number_width) for chapter in chapters
+        chapter_path(chapter, number_width, book.unit_kind) for chapter in chapters
     }
     expected_files = expected_chapter_paths | {Path("catalog.json")}
-    errors = _artifact_errors(output, expected_files)
+    errors = _artifact_errors(output, expected_files, book.unit_kind)
     records: list[ChapterFrontMatter] = []
 
     for chapter in chapters:
-        relative_path = chapter_path(chapter, number_width)
+        relative_path = chapter_path(chapter, number_width, book.unit_kind)
         path = output / relative_path
         if not path.is_file() or path.is_symlink():
             continue
         try:
             metadata, markdown_body = parse_chapter_markdown(
-                path.read_text(encoding="utf-8")
+                path.read_text(encoding="utf-8"), unit_kind=book.unit_kind
             )
         except (CorpusBuildError, OSError, UnicodeError) as exc:
             errors.append(f"{relative_path.as_posix()}: {exc}")
@@ -479,7 +510,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 _load_chapters(book, args.source or book.default_source)
             )
             print(
-                f"Initialized {chapter_count} chapters for "
+                f"Initialized {chapter_count} {book.unit_kind}s for "
                 f"{book.book_version_id} in {args.output or book.default_output}"
             )
             return 0

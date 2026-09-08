@@ -51,8 +51,8 @@ def load_catalog(path: Path) -> Catalog:
         raise SelectorError("The evaluation-objective catalog must be a mapping.")
 
     entries = document.get("evaluation_objectives")
-    if not isinstance(entries, list) or len(entries) != 10:
-        raise SelectorError("The catalog must contain exactly ten evaluation objectives.")
+    if not isinstance(entries, list) or not entries:
+        raise SelectorError("The catalog must contain a non-empty list of evaluation objectives.")
 
     families = load_families(document)
     family_ids = {family["id"] for family in families}

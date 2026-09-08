@@ -1,4 +1,4 @@
-"""Deterministically validate a synthetic-journal pre-generation report."""
+"""Check report structure; review Objective semantics against the catalog separately."""
 
 from __future__ import annotations
 

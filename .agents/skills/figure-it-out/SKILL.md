@@ -7,7 +7,7 @@ metadata:
 
 # Figure it out
 
-When the task matches no playbook, design one. The deliverable before any code is the workflow itself: a sequence of phases that scales rigor to the task, runs the scientific method, and leaves a decision trail a human can audit after stepping away. Bias toward more rigor. The cost of building the wrong thing dwarfs the cost of being careful.
+When the task matches no playbook, design one. The deliverable before any code is the workflow itself: a sequence of phases that scales rigor to the task, runs the scientific method, and leaves a decision trail a human can audit after stepping away. Scale rigor to concrete uncertainty, impact, and reversibility. Use the smallest workflow that can establish the requested outcome.
 
 Don't reinvent a playbook you already have. A focused single-unit task that matches Bug fix, Perf, Feature, Visual parity, Eval, or Multi-phase plan routes there. But a large or cross-cutting version of one (a migration across many call sites, an ambitious multi-part change), or work the user reviews after stepping away, belongs here even though a single-unit version would be a Feature. The rigor and the audit trail are the point.
 
@@ -21,16 +21,16 @@ Ground first, then commit. Don't start the run until you can state:
 
 - The definition of done as a falsifiable predicate (the **prove-it-works** principle skill). "Done well" has to be checkable.
 - Scope, quantified: rough units and effort, plus the blockers grounding surfaced. Raise them before spending hours, not after fifty doomed commits.
-- The rigor level, biased high. One-way doors and high blast radius get more; reversible low-stakes steps get less. Rigor is gates and artifacts, not "try harder".
+- The rigor level and the concrete risks that justify it. Use stronger gates for irreversible decisions and high-impact changes, and focused checks for reversible, low-impact work.
 
-Present the framing and tradeoffs before committing to a long run. Reversible work proceeds (the **never-block-on-the-human** principle skill), but a multi-hour run earns one checkpoint.
+Share the framing and tradeoffs before a long run, then proceed within existing authorization. Honor explicit user checkpoints. Ask only when a material decision or required authority remains unresolved, after completing independent authorized preparation. Duration alone does not require approval.
 
 ## Phase B: Design the workflow
 
 Decompose into atomic, independently-landable units. Sequence riskiest-unknown-first so option value stays high. Scaffold and verification come before features (the **foundational-thinking** principle skill).
 
-- Build the verification harness before the work, with the baseline captured from the pre-change state, so the check reads as "old value vs new value".
-- For one-way-door design decisions, run the **architect** skill (it runs **arena**) with diverse, isolated, opinionated candidates and a read-only judge on a different model family. Skip it for mechanical work whose shape is already concrete. A second arena over a settled design is over-engineering (the **laziness-protocol** principle skill).
+- Identify suitable verification and capture a relevant baseline before changing behavior. Reuse existing checks; add a harness only when it resolves a concrete verification gap.
+- Use **architect** for consequential unresolved design choices. Use competing prototypes or **arena** when they can resolve that uncertainty or the user requests them. A settled design needs no tournament.
 - Decide what fans out. Parallelize only across genuine seams. In Linger, give concurrent writers disjoint paths in the shared checkout and serialize overlap. Do not create worktrees.
 - Write the designed phase list down. That list is what the human reviews.
 
@@ -39,10 +39,10 @@ Then put the design into motion. Add its steps to the todolist as concrete items
 ## Phase C: Run the loop
 
 Each unit is an experiment: state the hypothesis, make the smallest change, measure against the predicate on the real artifact, keep it if it advanced, revert it if it didn't.
-Apply the **sequence-verifiable-units** principle skill, verifying each unit before starting the next instead of batching checks at the end.
+Apply **sequence-verifiable-units**: group coordinated edits into coherent units and verify before dependent work builds on them.
 
 - Verify by inspecting the artifact, never a self-report. When something passes too easily, suspect the observation method before the system. A blank screenshot passes a lazy gate.
-- Pair delegated work with a judge and audit the delegates' artifacts yourself before trusting them. If a worker games the gate, reset and harden the contract. If the gate itself is wrong, fix the gate in its own change rather than routing around it.
+- Inspect delegated artifacts and relevant verification before accepting the result. Add an independent reviewer when the risk or uncertainty warrants one. Investigate a suspect gate and correct it when its contract is wrong.
 - A verdict is VERIFIED, NOT VERIFIED, or INCONCLUSIVE. Inconclusive is not a pass. Don't hide a negative.
 
 ## Phase D: Keep the audit trail

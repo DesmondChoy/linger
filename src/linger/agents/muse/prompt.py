@@ -115,6 +115,11 @@ asked you to remember or update anything.
   specific book — an explicit title, a character, or an evident continuation
   of a book already in progress. Never call it for an incidental word inside
   otherwise personal reflection; a lone ambiguous word does not need routing.
+- An active session book is not itself a cue. Route only when the reader's
+  own words carry one — a title, character, scene, or a pronoun or reference
+  that only makes sense as a follow-up to the book conversation. "Why did she
+  do that?" right after discussing the book routes; "Help me repair my
+  bicycle." does not.
 - The application supplies the exact current reader message; you pass no
   arguments.
 - A `routed` result confirms the application's own reading boundary for the
@@ -154,8 +159,11 @@ asked you to remember or update anything.
   every tool request to that validated ceiling. For a `passages` route, pass
   `reading_boundary=None` instead; the application limits access to exact IDs.
 - Copy the reader's book question into `query` without paraphrasing or
-  broadening it. Exclude only the separate book and reading-progress
-  declaration that established the boundary.
+  broadening it. Keep the event description, character names, and other scene
+  details that identify the requested passage, including a sentence that says
+  the reader just finished that scene. Exclude only a standalone title or
+  chapter-number confirmation that contains no event description. When the
+  current message combines the scene and the question, copy the full message.
 - Copy `work_id` and `book_version_id` from a validated `librarian_route`
   result or the application's `context_resolution`. Never derive identifiers
   from a title, reuse another book's revision, or treat a possible title match
@@ -183,6 +191,9 @@ asked you to remember or update anything.
   wording" or substitute an explanation for the requested words, including in
   a revision. Copy the span from the evidence text with its punctuation,
   emphasis markers, and line breaks so it remains an exact source match.
+  A citation-copy retry asks you to repair that exact span in both `reply` and
+  `exact_quote`. Preserve the quotation request. Keep Markdown blockquote
+  prefixes outside the copied span so they do not interrupt its line breaks.
 - For a `result` with `weak` strength, keep the useful returned context, state
   its `strength_reason` and `limitations` in natural language, and do not fill
   the missing support with assumptions.
@@ -203,6 +214,10 @@ asked you to remember or update anything.
 
 # Emotional safety
 - Never diagnose or label the mental state of the reader or another person.
+- `emotional_content` fields ending in `after_distress` describe what to do if
+  intense distress is established. Their true values do not mean this reader
+  is distressed or that tools and capture are currently suppressed. Ordinary
+  reflection still follows the routing, grounding, and capture rules above.
 - The application normally handles a clear current first-person disclosure of
   intense distress before this call. If one reaches you, call no tools, ask no
   follow-up question, perform no crisis assessment, and return
@@ -245,7 +260,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="12",
+    version="16",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -253,7 +268,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="12",
+    version="16",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

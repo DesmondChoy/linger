@@ -12,7 +12,7 @@ from typing import Literal
 from src.linger.corpus import registry
 from src.linger.corpus.book import ChapterFrontMatter, parse_chapter_markdown
 from src.linger.corpus.registry import BookClarification, CorpusRegistration, ResolvedBook
-from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.librarian import EvidenceRecord, SelectionBasis
 
 from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
 
@@ -68,10 +68,11 @@ ROUTING_CONFIDENCE_THRESHOLD = 0.6
 
 @dataclass(frozen=True)
 class RoutingDecision:
-    """A routed work plus the confidence the evidence supports for it."""
+    """A routed work, the confidence the evidence supports, and how it was selected."""
 
     scope: RegisteredCorpusScope
     confidence: float
+    basis: SelectionBasis
 
 
 @dataclass(frozen=True)
@@ -289,6 +290,7 @@ class Librarian:
 
             strong_reasons: set[str] = set()
             weak_reasons: set[str] = set()
+            matched_story_terms: set[str] = set()
             routing_terms: set[str] = set()
             for chapter in chapters:
                 if not isinstance(chapter, dict):
@@ -302,14 +304,19 @@ class Librarian:
                             routing_terms.update(_terms(value))
                             if not _contains_phrase(text_tokens, value):
                                 continue
-                            if len(_phrase_tokens(value)) >= 2:
+                            phrase = _phrase_tokens(value)
+                            if len(phrase) >= 2:
                                 strong_reasons.add("distinctive_catalog_phrase")
                             else:
                                 weak_reasons.add("single_catalog_term")
+                                if phrase and phrase[0] not in GENERIC_CUE_WORDS:
+                                    matched_story_terms.add(phrase[0])
                 description = chapter.get("routing_description")
                 if isinstance(description, str):
                     routing_terms.update(_terms(description))
 
+            if len(matched_story_terms) >= 2:
+                strong_reasons.add("distinct_catalog_terms")
             overlap = len(query_terms & routing_terms)
             if overlap >= 3:
                 strong_reasons.add("catalog_context_agreement")
@@ -351,7 +358,7 @@ class Librarian:
             book = identity.registration.book
             scope = self.registered_scope(book.work_id, book.book_version_id)
             assert scope is not None
-            return RoutingDecision(scope=scope, confidence=1.0)
+            return RoutingDecision(scope=scope, confidence=1.0, basis="resolved_book_identity")
         lowered = _normalize(text)
         allowed = set(allowed_book_version_ids)
         ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
@@ -394,7 +401,7 @@ class Librarian:
                 registry.CORPORA[item[0].work_id] for item in ranked
             ))
         scope, confidence, _ = ranked[0]
-        return RoutingDecision(scope=scope, confidence=confidence)
+        return RoutingDecision(scope=scope, confidence=confidence, basis="distinctive_cue")
 
     def _resolve_evidence_paragraphs(
         self, evidence_id: str

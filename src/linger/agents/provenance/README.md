@@ -10,13 +10,14 @@ Muse. The preflight can end a request without a candidate through an
 application-owned path; see [Provenance Flows](#provenance-flows).
 
 It is a separate model call, not a separate model. The same underlying provider
-may back both Muse and Provenance; what matters is separation of duties, so
-Provenance shares no working context with the other agents.
+may back both Muse and Provenance. The application constructs a separate review
+input instead of sharing another agent's conversation history.
 
 ## Inputs and authority
 
-Provenance receives one strict `ProvenanceInput`: trusted policy and reading
-context, canonical book evidence, current untrusted tool outcomes, Muse's
+Provenance receives one strict `ProvenanceInput`: trusted policy, chapter or
+exact-passage context, canonical book evidence, verified session Lines,
+current untrusted tool outcomes, Muse's
 candidate and declarations, and the application-owned current user Line. It has
 no tools, no conversation history, and no write authority anywhere in the
 system. Legacy derived fields such as `cited_evidence` and
@@ -33,7 +34,7 @@ a retrieved passage, or a quotation never gain authority over the review.
 Reader attribution never exempts a book-corpus claim: a claim about
 characters, plot events, chapter facts, quotations, or book-specific
 interpretation still requires a matching record even when the candidate
-frames it as something the reader said, and fails closed exactly as before.
+frames it as something the reader said.
 Shared everyday vocabulary does not make a reader-life claim a book claim
 either: a garden "plot" or a life "chapter" stays exempt unless the claim is
 actually about the book's content. Only a claim with no book-corpus content —
@@ -46,16 +47,16 @@ not route to an unfixable `reject`: it routes to `revise` with a
 `source_field="candidate.response"`) asking Muse to attribute the fact
 explicitly to the reader.
 
-`canonical_session_lines` is the same kind of application-verified authority
-for reader-attributed facts: `orchestration/reflection.py` resolves each
-Muse-declared `session_line` evidence use against this session's released
-user Lines plus the current turn's user message (never Muse's own replies)
-with an exact-substring check before Provenance ever runs, and only the
-verified reader statements reach `ProvenanceInput`. A matching entry
-corroborates a purely reader-attributed claim as something the reader said —
-it never supports a book-corpus claim; an undeclared or unresolved one stays
-on the existing exempt-and-revise path above rather than failing closed,
-exactly like unresolvable book evidence does at the deterministic layer.
+`orchestration/reflection.py` resolves each Muse-declared `session_line`
+quotation against earlier released user Lines and the current reader message.
+Only exact substrings reach `canonical_session_lines` in `ProvenanceInput`.
+Muse's replies cannot corroborate a reader statement. A matching entry
+supports attribution to the reader, but never a book-corpus claim.
+
+An undeclared reader-attributed claim remains subject to the semantic
+exempt-and-revise policy above. An explicit declaration must resolve exactly.
+Deterministic release rejects an unresolved `session_line` quotation even if
+Provenance passes the reply. These quotations contain 12 to 2,000 characters.
 
 ## Two independent decisions
 
@@ -112,15 +113,11 @@ absolute sensitive-content capture veto:
 capture. `contains_sensitive_content` is derived from capture findings rather
 than set independently, so it cannot contradict the capture decision.
 
-## Design Decisions
-1. Memory interaction pattern: Message passing (only final message passed in from Muse)
-2. Memory types used: Episodic (past task outcomes from other agents) + Procedural (main prompt, relevant policies)
-3. Type of agent: Combine basic reasoning and MAYBE tool-use (simple tools e.g., to determine which risks we need to pay attention to based off which Provenance flow). We acknowledge that this contradicts the current specs and test.
-4. Guardrails: Model-based (e.g., matching the claim against evidence)
+## Provenance flows
 
-## Provenance Flows
-
-Provenance has two call sites per request, not one.
+Provenance has separate emotional-preflight and candidate-review call sites.
+Preflight can stop the turn before candidate review. A revision invokes
+candidate review again.
 
 ### Preflight — before Muse runs
 
@@ -137,33 +134,29 @@ preflight failure returns the generic safe decline, also before Muse runs.
 Both are application-to-user paths that skip Muse. They are not a Muse-to-user
 bypass; every candidate Muse does produce still requires the candidate gate.
 
-### Candidate gate — codes by flow
+### Candidate review by flow
 
 `continue_reflection` enters the ordinary flow, whose three shapes are the
 specification's section 4.2 flows. The gate contract does not vary between them;
 only the evidence bundle's contents do.
 
-| Code | 4.2.1 Reflection & grounding | 4.2.2 Reviewed capture | 4.2.3 Connection discovery |
-|---|:-:|:-:|:-:|
-| `unresolved_evidence` | ✓ | | ✓ |
-| `misattribution` | ✓ | | ✓ |
-| `spoiler` | ✓ | | ✓ |
-| `unsupported_claim` | ✓ | ✓ | ✓ |
-| `prompt_injection` | ✓ | ✓ | ✓ |
-| `sensitive_content` | | ✓ | |
-| `uncited_web_claim` | | | ◦ |
-| `emotional_policy_violation` | † | | † |
+| Flow | Review input |
+|---|---|
+| Reflection and grounding | Complete reply, canonical book evidence, exact-passage or chapter scope, and verified reader statements |
+| Reviewed capture | Muse's nomination, exact current reader Line, and capture policy |
+| Connection discovery | Complete reply, untrusted proposal or decline, and the selected canonical book records |
 
-✓ reachable today · ◦ target state, not reachable in the current slice ·
-† Line-scoped, identical in both response flows
+Response and capture findings use the same risk taxonomy but retain separate
+decision scopes. Emotional-policy review applies to the current Line and to
+candidate behavior in every response flow.
 
 ### 4.2.1 — Reflection & grounding (book evidence)
 
-The book corpus is the only citation authority, so the five reachable codes are
-the evidence, attribution, and injection ones: `unresolved_evidence`,
-`misattribution`, `spoiler`, `unsupported_claim`, and `prompt_injection`.
-`spoiler` needs a chapter ceiling to violate, which this flow establishes through
-boundary inference or explicit reader confirmation.
+Canonical book records support book claims. Review checks unresolved evidence,
+attribution, unsupported claims, and prompt injection throughout the candidate.
+Spoiler review enforces the supplied chapter ceiling or exact-passage scope.
+A passage grant supports only its listed canonical paragraphs. It neither
+establishes chapter completion nor permits surrounding scene details.
 
 ### 4.2.2 — Reviewed automatic capture
 
@@ -174,20 +167,24 @@ unsupported provenance, and injection risk — plus content that reached the
 emotional boundary. `contains_sensitive_content` reports this subset to the
 deterministic policy gate.
 
-Semantic independence is unchanged, but **storage eligibility is not purely
-semantic**. Deterministic storage additionally requires a released Muse candidate:
+Deterministic storage additionally requires a released Muse candidate:
 every `application_safe_decline` suppresses an otherwise eligible write even when
 Provenance independently returned `allow_capture`, recording
 `safe_decline_capture_suppressed` with no save notice. Every emotional-boundary
 release records `emotional_boundary_capture_suppressed`.
+An application-owned clarification records `clarification_capture_suppressed`.
 
 ### 4.2.3 — Connection discovery (Serendipity)
 
+Serendipity can return book, account-scoped memory, or web search evidence.
 This is the only flow that reaches web evidence, so it is the only flow where
 `uncited_web_claim` can fire. A selected page may support a release when Muse
 visibly cites its exact URL and application code resolves that URL against the
-current Serendipity run. `unsupported_claim` remains important because a
-tentative connection can still overclaim its evidence.
+current Serendipity run. A proposal citing memory records still fails
+deterministic release because those records are outside the citation contract.
+Provenance reviews the complete candidate for unsupported claims and attribution
+errors, and `unsupported_claim` remains important because a tentative connection
+can still overclaim its evidence.
 
 ### `emotional_policy_violation` in the candidate gate
 
@@ -213,7 +210,9 @@ Deterministic application code runs *after* a semantic pass. The current
 book-corpus slice resolves every declared evidence ID against one
 application-owned, request-scoped evidence index, checks exact quotations, source
 lines, and locations, and enforces the trusted work, book version, and chapter
-ceiling. The index admits exact book records from three sources only: the current
+ceiling or exact-passage scope. A declared exact quotation must occur both in
+the visible reply and in its canonical record. The index admits exact book
+records from three sources only: the current
 direct Librarian result, the selected records of a current book-only Serendipity
 proposal, and records re-resolved from identifiers cited by an earlier
 successfully released reply in the same session. Conflicting records for one
@@ -230,6 +229,11 @@ can authorise its own capture. A review that fails to complete is treated
 exactly as a veto.
 
 Telemetry records verdicts but must never authorise release.
+
+A binding routing clarification also constrains the complete turn. The
+candidate can declare no evidence and can use no tool other than
+`librarian_route`. After semantic and deterministic approval, application code
+releases the validated question with `release_source=application_clarification`.
 
 ## Related
 

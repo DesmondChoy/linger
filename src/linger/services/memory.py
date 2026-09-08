@@ -459,6 +459,8 @@ class MemoryPolicyService:
                 raise CurationPolicyError("tombstone_requires_duplicate_link")
             if action.memory_id in state.tombstones:
                 raise CurationPolicyError("memory_already_tombstoned")
+            if action.canonical_memory_id in state.tombstones:
+                raise CurationPolicyError("tombstone_canonical_not_retrievable")
         elif isinstance(action, RetrievalRestore):
             if action.memory_id not in state.tombstones:
                 raise CurationPolicyError("memory_is_not_tombstoned")

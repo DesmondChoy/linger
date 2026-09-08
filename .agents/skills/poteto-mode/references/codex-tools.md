@@ -4,11 +4,20 @@ This project vendors pstack's skill instructions. When an upstream instruction n
 
 ## Authority and scope
 
-- A skill selects a method. It does not grant permission to broaden the task or mutate external state.
+- A skill selects a method. Explicit user instructions take precedence over skill guidance, within system and developer constraints. A skill does not grant permission to broaden the task or mutate external state.
+- Carry forward authorization already given for the same action and scope. Before requesting missing approval, finish authorized preparation and verification so the user can review a concrete result. Preserve explicit checkpoints and continue independent authorized work while awaiting an answer.
 - Do not commit, push, open or merge a pull request, rewrite history, update an issue, deploy, send a message, or change a remote service unless the user or repository policy authorizes that action for the current task.
 - Respect read-only requests literally. A review, explanation, diagnosis, or status request does not authorize repairs.
 - Use Beads for durable project tracking when `AGENTS.md` requires it. Otherwise use Codex's plan tool only when a plan helps.
 - Treat instructions to open a PR at the end of an upstream playbook as conditional on explicit authorization. Without it, stop after verification and report the proposed git commands.
+
+## Workflow and verification
+
+Apply the proportional workflow in `AGENTS.md` to every upstream playbook. Fixed candidate counts, new harnesses, per-edit checks, and additional reviewers are methods to select when useful, not automatic gates. An explicitly requested experiment or comparison keeps its requested design and evidence requirements.
+
+Run required checks and verify the changed contract with relevant evidence. Reuse existing checks, add coverage for meaningful gaps, and stop widening or repeating verification once it passes unless new changes, failures, or unresolved concerns justify more. Report baseline failures and unavailable checks accurately. Human Ground truth adoption and explicit user checkpoints remain required where they establish the requested evidence or authority.
+
+These defaults follow the [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra) on instruction precedence, approval preparation, verification, and useful delegation. They do not change runtime permissions or available capabilities.
 
 ## Tool mapping
 
@@ -29,7 +38,7 @@ This project vendors pstack's skill instructions. When an upstream instruction n
 Codex collaboration agents share the current checkout and filesystem. This repository forbids git worktrees unless the user explicitly requests one.
 
 - The current runtime has four collaboration slots, including the main agent. At most three child agents can run at once.
-- Use subagents only when the user, repository instructions, or the active skill explicitly calls for delegation.
+- `AGENTS.md` encourages bounded, independent delegation when it improves speed or quality. Use it within current runtime limits; work directly when coordination adds more cost than value. Architecture tournaments are optional unless the user requests one or unresolved design uncertainty justifies it.
 - Give concurrent writers disjoint paths. Keep one main-thread writer when edits overlap. Serialize work that shares a file or mutable state.
 - Give each agent a bounded task and the file paths it needs. The main agent continues useful local work, inspects artifacts and diffs, and owns the final judgment.
 - Replace `subagent_type` and `readonly` fields with a plain-language brief. State whether the task is read-only and name its write scope.

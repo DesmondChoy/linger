@@ -32,12 +32,12 @@ export type MuseTurnContract = {
     allow_connection: boolean
     allow_memory_capture: boolean
     emotional_content: {
-      version: '1'
+      version: '2'
       boundary_response_id: 'distressing_disclosure_v1'
       prohibit_diagnosis: true
       stop_probing_after_distress: true
-      suppress_tools: true
-      suppress_capture: true
+      suppress_tools_after_distress: true
+      suppress_capture_after_distress: true
     }
   }
 }

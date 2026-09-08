@@ -16,7 +16,7 @@ The prose that ships alongside the type sketch. One page. Sentence-case headings
 
 ## Synthesis decision
 
-*Filled in by [arena](../../arena/SKILL.md). Records which candidate became the base and why, what was adapted from each of the others, and what was rejected and why.*
+*Include when [arena](../../arena/SKILL.md) was used. Record which candidate became the base and why, what was adapted from others, and what was rejected. Omit for a single design.*
 
 ## Tradeoffs accepted
 
@@ -24,12 +24,12 @@ The prose that ships alongside the type sketch. One page. Sentence-case headings
 
 ## Alternatives considered
 
-*Required. Name at least one concrete alternative shape, with one line on why it lost. Judge each alternative on interface depth, not implementation simplicity alone. Name the complexity it exposes to callers and the complexity it hides. Two or three alternatives belong here when the design space had real contenders. One is fine when the constraints forced the answer, with the conclusion phrased as "this was the only viable shape because..." Avoid listing flavors of the same shape. This section covers design alternatives the chosen shape considered and rejected, not other runner candidates.*
+*Name meaningful alternatives considered and why they were rejected, including their interface depth and exposed complexity when relevant. If the evidence identified a clear fit, state the deciding constraints briefly; do not invent alternatives to fill a quota.*
 
 ## Open questions and risks
 
-*Things you noticed during the sketch that the human needs to weigh in on, and risks worth flagging before implementation starts. Phrase as questions, not assertions, so the human's answer is the resolution rather than a comment.*
+*Record material unresolved choices, missing authority, and relevant risks with the evidence already gathered. Resolve ordinary implementation choices within existing authorization. Ask the user only about remaining decisions that need their input, after completing independent authorized preparation.*
 
 ## Next implementation step
 
-*The first thing to build against the sketch. One sentence. What you'd start writing immediately after synthesis (or after Phase D sign-off, if a checkpoint was opted into).*
+*The first thing to build against the sketch. One sentence. What you'd start writing immediately after synthesis (or after the Phase C checkpoint, if a checkpoint was opted into).*

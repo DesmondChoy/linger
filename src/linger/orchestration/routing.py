@@ -8,7 +8,12 @@ import logfire
 
 from apps.backend import sessions
 from apps.backend.config import get_settings
-from apps.backend.librarian import Librarian, RegisteredCorpusScope
+from apps.backend.librarian import (
+    ROUTING_CONFIDENCE_THRESHOLD,
+    Librarian,
+    RegisteredCorpusScope,
+    RoutingDecision,
+)
 from src.linger.contracts.librarian import (
     BoundaryPassages,
     BoundaryUncertain,
@@ -62,6 +67,8 @@ async def _route_reader_message(
         settings = get_settings()
         decision = librarian.route_work(message, settings.allowed_book_version_ids)
         if decision is None:
+            decision = _session_selection(message, librarian, settings.allowed_book_version_ids)
+        if decision is None:
             span.set_attribute("tool.status", "no_match")
             return NoMatch(kind="no_match", request_id=request_id)
         if isinstance(decision, BookClarification):
@@ -79,6 +86,7 @@ async def _route_reader_message(
             )
 
         scope = decision.scope
+        span.set_attribute("routing.selection_basis", decision.basis)
         with bind_evaluation_correlation_id(request_id):
             boundary = await infer_spoiler_boundary(
                 message,
@@ -111,6 +119,7 @@ async def _route_reader_message(
                         routing_confidence=decision.confidence,
                         max_chapter_inclusive=existing.chapter_max,
                         boundary_confidence=boundary.confidence,
+                        selection_basis=decision.basis,
                     )
             else:
                 bind_passage_grant(boundary.grant)
@@ -127,6 +136,8 @@ async def _route_reader_message(
                     **boundary.grant.scope.model_dump(), request_id=request_id,
                     title=scope.title, routing_confidence=decision.confidence,
                     boundary_confidence=boundary.confidence,
+                    selection_basis=decision.basis,
+                    authorization_basis=boundary.authorization_basis,
                 )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
@@ -179,6 +190,7 @@ async def _route_reader_message(
             routing_confidence=decision.confidence,
             max_chapter_inclusive=reported_ceiling,
             boundary_confidence=boundary.confidence,
+            selection_basis=decision.basis,
         )
 
 
@@ -214,4 +226,28 @@ def _persist_uncertain_candidate(
             book_title=scope.title,
             chapter=boundary.candidate_chapter,
         ),
+    )
+
+
+def _session_selection(
+    message: str, librarian: Librarian, allowed_book_version_ids: tuple[str, ...]
+) -> RoutingDecision | None:
+    """Route a bare follow-up to the session's active book when nothing contradicts it."""
+    current_session = session_id()
+    selection = sessions.book_selection(current_session) if current_session is not None else None
+    if selection is None:
+        return None
+    book_version_id = librarian.version_for(selection.book_id)
+    if book_version_id not in allowed_book_version_ids:
+        return None
+    if any(
+        candidate.strength == "strong" and candidate.scope.work_id != selection.book_id
+        for candidate in librarian.work_candidates(message, allowed_book_version_ids)
+    ):
+        return None
+    scope = librarian.registered_scope(selection.book_id, book_version_id)
+    if scope is None:
+        return None
+    return RoutingDecision(
+        scope=scope, confidence=ROUTING_CONFIDENCE_THRESHOLD, basis="session_selection"
     )

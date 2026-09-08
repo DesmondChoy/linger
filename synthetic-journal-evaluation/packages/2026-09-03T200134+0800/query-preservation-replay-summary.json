@@ -1,0 +1,353 @@
+{
+  "artifact_kind": "book_replay_summary",
+  "complete_artifact_local_path": "/tmp/linger-book-query-rerun.5buu_a8d/run.json",
+  "complete_artifact_sha256": "41b21b2642486583cc4127ef43193e1bb4a940bce839b7bbcdb68e67c06cef21",
+  "metadata_local_path": "/tmp/linger-book-query-rerun.5buu_a8d/metadata.json",
+  "metadata_sha256": "29268ac1fcd578cd99ff9027613fe4803a78abe6edfadd761396d80accbd9949",
+  "configured_model": "openai:gpt-5.6-luna",
+  "git_head": "72e40680e9a6f34971e9b4cfb635c0bc0d8ebd09",
+  "remote_telemetry": false,
+  "semantic_review": false,
+  "package_sha256": {
+    "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+    "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+    "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+  },
+  "run_id": "11e5d1f6702b478a88f230735c736c5f",
+  "trace_id": "01a07048bef05589ca0a7d5946e8f516",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "5403817f9122b05809d1a9a01fe3d5293a0eb1f10569bcb33b94d626c22af8b0",
+  "ground_truth_status": "adopted",
+  "runtime_prompt_fingerprints": [
+    {
+      "template_id": "librarian.boundary-inference",
+      "version": "3",
+      "digest": "a51ace5ec9030832a3618219b087557ca7290cb55b8e306c1f3a4fac10d28237"
+    },
+    {
+      "template_id": "librarian.evidence-strength",
+      "version": "1",
+      "digest": "02603f5535b65bb15e98cb97c84f9363b34bb117767ae709d3f8b3a8752af7e0"
+    },
+    {
+      "template_id": "muse.reflection",
+      "version": "13",
+      "digest": "69214abdcc2d3b4f4ace893af3800ed54fd0bacce87a704b9af633924e809aad"
+    },
+    {
+      "template_id": "muse.revision",
+      "version": "13",
+      "digest": "247704ffe6b605930b06b87291123f71bd46d24fe8eb929d78d73974802ad70d"
+    },
+    {
+      "template_id": "provenance.emotional-boundary",
+      "version": "1",
+      "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+    },
+    {
+      "template_id": "provenance.release-gate",
+      "version": "6",
+      "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+    },
+    {
+      "template_id": "provenance.curation-gate",
+      "version": "1",
+      "digest": "84a3d0a1dff92039a485993ad9445b98698165109317dfce9a2d3c47175d0ce4"
+    },
+    {
+      "template_id": "sculptor.curation",
+      "version": "3",
+      "digest": "256e9bb37509fa6df6649b15263fa88f746495138662a1bb26423aa94a2e6e87"
+    },
+    {
+      "template_id": "serendipity.search-rank-select",
+      "version": "1",
+      "digest": "2c96320a86ed6183904f3c6b243502081f81e476fa9b663275dfff00644b23f5"
+    }
+  ],
+  "interpretation_cautions": [
+    "Raw grades are preserved: three of four adopted judgments pass.",
+    "Pigeon query preservation, boundary support, exact quotation repair, released citation, and Provenance checks passed in this run. Two additional uncited chapter-five windows caused retrieval_used_unpermitted_evidence.",
+    "The adopted permitted-evidence set applies to every returned grounding record, not just released citations. The grader and labels are unchanged.",
+    "Librarian evidence-strength prompt version 2 was written after this run to select the smallest sufficient evidence set. This run used version 1; the new selection instruction remains unverified with the provider.",
+    "One replay does not establish reliable model behavior, prose quality, or semantic spoiler safety. Optional semantic review was not run."
+  ],
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "infer",
+      "routed_ceiling": 5,
+      "route_called": true,
+      "boundary_support_memory_ids": [
+        "mem_48c15e47db1810141f8f678a667bbead9551226fcde08dca7967cb1a5a32f9f4"
+      ],
+      "released_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ],
+      "reply": "The sentence is:\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nThe awkwardness feels meaningful: she knows what she wants to call herself, but the label has become harder to say with confidence because her recent experience seems to contradict it. The Pigeon’s insistence on naming her differently adds another layer—someone else’s description makes her own identity feel suddenly negotiable. Yet she still insists that the distinction matters to her.\n\nThat seems close to the awkwardness of calling yourself a manager: the title may be accurate before it feels natural. You may be learning to let the word catch up with what you’re already doing, while also testing whether it truly belongs to you. Sometimes saying a new role aloud feels less like announcing a settled identity than practicing one. What part feels most awkward—the authority implied by “manager,” the change from your old role, or saying it about yourself at all?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "retrieval_used_unpermitted_evidence"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "pigeon-reflection",
+          "proposal_id": "pigeon-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_support_evidence": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "chapter_number": 5,
+          "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+          "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+          "source_lines": [
+            1179,
+            1219
+          ]
+        },
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln0960-1016",
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "chapter_number": 5,
+          "location": "Chapter 5 — Advice from a Caterpillar, source lines 960-1016",
+          "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+          "source_lines": [
+            960,
+            1016
+          ]
+        }
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "call_outcome": "success",
+          "retrieval_outcome": "evidence_found",
+          "searched_max_chapter": 5,
+          "searched_passage_ids": [],
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "clarification_question": null,
+          "failure_code": null,
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1151-1186"
+          ]
+        }
+      ],
+      "boundary_exchanges": [
+        {
+          "status": "success",
+          "output": {
+            "outcome": "candidate",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_number": 5,
+            "confidence": 0.98,
+            "authorization_basis": "memory_supported",
+            "supporting_memory_ids": [
+              "mem_48c15e47db1810141f8f678a667bbead9551226fcde08dca7967cb1a5a32f9f4"
+            ],
+            "supporting_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0960-1016",
+              "pg11-v01b38ea4-ch05-ln1179-1219"
+            ],
+            "reason_code": null
+          },
+          "selected_memory_ids": [
+            "mem_48c15e47db1810141f8f678a667bbead9551226fcde08dca7967cb1a5a32f9f4"
+          ],
+          "candidate_evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219",
+            "pg11-v01b38ea4-ch05-ln0960-1016",
+            "pg11-v01b38ea4-ch05-ln1208-1237",
+            "pg11-v01b38ea4-ch05-ln1094-1135",
+            "pg11-v01b38ea4-ch05-ln1151-1186",
+            "pg11-v01b38ea4-ch05-ln1004-1056"
+          ]
+        }
+      ],
+      "muse_tool_calls": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "arguments": {},
+          "outcome": "success"
+        },
+        {
+          "stage": "draft",
+          "tool_name": "librarian_search",
+          "arguments": {
+            "query": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "reading_boundary": {
+              "chapter_number": 5,
+              "chapter_state": "completed"
+            },
+            "max_final_evidence": 5
+          },
+          "outcome": "success"
+        }
+      ],
+      "muse_candidates": [
+        {
+          "stage": "draft",
+          "evidence_uses": [
+            {
+              "source_kind": "book_corpus",
+              "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+              "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+              "exact_quote": "“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day."
+            }
+          ],
+          "output_retry_count": 2
+        }
+      ],
+      "permitted_evidence_diagnostic": [
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+          "chapter_number": 5,
+          "matches_adopted_permitted_span": true,
+          "contains_requested_quote": true,
+          "cited_in_release": true
+        },
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1208-1237",
+          "chapter_number": 5,
+          "matches_adopted_permitted_span": false,
+          "contains_requested_quote": false,
+          "cited_in_release": false
+        },
+        {
+          "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+          "chapter_number": 5,
+          "matches_adopted_permitted_span": false,
+          "contains_requested_quote": false,
+          "cited_in_release": false
+        }
+      ],
+      "exact_requested_quote_in_reply": true
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "application_clarification",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "uncertain-growth",
+          "proposal_id": "growth-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "boundary_exchanges": [],
+      "muse_tool_calls": [
+        {
+          "stage": "draft",
+          "tool_name": "librarian_route",
+          "arguments": {},
+          "outcome": "success"
+        }
+      ],
+      "muse_candidates": [
+        {
+          "stage": "draft",
+          "evidence_uses": [],
+          "output_retry_count": 0
+        }
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "released_evidence_ids": [],
+      "reply": "It makes sense that this feels awkward: “designer” may still be the identity that feels most familiar, while “manager” describes work you’re newly learning to inhabit. Naming a role can feel like claiming a version of yourself before it feels fully settled—not because you’re being dishonest, but because the language is ahead of your sense of belonging in it.\n\nYou don’t have to choose between hiding the new role and making a grand claim. You could try:\n\n- “Hi, I’m [name]. I’m a manager on the [team], and my background is in design.”\n- “I’m [name]. I recently moved from design into management, and I’m enjoying the new work.”\n- “I’m [name], a manager with a design background.”\n\nThe first is probably the most straightforward; the second leaves room for the transition to still be a transition. Which version sounds most like something you could say without having to perform certainty?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [],
+      "boundary_support_evidence": [],
+      "grounding_calls": [],
+      "boundary_exchanges": [],
+      "muse_tool_calls": [],
+      "muse_candidates": [
+        {
+          "stage": "draft",
+          "evidence_uses": [],
+          "output_retry_count": 0
+        }
+      ]
+    }
+  ],
+  "judgments_passed": 3,
+  "judgments_total": 4
+}

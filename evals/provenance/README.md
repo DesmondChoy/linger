@@ -17,6 +17,11 @@ detection is measured separately from a gate that blocks indiscriminately.
 uv run python -m evals.provenance.risk_codes
 ```
 
+`--report PATH` selects the metadata-only JSON report. The default is
+`evals/provenance/risk-codes-live-report.json`. The command uses `LINGER_MODEL`
+and its matching provider API key, and exits with a nonzero status when the
+suite's recall, over-refusal, or code-precision targets fail.
+
 Grading has two axes: the response decision **and** the finding codes. A correct
 decision carrying the wrong code fails as `code_mismatch`. This matters because
 no production code branches on a code's value, so a mislabelling gate is
@@ -32,7 +37,7 @@ fails if the committed JSON stops matching the corpus. Regenerate after a corpus
 rebuild:
 
 ```bash
-python -m evals.provenance._fixtures
+uv run python -m evals.provenance._fixtures
 ```
 
 Cases are hand-authored and reviewed. A gate evaluated on cases written by the

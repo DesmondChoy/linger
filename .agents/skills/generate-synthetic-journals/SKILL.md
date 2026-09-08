@@ -11,8 +11,8 @@ copy that content into this skill.
 
 ## Select objectives
 
-1. Read the complete catalog and confirm that it contains exactly ten unique
-   `evaluation_objectives`.
+1. Read the complete catalog and confirm that `evaluation_objectives` is a
+   non-empty list with unique IDs.
 2. Resolve `scripts/objective_selector.py` relative to this `SKILL.md` and run it
    with the repository's Python environment as a long-running local process.
    Surface the printed `OBJECTIVE_SELECTOR_URL` as a clickable link and wait for
@@ -24,11 +24,11 @@ copy that content into this skill.
    never use a non-loopback host, disable the sandbox, or ask the developer to
    change global security settings.
 3. The selector is the complete selection and confirmation surface. It displays
-   all ten objectives together, grouped by `menu_families`. A resting card shows
+   all catalog objectives together, grouped by `menu_families`. A resting card shows
    only the objective's icon and `menu.title`; hovering or focusing it reveals
    `menu.selection_hint`, `menu.summary`, and its
    `composition.combines_well_with` partners. The selector accepts one through
-   all ten objectives, shows the live selection count, surfaces every
+   all catalog objectives, shows the live selection count, surfaces every
    `selection_constraints` rule on the affected card before it is violated, and
    confirms the complete selection.
 4. Continue only after the process exits successfully with exactly one
@@ -141,6 +141,23 @@ authorize synthetic-data generation.
     `GroundTruthProposal.prop_relevance` entry for every available Prop in each
     Scene. Without this Objective, create only the Props required by the
     confirmed selection.
+    When `proactive_memory_surfacing` is selected, derive the conversational
+    Scene sequence and its required outcomes from the current catalog and
+    `docs/specification.md` Section 4.2.5. Selecting this Objective alone
+    includes its capture and curation prerequisites; do not add another
+    Objective or its run configuration merely because the path uses it.
+    Distinguish initial Props from observed captures and curation results.
+    Trace how later fresh-session Lines consume the actual durable state,
+    with trusted decision time and prior surfacing or dismissal history.
+    Inspect the existing offline `OfflineInput.surfacing_context`,
+    `GroundTruthProposal.surfacing`, compiler, and replay as component assets.
+    Their no-Line topology does not satisfy the conversational Objective.
+    Check for adopted outcome references, personal-memory evidence release,
+    and complete replay/grading before declaring the plan runnable. If those
+    contracts or paths are missing, describe the complete target and name each
+    gap inside a **Target state — do not run** prompt. Do not invent JSON
+    fields, fabricate runtime records, or replace required Lines with offline
+    inputs to make the existing validator pass.
 13. Draft the exact target-state prompt for a future generator. Build it from the
     selected Objectives' `generation_brief`, permitted repository paths, resolved
     workflow inputs, translated Ground truth requirements, and the Backstory and
@@ -304,6 +321,10 @@ word count. Then verify the semantic requirements that the script cannot prove:
   `run_configuration_ids` and its exact entity counts are translated into the
   fenced prompt. For longitudinal retrieval, both Scenes share the same 11
   active Props and proposed relevance covers all 11 Props in each Scene.
+- For conversational surfacing, initial Props remain distinct from captures
+  and curation results observed during execution. Later fresh chats preserve
+  the actual durable state while clearing conversation history. The report
+  assesses the complete catalog endpoint, not only the offline component.
 
 Report the path and selected Objective IDs, then stop. The repository defines
 the Backstory and Ground truth contracts and deterministic validator.

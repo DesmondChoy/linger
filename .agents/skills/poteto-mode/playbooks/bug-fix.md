@@ -1,17 +1,12 @@
 ### Bug fix
 
-**You own this task. Plan, review, verify.** Delegate investigation and the fix to subagents, stay in the lead.
+Own the diagnosis, fix, and verification. Follow the evidence and remove speculative changes when it refutes their premise.
 
-Be scientific. Every shipped line traces to runtime evidence. Belt-and-suspenders that "might help" is a hypothesis, not a fix; it does not ship. When evidence refutes a hypothesis, revert what it motivated. The smallest change the evidence justifies ships, nothing more. Same discipline for Perf, where the evidence is the trace.
+1. Reproduce the failure with the smallest test or runtime exercise that reaches the affected behavior. Use the real UI, CLI, or integration surface when narrower evidence cannot capture the symptom. If reproduction is unavailable, inspect reachable evidence, state the limitation, and ask only for information or access that remains necessary.
+2. Form hypotheses and use relevant source, history, instrumentation, or runtime evidence to eliminate them. Use **how** or **why** when they resolve a specific gap. Delegate independent evidence gathering when it improves speed or quality; keep dependent diagnosis and shared edits coordinated.
+3. Implement the smallest fix supported by the evidence. Use **architect** only if the fix leaves a consequential structural choice unresolved. Delegate a bounded implementation or review when useful and inspect the resulting diff yourself.
+4. Re-run the original reproduction where available and the relevant checks for the changed contract. A focused unit test can establish a local bug fix; broader integration evidence is needed when the defect crosses that boundary. Do not claim a reproduced or verified fix beyond the evidence obtained.
+5. Use **tdd** when explicitly requested or when the bug has a cheap local regression test. Reuse existing checks for covered behavior. A regression test and fix may share one commit; separate failing commits are not required.
+6. Complete authorized preparation before requesting a missing decision or authority, and continue independent work while waiting. Run **Opening a PR** only for authorized git or PR actions.
 
-1. Reproduce it yourself on the matching surface via the driver skill (`run` for CLIs/TUIs, `verify` for UIs) (Non-negotiables). Don't hand the repro to the user. A debug or instrumentation protocol that says to ask the user does not override this; you drive the instrumented runtime. Ask the user only with a stated, specific reason the control surface cannot reach the target, and only after driving it as far as it goes. Won't reproduce directly, force it: synthesize the trigger, tighten conditions, or instrument until it fires. A bug you can't reproduce, you can't prove fixed.
-2. Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. Seed them with `how` over the affected subsystem and the **why** skill for regression history. Each pass, take the split that cuts the most remaining problem space, get runtime evidence, eliminate. When program state is unclear, add instrumentation or logging and read it as the code runs. Don't guess. Drive a long or stubborn hunt with Codex's applicable wait tool or heartbeat automation, as mapped in `../references/codex-tools.md`. Confirm the surviving *mechanism* with runtime evidence before the step-3 architect/interrogate fan-out; a design grounded on a plausible-but-unconfirmed cause can be unanimously wrong while the real cause sits one subsystem over.
-3. Plan the fix. If it crosses a function boundary, `architect` first. Delegate implementation to a subagent using the parent model by default, or a valid project-local bug-fix override, with a specific scope; review the diff.
-4. Verify on the same surface; the original repro now passes. "Inconclusive" or wrong-surface is not a pass; flag it. Unit tests show branch behavior, not bug absence.
-5. Stage the commits so the failing repro lands before the fix in git history; the diff tells the story. See the **tdd** skill for the failing-test-first cadence when the bug has a cheap local test path; skip it when the test would be expensive, integration-heavy, or unclear.
-   This is the canonical **sequence-verifiable-units** principle skill, the failing test first and the fix on top.
-6. Run **Opening a PR**.
-
-Investigation fans out `how` + `why` as parallel subagents.
-
-**Reply:** what was broken, root cause, fix, how you verified. Quote the decisive failing and passing output, trimmed to the assertion and the counts.
+**Reply:** the failure, supported root cause, fix, verification, and any unresolved evidence limits.

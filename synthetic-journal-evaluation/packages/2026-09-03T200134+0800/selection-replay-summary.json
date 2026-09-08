@@ -1,0 +1,358 @@
+{
+  "artifact_kind": "book_replay_summary",
+  "complete_artifact_local_path": "/tmp/linger-book-selection-rerun.eroas1_0/run.json",
+  "complete_artifact_sha256": "3eef7e5272536d63a809f5c9202b6bbc2a0ae2ddd7ad220958132cfbe66f5dad",
+  "metadata_local_path": "/tmp/linger-book-selection-rerun.eroas1_0/metadata.json",
+  "metadata_sha256": "011b95225adbad0d7a05cadedbefeecae2066fa86e515dbf49b86b956c242010",
+  "configured_model": "openai:gpt-5.6-luna",
+  "git_head": "72e40680e9a6f34971e9b4cfb635c0bc0d8ebd09",
+  "remote_telemetry": false,
+  "semantic_review": false,
+  "package_sha256": {
+    "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+    "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+    "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+  },
+  "run_id": "507797ea36264988b871838b05fbb6c9",
+  "trace_id": "01a0705043d56a44d537eb746b828c17",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "a5f2d901f2469a1488a3d70613ccc57d0ef222088a242702a134e54edb2871d6",
+  "ground_truth_status": "adopted",
+  "runtime_prompt_fingerprints": [
+    {
+      "template_id": "librarian.boundary-inference",
+      "version": "3",
+      "digest": "a51ace5ec9030832a3618219b087557ca7290cb55b8e306c1f3a4fac10d28237"
+    },
+    {
+      "template_id": "librarian.evidence-strength",
+      "version": "2",
+      "digest": "1fe35d38444bbc878c559197a0efa612a60daa31a53d8f980ee0fae5bd5de27f"
+    },
+    {
+      "template_id": "muse.reflection",
+      "version": "13",
+      "digest": "69214abdcc2d3b4f4ace893af3800ed54fd0bacce87a704b9af633924e809aad"
+    },
+    {
+      "template_id": "muse.revision",
+      "version": "13",
+      "digest": "247704ffe6b605930b06b87291123f71bd46d24fe8eb929d78d73974802ad70d"
+    },
+    {
+      "template_id": "provenance.emotional-boundary",
+      "version": "1",
+      "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+    },
+    {
+      "template_id": "provenance.release-gate",
+      "version": "6",
+      "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+    },
+    {
+      "template_id": "provenance.curation-gate",
+      "version": "1",
+      "digest": "84a3d0a1dff92039a485993ad9445b98698165109317dfce9a2d3c47175d0ce4"
+    },
+    {
+      "template_id": "sculptor.curation",
+      "version": "3",
+      "digest": "256e9bb37509fa6df6649b15263fa88f746495138662a1bb26423aa94a2e6e87"
+    },
+    {
+      "template_id": "serendipity.search-rank-select",
+      "version": "1",
+      "digest": "2c96320a86ed6183904f3c6b243502081f81e476fa9b663275dfff00644b23f5"
+    }
+  ],
+  "interpretation_cautions": [
+    "Raw grades are preserved: two of four adopted judgments pass. Both Pigeon judgments fail because Muse skipped routing, grounding, and quotation.",
+    "This run configured evidence-strength prompt version 2 but made no grounding calls, so it did not exercise that selection instruction.",
+    "The Pigeon preflight returned continue_reflection. Muse returned no_memory_candidate with reason emotional_boundary; Provenance passed it with emotional_boundary_decision not_required.",
+    "Policy version 1 supplied suppress_tools:true and suppress_capture:true on normal turns. These fields described conditional behavior but looked unconditional. This is a concrete input ambiguity and a hypothesis for the omission, not a proven causal explanation.",
+    "The previous run used the same Pigeon Muse prompt fingerprint, history, and input except turn_id, yet performed retrieval. This demonstrates varying behavior for substantively identical input; it does not establish the evidence-selection update caused the omission.",
+    "After this run, emotional policy version 2 renamed the suppression fields with after_distress. Muse version 14, Provenance version 7, and emotional preflight version 2 explain the conditional policy. These changes have local regression coverage but have not had a provider replay.",
+    "The adopted package and graders are unchanged. Deterministic control passes do not establish prose quality or semantic spoiler safety. Optional semantic review was not run."
+  ],
+  "pigeon_previous_run_comparison": {
+    "run_id": "11e5d1f6702b478a88f230735c736c5f",
+    "complete_artifact_local_path": "/tmp/linger-book-query-rerun.5buu_a8d/run.json",
+    "complete_artifact_sha256": "41b21b2642486583cc4127ef43193e1bb4a940bce839b7bbcdb68e67c06cef21",
+    "same_muse_prompt_fingerprint": true,
+    "same_message_history": true,
+    "same_input_except_muse_turn_turn_id": true,
+    "normalized_input_sha256": "8f4e70bb0410bccdf720f46c0d6b4254bfa3750d1bff2e2b563d02790ba11f80",
+    "current_tool_call_count": 0,
+    "previous_tool_call_count": 2
+  },
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "That sounds like a tender kind of awkwardness: a new role can feel real in practice before the word feels natural coming out of your mouth. You don’t have to force “manager” to sound effortless yet; sometimes naming it is part of growing into it. I’ll stay with that experience rather than push beyond where you’ve read.",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "required_grounding_evidence_not_retrieved",
+            "grounded_response_released_no_evidence",
+            "exact_quotation_missing_or_unreleased:pigeon"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "inferred_scope_differs_from_ground_truth",
+            "boundary_memory_support_differs_from_authorised_props",
+            "boundary_support_differs_from_ground_truth",
+            "boundary_decision_differs_from_ground_truth",
+            "inferred_ceiling_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "agent_observations": [
+        {
+          "role": "Provenance",
+          "stage": "emotional_boundary_preflight",
+          "prompt_fingerprint": {
+            "template_id": "provenance.emotional-boundary",
+            "version": "1",
+            "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "decision": "continue_reflection"
+          }
+        },
+        {
+          "role": "Muse",
+          "stage": "draft",
+          "prompt_fingerprint": {
+            "template_id": "muse.reflection",
+            "version": "13",
+            "digest": "69214abdcc2d3b4f4ace893af3800ed54fd0bacce87a704b9af633924e809aad"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "emotional_boundary"
+          },
+          "evidence_uses": [],
+          "emotional_content_policy": {
+            "version": "1",
+            "boundary_response_id": "distressing_disclosure_v1",
+            "prohibit_diagnosis": true,
+            "stop_probing_after_distress": true,
+            "suppress_tools": true,
+            "suppress_capture": true
+          }
+        },
+        {
+          "role": "Provenance",
+          "stage": "review",
+          "prompt_fingerprint": {
+            "template_id": "provenance.release-gate",
+            "version": "6",
+            "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "findings": [],
+            "response_decision": "pass",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "route_called": true,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "application_clarification",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "agent_observations": [
+        {
+          "role": "Provenance",
+          "stage": "emotional_boundary_preflight",
+          "prompt_fingerprint": {
+            "template_id": "provenance.emotional-boundary",
+            "version": "1",
+            "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "decision": "continue_reflection"
+          }
+        },
+        {
+          "role": "Muse",
+          "stage": "draft",
+          "prompt_fingerprint": {
+            "template_id": "muse.reflection",
+            "version": "13",
+            "digest": "69214abdcc2d3b4f4ace893af3800ed54fd0bacce87a704b9af633924e809aad"
+          },
+          "status": "success",
+          "tool_call_count": 1,
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          },
+          "evidence_uses": [],
+          "emotional_content_policy": {
+            "version": "1",
+            "boundary_response_id": "distressing_disclosure_v1",
+            "prohibit_diagnosis": true,
+            "stop_probing_after_distress": true,
+            "suppress_tools": true,
+            "suppress_capture": true
+          }
+        },
+        {
+          "role": "Provenance",
+          "stage": "review",
+          "prompt_fingerprint": {
+            "template_id": "provenance.release-gate",
+            "version": "6",
+            "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "findings": [],
+            "response_decision": "pass",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "boundary_support_memory_ids": [],
+      "grounding_calls": [],
+      "released_evidence_ids": [],
+      "reply": "“I’m [name], and I’m managing the [team/project]. I joined as a designer, and I’m glad to be growing into this role.”\n\nIt makes sense that the old title comes out first: it names a familiar part of your identity, while “manager” may still feel like something you’re becoming. You don’t have to force the new label to feel effortless before using it. You can make the introduction honest by naming both the path you came from and the work you do now.",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "agent_observations": [
+        {
+          "role": "Provenance",
+          "stage": "emotional_boundary_preflight",
+          "prompt_fingerprint": {
+            "template_id": "provenance.emotional-boundary",
+            "version": "1",
+            "digest": "1f8f2432237fb4c9418f89f0cf223a5f669897710f01dec5a152dd47b8303471"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "decision": "continue_reflection"
+          }
+        },
+        {
+          "role": "Muse",
+          "stage": "draft",
+          "prompt_fingerprint": {
+            "template_id": "muse.reflection",
+            "version": "13",
+            "digest": "69214abdcc2d3b4f4ace893af3800ed54fd0bacce87a704b9af633924e809aad"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "emotional_boundary"
+          },
+          "evidence_uses": [],
+          "emotional_content_policy": {
+            "version": "1",
+            "boundary_response_id": "distressing_disclosure_v1",
+            "prohibit_diagnosis": true,
+            "stop_probing_after_distress": true,
+            "suppress_tools": true,
+            "suppress_capture": true
+          }
+        },
+        {
+          "role": "Provenance",
+          "stage": "review",
+          "prompt_fingerprint": {
+            "template_id": "provenance.release-gate",
+            "version": "6",
+            "digest": "689fa84f61dcb16176f7620e83b0ea1208737fa2231ba27557de05fbe1bcc38f"
+          },
+          "status": "success",
+          "tool_call_count": 0,
+          "output": {
+            "findings": [],
+            "response_decision": "pass",
+            "emotional_boundary_decision": "not_required",
+            "capture_decision": "no_candidate"
+          }
+        }
+      ]
+    }
+  ],
+  "judgments_passed": 2,
+  "judgments_total": 4
+}

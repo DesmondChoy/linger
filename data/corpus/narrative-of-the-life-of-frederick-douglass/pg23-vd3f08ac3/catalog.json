@@ -1,0 +1,459 @@
+{
+  "schema_version": 2,
+  "work_id": "pg23",
+  "book_version_id": "pg23-vd3f08ac3",
+  "title": "Narrative of the Life of Frederick Douglass, an American Slave",
+  "author": "Frederick Douglass",
+  "source_path": "data/gutenberg/narrative-of-the-life-of-frederick-douglass.txt",
+  "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+  "section_count": 16,
+  "sections": [
+    {
+      "section_id": "pg23-vd3f08ac3-sec01",
+      "section_number": 1,
+      "title": "PREFACE",
+      "routing_description": "Garrison recalls Douglass's first antislavery speech at Nantucket, endorses his narrative, and challenges readers to oppose slavery and the laws shielding its violence.",
+      "characters": [
+        "Frederick Douglass",
+        "WM. LLOYD GARRISON",
+        "John A. Collins",
+        "Charles Lenox Remond",
+        "Daniel O’Connell"
+      ],
+      "locations": [
+        "Nantucket",
+        "New Bedford",
+        "Massachusetts"
+      ],
+      "retrieval_cues": [
+        "first speech",
+        "lecturing agent",
+        "NO COMPROMISE WITH SLAVERY"
+      ],
+      "word_count": 3160,
+      "path": "sections/01-preface.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec02",
+      "section_number": 2,
+      "title": "LETTER FROM WENDELL PHILLIPS, ESQ.",
+      "routing_description": "Phillips praises Douglass's testimony, invokes the fable of the lions writing history, and warns that publishing his identity exposes him to recapture under Northern law.",
+      "characters": [
+        "Wendell Phillips",
+        "Frederick Douglass"
+      ],
+      "locations": [
+        "Boston",
+        "Massachusetts",
+        "New England"
+      ],
+      "retrieval_cues": [
+        "lions write history",
+        "declaration of freedom",
+        "hide the outcast"
+      ],
+      "word_count": 1073,
+      "path": "sections/02-letter-from-wendell-phillips.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec03",
+      "section_number": 3,
+      "title": "FREDERICK DOUGLASS.",
+      "routing_description": "An editorial biography traces Douglass's life from enslavement and escape through marriage, abolitionist speaking, Civil War recruitment, public appointments, and his death in 1895.",
+      "characters": [
+        "Frederick Douglass",
+        "Frederick Augustus Washington Bailey",
+        "Anna Murray"
+      ],
+      "locations": [
+        "Baltimore",
+        "New York City",
+        "Nantucket",
+        "Haiti"
+      ],
+      "retrieval_cues": [
+        "54th and 55th",
+        "My Bondage And My Freedom",
+        "1895"
+      ],
+      "word_count": 255,
+      "path": "sections/03-frederick-douglass.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec04",
+      "section_number": 4,
+      "title": "CHAPTER I",
+      "routing_description": "Douglass describes his uncertain age and parentage, separation from his mother Harriet Bailey, and witnessing Captain Anthony's brutal whipping of Aunt Hester.",
+      "characters": [
+        "Frederick Douglass",
+        "Harriet Bailey",
+        "Captain Anthony",
+        "Plummer",
+        "Aunt Hester",
+        "Ned Roberts"
+      ],
+      "locations": [
+        "Tuckahoe",
+        "Talbot county",
+        "Maryland"
+      ],
+      "retrieval_cues": [
+        "mother and I were separated",
+        "blood-stained gate",
+        "Aunt Hester"
+      ],
+      "word_count": 2049,
+      "path": "sections/04-chapter-01.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec05",
+      "section_number": 5,
+      "title": "CHAPTER II",
+      "routing_description": "Douglass describes Colonel Lloyd's plantation, food and clothing allowances, overseers Severe and Hopkins, and the sorrow expressed in songs about the Great House Farm.",
+      "characters": [
+        "Frederick Douglass",
+        "Colonel Edward Lloyd",
+        "Captain Thomas Auld",
+        "Mr. Severe",
+        "Mr. Hopkins"
+      ],
+      "locations": [
+        "Great House Farm",
+        "Miles River",
+        "Wye Town",
+        "New Design",
+        "Baltimore"
+      ],
+      "retrieval_cues": [
+        "monthly allowance",
+        "driver’s horn",
+        "O, yea!",
+        "sing most when they are most unhappy"
+      ],
+      "word_count": 2013,
+      "path": "sections/05-chapter-02.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec06",
+      "section_number": 6,
+      "title": "CHAPTER III",
+      "routing_description": "Douglass recounts punishments over Lloyd's garden and horses, a man's sale for speaking honestly about his master, and quarrels among enslaved people over their owners' status.",
+      "characters": [
+        "Frederick Douglass",
+        "Colonel Lloyd",
+        "old Barney",
+        "young Barney",
+        "Jacob Jepson"
+      ],
+      "locations": [
+        "Great House Farm",
+        "garden",
+        "stable"
+      ],
+      "retrieval_cues": [
+        "tarring his fence",
+        "telling the truth",
+        "still tongue makes a wise head"
+      ],
+      "word_count": 1455,
+      "path": "sections/06-chapter-03.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec07",
+      "section_number": 7,
+      "title": "CHAPTER IV",
+      "routing_description": "Douglass describes Austin Gore's murder of Demby and other killings of enslaved people, showing how barred testimony and unserved warrants let perpetrators escape punishment.",
+      "characters": [
+        "Frederick Douglass",
+        "Austin Gore",
+        "Demby",
+        "Colonel Lloyd",
+        "Thomas Lanman",
+        "Mrs. Hicks",
+        "Beal Bondly"
+      ],
+      "locations": [
+        "Great House Farm",
+        "St. Michael’s",
+        "Talbot county"
+      ],
+      "retrieval_cues": [
+        "three calls",
+        "judicial investigation",
+        "warrant",
+        "oysters"
+      ],
+      "word_count": 1575,
+      "path": "sections/07-chapter-04.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec08",
+      "section_number": 8,
+      "title": "CHAPTER V",
+      "routing_description": "Douglass recalls childhood hunger and cold, his joyful preparations to leave the plantation for Baltimore, and the kind welcome from Sophia Auld as he becomes Thomas's caretaker.",
+      "characters": [
+        "Frederick Douglass",
+        "Daniel Lloyd",
+        "Lucretia Auld",
+        "Hugh Auld",
+        "Sophia Auld",
+        "Thomas"
+      ],
+      "locations": [
+        "Miles River",
+        "Annapolis",
+        "Baltimore",
+        "Fells Point",
+        "Alliciana Street"
+      ],
+      "retrieval_cues": [
+        "corn meal",
+        "bag",
+        "pair of trousers",
+        "kind providence"
+      ],
+      "word_count": 1657,
+      "path": "sections/08-chapter-05.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec09",
+      "section_number": 9,
+      "title": "CHAPTER VI",
+      "routing_description": "Mrs. Auld begins teaching Douglass to read until her husband forbids it, revealing literacy's threat to slavery. Douglass contrasts city conditions with the Hamiltons' abuse of Henrietta and Mary.",
+      "characters": [
+        "Frederick Douglass",
+        "Mr. Auld",
+        "Mrs. Auld",
+        "Thomas Hamilton",
+        "Mrs. Hamilton",
+        "Henrietta",
+        "Mary"
+      ],
+      "locations": [
+        "Baltimore",
+        "Philpot Street"
+      ],
+      "retrieval_cues": [
+        "A, B, C",
+        "pathway from slavery to freedom",
+        "pecked"
+      ],
+      "word_count": 1282,
+      "path": "sections/09-chapter-06.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec10",
+      "section_number": 10,
+      "title": "CHAPTER VII",
+      "routing_description": "Douglass trades bread for reading lessons, studies The Columbian Orator, learns the meaning of abolition, and develops escape hopes while teaching himself to write from shipyard marks and copybooks.",
+      "characters": [
+        "Frederick Douglass",
+        "Master Hugh",
+        "Master Thomas",
+        "Sheridan"
+      ],
+      "locations": [
+        "Philpot Street",
+        "Durgin and Bailey’s ship-yard",
+        "Wilk Street meetinghouse"
+      ],
+      "retrieval_cues": [
+        "bread of knowledge",
+        "The Columbian Orator",
+        "abolitionist",
+        "lump of chalk",
+        "Webster’s Spelling Book"
+      ],
+      "word_count": 2464,
+      "path": "sections/10-chapter-07.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec11",
+      "section_number": 11,
+      "title": "CHAPTER VIII",
+      "routing_description": "Douglass returns for an estate valuation among livestock, escapes Andrew's ownership, condemns the abandonment of his grandmother, and is sent from Baltimore to Thomas Auld at St. Michael's.",
+      "characters": [
+        "Frederick Douglass",
+        "Captain Anthony",
+        "Andrew",
+        "Lucretia",
+        "Master Hugh",
+        "Master Thomas",
+        "Rowena Hamilton"
+      ],
+      "locations": [
+        "Baltimore",
+        "St. Michael’s",
+        "North Point"
+      ],
+      "retrieval_cues": [
+        "valuation",
+        "grandmother",
+        "Gone, gone, sold and gone",
+        "sloop Amanda"
+      ],
+      "word_count": 1804,
+      "path": "sections/11-chapter-08.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec12",
+      "section_number": 12,
+      "title": "CHAPTER IX",
+      "routing_description": "Douglass describes hunger under Thomas Auld, increased cruelty after Auld's religious conversion, the destruction of a Sabbath school, Henny's abuse, and being hired to Edward Covey for breaking.",
+      "characters": [
+        "Frederick Douglass",
+        "Thomas Auld",
+        "Eliza",
+        "Priscilla",
+        "Henny",
+        "George Cookman",
+        "Mr. Wilson",
+        "Edward Covey"
+      ],
+      "locations": [
+        "St. Michael’s",
+        "Bay-side",
+        "Talbot county"
+      ],
+      "retrieval_cues": [
+        "March, 1832",
+        "camp-meeting",
+        "Sabbath school",
+        "Henny",
+        "breaking young slaves"
+      ],
+      "word_count": 2035,
+      "path": "sections/12-chapter-09.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec13",
+      "section_number": 13,
+      "title": "CHAPTER X",
+      "routing_description": "Douglass describes Covey's violence and surveillance, his own resistance after seeking protection and receiving Sandy's root, and the confidence restored by their fight. At Freeland's he teaches reading and plans an escape with fellow slaves, but they are arrested. Returned to Baltimore, he survives a shipyard assault, learns calking, and must surrender his wages to Hugh.",
+      "characters": [
+        "Frederick Douglass",
+        "Edward Covey",
+        "Sandy Jenkins",
+        "Master Thomas",
+        "William Freeland",
+        "Henry Harris",
+        "John Harris",
+        "Henry Bailey",
+        "Charles Roberts",
+        "William Hamilton",
+        "Master Hugh",
+        "William Gardner",
+        "Walter Price"
+      ],
+      "locations": [
+        "Covey's farm",
+        "Chesapeake Bay",
+        "St. Michael's",
+        "Freeland's farm",
+        "Easton jail",
+        "Baltimore",
+        "Fell's Point",
+        "Gardner's ship-yard"
+      ],
+      "retrieval_cues": [
+        "unbroken oxen",
+        "Covey the snake",
+        "Caroline and forced breeding",
+        "Sandy's protective root",
+        "fight with Covey",
+        "Christmas holidays and drunkenness",
+        "religious slaveholders",
+        "Sabbath school",
+        "escape by canoe",
+        "forged protections",
+        "Own nothing",
+        "Easton imprisonment",
+        "shipyard assault",
+        "calking wages"
+      ],
+      "word_count": 12812,
+      "path": "sections/13-chapter-10.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec14",
+      "section_number": 14,
+      "title": "CHAPTER XI",
+      "routing_description": "Douglass explains why he withholds escape details, describes hiring his time and reaching New York, and recounts Ruggles's help, marriage to Anna, and settlement in New Bedford. He adopts the name Douglass, finds paid work despite discrimination, reads the Liberator, and begins public antislavery speaking at Nantucket.",
+      "characters": [
+        "Frederick Douglass",
+        "Master Hugh",
+        "Master Thomas",
+        "David Ruggles",
+        "Anna Murray",
+        "J. W. C. Pennington",
+        "Nathan Johnson",
+        "William C. Coffin"
+      ],
+      "locations": [
+        "Baltimore",
+        "New York",
+        "New Bedford",
+        "Nantucket"
+      ],
+      "retrieval_cues": [
+        "upperground railroad",
+        "hiring my time",
+        "September, 1838",
+        "Trust no man",
+        "Lady of the Lake",
+        "Liberator",
+        "prejudice against color",
+        "11th of August, 1841"
+      ],
+      "word_count": 5305,
+      "path": "sections/14-chapter-11.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec15",
+      "section_number": 15,
+      "title": "APPENDIX",
+      "routing_description": "Douglass distinguishes the Christianity of Christ from slaveholding religion, condemns churches' complicity in enslavement, quotes a poem and Scripture, and introduces a parody of religious hypocrisy.",
+      "characters": [
+        "Frederick Douglass",
+        "Christ",
+        "Pilate",
+        "Herod"
+      ],
+      "locations": [
+        "America"
+      ],
+      "retrieval_cues": [
+        "slaveholding religion",
+        "Christianity of Christ",
+        "whited sepulchres",
+        "northern Methodist preacher"
+      ],
+      "word_count": 1399,
+      "path": "sections/15-appendix.md"
+    },
+    {
+      "section_id": "pg23-vd3f08ac3-sec16",
+      "section_number": 16,
+      "title": "A PARODY",
+      "routing_description": "A satirical poem contrasts professions of heavenly union with whipping, selling, and starving enslaved people. Douglass closes with a renewed antislavery pledge and his April 28, 1845 dateline.",
+      "characters": [
+        "Frederick Douglass",
+        "Jack",
+        "Nell",
+        "Tony",
+        "Nanny"
+      ],
+      "locations": [
+        "Lynn"
+      ],
+      "retrieval_cues": [
+        "heavenly union",
+        "children-stealing",
+        "truth, love, and justice",
+        "April"
+      ],
+      "word_count": 484,
+      "path": "sections/16-a-parody.md"
+    }
+  ]
+}
