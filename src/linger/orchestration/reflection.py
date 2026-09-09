@@ -65,7 +65,8 @@ from src.linger.contracts.librarian import (
 from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.grounding import evidence_record_from_item
-from src.linger.orchestration.turn_context import turn_evidence
+from src.linger.orchestration.turn_context import turn_evidence, active_memories
+from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
@@ -118,8 +119,11 @@ class ReflectionRelease:
     # Content-free handles only. Rejected candidate text never crosses this boundary.
     evidence_ids: tuple[str, ...] = ()
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
+    released_evidence_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        if self.release_source != "muse_candidate" and self.released_evidence_ids:
+            raise ValueError("only a released candidate may retain released citation IDs")
         is_boundary = self.release_source == "application_emotional_boundary"
         if is_boundary != (self.boundary_origin is not None):
             raise ValueError(
@@ -158,6 +162,13 @@ def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
             if use.source_kind == "book_corpus"
         )
     )
+
+
+def _candidate_citation_ids(candidate: MuseCandidate) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(
+        use.evidence_id for use in candidate.evidence_uses
+        if use.source_kind != "session_line"
+    ))
 
 
 def _released_user_lines(history: list[ModelMessage]) -> tuple[str, ...]:
@@ -523,9 +534,14 @@ def _validated_book_evidence(
             )
         for item in exploration.evidence:
             if not isinstance(item, EvidenceItem):
-                raise ReleaseValidationError(
-                    "Serendipity web evidence is not a citation authority"
-                )
+                if canonical_connection_evidence().get(item.evidence_id) != item:
+                    raise ReleaseValidationError("Serendipity evidence is not registered in this turn")
+                if item.source_kind == "memory" and not any(
+                    memory.memory_id == item.evidence_id and memory.text == item.excerpt
+                    for memory in active_memories()
+                ):
+                    raise ReleaseValidationError("Serendipity memory is no longer active")
+                continue
             record = evidence_record_from_item(item)
             _validate_record_scope(record, release_scope, frozenset())
             if evidence.get(record.evidence_id) != record:
@@ -563,8 +579,23 @@ def _validate_release(
             ):
                 raise ReleaseValidationError("Candidate cites an unresolved session line")
             continue
-        if declared.source_kind != "book_corpus":
-            raise ReleaseValidationError("Candidate uses an unsupported evidence source")
+        if declared.source_kind in {"memory", "web"}:
+            source = canonical_connection_evidence().get(declared.evidence_id)
+            if source is None or source.source_kind != declared.source_kind:
+                raise ReleaseValidationError("Candidate cites unregistered connection evidence")
+            if source.source_kind == "memory" and not any(
+                memory.memory_id == source.evidence_id and memory.text == source.excerpt
+                for memory in active_memories()
+            ):
+                raise ReleaseValidationError("Candidate cites an inactive memory")
+            if source.source_kind == "web" and f"]({source.evidence_id})" not in candidate.reply:
+                raise ReleaseValidationError("Candidate omits the public source citation")
+            if declared.exact_quote is not None and (
+                declared.exact_quote not in candidate.reply
+                or declared.exact_quote not in source.excerpt
+            ):
+                raise ReleaseValidationError("Candidate connection quotation is not exact")
+            continue
         record = evidence.get(declared.evidence_id)
         if record is None:
             raise ReleaseValidationError("Candidate cites unresolved evidence")
@@ -662,6 +693,7 @@ def _provenance_input(
             {
                 "context": _provenance_context(review_context),
                 "canonical_book_evidence": tuple(turn_evidence().values()),
+                "canonical_connection_evidence": tuple(canonical_connection_evidence().values()),
                 "canonical_session_lines": _verified_session_lines(
                     candidate.evidence_uses, released_user_lines
                 ),
@@ -1041,6 +1073,7 @@ async def _reflection_reply(
                 librarian_grounding_calls=_librarian_grounding(draft_tool_results),
                 evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
+                released_evidence_ids=_candidate_citation_ids(candidate) if draft_clarification is None else (),
             ),
         )
     if review.response_decision != "revise":
@@ -1272,6 +1305,7 @@ async def _reflection_reply(
                 librarian_grounding_calls=_librarian_grounding(revised_tool_results),
                 evidence_ids=_evidence_ids(revised_candidate),
                 review_finding_codes=_review_codes(review, revised_review),
+                released_evidence_ids=_candidate_citation_ids(revised_candidate) if revised_clarification is None else (),
             ),
         )
     return _record_release(

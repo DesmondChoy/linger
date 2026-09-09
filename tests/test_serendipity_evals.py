@@ -339,18 +339,22 @@ class CrossSourceObjectiveStageTests(unittest.TestCase):
     def test_reports_deterministic_release_as_first_failure(self) -> None:
         response = self._response(
             serendipity_status="complete",
-            librarian_status="complete",
+            librarian_status="declined",
             release_source="application_safe_decline",
             failure_stage="deterministic_validation",
         )
-        report = grade_cross_source_response(self._case(), response, run_id="run")
+        from src.linger.evaluation_transcript import ConnectionEvaluationEvent
+        report = grade_cross_source_response(self._case(), response, run_id="run", events=(
+            ConnectionEvaluationEvent(kind="search", status="evidence_found", source="book_corpus"),
+            ConnectionEvaluationEvent(kind="discovery", status="proposal"),
+        ))
 
         self.assertEqual("deterministic_release", report.first_failure_stage)
         self.assertEqual(
             ["passed", "passed", "passed", "passed", "passed", "failed"],
             [stage.status for stage in report.stages],
         )
-        self.assertFalse(report.objective_pass)
+        self.assertFalse(report.hard_gate_pass)
 
     def test_stops_stage_claims_after_missing_invocation(self) -> None:
         response = self._response(
@@ -364,6 +368,27 @@ class CrossSourceObjectiveStageTests(unittest.TestCase):
         self.assertEqual("invocation", report.first_failure_stage)
         self.assertEqual("failed", report.stages[0].status)
         self.assertTrue(all(stage.status == "not_reached" for stage in report.stages[1:]))
+
+    def test_discovery_failure_after_search_is_a_selection_failure(self) -> None:
+        from src.linger.evaluation_transcript import ConnectionEvaluationEvent
+        response = self._response(serendipity_status="declined", librarian_status="declined", release_source="muse_candidate", failure_stage=None)
+        report = grade_cross_source_response(self._case(), response, run_id="run", events=(
+            ConnectionEvaluationEvent(kind="search", status="evidence_found", source="book_corpus"),
+            ConnectionEvaluationEvent(kind="discovery", status="failed", failure_code="connection_discovery_failed"),
+        ))
+        self.assertEqual("passed", report.stages[1].status)
+        self.assertEqual("serendipity_selection", report.first_failure_stage)
+
+    def test_honest_decline_uses_raw_discovery_instead_of_api_status(self) -> None:
+        from src.linger.evaluation_transcript import ConnectionEvaluationEvent
+        case = self._case().model_copy(update={"expected_decision": "decline"})
+        response = self._response(serendipity_status="declined", librarian_status="declined", release_source="muse_candidate", failure_stage=None)
+        report = grade_cross_source_response(case, response, run_id="run", events=(
+            ConnectionEvaluationEvent(kind="search", status="no_evidence", source="book_corpus"),
+            ConnectionEvaluationEvent(kind="discovery", status="decline"),
+        ))
+        self.assertTrue(report.hard_gate_pass)
+        self.assertTrue(report.semantic_review_required)
 
 
 if __name__ == "__main__":

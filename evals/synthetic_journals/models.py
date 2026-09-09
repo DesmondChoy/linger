@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import Annotated, Literal, Self
+from urllib.parse import urlsplit
 
 from pydantic import (
     AfterValidator,
@@ -142,6 +144,51 @@ class Scene(StrictModel):
         return self
 
 
+class ReaderConfirmedBookScope(StrictModel):
+    """A chapter ceiling supplied by trusted reader/session context."""
+
+    kind: Literal["reader_confirmed"]
+    work_id: Identifier
+    book_version_id: Identifier
+    safe_ceiling_chapter: int = Field(ge=1)
+
+
+class PublicSourceSnapshot(StrictModel):
+    """Trusted public text supplied independently of proposed Ground truth."""
+
+    source_id: Identifier
+    url: Text
+    title: Text
+    text: Text
+    source_sha256: Sha256
+    retrieved_at: datetime
+
+    @model_validator(mode="after")
+    def validate_provenance(self) -> Self:
+        url = urlsplit(self.url)
+        if url.scheme not in {"https", "http"} or not url.hostname or url.username or url.password:
+            raise ValueError("public source URL must be an absolute HTTP(S) URL without credentials")
+        if self.retrieved_at.tzinfo is None:
+            raise ValueError("public source retrieved_at must include a timezone")
+        if hashlib.sha256(self.text.encode("utf-8")).hexdigest() != self.source_sha256:
+            raise ValueError("public source source_sha256 must match exact UTF-8 text")
+        return self
+
+
+class SceneSourceSetup(StrictModel):
+    """Trusted, bounded sources available to one Scene; never grading labels."""
+
+    scene_id: Identifier
+    book_scope: ReaderConfirmedBookScope | None = None
+    public_sources: tuple[PublicSourceSnapshot, ...] = Field(default=(), max_length=12)
+
+    @model_validator(mode="after")
+    def validate_sources(self) -> Self:
+        _require_unique("public source IDs", tuple(source.source_id for source in self.public_sources))
+        _require_unique("public source URLs", tuple(source.url for source in self.public_sources))
+        return self
+
+
 class SyntheticBackstory(StrictModel):
     """Generated package rooted in one Backstory, person, and account."""
 
@@ -152,6 +199,7 @@ class SyntheticBackstory(StrictModel):
     scenes: tuple[Scene, ...] = Field(min_length=1)
     lines: tuple[Line, ...] = ()
     offline_inputs: tuple[OfflineInput, ...] = ()
+    source_setups: tuple[SceneSourceSetup, ...] = ()
 
     @model_validator(mode="after")
     def validate_backstory_graph(self) -> Self:
@@ -182,6 +230,13 @@ class SyntheticBackstory(StrictModel):
         offline_inputs = {
             item.offline_input_id: item for item in self.offline_inputs
         }
+        _require_unique("source setup Scene IDs", tuple(setup.scene_id for setup in self.source_setups))
+        _require_known_ids("Scene", "source setup", tuple(setup.scene_id for setup in self.source_setups), scenes)
+        for setup in self.source_setups:
+            if not set(scenes[setup.scene_id].objective_ids) & {
+                "cross_source_tentative_connection", "weak_evidence_safe_decline"
+            }:
+                raise ValueError("source setup requires a connection or weak-evidence Scene")
         selected_objectives = set(self.objective_ids)
         used_objectives = {
             objective_id
@@ -380,8 +435,25 @@ class RepositoryTextEvidence(StrictModel):
         return self
 
 
+class PublicSourceEvidence(StrictModel):
+    """An exact excerpt of a public snapshot in this Scene's trusted setup."""
+
+    kind: Literal["public_source"]
+    evidence_id: Identifier
+    source_id: Identifier
+    start_codepoint: int = Field(ge=0)
+    end_codepoint: int = Field(gt=0)
+    text: Text
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> Self:
+        if self.end_codepoint <= self.start_codepoint:
+            raise ValueError("end_codepoint must be greater than start_codepoint")
+        return self
+
+
 EvidenceReference = Annotated[
-    PropEvidence | OfflineInputEvidence | RepositoryTextEvidence,
+    PropEvidence | OfflineInputEvidence | RepositoryTextEvidence | PublicSourceEvidence,
     Field(discriminator="kind"),
 ]
 
@@ -406,6 +478,7 @@ PairField = Literal[
     "prop_ids",
     "line_count",
     "line_text",
+    "source_setup",
     "offline_input_count",
     "offline_input_content",
     "surfacing_now",
@@ -448,15 +521,6 @@ class CorpusTextEvidence(StrictModel):
         if self.end_codepoint <= self.start_codepoint:
             raise ValueError("end_codepoint must be greater than start_codepoint")
         return self
-
-
-class ReaderConfirmedBookScope(StrictModel):
-    """A chapter ceiling supplied by trusted reader/session context."""
-
-    kind: Literal["reader_confirmed"]
-    work_id: Identifier
-    book_version_id: Identifier
-    safe_ceiling_chapter: int = Field(ge=1)
 
 
 class LibrarianInferredBookScope(StrictModel):
@@ -570,6 +634,41 @@ BookObjectiveExpectation = Annotated[
 ]
 
 
+class ConnectionExpectation(StrictModel):
+    """Adoptable connection and restraint labels, kept outside runtime inputs."""
+
+    decision: Literal["proposal", "restraint", "not_requested"]
+    permitted_evidence_ids: tuple[Identifier, ...] = ()
+    required_evidence_ids: tuple[Identifier, ...] = ()
+    acceptable_responses: tuple[Literal[
+        "tentative_connection", "qualified", "declined",
+        "request_better_evidence", "personal_reflection",
+    ], ...] = Field(min_length=1)
+    required_public_claims: tuple[Text, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_expectation(self) -> Self:
+        _require_unique("permitted connection evidence IDs", self.permitted_evidence_ids)
+        _require_unique("required connection evidence IDs", self.required_evidence_ids)
+        _require_unique("acceptable connection responses", self.acceptable_responses)
+        if not set(self.required_evidence_ids) <= set(self.permitted_evidence_ids):
+            raise ValueError("required connection evidence IDs must be permitted")
+        allowed = {
+            "proposal": {"tentative_connection"},
+            "restraint": {"qualified", "declined", "request_better_evidence"},
+            "not_requested": {"personal_reflection"},
+        }[self.decision]
+        if not set(self.acceptable_responses) <= allowed:
+            raise ValueError("acceptable responses conflict with connection decision")
+        if self.decision == "proposal" and not self.required_evidence_ids:
+            raise ValueError("connection proposal requires cited evidence")
+        if self.decision == "not_requested" and (
+            self.permitted_evidence_ids or self.required_evidence_ids or self.required_public_claims
+        ):
+            raise ValueError("personal reflection cannot require factual evidence")
+        return self
+
+
 class GroundTruthProposal(StrictModel):
     """Generator-authored candidate answer-key data for one Scene and Objective."""
 
@@ -586,6 +685,7 @@ class GroundTruthProposal(StrictModel):
     curation: CurationExpectation | None = None
     surfacing: SurfacingExpectation | None = None
     grounding: GroundingExpectation | None = None
+    connection: ConnectionExpectation | None = None
     book_expectation: BookObjectiveExpectation | None = None
 
     @model_validator(mode="after")
@@ -603,6 +703,12 @@ class GroundTruthProposal(StrictModel):
     @model_validator(mode="after")
     def validate_grounding_evidence(self) -> Self:
         """Bind permitted citations to evidence this proposal actually declares."""
+        if self.connection is not None:
+            unknown = set(self.connection.permitted_evidence_ids) - {
+                item.evidence_id for item in self.evidence
+            }
+            if unknown:
+                raise ValueError(f"connection permits evidence absent from the proposal: {sorted(unknown)}")
         if self.grounding is None:
             return self
         declared = {item.evidence_id for item in self.evidence}
@@ -615,6 +721,13 @@ class GroundTruthProposal(StrictModel):
 
     @model_validator(mode="after")
     def validate_objective_authority(self) -> Self:
+        if self.connection is not None:
+            if self.objective_id not in {"cross_source_tentative_connection", "weak_evidence_safe_decline"}:
+                raise ValueError("connection expectation requires a connection or weak-evidence Objective")
+            if any((self.grounding, self.capture, self.curation, self.surfacing, self.book_expectation)):
+                raise ValueError("connection proposal contains unrelated or duplicate Ground truth")
+        if self.objective_id == "cross_source_tentative_connection" and self.connection is None:
+            raise ValueError("cross-source Objective requires typed connection expectation")
         if self.objective_id == "proactive_memory_surfacing":
             if self.surfacing is None:
                 raise ValueError("surfacing Objective requires typed surfacing expectation")

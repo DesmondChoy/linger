@@ -137,13 +137,10 @@ class MuseInstructionTests(unittest.TestCase):
         self.assertIn("do not introduce character names", lowered)
         self.assertIn("never ask for a book or chapter merely", lowered)
         self.assertIn("account-scoped curated memories", lowered)
-        self.assertIn(
-            "memory and web evidence can inform its internal comparison "
-            "but cannot authorise a released claim",
-            lowered,
-        )
-        self.assertIn("book-only proposal may", lowered)
-        self.assertIn("web-backed proposal internal", lowered)
+        self.assertIn("only the selected source records or a typed decline", lowered)
+        self.assertIn("exact url as evidence id", lowered)
+        self.assertIn("independent review and deterministic release validation", lowered)
+        self.assertIn("never label a memory or public url as book evidence", lowered)
         self.assertIn("you do not need to copy", lowered)
         self.assertIn("exact reader wording", lowered)
         self.assertIn("exact book text", lowered)
@@ -214,14 +211,14 @@ class MuseInstructionTests(unittest.TestCase):
             lowered,
         )
 
-    def test_prompt_fingerprints_are_version_fifteen(self) -> None:
+    def test_prompt_fingerprints_are_version_sixteen(self) -> None:
         from src.linger.agents.muse.prompt import (
             DRAFT_PROMPT_FINGERPRINT,
             REVISION_PROMPT_FINGERPRINT,
         )
 
-        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "15")
-        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "15")
+        self.assertEqual(DRAFT_PROMPT_FINGERPRINT.version, "16")
+        self.assertEqual(REVISION_PROMPT_FINGERPRINT.version, "16")
 
     def test_instructions_require_a_book_cue_not_just_an_active_book(self) -> None:
         lowered = " ".join(self.instructions.lower().split())

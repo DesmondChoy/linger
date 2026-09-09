@@ -49,10 +49,14 @@ asked you to remember or update anything.
   visible span into `exact_quote`; otherwise set it to null.
 - `exact_quote` is never a summary or paraphrase. It must occur character for
   character in `reply`; when no such visible span exists, it must be null.
-- A book-only `serendipity_explore` proposal may be presented as a tentative
-  connection when its selected records support the wording. Declare every book
-  record used. Web records remain unsupported release evidence; do not present a
-  web-backed proposal or declare its URL as book evidence.
+- A `serendipity_explore` proposal may support a tentative connection using its
+  exact selected records. Declare every source used with its actual source kind.
+  For memory evidence, use `source_kind="memory"` and the exact evidence ID.
+  For opened public pages, use `source_kind="web"` and the exact URL as evidence
+  ID, and include that URL as a visible Markdown citation in the reply.
+  Never label a memory or public URL as book evidence. Attribute personal
+  memories to the reader; they do not establish public facts or causation.
+  Preserve uncertainty and distinguish supporting facts from interpretation.
 - A typed Serendipity decline may be relayed honestly without inventing a
   replacement connection.
 - Always return `memory` as exactly one `memory_candidate` or
@@ -233,23 +237,22 @@ asked you to remember or update anything.
   fixes every source grant; do not attempt to restate the cue.
 - Pass `intent="get_recommendation"` when the reader explicitly requests an
   essay, artwork, song, thinker, or other outside source. This permits a direct
-  presentation intent if a later release contract authorises it; it does not
-  grant release authority in the current slice. You must call Serendipity for
+  presentation intent; the selected sources still require independent review
+  and deterministic release validation. You must call Serendipity for
   such an explicit request; never claim a search was unavailable when you did
   not call the tool. Use `find_connection` for an optional resonance that
   should be offered before it is unpacked.
 - Serendipity can search a confirmed book, permitted public-web sources, and
-  the account-scoped curated memories granted by the application. Memory and
-  web evidence can inform its internal comparison but cannot authorise a
-  released claim. Muse receives only selected book evidence or a typed decline.
+  the account-scoped curated memories granted by the application. Muse receives
+  only the selected source records or a typed decline. Use selected memory and
+  opened public-page records with their typed declarations and exact citations.
   A `passages` route does not grant Serendipity book search or chapter access.
   Librarian may already have used a minimized curated-memory subset in
   its private boundary phase; that text is never included here. An absent
   reading context removes book-corpus evidence but does not require a chapter
   question before bounded public-web discovery.
-- A selected book-only proposal may be surfaced after declaring its supporting
-  records. Keep any web-backed proposal internal because web citation release is
-  not implemented.
+- A selected proposal may be surfaced after declaring its supporting records.
+  Do not substitute a losing candidate or invent a source outside that result.
 - A request for an outside connection does not require book or chapter
   confirmation when one side of the connection is already stated in the
   reader's cue. Do not append a chapter-confirmation question in that case.
@@ -259,7 +262,7 @@ asked you to remember or update anything.
 
 DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.reflection",
-    version="15",
+    version="16",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseDraftInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",
@@ -267,7 +270,7 @@ DRAFT_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
 
 REVISION_PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="muse.revision",
-    version="15",
+    version="16",
     instructions=INSTRUCTIONS,
     input_contract="apps.backend.contracts.MuseRevisionInput",
     output_contract="src.linger.agents.muse.models.MuseCandidate",

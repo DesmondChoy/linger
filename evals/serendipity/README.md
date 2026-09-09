@@ -116,6 +116,23 @@ an objective pass.
 
 ## Cross-source production replay
 
+[`evals.synthetic_journals.connection_replay`](../synthetic_journals/README.md#connection-and-restraint-replay)
+supports independently adopted packages for `cross_source_tentative_connection`,
+`weak_evidence_safe_decline`, or both. The typed path runs production chat with
+isolated memory storage, registered corpus retrieval, and live public retrieval
+bounded to the supplied URLs. Adopted public snapshots define the exact evidence
+expected from live pages. Changed or unavailable evidence cannot count as
+successful restraint. This controlled test does not establish general search
+coverage.
+
+The release gate checks selected memory and public evidence against the exact
+current-run records reviewed by Provenance. Unknown or changed evidence fails
+closed. Structural stage results remain separate from human judgments about
+usefulness, tentativeness, honest restraint, and support for public claims.
+Legacy weak-evidence-only packages delegate to the reflection runner and retain
+its narrower hard checks. A component result never substitutes for a released
+production response.
+
 The direct `cross_source_tentative_connection` replay drives ordered synthetic
 messages through production chat in an isolated account, memory store, and
 session:
@@ -132,32 +149,28 @@ required. This command has no synthetic-package or `--adoption` argument.
 Provider-backed chat uses `LINGER_MODEL` and its matching API key. Actual web
 tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 
-The report grades the final response's inspection metadata in this order:
+The direct replay grades the final turn's recorded connection events and release
+inspection in this order:
 
 | Stage | Recorded check |
 | --- | --- |
-| `invocation` | A Serendipity trace exists and is not skipped. |
-| `retrieval` | Librarian reports completion and Serendipity does not report failure. |
-| `serendipity_selection` | Serendipity reports completion. A decline expectation also requires a recorded connection decline. |
+| `invocation` | A discovery event exists. |
+| `retrieval` | Search events exist, with no search failure or unavailable-retrieval status. |
+| `serendipity_selection` | The final discovery event has no failure and matches the expected proposal or decline decision. |
 | `muse_presentation` | Release inspection exists without a Muse draft or revision failure. |
-| `provenance_review` | Release inspection contains a verdict without a Provenance review failure. |
+| `provenance_review` | The final Provenance verdict is `pass`. |
 | `deterministic_release` | The actual release source matches the expected source without a deterministic validation failure. |
 
 Stages report `passed`, `failed`, or `not_reached`, with one
 `first_failure_stage`. Later stages are `not_reached` after the first failed
 check. The JSON retains the final reply, release source, and trace ID.
 
-These status checks support production diagnosis. They do not independently
+These structural checks support production diagnosis. They do not independently
 grade semantic presentation, exact source selection, the correctness of a
-Provenance verdict, or every earlier turn. `objective_pass` means that all
-listed checks passed. It is not an independently adopted synthetic-package
-grade. Fixture-backed component grades remain separate.
-
-The current release intentionally fails closed for any selected web evidence.
-Therefore the component suite may prove that Serendipity correctly selects and
-flags a book-to-web candidate, while the objective replay must still report the
-actual deterministic-release outcome. The component result does not claim that
-web-backed content is releasable.
+Provenance verdict, or every earlier turn. `hard_gate_pass` means that all listed
+checks passed; `semantic_review_required` remains true. It is not an
+independently adopted synthetic-package grade. Fixture-backed component grades
+remain separate.
 
 ## Running and reports
 

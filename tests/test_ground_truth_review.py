@@ -458,11 +458,66 @@ def test_review_payload_shows_shared_book_facts_and_expectation(
     assert "not enabled by this confirmation" in payload["replay"]["note"]
 
 
+def test_connection_review_shows_complete_source_setup_and_labels(
+    tmp_path: Path, built_ui: Path,
+) -> None:
+    from tests.test_synthetic_connection_package import connection_documents
+
+    content, labels = connection_documents(ROOT)
+    package = tmp_path / "connection"
+    package.mkdir()
+    backstory_bytes = json.dumps(content, sort_keys=True).encode("utf-8")
+    labels["backstory_sha256"] = hashlib.sha256(backstory_bytes).hexdigest()
+    (package / "backstory.json").write_bytes(backstory_bytes)
+    (package / "ground-truth.json").write_text(json.dumps(labels), encoding="utf-8")
+
+    state = _state(package, built_ui)
+    payload = state.payload
+    assert payload["replay"]["module"] == "evals.synthetic_journals.connection_replay"
+    assert len(payload["rows"]) == len(labels["proposals"]) == 4
+    source_setups = {item["scene_id"]: item for item in content["source_setups"]}
+    proposals = {item["proposal_id"]: item for item in labels["proposals"]}
+    for row in payload["rows"]:
+        setup = source_setups.get(row["sceneId"])
+        if setup is None:
+            assert row["sourceSetup"] is None
+        else:
+            assert row["sourceSetup"]["book_scope"] == setup["book_scope"]
+            actual_sources = row["sourceSetup"]["public_sources"]
+            assert len(actual_sources) == len(setup["public_sources"])
+            for actual, original in zip(
+                actual_sources, setup["public_sources"], strict=True,
+            ):
+                assert datetime.fromisoformat(
+                    actual["retrieved_at"]
+                ) == datetime.fromisoformat(original["retrieved_at"])
+                assert {
+                    key: value for key, value in actual.items() if key != "retrieved_at"
+                } == {
+                    key: value for key, value in original.items() if key != "retrieved_at"
+                }
+        assert row["connection"] == proposals[row["proposalId"]]["connection"]
+    assert payload["rows"][0]["summary"] == "Tentative connection"
+    assert payload["rows"][1]["summary"] == "Restraint with weak evidence"
+    assert payload["rows"][-1]["summary"] == "Personal reflection without a connection"
+    assert not state.adoption_path.exists()
+
+
 @pytest.mark.parametrize(
     ("objective_ids", "module"),
     [
         (("reviewed_automatic_memory_capture",), "evals.synthetic_journals.replay"),
         (("bounded_memory_curation",), "evals.synthetic_journals.curation_replay"),
+        (("cross_source_tentative_connection",), "evals.synthetic_journals.connection_replay"),
+        (("weak_evidence_safe_decline",), "evals.synthetic_journals.connection_replay"),
+        (
+            ("cross_source_tentative_connection", "weak_evidence_safe_decline"),
+            "evals.synthetic_journals.connection_replay",
+        ),
+        (
+            ("weak_evidence_safe_decline", "cross_source_tentative_connection"),
+            "evals.synthetic_journals.connection_replay",
+        ),
         (
             ("session_scoped_conversation_continuity",),
             "evals.synthetic_journals.continuity_replay",

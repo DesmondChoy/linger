@@ -35,6 +35,7 @@ from src.linger.agents.serendipity.tools import (
 )
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.contracts.curation import CuratedMemory
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
@@ -42,6 +43,8 @@ from src.linger.orchestration.inspection_context import (
 )
 from src.linger.orchestration.turn_context import (
     reset_turn_evidence,
+    set_active_memories,
+    reset_active_memories,
     reset_reader_message,
     reset_confirmed_reading,
     set_turn_evidence,
@@ -58,6 +61,8 @@ with patch("src.linger.agents.build.build_model", return_value=TestModel()):
     )
     from src.linger.orchestration.connection import (
         ExplorationResult,
+        InvalidConnectionResponse,
+        _validate_response,
         SERENDIPITY_TOOL_CALL_LIMIT,
         _agent_explorer,
         connection_exploration,
@@ -434,6 +439,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             tuple(trace.outcome for trace in deps.searches),
         )
         self.assertEqual({url}, deps.web_leads)
+        self.assertEqual({url: deps.evidence[url]}, deps.opened_web_evidence)
         self.assertIn("complete public page", deps.evidence[url].excerpt)
         self.assertEqual("external", deps.evidence[url].trust_level)
 
@@ -483,6 +489,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             ("José and I divorced", "Jose\u0301 divorce"),
             ("will and i divorced", "ｗｉｌｌ divorce"),
             ("Find a public essay about loss", "reader@example.com grief essay"),
+            ("Find a public essay about loss", "cassowary anniversary"),
         ):
             with self.subTest(query=unsafe_query):
                 search_calls = 0
@@ -522,6 +529,11 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                     update={"cue": cue}
                 )
                 deps = self.deps(active_task)
+                deps.memories = (CuratedMemory(
+                    memory_id="private-memory", kind="original",
+                    text="The cassowary anniversary mattered to me.",
+                    source_memory_ids=("private-memory",), created_at="2026-09-07T00:00:00Z",
+                ),)
                 agent = build_serendipity_agent(FunctionModel(respond))
 
                 result = await agent.run(
@@ -681,6 +693,63 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
+    def test_web_authority_requires_exact_opened_record_and_permitted_url(self) -> None:
+        source = WebConnectionEvidence(
+            evidence_id="https://example.com/essay", title="An essay", excerpt="A bounded public passage.",
+        )
+        output = proposal(
+            shortlist=(candidate("candidate-identity", 1, evidence_ids=(source.evidence_id,)),
+                       candidate("candidate-authority", 2, evidence_ids=(source.evidence_id,))),
+            policy_flags=("contains_web_claim",),
+        )
+        active_task = task(allowed_sources=("web",))
+        search = (SearchTrace(source="web", operation="get_page", outcome="evidence_found"),)
+        run = ExplorationResult(response=output, evidence=(source,), searches=search)
+        with self.assertRaisesRegex(InvalidConnectionResponse, "not opened"):
+            _validate_response(run, active_task)
+        opened = ExplorationResult(
+            response=output, evidence=(source,), searches=search, opened_web_evidence=(source,),
+        )
+        self.assertEqual(output, _validate_response(opened, active_task))
+        restricted = active_task.model_copy(update={"scope": ConnectionScope(
+            allowed_sources=("web",), web_source_urls=("https://example.com/other",),
+        )})
+        with self.assertRaisesRegex(InvalidConnectionResponse, "trusted grant"):
+            _validate_response(opened, restricted)
+        altered = ExplorationResult(
+            response=output, evidence=(source.model_copy(update={"excerpt": "A forged passage."}),),
+            searches=search, opened_web_evidence=(source,),
+        )
+        with self.assertRaisesRegex(InvalidConnectionResponse, "not opened"):
+            _validate_response(altered, active_task)
+
+    def test_memory_authority_requires_exact_active_account_snapshot(self) -> None:
+        source = MemoryConnectionEvidence(evidence_id="memory-1", excerpt="Change felt familiar to me.")
+        output = proposal(shortlist=(
+            candidate("candidate-identity", 1, evidence_ids=(source.evidence_id,)),
+            candidate("candidate-authority", 2, evidence_ids=(source.evidence_id,)),
+        ))
+        run = ExplorationResult(
+            response=output, evidence=(source,),
+            searches=(SearchTrace(source="memory", operation="search_memories", outcome="evidence_found"),),
+        )
+        active_task = task(allowed_sources=("memory",))
+        active = CuratedMemory(
+            memory_id=source.evidence_id, text=source.excerpt, kind="original",
+            source_memory_ids=(source.evidence_id,), created_at="2026-09-07T00:00:00Z",
+        )
+        for records, valid in (((active,), True), ((), False), ((active.model_copy(update={"text": "Changed"}),), False)):
+            with self.subTest(valid=valid):
+                token = set_active_memories(records)
+                try:
+                    if valid:
+                        self.assertEqual(output, _validate_response(run, active_task))
+                    else:
+                        with self.assertRaisesRegex(InvalidConnectionResponse, "active account"):
+                            _validate_response(run, active_task)
+                finally:
+                    reset_active_memories(token)
+
     async def test_muse_cannot_replace_the_application_owned_reader_cue(self) -> None:
         expected = object()
         explorer = AsyncMock(return_value=expected)

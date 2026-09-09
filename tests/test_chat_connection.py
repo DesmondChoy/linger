@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from apps.backend.config import get_settings
@@ -31,8 +32,12 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     InternalSearchResult,
 )
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import AccountContext, MemoryPolicyService, AutomaticMemoryCandidate
+from src.linger.agents.serendipity.tools import GuardedExaSearch
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
+from src.linger.contracts.turn import ReleaseScope
+from src.linger.corpus.alice import BOOK
+from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
@@ -191,6 +196,163 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
+
+    async def test_mixed_sources_release_through_real_tools_and_independent_review(self) -> None:
+        url = "https://example.com/continuity"
+        memory_text = "My piano routine changed after moving home."
+        self.service.set_capture_enabled(self.account, True)
+        saved = self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text=memory_text, source_event_id="fixture-prior-reflection",
+            review_allows_capture=True, contains_sensitive_content=False,
+        )).record
+        self.service.set_capture_enabled(self.account, False)
+        provider_calls = []
+        provenance_inputs = []
+        events = []
+
+        class ExaClient:
+            async def search(self, query, **kwargs):
+                provider_calls.append(("search", query))
+                return SimpleNamespace(results=[SimpleNamespace(
+                    url=url, title="Continuity", published_date=None, author=None,
+                    highlights=["A public lead about continuity."],
+                )], output=None)
+            async def get_contents(self, urls, **kwargs):
+                provider_calls.append(("get_page", urls))
+                return SimpleNamespace(results=[SimpleNamespace(
+                    url=url, title="Continuity", published_date=None, author=None,
+                    text="Continuity can coexist with gradual variation.",
+                )])
+
+        class Sink:
+            def begin_agent_exchange(self, **kwargs):
+                return None
+            def complete_agent_exchange(self, *args, **kwargs):
+                pass
+            def record_connection_event(self, event):
+                events.append(event)
+
+        def discover(messages, info):
+            returns = {
+                part.tool_name: part.content
+                for message in messages for part in getattr(message, "parts", ())
+                if isinstance(part, ToolReturnPart)
+            }
+            if "search_librarian" not in returns:
+                return ModelResponse(parts=[ToolCallPart("search_librarian", {"query": "Alice changing size identity Caterpillar"})])
+            if "search_memories" not in returns:
+                return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "piano routine"})])
+            if "web_search" not in returns:
+                return ModelResponse(parts=[ToolCallPart("web_search", {"query": "metaphysics continuity"})])
+            if "get_page" not in returns:
+                return ModelResponse(parts=[ToolCallPart("get_page", {"url": url})])
+            response = _serendipity_proposes(messages, info)
+            args = response.parts[0].args
+            for item in args["shortlist"]:
+                item["evidence_ids"] = [item["evidence_ids"][0], saved.memory_id, url]
+            args["policy_flags"] = ["contains_web_claim"]
+            return response
+
+        def muse(messages, info):
+            results = [part.content for message in messages for part in getattr(message, "parts", ())
+                       if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"]
+            if not results:
+                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
+            exploration = ConnectionExplorationResult.model_validate(results[-1])
+            self.assertIsInstance(exploration.decision, ConnectionProposal)
+            uses = []
+            for item in exploration.evidence:
+                use = {"source_kind": item.source_kind, "evidence_id": item.evidence_id, "exact_quote": None}
+                if item.source_kind == "book_corpus":
+                    use["source_location"] = item.location
+                uses.append(use)
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+                "reply": f"Your earlier reflection may resonate with Alice's changes and [this essay]({url}).",
+                "evidence_uses": uses,
+                "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+            })])
+
+        def provenance(messages, info):
+            for message in messages:
+                for part in getattr(message, "parts", ()):
+                    text = getattr(part, "content", None)
+                    if isinstance(text, str) and text.startswith("{"):
+                        payload = json.loads(text)
+                        if "canonical_connection_evidence" in payload:
+                            provenance_inputs.append(payload)
+            return _provenance_pass(messages, info)
+
+        scope = ReleaseScope(work_id=BOOK.work_id, book_version_id=BOOK.book_version_id, chapter_max=5)
+        with patch("src.linger.orchestration.connection.web_reach_permitted", return_value=True), patch.object(
+            chat_turn, "web_reach_permitted", return_value=True,
+        ), patch("src.linger.orchestration.connection._web_capability", return_value=GuardedExaSearch(client=ExaClient())):
+            with bind_evaluation_transcript_sink(Sink()):
+                with muse_chat_agent.override(model=FunctionModel(muse)):
+                    with serendipity_agent.override(model=FunctionModel(discover)):
+                        with provenance_agent.override(model=FunctionModel(provenance)):
+                            response = await chat_turn.run_chat_turn(
+                                ChatRequest(session_id=self.session_id, message="Could my earlier reflection connect to the book and a public essay?"),
+                                self.service, self.account, initial_reading=scope, public_source_urls=(url,),
+                            )
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertEqual(["search", "get_page"], [call[0] for call in provider_calls])
+        self.assertTrue(provenance_inputs[-1]["canonical_book_evidence"])
+        self.assertEqual({"memory", "web"}, {
+            item["source_kind"] for item in provenance_inputs[-1]["canonical_connection_evidence"]
+        })
+        self.assertEqual(["sent"], [event.status for event in events if event.kind == "query"])
+        self.assertNotIn(memory_text, response.model_dump_json())
+        self.assertEqual(1, len(self.service.list_active(self.account)))
+        self.assertIn(url, events[-1].released_evidence_ids)
+        self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
+
+    async def test_trusted_initial_reading_reaches_real_discovery_without_extra_line(self) -> None:
+        captured: list = []
+        scope = ReleaseScope(work_id=BOOK.work_id, book_version_id=BOOK.book_version_id, chapter_max=5)
+        request = ChatRequest(session_id=self.session_id, message="Could this change echo an earlier passage?")
+        events = []
+
+        class Sink:
+            def begin_agent_exchange(self, **kwargs):
+                return None
+            def complete_agent_exchange(self, *args, **kwargs):
+                pass
+            def record_connection_event(self, event):
+                events.append(event)
+
+        with bind_evaluation_transcript_sink(Sink()):
+            with muse_chat_agent.override(model=FunctionModel(_muse_calls_serendipity(captured))):
+                with serendipity_agent.override(model=FunctionModel(_serendipity_proposes)):
+                    with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                        response = await chat_turn.run_chat_turn(
+                            request, self.service, self.account,
+                            initial_reading=scope, public_source_urls=(),
+                        )
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertEqual(1, len(sessions.reader_statements(self.session_id)))
+        self.assertEqual("proposal", next(event.status for event in events if event.kind == "discovery"))
+        self.assertEqual("muse_candidate", events[-1].release_source)
+        self.assertTrue(next(event.evidence_json for event in events if event.kind == "discovery"))
+        self.assertNotIn("evidence_json", response.model_dump_json())
+
+    def test_initial_reading_rejects_conflicting_or_stale_setup(self) -> None:
+        scope = ReleaseScope(work_id=BOOK.work_id, book_version_id=BOOK.book_version_id, chapter_max=5)
+        request = ChatRequest(session_id=self.session_id, message="I've finished Chapter 2.")
+        with self.assertRaisesRegex(ValueError, "conflicts"):
+            chat_turn._apply_initial_reading(request, scope)
+        with self.assertRaisesRegex(ValueError, "unfinished"):
+            chat_turn._apply_initial_reading(
+                ChatRequest(session_id=self.session_id, message="I haven't finished Alice's Adventures in Wonderland; could you explain its ending?"),
+                scope,
+            )
+        with self.assertRaisesRegex(ValueError, "registered"):
+            chat_turn._apply_initial_reading(
+                ChatRequest(session_id=self.session_id, message="A connection?"),
+                scope.model_copy(update={"book_version_id": "unknown"}),
+            )
+        sessions.set_book_selection(self.session_id, sessions.BookSelection(book_id=BOOK.work_id))
+        with self.assertRaisesRegex(ValueError, "fresh"):
+            chat_turn._apply_initial_reading(ChatRequest(session_id=self.session_id, message="A connection?"), scope)
 
     async def test_confirmed_book_and_chapter_reaches_real_connection_pipeline(self) -> None:
         captured: list = []

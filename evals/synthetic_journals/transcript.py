@@ -15,7 +15,10 @@ from pydantic_ai.messages import (
 )
 
 from src.linger.agents.contracts import PromptFingerprint
-from src.linger.evaluation_transcript import active_evaluation_correlation_id
+from src.linger.evaluation_transcript import (
+    ConnectionEvaluationEvent,
+    active_evaluation_correlation_id,
+)
 
 from .models import StrictModel
 
@@ -86,6 +89,14 @@ class SceneTranscriptRecorder:
 
     def __init__(self) -> None:
         self._pending: list[_PendingExchange] = []
+        self._connection_events: list[ConnectionEvaluationEvent] = []
+
+    def record_connection_event(self, event: ConnectionEvaluationEvent) -> None:
+        self._connection_events.append(event)
+
+    @property
+    def connection_events(self) -> tuple[ConnectionEvaluationEvent, ...]:
+        return tuple(self._connection_events)
 
     def begin_agent_exchange(
         self,

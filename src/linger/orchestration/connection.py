@@ -33,6 +33,8 @@ from src.linger.agents.serendipity.models import (
     SerendipityResponse,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
     SearchTrace,
@@ -47,11 +49,13 @@ from src.linger.orchestration.inspection_context import (
     cache_connection_result,
     cached_connection_result,
     record_connection_inspection,
+    register_connection_evidence,
 )
 from src.linger.orchestration.turn_context import (
     active_memories,
     add_turn_evidence,
     confirmed_reading,
+    public_source_urls,
 )
 
 
@@ -62,6 +66,7 @@ class ExplorationResult:
     response: SerendipityResponse
     evidence: tuple[ConnectionEvidence, ...]
     searches: tuple[SearchTrace, ...]
+    opened_web_evidence: tuple[WebConnectionEvidence, ...] = ()
 
 
 Explorer = Callable[[ConnectionDiscoveryInput], Awaitable[ExplorationResult]]
@@ -113,7 +118,7 @@ def _build_task(
                 ),
             )
 
-    if web_reach_permitted():
+    if web_reach_permitted() and public_source_urls() != ():
         allowed_sources.append("web")
 
     return ConnectionDiscoveryInput(
@@ -125,6 +130,7 @@ def _build_task(
         scope=ConnectionScope(
             allowed_sources=tuple(allowed_sources),
             book_scopes=book_scopes,
+            web_source_urls=public_source_urls() if "web" in allowed_sources else None,
         ),
     )
 
@@ -189,6 +195,7 @@ async def _agent_explorer(
         response=response,
         evidence=tuple(deps.evidence.values()),
         searches=tuple(deps.searches),
+        opened_web_evidence=tuple(deps.opened_web_evidence.values()),
     )
 
 
@@ -198,6 +205,9 @@ def _evidence_is_in_scope(
 ) -> bool:
     if evidence.source_kind not in task.scope.allowed_sources:
         return False
+    if isinstance(evidence, WebConnectionEvidence):
+        allowed_urls = task.scope.web_source_urls
+        return allowed_urls is None or evidence.evidence_id in allowed_urls
     if not isinstance(evidence, EvidenceItem):
         return True
     ceilings = {
@@ -218,6 +228,14 @@ def _validate_response(
         raise InvalidConnectionResponse("search tools returned duplicate evidence IDs")
     if any(not _evidence_is_in_scope(item, task) for item in run.evidence):
         raise InvalidConnectionResponse("search evidence exceeded its trusted grant")
+
+    memories = {record.memory_id: record.text for record in active_memories()}
+    opened = {record.evidence_id: record for record in run.opened_web_evidence}
+    for item in run.evidence:
+        if isinstance(item, MemoryConnectionEvidence) and memories.get(item.evidence_id) != item.excerpt:
+            raise InvalidConnectionResponse("memory evidence is not an exact active account record")
+        if isinstance(item, WebConnectionEvidence) and opened.get(item.evidence_id) != item:
+            raise InvalidConnectionResponse("web evidence was not opened during this run")
 
     response = run.response
     if isinstance(response, ConnectionDecline):
@@ -318,6 +336,9 @@ async def connection_exploration(
                 for item in selected_evidence
                 if isinstance(item, EvidenceItem)
             )
+            register_connection_evidence(
+                item for item in selected_evidence if not isinstance(item, EvidenceItem)
+            )
         except asyncio.CancelledError:
             cancelled = True
             record_failure(
@@ -341,6 +362,11 @@ async def connection_exploration(
                 "retrieval_unavailable",
                 "The permitted sources could not be searched and compared safely.",
             )
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="discovery", status="failed", decision_json=result.model_dump_json(),
+                evidence_json=tuple(item.model_dump_json() for item in run.evidence) if run else (),
+                failure_code="connection_discovery_failed",
+            ))
             record_connection_inspection(
                 ConnectionRunInspection(
                     status="decline",
@@ -373,6 +399,10 @@ async def connection_exploration(
                     ),
                 },
             )
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="discovery", status=result.status, decision_json=result.model_dump_json(),
+                evidence_json=tuple(item.model_dump_json() for item in run.evidence),
+            ))
             record_connection_inspection(
                 ConnectionRunInspection(
                     status=result.status,

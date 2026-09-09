@@ -8,27 +8,27 @@ Academic, frontier-lab, and expert sources for the final project report are main
 
 The architecture and acceptance criteria below describe the target prototype.
 Delivery is staged: the current output-release slice uses a typed Muse candidate
-containing the complete reply, declared book-corpus evidence uses, and
+containing the complete reply, declared book, memory, and web evidence uses, and
 `MemoryCandidate | NoMemoryCandidate`. Provenance reviews both response and
 nomination; application code binds a nomination to an exact source-turn span,
-validates book evidence against one request-scoped index, and lets the
-deterministic Memory & Policy Service enforce automatic capture. That index may
-contain direct Librarian results, the selected records from a book-only
+validates evidence against request-scoped source records, and lets the
+deterministic Memory & Policy Service enforce automatic capture. The book index may
+contain direct Librarian results, the selected book records from a current
 Serendipity proposal, or exact records re-resolved from evidence identifiers
 cited by an earlier released reply in the same session. Exact earlier reader
 wording has a separate `session_line` declaration, checked against retained
-reader Lines from that session. Stored-memory, web, and image evidence are not
-citation authorities in this slice and therefore fail closed. Declared claims
-and richer sensitive-inference flags remain target fields. Account-scoped
-curated-memory retrieval supports private boundary inference and Serendipity
-exploration without granting memory-backed response release. The curation slice
+reader Lines from that session. Selected memory and web records use a separate
+request-scoped index. Memory records must match the authenticated account's
+active records. Web records must match an opened page from an authorized search
+lead. Image evidence, richer declared claims, and sensitive-inference flags
+remain later slices. The implemented curation slice
 selects a bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
 Memory & Policy Service, and materialises the resulting retrieval view.
 The adopted conversational memory target in Section 4.2.5 requires curation after a
 durable capture and proactive surfacing during a later conversation. Its chat
-triggers, personal-memory evidence release, and complete evaluation path are
-not yet implemented. The existing offline surfacing runner tests only the
+triggers, transfer of Sculptor-selected memory evidence to the release path,
+and complete evaluation path are not yet implemented. The existing offline surfacing runner tests only the
 decision component of that target.
 
 ## 1. Purpose and positioning
@@ -163,7 +163,7 @@ enforces access, capture, writes, and output release.
 
 Each hand-off uses a strict, discriminated envelope and carries only the fields required by the next step. Muse receives either a draft envelope or one revision envelope that preserves the same turn and context authority. Full transcripts and unrestricted working context are not passed between agents.
 
-Provenance shares no model working context with the other agents and has no tools. The preflight receives only the current Line and the application-owned emotional-content policy. The later release gate receives one typed envelope containing trusted context, canonical book evidence, untrusted current-run tool outcomes, Muse's candidate declarations, and the current Line for emotional review and exact capture binding. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. The curation gate is a separate typed call with no Muse context; it reviews the complete Sculptor proposal and source evidence, then echoes the exact proposal digest in its verdict. This provides separation of duties, not model independence, because the same underlying model may be used.
+Provenance shares no model working context with the other agents and has no tools. The preflight receives only the current Line and the application-owned emotional-content policy. The later release gate receives one typed envelope containing trusted context, canonical book and selected connection evidence, untrusted current-run tool outcomes, Muse's candidate declarations, and the current Line for emotional review and exact capture binding. It independently detects quotations, factual claims, and sensitive inferences instead of trusting Muse's declarations. The curation gate is a separate typed call with no Muse context; it reviews the complete Sculptor proposal and source evidence, then echoes the exact proposal digest in its verdict. This provides separation of duties, not model independence, because the same underlying model may be used.
 
 ### 4.1 Output release contract
 
@@ -180,22 +180,27 @@ requires the ordinary Provenance gate.
 
 At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
-The current book-corpus slice implements the smallest release contract needed by
-its active consumer: the complete response text plus declared evidence
+The current release contract includes the complete response text plus declared evidence
 identifiers, exact quotations, and source locations. After each passing original
-or revised Provenance verdict, application code resolves every declaration
+or revised Provenance verdict, application code resolves every book declaration
 against one application-owned, request-scoped evidence index. The index accepts
 only exact book records from the current direct Librarian result, the selected
-records from a current book-only Serendipity proposal, or records that Librarian
+book records from a current Serendipity proposal, or records that Librarian
 re-resolved from identifiers cited by an earlier successfully released reply in
 the same session. New retrieval and Serendipity records must match the current
 trusted work, book version, and chapter ceiling. A re-resolved session record
 authorises only that exact previously released passage; it does not establish
 current reading progress or grant neighbouring text. Application code also
 validates source lines, source location, and any exact quotation before release.
-Unsupported, ambiguous, web-backed, or otherwise unverifiable evidence fails
-closed to the application-authored safe decline. This staged contract does not
-remove the remaining target fields above.
+For selected memory and web evidence, `canonical_connection_evidence` gives
+Provenance the exact request-owned records. Memory records bind their identifier
+and text to the authenticated active-memory snapshot. Web records bind to a page
+opened from a permitted search lead. The release validator checks each declared
+use against that index, checks any quotation against both source and reply,
+and requires web URLs to appear as exact Markdown citations. Personal memories
+support attributed personal context, not public factual claims. Unsupported,
+ambiguous, or changed evidence fails closed to the application-authored safe
+decline. This staged contract does not remove the remaining target fields above.
 
 Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
 
@@ -266,13 +271,12 @@ application, an application-granted book corpus, or application-granted Exa web
 sources. It returns a typed proposal or decline with request-local evidence for deterministic
 validation. The application, not Muse, supplies the exact current reader message
 as the cue. Each run is limited to eight model requests and six total tool calls.
-Muse may relay a typed decline. When every record cited by the selected candidate
-is book-corpus evidence, application code validates those exact selected records,
-adds them to the shared request-scoped evidence index, and allows Muse to draft a
+Muse may relay a typed decline. Application code validates the selected book,
+memory, and web records against their granted sources. Selected book records
+enter the book evidence index; selected memory and web records enter the
+separate connection evidence index. Muse may use those exact records to draft a
 tentative connection for the ordinary Provenance and deterministic release path.
-Losing-candidate evidence is discarded. Memory and web evidence may inform
-Serendipity's internal comparison, but neither enters the shared evidence index
-or authorises a released claim. Content-bearing connection diagnostics are not
+Losing-candidate evidence is discarded. Content-bearing connection diagnostics are not
 returned by the application API. Image evidence remains unsupported.
 
 #### 4.2.4 Developer corpus and inspection tools
@@ -351,8 +355,8 @@ without the separate release gate.
 
 Current code provides reviewed capture, a callable reviewed curation loop, and
 an offline surfacing decision function. The complete sequence still requires
-conversational triggers, a typed hand-off of personal-memory sources into Muse
-and Provenance, and deterministic personal-memory release support. Its evaluation
+conversational triggers and a typed hand-off of Sculptor-selected personal-memory
+sources into Muse, Provenance, and the deterministic release gate. Its evaluation
 also needs package support for carrying observed outcomes between Scenes,
 Ground truth for those dependencies, and a runner that grades the complete path.
 Section 7.2 records these gaps without changing the existing package models.
@@ -438,18 +442,24 @@ Every retrieved item carries:
 - the minimum excerpt required for the current task.
 
 During one request, exact book records live in a read-only map keyed by evidence
-identifier. Direct Librarian retrieval, selected book-only Serendipity evidence,
+identifier. Direct Librarian retrieval, selected book evidence from Serendipity,
 and exact re-resolution of identifiers from earlier released replies all feed
 this same map. Conflicting records for one identifier fail closed. The map is
 discarded after the request; session state retains only the released handles,
-never the passage text.
+never the passage text. A separate request-only index holds selected memory and
+web records. Its immutable records contain source kind, evidence identifier,
+excerpt, and trust level; web records also contain a title. Neither a tool's
+output nor Muse's declaration can expand this authority. Application-owned
+source grants can restrict public retrieval to an explicit URL list.
 
 ### 5.4 Muse candidate response
 
-`MuseCandidate` contains `reply`, `evidence_uses`, and `memory`. An evidence use
-is either a `book_corpus` declaration with an evidence ID, source location, and
-optional exact quotation, or a `session_line` declaration with exact earlier
-reader wording. Application code checks a session quotation against retained
+`MuseCandidate` contains `reply`, `evidence_uses`, and `memory`. A `book_corpus`
+evidence use declares an evidence ID, source location, and optional exact
+quotation. A `memory` or `web` use declares an evidence ID and optional exact
+quotation. Web evidence also requires an exact Markdown URL citation in the
+reply. A `session_line` use declares exact earlier reader wording.
+Application code checks a session quotation against retained
 reader Lines from successful turns in the same session. Book quotations must
 occur in both the canonical record and the visible reply. Provenance reviews
 the complete wording and attribution, including claims with no declaration.
@@ -846,11 +856,12 @@ The end-to-end workflow has distinct human gates:
    writes sibling `ground-truth-adoption.json`. For an exact supported selection,
    the agent validates the adoption and starts one provider-backed replay. The
    supported complete selections are reviewed automatic capture, bounded memory
-   curation, session continuity, either book Objective alone, and both book
-   Objectives in either order. Surfacing is not registered for automatic replay
-   because its existing runner covers only the offline component. Other
-   selections stop after adoption; unsupported package contracts prevent
-   generation earlier.
+   curation, session continuity, either book Objective alone, both book
+   Objectives in either order, either connection or weak-evidence Objective
+   alone, and their combination in either order. Surfacing is not registered
+   for automatic replay because its existing runner covers only the offline
+   component. Other selections stop after adoption; unsupported package
+   contracts prevent generation earlier.
 7. The durable replay output remains the complete evaluation record. Pydantic
    Evals and the `linger-evals` Logfire service provide interactive result,
    agent, provider, and trace views.
@@ -1018,10 +1029,11 @@ response behavior. It is outside automatic post-confirmation dispatch.
 
 The manual Serendipity `objective_replay` command accepts a
 `CrossSourceReplayCase` and requires an output path. It executes ordered Lines
-through the chat boundary, then checks the final response's stage statuses and
-expected release source. It has no synthetic-package adoption argument. Its
-`objective_pass` field records those status checks, not an adopted Objective
-grade or semantic-quality judgment. See the
+through the chat boundary, then checks the final turn's recorded connection
+events, release inspection, and expected release source. It has no
+synthetic-package adoption argument. Its `hard_gate_pass` field records those
+structural checks; `semantic_review_required` remains true. The report does not
+establish an adopted Objective grade or semantic-quality judgment. See the
 [Serendipity evaluation guide](../evals/serendipity/README.md) for its exact
 checks and the [synthetic replay guide](../evals/synthetic_journals/README.md)
 for supported package commands and options.
@@ -1033,6 +1045,40 @@ Logfire trace and span IDs. It never gives Muse the Backstory or proposed
 Ground truth. Provider thinking is intentionally omitted from the durable
 artifact; the evaluation-only Logfire path may display a thinking part only
 when the provider returned one.
+
+The [`connection_replay` runner](../evals/synthetic_journals/connection_replay.py)
+supports cross-source tentative connection, weak-evidence safe decline, or
+their combination. Each typed Scene supplies one Line in a fresh session,
+any active account-scoped Props, and any `SyntheticBackstory.source_setups` entry.
+The optional setup owns reader-confirmed book scope and full public snapshots with
+URL, title, text, hash, and retrieval time. The separate
+`GroundTruthProposal.connection` owns decision, evidence, acceptable-response,
+and public-claim expectations. Exact Prop, corpus, and public excerpts bind
+those labels to the supplied sources. Independent review shows both the full
+source setup and complete proposed labels before adoption.
+
+The typed replay seeds isolated memory storage, disables automatic capture, and
+calls the production chat workflow. Muse can request Serendipity, whose granted
+tools retrieve from memory, the registered corpus, and live public pages bounded
+to the source setup's URLs. Public snapshots define adopted source identity and
+exact expected support. Changed or unavailable live evidence cannot count as
+successful restraint.
+The replay records invocation, retrieval, selection, presentation, independent
+review, and deterministic release, including the first failed stage and stages
+not reached. A connection decline can lead to a reviewed qualified response or
+request for better evidence. Personal reflection can bypass Serendipity. A
+preflight boundary or failed review follows the ordinary application fallback.
+The evaluation endpoint is the released response with its evidence and review
+record. No capture, curation, or later surfacing is required by these Objectives.
+
+Deterministic checks establish source resolution, typed decisions, permitted
+citations, release behavior, and unchanged Props. Semantic judgments about a
+useful tentative connection, honest restraint, and public-claim support remain
+separate. The bounded public source set does not establish general search
+coverage. Legacy weak-evidence-only packages with `grounding` expectations
+delegate through the same command to `reflection_replay`, retaining its narrower
+hard checks. Raw evaluation events remain in the private synthetic transcript;
+ordinary API diagnostics do not expose the retrieved text or search queries.
 
 The project still has not defined reusable workflow for:
 

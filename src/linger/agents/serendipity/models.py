@@ -8,6 +8,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from apps.backend.contracts import BookScope, EvidenceItem
 from src.linger.agents.contracts import StrictModel
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 
 
 ConnectionIntent = Literal["find_connection", "get_recommendation"]
@@ -42,6 +43,7 @@ class ConnectionScope(StrictModel):
 
     allowed_sources: tuple[SearchSourceKind, ...]
     book_scopes: tuple[BookScope, ...] = ()
+    web_source_urls: tuple[str, ...] | None = None
 
     @model_validator(mode="after")
     def require_coherent_source_grant(self) -> Self:
@@ -51,6 +53,13 @@ class ConnectionScope(StrictModel):
             raise ValueError("book-corpus access requires at least one book scope")
         if self.book_scopes and "book_corpus" not in self.allowed_sources:
             raise ValueError("book scopes require book-corpus access")
+        if self.web_source_urls is not None:
+            if len(self.web_source_urls) != len(set(self.web_source_urls)):
+                raise ValueError("public source URLs must be unique")
+            if any(not url.startswith(("https://", "http://")) for url in self.web_source_urls):
+                raise ValueError("public sources require HTTP URLs")
+            if self.web_source_urls and "web" not in self.allowed_sources:
+                raise ValueError("public sources require a web grant")
         identities = tuple(
             (scope.work_id, scope.book_version_id) for scope in self.book_scopes
         )
@@ -68,23 +77,6 @@ class ConnectionDiscoveryInput(StrictModel):
     scope: ConnectionScope
 
 
-class WebConnectionEvidence(StrictModel):
-    """One retrievable public-web record returned by Exa."""
-
-    source_kind: Literal["web"] = "web"
-    evidence_id: str = Field(min_length=1, max_length=2_000)
-    title: str = Field(min_length=1, max_length=500)
-    excerpt: str = Field(min_length=1, max_length=8_000)
-    trust_level: Literal["external"] = "external"
-
-
-class MemoryConnectionEvidence(StrictModel):
-    """One active record authorized by the account-scoped memory service."""
-
-    source_kind: Literal["memory"] = "memory"
-    evidence_id: str = Field(min_length=1, max_length=200)
-    excerpt: str = Field(min_length=1, max_length=8_000)
-    trust_level: Literal["account_scoped"] = "account_scoped"
 
 
 ConnectionEvidence = Annotated[

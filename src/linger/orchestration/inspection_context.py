@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from contextvars import ContextVar, Token
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from types import MappingProxyType
+from collections.abc import Iterable, Mapping
+
+from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from typing import Literal
 
 from src.linger.agents.serendipity.models import (
@@ -28,6 +32,7 @@ class ConnectionInspectionState:
     """One turn's serializable runs and reusable typed discovery result."""
 
     runs: list[ConnectionRunInspection]
+    evidence: dict[str, ConnectionSourceEvidence] = field(default_factory=dict)
     cached: tuple[ConnectionIntent, ConnectionExplorationResult] | None = None
 
 
@@ -77,3 +82,22 @@ def reset_connection_inspection(
 ) -> None:
     """Restore the previous collector after the request finishes."""
     _connection_state.reset(token)
+
+
+def register_connection_evidence(records: Iterable[ConnectionSourceEvidence]) -> None:
+    """Register selected application-validated records for this request only."""
+    state = _connection_state.get()
+    if state is None:
+        return
+    incoming = tuple(records)
+    for record in incoming:
+        existing = state.evidence.get(record.evidence_id)
+        if existing is not None and existing != record:
+            raise ValueError("a connection evidence ID resolved to conflicting records")
+    state.evidence.update((record.evidence_id, record) for record in incoming)
+
+
+def canonical_connection_evidence() -> Mapping[str, ConnectionSourceEvidence]:
+    """Return a read-only snapshot; tool payloads never establish authority."""
+    state = _connection_state.get()
+    return MappingProxyType(dict(state.evidence) if state is not None else {})

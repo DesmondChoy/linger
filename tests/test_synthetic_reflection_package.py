@@ -284,3 +284,22 @@ def test_reflection_proposal_rejects_capture_ground_truth(
     with pytest.raises(PackageValidationError) as error:
         _validate(content, ground_truth, repository_root)
     assert "cannot contain capture or curation Ground truth" in str(error.value)
+
+
+@pytest.mark.parametrize("kind", ["qualified_release", "safe_decline"])
+def test_weak_evidence_accepts_inspectable_sources_without_forcing_application_fallback(
+    package: tuple[dict[str, object], dict[str, object]],
+    repository_root: Path,
+    kind: str,
+) -> None:
+    content, ground_truth = package
+    proposal = ground_truth["proposals"][0]
+    proposal["grounding"] = {
+        "primary_behavior": "weak_evidence_decline",
+        "expected": {"kind": kind},
+    }
+    _validate(content, ground_truth, repository_root)
+    parsed = ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth))
+    grounding = parsed.proposals[0].grounding
+    assert grounding.release_source == ("muse_candidate" if kind == "qualified_release" else "application_safe_decline")
+    assert grounding.retrieval_permitted is (kind == "qualified_release")

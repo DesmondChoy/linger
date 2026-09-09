@@ -26,6 +26,8 @@ from src.linger.services.memory import (
 )
 
 from evals.synthetic_journals.replay import evaluation_agents
+from evals.synthetic_journals.transcript import SceneTranscriptRecorder
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, bind_evaluation_transcript_sink
 
 OBJECTIVE_ID = "cross_source_tentative_connection"
 StageName = Literal[
@@ -73,17 +75,11 @@ class CrossSourceReplayReport(StrictModel):
     release_source: str
     stages: tuple[StageResult, ...]
     first_failure_stage: StageName | None
-    objective_pass: bool
+    hard_gate_pass: bool
+    semantic_review_required: Literal[True] = True
 
 
 ChatHandler = Callable[[ChatRequest], Awaitable[ChatResponse]]
-
-
-def _trace_status(response: ChatResponse, agent: str) -> str | None:
-    for trace in response.inspection.traces:
-        if trace.get("agent") == agent:
-            return trace.get("status")
-    return None
 
 
 def grade_cross_source_response(
@@ -91,48 +87,40 @@ def grade_cross_source_response(
     response: ChatResponse,
     *,
     run_id: str,
+    events: Sequence[ConnectionEvaluationEvent] = (),
 ) -> CrossSourceReplayReport:
-    """Classify the first failed production stage from fixed inspection metadata."""
+    """Grade recorded execution stages, never the released diagnostic projection."""
     release = response.inspection.release
-    serendipity_status = _trace_status(response, "Serendipity")
-    librarian_status = _trace_status(response, "Librarian")
+    discovery = [event for event in events if event.kind == "discovery"]
+    searches = [event for event in events if event.kind == "search"]
+    final = discovery[-1] if discovery else None
+    unavailable = any(event.failure_code or event.status == "retrieval_unavailable" for event in searches)
     raw_checks: tuple[tuple[StageName, bool, str], ...] = (
-        (
-            "invocation",
-            serendipity_status not in {None, "skipped"},
-            "serendipity_not_invoked",
-        ),
+        ("invocation", bool(discovery), "serendipity_not_observed"),
         (
             "retrieval",
-            librarian_status == "complete" and serendipity_status != "failed",
+            bool(searches) and not unavailable,
             "required_retrieval_not_completed",
         ),
         (
             "serendipity_selection",
-            serendipity_status == "complete"
-            and (
-                case.expected_decision == "proposal"
-                or response.inspection.connection_decline is not None
-            ),
-            "serendipity_did_not_select_valid_proposal",
+            final is not None and not final.failure_code and final.status == case.expected_decision,
+            "unexpected_connection_decision",
         ),
         (
             "muse_presentation",
-            release is not None
-            and release.failure_stage not in {"muse_draft", "muse_revision"},
+            release is not None and release.failure_stage not in {"muse_draft", "muse_revision"},
             "muse_presentation_failed",
         ),
         (
             "provenance_review",
-            release is not None
-            and bool(release.provenance_verdicts)
-            and release.failure_stage != "provenance_review",
+            release is not None and bool(release.provenance_verdicts)
+            and release.provenance_verdicts[-1] == "pass",
             "provenance_review_failed",
         ),
         (
             "deterministic_release",
-            release is not None
-            and release.release_source == case.expected_release_source
+            release is not None and release.release_source == case.expected_release_source
             and release.failure_stage != "deterministic_validation",
             "expected_connection_not_released",
         ),
@@ -158,7 +146,7 @@ def grade_cross_source_response(
         release_source=release.release_source if release else "unavailable",
         stages=tuple(stages),
         first_failure_stage=first_failure,
-        objective_pass=first_failure is None,
+        hard_gate_pass=first_failure is None,
     )
 
 
@@ -195,15 +183,19 @@ async def replay_case(
     response: ChatResponse | None = None
     try:
         for order, message in enumerate(case.messages, start=1):
-            response = await handler(
-                ChatRequest(
-                    session_id=session_id,
-                    turn_id=f"{case.case_id}:{order}",
-                    message=message,
+            recorder = SceneTranscriptRecorder()
+            with bind_evaluation_transcript_sink(recorder):
+                response = await handler(
+                    ChatRequest(
+                        session_id=session_id,
+                        turn_id=f"{case.case_id}:{order}",
+                        message=message,
+                    )
                 )
-            )
         assert response is not None
-        return grade_cross_source_response(case, response, run_id=run_id)
+        return grade_cross_source_response(
+            case, response, run_id=run_id, events=recorder.connection_events
+        )
     finally:
         sessions.clear(session_id)
         if temporary is not None:

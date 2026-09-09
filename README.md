@@ -28,7 +28,8 @@ user-visible output in application code.
 - **Reconnect:** lets Serendipity explore account-scoped curated memories,
   bounded book evidence, and configured public-web evidence through Exa.
   Private wording is blocked from web-search queries. Released connections
-  require book-only evidence.
+  resolve declared book, memory, and web evidence against exact request-scoped
+  records reviewed by Provenance.
 - **Capture:** supports reviewed automatic memory capture only through
   server-controlled evaluation policy. The interactive POC keeps capture
   disabled and exposes no memory-management actions.
@@ -38,9 +39,10 @@ user-visible output in application code.
   apply it. Originals remain intact, and retrieval uses the curated view.
 - **Evaluate:** validates synthetic Backstory packages, records independent
   human adoption without rewriting generated files, and replays supported
-  capture, curation, book, and session-continuity Objectives. Manual runners
-  cover weak-evidence reflection, cross-source execution, and offline surfacing
-  decisions with the limits described in the evaluation guides.
+  capture, curation, book, session-continuity, connection, and restraint
+  Objectives. Manual runners also cover weak-evidence reflection, cross-source
+  execution, and offline surfacing decisions with the limits described in the
+  evaluation guides.
 
 ## Developer tools
 
@@ -249,8 +251,10 @@ adoption, and execution behind separate human decisions:
 5. **Make Changes** stops without adoption or replay. Confirmation writes the
    sibling `ground-truth-adoption.json`. For an exact supported selection, the
    skill starts one provider-backed replay. Automatic routing supports capture,
-   bounded curation, session continuity, either book Objective alone, and both
-   book Objectives in either order. Other selections stop after adoption.
+   bounded curation, session continuity, either book Objective alone, both book
+   Objectives in either order, either connection or weak-evidence Objective
+   alone, and their combination in either order. Other selections stop after
+   adoption.
 6. Inspect the accepted replay in Pydantic Evals and Logfire, and retain the
    runner's JSON output as the durable evaluation record.
 
@@ -370,10 +374,13 @@ replay accepts one offline input per Scene and no Lines, evaluates
 The conversational `proactive_memory_surfacing` Objective requires reviewed
 capture, triggered curation, and appropriate memory use in a later chat. That
 complete path remains unimplemented. The offline runner measures only its
-decision component. Cross-source replay exercises ordered Lines through the
-chat boundary, but its checks cover stage statuses and the final response;
-they do not establish an adopted synthetic Objective grade or semantic quality.
-See
+decision component. Adopted connection replay runs one Line per fresh-session
+Scene with exact memory, book, and public-source expectations. Its hard checks
+cover source resolution, typed decisions, citations, and release. Semantic
+quality remains a separate review judgment. The manual Serendipity cross-source
+runner exercises ordered Lines through chat and grades the final turn's recorded
+connection events and release inspection; those structural checks do not
+establish an adopted synthetic Objective grade. See
 [`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
 the README in each `evals/` subdirectory for the complete contracts and
 artifact boundaries.

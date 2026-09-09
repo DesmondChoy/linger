@@ -31,6 +31,22 @@ class BookEvidenceUse(StrictModel):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
+class MemoryEvidenceUse(StrictModel):
+    """An exact account-scoped memory selected during this turn's discovery."""
+
+    source_kind: Literal["memory"]
+    evidence_id: str = Field(min_length=1, max_length=200)
+    exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
+
+
+class WebEvidenceUse(StrictModel):
+    """An opened public page selected during this turn's discovery."""
+
+    source_kind: Literal["web"]
+    evidence_id: str = Field(min_length=1, max_length=2_000)
+    exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
+
+
 class SessionLineUse(StrictModel):
     """The reader's exact earlier wording Muse declares as support for its reply."""
 
@@ -40,7 +56,7 @@ class SessionLineUse(StrictModel):
 
 
 EvidenceUse = Annotated[
-    BookEvidenceUse | SessionLineUse,
+    BookEvidenceUse | MemoryEvidenceUse | WebEvidenceUse | SessionLineUse,
     Field(discriminator="source_kind"),
 ]
 

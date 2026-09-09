@@ -90,6 +90,7 @@ FailureStage = Literal[
 FailureType = Literal["application", "model", "validation"]
 
 GateFailure = Literal[
+    "execution_failure",
     "release_source_mismatch",
     "unexpected_retrieval",
     "missing_retrieval",
@@ -297,11 +298,14 @@ def grade_scene(
     failures: list[GateFailure] = []
     final = turns[-1]
 
+    if any(turn.failure_type in {"model", "application"} for turn in turns):
+        failures.append("execution_failure")
+
     if final.release_source != grounding.release_source:
         failures.append("release_source_mismatch")
 
     retrieved = any(turn.retrieved for turn in turns)
-    if retrieved and not grounding.retrieval_required:
+    if retrieved and not grounding.retrieval_permitted:
         failures.append("unexpected_retrieval")
     if grounding.retrieval_required and not retrieved:
         failures.append("missing_retrieval")
@@ -424,8 +428,6 @@ async def replay_reflection_scenes(
     )
     observations: list[SceneObservation] = []
     with tempfile.TemporaryDirectory(prefix="linger-reflection-eval-") as directory:
-        service = MemoryPolicyService(Path(directory))
-
         async def evaluate_scene(
             inputs: ReflectionEvaluationInput,
         ) -> ReflectionEvaluationOutput:
@@ -442,10 +444,8 @@ async def replay_reflection_scenes(
                 expected,
                 run_id=run_id,
                 handler=handler,
-                service=service,
-                # One account per Scene: a Scene is graded as a unit with only
-                # its own designated Props, so no Scene inherits another's.
-                account=AccountContext(f"{account.account_id}:{inputs.scene_id}"),
+                service=MemoryPolicyService(Path(directory) / str(inputs.order)),
+                account=account,
                 props=props,
             )
             observations.append(observation)
