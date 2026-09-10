@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "run_id": "bdcfb3b794ea4aae99363fdd413ce452",
+  "objective_id": "cross_source_tentative_connection",
+  "generated_at": "2026-09-10T17:55:51.912318Z",
+  "ground_truth_status": "adopted",
+  "dataset_version": "c0ecd37ac6fdba9a923ecd2415c13a517ddbeb3615b10b5b3e24e5fc85fdba0a",
+  "scenes": [
+    {
+      "scene_id": "supported-connection",
+      "line_id": "line-invite-exploration",
+      "seeded_prop_ids": [
+        "prop-unreported-fix"
+      ],
+      "replay": {
+        "schema_version": 1,
+        "run_id": "bdcfb3b794ea4aae99363fdd413ce452",
+        "case_id": "cross-source-supported-connection-v1",
+        "objective_id": "cross_source_tentative_connection",
+        "generated_at": "2026-09-10T17:49:41.579042Z",
+        "trace_id": "01a08c70293d911788a65f86219222f1",
+        "reply": "I couldn’t safely search and compare outside sources just now, so I don’t want to invent a recommendation. But the question you’re circling is a rich one: people may patch over mistakes when admitting them feels more dangerous than the mistake itself—especially under shame, fear of punishment, or pressure to preserve appearances. I can look for writing on that theme another time if you’d like.",
+        "release_source": "muse_candidate",
+        "stages": [
+          {
+            "stage": "invocation",
+            "status": "passed",
+            "reason_code": null
+          },
+          {
+            "stage": "retrieval",
+            "status": "failed",
+            "reason_code": "required_retrieval_not_completed"
+          },
+          {
+            "stage": "serendipity_selection",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "muse_presentation",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "provenance_review",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "deterministic_release",
+            "status": "not_reached",
+            "reason_code": null
+          }
+        ],
+        "first_failure_stage": "retrieval",
+        "objective_pass": false,
+        "web_queries": [
+          {
+            "query": "why people hide mistakes quietly cover up errors psychology accountability",
+            "verdict": "blocked"
+          },
+          {
+            "query": "error concealment organizational psychology accountability",
+            "verdict": "blocked"
+          },
+          {
+            "query": "organizational silence error reporting",
+            "verdict": "blocked"
+          }
+        ]
+      },
+      "semantic_review": {
+        "require_tentative": true,
+        "public_claims": [
+          "Public writing on psychological safety associates expected blame with lower error reporting."
+        ]
+      },
+      "ground_truth_result": "fails_hard_gates"
+    },
+    {
+      "scene_id": "overreaching-comparison",
+      "line_id": "line-demand-proof",
+      "seeded_prop_ids": [
+        "prop-unreported-fix"
+      ],
+      "replay": {
+        "schema_version": 1,
+        "run_id": "bdcfb3b794ea4aae99363fdd413ce452",
+        "case_id": "cross-source-overreaching-comparison-v1",
+        "objective_id": "cross_source_tentative_connection",
+        "generated_at": "2026-09-10T17:55:51.910989Z",
+        "trace_id": "01a08c708d4dfbf9421224eb0991f637",
+        "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+        "release_source": "application_clarification",
+        "stages": [
+          {
+            "stage": "invocation",
+            "status": "failed",
+            "reason_code": "serendipity_not_invoked"
+          },
+          {
+            "stage": "retrieval",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "serendipity_selection",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "muse_presentation",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "provenance_review",
+            "status": "not_reached",
+            "reason_code": null
+          },
+          {
+            "stage": "deterministic_release",
+            "status": "not_reached",
+            "reason_code": null
+          }
+        ],
+        "first_failure_stage": "invocation",
+        "objective_pass": false,
+        "web_queries": []
+      },
+      "semantic_review": {
+        "require_tentative": true,
+        "public_claims": []
+      },
+      "ground_truth_result": "fails_hard_gates"
+    }
+  ]
+}
