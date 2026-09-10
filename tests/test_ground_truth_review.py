@@ -480,6 +480,10 @@ def test_review_payload_shows_shared_book_facts_and_expectation(
             ("spoiler_boundary_clarification", "grounded_book_reflection"),
             "evals.synthetic_journals.book_replay",
         ),
+        (
+            ("cross_source_tentative_connection",),
+            "evals.serendipity.objective_replay",
+        ),
     ],
 )
 def test_supported_replay_selection_is_exact_and_order_independent(

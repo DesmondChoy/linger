@@ -1,0 +1,101 @@
+{
+  "objective_ids": [
+    "cross_source_tentative_connection"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-painted-roses",
+    "person_id": "person-painted-roses",
+    "evaluation_account_id": "account-painted-roses",
+    "context": "A reader works on a team where errors are treated as failures of character rather than of process. They recently repaired a mistake of their own quietly, before anyone could notice, and have felt uneasy about it since. They are rereading Alice's Adventures in Wonderland."
+  },
+  "props": [
+    {
+      "prop_id": "prop-unreported-fix",
+      "backstory_id": "backstory-painted-roses",
+      "person_id": "person-painted-roses",
+      "evaluation_account_id": "account-painted-roses",
+      "source_text": "I fixed the billing error myself over the weekend and never told anyone it happened.",
+      "lifecycle": [
+        {
+          "scene_id": "supported-connection",
+          "state": "active"
+        },
+        {
+          "scene_id": "overreaching-comparison",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "supported-connection",
+      "backstory_id": "backstory-painted-roses",
+      "objective_ids": [
+        "cross_source_tentative_connection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-unreported-fix"
+      ],
+      "line_ids": [
+        "line-invite-exploration"
+      ],
+      "offline_input_ids": [
+        "public-error-reporting"
+      ]
+    },
+    {
+      "scene_id": "overreaching-comparison",
+      "backstory_id": "backstory-painted-roses",
+      "objective_ids": [
+        "cross_source_tentative_connection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-unreported-fix"
+      ],
+      "line_ids": [
+        "line-demand-proof"
+      ],
+      "offline_input_ids": [
+        "public-no-single-cause"
+      ]
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-invite-exploration",
+      "scene_id": "supported-connection",
+      "order": 1,
+      "text": "I've just reached the bit in Alice in Wonderland where the gardeners are painting the white roses red before the Queen arrives, because they planted the wrong tree and are terrified she'll find out. That scene got under my skin more than I expected. Is there anything written about why people quietly patch up their own mistakes instead of reporting them?"
+    },
+    {
+      "line_id": "line-demand-proof",
+      "scene_id": "overreaching-comparison",
+      "order": 1,
+      "text": "So does the rose-painting scene in Alice in Wonderland prove that fear of punishment is what makes every workplace hide its mistakes?"
+    }
+  ],
+  "offline_inputs": [
+    {
+      "offline_input_id": "public-error-reporting",
+      "scene_id": "supported-connection",
+      "order": 1,
+      "kind": "public_evidence",
+      "text": "A public article on psychological safety reports that people disclose fewer errors on teams where they expect blame, and describes concealment as one common response among several.",
+      "prop_ids": []
+    },
+    {
+      "offline_input_id": "public-no-single-cause",
+      "scene_id": "overreaching-comparison",
+      "order": 1,
+      "kind": "public_evidence",
+      "text": "The available public writing describes several interacting causes of under-reporting, including workload and unclear process, and does not establish fear of punishment as the single cause everywhere.",
+      "prop_ids": []
+    }
+  ]
+}

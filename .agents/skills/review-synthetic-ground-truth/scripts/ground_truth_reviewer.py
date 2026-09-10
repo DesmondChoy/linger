@@ -94,6 +94,13 @@ def _proposal_summary(proposal: GroundTruthProposal) -> str:
         return "Spoiler boundary"
     if proposal.grounding is not None:
         return proposal.grounding.primary_behavior.replace("_", " ").capitalize()
+    if proposal.connection is not None:
+        if proposal.connection.expected_decision == "decline":
+            return "Decline"
+        sources = " + ".join(
+            kind.replace("_", " ") for kind in proposal.connection.required_source_kinds
+        )
+        return f"Proposal · {sources}" if sources else "Proposal"
     return "Review expected behavior"
 
 
@@ -258,6 +265,11 @@ def build_review_payload(
                     "bookExpectation": (
                         proposal.book_expectation.model_dump(mode="json")
                         if proposal.book_expectation is not None
+                        else None
+                    ),
+                    "connection": (
+                        proposal.connection.model_dump(mode="json")
+                        if proposal.connection is not None
                         else None
                     ),
                 }

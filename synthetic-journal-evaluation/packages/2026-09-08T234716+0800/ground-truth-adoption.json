@@ -1,0 +1,26 @@
+{
+  "backstory_sha256": "757728fff6fc6f5a49f8f810e8066d7901db6b80d29cb699f60a2db3121cd38b",
+  "proposed_ground_truth_sha256": "ee649c633c9f49768d19173312981db5ce3b73cc7246e7c769e6454ea407d607",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "jodie.loke97@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-11T01:31:52.736625+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-supported-connection",
+      "scene_id": "supported-connection",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-overreaching-comparison",
+      "scene_id": "overreaching-comparison",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "c0ecd37ac6fdba9a923ecd2415c13a517ddbeb3615b10b5b3e24e5fc85fdba0a"
+}

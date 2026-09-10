@@ -95,6 +95,53 @@ function GroundingExpectation({ value }) {
   )
 }
 
+function ConnectionExpectation({ value }) {
+  if (!value) return null
+  return (
+    <section className="typed-expectation">
+      <h4>Cross-source connection expectation</h4>
+      <div className="field-pair">
+        <span>Expected decision</span>
+        <StatusPill tone={value.expected_decision === 'proposal' ? 'positive' : 'neutral'}>
+          {value.expected_decision}
+        </StatusPill>
+      </div>
+      <div className="field-pair">
+        <span>Must stay tentative</span>
+        <strong>{value.require_tentative ? 'yes' : 'no'}</strong>
+      </div>
+      <IdList label="Required sources" values={value.required_source_kinds} />
+      <IdList label="Required evidence" values={value.required_evidence_ids} />
+      {value.public_claims?.length ? (
+        <div className="fact-list">
+          <span>Public claims needing a citation</span>
+          <ul>
+            {value.public_claims.map((claim) => (
+              <li key={claim.claim}>
+                {claim.claim}
+                <IdList label="Supported by" values={claim.supporting_evidence_ids} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {value.forbidden_web_query_spans?.length ? (
+        <div className="fact-list">
+          <span>Must never reach a public web query</span>
+          <ul>
+            {value.forbidden_web_query_spans.map((span) => (
+              <li key={`${span.source_id}:${span.start_codepoint}`}>
+                <blockquote className="exact-quote">{span.text}</blockquote>
+                <code>{span.source_kind} {span.source_id}</code>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
 function BookExpectation({ value }) {
   if (!value) return null
   return (
@@ -205,6 +252,7 @@ function GroundTruthDetails({ row }) {
       <GroundingExpectation value={row.grounding} />
       <BookSceneFacts value={row.bookSceneFacts} />
       <BookExpectation value={row.bookExpectation} />
+      <ConnectionExpectation value={row.connection} />
       {row.propRelevance.length ? (
         <section className="relevance-grid">
           <h4>Prop relevance</h4>
