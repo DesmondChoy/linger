@@ -26,7 +26,11 @@ class Settings(BaseSettings):
     linger_model: str
     linger_allowed_origins: str = "http://localhost:5173"
     linger_account_id: str = "local-prototype-user"
-    allowed_book_version_ids: tuple[str, ...] = ("pg11-v01b38ea4",)
+    allowed_book_version_ids: tuple[str, ...] = (
+        "pg11-v01b38ea4",
+        "pga0100011-vc7ff4da7",
+        "pg500-v6bdc1734",
+    )
     linger_web_search_enabled: bool = False
 
     @property

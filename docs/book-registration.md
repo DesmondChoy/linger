@@ -7,11 +7,14 @@ stable work ID comes from its registration; chat never manufactures an ID
 from an unknown title.
 
 The runtime registry and default application grant contain *Alice's Adventures
-in Wonderland*. The repository also contains validated corpora for *Animal
-Farm*, *The Adventures of Pinocchio*, *Narrative of the Life of Frederick
-Douglass*, and *The Story of My Life*. These artifacts are not runtime
-registrations. Book retrieval requires a validated chapter corpus, a
-registration, and an application grant for its exact revision.
+in Wonderland*, *Animal Farm*, and *The Adventures of Pinocchio*. Book retrieval
+requires a validated chapter corpus, a registration, and an application grant
+for its exact revision. An explicit `ALLOWED_BOOK_VERSION_IDS` environment value
+replaces the default grant.
+
+The repository also contains validated section corpora for *Narrative of the
+Life of Frederick Douglass* and *The Story of My Life*. These books remain
+disabled until the runtime supports section boundaries.
 
 ## Identity and ambiguity
 
@@ -94,10 +97,20 @@ arguments cannot select the book by themselves.
 
 ## Add a book
 
+Ask the [corpus-formatting skill](../.agents/skills/format-book-corpus/SKILL.md)
+to "format and enable this book for Librarian" to include registration and
+access in the same task. Formatting alone creates corpus artifacts without
+changing runtime access. Adding a folder does not register or enable a book.
+Reader uses the same registry and access grant: enabled chapter books appear on
+its shelf automatically. No separate frontend book entry is required. Reader
+navigation does not establish reading progress for chat.
+
 1. Use the [corpus-formatting workflow](../.agents/skills/format-book-corpus/SKILL.md)
    to preserve the immutable source, create canonical chapters, and review
    semantic chapter metadata. Reuse the shared corpus lifecycle with a
-   source-specific adapter.
+   source-specific adapter. For an existing corpus, run its validation check
+   without regenerating canonical files. Confirm that its units and locations
+   match the chapter runtime before registration.
 2. Add its `CorpusRegistration` in `src/linger/corpus/registry.py`. Keep stable
    identity and author information in `BookCorpus`. Classify broad or shared
    names as candidate aliases.
@@ -120,15 +133,22 @@ arguments cannot select the book by themselves.
    uv run pytest tests/test_book_registry.py tests/test_librarian.py tests/test_book_context.py tests/test_librarian_route_e2e.py -q
    ```
 
-   Include the new book in cases for shared names, names inside other titles,
-   unknown titles, author disambiguation, and multiple books in one request.
-   The normal test suite also checks the shipped registry for registration
-   errors.
+   Cover the new book's reviewed names and relevant ambiguity cases. Verify
+   denial without an exact revision grant and retrieval within the permitted
+   chapter boundary. A title alone must not establish completed reading progress.
+   The normal test suite also checks the shipped registry for registration errors.
 5. Enable its exact revision in `allowed_book_version_ids` when the corpus is
-   ready for use. Configure the setting through the `ALLOWED_BOOK_VERSION_IDS`
-   environment variable as a JSON array of revision IDs. Muse obtains
-   identifiers from validated context and tool results; each registered book
-   uses the shared prompt and routing implementation.
+   ready for use. The application defaults live in `apps/backend/config.py`.
+   Inspect the target application's `ALLOWED_BOOK_VERSION_IDS` environment
+   override, which is a JSON array of revision IDs. Add the revision to the
+   effective grant while preserving existing grants. Registration alone does
+   not bypass that access check.
+6. Run the repository tests after changing registration and access. Restart the
+   backend to load the updated registry and settings. Report the enabled work,
+   exact revision, effective grant, and validation results.
+
+Muse obtains identifiers from validated context and tool results. Each
+registered book uses the shared prompt and routing implementation.
 
 ## Responsibility boundaries
 
@@ -161,4 +181,6 @@ Works with letters and prefatory material use the
 of Frederick Douglass* and *The Story of My Life* use schema 2 section artifacts.
 The chapter-based runtime rejects section metadata, including a section file
 placed beneath a chapter catalogue. Section IDs and section reading boundaries
-are outside this registration workflow.
+need separate runtime implementation before these books can be enabled. Keep
+their natural units intact. Relabeling sections as chapters would discard the
+meaning of their locations and reading boundaries.
