@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from time import perf_counter
 from uuid import uuid4
+from urllib.parse import urlsplit
 
 import logfire
 from opentelemetry.trace import format_trace_id
@@ -24,6 +25,7 @@ from src.linger.orchestration.emotional import (
     assess_emotional_boundary,
 )
 from src.linger.orchestration.grounding import librarian_service
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
     begin_connection_inspection,
@@ -38,6 +40,7 @@ from src.linger.orchestration.reflection import (
 )
 from src.linger.orchestration.turn_context import (
     reset_active_memories,
+    reset_public_source_urls,
     reset_confirmed_reading,
     reset_reader_message,
     reset_reader_statements,
@@ -45,6 +48,7 @@ from src.linger.orchestration.turn_context import (
     reset_session_id,
     reset_turn_evidence,
     set_active_memories,
+    set_public_source_urls,
     set_confirmed_reading,
     set_reader_message,
     set_reader_statements,
@@ -582,15 +586,81 @@ def _rehydrate_session_evidence(session_id: str) -> tuple[EvidenceRecord, ...]:
     return tuple(records.values())
 
 
+def _apply_initial_reading(
+    request: ChatRequest,
+    initial_reading: ReleaseScope,
+) -> ContextResolution:
+    """Apply trusted reader setup only to a fresh session and coherent Line."""
+    if (
+        sessions.history(request.session_id)
+        or sessions.turn_records(request.session_id)
+        or sessions.book_selection(request.session_id) is not None
+        or sessions.reading_candidate(request.session_id) is not None
+        or sessions.pending_clarification(request.session_id) is not None
+    ):
+        raise ValueError("initial reading requires a fresh session")
+    registered = librarian_service.registered_scope(
+        initial_reading.work_id, initial_reading.book_version_id,
+    )
+    if (
+        registered is None
+        or initial_reading.book_version_id not in settings.allowed_book_version_ids
+        or initial_reading.chapter_max > registered.max_chapter
+    ):
+        raise ValueError("initial reading exceeds the registered application book scope")
+    identity = resolve_book_identity(request.message, settings.allowed_book_version_ids)
+    if (isinstance(identity, BookClarification) and (
+        len(identity.candidates) != 1
+        or identity.candidates[0].book.work_id != initial_reading.work_id
+    )) or (
+        isinstance(identity, ResolvedBook)
+        and identity.registration.book.work_id != initial_reading.work_id
+    ):
+        raise ValueError("initial reading conflicts with the reader's book declaration")
+    if IN_PROGRESS_PATTERN.search(request.message) is not None:
+        raise ValueError("initial reading conflicts with the reader's unfinished progress")
+    chapter = CHAPTER_PATTERN.search(request.message)
+    declares_progress = (
+        COMPLETION_PATTERN.search(request.message) is not None
+        or IN_PROGRESS_PATTERN.search(request.message) is not None
+        or BARE_CHAPTER_ANSWER_PATTERN.fullmatch(request.message.strip()) is not None
+    )
+    if chapter is not None and declares_progress and (
+        int(chapter.group(1)) != initial_reading.chapter_max
+        or IN_PROGRESS_PATTERN.search(request.message)
+    ):
+        raise ValueError("initial reading conflicts with the reader's chapter declaration")
+    sessions.set_book_selection(request.session_id, sessions.BookSelection(
+        book_id=registered.work_id, book_title=registered.title,
+    ))
+    resolved = resolve_reading_context(request)
+    if resolved.clarification_question or (
+        resolved.work_id is not None and resolved.work_id != initial_reading.work_id
+    ):
+        raise ValueError("initial reading conflicts with unresolved reader context")
+    return ContextResolution(
+        status="confirmed", work_id=registered.work_id, work_title=registered.title,
+        book_version_id=registered.book_version_id, chapter_max=initial_reading.chapter_max,
+        boundary_source="reader_confirmed", boundary_authorization_basis="explicit_progress",
+        explanation="The application supplied the reader's confirmed initial book scope.",
+    )
+
+
 async def _run_chat_pipeline(
     request: ChatRequest,
     reading_state: sessions.ReadingStateSnapshot,
     service: MemoryPolicyService,
     account: AccountContext,
+    *,
+    initial_reading: ReleaseScope | None = None,
+    public_source_urls: tuple[str, ...] | None = None,
 ) -> tuple[TurnInspection, ReflectionRelease, AutomaticCaptureExecution]:
     """Run the agent pipeline without adding request content to telemetry."""
     prior_evidence = _rehydrate_session_evidence(request.session_id)
-    resolution = resolve_reading_context(request)
+    resolution = (
+        _apply_initial_reading(request, initial_reading)
+        if initial_reading is not None else resolve_reading_context(request)
+    )
     release: ReflectionRelease | None = None
     try:
         boundary = await assess_emotional_boundary(
@@ -651,6 +721,7 @@ async def _run_chat_pipeline(
             active_memories = ()
         memories_token = set_active_memories(active_memories)
         connection_token = begin_connection_inspection()
+        public_sources_token = set_public_source_urls(public_source_urls)
         try:
             release = await reflection_reply(
                 muse_input,
@@ -668,6 +739,7 @@ async def _run_chat_pipeline(
         finally:
             nested_connections = connection_inspections()
             reset_connection_inspection(connection_token)
+            reset_public_source_urls(public_sources_token)
             reset_active_memories(memories_token)
             reset_reader_message(reader_message_token)
             reset_reader_statements(statements_token)
@@ -675,6 +747,14 @@ async def _run_chat_pipeline(
             reset_session_id(session_id_token)
             reset_turn_evidence(evidence_token)
             reset_confirmed_reading(token)
+    record_connection_event(ConnectionEvaluationEvent(
+        kind="release",
+        status="released" if release.release_source == "muse_candidate" else "declined",
+        release_source=release.release_source,
+        failure_stage=release.failure_stage,
+        provenance_verdicts=release.provenance_verdicts,
+        released_evidence_ids=release.released_evidence_ids,
+    ))
     connection_book_outcomes: tuple[str, ...] = ()
     if nested_connections:
         connection_book_outcomes = _apply_connection_inspection(
@@ -715,8 +795,22 @@ async def run_chat_turn(
     request: ChatRequest,
     service: MemoryPolicyService,
     account: AccountContext,
+    *,
+    initial_reading: ReleaseScope | None = None,
+    public_source_urls: tuple[str, ...] | None = None,
 ) -> ChatResponse:
-    """Run one complete, transport-independent chat turn."""
+    """Run a turn with optional trusted setup; transport payloads cannot grant it."""
+    if public_source_urls is not None:
+        if len(public_source_urls) != len(set(public_source_urls)):
+            raise ValueError("public source URLs must be unique")
+        for url in public_source_urls:
+            parsed = urlsplit(url)
+            if (
+                parsed.scheme not in {"http", "https"} or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None
+                or len(url) > 2_000
+            ):
+                raise ValueError("public sources require bounded HTTP URLs without credentials")
     started = perf_counter()
     reading_state = sessions.snapshot_reading_state(request.session_id)
     cancelled = False
@@ -738,6 +832,8 @@ async def run_chat_turn(
                 reading_state,
                 service,
                 account,
+                initial_reading=initial_reading,
+                public_source_urls=public_source_urls,
             )
         except asyncio.CancelledError:
             cancelled = True

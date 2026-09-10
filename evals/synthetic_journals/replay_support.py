@@ -32,12 +32,15 @@ _BOOK = ReplaySupport(
     module="evals.synthetic_journals.book_replay",
     accepts_semantic_review=True,
 )
-_CROSS_SOURCE = ReplaySupport(
-    name="cross-source connection",
-    module="evals.serendipity.objective_replay",
+_CONNECTION = ReplaySupport(
+    name="connection and restraint",
+    module="evals.synthetic_journals.connection_replay",
 )
 
 _SUPPORTED_REPLAYS = {
+    frozenset({"cross_source_tentative_connection"}): _CONNECTION,
+    frozenset({"weak_evidence_safe_decline"}): _CONNECTION,
+    frozenset({"cross_source_tentative_connection", "weak_evidence_safe_decline"}): _CONNECTION,
     frozenset({"reviewed_automatic_memory_capture"}): _CAPTURE,
     frozenset({"bounded_memory_curation"}): _CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,
@@ -46,7 +49,6 @@ _SUPPORTED_REPLAYS = {
     frozenset(
         {"grounded_book_reflection", "spoiler_boundary_clarification"}
     ): _BOOK,
-    frozenset({"cross_source_tentative_connection"}): _CROSS_SOURCE,
 }
 
 

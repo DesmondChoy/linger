@@ -11,7 +11,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, Protocol
+from typing import Any, Protocol, Literal
+from dataclasses import dataclass
 
 
 class EvaluationTranscriptSink(Protocol):
@@ -93,3 +94,29 @@ def bind_evaluation_correlation_id(correlation_id: str) -> Iterator[None]:
         yield
     finally:
         _ACTIVE_CORRELATION_ID.reset(token)
+
+
+@dataclass(frozen=True)
+class ConnectionEvaluationEvent:
+    """Immutable, opt-in private observations; never application API fields."""
+
+    kind: Literal["query", "search", "discovery", "release"]
+    status: str
+    operation: str | None = None
+    source: str | None = None
+    query: str | None = None
+    evidence_json: tuple[str, ...] = ()
+    decision_json: str | None = None
+    release_source: str | None = None
+    failure_stage: str | None = None
+    failure_code: str | None = None
+    provenance_verdicts: tuple[str, ...] = ()
+    released_evidence_ids: tuple[str, ...] = ()
+
+
+def record_connection_event(event: ConnectionEvaluationEvent) -> None:
+    """Send a private observation only to an explicitly bound compatible sink."""
+    sink = active_evaluation_transcript_sink()
+    callback = getattr(sink, "record_connection_event", None)
+    if callback is not None:
+        callback(event)

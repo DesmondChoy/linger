@@ -60,6 +60,12 @@ def _sha256(payload: bytes) -> str:
 
 
 def _proposal_summary(proposal: GroundTruthProposal) -> str:
+    if proposal.connection is not None:
+        return {
+            "proposal": "Tentative connection",
+            "restraint": "Restraint with weak evidence",
+            "not_requested": "Personal reflection without a connection",
+        }[proposal.connection.decision]
     if proposal.surfacing is not None:
         return proposal.surfacing.decision.replace("_", " ").capitalize()
     if proposal.capture is not None:
@@ -94,13 +100,6 @@ def _proposal_summary(proposal: GroundTruthProposal) -> str:
         return "Spoiler boundary"
     if proposal.grounding is not None:
         return proposal.grounding.primary_behavior.replace("_", " ").capitalize()
-    if proposal.connection is not None:
-        if proposal.connection.expected_decision == "decline":
-            return "Decline"
-        sources = " + ".join(
-            kind.replace("_", " ") for kind in proposal.connection.required_source_kinds
-        )
-        return f"Proposal · {sources}" if sources else "Proposal"
     return "Review expected behavior"
 
 
@@ -154,6 +153,7 @@ def build_review_payload(
     offline_inputs = {
         item.offline_input_id: item for item in backstory.offline_inputs
     }
+    source_setups = {item.scene_id: item for item in backstory.source_setups}
     proposals = {
         (item.scene_id, item.objective_id): item
         for item in ground_truth.proposals
@@ -227,6 +227,10 @@ def build_review_payload(
                     "freshSession": scene.fresh_session,
                     "summary": _proposal_summary(proposal),
                     "inputs": inputs,
+                    "sourceSetup": (
+                        source_setups[scene.scene_id].model_dump(mode="json")
+                        if scene.scene_id in source_setups else None
+                    ),
                     "expectedOutcomes": list(proposal.expected_outcomes),
                     "prohibitedOutcomes": list(proposal.prohibited_outcomes),
                     "spans": _span_payload(proposal),
@@ -261,15 +265,14 @@ def build_review_payload(
                         if proposal.grounding is not None
                         else None
                     ),
+                    "connection": (
+                        proposal.connection.model_dump(mode="json")
+                        if proposal.connection is not None else None
+                    ),
                     "bookSceneFacts": book_scene_facts,
                     "bookExpectation": (
                         proposal.book_expectation.model_dump(mode="json")
                         if proposal.book_expectation is not None
-                        else None
-                    ),
-                    "connection": (
-                        proposal.connection.model_dump(mode="json")
-                        if proposal.connection is not None
                         else None
                     ),
                 }

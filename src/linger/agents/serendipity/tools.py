@@ -28,7 +28,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
-from src.linger.orchestration.query_observation import record_web_query
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
@@ -74,6 +74,7 @@ class SerendipityDependencies:
     evidence: dict[str, ConnectionEvidence] = field(default_factory=dict)
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
+    opened_web_evidence: dict[str, WebConnectionEvidence] = field(default_factory=dict)
 
     def record(
         self,
@@ -90,6 +91,10 @@ class SerendipityDependencies:
         self.searches.append(
             SearchTrace(source=source, operation=operation, outcome=outcome)
         )
+        record_connection_event(ConnectionEvaluationEvent(
+            kind="search", status=outcome, source=source, operation=operation,
+            evidence_json=tuple(item.model_dump_json() for item in evidence),
+        ))
 
     def record_search(
         self,
@@ -101,6 +106,9 @@ class SerendipityDependencies:
         self.searches.append(
             SearchTrace(source=source, operation=operation, outcome=outcome)
         )
+        record_connection_event(ConnectionEvaluationEvent(
+            kind="search", status=outcome, source=source, operation=operation,
+        ))
 
 
 def search_memories(
@@ -213,20 +221,29 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                 _query_copies_reader_terms(query, record.text)
                 for record in ctx.deps.memories
             ):
-                record_web_query(query, "blocked")
+                record_connection_event(ConnectionEvaluationEvent(
+                    kind="query", status="blocked", source="web", operation=name,
+                    query=query, failure_code="private_query",
+                ))
                 raise ModelRetry(
                     "Rewrite the web query using only a general, non-identifying "
                     "concept; do not copy the reader's wording or personal data."
                 )
-            record_web_query(query, "issued")
         elif name == "get_page":
             requested_url = str(tool_args.get("url", "")).strip()
+            permitted_urls = ctx.deps.task.scope.web_source_urls
+            if permitted_urls is not None and requested_url not in permitted_urls:
+                raise ModelRetry("The page is outside this request's permitted public sources.")
             if requested_url not in ctx.deps.web_leads:
                 raise ModelRetry(
                     "get_page may open only an exact URL returned by web_search "
                     "during this Serendipity run."
                 )
 
+        if name == "web_search":
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="query", status="sent", source="web", operation=name, query=query,
+            ))
         try:
             result = await super().call_tool(name, tool_args, ctx, tool)
         except Exception:
@@ -254,7 +271,10 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                 or len(url) > 2_000
             ):
                 continue
-            if name == "get_page" and url not in ctx.deps.web_leads:
+            permitted_urls = ctx.deps.task.scope.web_source_urls
+            if permitted_urls is not None and url not in permitted_urls:
+                continue
+            if name == "get_page" and url != requested_url:
                 continue
             raw_title = raw_source.get("title")
             title = raw_title if isinstance(raw_title, str) and raw_title else url
@@ -271,6 +291,10 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
         if name == "get_page":
             # A search result is a lead, not sufficient evidence. Only a page
             # Serendipity actually opened enters the citable ledger.
+            ctx.deps.opened_web_evidence.update(
+                (item.evidence_id, item) for item in web_evidence
+                if isinstance(item, WebConnectionEvidence)
+            )
             ctx.deps.record(
                 "web",
                 name,

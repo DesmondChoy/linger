@@ -63,8 +63,9 @@ The complete workflow is:
    runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
    supported selection, the agent validates that adoption and starts one
    provider-backed replay. Supported selections include capture, curation,
-   continuity, either book Objective alone, and both book Objectives in either
-   order. Other selections stop after adoption.
+   continuity, either book Objective alone, both book Objectives in
+   either order, either connection or weak-evidence Objective alone, and their
+   combined selection. Other selections stop after adoption.
 7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
    providers, and Live views. Keep the runner's JSON output as the durable,
    complete evaluation record.
@@ -129,7 +130,7 @@ token-bearing `GROUND_TRUTH_REVIEW_URL`, and exits with one
 package changes during review, a non-sibling adoption path, an incomplete
 confirmation, or a timeout. It never overwrites an adoption.
 
-The app joins each Scene's Lines, Props, and offline inputs with the complete
+The app joins each Scene's Lines, Props, offline inputs, and source setup with the complete
 proposed Ground truth in one side-by-side review row. **Confirm and run
 evaluation** remains disabled until the reviewer approves every row. **Make
 Changes** returns the reviewed, flagged, and unchecked proposal IDs without
@@ -141,9 +142,9 @@ does not rewrite `ground-truth.json`.
 The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
-post-confirmation routes cover capture, curation, continuity, either book
-Objective alone, and both book Objectives in either order. Other selections
-stop after adoption.
+post-confirmation routes cover capture, curation, continuity, either
+book Objective alone, both book Objectives, either connection or weak-evidence
+Objective alone, and their combination. Other selections stop after adoption.
 
 ## Capture replay
 
@@ -417,6 +418,48 @@ The command shares the other runners' proposal, adoption, and output behavior.
 It does not adopt labels. Historical book packages using the removed fields
 remain unchanged but are obsolete replay inputs. New Ground truth requires new
 independent review; an old adoption cannot approve changed shared Scene facts.
+
+## Connection and restraint replay
+
+Replay `cross_source_tentative_connection`, `weak_evidence_safe_decline`, or
+both in either order:
+
+```bash
+LINGER_WEB_SEARCH_ENABLED=true uv run python -m evals.synthetic_journals.connection_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/connection-restraint-run.json
+```
+
+Live public retrieval requires `EXA_API_KEY`. The command enables web retrieval
+for this run; packages without public sources do not require that setting.
+
+Each typed Scene has one Line in a fresh session. Its `source_setups` entry in
+`backstory.json` supplies any reader-confirmed book scope and complete public
+snapshots: source identifier, URL, title, text, SHA-256, and retrieval time.
+Active Props supply the account's memory records. These are runtime inputs.
+`GroundTruthProposal.connection` separately declares the expected decision,
+permitted and required evidence, acceptable responses, and required public
+claims. Evidence references resolve exact Prop, corpus, and public-source spans.
+The validator checks source hashes, scope, and references before independent
+review. Neither proposed nor adopted Ground truth enters runtime.
+
+The runner bounds public retrieval to the supplied source URLs, seeds isolated
+memory storage, and executes the production chat path with automatic capture
+disabled. Exa searches and opens public pages live. Snapshots establish the
+adopted source identity and exact support for grading; missing or changed live
+evidence cannot pass as intended restraint. The recorded path includes Muse invocation,
+retrieval, Serendipity selection, Muse presentation, Provenance review, and
+deterministic release. It retains the released response and distinguishes the
+first failed stage from stages that were not reached. The supplied URL bounds
+make this a controlled source test; it does not establish general search coverage.
+
+Hard checks establish source resolution, the typed decision, citation bounds,
+release behavior, and source immutability. A reviewer still judges whether the
+connection is useful and tentative, restraint is honest, and public claims are
+supported. Deterministic success does not establish semantic success. Legacy
+weak-evidence-only packages with `grounding` expectations delegate to
+`reflection_replay` and retain its existing, narrower hard checks.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene

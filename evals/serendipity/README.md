@@ -116,94 +116,61 @@ an objective pass.
 
 ## Cross-source production replay
 
+[`evals.synthetic_journals.connection_replay`](../synthetic_journals/README.md#connection-and-restraint-replay)
+supports independently adopted packages for `cross_source_tentative_connection`,
+`weak_evidence_safe_decline`, or both. The typed path runs production chat with
+isolated memory storage, registered corpus retrieval, and live public retrieval
+bounded to the supplied URLs. Adopted public snapshots define the exact evidence
+expected from live pages. Changed or unavailable evidence cannot count as
+successful restraint. This controlled test does not establish general search
+coverage.
+
+The release gate checks selected memory and public evidence against the exact
+current-run records reviewed by Provenance. Unknown or changed evidence fails
+closed. Structural stage results remain separate from human judgments about
+usefulness, tentativeness, honest restraint, and support for public claims.
+Legacy weak-evidence-only packages delegate to the reflection runner and retain
+its narrower hard checks. A component result never substitutes for a released
+production response.
+
 The direct `cross_source_tentative_connection` replay drives ordered synthetic
 messages through production chat in an isolated account, memory store, and
 session:
 
 ```bash
 uv run python -m evals.serendipity.objective_replay \
-	synthetic-journal-evaluation/packages/PACKAGE/backstory.json \
-	synthetic-journal-evaluation/packages/PACKAGE/ground-truth.json \
-	--adoption /tmp/cross-source-adoption.json \
+	evals/serendipity/objective_cases/cross-source-outside-essay-v1.json \
 	--output /tmp/cross-source-production-run.json
 ```
 
-The two positional paths are a validated package: `backstory.json` supplies the
-Backstory, Props, Scenes, and Lines, and `ground-truth.json` supplies the
-proposals whose typed connection expectations drive grading. Both are validated
-before any provider call. `--adoption` binds an independent reviewer's decision
-to the exact proposed bytes; without it the run reports against unadopted
-proposals and can never return `passes_hard_gates`. `--output` is optional and
-prints to stdout when omitted. Provider-backed chat uses `LINGER_MODEL` and its
-matching API key. Actual web tools require both `LINGER_WEB_SEARCH_ENABLED=true`
-and `EXA_API_KEY`.
+The positional `case` contains a `CrossSourceReplayCase`, including ordered
+messages, an expected decision, and an expected release source. `--output` is
+required. This command has no synthetic-package or `--adoption` argument.
+Provider-backed chat uses `LINGER_MODEL` and its matching API key. Actual web
+tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 
-It records the first failed stage using this closed taxonomy:
-
-1. `invocation` — Muse did not request Serendipity when the adopted scenario
-   required it, or invoked it outside policy.
-2. `retrieval` — a required permitted source was unavailable, returned no
-   usable evidence, violated scope, or failed exact resolution. Wording the
-   adopted package declared private that reaches an issued public-web query
-   also fails here, with reason code `private_wording_in_public_query`.
-3. `serendipity_selection` — Serendipity produced the wrong decision, cited
-   unknown evidence, changed presentation, or selected no clear eligible winner.
-4. `muse_presentation` — Muse omitted, distorted, overstated, or misattributed
-   the validated connection.
-5. `provenance_review` — independent review failed to detect or correctly
-   classify support, privacy, spoiler, injection, or sensitive-inference risk.
-6. `deterministic_release` — application release validation accepted an invalid
-   declaration or rejected a fully valid reviewed candidate.
-
-The report grades the final response's inspection metadata in this order:
+The direct replay grades the final turn's recorded connection events and release
+inspection in this order:
 
 | Stage | Recorded check |
 | --- | --- |
-| `invocation` | A Serendipity trace exists and is not skipped. |
-| `retrieval` | Librarian reports completion, Serendipity does not report failure, and no issued web query carries wording the package declared private. |
-| `serendipity_selection` | Serendipity reports completion. A decline expectation also requires a recorded connection decline. |
+| `invocation` | A discovery event exists. |
+| `retrieval` | Search events exist, with no search failure or unavailable-retrieval status. |
+| `serendipity_selection` | The final discovery event has no failure and matches the expected proposal or decline decision. |
 | `muse_presentation` | Release inspection exists without a Muse draft or revision failure. |
-| `provenance_review` | Release inspection contains a verdict without a Provenance review failure. |
+| `provenance_review` | The final Provenance verdict is `pass`. |
 | `deterministic_release` | The actual release source matches the expected source without a deterministic validation failure. |
 
 Stages report `passed`, `failed`, or `not_reached`, with one
 `first_failure_stage`. Later stages are `not_reached` after the first failed
 check. The JSON retains the final reply, release source, and trace ID.
 
-These status checks support production diagnosis. They do not independently
+These structural checks support production diagnosis. They do not independently
 grade semantic presentation, exact source selection, the correctness of a
-Provenance verdict, or every earlier turn. `objective_pass` means that all
-listed checks passed. It is not an independently adopted synthetic-package
-grade. Fixture-backed component grades remain separate.
-
-### Observing outbound web queries
-
-Grading the privacy gate needs the exact queries Serendipity issued, but
-`TurnInspection` deliberately carries no query text. The replay therefore starts
-the evaluation-only observer in
-[`query_observation.py`](../../src/linger/orchestration/query_observation.py)
-around each Scene. Production starts no observer and retains nothing, and the
-runtime never learns which wording a package forbade: the comparison happens in
-the grader, so adopted Ground truth stays outside the system under evaluation.
-
-Each observation records the query and one verdict. A `blocked` query is the
-runtime privacy gate refusing to search and asking the model to generalise, so
-it is evidence the gate works, not a leak; only an `issued` query can fail the
-`retrieval` stage. Reports keep both.
-
-### What the replay does not score
-
-`require_tentative` and `public_claims` reach the report as
-`semantic_review` and are never scored. Whether a connection is framed honestly
-and whether a public claim is realistic are review judgments, consistent with
-the separation above, and a semantic judgment never overrides a failed hard
-gate.
-
-A selected web page is releasable: Muse must declare and visibly cite the exact
-URL opened in that turn, and application code validates the URL and any exact
-quotation against the page excerpt before release. The component suite may prove
-that Serendipity correctly selects and flags a book-to-web candidate, but only
-the objective replay reports the actual deterministic-release outcome.
+Provenance verdict, or every earlier turn. `hard_gate_pass` means that all listed
+checks passed; `semantic_review_required` remains true. It is not an
+independently adopted synthetic-package grade. Fixture-backed component grades
+remain separate.
 
 ## Running and reports
 

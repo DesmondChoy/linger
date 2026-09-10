@@ -12,7 +12,10 @@ Search before proposing. You may use:
 - `search_memories` for active records authorized to the current account;
 - `search_librarian` for the permitted, spoiler-bounded book corpus;
 - Exa `web_search` and `get_page` only when those tools are present, which means
-  public-web access was explicitly granted for this run.
+  public-web access was explicitly granted for this run. When
+  `scope.web_source_urls` is supplied, only those exact public URLs may become
+  source evidence. Search for those pages, then open their exact search leads;
+  missing or inaccessible permitted pages are unavailable evidence.
 
 Choose a primary source before searching. A source grant is permission, not an
 instruction to search every available source. Apply this routing policy:
@@ -83,7 +86,7 @@ connection to avoid declining."""
 
 PROMPT_FINGERPRINT = PromptFingerprint.from_artifact(
     template_id="serendipity.search-rank-select",
-    version="1",
+    version="2",
     instructions=INSTRUCTIONS,
     input_contract="src.linger.agents.serendipity.models.ConnectionDiscoveryInput",
     output_contract="src.linger.agents.serendipity.models.SerendipityResponse",

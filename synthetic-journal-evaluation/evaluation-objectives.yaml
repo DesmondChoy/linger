@@ -99,6 +99,7 @@ developer_workflow:
       - grounded_book_reflection
       - spoiler_boundary_clarification
       - cross_source_tentative_connection
+      - weak_evidence_safe_decline
     component_replay_coverage:
       proactive_memory_surfacing: >-
         evals/synthetic_journals/surfacing_replay.py retains the earlier offline

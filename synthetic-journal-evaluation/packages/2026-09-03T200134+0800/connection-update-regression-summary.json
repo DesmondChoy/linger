@@ -1,0 +1,179 @@
+{
+  "artifact_kind": "book_replay_summary",
+  "complete_artifact_local_path": "/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/linger-connection-regression-3bp0s4qb/run.json",
+  "complete_artifact_sha256": "c83d30e7d8ceba461cbada6dae9e5b24a09d6569dee37482239e655fff0d1e45",
+  "configured_model": "openai:gpt-5.6-luna",
+  "git_head": "7ea77858bb64a4b547184c2413bf5d98060f3aeb",
+  "working_diff_sha256": "c57d9893de9a387a3175de093b307c142f281a8c5e45811f98a9c226a8f9589d",
+  "package_sha256": {
+    "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+    "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+    "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+  },
+  "remote_telemetry": false,
+  "semantic_review": false,
+  "quota_run": 7,
+  "quota_runs_used": 7,
+  "quota_runs_remaining": 3,
+  "baseline_summary": "post-pull-replay-summary.json",
+  "baseline_comparison": {
+    "judgments": 4,
+    "passed": 4,
+    "new_failures": []
+  },
+  "package_unchanged": true,
+  "run_id": "3da0f824776647adac43f9a97031241f",
+  "trace_id": "01a07bec3f9f63cd2046a2211566728b",
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+  "system_variant": "2dd0a2d58dc0992609daff8a745786a00e5a13f7ef7f9d80cb48e72f4da92e43",
+  "ground_truth_status": "adopted",
+  "runtime_prompt_fingerprints": [
+    {
+      "template_id": "librarian.boundary-inference",
+      "version": "4",
+      "digest": "3d5a71aefca4ebb7ed5fb63d9c8a8bb9eedefbb3395f1a9622084916a43461d8"
+    },
+    {
+      "template_id": "librarian.evidence-strength",
+      "version": "2",
+      "digest": "1fe35d38444bbc878c559197a0efa612a60daa31a53d8f980ee0fae5bd5de27f"
+    },
+    {
+      "template_id": "muse.reflection",
+      "version": "16",
+      "digest": "4fa8f5c8f73d54b7cfaea7d9a6feea53dd5c88adc951f5fed8e24182d6c3d039"
+    },
+    {
+      "template_id": "muse.revision",
+      "version": "16",
+      "digest": "a8169372e27170836371317b71bde0ffdef88bfacdd31aff02915900d6a3d9ad"
+    },
+    {
+      "template_id": "provenance.emotional-boundary",
+      "version": "2",
+      "digest": "5b3ede08c8de1c8d5611d3d00b619df51570a5c0cfea049984d4af4a1b984c47"
+    },
+    {
+      "template_id": "provenance.release-gate",
+      "version": "8",
+      "digest": "d0d5d4750fb268ce36855d45f6e25150c1a2b6eeaf4a59f719666ed5ab1a7f6d"
+    },
+    {
+      "template_id": "provenance.curation-gate",
+      "version": "1",
+      "digest": "84a3d0a1dff92039a485993ad9445b98698165109317dfce9a2d3c47175d0ce4"
+    },
+    {
+      "template_id": "sculptor.curation",
+      "version": "3",
+      "digest": "256e9bb37509fa6df6649b15263fa88f746495138662a1bb26423aa94a2e6e87"
+    },
+    {
+      "template_id": "serendipity.search-rank-select",
+      "version": "2",
+      "digest": "8f98d73ca3faaaec3d79d08b8babd497be35f3fcf9c0f0c558925eb0ad242b7d"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "line_id": "pigeon-line",
+      "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+      "boundary_decision": "infer",
+      "routed_ceiling": 5,
+      "route_called": true,
+      "released_evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ],
+      "reply": "The sentence is:\n\n\u201cI\u2014I\u2019m a little girl,\u201d said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nThe doubt is doing a lot here. She can name the role, but her recent changes make the name feel less secure\u2014as though \u201clittle girl\u201d is true and yet no longer fully settles who she is. That seems close to the awkwardness of calling yourself a manager: the title may be accurate before it feels natural. You\u2019re not only naming a position; you\u2019re trying out an identity while your sense of yourself is still catching up. It may help to treat \u201cI\u2019m a manager\u201d less like a declaration you must already feel and more like a sentence you\u2019re gradually growing into.",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "pigeon-reflection",
+          "proposal_id": "pigeon-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "line_id": "growth-line",
+      "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+      "boundary_decision": "clarify",
+      "routed_ceiling": null,
+      "route_called": true,
+      "released_evidence_ids": [],
+      "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+      "release_source": "application_clarification",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": [
+        {
+          "scene_id": "uncertain-growth",
+          "proposal_id": "growth-boundary",
+          "status": "not_run",
+          "independence": "non_independent_model_judge",
+          "disclosed_evidence_ids": [],
+          "explanation": null
+        }
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "line_id": "personal-line",
+      "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+      "boundary_decision": "not_applicable",
+      "routed_ceiling": null,
+      "route_called": false,
+      "released_evidence_ids": [],
+      "reply": "That awkwardness makes sense: \u201cdesigner\u201d may still feel like the truest shorthand for who you\u2019ve been, while \u201cmanager\u201d names work you\u2019re beginning to inhabit. Liking the new work doesn\u2019t require the new title to feel natural immediately. Sometimes a role becomes familiar through using the words before they feel fully settled.\n\nYou could try an introduction that leaves room for both parts of your experience:\n\n- \u201cHi, I\u2019m [name]. I recently moved from design into management, and I\u2019m enjoying learning the role.\u201d\n- \u201cI\u2019m [name], a designer-turned-manager. I\u2019m still getting used to saying that, but I\u2019m excited about the work.\u201d\n- \u201cI\u2019m [name]. I lead the [team] now, and my background is in design.\u201d\n\nThe second is especially honest without apologizing. Do you want your introduction to sound more confident, more warm, or more understated?",
+      "release_source": "muse_candidate",
+      "provenance_verdicts": [
+        "pass"
+      ],
+      "grades": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        }
+      ],
+      "semantic_spoiler_results": []
+    }
+  ],
+  "validation_scope": "Live production chat with the configured provider; adopted deterministic hard gates. Separate semantic model review was not run, matching the baseline."
+}

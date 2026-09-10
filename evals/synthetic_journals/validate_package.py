@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from evals.reflection.harness import GroundedRelease
+from evals.reflection.harness import GroundedRelease, QualifiedRelease, SafeDecline
 from evals.sculptor.harness import ExpectedCurationProposal, REQUIRED_BEHAVIORS
 from evals.synthetic_journals.book_contract import (
     BOOK_OBJECTIVE_IDS,
@@ -25,9 +25,11 @@ from evals.synthetic_journals.models import (
     OfflineInputEvidence,
     PropEvidence,
     ProposedGroundTruth,
+    PublicSourceEvidence,
     RepositoryTextEvidence,
     RunConfiguration,
     Scene,
+    SceneSourceSetup,
     SyntheticBackstory,
 )
 from evals.synthetic_journals.surfacing_contract import (
@@ -43,7 +45,6 @@ DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID = "grounded_book_reflection"
 SPOILER_BOUNDARY_OBJECTIVE_ID = "spoiler_boundary_clarification"
-CROSS_SOURCE_CONNECTION_OBJECTIVE_ID = "cross_source_tentative_connection"
 
 # Objectives whose Scenes are graded by the reflection-and-grounding runner.
 REFLECTION_OBJECTIVE_IDS = frozenset(
@@ -154,6 +155,7 @@ def validate_package(
             f"unexpected Ground truth proposals: {_format_pairs(extra_proposals)}"
         )
 
+    source_setups = {setup.scene_id: setup for setup in backstory.source_setups}
     evidence_ids: set[str] = set()
     for proposal in ground_truth.proposals:
         scene = scenes.get(proposal.scene_id)
@@ -186,8 +188,15 @@ def validate_package(
                     props,
                     offline_inputs,
                     repository_root,
+                    source_setups.get(scene.scene_id),
                 )
             )
+        unknown_relevance = {item.prop_id for item in proposal.prop_relevance} - set(scene.prop_ids)
+        if unknown_relevance:
+            failures.append(f"proposal {proposal.proposal_id} has Prop relevance for unknown or unavailable Props: {sorted(unknown_relevance)}")
+        if proposal.objective_id in {"cross_source_tentative_connection", "weak_evidence_safe_decline"}:
+            if {item.prop_id for item in proposal.prop_relevance} != set(scene.prop_ids):
+                failures.append(f"proposal {proposal.proposal_id} requires one Prop relevance judgment for every available Prop")
         if proposal.pairing is not None:
             failures.extend(
                 _validate_pairing(
@@ -196,6 +205,7 @@ def validate_package(
                     scenes,
                     lines,
                     offline_inputs,
+                    source_setups,
                 )
             )
 
@@ -204,15 +214,6 @@ def validate_package(
         if scene is None:
             continue
         for span in facts.basis_spans:
-            failures.extend(_validate_span(span, scene, props, lines, offline_inputs))
-
-    for proposal in ground_truth.proposals:
-        if proposal.connection is None:
-            continue
-        scene = scenes.get(proposal.scene_id)
-        if scene is None:
-            continue
-        for span in proposal.connection.forbidden_web_query_spans:
             failures.extend(_validate_span(span, scene, props, lines, offline_inputs))
 
     selected_book_objectives = set(backstory.objective_ids) & BOOK_OBJECTIVE_IDS
@@ -227,11 +228,19 @@ def validate_package(
             )
         except BookContractError as error:
             failures.extend(error.failures)
+    if backstory.source_setups and not any(proposal.connection is not None for proposal in ground_truth.proposals):
+        failures.append("trusted source_setups require typed connection Ground truth")
+    if "cross_source_tentative_connection" in backstory.objective_ids or any(
+        proposal.connection is not None for proposal in ground_truth.proposals
+    ):
+        from .connection_contract import ConnectionContractError, compile_connection_replay_plan
+
+        try:
+            compile_connection_replay_plan(backstory, ground_truth, repository_root=repository_root)
+        except ConnectionContractError as error:
+            failures.extend(error.failures)
     failures.extend(
         _validate_reflection_grounding(backstory, ground_truth, repository_root)
-    )
-    failures.extend(
-        _validate_cross_source_connections(ground_truth, scenes, props, offline_inputs)
     )
     failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
@@ -246,120 +255,6 @@ def validate_package(
     )
     if failures:
         raise PackageValidationError(failures)
-
-
-def _validate_cross_source_connections(
-    ground_truth: ProposedGroundTruth,
-    scenes: dict[str, Scene],
-    props: dict[str, Any],
-    offline_inputs: dict[str, Any],
-) -> list[str]:
-    """Validate cross-source topology without putting runtime policy in packages."""
-
-    failures: list[str] = []
-    connection_scenes = [
-        scene
-        for scene in scenes.values()
-        if CROSS_SOURCE_CONNECTION_OBJECTIVE_ID in scene.objective_ids
-    ]
-    proposals = [
-        proposal
-        for proposal in ground_truth.proposals
-        if proposal.objective_id == CROSS_SOURCE_CONNECTION_OBJECTIVE_ID
-    ]
-    if not connection_scenes:
-        return failures
-    if len(connection_scenes) != 2:
-        failures.append("cross-source package requires exactly two Scenes")
-    if len(proposals) != len(connection_scenes):
-        return failures
-
-    decisions: list[str] = []
-    for proposal in proposals:
-        scene = scenes.get(proposal.scene_id)
-        if scene is None:
-            continue
-        if proposal.connection is None:
-            failures.append(
-                f"cross-source proposal {proposal.proposal_id} lacks typed connection "
-                "Ground truth"
-            )
-            continue
-        expectation = proposal.connection
-        decisions.append(expectation.expected_decision)
-        if not scene.fresh_session or len(scene.line_ids) != 1:
-            failures.append(
-                f"cross-source Scene {scene.scene_id} requires one Line in a fresh session"
-            )
-        if proposal.pairing is None:
-            failures.append(
-                f"cross-source proposal {proposal.proposal_id} requires a paired Scene"
-            )
-        if not scene.prop_ids:
-            failures.append(f"cross-source Scene {scene.scene_id} requires a Prop")
-        for prop_id in scene.prop_ids:
-            prop = props[prop_id]
-            lifecycle = next(
-                item for item in prop.lifecycle if item.scene_id == scene.scene_id
-            )
-            if lifecycle.state != "active":
-                failures.append(
-                    f"cross-source Prop {prop_id} must be active for Scene {scene.scene_id}"
-                )
-        if not any(
-            offline_inputs[item_id].kind == "public_evidence"
-            for item_id in scene.offline_input_ids
-        ):
-            failures.append(
-                f"cross-source Scene {scene.scene_id} requires public-evidence offline input"
-            )
-
-        evidence = {item.evidence_id: item for item in proposal.evidence}
-        missing = set(expectation.required_evidence_ids) - set(evidence)
-        if missing:
-            failures.append(
-                f"cross-source proposal {proposal.proposal_id} requires missing "
-                f"evidence IDs: {sorted(missing)}"
-            )
-        actual_kinds = {
-            "memory"
-            if isinstance(item, PropEvidence)
-            else "book_corpus"
-            if isinstance(item, RepositoryTextEvidence)
-            else "web"
-            if isinstance(item, OfflineInputEvidence)
-            else "unknown"
-            for item in evidence.values()
-        }
-        required = set(expectation.required_source_kinds)
-        if not required.issubset(actual_kinds):
-            failures.append(
-                f"cross-source proposal {proposal.proposal_id} lacks required source "
-                f"kinds: {sorted(required - actual_kinds)}"
-            )
-        for claim in expectation.public_claims:
-            unknown = set(claim.supporting_evidence_ids) - set(evidence)
-            if unknown:
-                failures.append(
-                    f"public claim in {proposal.proposal_id} references missing "
-                    f"evidence IDs: {sorted(unknown)}"
-                )
-            if any(
-                not isinstance(evidence[evidence_id], OfflineInputEvidence)
-                for evidence_id in set(claim.supporting_evidence_ids) & set(evidence)
-            ):
-                failures.append(
-                    f"public claim in {proposal.proposal_id} requires public offline evidence"
-                )
-        if proposal.capture is not None or proposal.curation is not None or proposal.prop_relevance:
-            failures.append(
-                f"cross-source proposal {proposal.proposal_id} contains unrelated Ground truth"
-            )
-    if sorted(decisions) != ["decline", "proposal"]:
-        failures.append(
-            "cross-source package requires one proposal Scene and one decline Scene"
-        )
-    return failures
 
 
 def _validate_bounded_curation(
@@ -540,6 +435,8 @@ def _validate_reflection_grounding(
             proposal = proposals.get((scene.scene_id, objective_id))
             if proposal is None:  # Covered by the general proposal topology check.
                 continue
+            if proposal.connection is not None:
+                continue
             if proposal.grounding is None:
                 failures.append(
                     f"reflection proposal {proposal.proposal_id} lacks typed "
@@ -562,8 +459,19 @@ def _validate_reflection_grounding(
                 )
 
             expected = proposal.grounding.expected
+            if isinstance(expected, QualifiedRelease):
+                non_corpus = {
+                    item.evidence_id for item in proposal.evidence
+                    if item.evidence_id in expected.permitted_evidence_ids
+                    and not isinstance(item, RepositoryTextEvidence)
+                }
+                if non_corpus:
+                    failures.append(
+                        f"reflection proposal {proposal.proposal_id} permits non-corpus evidence; "
+                        "mixed source citations require typed connection Ground truth"
+                    )
             if not isinstance(expected, GroundedRelease):
-                if proposal.evidence:
+                if proposal.evidence and not isinstance(expected, (QualifiedRelease, SafeDecline)):
                     failures.append(
                         f"reflection proposal {proposal.proposal_id} declares "
                         "evidence but expects no grounded release"
@@ -647,7 +555,16 @@ def _validate_evidence(
     props: dict[str, Any],
     offline_inputs: dict[str, Any],
     repository_root: Path,
+    source_setup: SceneSourceSetup | None = None,
 ) -> list[str]:
+    if isinstance(evidence, PublicSourceEvidence):
+        sources = {source.source_id: source for source in source_setup.public_sources} if source_setup else {}
+        source = sources.get(evidence.source_id)
+        if source is None:
+            return [f"evidence {evidence.evidence_id} references public source unavailable to Scene {scene.scene_id}"]
+        if evidence.end_codepoint > len(source.text) or source.text[evidence.start_codepoint:evidence.end_codepoint] != evidence.text:
+            return [f"evidence {evidence.evidence_id} public source exact text span does not match"]
+        return []
     if isinstance(evidence, PropEvidence):
         if evidence.prop_id not in props:
             return [f"evidence {evidence.evidence_id} references unknown Prop"]
@@ -709,6 +626,7 @@ def _validate_pairing(
     scenes: dict[str, Scene],
     lines: dict[str, Any],
     offline_inputs: dict[str, Any],
+    source_setups: dict[str, SceneSourceSetup] | None = None,
 ) -> list[str]:
     assert proposal.pairing is not None
     paired_scene = scenes.get(proposal.pairing.paired_scene_id)
@@ -726,16 +644,16 @@ def _validate_pairing(
         ]
     failures: list[str] = []
     for field in proposal.pairing.match_fields:
-        if _pair_field(scene, field, lines, offline_inputs) != _pair_field(
-            paired_scene, field, lines, offline_inputs
+        if _pair_field(scene, field, lines, offline_inputs, source_setups) != _pair_field(
+            paired_scene, field, lines, offline_inputs, source_setups
         ):
             failures.append(
                 f"paired Scenes {scene.scene_id} and {paired_scene.scene_id} "
                 f"must match on {field}"
             )
     for field in proposal.pairing.difference_fields:
-        if _pair_field(scene, field, lines, offline_inputs) == _pair_field(
-            paired_scene, field, lines, offline_inputs
+        if _pair_field(scene, field, lines, offline_inputs, source_setups) == _pair_field(
+            paired_scene, field, lines, offline_inputs, source_setups
         ):
             failures.append(
                 f"paired Scenes {scene.scene_id} and {paired_scene.scene_id} "
@@ -749,8 +667,11 @@ def _pair_field(
     field: str,
     lines: dict[str, Any],
     offline_inputs: dict[str, Any],
+    source_setups: dict[str, SceneSourceSetup] | None = None,
 ) -> Any:
+    setup = (source_setups or {}).get(scene.scene_id)
     values = {
+        "source_setup": (setup.book_scope, setup.public_sources) if setup else None,
         "backstory_id": scene.backstory_id,
         "fresh_session": scene.fresh_session,
         "prop_ids": scene.prop_ids,

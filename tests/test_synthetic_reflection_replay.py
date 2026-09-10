@@ -137,6 +137,11 @@ class GradeSceneTests(unittest.TestCase):
         )
         self.assertIn("forbidden_fact_disclosed", failures)
 
+    def test_provider_failure_cannot_satisfy_a_safe_decline_expectation(self) -> None:
+        expectation = GroundingExpectation(primary_behavior="weak_evidence_decline", expected=SafeDecline(kind="safe_decline"))
+        failed = turn(release_source="application_safe_decline", retrieved=False, evidence_ids=()).model_copy(update={"failure_stage": "muse_draft", "failure_type": "model", "failure_retryable": True})
+        self.assertIn("execution_failure", grade_scene(expectation, [failed]))
+
     def test_a_safe_decline_scene_expects_the_application_path(self) -> None:
         expectation = GroundingExpectation(
             primary_behavior="weak_evidence_decline",
@@ -607,9 +612,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
 
         await replay_reflection_scenes(backstory, ground_truth, chat_handler=handler)
 
-        self.assertEqual(2, len(set(accounts)))
-        self.assertTrue(accounts[0].endswith(":scene-01"))
-        self.assertTrue(accounts[1].endswith(":scene-02"))
+        self.assertEqual(1, len(set(accounts)))
 
     async def test_gate_failures_are_recorded_without_raising(self) -> None:
         """A wrong outcome is a graded failure, not a runner crash."""

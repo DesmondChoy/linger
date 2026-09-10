@@ -64,8 +64,22 @@ class SafeDecline(StrictModel):
     kind: Literal["safe_decline"]
 
 
+class QualifiedRelease(StrictModel):
+    """A reviewed response qualifies a claim or requests stronger evidence."""
+
+    kind: Literal["qualified_release"]
+    permitted_evidence_ids: tuple[str, ...] = ()
+    retrieval: Literal["required", "optional", "not_required"] = "optional"
+
+    @model_validator(mode="after")
+    def validate_evidence(self) -> Self:
+        if len(self.permitted_evidence_ids) != len(set(self.permitted_evidence_ids)):
+            raise ValueError("permitted evidence IDs must be unique")
+        return self
+
+
 ExpectedRelease = Annotated[
-    GroundedRelease | UngroundedRelease | ClarificationRelease | SafeDecline,
+    GroundedRelease | UngroundedRelease | ClarificationRelease | SafeDecline | QualifiedRelease,
     Field(discriminator="kind"),
 ]
 
@@ -81,6 +95,7 @@ _RELEASE_SOURCE: dict[str, ReleaseSource] = {
     "ungrounded_release": "muse_candidate",
     "clarification_release": "muse_candidate",
     "safe_decline": "application_safe_decline",
+    "qualified_release": "muse_candidate",
 }
 
 
@@ -94,7 +109,8 @@ class GroundingExpectation(StrictModel):
     @model_validator(mode="after")
     def validate_expected_behavior(self) -> Self:
         required = _EXPECTED_KIND[self.primary_behavior]
-        if self.expected.kind != required:
+        qualified_weak = self.primary_behavior == "weak_evidence_decline" and isinstance(self.expected, QualifiedRelease)
+        if self.expected.kind != required and not qualified_weak:
             raise ValueError(
                 f"{self.primary_behavior} requires expected.kind={required!r}, "
                 f"not {self.expected.kind!r}"
@@ -108,7 +124,16 @@ class GroundingExpectation(StrictModel):
     @property
     def retrieval_required(self) -> bool:
         """Report whether this Scene must consult book evidence."""
-        return self.expected.kind == "grounded_release"
+        return self.expected.kind == "grounded_release" or (
+            isinstance(self.expected, QualifiedRelease) and self.expected.retrieval == "required"
+        )
+
+    @property
+    def retrieval_permitted(self) -> bool:
+        """Whether retrieval is allowed, independently of whether it is required."""
+        if isinstance(self.expected, QualifiedRelease):
+            return self.expected.retrieval != "not_required"
+        return self.retrieval_required
 
     @property
     def release_source(self) -> ReleaseSource:
@@ -118,6 +143,6 @@ class GroundingExpectation(StrictModel):
     @property
     def permitted_evidence_ids(self) -> frozenset[str]:
         """Report the only evidence IDs a released citation may name."""
-        if isinstance(self.expected, GroundedRelease):
+        if isinstance(self.expected, (GroundedRelease, QualifiedRelease)):
             return frozenset(self.expected.permitted_evidence_ids)
         return frozenset()

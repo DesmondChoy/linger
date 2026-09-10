@@ -50,6 +50,8 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
         "session_scoped_conversation_continuity",
         "grounded_book_reflection",
         "spoiler_boundary_clarification",
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline",
     ]
     assert set(document["ground_truth_lifecycle"]) == {
         "generation",

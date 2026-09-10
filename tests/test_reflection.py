@@ -24,10 +24,11 @@ from apps.backend.contracts import (
 )
 from src.linger.agents.muse.models import (
     BookEvidenceUse,
+    MemoryEvidenceUse,
+    WebEvidenceUse,
     MuseCandidate,
     NoMemoryCandidate,
     SessionLineUse,
-    WebEvidenceUse,
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import (
@@ -38,6 +39,11 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
+from src.linger.contracts.curation import CuratedMemory
+from src.linger.orchestration.inspection_context import (
+    begin_connection_inspection, reset_connection_inspection, register_connection_evidence,
+)
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.reflection import (
     PIPELINE_FAILURE_DECLINE,
@@ -48,6 +54,8 @@ from src.linger.orchestration.reflection import (
 )
 from src.linger.orchestration.turn_context import (
     add_turn_evidence,
+    set_active_memories,
+    reset_active_memories,
     reset_turn_evidence,
     set_turn_evidence,
 )
@@ -121,23 +129,6 @@ def session_line_candidate(reply: str, *, quote: str) -> MuseCandidate:
     return MuseCandidate(
         reply=reply,
         evidence_uses=(SessionLineUse(source_kind="session_line", quote=quote),),
-        memory=NoMemoryCandidate(
-            kind="no_memory_candidate",
-            reason_code="transient_or_low_signal",
-        ),
-    )
-
-
-def web_candidate(reply: str, *, url: str) -> MuseCandidate:
-    return MuseCandidate(
-        reply=reply,
-        evidence_uses=(
-            WebEvidenceUse(
-                source_kind="web",
-                evidence_id=url,
-                source_location=url,
-            ),
-        ),
         memory=NoMemoryCandidate(
             kind="no_memory_candidate",
             reason_code="transient_or_low_signal",
@@ -370,8 +361,12 @@ class DeclineTextTests(unittest.TestCase):
 class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._evidence_token = set_turn_evidence(())
+        self._connection_token = begin_connection_inspection()
+        self._memories_token = set_active_memories(())
 
     async def asyncTearDown(self) -> None:
+        reset_active_memories(self._memories_token)
+        reset_connection_inspection(self._connection_token)
         reset_turn_evidence(self._evidence_token)
 
     @staticmethod
@@ -546,7 +541,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             "evidence_found", grounding_call["response"]["outcome"]
         )
 
-    async def test_web_serendipity_proposal_fails_closed_after_semantic_pass(self) -> None:
+    async def test_unregistered_web_proposal_fails_closed_after_semantic_pass(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result(
             "A web-backed connection that is not yet a releasable citation.",
@@ -569,28 +564,84 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("deterministic_validation", release.failure_stage)
 
-    async def test_opened_web_evidence_with_visible_citation_can_release(self) -> None:
-        url = "https://example.com/source"
+    async def test_registered_web_source_reaches_independent_review_and_release(self) -> None:
+        exploration = connection_result(web=True)
+        source = exploration.evidence[0]
+        register_connection_evidence((source,))
+        draft = candidate(f"This may echo [the public source]({source.evidence_id}).")
+        draft = draft.model_copy(update={"evidence_uses": (
+            WebEvidenceUse(source_kind="web", evidence_id=source.evidence_id),
+        )})
         muse = AsyncMock()
-        muse.run.return_value = result(
-            web_candidate(
-                f"This may be a useful tentative connection. Source: {url}",
-                url=url,
-            ),
-            ToolReturnPart("serendipity_explore", connection_result(web=True)),
-        )
+        muse.run.return_value = result(draft, ToolReturnPart("serendipity_explore", exploration))
         provenance = AsyncMock()
         provenance.run.return_value = result(review("pass"))
 
-        release = await reflection_reply(
-            "Find me an outside connection",
-            [],
-            muse=muse,
-            provenance=provenance,
-        )
+        release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
 
         self.assertEqual("muse_candidate", release.release_source)
-        self.assertEqual((url,), release.evidence_ids)
+        payload = json.loads(provenance.run.await_args.args[0])
+        self.assertEqual([source.model_dump(mode="json")], payload["canonical_connection_evidence"])
+        self.assertEqual([], payload["canonical_book_evidence"])
+        self.assertEqual((), release.evidence_ids)  # Web URLs never enter book-session recovery.
+
+    async def test_registered_web_requires_exact_visible_url_and_exact_quote(self) -> None:
+        exploration = connection_result(web=True)
+        source = exploration.evidence[0]
+        register_connection_evidence((source,))
+        for reply, quote in (
+            ("An uncited public claim", None),
+            (f"[Source]({source.evidence_id}/different)", None),
+            (f"Invented words [source]({source.evidence_id})", "Invented words"),
+        ):
+            with self.subTest(reply=reply):
+                draft = candidate(reply).model_copy(update={"evidence_uses": (
+                    WebEvidenceUse(source_kind="web", evidence_id=source.evidence_id, exact_quote=quote),
+                )})
+                muse = AsyncMock()
+                muse.run.return_value = result(draft, ToolReturnPart("serendipity_explore", exploration))
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review("pass"))
+                release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
+                self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_mutated_selected_web_payload_cannot_reuse_canonical_identity(self) -> None:
+        exploration = connection_result(web=True)
+        source = exploration.evidence[0]
+        register_connection_evidence((source,))
+        changed = exploration.model_copy(update={"evidence": (
+            source.model_copy(update={"excerpt": "Different support"}),
+        )})
+        muse = AsyncMock()
+        muse.run.return_value = result(candidate("A tentative thought"), ToolReturnPart("serendipity_explore", changed))
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+        release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_memory_release_requires_exact_current_account_record(self) -> None:
+        text = "I keep measuring change by what stays familiar."
+        source = MemoryConnectionEvidence(evidence_id="memory-1", excerpt=text)
+        register_connection_evidence((source,))
+        active = CuratedMemory(
+            memory_id=source.evidence_id, text=text, kind="original",
+            source_memory_ids=(source.evidence_id,), created_at="2026-09-07T00:00:00Z",
+        )
+        draft = candidate(text).model_copy(update={"evidence_uses": (
+            MemoryEvidenceUse(source_kind="memory", evidence_id=source.evidence_id, exact_quote=text),
+        )})
+        for memories, expected in (((active,), "muse_candidate"), ((), "application_safe_decline")):
+            with self.subTest(active=bool(memories)):
+                token = set_active_memories(memories)
+                try:
+                    muse = AsyncMock()
+                    muse.run.return_value = result(draft)
+                    provenance = AsyncMock()
+                    provenance.run.return_value = result(review("pass"))
+                    release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
+                finally:
+                    reset_active_memories(token)
+                self.assertEqual(expected, release.release_source)
 
     async def test_book_serendipity_proposal_can_authorize_release(self) -> None:
         self.register_evidence()

@@ -99,45 +99,43 @@ function ConnectionExpectation({ value }) {
   if (!value) return null
   return (
     <section className="typed-expectation">
-      <h4>Cross-source connection expectation</h4>
-      <div className="field-pair">
-        <span>Expected decision</span>
-        <StatusPill tone={value.expected_decision === 'proposal' ? 'positive' : 'neutral'}>
-          {value.expected_decision}
-        </StatusPill>
-      </div>
-      <div className="field-pair">
-        <span>Must stay tentative</span>
-        <strong>{value.require_tentative ? 'yes' : 'no'}</strong>
-      </div>
-      <IdList label="Required sources" values={value.required_source_kinds} />
+      <h4>Connection and restraint expectation</h4>
+      <div className="field-pair"><span>Expected decision</span><strong>{value.decision.replaceAll('_', ' ')}</strong></div>
+      <OutcomeList title="Acceptable responses" items={value.acceptable_responses.map((item) => item.replaceAll('_', ' '))} tone="expected" />
+      <IdList label="Permitted evidence" values={value.permitted_evidence_ids} />
       <IdList label="Required evidence" values={value.required_evidence_ids} />
-      {value.public_claims?.length ? (
-        <div className="fact-list">
-          <span>Public claims needing a citation</span>
-          <ul>
-            {value.public_claims.map((claim) => (
-              <li key={claim.claim}>
-                {claim.claim}
-                <IdList label="Supported by" values={claim.supporting_evidence_ids} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {value.forbidden_web_query_spans?.length ? (
-        <div className="fact-list">
-          <span>Must never reach a public web query</span>
-          <ul>
-            {value.forbidden_web_query_spans.map((span) => (
-              <li key={`${span.source_id}:${span.start_codepoint}`}>
-                <blockquote className="exact-quote">{span.text}</blockquote>
-                <code>{span.source_kind} {span.source_id}</code>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {value.required_public_claims.length ? <OutcomeList title="Required public claims" items={value.required_public_claims} tone="expected" /> : <p>No public claims are required.</p>}
+      <p className="constraint">Judge the evidence and wording independently. A structural check cannot establish a useful connection or honest restraint.</p>
+    </section>
+  )
+}
+
+function SceneSourceSetup({ value }) {
+  if (!value) return null
+  const scope = value.book_scope
+  return (
+    <section className="typed-expectation">
+      <h4>Available sources</h4>
+      {scope ? (
+        <article className="input-record">
+          <h5>Reader-confirmed book scope</h5>
+          <div className="field-pair"><span>Work</span><code>{scope.work_id}</code></div>
+          <div className="field-pair"><span>Book version</span><code>{scope.book_version_id}</code></div>
+          <div className="field-pair"><span>Safe chapter ceiling</span><strong>{scope.safe_ceiling_chapter}</strong></div>
+        </article>
+      ) : <p>No book scope is supplied.</p>}
+      <h5>Public source snapshots</h5>
+      {value.public_sources.length ? <p>Replay retrieves these public URLs again and checks the returned evidence against these snapshots.</p> : null}
+      {value.public_sources.length ? value.public_sources.map((source) => (
+        <article className="input-record" key={source.source_id}>
+          <header><span className="record-kind">Public source</span><code>{source.source_id}</code></header>
+          <h5>{source.title}</h5>
+          <p>{source.url}</p>
+          <div className="field-pair"><span>Retrieved at</span><strong>{source.retrieved_at}</strong></div>
+          <div className="field-pair"><span>Content SHA-256</span><code>{source.source_sha256}</code></div>
+          <blockquote>{source.text}</blockquote>
+        </article>
+      )) : <p>No public sources are supplied.</p>}
     </section>
   )
 }
@@ -250,9 +248,9 @@ function GroundTruthDetails({ row }) {
       <CurationExpectation value={row.curation} />
       <SurfacingExpectation value={row.surfacing} />
       <GroundingExpectation value={row.grounding} />
+      <ConnectionExpectation value={row.connection} />
       <BookSceneFacts value={row.bookSceneFacts} />
       <BookExpectation value={row.bookExpectation} />
-      <ConnectionExpectation value={row.connection} />
       {row.propRelevance.length ? (
         <section className="relevance-grid">
           <h4>Prop relevance</h4>
@@ -332,6 +330,7 @@ function ReviewRow({ row, reviewed, flagged, onReview, onFlag }) {
           <div className="column-heading"><span>01</span><h3>Scene inputs</h3></div>
           <p className="column-note">Everything available to this Scene before runtime.</p>
           <div className="input-stack">{row.inputs.map((item) => <InputRecord item={item} key={item.id} />)}</div>
+          <SceneSourceSetup value={row.sourceSetup} />
         </section>
         <section className="truth-column">
           <div className="column-heading"><span>02</span><h3>Proposed Ground truth</h3></div>

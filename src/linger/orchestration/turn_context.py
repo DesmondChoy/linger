@@ -199,3 +199,21 @@ def reset_turn_evidence(
 ) -> None:
     """Restore the previous evidence index after the request finishes."""
     _turn_evidence.reset(token)
+
+
+_public_source_urls: contextvars.ContextVar[tuple[str, ...] | None] = contextvars.ContextVar(
+    "public_source_urls", default=None,
+)
+
+
+def set_public_source_urls(value: tuple[str, ...] | None) -> contextvars.Token:
+    """Bind an optional application-owned public source restriction."""
+    return _public_source_urls.set(value)
+
+
+def public_source_urls() -> tuple[str, ...] | None:
+    return _public_source_urls.get()
+
+
+def reset_public_source_urls(token: contextvars.Token) -> None:
+    _public_source_urls.reset(token)
