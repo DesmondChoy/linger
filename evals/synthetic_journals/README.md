@@ -9,10 +9,10 @@ package contains one Backstory, person, and evaluation account; build a full
 dataset from multiple independently validated packages.
 
 Checked-in authoring packages live under
-`synthetic-journal-evaluation/packages/<timestamp>/`. The human-only
+`synthetic-journal-evaluation/packages/<scenario-set>--<agents>--<YYYY-MM-DD>/`. The human-only
 `pre-generation-report.md` sits beside `backstory.json` and
 `ground-truth.json` but is not validator input. Shared resolved constraints
-remain under `synthetic-journal-evaluation/run-configurations/` because packages
+remain under `synthetic-journal-evaluation/generation-presets/` because packages
 reference them by ID and the validator applies them across packages.
 
 Book packages store shared Scene facts in `ProposedGroundTruth.book_scene_facts`.
@@ -47,7 +47,7 @@ The complete workflow is:
 
 1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
    Objectives in the loopback selector and confirms the complete selection.
-2. The skill creates a timestamped package directory containing only
+2. The skill creates a descriptively named package directory containing only
    `pre-generation-report.md`. Selection confirmation is not generation
    approval.
 3. A human reads the report and approves its design and detached generator
@@ -92,9 +92,11 @@ uv run python -m evals.synthetic_journals.validate_package \
   path/to/backstory.json path/to/ground-truth.json
 ```
 
-The validator resolves shared run configurations from
-`synthetic-journal-evaluation/run-configurations/`. Use
+The validator resolves shared generation presets from
+`synthetic-journal-evaluation/generation-presets/`. Use
 `--run-configuration-directory <path>` to validate against another directory.
+The CLI option and JSON fields `run_configuration_ids` and `run_configuration_id`
+retain their existing contract names.
 
 The validator fails closed on schema drift, coercion, bad hashes, missing or
 extra Ground truth proposals, invalid references or ordering, span mismatches,

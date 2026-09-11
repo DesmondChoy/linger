@@ -151,7 +151,7 @@ def test_requires_retrieval_configuration_for_selected_objective(
 
 def test_accepts_complete_retrieval_configuration_prompt(tmp_path: Path) -> None:
     prompt = """
-Use synthetic-journal-evaluation/run-configurations/longitudinal-memory-retrieval-10-to-1.json
+Use synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json
 and include its ID in
 run_configuration_ids. Make the two retrieval Scenes share the same 11 active
 Props. In the target Scene, exactly one relevant Prop and ten distractor Props

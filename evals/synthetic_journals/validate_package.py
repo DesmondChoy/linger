@@ -40,7 +40,7 @@ from evals.synthetic_journals.surfacing_contract import (
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
-    REPOSITORY_ROOT / "synthetic-journal-evaluation" / "run-configurations"
+    REPOSITORY_ROOT / "synthetic-journal-evaluation" / "generation-presets"
 )
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID = "grounded_book_reflection"

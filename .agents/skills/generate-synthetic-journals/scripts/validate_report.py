@@ -130,7 +130,7 @@ def validate_report(
             retrieval_requirements = (
                 (
                     "longitudinal retrieval run configuration",
-                    r"synthetic-journal-evaluation/run-configurations/"
+                    r"synthetic-journal-evaluation/generation-presets/"
                     r"longitudinal-memory-retrieval-10-to-1\.json",
                 ),
                 ("one relevant Prop", r"exactly one\b.*\brelevant\b.*\bProp"),
@@ -152,7 +152,7 @@ def validate_report(
                     errors.append(f"fenced prompt lacks {label}")
         if "reviewed_automatic_memory_capture" in selected_objective_ids:
             capture_path = (
-                "synthetic-journal-evaluation/run-configurations/"
+                "synthetic-journal-evaluation/generation-presets/"
                 "reviewed-automatic-memory-capture-10-to-1.json"
             )
             if capture_path not in prompt:

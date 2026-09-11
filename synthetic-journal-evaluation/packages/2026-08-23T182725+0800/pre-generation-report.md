@@ -75,7 +75,7 @@ PRECONDITIONS
   - evals/synthetic_journals/models.py
   - evals/synthetic_journals/validate_package.py
   - evals/synthetic_journals/README.md
-  - synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json
+  - synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json
   - src/linger/agents/muse/models.py
   - src/linger/orchestration/capture.py
   - src/linger/services/memory.py
@@ -84,7 +84,7 @@ PRECONDITIONS
 
 Create exactly one synthetic-journal package for the reviewed_automatic_memory_capture Objective. Write only PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at PACKAGE_DIRECTORY/ground-truth.json. Do not create directories, GenerationPlan, contract version, provenance framework, adopted labels, replay data, grader output, or any other file. Do not invoke Linger or grade recorded behavior.
 
-Use evals/synthetic_journals/models.py unchanged as the package authority and synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json as the resolved workflow input. Set run_configuration_ids to exactly ["reviewed-automatic-memory-capture-10-to-1"]. The workflow enables automatic capture for the application-authenticated evaluation account; do not encode that control as a Line.
+Use evals/synthetic_journals/models.py unchanged as the package authority and synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json as the resolved workflow input. Set run_configuration_ids to exactly ["reviewed-automatic-memory-capture-10-to-1"]. The workflow enables automatic capture for the application-authenticated evaluation account; do not encode that control as a Line.
 
 PACKAGE_DIRECTORY/backstory.json requirements:
 - Create exactly one memory-only Backstory for one person and one evaluation account. Make all 11 Scenes plausible parts of that person's life.
