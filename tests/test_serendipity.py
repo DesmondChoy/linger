@@ -28,6 +28,7 @@ from src.linger.agents.serendipity.models import (
 )
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
+    _query_copies_reader_terms,
     SearchTrace,
     SerendipityDependencies,
     search_librarian,
@@ -151,6 +152,55 @@ def proposal(**updates: object) -> ConnectionProposal:
     }
     values.update(updates)
     return ConnectionProposal.model_validate(values)
+
+
+class WebQueryPrivacyTests(unittest.TestCase):
+    """The gate must refuse the reader's wording without refusing their topic."""
+
+    LONG_CUE = (
+        "I've just reached the bit in Alice in Wonderland where the gardeners "
+        "are painting the white roses red before the Queen arrives, because "
+        "they planted the wrong tree and are terrified she'll find out. That "
+        "scene got under my skin more than I expected. Is there anything "
+        "written about why people quietly patch up their own mistakes instead "
+        "of reporting them?"
+    )
+    MEMORY = (
+        "I fixed the billing error myself over the weekend and never told "
+        "anyone it happened."
+    )
+
+    def test_short_text_protects_every_word_including_a_name(self) -> None:
+        for source, query in (
+            ("Li and I divorced", "Li divorce"),
+            ("will and i divorced", "will divorce"),
+            ("Jane and I had an affair", "Jane affair"),
+        ):
+            with self.subTest(query=query):
+                self.assertTrue(_query_copies_reader_terms(query, source))
+
+    def test_long_text_allows_a_shared_topic_word(self) -> None:
+        for query in (
+            "why people hide mistakes quietly cover up errors psychology accountability",
+            "error concealment organizational psychology accountability",
+            "organizational silence error reporting",
+        ):
+            with self.subTest(query=query):
+                self.assertFalse(_query_copies_reader_terms(query, self.LONG_CUE))
+                self.assertFalse(_query_copies_reader_terms(query, self.MEMORY))
+
+    def test_long_text_still_refuses_copied_phrasing(self) -> None:
+        self.assertTrue(
+            _query_copies_reader_terms(
+                "fixed the billing error myself over the weekend", self.MEMORY
+            )
+        )
+        self.assertTrue(_query_copies_reader_terms("billing error", self.MEMORY))
+        self.assertTrue(
+            _query_copies_reader_terms(
+                "why people quietly patch up their own mistakes", self.LONG_CUE
+            )
+        )
 
 
 class SerendipityContractTests(unittest.TestCase):
