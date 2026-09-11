@@ -1,0 +1,80 @@
+{
+  "backstory_sha256": "44c38e8d4972af504a2d207da4ad05f19473f3b92d76a3fc76759289281d176f",
+  "proposed_ground_truth_sha256": "1887ab17d3875c898d8e005e65b3c0567c59a407d929ac333c9381f5c5b2eec2",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "explicit_human_instruction"
+  },
+  "reviewed_at": "2026-09-11T22:14:12.358868+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-mara-01-capture",
+      "scene_id": "scene-mara-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-02-capture",
+      "scene_id": "scene-mara-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-03-capture",
+      "scene_id": "scene-mara-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-04-capture",
+      "scene_id": "scene-mara-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-05-capture",
+      "scene_id": "scene-mara-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-06-capture",
+      "scene_id": "scene-mara-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-07-capture",
+      "scene_id": "scene-mara-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-08-capture",
+      "scene_id": "scene-mara-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-09-capture",
+      "scene_id": "scene-mara-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-10-capture",
+      "scene_id": "scene-mara-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-mara-11-capture",
+      "scene_id": "scene-mara-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "5ae9df86a04943f8e8efe0c1b0d16fdf9e868c43116078c8205697345f9f465b"
+}

@@ -18,6 +18,7 @@ import pytest
 
 from evals.synthetic_journals.adoption import (
     GroundTruthAdoptionError,
+    build_ground_truth_adoption,
     validate_ground_truth_adoption_files,
 )
 from evals.synthetic_journals.models import (
@@ -26,6 +27,7 @@ from evals.synthetic_journals.models import (
     HumanGroundTruthReviewer,
 )
 from evals.synthetic_journals.replay_support import replay_support_for
+from evals.synthetic_journals.validate_package import validate_package_files
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -792,3 +794,28 @@ def test_ground_truth_adoption_model_rejects_naive_review_time() -> None:
             ),
             adopted_ground_truth_identity="2" * 64,
         )
+
+
+def test_explicit_human_adoption_round_trips_and_rejects_changed_source(
+    tmp_path: Path,
+) -> None:
+    package = tmp_path / "package"
+    _copy_package(CAPTURE_PACKAGE, package)
+    backstory = package / "backstory.json"
+    ground_truth = package / "ground-truth.json"
+    _, proposed = validate_package_files(backstory, ground_truth)
+    adoption = build_ground_truth_adoption(
+        proposed, ground_truth.read_bytes(), reviewer_id="developer@example.com"
+    ).model_copy(update={"reviewer": HumanGroundTruthReviewer(
+        reviewer_id="developer@example.com",
+        review_method="explicit_human_instruction",
+    )})
+    path = package / "ground-truth-adoption.json"
+    path.write_text(adoption.model_dump_json())
+    _, _, loaded = validate_ground_truth_adoption_files(backstory, ground_truth, path)
+    assert loaded.reviewer.review_method == "explicit_human_instruction"
+    assert len(loaded.decisions) == len(proposed.proposals)
+
+    ground_truth.write_bytes(ground_truth.read_bytes() + b"\n")
+    with pytest.raises(GroundTruthAdoptionError, match="exact file bytes"):
+        validate_ground_truth_adoption_files(backstory, ground_truth, path)

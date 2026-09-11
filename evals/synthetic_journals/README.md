@@ -108,6 +108,12 @@ reject every proposal before it can grade Linger.
 
 ## Independent Ground truth review
 
+Adoption records distinguish `interactive_local_review` from
+`explicit_human_instruction`. The latter records a developer's direct adoption
+decision, without claiming that the review UI was used. Both methods bind every
+proposal to the exact Backstory and Ground truth bytes. Direct adoption alone
+does not authorize a provider replay or retroactively grade historical runs.
+
 Review a validated package with the desktop-only local app:
 
 ```bash
