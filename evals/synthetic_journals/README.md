@@ -9,7 +9,8 @@ package contains one Backstory, person, and evaluation account; build a full
 dataset from multiple independently validated packages.
 
 Checked-in authoring packages live under
-`synthetic-journal-evaluation/packages/<scenario-set>--<agents>--<YYYY-MM-DD>/`. The human-only
+`synthetic-journal-evaluation/packages/<scenario-set>--<agents>--<YYYY-MM-DD>/`.
+The human-only
 `pre-generation-report.md` sits beside `backstory.json` and
 `ground-truth.json` but is not validator input. Shared resolved constraints
 remain under `synthetic-journal-evaluation/generation-presets/` because packages
@@ -150,12 +151,12 @@ Objective alone, and their combination. Other selections stop after adoption.
 
 ## Capture replay
 
-Replay the validated capture-only package through the production Muse path:
+Replay a validated capture-only package through the production Muse path:
 
 ```bash
 uv run python -m evals.synthetic_journals.replay \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
+  path/to/backstory.json \
+  path/to/ground-truth.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
 ```
 
@@ -213,9 +214,10 @@ separate runtime concern. Ground truth never supplies a storage candidate.
 Artifact schema 2 records the complete typed expectation, observed nomination,
 per-Scene `hard_failures`, storage observations, and policy retry result. The
 native evaluation label uses the same failures as the durable artifact. Earlier
-nomination-only runs cannot establish these outcomes. The checked-in capture
-package remains proposed and needs independent human adoption and a fresh
-provider-backed run before it supplies adopted evaluation evidence.
+nomination-only runs cannot establish these outcomes. The capture JSON under
+`tests/fixtures/synthetic_capture/` is proposed test data, not a completed
+evaluation. A capture evaluation requires independent human adoption and a
+provider-backed run before it supplies adopted evidence.
 
 The capture command accepts `--adoption PATH` only for an adoption that validates
 against the exact Backstory and proposed Ground truth bytes. `--output PATH`

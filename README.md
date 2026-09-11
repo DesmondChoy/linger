@@ -303,8 +303,8 @@ uv run python \
 
 # Replay a capture package through the production application chat boundary
 uv run python -m evals.synthetic_journals.replay \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
+  path/to/backstory.json \
+  path/to/ground-truth.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
 
 # Replay a bounded-curation package through production Sculptor

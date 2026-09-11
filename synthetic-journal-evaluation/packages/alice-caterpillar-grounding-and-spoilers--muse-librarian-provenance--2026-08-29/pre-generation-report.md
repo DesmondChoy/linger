@@ -59,7 +59,7 @@ STATUS: Runnable after human approval
 
 PRECONDITIONS: Generate only after a human approves this target design and prompt. The implemented mixed-Objective replay and grading path is present. Generation still creates proposed labels only; independent adoption remains a later human step.
 
-PACKAGE_DIRECTORY=synthetic-journal-evaluation/packages/2026-08-29T095720+0800
+PACKAGE_DIRECTORY=synthetic-journal-evaluation/packages/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29
 
 You have read-only access to the current checkout. Inspect only data/corpus/, evals/synthetic_journals/models.py, and evals/synthetic_journals/validate_package.py at invocation time. Discover the available work, immutable version, ordered structure, and exact evidence from data/corpus/; do not rely on a book fact from an earlier report.
 

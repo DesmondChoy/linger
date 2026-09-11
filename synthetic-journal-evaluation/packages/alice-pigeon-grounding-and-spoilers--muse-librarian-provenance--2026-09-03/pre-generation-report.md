@@ -76,7 +76,7 @@ STATUS: Runnable after human approval
 PRECONDITIONS:
 The developer must explicitly approve generation using this design and prompt. At invocation time, confirm that the current canonical book models, compiler, validator, review interface, and supported replay selections still agree and their focused tests pass. Confirm that the registered corpus is intact and both reserved output paths are absent. Stop without writing files if any condition is unmet or cannot be established. Implementation approval alone is not generation approval.
 
-PACKAGE_DIRECTORY=synthetic-journal-evaluation/packages/2026-09-03T200134+0800
+PACKAGE_DIRECTORY=synthetic-journal-evaluation/packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03
 
 You have read-only access to the current checkout except for two reserved outputs:
 - PACKAGE_DIRECTORY/backstory.json

@@ -1,0 +1,240 @@
+{
+  "objective_ids": [
+    "reviewed_automatic_memory_capture"
+  ],
+  "run_configuration_ids": [
+    "reviewed-automatic-memory-capture-10-to-1"
+  ],
+  "backstory": {
+    "backstory_id": "backstory-mara-001",
+    "person_id": "person-mara",
+    "evaluation_account_id": "eval-account-mara-001",
+    "context": "Mara Chen lives in Singapore and uses one evaluation account for separate, casual reflections about errands, home routines, workdays, and time with family."
+  },
+  "props": [],
+  "scenes": [
+    {
+      "scene_id": "scene-mara-01",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-01"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-02",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-02"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-03",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-03"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-04",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-04"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-05",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-05"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-06",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 6,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-06"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-07",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 7,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-07"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-08",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 8,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-08"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-09",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 9,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-09"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-10",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 10,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-10"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-mara-11",
+      "backstory_id": "backstory-mara-001",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 11,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-mara-11"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-mara-01",
+      "scene_id": "scene-mara-01",
+      "order": 1,
+      "text": "I put the rice on, and I’m waiting for the timer before I head downstairs."
+    },
+    {
+      "line_id": "line-mara-02",
+      "scene_id": "scene-mara-02",
+      "order": 1,
+      "text": "Anyway, that’s all I had in mind just now."
+    },
+    {
+      "line_id": "line-mara-03",
+      "scene_id": "scene-mara-03",
+      "order": 1,
+      "text": "The clouds went pink for a minute after the rain."
+    },
+    {
+      "line_id": "line-mara-04",
+      "scene_id": "scene-mara-04",
+      "order": 1,
+      "text": "I’ll take the 6:20 train tonight and grab dinner after I get off."
+    },
+    {
+      "line_id": "line-mara-05",
+      "scene_id": "scene-mara-05",
+      "order": 1,
+      "text": "I watered the basil and folded the towels before logging on."
+    },
+    {
+      "line_id": "line-mara-06",
+      "scene_id": "scene-mara-06",
+      "order": 1,
+      "text": "Oh, I lost my train of thought—never mind."
+    },
+    {
+      "line_id": "line-mara-07",
+      "scene_id": "scene-mara-07",
+      "order": 1,
+      "text": "I’ve realized that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+    },
+    {
+      "line_id": "line-mara-08",
+      "scene_id": "scene-mara-08",
+      "order": 1,
+      "text": "The café downstairs has a long queue this afternoon."
+    },
+    {
+      "line_id": "line-mara-09",
+      "scene_id": "scene-mara-09",
+      "order": 1,
+      "text": "I left my tote by the front door for the market later."
+    },
+    {
+      "line_id": "line-mara-10",
+      "scene_id": "scene-mara-10",
+      "order": 1,
+      "text": "Lunch was noodles, cucumber, and a pear today."
+    },
+    {
+      "line_id": "line-mara-11",
+      "scene_id": "scene-mara-11",
+      "order": 1,
+      "text": "My desk feels oddly quiet with the fan switched off."
+    }
+  ],
+  "offline_inputs": []
+}

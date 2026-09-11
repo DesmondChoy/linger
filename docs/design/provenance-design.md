@@ -227,7 +227,7 @@ table above is its direct measurement.
 **C. Author and run the package**
 
 - [x] **C1 — Run the skill** (`grounded_book_reflection`).
-      [2026-08-31 report](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/pre-generation-report.md):
+      [2026-08-31 report](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md):
       implementation **sufficient**, both Scenes plus pairing and Prop placement
       `runnable`, prompt labelled *Runnable after human approval*. The earlier
       prediction of *partially runnable* is superseded — A1/A2/A3 landed first.
@@ -247,7 +247,7 @@ table above is its direct measurement.
 | `scene-grounded-quotation` | grounded | `fails_hard_gates` | `release_source_mismatch`, `missing_retrieval` |
 
 - [x] **C5 — `spoiler_boundary_clarification` package replayed.**
-      [2026-09-01 package](../../synthetic-journal-evaluation/packages/2026-09-01T231852+0800),
+      [2026-09-01 package](../../synthetic-journal-evaluation/packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01),
       adopted Ground truth, dataset `57b1d301e84e`. **1 of 2 Scenes passed**, and
       the failure is a real product defect — see
       [§5.14](#514-c5-spoiler-boundary-replay).
@@ -582,7 +582,7 @@ hard-gate pass does not claim semantic quality.
 
 This section previously predicted **partially runnable** Scenes pending A1–A3.
 That prediction is superseded: with A1, A2, A3, B1, and B2 landed, the
-[2026-08-31 report](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/pre-generation-report.md)
+[2026-08-31 report](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md)
 for `grounded_book_reflection` assesses the implementation **sufficient**, marks
 both Scenes, their pairing, and Prop placement `runnable`, and labels its
 generator prompt *Runnable after human approval*.
@@ -957,7 +957,7 @@ so D5 should wait on it.
 ### 5.13 C4 first end-to-end replay
 
 Two Scenes, adopted Ground truth, dataset version `5fa5eb15ef10`, artifact at
-[`reflection-run.json`](../../synthetic-journal-evaluation/packages/2026-08-31T232340+0800/reflection-run.json).
+[`reflection-run.json`](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/reflection-run.json).
 
 | Scene | Behaviour | Result | Gates |
 |---|---|---|---|
@@ -1017,7 +1017,7 @@ live provider failure mid-gate.
 ### 5.14 C5 spoiler-boundary replay
 
 Two Scenes, adopted Ground truth, dataset `57b1d301e84e`, artifact at
-[`reflection-run.json`](../../synthetic-journal-evaluation/packages/2026-09-01T231852+0800/reflection-run.json).
+[`reflection-run.json`](../../synthetic-journal-evaluation/packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/reflection-run.json).
 
 | Scene | Behaviour | Result | Gates |
 |---|---|---|---|

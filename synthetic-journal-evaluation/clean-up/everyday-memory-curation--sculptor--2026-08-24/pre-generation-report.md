@@ -67,7 +67,7 @@ PRECONDITIONS
 - The active contracts in evals/synthetic_journals/models.py represent a typed curation action or no-change expectation, expected source IDs, and separate semantic criteria without introducing a parallel schema.
 - evals/synthetic_journals/validate_package.py deterministically validates those curation expectations, all permitted Scene Prop IDs, active lifecycle state, exact spans, and Prop evidence.
 - The approved package-to-Sculptor replay adapter exists, calls production propose_curation, records full-deployment and objective-execution identities, proves source immutability, and has focused passing tests.
-- PACKAGE_DIRECTORY is synthetic-journal-evaluation/packages/2026-08-24T202056+0800, contains only pre-generation-report.md, and has no backstory.json or ground-truth.json.
+- PACKAGE_DIRECTORY is synthetic-journal-evaluation/clean-up/everyday-memory-curation--sculptor--2026-08-24, contains only pre-generation-report.md, and has no backstory.json or ground-truth.json.
 - If any precondition is unmet, stop without writing.
 
 You have read-only access to the current Linger checkout. Inspect only these permitted repository paths at invocation time:

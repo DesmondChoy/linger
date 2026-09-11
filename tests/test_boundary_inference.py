@@ -178,7 +178,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_adopted_prop_reaches_private_judge_from_saved_memory(self) -> None:
         package = Path(__file__).resolve().parents[1] / (
-            "synthetic-journal-evaluation/packages/2026-09-03T200134+0800/backstory.json"
+            "synthetic-journal-evaluation/packages/"
+            "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/"
+            "backstory.json"
         )
         backstory = json.loads(package.read_text())
         prop = backstory["props"][0]

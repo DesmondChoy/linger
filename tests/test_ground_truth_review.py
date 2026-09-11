@@ -45,9 +45,9 @@ SPEC.loader.exec_module(reviewer)
 
 CAPTURE_PACKAGE = (
     ROOT
-    / "synthetic-journal-evaluation"
-    / "packages"
-    / "2026-08-23T182725+0800"
+    / "tests"
+    / "fixtures"
+    / "synthetic_capture"
 )
 BOOK_VERSION = "pg11-v01b38ea4"
 BOOK_CHAPTER = (
@@ -64,8 +64,9 @@ BOOK_QUOTE = "“Who are _you?_” said the Caterpillar."
 
 def _copy_package(source: Path, destination: Path) -> None:
     destination.mkdir()
-    for name in ("backstory.json", "ground-truth.json", "pre-generation-report.md"):
+    for name in ("backstory.json", "ground-truth.json"):
         shutil.copyfile(source / name, destination / name)
+    (destination / "pre-generation-report.md").write_text("Fixture report")
 
 
 def _write_book_package(destination: Path) -> None:
