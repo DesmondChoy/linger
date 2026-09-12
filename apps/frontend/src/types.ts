@@ -23,7 +23,9 @@ export type MuseTurnContract = {
   user_message: string
   reading_context: {
     work_id: string
-    chapter_max: number
+    chapter_max: number | null
+    part_id: string
+    unit_ids: string[]
     boundary_source: 'reader_confirmed' | 'librarian_inferred'
   } | null
   policy: {
@@ -48,13 +50,16 @@ export type ContextResolution = {
   work_title: string | null
   book_version_id: string | null
   chapter_max: number | null
+  part_id: string
+  unit_ids: string[]
   boundary_source: 'reader_confirmed' | 'librarian_inferred' | null
   boundary_authorization_basis: 'explicit_progress' | 'memory_supported' | null
   boundary_confidence: number | null
   boundary_supporting_memory_ids: string[]
   boundary_supporting_locations: {
     evidence_id: string
-    chapter_number: number
+    chapter_number: number | null
+    part_id: string
     location: string
   }[]
   clarification_question: string | null

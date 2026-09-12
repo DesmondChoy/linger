@@ -65,7 +65,9 @@ async def librarian_route() -> LibrarianRoutingResponse:
     Returns a chapter-scoped `routed` work, exact `passages` permission,
     a clarification, or no match. Call `librarian_search` with the returned
     `work_id` and `book_version_id`. For `routed`, build `reading_boundary` from
-    `max_chapter_inclusive`; for `passages`, pass `reading_boundary=None`.
+    `max_chapter_inclusive`, preserving `part_id`. When `unit_ids` is nonempty,
+    pass those exact IDs with chapter_number=None and chapter_state="completed";
+    for `passages`, pass `reading_boundary=None`.
     Routing returns no source text and grants no write authority. If clarification
     is needed, stop book answering and other tools; after safety review the
     application sends the validated question without requiring a verbatim copy.

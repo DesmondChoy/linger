@@ -1024,3 +1024,34 @@ def test_semantic_spoiler_result_is_separate_and_contains_paraphrase(replay_obse
     assert all(
         result.status == "not_run" for result in run.scenes[0].semantic_spoiler_results
     )
+
+
+def test_chapter_boundary_handoff_accepts_location_metadata_without_accepting_new_authority(replay_observed):
+    from evals.synthetic_journals.book_replay import _boundary_handoff_is_content_free
+
+    exchange = replay_observed[1].scenes[0].agent_exchanges[0]
+    route = _route_call()["response"] | {"part_id": "main", "unit_ids": []}
+    assert _boundary_handoff_is_content_free("infer", route, (exchange,))
+    for unsafe in (
+        route | {"text": QUOTE},
+        route | {"part_id": "part-iii"},
+        route | {"max_chapter_inclusive": None, "unit_ids": ["some-letter"]},
+        route | {"unit_ids": [QUOTE]},
+    ):
+        assert not _boundary_handoff_is_content_free("infer", unsafe, (exchange,))
+
+
+def test_chapter_objective_rejects_other_part_and_named_evidence(replay_observed):
+    from evals.synthetic_journals.book_replay import _scope_failures
+
+    plan, run = replay_observed
+    original = run.scenes[0]
+    call = original.grounding_calls[0]
+    for changed in (
+        call.model_copy(update={"searched_part_id": "part-iii"}),
+        call.model_copy(update={"searched_max_chapter": None, "searched_unit_ids": ("some-letter",)}),
+        call.model_copy(update={"evidence": tuple(item.model_copy(update={"part_id": "part-iii"}) for item in call.evidence)}),
+        call.model_copy(update={"evidence": tuple(item.model_copy(update={"chapter_number": None}) for item in call.evidence)}),
+    ):
+        observation = original.model_copy(update={"grounding_calls": (changed,)})
+        assert _scope_failures(plan.scenes[0], observation)

@@ -18,6 +18,8 @@ from src.linger.agents.provenance.emotional import emotional_boundary_agent
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
+from src.linger.contracts.reading import scope_fields
+from apps.backend.contracts import BookScope
 from src.linger.corpus.registry import BookClarification, ResolvedBook, resolve_book_identity
 from src.linger.orchestration.connection import web_reach_permitted
 from src.linger.orchestration.emotional import (
@@ -106,7 +108,7 @@ TITLE_END_PATTERN = re.compile(
 )
 COMPLETION_PATTERN = re.compile(
     r"\b(?:i(?:'ve|’ve| have)\s+(?:now\s+)?(?:finished|completed|read\s+through|got\s+through)|"
-    r"i(?:'m| am)\s+(?:now\s+)?done\s+with)\b",
+    r"i\s+(?:now\s+)?(?:finished|completed)|i(?:'m| am)\s+(?:now\s+)?done\s+with)\b",
     re.IGNORECASE,
 )
 IN_PROGRESS_PATTERN = re.compile(
@@ -134,7 +136,115 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
     title = TITLE_END_PATTERN.split(title_match.group("title"), maxsplit=1)[0].strip(
         " \"'“”.,:;"
     )
+    title = re.sub(r"^part\s+(?:[ivxlcdm]+|\d+)\s+of\s+", "", title, flags=re.IGNORECASE)
     return title or None
+
+
+PART_PATTERN = re.compile(r"\bpart\s+([ivxlcdm]+|\d+)\b", re.IGNORECASE)
+NAMED_LOCATION_KINDS = {
+    "letter": "letter", "letters": "letter", "preface": "preface",
+    "dedication": "dedication", "appendix": "appendix",
+    "biographical introduction": "biography", "introduction to the letters": "introduction",
+    "parody": "poem",
+}
+NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
+NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
+DECLARATION_END_PATTERN = re.compile(
+    r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)|"
+    r"(?:[,—]\s*|\s+(?:and|but)\s+)(?=(?:i|what|why|how|tell|can|could|would|please)\b)",
+    re.IGNORECASE,
+)
+READ_NAMED_PATTERN = re.compile(
+    rf"\bi (?:have )?read\s+(?=(?:the\s+)?(?:editor['’]s\s+)?{NAMED_LOCATION}\b)",
+    re.IGNORECASE,
+)
+
+
+def _completed_location(message: str) -> str | None:
+    completion = COMPLETION_PATTERN.search(message) or READ_NAMED_PATTERN.search(message)
+    if completion is None:
+        return None
+    location = DECLARATION_END_PATTERN.split(message[completion.end():], maxsplit=1)[0].strip()
+    if not re.match(
+        rf"(?:reading\s+)?(?:(?:the|that|this)\s+)?(?:editor['’]s\s+)?(?:part|chapter|ch\.?|scene|it|{NAMED_LOCATION})\b",
+        location, re.IGNORECASE,
+    ):
+        return None
+    return location
+
+
+def _location_words(text: str) -> str:
+    words = re.findall(r"[a-z0-9]+", text.casefold())
+    return " ".join(word for word in words if word not in {"mr", "mrs", "miss", "dr"})
+
+
+def _named_book_title(location: str, selection: sessions.BookSelection | None) -> str | None:
+    message = _location_words(location)
+    names = list(NAMED_LOCATION_PATTERN.finditer(message))
+    if len(names) != 1:
+        return None
+    name = names[0]
+    end = name.end()
+    if selection:
+        version = librarian_service.version_for(selection.book_id)
+        for unit in librarian_service.units_for(selection.book_id, version):
+            if unit.kind != NAMED_LOCATION_KINDS[name.group().lower()]:
+                continue
+            for label in (unit.label, unit.title, unit.recipient, unit.date):
+                if label:
+                    match = re.search(rf"\b{re.escape(_location_words(label))}\b", message)
+                    if match:
+                        end = max(end, match.end())
+    qualifier = re.search(r"\b(?:of|in)\s+(.+)$", message[end:])
+    return qualifier.group(1) if qualifier else None
+
+
+def _named_reading(request: ChatRequest, selection: sessions.BookSelection, location: str) -> ContextResolution:
+    version = librarian_service.version_for(selection.book_id)
+    units = librarian_service.units_for(selection.book_id, version)
+    message = _location_words(location)
+    names = NAMED_LOCATION_PATTERN.findall(location)
+    kind = NAMED_LOCATION_KINDS[names[0].lower()] if len(names) == 1 else None
+    explicit_part = PART_PATTERN.search(location) is not None
+    candidates = []
+    for unit in units:
+        if unit.chapter_number is not None or unit.kind != kind or (explicit_part and unit.part_id != selection.part_id):
+            continue
+        labels = [unit.title, unit.label]
+        if unit.recipient:
+            labels.append(unit.recipient)
+        if unit.kind in {"preface", "dedication", "appendix"}:
+            labels.append(unit.kind)
+        if any(_location_words(label) and _location_words(label) in message for label in labels):
+            candidates.append(unit)
+    dated = [unit for unit in candidates if unit.date and _location_words(unit.date) in message]
+    if dated or re.search(r"\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b.*\b[12]\d{3}\b", message):
+        candidates = dated
+    if len(candidates) != 1:
+        return ContextResolution(status="inferred", work_id=selection.book_id,
+            work_title=selection.book_title, book_version_id=version,
+            clarification_question="Which named section or letter did you finish? Please include the letter's recipient and date.",
+            explanation="The named reading location is ambiguous; no reading permission was granted.")
+    unit = candidates[0]
+    sessions.set_book_selection(request.session_id, selection.model_copy(update={"part_id": unit.part_id}))
+    return ContextResolution(status="confirmed", work_id=selection.book_id,
+        work_title=selection.book_title, book_version_id=version,
+        part_id=unit.part_id, unit_ids=(unit.chapter_id,), boundary_source="reader_confirmed",
+        boundary_authorization_basis="explicit_progress",
+        explanation="The reader explicitly completed this named unit; earlier units are not included.")
+
+
+def _chapter_reading(selection: sessions.BookSelection, chapter: int) -> dict[str, object]:
+    version = librarian_service.version_for(selection.book_id)
+    scope = librarian_service.registered_scope(selection.book_id, version, part_id=selection.part_id)
+    if scope is None or chapter > scope.max_chapter:
+        return {"status": "inferred", "work_id": selection.book_id, "work_title": selection.book_title,
+            "book_version_id": version, "clarification_question": "Which part and chapter have you completed?",
+            "explanation": "That chapter does not exist in the selected part; no reading permission was granted."}
+    return {"status": "confirmed", "work_id": selection.book_id, "work_title": selection.book_title,
+        "book_version_id": version, "chapter_max": chapter, "part_id": selection.part_id,
+        "boundary_source": "reader_confirmed", "boundary_authorization_basis": "explicit_progress",
+        "explanation": "The reader explicitly confirmed this completed chapter in the current message."}
 
 
 def resolve_reading_context(request: ChatRequest) -> ContextResolution:
@@ -159,19 +269,33 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         sessions.clear_pending_clarification(request.session_id)
         pending = None
     in_progress = IN_PROGRESS_PATTERN.search(request.message) is not None
-    completed = COMPLETION_PATTERN.search(request.message) is not None and not in_progress
+    completed_location = _completed_location(request.message) if not in_progress else None
+    completed = completed_location is not None
+
 
     candidate_confirmed = bool(
         candidate and not in_progress and AFFIRMATION_PATTERN.search(request.message)
     )
     if candidate and candidate_confirmed:
-        selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title)
+        selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title, part_id=candidate.part_id)
         sessions.set_book_selection(request.session_id, selection)
 
-    chapter_match = CHAPTER_PATTERN.search(request.message)
-    explicit_title = _declared_title(request.message, chapter_match)
+    progress_message = completed_location if completed_location is not None else request.message
+    chapter_match = CHAPTER_PATTERN.search(progress_message)
+    explicit_title = _declared_title(progress_message, chapter_match)
+    if explicit_title is None:
+        explicit_title = _declared_title(request.message, CHAPTER_PATTERN.search(request.message))
+    named_location = NAMED_LOCATION_PATTERN.search(progress_message) is not None
+    if named_location and completed:
+        mentioned = resolve_book_identity(progress_message, settings.allowed_book_version_ids)
+        named_selection = selection
+        if isinstance(mentioned, ResolvedBook):
+            named_selection = sessions.BookSelection(book_id=mentioned.registration.book.work_id)
+        explicit_title = _named_book_title(progress_message, named_selection)
+
     identity = resolve_book_identity(
-        explicit_title or request.message, settings.allowed_book_version_ids, exact=True
+        explicit_title or request.message, settings.allowed_book_version_ids,
+        exact=bool(explicit_title) or not (named_location and completed),
     )
     if explicit_title or identity is not None:
         if not isinstance(identity, ResolvedBook):
@@ -186,24 +310,42 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         if candidate and candidate.book_id != book.work_id:
             sessions.clear_reading_candidate(request.session_id)
             candidate = None
-        selection = sessions.BookSelection(book_id=book.work_id, book_title=book.title)
+        selection = sessions.BookSelection(book_id=book.work_id, book_title=book.title,
+            part_id=selection.part_id if selection and selection.book_id == book.work_id else "main")
         sessions.set_book_selection(request.session_id, selection)
+
+    if completed and selection and (
+        len(CHAPTER_PATTERN.findall(progress_message)) > 1 or (named_location and chapter_match is not None)
+    ):
+        return ContextResolution(
+            status="inferred", work_id=selection.book_id, work_title=selection.book_title,
+            book_version_id=librarian_service.version_for(selection.book_id),
+            clarification_question="Which single chapter or named reading location have you completed?",
+            explanation="The declaration contains multiple reading locations; no reading permission was granted.",
+        )
+
+    part_declaration = completed_location or (
+        request.message if re.search(r"\bi(?:'m| am)\s+(?:in|reading)\s+part\b", request.message, re.IGNORECASE) else ""
+    )
+    parts = PART_PATTERN.findall(part_declaration)
+    if selection and parts:
+        part_id = {"i": "main", "1": "main", "ii": "letters", "2": "letters", "iii": "part-iii", "3": "part-iii"}.get(parts[0].lower())
+        if part_id is None or len({value.lower() for value in parts}) != 1:
+            return ContextResolution(status="inferred", work_id=selection.book_id,
+                work_title=selection.book_title, book_version_id=librarian_service.version_for(selection.book_id),
+                clarification_question="Which part and chapter have you completed?",
+                explanation="The declared part is unsupported or ambiguous; no reading permission was granted.")
+        selection = selection.model_copy(update={"part_id": part_id})
+        sessions.set_book_selection(request.session_id, selection)
+    if completed and named_location and selection and chapter_match is None:
+        return _named_reading(request, selection, completed_location)
 
     if completed and chapter_match and selection:
         chapter = int(chapter_match.group(1))
         sessions.clear_pending_clarification(request.session_id)
         if candidate and selection.book_id == candidate.book_id:
             sessions.clear_reading_candidate(request.session_id)
-        return ContextResolution(
-            status="confirmed",
-            work_id=selection.book_id,
-            work_title=selection.book_title,
-            book_version_id=librarian_service.version_for(selection.book_id),
-            chapter_max=chapter,
-            boundary_source="reader_confirmed",
-            boundary_authorization_basis="explicit_progress",
-            explanation="The reader explicitly confirmed this completed chapter in the current message.",
-        )
+        return ContextResolution(**_chapter_reading(selection, chapter))
 
     if (
         chapter_match is None
@@ -220,6 +362,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             work_title=candidate.book_title,
             book_version_id=librarian_service.version_for(candidate.book_id),
             chapter_max=candidate.chapter,
+            part_id=candidate.part_id,
             boundary_source="reader_confirmed",
             boundary_authorization_basis="explicit_progress",
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
@@ -232,23 +375,12 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         and (selection is None or selection.book_id == pending.book_id)
     ):
         chapter = int(chapter_match.group(1))
-        selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title)
+        selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title,
+            part_id=selection.part_id if selection else pending.part_id)
         sessions.set_book_selection(request.session_id, selection)
         sessions.clear_pending_clarification(request.session_id)
         sessions.clear_reading_candidate(request.session_id)
-        return ContextResolution(
-            status="confirmed",
-            work_id=pending.book_id,
-            work_title=pending.book_title,
-            book_version_id=librarian_service.version_for(pending.book_id),
-            chapter_max=chapter,
-            boundary_source="reader_confirmed",
-            boundary_authorization_basis="explicit_progress",
-            explanation=(
-                "The reader answered Librarian's pending chapter question with an "
-                "explicit chapter in the current message."
-            ),
-        )
+        return ContextResolution(**_chapter_reading(selection, chapter))
 
     if selection:
         return ContextResolution(
@@ -281,10 +413,10 @@ def prepare_reflection_turn(
     context = (
         ReadingContext(
             work_id=resolution.work_id,
-            chapter_max=resolution.chapter_max,
+            **scope_fields(resolution),
             boundary_source=resolution.boundary_source,
         )
-        if resolution.status == "confirmed" and resolution.work_id and resolution.chapter_max
+        if resolution.status == "confirmed" and resolution.work_id
         else None
     )
     turn_id = request.turn_id or str(uuid4())
@@ -601,13 +733,16 @@ def _apply_initial_reading(
         raise ValueError("initial reading requires a fresh session")
     registered = librarian_service.registered_scope(
         initial_reading.work_id, initial_reading.book_version_id,
+        part_id=initial_reading.part_id if not initial_reading.unit_ids else "main",
     )
     if (
         registered is None
         or initial_reading.book_version_id not in settings.allowed_book_version_ids
-        or initial_reading.chapter_max > registered.max_chapter
+        or (initial_reading.chapter_max is not None and initial_reading.chapter_max > registered.max_chapter)
     ):
         raise ValueError("initial reading exceeds the registered application book scope")
+    librarian_service.eligible_units(BookScope(work_id=initial_reading.work_id,
+        book_version_id=initial_reading.book_version_id, **scope_fields(initial_reading)))
     identity = resolve_book_identity(request.message, settings.allowed_book_version_ids)
     if (isinstance(identity, BookClarification) and (
         len(identity.candidates) != 1
@@ -631,16 +766,16 @@ def _apply_initial_reading(
     ):
         raise ValueError("initial reading conflicts with the reader's chapter declaration")
     sessions.set_book_selection(request.session_id, sessions.BookSelection(
-        book_id=registered.work_id, book_title=registered.title,
+        book_id=registered.work_id, book_title=registered.title, part_id=initial_reading.part_id,
     ))
     resolved = resolve_reading_context(request)
     if resolved.clarification_question or (
         resolved.work_id is not None and resolved.work_id != initial_reading.work_id
-    ):
+    ) or (resolved.status == "confirmed" and scope_fields(resolved) != scope_fields(initial_reading)):
         raise ValueError("initial reading conflicts with unresolved reader context")
     return ContextResolution(
         status="confirmed", work_id=registered.work_id, work_title=registered.title,
-        book_version_id=registered.book_version_id, chapter_max=initial_reading.chapter_max,
+        book_version_id=registered.book_version_id, **scope_fields(initial_reading),
         boundary_source="reader_confirmed", boundary_authorization_basis="explicit_progress",
         explanation="The application supplied the reader's confirmed initial book scope.",
     )
@@ -696,7 +831,8 @@ async def _run_chat_pipeline(
         ReleaseScope(
             work_id=context["work_id"],
             book_version_id=book_version_id,
-            chapter_max=context["chapter_max"],
+            chapter_max=context["chapter_max"], part_id=context.get("part_id", "main"),
+            unit_ids=context.get("unit_ids", ()),
         )
         if context and book_version_id
         else None
@@ -705,7 +841,8 @@ async def _run_chat_pipeline(
     if release is None:
         token = set_confirmed_reading(
             ConfirmedReading(
-                work_id=context["work_id"], chapter_max=context["chapter_max"]
+                work_id=context["work_id"], chapter_max=context["chapter_max"],
+                part_id=context.get("part_id", "main"), unit_ids=context.get("unit_ids", ())
             )
             if context
             else None

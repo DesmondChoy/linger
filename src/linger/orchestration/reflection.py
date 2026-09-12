@@ -1,5 +1,7 @@
 """Application-owned Muse-to-Provenance release flow."""
 
+from src.linger.contracts.reading import permits_scope, contains_scope, scope_fields
+
 import asyncio
 import json
 from dataclasses import dataclass
@@ -378,7 +380,7 @@ def _routed_release_scope(
     return ReleaseScope(
         work_id=route_response.work_id,
         book_version_id=route_response.book_version_id,
-        chapter_max=route_response.max_chapter_inclusive,
+        **scope_fields(route_response),
     )
 
 
@@ -431,7 +433,7 @@ def _validate_record_scope(
     if release_scope is None or (
         record.work_id != release_scope.work_id
         or record.book_version_id != release_scope.book_version_id
-        or record.chapter_number > release_scope.chapter_max
+        or not permits_scope(release_scope, record)
     ):
         raise ReleaseValidationError("Book evidence exceeds the release scope")
 
@@ -489,7 +491,7 @@ def _validated_book_evidence(
                 within_scope = not isinstance(searched, PassageScope) and (
                     searched.work_id == release_scope.work_id
                     and searched.book_version_id == release_scope.book_version_id
-                    and searched.max_chapter_inclusive <= release_scope.chapter_max
+                    and contains_scope(release_scope, searched)
                 )
             if not within_scope:
                 raise ReleaseValidationError("Librarian result exceeds the release scope")
@@ -500,7 +502,7 @@ def _validated_book_evidence(
                     else (
                         record.work_id == searched.work_id
                         and record.book_version_id == searched.book_version_id
-                        and record.chapter_number <= searched.max_chapter_inclusive
+                        and permits_scope(searched, record)
                     )
                 )
                 if not within_searched or evidence.get(record.evidence_id) != record:
@@ -669,7 +671,7 @@ def _effective_review_context(
         "policy_constraints": policy,
         "reading_context": {
             "work_id": route_response.work_id,
-            "chapter_max": route_response.max_chapter_inclusive,
+            **scope_fields(route_response),
             "boundary_source": "librarian_inferred",
         },
     }

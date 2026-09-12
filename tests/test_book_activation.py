@@ -97,11 +97,12 @@ class BookActivationTests(unittest.TestCase):
                 with self.assertRaises(BookVersionOutOfScope):
                     asyncio.run(grounding_evidence(request, librarian=self.librarian))
 
-    def test_section_corpora_remain_unregistered_and_ungranted(self) -> None:
+    def test_mixed_corpora_are_registered_with_reviewed_locations_and_grants(self) -> None:
         from src.linger.corpus.douglass import BOOK as DOUGLASS
         from src.linger.corpus.story_of_my_life import BOOK as STORY_OF_MY_LIFE
 
         for book in (DOUGLASS, STORY_OF_MY_LIFE):
             with self.subTest(book=book.title):
-                self.assertNotIn(book.work_id, CORPORA)
-                self.assertNotIn(book.book_version_id, self.settings.allowed_book_version_ids)
+                self.assertEqual(book, CORPORA[book.work_id].book)
+                self.assertIn(book.book_version_id, self.settings.allowed_book_version_ids)
+                self.assertTrue(book.unit_locations)

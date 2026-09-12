@@ -201,7 +201,8 @@ class MuseInstructionTests(unittest.TestCase):
             "again. call `librarian_search` with the reader's original book "
             "question from the conversation history as `query` — never the "
             "reader's chapter answer — and `reading_boundary` built from "
-            "`muse_turn.reading_context.chapter_max` with `chapter_state` "
+            "`muse_turn.reading_context.chapter_max`, preserving `part_id` and exact "
+            "`unit_ids` (chapter_number=none for named units), with `chapter_state` "
             '"completed".',
             lowered,
         )

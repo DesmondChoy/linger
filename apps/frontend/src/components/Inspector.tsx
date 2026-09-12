@@ -31,11 +31,15 @@ function TraceLink({ turn }: { turn: ChatResult }) {
 function boundarySummary(turn: ChatResult) {
   const resolution = turn.inspection.context_resolution
   if (resolution.status === 'confirmed') {
+    const part = resolution.part_id === 'main' ? '' : ` in ${resolution.part_id === 'part-iii' ? 'Part III' : resolution.part_id.replaceAll('-', ' ')}`
+    if (resolution.unit_ids.length > 0) {
+      return `${resolution.work_title ?? resolution.work_id}, only the ${resolution.unit_ids.length === 1 ? 'named reading location' : 'named reading locations'} explicitly completed${part}; other material remains outside this reading boundary.`
+    }
     if (resolution.boundary_source === 'librarian_inferred') {
-      return `${resolution.work_title ?? resolution.work_id}, memory-supported ceiling Chapter ${resolution.chapter_max} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
+      return `${resolution.work_title ?? resolution.work_id}, memory-supported ceiling Chapter ${resolution.chapter_max}${part} (${Math.round((resolution.boundary_confidence ?? 0) * 100)}% confidence).`
     }
     return resolution.chapter_max
-      ? `${resolution.work_title ?? resolution.work_id}, through completed chapter ${resolution.chapter_max}.`
+      ? `${resolution.work_title ?? resolution.work_id}, through completed chapter ${resolution.chapter_max}${part}.`
       : `${resolution.work_title ?? resolution.work_id} confirmed; book retrieval is off, while reflection and other permitted connections remain available.`
   }
   if (resolution.status === 'inferred') {

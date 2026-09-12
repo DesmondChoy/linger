@@ -46,11 +46,18 @@ The checker rejects schema 1 keys in schema 2 front matter, source changes,
 body changes, incorrect ranges or IDs, missing sections, unexpected artifacts,
 and stale catalogs. A corpus cannot be initialized over existing files.
 
-Section corpora are formatting artifacts outside the chapter-based Librarian
-runtime. Registration requires an explicit runtime contract for section
-identities and request-scoped reading boundaries. Alice, Animal Farm, and
-Pinocchio use schema 1 and are registered and enabled by default for Librarian
-and Reader. See [book registration](../book-registration.md).
+Both schemas are supported by Librarian and Reader. Mixed adapters provide a
+reviewed `BookCorpus.unit_locations` entry for every section. Each entry records
+its kind, part, display label, and optional natural chapter number, recipient,
+and date. The shared loader keeps source order and stable IDs separate from
+these reading locations; it validates canonical bodies before returning text.
+
+A chapter ceiling authorizes only numbered chapters in the selected part.
+Named-unit permission authorizes exactly the listed IDs in their part, with no
+implied permission for neighboring sections. Keller starts with Part I selected;
+Part III has a separate chapter sequence and requires explicit selection. All five supplied
+works are registered and enabled by default. See
+[book registration](../book-registration.md#mixed-literary-sections).
 
 ## Adapters and source audits
 
@@ -104,4 +111,5 @@ Run the section lifecycle tests with:
 
 ```sh
 uv run pytest tests/test_section_corpus.py tests/test_section_runtime_boundary.py
+uv run pytest tests/test_corpus_units.py tests/test_mixed_book_retrieval.py tests/test_mixed_book_context.py tests/test_mixed_book_authority.py
 ```

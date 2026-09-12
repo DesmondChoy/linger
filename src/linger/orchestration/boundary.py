@@ -232,13 +232,14 @@ def _search_boundary_signal(
         EvidenceRecord(
             evidence_id=item.evidence_id, work_id=item.work_id,
             book_version_id=item.book_version_id, chapter_id=item.chapter_id,
-            chapter_number=item.chapter, location=item.location,
+            chapter_number=item.chapter, part_id=item.part_id, location=item.location,
             source_sha256=item.source_sha256, source_lines=item.source_lines,
             text=item.excerpt,
         )
         for item in bundle.items
         if item.work_id == scope.work_id
         and item.book_version_id == scope.book_version_id
+        and item.part_id == "main" and item.chapter is not None
         and item.chapter <= scope.max_chapter
     )
 
@@ -390,6 +391,11 @@ async def infer_spoiler_boundary(
             clarification_question=_clarification(scope),
         )
 
+    if any(record.chapter_number is None or record.part_id != "main" for record in supporting):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="conflicting_context", clarification_question="Which part and chapter or named section have you completed?",
+        )
     derived_chapter = max(record.chapter_number for record in supporting)
     if decision.chapter_number != derived_chapter:
         return BoundaryUncertain(

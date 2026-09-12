@@ -27,7 +27,7 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
-from src.linger.contracts.reading import ReadingBoundary
+from src.linger.contracts.reading import ReadingBoundary, permits_scope
 from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
@@ -63,6 +63,7 @@ def evidence_record_from_item(item: EvidenceItem) -> EvidenceRecord:
         book_version_id=item.book_version_id,
         chapter_id=item.chapter_id,
         chapter_number=item.chapter,
+        part_id=item.part_id,
         location=item.location,
         source_sha256=item.source_sha256,
         source_lines=item.source_lines,
@@ -225,16 +226,28 @@ async def _grounding_evidence(
         )
 
     boundary: ReadingBoundary = request.reading_boundary
-    declared = boundary.chapter_number - 1 if boundary.chapter_state == "started" else boundary.chapter_number
-    ceiling = min(declared, reading.chapter_max)
-
+    if boundary.part_id != reading.part_id or bool(boundary.unit_ids) != bool(reading.unit_ids):
+        return _clarification(request.request_id, "reading_location_conflict",
+            "Which part or named section have you completed?", ExpectedAnswer(type="free_text"))
+    if reading.unit_ids:
+        if not set(boundary.unit_ids) <= set(reading.unit_ids) or boundary.chapter_state != "completed":
+            return _clarification(request.request_id, "reading_location_conflict",
+                "Which named section have you completed?", ExpectedAnswer(type="free_text"))
+        ceiling = None
+        unit_ids = boundary.unit_ids
+    else:
+        declared = boundary.chapter_number - 1 if boundary.chapter_state == "started" else boundary.chapter_number
+        ceiling = min(declared, reading.chapter_max)
+        unit_ids = ()
     searched_scope = SearchedScope(
         work_id=reading.work_id,
         book_version_id=request.book_version_id,
-        max_chapter_inclusive=max(ceiling, 0),
+        max_chapter_inclusive=ceiling,
+        part_id=reading.part_id,
+        unit_ids=unit_ids,
     )
 
-    if ceiling <= 0:
+    if ceiling is not None and ceiling <= 0:
         result = RetrievalResult(
             kind="result",
             request_id=request.request_id,
@@ -254,6 +267,7 @@ async def _grounding_evidence(
                 work_id=reading.work_id,
                 book_version_id=request.book_version_id,
                 chapter_max=ceiling,
+                part_id=reading.part_id, unit_ids=unit_ids,
             )
         ],
         retrieval_score_threshold=request.options.retrieval_score_threshold,
@@ -278,7 +292,7 @@ async def _grounding_evidence(
         if (
             item.work_id == reading.work_id
             and item.book_version_id == request.book_version_id
-            and item.chapter <= ceiling
+            and permits_scope(searched_scope, item)
         )
     ]
     records = records[: request.options.max_final_evidence]

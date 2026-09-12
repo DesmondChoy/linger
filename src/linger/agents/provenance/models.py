@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from src.linger.contracts.reading import ReadingScope
+
 from enum import StrEnum
 from typing import Annotated, Literal, Self
 
@@ -190,11 +192,10 @@ class ProvenancePolicy(StrictModel):
     )
 
 
-class ProvenanceReadingContext(StrictModel):
+class ProvenanceReadingContext(ReadingScope):
     """The request-scoped reading boundary validated by the application."""
 
     work_id: str = Field(min_length=1, max_length=200)
-    chapter_max: int = Field(ge=1)
     boundary_source: Literal["reader_confirmed", "librarian_inferred"]
 
 

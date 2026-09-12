@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.linger.corpus.book import BookCorpus, CorpusBuildError, ParsedChapter, sha256
+from src.linger.corpus.book import BookCorpus, CorpusBuildError, ParsedChapter, UnitLocation, sha256
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -153,4 +153,14 @@ BOOK = BookCorpus(
     default_output=DEFAULT_OUTPUT,
     parse_source=parse_sections,
     unit_kind="section",
+    unit_locations=(
+        UnitLocation("preface", "frontmatter", "Front matter", "Preface"),
+        UnitLocation("letter", "frontmatter", "Front matter", "Letter from Wendell Phillips",
+                     recipient="Frederick Douglass", date="April 22, 1845"),
+        UnitLocation("biography", "frontmatter", "Front matter", "Biographical introduction"),
+        *(UnitLocation("chapter", "main", "Narrative", f"Chapter {number}", number)
+          for number in range(1, 12)),
+        UnitLocation("appendix", "backmatter", "Back matter", "Appendix"),
+        UnitLocation("poem", "backmatter", "Back matter", "A Parody"),
+    ),
 )

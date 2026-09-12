@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import Field, TypeAdapter, model_validator
 
 from src.linger.contracts.base import StrictModel
-from src.linger.contracts.reading import ReadingBoundary
+from src.linger.contracts.reading import ReadingBoundary, validate_selector
 
 SelectionBasis = Literal["resolved_book_identity", "distinctive_cue", "session_selection"]
 
@@ -69,7 +69,15 @@ class SearchedScope(StrictModel):
 
     work_id: str
     book_version_id: str
-    max_chapter_inclusive: int = Field(ge=0)
+    max_chapter_inclusive: int | None = Field(default=None, ge=0)
+
+    part_id: str = "main"
+    unit_ids: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def valid_selector(self) -> Self:
+        validate_selector(self.max_chapter_inclusive, self.unit_ids)
+        return self
 
 
 class EvidenceRecord(StrictModel):
@@ -79,7 +87,8 @@ class EvidenceRecord(StrictModel):
     work_id: str
     book_version_id: str
     chapter_id: str
-    chapter_number: int = Field(ge=1)
+    chapter_number: int | None = Field(default=None, ge=1)
+    part_id: str = "main"
     location: str
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     source_lines: tuple[int, int]
@@ -146,7 +155,8 @@ class BoundarySupportLocation(StrictModel):
     """Content-free location supporting one inferred spoiler ceiling."""
 
     evidence_id: str
-    chapter_number: int = Field(ge=1)
+    chapter_number: int | None = Field(default=None, ge=1)
+    part_id: str = "main"
     location: str
 
 
@@ -245,9 +255,17 @@ class RoutedWork(StrictModel):
     book_version_id: str
     title: str
     routing_confidence: float = Field(ge=0, le=1)
-    max_chapter_inclusive: int = Field(ge=1)
+    max_chapter_inclusive: int | None = Field(default=None, ge=1)
     boundary_confidence: float = Field(ge=0, le=1)
     selection_basis: SelectionBasis
+
+    part_id: str = "main"
+    unit_ids: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def valid_selector(self) -> Self:
+        validate_selector(self.max_chapter_inclusive, self.unit_ids)
+        return self
 
 
 class NoMatch(StrictModel):

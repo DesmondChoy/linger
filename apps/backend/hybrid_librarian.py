@@ -19,10 +19,9 @@ from apps.backend.librarian import (
     CorpusScopeError,
     Librarian,
     Paragraph,
-    _load_catalog,
     _paragraphs,
 )
-from src.linger.corpus.book import ChapterFrontMatter, parse_chapter_markdown
+from src.linger.corpus.units import CorpusUnit, read_unit
 from src.linger.corpus import registry
 
 
@@ -48,7 +47,7 @@ class RerankerModel(Protocol):
 
 @dataclass(frozen=True)
 class Candidate:
-    metadata: ChapterFrontMatter
+    metadata: CorpusUnit
     text: str
     source_lines: tuple[int, int]
     score: float = 0.0
@@ -70,7 +69,7 @@ def _word_count(text: str) -> int:
     return len(text.split())
 
 
-def _windows(metadata: ChapterFrontMatter, paragraphs: tuple[Paragraph, ...]) -> list[Candidate]:
+def _windows(metadata: CorpusUnit, paragraphs: tuple[Paragraph, ...]) -> list[Candidate]:
     """Build exact, overlapping search windows without crossing a chapter."""
     windows: list[Candidate] = []
     start = 0
@@ -143,7 +142,7 @@ class HybridLibrarian(Librarian):
     ) -> None:
         self._embedding = embedding_model
         self._reranker = reranker
-        self._indexes: dict[tuple[tuple[str, str, int], ...], HybridIndex] = {}
+        self._indexes: dict[tuple[tuple[str, str, str, int, tuple[str, ...]], ...], HybridIndex] = {}
 
     def _embedding_model(self) -> EmbeddingModel:
         if self._embedding is None:
@@ -159,67 +158,37 @@ class HybridLibrarian(Librarian):
             self._reranker = TextCrossEncoder(model_name=RERANKER_MODEL)
         return self._reranker
 
-    @staticmethod
-    def _eligible_windows(request: LibrarianRequest) -> list[Candidate]:
+    def _eligible_windows(self, request: LibrarianRequest) -> list[Candidate]:
         candidates: list[Candidate] = []
         for scope in request.book_scopes:
-            registration = registry.CORPORA.get(scope.work_id)
-            if registration is None or registration.book.book_version_id != scope.book_version_id:
-                raise CorpusScopeError(
-                    f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
-                )
-            catalog = _load_catalog(registration)
-            chapters = catalog.get("chapters")
-            if not isinstance(chapters, list):
-                raise CorpusScopeError("catalog chapters must be a list")
-
-            # Filter metadata before opening chapter text. A forbidden chapter
-            # therefore never reaches BM25, the embedding model, or reranker.
-            eligible = [
-                chapter
-                for chapter in chapters
-                if isinstance(chapter, dict)
-                and isinstance(chapter.get("chapter_number"), int)
-                and chapter["chapter_number"] <= scope.chapter_max
-            ]
-            for chapter in eligible:
-                relative_path = chapter.get("path")
-                if not isinstance(relative_path, str):
-                    raise CorpusScopeError("catalog chapter path is invalid")
-                metadata, body = parse_chapter_markdown(
-                    (registration.root / relative_path).read_text(encoding="utf-8")
-                )
-                if (
-                    metadata.work_id != scope.work_id
-                    or metadata.book_version_id != scope.book_version_id
-                    or metadata.chapter_number != chapter["chapter_number"]
-                ):
-                    raise CorpusScopeError("chapter identity does not match its search scope")
+            registration, eligible = self.eligible_units(scope)
+            for unit in eligible:
+                try:
+                    metadata, body = read_unit(registration, unit)
+                except (OSError, ValueError) as exc:
+                    raise CorpusScopeError(str(exc)) from exc
                 candidates.extend(_windows(metadata, _paragraphs(metadata, body)))
         return candidates
 
     @staticmethod
-    def _scope_key(request: LibrarianRequest) -> tuple[tuple[str, str, int], ...]:
-        return tuple(
-            sorted(
-                (scope.work_id, scope.book_version_id, scope.chapter_max)
-                for scope in request.book_scopes
-            )
-        )
+    def _scope_key(request: LibrarianRequest) -> tuple[tuple[str, str, str, int, tuple[str, ...]], ...]:
+        return tuple(sorted(
+            (scope.work_id, scope.book_version_id, scope.part_id, scope.chapter_max or 0, tuple(sorted(scope.unit_ids)))
+            for scope in request.book_scopes
+        ))
 
     def _index(self, request: LibrarianRequest) -> HybridIndex:
         scopes: list[BookScope] = []
         for scope in request.book_scopes:
-            registered = self.registered_scope(scope.work_id, scope.book_version_id)
-            if registered is None:
-                raise CorpusScopeError(
-                    f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
-                )
-            scopes.append(
-                scope.model_copy(
-                    update={"chapter_max": min(scope.chapter_max, registered.max_chapter)}
-                )
-            )
+            if scope.unit_ids:
+                # Validate membership even when an index is already cached.
+                self.eligible_units(scope)
+                scopes.append(scope)
+                continue
+            registered = self.registered_scope(scope.work_id, scope.book_version_id, scope.part_id)
+            if registered is None or scope.chapter_max is None:
+                raise CorpusScopeError("unregistered chapter scope")
+            scopes.append(scope.model_copy(update={"chapter_max": min(scope.chapter_max, registered.max_chapter)}))
         request = request.model_copy(update={"book_scopes": scopes})
         key = self._scope_key(request)
         cached = self._indexes.get(key)
@@ -341,11 +310,12 @@ class HybridLibrarian(Librarian):
                 chapter_id=candidate.metadata.chapter_id,
                 source_title=registry.CORPORA[candidate.metadata.work_id].book.title,
                 location=(
-                    f"Chapter {candidate.metadata.chapter_number} — "
+                    f"{candidate.metadata.label} — "
                     f"{candidate.metadata.title}, source lines "
                     f"{candidate.source_lines[0]}-{candidate.source_lines[1]}"
                 ),
                 chapter=candidate.metadata.chapter_number,
+                part_id=candidate.metadata.part_id,
                 source_sha256=candidate.metadata.source_sha256,
                 source_lines=candidate.source_lines,
                 excerpt=candidate.text,

@@ -2,6 +2,9 @@
 
 Use this contract for chapter-based books. Adapt it deliberately for a source
 whose natural units are not chapters; never reuse a field with false semantics.
+For mixed works, follow [canonical sections](../../../../docs/corpus/canonical-sections.md).
+Source order remains the stable section identity; reviewed adapter locations
+provide parts, natural chapter numbers, and named units for runtime use.
 
 ## Contents
 

@@ -43,6 +43,19 @@ class ParsedChapter:
 
 
 @dataclass(frozen=True)
+class UnitLocation:
+    """Reviewed literary location, independent of a canonical file's ordinal."""
+
+    kind: str
+    part_id: str
+    part_title: str
+    label: str
+    chapter_number: int | None = None
+    recipient: str | None = None
+    date: str | None = None
+
+
+@dataclass(frozen=True)
 class BookCorpus:
     """Immutable book identity plus its source-specific chapter extractor."""
 
@@ -56,6 +69,7 @@ class BookCorpus:
     default_output: Path
     parse_source: Callable[[Path], tuple[ParsedChapter, ...]]
     unit_kind: Literal["chapter", "section"] = "chapter"
+    unit_locations: tuple[UnitLocation, ...] = ()
 
     def __post_init__(self) -> None:
         if self.unit_kind not in ("chapter", "section"):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.linger.corpus.book import BookCorpus, CorpusBuildError, ParsedChapter, sha256
+from src.linger.corpus.book import BookCorpus, CorpusBuildError, ParsedChapter, UnitLocation, sha256
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -924,6 +924,75 @@ def parse_sections(source: Path = DEFAULT_SOURCE) -> tuple[ParsedChapter, ...]:
     return tuple(parsed)
 
 
+# Dates identify the letters themselves, not dates in editorial notes. Missing
+# dates remain unknown; no chronology is inferred from the file's position.
+LETTER_DATES = (
+    "June 17, 1887", "July 12, 1887", "September, 1887", "October 24, 1887",
+    "November, 1887", "November, 1887", "January 2, 1888", "February 15, 1888",
+    "February 24, 1888", "March 1, 1888", "May 3, 1888", "September, 1888",
+    "September 24, 1888", "October 1, 1888", "October 17, 1888", "October 29, 1888",
+    "December 11, 1888", "January 29, 1889", "February 21, 1889", "May 18, 1889",
+    "May 17, 1889", "May 27, 1889", "August 7, 1889", "October 24, 1889",
+    "November 20, 1889", "November 27, 1889", "December 3, 1889", "December 24, 1889",
+    "January 8, 1890", "March 1, 1890", "April 3, 1890", "July 14, 1890",
+    "August 3, 1890", "August 1, 1890", "July 14, 1890", "November 10, 1890",
+    "December 17, 1890", None, "March 20, 1891", "April, 1891",
+    "April 30, 1891", "May 1, 1891", "May 13, 1891", "May 27, 1891",
+    "June 8, 1891", "March 10, 1892", None, "May 9, 1892",
+    "May 11, 1892", "May 18, 1892", "July 9, 1892", "November 4, 1892",
+    "December 19, 1892", "February 18, 1893", "April 13, 1893", None,
+    "August 17, 1893", "October 21, 1893", "December 28, 1893", "January 14, 1894",
+    "October 23, 1894", "March 15, 1895", "March 31, 1895", "July 29, 1895",
+    "October 16, 1895", "December 29, 1895", "February 4, 1896", "March 2, 1896",
+    "April 25, 1896", "July 15, 1896", "September 3, 1896", "October 8, 1896",
+    "December 2, 1896", "May 3, 1897", "July 9, 1897", "February 20, 1898",
+    "April 12, 1898", "May 29, 1898", "June 7, 1898", "September 11, 1898",
+    "October 23, 1898", "December 6, 1898", "December 19, 1898", "December 22, 1898",
+    "January 17, 1899", "February 3, 1899", "February 19, 1899", "March 5, 1899",
+    "May 8, 1899", "May 28, 1899", "June 5, 1899", "July 29, 1899",
+    "October 20, 1899", "November 11, 1899", "November 26, 1899", "January 2, 1900",
+    "February 3, 1900", "May 5, 1900", "June 9, 1900", "November 26, 1900",
+    "December 9, 1900", "December 9, 1900", "December 20, 1900", "December 27, 1900",
+    "February 2, 1901", "February 16, 1901", "September 25, 1901", "November 10, 1901",
+    "November 25, 1901",
+)
+
+
+def _unit_locations() -> tuple[UnitLocation, ...]:
+    locations = []
+    for section in SECTIONS:
+        slug = section.slug
+        if slug.startswith("part-i-chapter-"):
+            number = int(slug.rsplit("-", 1)[1])
+            location = UnitLocation("chapter", "main", "Part I — Autobiography",
+                                    f"Part I, Chapter {number}", number)
+        elif slug.startswith("part-iii-chapter-"):
+            number = int(slug.rsplit("-", 1)[1])
+            location = UnitLocation("chapter", "part-iii", "Part III — Supplementary account",
+                                    f"Part III, Chapter {number}", number)
+        elif slug.startswith("letter-"):
+            number = int(slug.split("-")[1])
+            date = LETTER_DATES[number - 1]
+            title = " ".join(section.title.split()).title().replace("'S", "'s")
+            recipient = title[3:] if title.startswith("To ") else "Helen Keller"
+            label = f"Letter {title[0].lower() + title[1:]}" if title.startswith("To ") else title
+            if date:
+                label += f" — {date}"
+            location = UnitLocation("letter", "letters", "Part II — Letters", label,
+                                    recipient=recipient, date=date)
+        elif slug == "letters-introduction":
+            location = UnitLocation("introduction", "letters", "Part II — Letters",
+                                    "Introduction to the letters")
+        elif slug == "dedication":
+            location = UnitLocation("dedication", "frontmatter", "Front matter", "Dedication")
+        elif slug == "editors-preface":
+            location = UnitLocation("preface", "frontmatter", "Front matter", "Editor's Preface")
+        else:
+            raise CorpusBuildError(f"unreviewed literary location: {slug}")
+        locations.append(location)
+    return tuple(locations)
+
+
 BOOK = BookCorpus(
     work_id=WORK_ID,
     book_version_id=BOOK_VERSION_ID,
@@ -935,4 +1004,5 @@ BOOK = BookCorpus(
     default_output=DEFAULT_OUTPUT,
     parse_source=parse_sections,
     unit_kind="section",
+    unit_locations=_unit_locations(),
 )

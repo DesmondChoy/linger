@@ -2,6 +2,8 @@
 
 from typing import Literal, Self
 
+from src.linger.contracts.reading import ReadingScope, validate_selector
+
 from pydantic import BaseModel, Field, model_validator
 
 from src.linger.agents.contracts import StrictModel
@@ -10,9 +12,8 @@ from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import BoundarySupportLocation, EvidenceRecord
 
 
-class ReadingContext(StrictModel):
+class ReadingContext(ReadingScope):
     work_id: str
-    chapter_max: int = Field(ge=1)
     boundary_source: Literal["reader_confirmed", "librarian_inferred"]
 
 
@@ -24,6 +25,8 @@ class ContextResolution(StrictModel):
     work_title: str | None = None
     book_version_id: str | None = None
     chapter_max: int | None = Field(default=None, ge=1)
+    part_id: str = "main"
+    unit_ids: tuple[str, ...] = ()
     boundary_source: Literal["reader_confirmed", "librarian_inferred"] | None = None
     boundary_authorization_basis: Literal[
         "explicit_progress",
@@ -38,10 +41,12 @@ class ContextResolution(StrictModel):
     @model_validator(mode="after")
     def validate_boundary_state(self) -> Self:
         if self.status == "confirmed":
-            if self.work_id is None or self.chapter_max is None or self.boundary_source is None:
+            if self.work_id is None or (self.chapter_max is None and not self.unit_ids) or self.boundary_source is None:
                 raise ValueError("confirmed context requires a work and boundary")
-        elif self.chapter_max is not None or self.boundary_source is not None:
+        elif self.chapter_max is not None or self.unit_ids or self.boundary_source is not None:
             raise ValueError("unconfirmed context cannot grant a spoiler boundary")
+        if self.status == "confirmed":
+            validate_selector(self.chapter_max, self.unit_ids)
         if self.boundary_source == "librarian_inferred":
             if (
                 self.book_version_id is None
@@ -129,12 +134,11 @@ class ConnectionBrief(BaseModel):
     intent: Literal["find_connection", "get_recommendation"] = "find_connection"
 
 
-class BookScope(BaseModel):
+class BookScope(ReadingScope):
     """One immutable corpus revision and its reader-confirmed boundary."""
 
     work_id: str
     book_version_id: str
-    chapter_max: int = Field(ge=1)
 
 
 class LibrarianRequest(BaseModel):
@@ -158,7 +162,8 @@ class EvidenceItem(BaseModel):
     chapter_id: str
     source_title: str
     location: str
-    chapter: int = Field(ge=1)
+    chapter: int | None = Field(default=None, ge=1)
+    part_id: str = "main"
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     source_lines: tuple[int, int]
     excerpt: str
