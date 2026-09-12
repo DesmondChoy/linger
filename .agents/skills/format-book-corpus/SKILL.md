@@ -1,6 +1,6 @@
 ---
 name: format-book-corpus
-description: "Convert an immutable book or literary corpus source into Linger's canonical retrieval-neutral Markdown: one file per natural chapter or section, compact routing front matter, a derived metadata-only catalog, and deterministic integrity checks. Use when Sculptor or Codex is asked to ingest, clean, split, format, reformat, validate, or add a future book/corpus for agentic reading, spoiler-bounded retrieval, BM25 paragraph windows, embeddings, or hybrid search. Do not use for querying an already-formatted corpus or implementing the Librarian retrieval backend itself."
+description: "Format an immutable book source as Linger's canonical chapter or section Markdown, with reviewed routing metadata and deterministic integrity checks. Use for corpus ingestion, formatting, or validation, and for registering and enabling a compatible corpus when requested. Do not use for querying a corpus or implementing a new retrieval backend."
 ---
 
 # Format Book Corpus
@@ -119,6 +119,44 @@ Add source-specific tests covering:
 Run the source-specific check and the repository test suite. Inspect generated
 Markdown directly; tests do not replace checking that the files are readable.
 
+### 8. Enable Librarian and Reader access when requested
+
+If the task includes enabling the book or making it available in Linger,
+continue through the [book registration workflow](../../../docs/book-registration.md#add-a-book).
+For an existing canonical corpus, validate the artifacts without regenerating
+them, then start here. Formatting alone leaves runtime registration and access
+unchanged.
+
+- Check that the corpus uses the runtime's supported unit and location schema.
+  The current runtime accepts chapters. Leave schema 2 section corpora disabled
+  until section-boundary support is separately implemented. Never relabel
+  sections as chapters to pass validation.
+- Add the validated adapter's `BOOK`, canonical directory, and reviewed aliases
+  to `src/linger/corpus/registry.py`. Resolve identity collisions before activation.
+- Add the exact revision to the intended application's effective
+  `allowed_book_version_ids` grant. Inspect environment overrides as well as
+  defaults, preserve existing grants, and keep registration separate from access.
+  A file appearing in a folder does not authorize access.
+- Reader loads its shelf from the same registry and exact revision grant through
+  `GET /api/library`. Do not add a separate frontend book list. Chapter text is
+  served by `GET /api/library/{work_id}/{book_version_id}/chapters/{chapter_number}`
+  from the canonical corpus, without a book-specific external iframe.
+- Verify identity resolution, collision detection, denial without the exact
+  revision grant, and retrieval within the reader's permitted boundary. Check
+  that a book title alone cannot grant reading progress. Run the relevant corpus
+  checks and repository tests.
+- Verify Reader as well as Librarian: the enabled book appears on the shelf,
+  its first and last chapters open with the correct text, and changing chapters
+  hides any revealed summary. Confirm that denied revisions cannot be listed or
+  opened. Reuse `tests/test_library.py` and check the running UI when available;
+  report any UI verification gap. Reader navigation and summary reveals must
+  never establish reading progress or a spoiler boundary for chat.
+
+An explicit request to format and enable a compatible book covers these local
+changes without another routine approval. Report any runtime incompatibility
+and complete the compatible work. Do not expand activation into a folder watcher,
+new retrieval system, or deployment.
+
 ## Retrieval boundary
 
 Keep the corpus retrieval-neutral. Do not add BM25, embeddings, vector storage,
@@ -136,3 +174,7 @@ before Librarian or another model sees it.
 Update architecture documentation only when the implemented contract changes.
 Report generated files, validation evidence, and any unresolved structural or
 licensing decision. Keep canonical metadata edits human-reviewable in Git.
+When activation was requested, also report the registered work and revision,
+the effective grant, Reader shelf and chapter verification, and whether the
+backend needs a restart or the page needs a refresh. Distinguish a validated
+corpus from a book enabled for the running application.

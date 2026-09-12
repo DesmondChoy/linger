@@ -11,7 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.linger.corpus.alice import BOOK
+from src.linger.corpus.animal_farm import BOOK as ANIMAL_FARM
 from src.linger.corpus.book import WORD, BookCorpus
+from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
 
 
 @dataclass(frozen=True)
@@ -28,6 +30,15 @@ CORPORA = {
         root=BOOK.default_output,
         aliases=("alice in wonderland",),
         candidate_aliases=("wonderland",),
+    ),
+    ANIMAL_FARM.work_id: CorpusRegistration(
+        book=ANIMAL_FARM,
+        root=ANIMAL_FARM.default_output,
+    ),
+    PINOCCHIO.work_id: CorpusRegistration(
+        book=PINOCCHIO,
+        root=PINOCCHIO.default_output,
+        aliases=("pinocchio",),
     ),
 }
 

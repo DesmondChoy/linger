@@ -83,7 +83,7 @@ developer_workflow:
       occurs there and does not authorize generation.
   handoff_boundary:
     requires_confirmed_objectives: true
-    result_after_confirmation: write_timestamped_pre_generation_report_and_stop
+    result_after_confirmation: write_pre_generation_report_and_stop
     allowed_output: implementation_oriented_markdown_report_for_human_review
     report_is_generator_input: false
     dataset_generation_authorized: false
@@ -105,7 +105,7 @@ developer_workflow:
         evals/synthetic_journals/surfacing_replay.py retains the earlier offline
         decision test. It does not execute the adopted conversational Objective
         and is not a supported automatic replay for that complete selection.
-    run_configuration_directory: synthetic-journal-evaluation/run-configurations
+    run_configuration_directory: synthetic-journal-evaluation/generation-presets
     report_may_propose_target_state_contracts: false
     target_state_proposals_require_human_approval: true
     decisions_not_adopted:

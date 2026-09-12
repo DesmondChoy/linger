@@ -1,6 +1,9 @@
 .DS_Store
 .venv/
 
+apps/evaluation-explorer/node_modules/
+apps/evaluation-explorer/dist/
+
 # Secrets — `.env.example` stays tracked
 .env
 .env.local

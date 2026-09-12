@@ -67,7 +67,7 @@ accepts this Objective, places Props through the production
 grades six deterministic gates including `ceiling_mismatch` and
 `forbidden_fact_disclosed`. It resolves a ground-truth corpus span to every
 retrieval-window ID Librarian could legitimately cite, so the two namespaces
-compare correctly. The package at `packages/2026-08-31T232340+0800/` runs the
+compare correctly. The package at `packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/` runs the
 chain — validate, adopt, replay, graded output — end to end for a sibling
 Objective. 54 focused tests pass across `test_boundary_inference.py`,
 `test_boundary_observability.py`, `test_synthetic_reflection_package.py`,
@@ -121,7 +121,7 @@ Create one synthetic evaluation package for the Objective
   PACKAGE_DIRECTORY/backstory.json
   PACKAGE_DIRECTORY/ground-truth.json
 where PACKAGE_DIRECTORY is
-synthetic-journal-evaluation/packages/2026-09-01T231852+0800.
+synthetic-journal-evaluation/packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01.
 Create no other file and modify nothing else.
 
 CONTRACTS

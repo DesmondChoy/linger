@@ -790,9 +790,9 @@ class HumanGroundTruthReviewer(StrictModel):
 
     reviewer_id: Text
     reviewer_kind: Literal["human_developer"] = "human_developer"
-    review_method: Literal["interactive_local_review"] = (
-        "interactive_local_review"
-    )
+    review_method: Literal[
+        "interactive_local_review", "explicit_human_instruction"
+    ] = "interactive_local_review"
 
 
 class AdoptedProposalDecision(StrictModel):

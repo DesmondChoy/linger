@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "efb73d1b6f192bad93b8135226bb2b3a0ebdee9fd82d30c880c679f3d3022345",
+  "proposed_ground_truth_sha256": "c355ca6a4c2c40f430e935f9adf7b070f9c59829cde0cd44d524065c4ccaa288",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "jodie.loke97@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-12T10:05:34.816265+08:00",
+  "decisions": [
+    {
+      "proposal_id": "G1-connection",
+      "scene_id": "S1",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "G2-connection",
+      "scene_id": "S2",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "G3-weak-evidence",
+      "scene_id": "S2",
+      "objective_id": "weak_evidence_safe_decline",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "G4-weak-evidence",
+      "scene_id": "S3",
+      "objective_id": "weak_evidence_safe_decline",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "6ad90f5d9ea625da3648d3b504474d11935fdc85ecb1119d5156d3b7685e0781"
+}

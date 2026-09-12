@@ -9,10 +9,11 @@ package contains one Backstory, person, and evaluation account; build a full
 dataset from multiple independently validated packages.
 
 Checked-in authoring packages live under
-`synthetic-journal-evaluation/packages/<timestamp>/`. The human-only
+`synthetic-journal-evaluation/packages/<scenario-set>--<agents>--<YYYY-MM-DD>/`.
+The human-only
 `pre-generation-report.md` sits beside `backstory.json` and
 `ground-truth.json` but is not validator input. Shared resolved constraints
-remain under `synthetic-journal-evaluation/run-configurations/` because packages
+remain under `synthetic-journal-evaluation/generation-presets/` because packages
 reference them by ID and the validator applies them across packages.
 
 Book packages store shared Scene facts in `ProposedGroundTruth.book_scene_facts`.
@@ -47,7 +48,7 @@ The complete workflow is:
 
 1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
    Objectives in the loopback selector and confirms the complete selection.
-2. The skill creates a timestamped package directory containing only
+2. The skill creates a descriptively named package directory containing only
    `pre-generation-report.md`. Selection confirmation is not generation
    approval.
 3. A human reads the report and approves its design and detached generator
@@ -92,9 +93,11 @@ uv run python -m evals.synthetic_journals.validate_package \
   path/to/backstory.json path/to/ground-truth.json
 ```
 
-The validator resolves shared run configurations from
-`synthetic-journal-evaluation/run-configurations/`. Use
+The validator resolves shared generation presets from
+`synthetic-journal-evaluation/generation-presets/`. Use
 `--run-configuration-directory <path>` to validate against another directory.
+The CLI option and JSON fields `run_configuration_ids` and `run_configuration_id`
+retain their existing contract names.
 
 The validator fails closed on schema drift, coercion, bad hashes, missing or
 extra Ground truth proposals, invalid references or ordering, span mismatches,
@@ -104,6 +107,12 @@ behavioral label is correct. An independent reviewer must adopt, revise, or
 reject every proposal before it can grade Linger.
 
 ## Independent Ground truth review
+
+Adoption records distinguish `interactive_local_review` from
+`explicit_human_instruction`. The latter records a developer's direct adoption
+decision, without claiming that the review UI was used. Both methods bind every
+proposal to the exact Backstory and Ground truth bytes. Direct adoption alone
+does not authorize a provider replay or retroactively grade historical runs.
 
 Review a validated package with the desktop-only local app:
 
@@ -148,12 +157,12 @@ Objective alone, and their combination. Other selections stop after adoption.
 
 ## Capture replay
 
-Replay the validated capture-only package through the production Muse path:
+Replay a validated capture-only package through the production Muse path:
 
 ```bash
 uv run python -m evals.synthetic_journals.replay \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/backstory.json \
-  synthetic-journal-evaluation/packages/2026-08-23T182725+0800/ground-truth.json \
+  path/to/backstory.json \
+  path/to/ground-truth.json \
   --output /tmp/reviewed-automatic-memory-capture-run.json
 ```
 
@@ -211,9 +220,10 @@ separate runtime concern. Ground truth never supplies a storage candidate.
 Artifact schema 2 records the complete typed expectation, observed nomination,
 per-Scene `hard_failures`, storage observations, and policy retry result. The
 native evaluation label uses the same failures as the durable artifact. Earlier
-nomination-only runs cannot establish these outcomes. The checked-in capture
-package remains proposed and needs independent human adoption and a fresh
-provider-backed run before it supplies adopted evaluation evidence.
+nomination-only runs cannot establish these outcomes. The capture JSON under
+`tests/fixtures/synthetic_capture/` is proposed test data, not a completed
+evaluation. A capture evaluation requires independent human adoption and a
+provider-backed run before it supplies adopted evidence.
 
 The capture command accepts `--adoption PATH` only for an adoption that validates
 against the exact Backstory and proposed Ground truth bytes. `--output PATH`

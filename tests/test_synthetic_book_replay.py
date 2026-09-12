@@ -89,7 +89,7 @@ def _models(
         proposed,
         backstory_bytes=backstory_bytes,
         run_configurations=load_run_configurations(
-            ROOT / "synthetic-journal-evaluation" / "run-configurations"
+            ROOT / "synthetic-journal-evaluation" / "generation-presets"
         ),
     )
     return backstory, proposed, _json_bytes(ground_truth)

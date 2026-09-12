@@ -61,16 +61,16 @@ from src.linger.services.memory import (
 ROOT = Path(__file__).resolve().parents[1]
 BACKSTORY_PATH = (
     ROOT
-    / "synthetic-journal-evaluation"
-    / "packages"
-    / "2026-08-23T182725+0800"
+    / "tests"
+    / "fixtures"
+    / "synthetic_capture"
     / "backstory.json"
 )
 GROUND_TRUTH_PATH = (
     ROOT
-    / "synthetic-journal-evaluation"
-    / "packages"
-    / "2026-08-23T182725+0800"
+    / "tests"
+    / "fixtures"
+    / "synthetic_capture"
     / "ground-truth.json"
 )
 

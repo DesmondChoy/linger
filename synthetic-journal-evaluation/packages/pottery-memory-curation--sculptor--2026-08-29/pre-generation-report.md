@@ -66,7 +66,7 @@ STATUS: Runnable after human approval
 
 PRECONDITIONS
 - A human has approved this target design and detached prompt.
-- PACKAGE_DIRECTORY is synthetic-journal-evaluation/packages/2026-08-29T142004+0800, contains pre-generation-report.md, and contains neither output file.
+- PACKAGE_DIRECTORY is synthetic-journal-evaluation/packages/pottery-memory-curation--sculptor--2026-08-29, contains pre-generation-report.md, and contains neither output file.
 - If either precondition is false, stop without writing.
 
 You have read-only access to the current Linger checkout. Inspect only these permitted paths at invocation time:

@@ -54,7 +54,7 @@ The plan contains Lines and public-evidence offline inputs. In the supported Sce
 ```text
 STATUS: Target state — do not run
 
-PACKAGE_DIRECTORY=synthetic-journal-evaluation/packages/2026-09-01T223403+0800
+PACKAGE_DIRECTORY=synthetic-journal-evaluation/clean-up/memory-book-web-connections--muse-librarian-serendipity-provenance--2026-09-01
 
 PRECONDITIONS:
 - The application has a typed, account-scoped active-memory grant for connection discovery.

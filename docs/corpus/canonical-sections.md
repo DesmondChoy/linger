@@ -48,9 +48,9 @@ and stale catalogs. A corpus cannot be initialized over existing files.
 
 Section corpora are formatting artifacts outside the chapter-based Librarian
 runtime. Registration requires an explicit runtime contract for section
-identities and request-scoped reading boundaries. Alice is the only registered
-work. Animal Farm and Pinocchio also remain outside the runtime registry even
-though they use schema 1. See [book registration](../book-registration.md).
+identities and request-scoped reading boundaries. Alice, Animal Farm, and
+Pinocchio use schema 1 and are registered and enabled by default for Librarian
+and Reader. See [book registration](../book-registration.md).
 
 ## Adapters and source audits
 

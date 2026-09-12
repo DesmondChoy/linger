@@ -125,14 +125,14 @@ authorize synthetic-data generation.
    stop the fenced prompt from authorizing generation.
 12. Resolve run-specific workflow inputs. When
     `reviewed_automatic_memory_capture` is selected, use
-    `synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json`
+    `synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json`
     unless the developer explicitly supplied another adopted configuration.
     Treat its 1:10 capture mix as this run's configuration, not a catalog-wide
     minimum. The package contains one Backstory; a full capture dataset repeats
     the 11-Scene pattern in separately validated packages with different
     Backstories.
     When `longitudinal_memory_retrieval` is selected, use
-    `synthetic-journal-evaluation/run-configurations/longitudinal-memory-retrieval-10-to-1.json`
+    `synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json`
     unless the developer explicitly supplied another adopted configuration.
     Treat its 1:10 mix as a retrieval Prop constraint, not a Scene ratio or a
     universal requirement. The two retrieval Scenes share the same 11 active
@@ -205,9 +205,21 @@ mark the affected Scene blocked until event-led inference exists.
 ## Write the pre-generation report
 
 Create exactly one package directory under
-`synthetic-journal-evaluation/packages/`. Name it with the local timestamp
-produced by `%Y-%m-%dT%H%M%S%z`; if it exists, append `-02`, `-03`, and so on. For
-an isolated test, use the package directory supplied by the caller instead.
+`synthetic-journal-evaluation/packages/`. Name it
+`<scenario-set>--<agents>--<YYYY-MM-DD>`, using lowercase words separated by
+hyphens and the local date. Describe the complete planned Scene set rather than
+a person's name or a single Scene. List only agents participating in the
+evaluated path, in the stable order `muse`, `librarian`, `serendipity`,
+`sculptor`, `provenance`, omitting absent agents. For an unfinished plan, these
+are the intended participants, not a claim of implemented coverage.
+Examples: `pottery-memory-curation--sculptor--2026-08-29` and
+`alice-quotation-grounding--muse-librarian-provenance--2026-08-31`.
+Choose the description from the selected evaluation design and inspected sources;
+do not invent a persona or generate data to obtain a name. Keep status and
+grades out of the name. If it exists, append `-02`, `-03`, and so on without
+overwriting it. Preserve the full local timestamp in the report's repository
+snapshot. Folder labels do not replace canonical Objective IDs or package
+identifiers. For an isolated test, use the caller's package directory instead.
 Write the Markdown report to `pre-generation-report.md` inside that directory.
 The report is the only file this skill creates. Its fenced generator prompt must
 use the same directory as `PACKAGE_DIRECTORY` and reserve exactly two sibling

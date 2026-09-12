@@ -22,12 +22,14 @@ from . import sessions  # noqa: E402
 from .chat_turn import ChatTurnError, run_chat_turn  # noqa: E402
 from .config import REPO_ROOT, get_settings  # noqa: E402
 from .logger import configure_logging  # noqa: E402
+from .library import router as library_router  # noqa: E402
 from .schemas import ChatRequest, ChatResponse  # noqa: E402
 
 configure_logging()
 
 settings = get_settings()
 app = FastAPI(title="Linger Chat API")
+app.include_router(library_router)
 memory_service = MemoryPolicyService(REPO_ROOT / "memories")
 memory_context = AccountContext(settings.linger_account_id)
 
