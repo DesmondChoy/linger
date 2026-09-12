@@ -382,9 +382,13 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title,
             part_id=selection.part_id if selection else pending.part_id)
         sessions.set_book_selection(request.session_id, selection)
-        sessions.clear_pending_clarification(request.session_id)
-        sessions.clear_reading_candidate(request.session_id)
-        return ContextResolution(**_chapter_reading(selection, chapter))
+        reading = _chapter_reading(selection, chapter)
+        # An answer the work cannot support leaves the question open, so the next
+        # clarification still knows it is a repeat.
+        if reading["status"] == "confirmed":
+            sessions.clear_pending_clarification(request.session_id)
+            sessions.clear_reading_candidate(request.session_id)
+        return ContextResolution(**reading)
 
     if selection:
         return ContextResolution(

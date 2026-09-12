@@ -594,6 +594,63 @@ class BookContextTests(unittest.TestCase):
         self.assertIsNone(sessions.reading_candidate("context-test"))
         self.assertIsNone(sessions.pending_clarification("context-test"))
 
+    def test_an_out_of_range_answer_keeps_the_clarification_pending(self) -> None:
+        for message, status, chapter, still_pending in (
+            ("13", "inferred", None, True),
+            ("12", "confirmed", 12, False),
+        ):
+            with self.subTest(message=message):
+                sessions.set_book_selection(
+                    "context-test",
+                    sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+                )
+                sessions.set_reading_candidate(
+                    "context-test",
+                    sessions.ReadingCandidate(book_id="pg11", book_title="Alice's Adventures in Wonderland", chapter=5),
+                )
+                sessions.set_pending_clarification(
+                    "context-test",
+                    sessions.PendingClarification(
+                        book_id="pg11",
+                        book_title="Alice's Adventures in Wonderland",
+                        reason_code="insufficient_context",
+                    ),
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", turn_id="turn-1", message=message)
+                )
+                self.assertEqual(status, context.status)
+                self.assertEqual(chapter, context.chapter_max)
+                self.assertEqual(
+                    still_pending,
+                    sessions.pending_clarification("context-test") is not None,
+                )
+                self.assertEqual(
+                    still_pending,
+                    sessions.reading_candidate("context-test") is not None,
+                )
+                sessions.clear("context-test")
+
+    def test_an_overlong_digit_message_does_not_fail_the_turn(self) -> None:
+        sessions.set_book_selection(
+            "context-test",
+            sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+        )
+        sessions.set_pending_clarification(
+            "context-test",
+            sessions.PendingClarification(
+                book_id="pg11",
+                book_title="Alice's Adventures in Wonderland",
+                reason_code="insufficient_context",
+            ),
+        )
+        context = resolve_reading_context(
+            ChatRequest(session_id="context-test", turn_id="turn-1", message="1" * 8000)
+        )
+        self.assertEqual("inferred", context.status)
+        self.assertIsNotNone(sessions.pending_clarification("context-test"))
+
+
 
 if __name__ == "__main__":
     unittest.main()
