@@ -33,6 +33,10 @@ from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_c
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
+# At or below this length, treat every word of the reader's text as private.
+SHORT_PRIVATE_TEXT_TOKENS = 8
+# Consecutive reader words that count as copied wording rather than shared topic.
+COPIED_PHRASE_TOKENS = 3
 
 
 def _normalised_tokens(text: str) -> tuple[str, ...]:
@@ -40,11 +44,34 @@ def _normalised_tokens(text: str) -> tuple[str, ...]:
     return tuple(token.casefold() for token in TOKEN.findall(normalized))
 
 
-def _query_copies_reader_terms(query: str, cue: str) -> bool:
-    """Require the model to generalise the cue before external search."""
-    query_terms = {token for token in _normalised_tokens(query) if len(token) > 1}
-    cue_terms = {token for token in _normalised_tokens(cue) if len(token) > 1}
-    return bool(query_terms & cue_terms)
+def _phrases(tokens: tuple[str, ...], size: int) -> set[tuple[str, ...]]:
+    return {tokens[index : index + size] for index in range(len(tokens) - size + 1)}
+
+
+def _query_copies_reader_terms(query: str, source: str) -> bool:
+    """Refuse a query that carries the reader's own wording to a public search.
+
+    How private a single shared word is depends on how much the reader wrote.
+    "Li and I divorced" is four words and all of it is private, so reusing any
+    of them names a real person. A long message about a book is mostly public,
+    and refusing every shared word there blocked every usable query over
+    ordinary vocabulary such as "why" or "error". So short text is protected
+    word by word, and longer text is protected against runs of consecutive
+    words, which is how copied phrasing actually escapes. A query shorter than
+    that run must not reproduce the reader's wording in full either.
+    """
+    query_tokens = _normalised_tokens(query)
+    source_tokens = _normalised_tokens(source)
+    if not query_tokens or not source_tokens:
+        return False
+    if len(source_tokens) <= SHORT_PRIVATE_TEXT_TOKENS:
+        query_terms = {token for token in query_tokens if len(token) > 1}
+        source_terms = {token for token in source_tokens if len(token) > 1}
+        return bool(query_terms & source_terms)
+    size = min(COPIED_PHRASE_TOKENS, len(query_tokens))
+    if len(source_tokens) < size:
+        return False
+    return bool(_phrases(query_tokens, size) & _phrases(source_tokens, size))
 
 
 def _query_contains_private_data(query: str) -> bool:
