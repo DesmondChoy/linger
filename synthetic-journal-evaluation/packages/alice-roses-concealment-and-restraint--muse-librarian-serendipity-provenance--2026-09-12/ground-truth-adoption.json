@@ -1,13 +1,13 @@
 {
-  "backstory_sha256": "efb73d1b6f192bad93b8135226bb2b3a0ebdee9fd82d30c880c679f3d3022345",
-  "proposed_ground_truth_sha256": "c355ca6a4c2c40f430e935f9adf7b070f9c59829cde0cd44d524065c4ccaa288",
+  "backstory_sha256": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+  "proposed_ground_truth_sha256": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
   "ground_truth_status": "adopted",
   "reviewer": {
     "reviewer_id": "jodie.loke97@gmail.com",
     "reviewer_kind": "human_developer",
     "review_method": "interactive_local_review"
   },
-  "reviewed_at": "2026-09-12T10:05:34.816265+08:00",
+  "reviewed_at": "2026-09-12T12:55:14.148635+08:00",
   "decisions": [
     {
       "proposal_id": "G1-connection",
@@ -34,5 +34,5 @@
       "decision": "adopted"
     }
   ],
-  "adopted_ground_truth_identity": "6ad90f5d9ea625da3648d3b504474d11935fdc85ecb1119d5156d3b7685e0781"
+  "adopted_ground_truth_identity": "ae4ec801931eb3cc1fc6debe7bd4bc7c736442128f512582671e7d358d87dc31"
 }
