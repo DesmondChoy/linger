@@ -7,9 +7,10 @@ from src.linger.agents.librarian.models import (
     LibrarianEvidenceStrengthInput,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
+from src.linger.prompts import load_prompt
 
 PACKAGE = "src.linger.agents.librarian"
-SHARED_INSTRUCTIONS = load_instructions(PACKAGE, "shared.md")
+SHARED_INSTRUCTIONS = load_prompt("agents", "librarian")
 
 BOUNDARY_INFERENCE = RuntimeSkill[
     LibrarianBoundaryInferenceInput, LibrarianBoundaryDecision

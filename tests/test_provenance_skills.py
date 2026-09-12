@@ -42,6 +42,7 @@ from src.linger.agents.provenance.skills import (
 )
 from src.linger.agents.sculptor.models import CurationProposal, DuplicateLink
 from src.linger.agents.skills import RuntimeSkill, load_instructions
+from src.linger.prompts import load_prompt
 from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
     EmotionalBoundaryInput,
@@ -318,7 +319,7 @@ def test_resources_and_fingerprints_do_not_depend_on_working_directory(
 ) -> None:
     fingerprints = {skill.name: skill.fingerprint() for skill in SKILLS}
     monkeypatch.chdir(tmp_path)
-    assert load_instructions(PACKAGE, "shared.md") == SHARED_INSTRUCTIONS
+    assert load_prompt("agents", "provenance") == SHARED_INSTRUCTIONS
     for skill in SKILLS:
         assert (
             load_instructions(PACKAGE, f"skills/{skill.name}/SKILL.md")

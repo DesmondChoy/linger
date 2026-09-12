@@ -14,9 +14,10 @@ from src.linger.agents.sculptor.surfacing_models import (
     SurfacingInput,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
+from src.linger.prompts import load_prompt
 
 PACKAGE = "src.linger.agents.sculptor"
-SHARED_INSTRUCTIONS = load_instructions(PACKAGE, "shared.md")
+SHARED_INSTRUCTIONS = load_prompt("agents", "sculptor")
 
 MEMORY_CURATION = RuntimeSkill[AccountScopedMemories, SculptorResponse](
     role="Sculptor",

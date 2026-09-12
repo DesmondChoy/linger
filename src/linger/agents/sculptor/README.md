@@ -25,7 +25,8 @@ The model never receives account identity. Application validation checks the
 schema, source IDs, and any future reconsideration time. A deferral does not
 schedule work, and a proposal does not deliver a message.
 
-Both skills have no tools and retain one output retry. Shared instructions
+Both skills have no tools and retain one output retry. Shared instructions in
+`agents.sculptor` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain the common trust and authority rules. Each run adds only the selected
 `SKILL.md`, with no retained history or shared request state. Fingerprints cover
 the effective instructions and contracts. `build_sculptor_agent` accepts an

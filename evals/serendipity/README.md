@@ -201,6 +201,9 @@ The component tools return fixture evidence, so they require no Exa credential
 or live retrieval. The Serendipity agent uses the configured `LINGER_MODEL` and
 matching provider API key.
 
+The optional semantic reviewer loads `evaluation.serendipity_review` from the
+[`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
+
 The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,
 usage, latency, and per-case failures. Content-bearing evaluation data must use

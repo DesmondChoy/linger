@@ -23,7 +23,8 @@ answerability independently of retrieval scores. Schema validation preserves
 the sufficient, weak, and none requirements. Application code rejects invented
 evidence IDs.
 
-Both skills have no tools and retain one output retry. The shared instructions
+Both skills have no tools and retain one output retry. Shared instructions in
+`agents.librarian` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain only common trust and authority rules. Each run adds its selected
 `SKILL.md`; no run adds another task's instructions or conversation history.
 Fingerprints cover both instruction layers and their contracts. Builders accept

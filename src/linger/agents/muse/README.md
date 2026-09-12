@@ -11,10 +11,11 @@ Draft and revision are separate model runs on the same Agent object.
 | `reflection` | `MuseDraftInput` or `MuseRevisionInput` | `MuseCandidate` | `orchestration.reflection.reflection_reply`, called by production chat and synthetic replay |
 
 [`skills.py`](skills.py) binds the selected instructions, contracts, permitted
-tools, output validator, and retry limits. [`shared.md`](shared.md) contains
-Muse's shared identity and authority rules. The Agent's base instructions
-contain only that shared resource. The application supplies the selected skill
-instructions on each run. All resources load from the package without depending
+tools, output validator, and retry limits. `agents.muse` in the
+[`prompt catalogue`](../../prompts/prompt_catalog.yaml) contains Muse's shared purpose
+and authority rules. The Agent's base instructions contain only that entry.
+The application supplies the selected skill instructions on each run.
+All resources load from the package without depending
 on the working directory. The [runtime skills architecture](../../../../docs/agent-skills.md)
 describes the common assignment mechanism.
 

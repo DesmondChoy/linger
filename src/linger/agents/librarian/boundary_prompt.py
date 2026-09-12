@@ -4,5 +4,5 @@ from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE
 
 
 PROMPT_FINGERPRINT = BOUNDARY_INFERENCE.fingerprint(
-    template_id="librarian.boundary-inference", version="5"
+    template_id="librarian.boundary-inference", version="6"
 )

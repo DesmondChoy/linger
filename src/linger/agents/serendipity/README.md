@@ -27,10 +27,11 @@ A model run is an invocation that can include several searches and retries.
 | `connection-discovery` | `ConnectionDiscoveryInput` | `ConnectionProposal` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat; `evals.serendipity.runner.run_case` with controlled tool evidence |
 
 [`skills.py`](skills.py) binds the instructions, contracts, tools, optional Exa
-capability, validator, and retry limits. [`shared.md`](shared.md) contains only
-the shared role and authority rules. The Agent's base instructions use this
-shared resource; each run adds the selected skill. Both resources load from the
-package without a working-directory dependency. See the
+capability, validator, and retry limits. `agents.serendipity` in the
+[`prompt catalogue`](../../prompts/prompt_catalog.yaml) contains only the shared role
+and authority rules. The Agent's base instructions use this entry; each run adds
+the selected skill. Both resources load from the package without a
+working-directory dependency. See the
 [runtime skills architecture](../../../../docs/agent-skills.md).
 
 The Agent keeps its fixed proposal-or-decline output schema and registered

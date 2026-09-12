@@ -47,8 +47,10 @@ flowchart LR
 
 ## Implementation contract
 
-Each role owns `skills.py`, shared instructions, and a `skills/<name>/SKILL.md`
-resource. `RuntimeSkill` is an immutable assignment record. Its `run_options()`
+Each role owns `skills.py` and a `skills/<name>/SKILL.md` resource. Shared role
+instructions live under `agents.<role>` in the packaged
+[`prompts/prompt_catalog.yaml`](../src/linger/prompts/prompt_catalog.yaml).
+`RuntimeSkill` is an immutable assignment record. Its `run_options()`
 returns fresh per-run instructions, retries, metadata, and, where needed, an
 output contract. Typed task entry points project trusted input, select the
 constant, invoke the role's Agent, and apply existing domain checks.
@@ -65,9 +67,13 @@ shared and selected instructions, input and output schemas, tool permissions,
 validator identities, and retry limits.
 
 `prompt.py` and the task-specific prompt modules expose tracing fingerprints
-for their existing consumers. Instruction content lives in the packaged
-Markdown resources. Agent builders retain test model injection and use the
-existing provider selection in `build_model`; production constructs each role
+for their existing consumers. `load_prompt("agents", "muse")` loads one role's
+shared instructions from the catalogue. Skill instructions remain in their
+per-role `SKILL.md` files. The catalogue's separate `evaluation` group contains
+`serendipity_review` and `book_spoiler_review`, used only by evaluation runners.
+Typed contracts, tools, validators, and retry guidance remain in Python.
+Agent builders retain test model injection and use the existing provider
+selection in `build_model`; production constructs each role
 object once at module import. Tests may construct separate injected instances.
 
 Typed application entry points select a constant such as
@@ -165,11 +171,12 @@ evidence; they do not describe this refactor or replace maintained docs.
 
 ## Resource distribution and verification
 
-`uv build` creates a wheel and source archive containing shared Markdown and
-all nine `SKILL.md` resources. `importlib.resources` resolves them from the
-installed role package. Runtime skill loading does not depend on a repository
-checkout or the process working directory. Corpus data, configuration, and
-evaluation packages retain their existing deployment requirements.
+`uv build` creates a wheel and source archive containing `prompts/prompt_catalog.yaml`
+and all nine `SKILL.md` resources. `importlib.resources` resolves the catalogue
+from `src.linger.prompts` and skills from each installed role package. Prompt
+and skill loading do not depend on a repository checkout or the process working
+directory. Corpus data, configuration, and evaluation packages retain their
+existing deployment requirements.
 
 The test suite exercises task selection, schema-specific retries, registered
 output validators, permitted tools, request isolation, and evaluation model

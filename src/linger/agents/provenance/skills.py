@@ -10,9 +10,10 @@ from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
     EmotionalBoundaryInput,
 )
+from src.linger.prompts import load_prompt
 
 PACKAGE = "src.linger.agents.provenance"
-SHARED_INSTRUCTIONS = load_instructions(PACKAGE, "shared.md")
+SHARED_INSTRUCTIONS = load_prompt("agents", "provenance")
 
 EMOTIONAL_PREFLIGHT = RuntimeSkill(
     role="Provenance",

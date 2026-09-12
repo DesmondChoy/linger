@@ -32,8 +32,9 @@ runtime skills, separate from Codex's development skills.
 
 [`agent.py`](agent.py) constructs one production object and retains a model
 injection builder for tests. Its base instructions contain only the shared
-policy in [`shared.md`](shared.md). Each typed entry point supplies the selected
-skill's instructions, output contract, and retry limit before invoking the
+policy in `agents.provenance` in the
+[`prompt catalogue`](../../prompts/prompt_catalog.yaml). Each typed entry point supplies
+the selected skill's instructions, output contract, and retry limit before invoking the
 model. Candidate review permits two output retries. Preflight and curation
 review each permit one. Pydantic model validators and deterministic checks
 remain task-specific.

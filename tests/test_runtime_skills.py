@@ -13,6 +13,7 @@ from apps.backend.telemetry import run_agent_traced
 from evals.synthetic_journals.transcript import SceneTranscriptRecorder
 from src.linger.agents.skills import RuntimeSkill, load_instructions
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+from src.linger.prompts import load_prompt
 
 
 class SkillInput(BaseModel):
@@ -143,7 +144,7 @@ def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, mo
     monkeypatch.chdir(tmp_path)
     for assignment in assignments:
         package = f"src.linger.agents.{assignment.role.lower()}"
-        assert load_instructions(package, "shared.md") == assignment.shared_instructions
+        assert load_prompt("agents", assignment.role.lower()) == assignment.shared_instructions
         assert load_instructions(
             package, f"skills/{assignment.name}/SKILL.md"
         ) == assignment.instructions

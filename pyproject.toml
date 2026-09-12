@@ -35,7 +35,8 @@ build-backend = "setuptools.build_meta"
 include = ["src", "src.linger*", "apps.backend*"]
 
 [tool.setuptools.package-data]
-"*" = ["shared.md", "skills/*/SKILL.md"]
+"*" = ["skills/*/SKILL.md"]
+"src.linger.prompts" = ["prompt_catalog.yaml"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

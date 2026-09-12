@@ -3,8 +3,9 @@
 from apps.backend.contracts import MuseDraftInput, MuseRevisionInput
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.skills import RuntimeSkill, load_instructions
+from src.linger.prompts import load_prompt
 
-SHARED_INSTRUCTIONS = load_instructions("src.linger.agents.muse", "shared.md")
+SHARED_INSTRUCTIONS = load_prompt("agents", "muse")
 
 REFLECTION: RuntimeSkill[MuseDraftInput | MuseRevisionInput, MuseCandidate] = RuntimeSkill(
     role="Muse",

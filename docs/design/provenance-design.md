@@ -43,9 +43,10 @@ task and may include output-validation retries.
 | [Candidate review](../../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` | `ProvenanceReview` | `reflection._review_candidate` |
 | [Curation review](../../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` | `CurationProvenanceReview` | `review_curation` |
 
-The base Agent contains only the role and trust policy in
-[`shared.md`](../../src/linger/agents/provenance/shared.md). Task instructions are
-additive per-run instructions, so only the selected skill reaches the model.
+The base Agent contains only the role and trust policy in `agents.provenance`
+in the [`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml). Task
+instructions are additive per-run instructions, so only the selected skill
+reaches the model.
 No task inherits another task's policy or output schema. Candidate review
 allows two output retries; the other skills allow one. Output schemas retain
 their Pydantic validators, and orchestration retains its deterministic checks.

@@ -4,5 +4,5 @@ from src.linger.agents.sculptor.skills import MEMORY_CURATION
 
 
 PROMPT_FINGERPRINT = MEMORY_CURATION.fingerprint(
-    template_id="sculptor.curation", version="4"
+    template_id="sculptor.curation", version="5"
 )

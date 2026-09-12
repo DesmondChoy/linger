@@ -7,8 +7,9 @@ from src.linger.agents.serendipity.models import (
     SerendipityResponse,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
+from src.linger.prompts import load_prompt
 
-SHARED_INSTRUCTIONS = load_instructions("src.linger.agents.serendipity", "shared.md")
+SHARED_INSTRUCTIONS = load_prompt("agents", "serendipity")
 
 CONNECTION_DISCOVERY: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse] = RuntimeSkill(
     role="Serendipity",

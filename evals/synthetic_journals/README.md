@@ -439,6 +439,9 @@ of paraphrased disclosure. Its `pass`, `fail`, `not_run`, or `error` result is
 stored separately and labeled non-independent. It does not change the hard
 grade or establish semantic accuracy. Human review remains necessary.
 
+The semantic reviewer loads `evaluation.book_spoiler_review` from the
+[`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
+
 The command shares the other runners' proposal, adoption, and output behavior.
 It does not adopt labels. Historical book packages using the removed fields
 remain unchanged but are obsolete replay inputs. New Ground truth requires new
