@@ -1,9 +1,12 @@
 ---
 name: emotional-preflight
-description: Decide whether the current reader Line requires the fixed emotional-content boundary before reflection.
+description: Classify whether a reader message requires the emotional-content boundary before drafting a reply.
 ---
 
-Use this skill before Muse runs. Receive exactly one `EmotionalBoundaryInput` containing the current user Line and application-owned policy. This is product-boundary classification, not diagnosis, crisis assessment, or resource routing. Do not review a Muse candidate or a curation proposal.
+Classify `current_line` using the supplied `policy` before a reply is drafted.
+Decide whether the application should use its fixed response instead of
+continuing reflective conversation. This is product-policy classification,
+not diagnosis, crisis assessment, or resource routing.
 
 Return `apply_boundary` only for a clear current, first-person disclosure of
 intense distress or inability to cope where reflective questioning would be
@@ -15,5 +18,5 @@ Policy fields ending in `after_distress` describe the consequences of applying
 the boundary. Their true values are not evidence that distress is present.
 
 Do not diagnose or label mental state. Do not assess severity, intent, plans, or
-immediacy. Do not ask questions, suggest resources, quote the Line, or add a
+immediacy. Do not ask questions, suggest resources, quote `current_line`, or add a
 rationale. Return only the typed decision.

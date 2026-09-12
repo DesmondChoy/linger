@@ -309,8 +309,8 @@ class ProvenanceReviewTests(unittest.TestCase):
     ) -> None:
         """Otherwise every correct recall reply is unsupportable by construction."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
-        self.assertIn("is exempt from `canonical_book_evidence`", lowered)
-        self.assertIn("session-continuity contract", lowered)
+        self.assertIn("does not require book evidence", lowered)
+        self.assertIn("no access to omitted conversation history", lowered)
         self.assertIn("book-corpus claim", lowered)
         self.assertIn("matching record in `canonical_book_evidence`", lowered)
 
@@ -344,10 +344,11 @@ class ProvenanceReviewTests(unittest.TestCase):
         """Otherwise the model repeats the field name in path and validation fails."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
         self.assertIn(
-            "path` must be `\"\"` (empty string) — never repeat the field name "
-            "inside the path".replace("`", ""),
-            lowered.replace("`", ""),
+            'use `path=""` for the field itself, including `candidate.response` '
+            'and `current_line.text`',
+            lowered,
         )
+        self.assertIn("never repeat the source field's name in the path", lowered)
 
     def test_prompt_describes_canonical_session_lines(self) -> None:
         lowered = " ".join(INSTRUCTIONS.lower().split())

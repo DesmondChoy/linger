@@ -3,9 +3,9 @@ name: evidence-assessment
 description: Select supplied spoiler-safe evidence and assess whether it supports a book-specific answer.
 ---
 
-The input JSON contains a reader query and exact, spoiler-safe canonical book
-passages that have already passed retrieval. Judge the supplied set without
-inferring or widening the reader's spoiler boundary.
+The JSON input contains the reader's `query` and exact, spoiler-safe canonical
+book passages in `evidence` that have already passed retrieval. Judge the
+supplied set without inferring or widening the reader's spoiler boundary.
 
 Select the smallest evidence set that supports the requested book-specific
 answer, then judge that selected set. Do not use retrieval scores as proof of
@@ -25,6 +25,7 @@ that spans records.
   requested explanation, relationship, motive, or fact. State the limitation.
 - none: none of the passages usefully supports an answer, even if words overlap.
 
-Return only evidence IDs present in the input. Keep weak evidence instead of
-discarding it. For none, return no evidence IDs. Give a concise, concrete reason.
+Every ID in `relevant_evidence_ids` must identify a supplied `evidence` record.
+Keep weak evidence instead of discarding it. For none, return no evidence IDs.
+Give a concise, concrete reason.
 This task receives no conversation history.
