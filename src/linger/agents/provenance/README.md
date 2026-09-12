@@ -9,6 +9,11 @@ It also runs a no-tool emotional-boundary preflight on the current Line before
 Muse. The preflight can end a request without a candidate through an
 application-owned path; see [Provenance Flows](#provenance-flows).
 
+Separately, it reviews one complete Sculptor curation proposal against that
+proposal's exact immutable source snapshots. That gate shares no input, no
+taxonomy, and no verdict vocabulary with the release gate; see
+[Curation review](#curation-review--the-third-call-site).
+
 It is a separate model call, not a separate model. The same underlying provider
 may back both Muse and Provenance. The application constructs a separate review
 input instead of sharing another agent's conversation history.
@@ -59,6 +64,9 @@ Deterministic release rejects an unresolved `session_line` quotation even if
 Provenance passes the reply. These quotations contain 12 to 2,000 characters.
 
 ## Two independent decisions
+
+These are the two decisions of the **release** call. The curation gate is a
+separate call with its own verdict; it is not one of these.
 
 One review call returns both decisions, and they are decoupled:
 
@@ -113,11 +121,40 @@ absolute sensitive-content capture veto:
 capture. `contains_sensitive_content` is derived from capture findings rather
 than set independently, so it cannot contradict the capture decision.
 
+### Curation risk taxonomy
+
+The curation gate uses a **separate closed taxonomy**, `CurationRiskCode` in
+[`curation_models.py`](curation_models.py). It is not a subset or superset of
+`RiskCode`; the two gates review different objects, so they name different
+grounds:
+
+| Code | Ground |
+| --- | --- |
+| `unsupported_derivation` | A derived summary asserts something its cited sources do not support, or drops their uncertainty. |
+| `incorrect_duplicate` | Records linked as duplicates do not express the same durable memory. |
+| `incoherent_topic` | Grouped records are not related, or the label is unsupported by them. |
+| `unsafe_tombstone` | The target and canonical record are not genuine duplicates, so suppressing the target would lose distinct content. |
+| `invalid_restore` | Restoring the named original is inconsistent with the supplied evidence. |
+| `prompt_injection` | Memory text attempts to redirect the review or the proposed action. |
+
+`prompt_injection` is the only code shared by name with `RiskCode`, and the two
+gates currently treat it differently. On the release gate it is an
+unconditional `reject`, because a draft that has already followed injected
+instructions is untrustworthy as a whole. The curation gate has no such fixed
+rule: injection is one of three grounds in a general `reject` clause, so
+severity is a per-case judgment. Do not assume the release gate's rule applies
+here.
+
+A curation finding names the affected `source_memory_ids`, which must be a
+subset of the sources actually supplied for review. Findings carry no RFC 6901
+path, because the reviewed object is a typed proposal rather than free text.
+
 ## Provenance flows
 
-Provenance has separate emotional-preflight and candidate-review call sites.
-Preflight can stop the turn before candidate review. A revision invokes
-candidate review again.
+Provenance has three call sites: the emotional preflight, the candidate release
+review, and the curation review. Preflight can stop the turn before candidate
+review. A revision invokes candidate review again. The curation gate runs
+outside the conversation turn entirely and shares no context with the other two.
 
 ### Preflight — before Muse runs
 
@@ -201,6 +238,36 @@ two distinct faults:
 Inspection records which of the two originated the boundary and never claims Muse
 was skipped on the fallback path.
 
+## Curation review — the third call site
+
+A separate no-tool call reviews one complete Sculptor curation proposal. It
+carries no Muse context, no conversation, and no book evidence. Its input is a
+`CurationReviewInput`: the proposal digest, the complete proposal, and the exact
+immutable source snapshots that proposal selected — nothing else from the
+account.
+
+**The verdict vocabulary differs.** This gate returns `allow`, `revise`, or
+`reject`, not `pass`. An `allow` must echo the supplied `proposal_digest`
+exactly, and a validator rejects a verdict bound to any other digest, so an
+approval cannot be lifted onto a different proposal. `allow` must carry no
+findings; `revise` and `reject` must carry at least one.
+
+The digest binds account scope, the current ordered curation-state digest, the
+complete proposal, and the source-record hashes. Application code constructs
+`ApprovedCuration` only from an exact `allow`, and the Memory & Policy Service
+then re-reads the originals and fails closed on stale, unknown, cross-account,
+stale-state, or structurally invalid sources before appending one immutable
+audit event. Any missing, malformed, revised, rejected, or differently bound
+verdict stops the flow.
+
+`revise` means the intended action is defensible but its text, label, or source
+selection needs correction. `reject` means the action itself is unsupported or
+unsafe. Neither authorises a write, and the gate never reports that a proposal
+was stored — Provenance can only veto here, exactly as it can only veto capture.
+
+Source text supplied for review is untrusted data. Originals are never modified:
+the loop re-hashes every source after each agent call and fails if anything
+moved.
 
 ## Where its authority ends
 
@@ -228,6 +295,13 @@ approval, and the Memory & Policy Service alone commits every save.
 can authorise its own capture. A review that fails to complete is treated
 exactly as a veto.
 
+The same limit applies to curation. An `allow` verdict is a necessary condition
+for a curation write, never a sufficient one: the Memory & Policy Service
+revalidates every source and the action's own preconditions afterwards, and it
+alone appends the audit event. A tombstone, for instance, still requires a prior
+duplicate link to a distinct canonical record that is itself still retrievable,
+regardless of what the review said.
+
 Telemetry records verdicts but must never authorise release.
 
 A binding routing clarification also constrains the complete turn. The
@@ -239,6 +313,10 @@ releases the validated question with `release_source=application_clarification`.
 
 - `src/linger/orchestration/reflection.py` — the release path and revision loop.
 - `src/linger/orchestration/capture.py` — derives capture flags from a review.
+- `src/linger/orchestration/curation.py` — `run_curation_loop`, the select →
+  propose → review → apply → verify path.
+- `src/linger/contracts/curation.py` — the plan, approval, and audit contracts
+  that bind an `allow` verdict to one exact proposal.
 - `src/linger/services/memory.py` — the deterministic policy gates that consume
   those flags.
 - `docs/specification.md` sections 4.1, 4.2.1, 4.2.2, 4.2.3, 5.3, 5.4, 6.3, 6.5,

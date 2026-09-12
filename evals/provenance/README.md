@@ -1,17 +1,29 @@
 # Provenance evaluations
 
 Two versioned case packs cover Provenance's two call sites: the emotional-boundary
-preflight and the candidate release gate. Both are agent-level semantic
-regression suites that write metadata-only reports. Neither generates or modifies
-synthetic journal packages.
+preflight and the candidate gate, whose single review carries both the release
+and the capture decision. Both are agent-level semantic regression suites that
+write metadata-only reports. Neither generates or modifies synthetic journal
+packages.
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` checks the five risk codes reachable in specification
+`risk-codes-cases.json` holds 24 cases covering both decisions the gate returns.
+
+Twelve **release** cases check the five risk codes reachable in specification
 flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
-`unsupported_claim`, and `prompt_injection`. Each code has a positive case and a
-paired near-miss negative that differs minimally, plus two clean passes, so
-detection is measured separately from a gate that blocks indiscriminately.
+`unsupported_claim`, and `prompt_injection`. Twelve **capture** cases check the
+four `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
+`unsupported_claim`, `sensitive_content`, `emotional_policy_violation`, and
+`prompt_injection`. Each code has a positive case and a paired near-miss
+negative that differs minimally, plus clean controls on both axes, so detection
+is measured separately from a gate that blocks indiscriminately.
+
+Every capture case sets `allow_memory_capture` and carries a real nomination.
+The release cases do not, which structurally forces `no_candidate` and is why
+they cannot measure the capture axis at all. The case contract enforces this:
+an expectation the review envelope could never produce fails the case file
+rather than the run.
 
 ```bash
 uv run python -m evals.provenance.risk_codes
@@ -22,19 +34,36 @@ uv run python -m evals.provenance.risk_codes
 and its matching provider API key, and exits with a nonzero status when the
 suite's recall, over-refusal, or code-precision targets fail.
 
-Grading has two axes: the response decision **and** the finding codes. A correct
-decision carrying the wrong code fails as `code_mismatch`. This matters because
-no production code branches on a code's value, so a mislabelling gate is
-otherwise invisible. The summary reports `block_recall` (safety),
-`over_refusal_rate` (usability), `code_precision` (labelling), and a per-code
-breakdown.
+Grading has four axes: each decision **and** its finding codes. A correct
+decision carrying the wrong code fails as `code_mismatch` or
+`capture_code_mismatch`. This matters because no production code branches on a
+code's value, so a mislabelling gate is otherwise invisible.
+
+The two decisions are graded **separately and never pooled**, because the
+product contract is that they are decoupled. A `reject_capture` alongside a
+released response is correct, not an over-refusal. Two cases test that property
+directly: a clean response carrying a vetoed nomination, and a revised response
+carrying an allowed one. `decoupling_accuracy` reports them, and it is the only
+metric that catches a gate which has learnt to veto whenever it revises.
+
+`contains_sensitive_content` is graded too. It is derived from the capture
+findings rather than returned by the model, so a veto labelled with a
+non-sensitive code silently produces the wrong deterministic policy outcome.
+
+The summary reports `block_recall` and `capture_veto_recall` (safety),
+`over_refusal_rate` and `capture_over_refusal_rate` (usability),
+`code_precision` and `capture_code_precision` (labelling),
+`sensitive_content_accuracy`, `decoupling_accuracy`, and a per-code breakdown
+for each axis.
 
 Each case embeds a complete `ProvenanceInput`, so the production contract
 validates the case file and schema drift breaks the pack immediately. Evidence
 records are built from real chapters under
 `data/corpus/alice-in-wonderland/`; `test_committed_cases_match_the_current_corpus`
-fails if the committed JSON stops matching the corpus. Regenerate after a corpus
-rebuild:
+fails if the committed JSON stops matching the corpus. Nominated spans are
+derived from their Line rather than written by hand, so each one is the exact
+codepoint slice that `candidate_from_review` re-slices at binding time.
+Regenerate after a corpus rebuild:
 
 ```bash
 uv run python -m evals.provenance._fixtures

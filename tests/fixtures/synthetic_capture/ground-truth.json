@@ -32,7 +32,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -65,7 +68,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -98,7 +104,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -131,7 +140,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -164,7 +176,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -197,7 +212,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -220,14 +238,17 @@
       "evidence": [],
       "prop_relevance": [],
       "capture": {
-        "kind": "capture_candidate",
-        "span": {
-          "source_kind": "line",
-          "source_id": "line-mara-07",
-          "start_codepoint": 0,
-          "end_codepoint": 118,
-          "text": "I’ve realized that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
-        }
+        "nomination": {
+          "kind": "capture_candidate",
+          "span": {
+            "source_kind": "line",
+            "source_id": "line-mara-07",
+            "start_codepoint": 0,
+            "end_codepoint": 118,
+            "text": "I’ve realized that sketching by hand helps me slow down and think clearly, so I want to keep Saturday mornings for it."
+          }
+        },
+        "provenance_decision": "allow_capture"
       }
     },
     {
@@ -260,7 +281,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -293,7 +317,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -326,7 +353,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     },
     {
@@ -359,7 +389,10 @@
         ]
       },
       "capture": {
-        "kind": "no_candidate"
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
       }
     }
   ]
