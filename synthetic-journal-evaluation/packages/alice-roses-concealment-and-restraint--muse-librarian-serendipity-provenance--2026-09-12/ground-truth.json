@@ -1,5 +1,5 @@
 {
-  "backstory_sha256": "efb73d1b6f192bad93b8135226bb2b3a0ebdee9fd82d30c880c679f3d3022345",
+  "backstory_sha256": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
   "ground_truth_status": "proposed",
   "proposals": [
     {
@@ -34,8 +34,8 @@
           "kind": "public_source",
           "evidence_id": "S1C-public",
           "source_id": "nurse-error-reporting",
-          "start_codepoint": 1734,
-          "end_codepoint": 1848,
+          "start_codepoint": 1868,
+          "end_codepoint": 1982,
           "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
         }
       ],
@@ -112,8 +112,8 @@
           "kind": "public_source",
           "evidence_id": "S2C-public",
           "source_id": "nurse-error-reporting",
-          "start_codepoint": 1734,
-          "end_codepoint": 1848,
+          "start_codepoint": 1868,
+          "end_codepoint": 1982,
           "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
         }
       ],
@@ -185,8 +185,8 @@
           "kind": "public_source",
           "evidence_id": "S2W-public",
           "source_id": "nurse-error-reporting",
-          "start_codepoint": 1734,
-          "end_codepoint": 1848,
+          "start_codepoint": 1868,
+          "end_codepoint": 1982,
           "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
         }
       ],
