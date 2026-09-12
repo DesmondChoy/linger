@@ -104,6 +104,20 @@ TITLE_PREFIX_PATTERN = re.compile(
     re.IGNORECASE,
 )
 TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
+# A title need not sit immediately after the chapter. Readers also write
+# "chapter 8, the croquet ground, in <title>" and "chapter 8 while reading
+# <title>", so search the rest of the declaration for the phrase that
+# introduces it. "while reading" is matched ahead of a bare "in" so that
+# "Alice in Wonderland" is not truncated to "Wonderland".
+TITLE_SUFFIX_SEARCH_PATTERN = re.compile(
+    r"\b(?:of|in|from|(?:while\s+)?reading)\s+(?P<title>.+)$",
+    re.IGNORECASE,
+)
+# "In <title>, I've completed chapter 8" puts the title before the chapter.
+TITLE_LEAD_PATTERN = re.compile(
+    r"^\s*(?:in|from)\s+(?P<title>[^,.!?]+)",
+    re.IGNORECASE,
+)
 TITLE_END_PATTERN = re.compile(
     r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
     re.IGNORECASE,
@@ -128,9 +142,15 @@ AFFIRMATION_PATTERN = re.compile(
 
 def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | None:
     if chapter_match:
-        title_match = TITLE_SUFFIX_PATTERN.match(message[chapter_match.end():])
+        after = message[chapter_match.end():]
+        before = message[:chapter_match.start()]
+        title_match = TITLE_SUFFIX_PATTERN.match(after)
         if title_match is None:
-            title_match = TITLE_PREFIX_PATTERN.search(message[:chapter_match.start()])
+            title_match = TITLE_PREFIX_PATTERN.search(before)
+        if title_match is None:
+            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(after)
+        if title_match is None:
+            title_match = TITLE_LEAD_PATTERN.match(before)
     else:
         title_match = TITLE_PREFIX_PATTERN.search(message)
     if title_match is None:
@@ -153,7 +173,9 @@ NAMED_LOCATION = "(?:" + "|".join(NAMED_LOCATION_KINDS) + ")"
 NAMED_LOCATION_PATTERN = re.compile(rf"\b{NAMED_LOCATION}\b", re.IGNORECASE)
 DECLARATION_END_PATTERN = re.compile(
     r"(?<!\bMr)(?<!\bMrs)(?<!\bDr)(?<!\bMs)(?<!\bSt)(?<!\bEsq)(?<!\bCh)[.!?;](?:\s|$)|"
-    r"(?:[,—]\s*|\s+(?:and|but)\s+)(?=(?:i|what|why|how|tell|can|could|would|please)\b)",
+    r"(?:[,—]\s*|\s+(?:and|but)\s+)"
+    r"(?=(?:i|it|this|that|they|there|the\s+\w+\s+(?:stayed|stuck)"
+    r"|what|why|how|tell|can|could|would|please)\b)",
     re.IGNORECASE,
 )
 READ_NAMED_PATTERN = re.compile(
@@ -171,8 +193,25 @@ def _completed_location(message: str) -> str | None:
         rf"(?:reading\s+)?(?:(?:the|that|this)\s+)?(?:editor['’]s\s+)?(?:part|chapter|ch\.?|scene|it|{NAMED_LOCATION})\b",
         location, re.IGNORECASE,
     ):
+        # The reader may name the chapter before the verb, as in "Chapter 8 is
+        # the last chapter I've finished in <title>". Nothing follows the verb
+        # to anchor on, so fall back to the sentence holding the declaration,
+        # which keeps the chapter and the title together for the parsers below.
+        if CHAPTER_PATTERN.search(message[:completion.start()]):
+            return _declaration_sentence(message, completion)
         return None
     return location
+
+
+def _declaration_sentence(message: str, match: re.Match[str]) -> str:
+    """Return the sentence containing a matched progress declaration."""
+    start = max(message.rfind(mark, 0, match.start()) for mark in ".!?") + 1
+    endings = tuple(
+        index for mark in ".!?"
+        if (index := message.find(mark, match.end())) >= 0
+    )
+    end = min(endings) + 1 if endings else len(message)
+    return message[start:end].strip()
 
 
 def _location_words(text: str) -> str:

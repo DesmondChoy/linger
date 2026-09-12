@@ -110,6 +110,111 @@ class BookContextTests(unittest.TestCase):
             self.assertEqual(registration.book.book_version_id, context.book_version_id)
             self.assertEqual(2, context.chapter_max)
 
+    def test_completed_chapter_with_scene_title_confirms_book_progress(self) -> None:
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message=(
+                "I've finished chapter 8, The Queen's Croquet-Ground, in "
+                "Alice's Adventures in Wonderland. The gardeners painting "
+                "the white roses red stayed with me."
+            ),
+        ))
+
+        self.assertEqual("confirmed", context.status)
+        self.assertEqual("pg11", context.work_id)
+        self.assertEqual(8, context.chapter_max)
+        self.assertEqual("reader_confirmed", context.boundary_source)
+
+    def test_completed_chapter_resolves_book_from_varied_sentence_wording(self) -> None:
+        messages = (
+            "Chapter 8 is the last chapter I've finished in Alice's Adventures in Wonderland.",
+            "In Alice's Adventures in Wonderland, I've completed chapter 8 and want to reflect on it.",
+            "I've completed chapter 8 while reading Alice in Wonderland.",
+        )
+
+        for message in messages:
+            with self.subTest(message=message):
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message=message,
+                ))
+                self.assertEqual("confirmed", context.status)
+                self.assertEqual("pg11", context.work_id)
+                self.assertEqual(8, context.chapter_max)
+                sessions.clear("context-test")
+
+    def test_declared_title_ignores_prose_after_the_declaration(self) -> None:
+        # The title suffix must stop at the sentence end and at trailing
+        # clauses; otherwise it swallows the rest of the message and the
+        # exact-mode lookup fails. Covers every book in the corpus.
+        books = (
+            ("pg11", "Alice's Adventures in Wonderland"),
+            ("pga0100011", "Animal Farm"),
+            ("pg500", "The Adventures of Pinocchio"),
+        )
+        templates = (
+            "I have finished Chapter 5 of {title}. The middle part stayed with me.",
+            "I have finished Chapter 5 of {title}, and it stayed with me.",
+            "I have finished Chapter 5 of {title} and it stayed with me.",
+            "I have finished Chapter 5 of {title}. What do you make of it?",
+        )
+
+        for work_id, title in books:
+            for template in templates:
+                message = template.format(title=title)
+                with self.subTest(message=message):
+                    context = resolve_reading_context(ChatRequest(
+                        session_id="context-test",
+                        message=message,
+                    ))
+                    self.assertEqual("confirmed", context.status)
+                    self.assertEqual(work_id, context.work_id)
+                    self.assertEqual(5, context.chapter_max)
+                    sessions.clear("context-test")
+
+    def test_trailing_prose_does_not_resolve_an_undeclared_book(self) -> None:
+        for message in (
+            "I have finished Chapter 5. It stayed with me.",
+            "I am partway through chapter 5 of Animal Farm and it stayed with me.",
+        ):
+            with self.subTest(message=message):
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test",
+                    message=message,
+                ))
+                self.assertEqual("unknown", context.status)
+                self.assertIsNone(context.work_id)
+                self.assertIsNone(context.chapter_max)
+                sessions.clear("context-test")
+
+    def test_book_in_later_sentence_does_not_inherit_completed_chapter(self) -> None:
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message=(
+                "I've finished chapter 8. Alice's Adventures in Wonderland "
+                "also came to mind today."
+            ),
+        ))
+
+        self.assertEqual("unknown", context.status)
+        self.assertIsNone(context.work_id)
+        self.assertIsNone(context.chapter_max)
+
+    def test_unknown_book_after_scene_title_does_not_inherit_previous_progress(self) -> None:
+        sessions.set_book_selection(
+            "context-test", sessions.BookSelection(book_id="pg11")
+        )
+
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message="I've finished chapter 8, The Last Garden, in Winter Wonderland.",
+        ))
+
+        self.assertEqual("unknown", context.status)
+        self.assertIsNone(context.work_id)
+        self.assertIsNone(context.chapter_max)
+        self.assertIsNone(sessions.book_selection("context-test"))
+
     def test_title_after_chapter_does_not_inherit_the_previous_book(self) -> None:
         from pathlib import Path
         from tempfile import TemporaryDirectory
