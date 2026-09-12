@@ -20,8 +20,10 @@ from evals.synthetic_journals.book_contract import (
 )
 from evals.synthetic_journals.models import (
     CaptureCandidate,
+    CaptureExpectation,
     ExactSpan,
     GroundTruthProposal,
+    NoCandidate,
     OfflineInputEvidence,
     PropEvidence,
     ProposedGroundTruth,
@@ -165,10 +167,13 @@ def validate_package(
             failures.extend(
                 _validate_span(span, scene, props, lines, offline_inputs)
             )
-        if isinstance(proposal.capture, CaptureCandidate):
+        if (
+            isinstance(proposal.capture, CaptureExpectation)
+            and isinstance(proposal.capture.nomination, CaptureCandidate)
+        ):
             failures.extend(
                 _validate_span(
-                    proposal.capture.span,
+                    proposal.capture.nomination.span,
                     scene,
                     props,
                     lines,
@@ -724,6 +729,30 @@ def _validate_run_configurations(
                 f"{configuration.scene_count} Scenes, found {len(scenes)}"
             )
         if configuration.capture_mix is not None:
+            if backstory.props:
+                failures.append(
+                    f"run configuration {configuration_id} capture Scenes cannot use Props"
+                )
+            if backstory.offline_inputs:
+                failures.append(
+                    f"run configuration {configuration_id} capture Scenes cannot use offline inputs"
+                )
+            lines_by_id = {line.line_id: line for line in backstory.lines}
+            for scene in scenes:
+                if not scene.fresh_session:
+                    failures.append(
+                        f"capture Scene {scene.scene_id} must use a fresh session"
+                    )
+                if len(scene.line_ids) != 1:
+                    failures.append(
+                        f"capture Scene {scene.scene_id} must contain exactly one Line"
+                    )
+                elif scene.line_ids[0] in lines_by_id:
+                    line = lines_by_id[scene.line_ids[0]]
+                    if line.order != 1:
+                        failures.append(
+                            f"capture Line {line.line_id} must have order 1"
+                        )
             proposals = [
                 proposal
                 for proposal in ground_truth.proposals
@@ -732,13 +761,18 @@ def _validate_run_configurations(
             capture_candidates = [
                 proposal
                 for proposal in proposals
-                if isinstance(proposal.capture, CaptureCandidate)
+                if (
+                    isinstance(proposal.capture, CaptureExpectation)
+                    and isinstance(proposal.capture.nomination, CaptureCandidate)
+                )
             ]
             no_candidates = [
                 proposal
                 for proposal in proposals
-                if proposal.capture is not None
-                and proposal.capture.kind == "no_candidate"
+                if (
+                    isinstance(proposal.capture, CaptureExpectation)
+                    and isinstance(proposal.capture.nomination, NoCandidate)
+                )
             ]
             missing_capture = [
                 proposal.proposal_id
@@ -777,8 +811,9 @@ def _validate_run_configurations(
                     f"proposal(s), found {len(no_candidates)}"
                 )
             for proposal in capture_candidates:
-                assert isinstance(proposal.capture, CaptureCandidate)
-                if proposal.capture.span.source_kind != "line":
+                assert isinstance(proposal.capture, CaptureExpectation)
+                assert isinstance(proposal.capture.nomination, CaptureCandidate)
+                if proposal.capture.nomination.span.source_kind != "line":
                     failures.append(
                         f"capture candidate {proposal.proposal_id} must use an "
                         "exact Line span"

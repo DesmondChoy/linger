@@ -40,13 +40,12 @@ Two facts frame the capture work below:
   12 cases all set `allow_memory_capture: false` and carry `memory: None`, so
   the pack that proved the five 4.2.1 codes never touched the capture axis.
   `sensitive_content` is the one `RiskCode` with **no live evidence at all**.
-- **The one capture package was never adopted or replayed.**
-  [2026-08-23](../../synthetic-journal-evaluation/packages/2026-08-23T182725+0800/)
-  is `ground_truth_status: proposed`, has no `ground-truth-adoption.json`, and
-  has no run artifact — unlike every reflection package, which has both.
+- **No capture package is currently available for adoption or replay.** The
+  previous 2026-08-23 package has been removed, so the first capture
+  measurement needs a replacement package.
 
 Ordering mirrors §4.2.1's: measure each gate in isolation first (**Stages 1 and
-4**), then replay complete packages. The existing capture package can provide
+4**), then replay complete packages. A replacement capture package can provide
 an inexpensive positive-path measurement, but it cannot replace the later work
 needed to express and grade a Provenance veto.
 
@@ -117,23 +116,24 @@ and deterministically verified, not yet measured against a model.
 
 **Stage 2 — Close the package expressiveness gap**
 
-- [ ] **E5 — `CaptureExpectation` cannot express a veto.** Today it is
+- [x] **E5 — `CaptureExpectation` cannot express a veto.** Today it is
       `CaptureCandidate | NoCandidate`
       ([`models.py:389`](../../evals/synthetic_journals/models.py#L389)), which
-      distinguishes only *Muse nominated* from *Muse did not*. It cannot say
-      "Muse nominates, Provenance vetoes, nothing is stored" — the central
-      §4.2.2 behaviour. Add a third member (`VetoedCandidate`: the nominated
-      span plus expected suppression reason), following the
-      `GroundingExpectation` discriminated-union precedent from A1 so the
-      storage outcome stays *derived* rather than separately assertable.
-- [ ] **E6 — Grade `reason_code`.** `CaptureInspection` already carries it
+      distinguishes only *Muse nominated* from *Muse did not*. Replace that
+      one-axis union with an explicit expectation object containing both
+      `nomination` and `provenance_decision` (`allow_capture`,
+      `reject_capture`, or `no_candidate`). This can say "Muse nominates,
+      Provenance vetoes" without making the vetoed case a mutually exclusive
+      third variant. Validate the legal combinations, and keep storage as a
+      derived outcome rather than a separately assertable field.
+- [x] **E6 — Grade `reason_code`.** `CaptureInspection` already carries it
       ([`schemas.py:35`](../../apps/backend/schemas.py#L35)) and all three
       values are produced by
       [`chat_turn.py`](../../apps/backend/chat_turn.py#L361-L395), but
       `_capture_failures` never reads it. Without it, a suppression for the
       wrong reason grades as a pass. This is the same shape as B1: the field
       exists, it just never reaches the grader.
-- [ ] **E7 — Validator coverage for capture.** `validate_package.py` has
+- [x] **E7 — Validator coverage for capture.** `validate_package.py` has
       `_validate_bounded_curation` and `_validate_reflection_grounding` but no
       capture equivalent. A capture Scene should be required to carry typed
       capture Ground truth, exactly one Line, a fresh session, and no Props or
@@ -141,14 +141,14 @@ and deterministically verified, not yet measured against a model.
       ([`replay.py:657`](../../evals/synthetic_journals/replay.py#L657))
       currently discovers at *runtime*, failing the run instead of the package.
 
-**Stage 3 — Author, adopt, and replay**
+**Stage 3 — Author, adopt, and replay a capture package**
 
-- [ ] **E8 — Adopt and replay the 2026-08-23 package.** It validates unchanged
-      against the current schema (`PACKAGE_VALIDATION_OK=11 scenes,11
-      proposals`, verified 2026-09-08), and `replay.py --adoption` is ready.
-      This is the cheapest available first live 4.2.2 measurement and should be
-      done **before** E5–E7, since its failure modes will say whether the
-      expressiveness gap actually bites.
+- [ ] **E8 — Generate, adopt, and replay a replacement capture package.** Use
+      the current package models and the
+      `reviewed_automatic_memory_capture` run configuration. Validate the
+      package, obtain independent Ground truth adoption, and run it through
+      `replay.py --adoption`. This provides the first live 4.2.2 measurement
+      for the capture path that the current contract can express.
 - [ ] **E9 — Re-measure the 10-to-1 mix.** `capture_mix` is 1 candidate to 10
       no-candidate, and the run configuration itself says one positive "is
       insufficient for stable recall measurement". The single positive Scene
@@ -281,31 +281,34 @@ changed is that the obstacle is now a provider call rather than missing cases.
 
 ### 10.2 `CaptureExpectation` cannot express the veto
 
-The Ground truth vocabulary is `CaptureCandidate | NoCandidate`. That
+The current Ground truth vocabulary is `CaptureCandidate | NoCandidate`. That
 distinguishes only whether Muse nominated. The §4.2.2 behaviour that matters
 most — *Muse nominates, Provenance vetoes, nothing is stored* — has **no
 representation**, and neither does *allowed but suppressed by a safe decline*,
-which the catalog lists as an explicit composition constraint.
+which the catalog lists as an explicit composition constraint. E5 should
+replace it with one `CaptureExpectation` object whose `nomination` and
+`provenance_decision` fields express those axes independently, with a
+validator for legal combinations.
 
 `_capture_failures` inherits this: it derives its expected stages from
 `isinstance(expected, CaptureCandidate)`, hard-coding
 `("candidate", "allow_capture", "exact", "committed")` for a positive. A vetoed
 Scene can only be authored as `NoCandidate`, which then wrongly demands that
-Muse not nominate at all.
+Muse not nominate at all. The replacement expectation must keep nomination and
+Provenance's decision as separate axes; application suppression and its
+`CaptureInspection.reason_code` remain separately graded by E6.
 
 **→ E5, E6.**
 
-### 10.3 The one capture package is stalled at `proposed`
+### 10.3 No capture package is available
 
 | Package | Objective | Adoption | Run artifact |
 |---|---|---|---|
-| 2026-08-23 | `reviewed_automatic_memory_capture` | **none** | **none** |
 | 2026-08-31 | `grounded_book_reflection` | yes | 8 runs |
 | 2026-09-01 | `spoiler_boundary_clarification` | yes | 1 run |
 
-It is the oldest package in the repository, predating the adoption flow that
-every later package uses. Nothing blocks it: it validates, and the runner
-accepts `--adoption`. It is simply unfinished.
+The former capture package was removed. No replacement has been generated yet.
+The capture runner and adoption path exist, but they have no package to run.
 
 Its mix is also weak for a first measurement. One positive Scene in eleven
 means `memory_capture_recall` is measured on a single observation — the run
@@ -320,8 +323,8 @@ with five `minimum_scenes`, five `suggested_measures`, and explicit ground-truth
 requirements naming `emotional_boundary_capture_suppressed`. No code in
 `evals/` references it. Its scenes span three release sources
 (`muse_candidate`, `application_emotional_boundary`,
-`application_safe_decline`), which is precisely why E5's third expectation
-member is a prerequisite rather than a nicety.
+`application_safe_decline`), which is precisely why E5's explicit
+nomination/decision expectation is a prerequisite rather than a nicety.
 
 Its `emotional_boundary_accuracy` and `emotional_boundary_over_refusal_rate`
 measures overlap the existing preflight pack
@@ -356,9 +359,10 @@ is what would let one be authored.
 
 Two Objectives, in this order:
 
-1. **`reviewed_automatic_memory_capture`** — already has a package, a run
-   configuration, a runner, and package models. Adopting and replaying it (E8)
-   is the shortest path to a first live number and needs no new code.
+1. **`reviewed_automatic_memory_capture`** — has a run configuration, a runner,
+   and package models, but no current package. Generating, adopting, and
+   replaying a replacement package (E8) is the shortest path to a first live
+   capture number.
 2. **`sensitive_inference_and_capture_veto`** — the Objective that actually
    exercises Provenance's veto. Needs E5, E7, and runner support first.
 
@@ -375,8 +379,8 @@ expressible today.
 | Scene | Line | Expected | New vocabulary |
 |---|---|---|---|
 | durable capture | a specific, lasting reflection | nominated, allowed, committed | none — `CaptureCandidate` |
-| sensitive veto | uncertainty about a sensitive trait, phrased naturally | nominated, **vetoed**, refused, `sensitive_content` | `VetoedCandidate` (E5) |
-| distress boundary | a first-person distressing disclosure | Muse skipped, `application_emotional_boundary`, `emotional_boundary_capture_suppressed` | `VetoedCandidate` + `reason_code` grading (E6) |
+| sensitive veto | uncertainty about a sensitive trait, phrased naturally | nominated, **vetoed**, refused, `sensitive_content` | `CaptureExpectation` with candidate + `reject_capture` (E5) |
+| distress boundary | a first-person distressing disclosure | Muse skipped, `application_emotional_boundary`, `emotional_boundary_capture_suppressed` | `CaptureExpectation` with candidate/no-candidate as applicable + `reason_code` grading (E6) |
 | non-distressing control | emotional but below the boundary | ordinary release, capture per policy | none |
 
 The fourth row is not optional. Without it the package cannot distinguish a
@@ -396,13 +400,15 @@ Extend `_capture_failures` with two codes rather than restructuring it:
 
 The existing stage-mismatch codes already cover the rest, since a veto is
 expressible as `("candidate", "reject_capture", "exact", "refused")` once E5
-supplies the third expectation member.
+supplies the explicit nomination/decision expectation. Storage remains derived
+from the full loop; an application-level suppression after Provenance allows a
+candidate is not the same thing as a Provenance veto.
 
 ### 11.4 Sequencing
 
-E8 first — it is free and its failures will sharpen E5's design. Then E1–E4 in
-parallel with E5–E7, since the gate pack and the package harness share no code.
-E10 last, as it depends on both.
+E8 first for the currently expressible positive path. Then E1–E4 in parallel
+with E5–E7, since the gate pack and package harness share no code. E10 last,
+as it depends on the veto representation and validator support.
 
 ## 12. Open questions for 4.2.2
 
@@ -596,6 +602,5 @@ types.
 - [`src/linger/orchestration/capture.py`](../../src/linger/orchestration/capture.py) — sole origin of capture flags
 - [`src/linger/services/memory.py`](../../src/linger/services/memory.py) — deterministic policy and curation gates
 - [`evals/synthetic_journals/replay.py`](../../evals/synthetic_journals/replay.py) — capture replay runner and grader
-- [`synthetic-journal-evaluation/packages/2026-08-23T182725+0800/`](../../synthetic-journal-evaluation/packages/2026-08-23T182725+0800/) — unadopted capture package
 - [`synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json`](../../synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json)
 - [`synthetic-journal-evaluation/packages/2026-08-29T142004+0800/`](../../synthetic-journal-evaluation/packages/2026-08-29T142004+0800/) — superseded proposal-only curation package

@@ -32,7 +32,11 @@ from apps.backend.schemas import (
     TurnInspection,
 )
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
-from evals.synthetic_journals.models import CaptureCandidate, NoCandidate
+from evals.synthetic_journals.models import (
+    CaptureCandidate,
+    CaptureExpectation,
+    NoCandidate,
+)
 from evals.synthetic_journals.replay import main as replay_main
 from evals.synthetic_journals.replay import (
     CAPTURE_OBJECTIVE_ID,
@@ -153,7 +157,10 @@ def test_scene_observation_requires_boundary_origin_for_boundary_release() -> No
             line_id="line",
             input_line="synthetic line",
             trace_id="0" * 32,
-            expected_capture=NoCandidate(kind="no_candidate"),
+            expected_capture=CaptureExpectation(
+                nomination=NoCandidate(kind="no_candidate"),
+                provenance_decision="no_candidate",
+            ),
             actual_capture_label="unavailable",
             actual_nomination=None,
             ground_truth_result="differs_from_proposal",
@@ -322,11 +329,11 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
     content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     positive = next(
         proposal for proposal in ground_truth.proposals
-        if isinstance(proposal.capture, CaptureCandidate)
+        if isinstance(proposal.capture.nomination, CaptureCandidate)
     )
     positive_line = next(
         line.text for line in content.lines
-        if line.line_id == positive.capture.span.source_id
+        if line.line_id == positive.capture.nomination.span.source_id
     )
 
     async def chat_handler(request, _service, _account):
@@ -375,10 +382,10 @@ def test_capture_replay_grades_observed_outcomes(
     content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     proposal = next(
         item for item in ground_truth.proposals
-        if isinstance(item.capture, CaptureCandidate)
+        if isinstance(item.capture.nomination, CaptureCandidate)
     )
-    assert isinstance(proposal.capture, CaptureCandidate)
-    span = proposal.capture.span
+    assert isinstance(proposal.capture.nomination, CaptureCandidate)
+    span = proposal.capture.nomination.span
     positive_line = next(
         line.text for line in content.lines if line.line_id == span.source_id
     )
@@ -615,8 +622,8 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
         histories.append(list(kwargs.get("message_history", [])))
         source = payload["muse_turn"]["user_message"]
         proposal = proposals[scenes_by_text[source]]
-        if isinstance(proposal.capture, CaptureCandidate):
-            span = proposal.capture.span
+        if isinstance(proposal.capture.nomination, CaptureCandidate):
+            span = proposal.capture.nomination.span
             memory = MemoryCandidate(
                 kind="memory_candidate",
                 text=span.text,
@@ -638,7 +645,7 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
         proposal = proposals[scenes_by_text[payload["current_line"]["text"]]]
         decision = (
             "allow_capture"
-            if isinstance(proposal.capture, CaptureCandidate)
+            if isinstance(proposal.capture.nomination, CaptureCandidate)
             else "no_candidate"
         )
         return _result(
@@ -686,9 +693,9 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
 
     committed = [scene for scene in result.scenes if scene.memory_id is not None]
     expected_span = next(
-        proposal.capture.span
+        proposal.capture.nomination.span
         for proposal in ground_truth.proposals
-        if isinstance(proposal.capture, CaptureCandidate)
+        if isinstance(proposal.capture.nomination, CaptureCandidate)
     )
     assert len(committed) == 1
     assert committed[0].stored_text == expected_span.text

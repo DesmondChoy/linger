@@ -467,10 +467,31 @@ class NoCandidate(StrictModel):
     kind: Literal["no_candidate"]
 
 
-CaptureExpectation = Annotated[
-    CaptureCandidate | NoCandidate,
-    Field(discriminator="kind"),
-]
+class CaptureExpectation(StrictModel):
+    """Expected Muse nomination and independent Provenance capture decision."""
+
+    nomination: Annotated[
+        CaptureCandidate | NoCandidate,
+        Field(discriminator="kind"),
+    ]
+    provenance_decision: Literal[
+        "allow_capture", "reject_capture", "no_candidate"
+    ]
+    reason_code: str | None = None
+
+    @model_validator(mode="after")
+    def validate_axes(self) -> Self:
+        if isinstance(self.nomination, NoCandidate):
+            if self.provenance_decision != "no_candidate":
+                raise ValueError(
+                    "no_candidate nomination requires no_candidate decision"
+                )
+        elif self.provenance_decision == "no_candidate":
+            raise ValueError(
+                "capture candidate nomination requires an allow_capture or "
+                "reject_capture decision"
+            )
+        return self
 
 PairField = Literal[
     "backstory_id",

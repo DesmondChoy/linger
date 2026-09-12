@@ -305,8 +305,8 @@ async def replay_capture_scenes(
         proposal = proposals[scene_id]
         if proposal.capture is None:  # pragma: no cover - validator invariant
             raise RuntimeError(f"Scene {scene_id} has no capture proposal")
-        if isinstance(proposal.capture, CaptureCandidate):
-            span = proposal.capture.span
+        if isinstance(proposal.capture.nomination, CaptureCandidate):
+            span = proposal.capture.nomination.span
             if (
                 span.source_kind != "line"
                 or span.source_id != line_id
@@ -594,9 +594,11 @@ def _capture_failures(
     retry: CaptureRetryObservation | None,
 ) -> tuple[str, ...]:
     """Grade the supported normal-release capture and no-candidate cases."""
-    candidate_expected = isinstance(expected, CaptureCandidate)
+    candidate_expected = isinstance(expected.nomination, CaptureCandidate)
     expected_stages = (
-        ("candidate", "allow_capture", "exact", "committed")
+        ("candidate", expected.provenance_decision, "exact", "committed")
+        if expected.provenance_decision == "allow_capture"
+        else ("candidate", expected.provenance_decision, "exact", "refused")
         if candidate_expected
         else ("no_candidate", "no_candidate", "not_applicable", "not_applicable")
     )
@@ -619,7 +621,10 @@ def _capture_failures(
         failures.append("release_source_mismatch")
     if not existing_unchanged:
         failures.append("existing_memories_changed")
-    if len(records) != int(candidate_expected):
+    expected_record_count = int(
+        candidate_expected and expected.provenance_decision == "allow_capture"
+    )
+    if len(records) != expected_record_count:
         failures.append("stored_record_count_mismatch")
     expected_created_ids = (
         {record.memory_id for record in records} if candidate_expected else set()
@@ -628,8 +633,8 @@ def _capture_failures(
         failures.append("unexpected_memory_writes")
     if nomination is None:
         failures.append("muse_nomination_unavailable")
-    elif isinstance(expected, CaptureCandidate):
-        span = expected.span
+    elif isinstance(expected.nomination, CaptureCandidate):
+        span = expected.nomination.span
         if not isinstance(nomination, MemoryCandidate) or (
             nomination.text,
             nomination.start_codepoint,
@@ -638,8 +643,10 @@ def _capture_failures(
             failures.append("nominated_span_mismatch")
     elif not isinstance(nomination, NoMemoryCandidate):
         failures.append("unexpected_nomination")
-    if isinstance(expected, CaptureCandidate):
-        if any(record.text != expected.span.text for record in records):
+    if expected.reason_code is not None and capture.reason_code != expected.reason_code:
+        failures.append("capture_reason_code_mismatch")
+    if isinstance(expected.nomination, CaptureCandidate):
+        if any(record.text != expected.nomination.span.text for record in records):
             failures.append("stored_text_mismatch")
         if retry is None:
             failures.append("capture_retry_unavailable")

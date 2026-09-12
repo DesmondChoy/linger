@@ -10,7 +10,13 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
+from evals.synthetic_journals.models import (
+    CaptureCandidate,
+    CaptureExpectation,
+    NoCandidate,
+    ProposedGroundTruth,
+    SyntheticBackstory,
+)
 from evals.synthetic_journals.validate_package import (
     DEFAULT_RUN_CONFIGURATION_DIRECTORY,
     PackageValidationError,
@@ -105,17 +111,23 @@ def _ground_truth_document(
             candidate = "keep making a little time to sketch"
             start = text.index(candidate)
             proposal["capture"] = {
-                "kind": "capture_candidate",
-                "span": {
-                    "source_kind": "line",
-                    "source_id": line_id,
-                    "start_codepoint": start,
-                    "end_codepoint": start + len(candidate),
-                    "text": candidate,
+                "nomination": {
+                    "kind": "capture_candidate",
+                    "span": {
+                        "source_kind": "line",
+                        "source_id": line_id,
+                        "start_codepoint": start,
+                        "end_codepoint": start + len(candidate),
+                        "text": candidate,
+                    },
                 },
+                "provenance_decision": "allow_capture",
             }
         else:
-            proposal["capture"] = {"kind": "no_candidate"}
+            proposal["capture"] = {
+                "nomination": {"kind": "no_candidate"},
+                "provenance_decision": "no_candidate",
+            }
         proposals.append(proposal)
     return {
         "backstory_sha256": hashlib.sha256(backstory_bytes).hexdigest(),
@@ -260,7 +272,7 @@ def test_rejects_exact_span_text_mismatch() -> None:
     content_document = _content_document()
     backstory_bytes = _json_bytes(content_document)
     ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
-    ground_truth_document["proposals"][0]["capture"]["span"][  # type: ignore[index]
+    ground_truth_document["proposals"][0]["capture"]["nomination"]["span"][  # type: ignore[index]
         "text"
     ] = "wrong"
     content, ground_truth = _validated_models(content_document, ground_truth_document)
@@ -299,18 +311,62 @@ def test_rejects_capture_mix_other_than_one_to_ten() -> None:
     second = ground_truth_document["proposals"][1]  # type: ignore[index]
     second_line = content_document["lines"][1]  # type: ignore[index]
     second["capture"] = {
-        "kind": "capture_candidate",
-        "span": {
-            "source_kind": "line",
-            "source_id": second_line["line_id"],
-            "start_codepoint": 0,
-            "end_codepoint": len(second_line["text"]),
-            "text": second_line["text"],
+        "nomination": {
+            "kind": "capture_candidate",
+            "span": {
+                "source_kind": "line",
+                "source_id": second_line["line_id"],
+                "start_codepoint": 0,
+                "end_codepoint": len(second_line["text"]),
+                "text": second_line["text"],
+            },
         },
+        "provenance_decision": "allow_capture",
     }
     content, ground_truth = _validated_models(content_document, ground_truth_document)
 
     with pytest.raises(PackageValidationError, match="1 capture_candidate"):
+        validate_package(
+            content,
+            ground_truth,
+            backstory_bytes=backstory_bytes,
+            run_configurations=_run_configurations(),
+        )
+
+
+def test_capture_expectation_keeps_nomination_and_decision_independent() -> None:
+    candidate = CaptureCandidate(
+        kind="capture_candidate",
+        span={
+            "source_kind": "line",
+            "source_id": "line-01",
+            "start_codepoint": 0,
+            "end_codepoint": 4,
+            "text": "keep",
+        },
+    )
+
+    veto = CaptureExpectation(
+        nomination=candidate,
+        provenance_decision="reject_capture",
+    )
+    assert veto.nomination == candidate
+
+    with pytest.raises(ValidationError, match="no_candidate nomination"):
+        CaptureExpectation(
+            nomination=NoCandidate(kind="no_candidate"),
+            provenance_decision="reject_capture",
+        )
+
+
+def test_capture_scene_topology_is_validated_before_replay() -> None:
+    content_document = _content_document()
+    content_document["scenes"][0]["fresh_session"] = False  # type: ignore[index]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
+
+    with pytest.raises(PackageValidationError, match="fresh session"):
         validate_package(
             content,
             ground_truth,
@@ -324,7 +380,7 @@ def test_rejects_generic_spans_in_capture_run() -> None:
     backstory_bytes = _json_bytes(content_document)
     ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
     capture_span = deepcopy(
-        ground_truth_document["proposals"][0]["capture"]["span"]  # type: ignore[index]
+        ground_truth_document["proposals"][0]["capture"]["nomination"]["span"]  # type: ignore[index]
     )
     ground_truth_document["proposals"][0][  # type: ignore[index]
         "exact_spans"
@@ -443,11 +499,11 @@ def test_json_schema_forbids_extra_fields_and_discriminates_capture() -> None:
     assert backstory_schema["additionalProperties"] is False
     assert "schema_version" not in backstory_schema["properties"]
     assert "schema_version" not in ground_truth_schema["properties"]
-    capture_schema = ground_truth_schema["$defs"]["GroundTruthProposal"]["properties"][
-        "capture"
-    ]["anyOf"][0]
-    assert capture_schema["discriminator"]["propertyName"] == "kind"
-    assert set(capture_schema["discriminator"]["mapping"]) == {
+    capture_schema = ground_truth_schema["$defs"]["CaptureExpectation"]
+    assert capture_schema["additionalProperties"] is False
+    nomination_schema = capture_schema["properties"]["nomination"]
+    assert nomination_schema["discriminator"]["propertyName"] == "kind"
+    assert set(nomination_schema["discriminator"]["mapping"]) == {
         "capture_candidate",
         "no_candidate",
     }
