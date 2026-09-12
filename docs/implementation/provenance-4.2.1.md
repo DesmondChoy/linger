@@ -10,6 +10,10 @@ skill.
 
 Historical evaluation snapshot: 2026-09-02, branch `km-provenance-reflection`.
 
+The `v1` through `v4` prompt labels below belong to those historical runs.
+Current prompt fingerprints contain a template ID and an automatically computed
+digest, as defined in the [runtime skills architecture](../agent-skills.md).
+
 The measurements and investigation below describe that dated run. For current
 runtime behavior, use the [Provenance design overview](../design/provenance-design.html),
 [Librarian design](librarian-design.md), and

@@ -91,7 +91,6 @@ async def propose_curation(
         input_contract="src.linger.agents.sculptor.models.AccountScopedMemories",
         output_contract="src.linger.agents.sculptor.models.SculptorResponse",
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="sculptor_model_failed",
         retryable=False,
@@ -132,7 +131,6 @@ async def review_curation(
             "src.linger.agents.provenance.curation_models.CurationProvenanceReview"
         ),
         prompt_template_id=CURATION_REVIEW_PROMPT_FINGERPRINT.template_id,
-        prompt_version=CURATION_REVIEW_PROMPT_FINGERPRINT.version,
         prompt_digest=CURATION_REVIEW_PROMPT_FINGERPRINT.digest,
         failure_code="curation_provenance_model_failed",
         retryable=False,

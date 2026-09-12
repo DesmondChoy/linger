@@ -34,7 +34,7 @@ the exported-payload test are updated together.
 |---|---|
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
-| Agent and model | Agent role, selected skill, and stage; provider and model; prompt-template ID, version, and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
+| Agent and model | Agent role, selected skill, and stage; provider and model; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage and code; retryability; owner type (`model`, `validation`, or `application`) |
@@ -48,8 +48,10 @@ application-owned public registry. Route values must be templates such as
 Runtime skill fingerprints cover the effective shared and selected instructions,
 input and output JSON schemas, permitted tools and capabilities, validator
 identities, and retry limits. They never hash reader input, retrieved evidence,
-or other request content. `agent.skill` records the application-selected skill
-identifier. Role and stage continue to identify the task and its caller.
+or other request content. `prompt.template_id` identifies the task, and
+`prompt.digest` records its automatically computed SHA-256 digest.
+`agent.skill` records the application-selected skill identifier. Role and stage
+continue to identify the task and its caller.
 
 Hand-off metadata describes observable logical routing through the
 application-owned orchestrator. It does not imply that agents communicate

@@ -553,7 +553,6 @@ def test_replay_fails_if_a_handler_mutates_supplied_source_content() -> None:
 def test_objective_identity_ignores_inactive_prompt_changes() -> None:
     inactive_a = PromptFingerprint(
         template_id="inactive.prompt",
-        version="1",
         digest="1" * 64,
     )
     inactive_b = inactive_a.model_copy(update={"digest": "2" * 64})

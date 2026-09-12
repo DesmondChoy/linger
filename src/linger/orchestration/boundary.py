@@ -146,7 +146,6 @@ async def judge_spoiler_boundary(
             "src.linger.agents.librarian.models.LibrarianBoundaryDecision"
         ),
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="boundary_inference_model_failed",
         **BOUNDARY_INFERENCE.run_options(),

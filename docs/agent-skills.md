@@ -66,6 +66,10 @@ skills never load Codex development instructions. Fingerprints cover effective
 shared and selected instructions, input and output schemas, tool permissions,
 validator identities, and retry limits.
 
+Each fingerprint contains a stable `template_id` and an automatically computed
+SHA-256 `digest`. Changes to the covered instructions or configuration change
+the digest without a manual version counter.
+
 `prompt.py` and the task-specific prompt modules expose tracing fingerprints
 for their existing consumers. `load_prompt("agents", "muse")` loads one role's
 shared instructions from the catalogue. Skill instructions remain in their

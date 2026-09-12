@@ -43,7 +43,6 @@ async def assess_emotional_boundary(
             "src.linger.contracts.emotional.EmotionalBoundaryAssessment"
         ),
         prompt_template_id=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.template_id,
-        prompt_version=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.version,
         prompt_digest=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.digest,
         failure_code="emotional_boundary_preflight_failed",
         result_attrs=lambda run_result: emotional_boundary_attrs(run_result.output),

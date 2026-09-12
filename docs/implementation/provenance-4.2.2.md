@@ -593,7 +593,7 @@ types.
 ## 14. Sources for both 4.2.2 gates
 
 - [`src/linger/agents/provenance/curation_models.py`](../../src/linger/agents/provenance/curation_models.py) — review contract and risk taxonomy
-- [`src/linger/agents/provenance/curation_prompt.py`](../../src/linger/agents/provenance/curation_prompt.py) — versioned gate prompt
+- [`src/linger/agents/provenance/curation_prompt.py`](../../src/linger/agents/provenance/curation_prompt.py): gate prompt fingerprint
 - [`src/linger/contracts/curation.py`](../../src/linger/contracts/curation.py) — plan, approval, audit, and curated-view contracts
 - [`src/linger/orchestration/curation.py`](../../src/linger/orchestration/curation.py) — `run_curation_loop`
 - [`evals/synthetic_journals/curation_replay.py`](../../evals/synthetic_journals/curation_replay.py) — the runner still bound to `propose_curation`

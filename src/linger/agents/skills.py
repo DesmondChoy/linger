@@ -73,7 +73,6 @@ class RuntimeSkill(Generic[InputT, OutputT]):
         *,
         template_id: str | None = None,
         input_type: Any = None,
-        version: str = "1",
     ) -> PromptFingerprint:
         """Identify shared and selected policy, schemas, and execution limits."""
         output = self.output_type
@@ -99,6 +98,5 @@ class RuntimeSkill(Generic[InputT, OutputT]):
         ).hexdigest()
         return PromptFingerprint(
             template_id=template_id or self.skill_id,
-            version=version,
             digest=digest,
         )

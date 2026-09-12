@@ -110,9 +110,9 @@ Use `--report <path>` to choose the JSON report location; the default is
 
 The command uses the configured `LINGER_MODEL` and its API key. It writes
 `live-report.json` only when you run it. The report contains case IDs, expected
-and actual decisions, prompt and policy versions, latency, and aggregate
-accuracy, boundary-miss, and over-refusal metrics. It excludes evaluated Lines,
-prompts, rationales, and credentials.
+and actual decisions, the prompt-template ID and digest, policy version, latency,
+and aggregate accuracy, boundary-miss, and over-refusal metrics. It excludes
+evaluated Lines, prompts, rationales, and credentials.
 
 The command exits with a nonzero status unless all eight cases pass. Unit tests
 validate case loading, exact-label grading, aggregate metrics, and report

@@ -33,7 +33,6 @@ async def propose_surfacing(
         input_contract="src.linger.agents.sculptor.surfacing_models.SurfacingInput",
         output_contract="src.linger.agents.sculptor.surfacing_models.SurfacingDecision",
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="sculptor_surfacing_model_failed",
         retryable=False,

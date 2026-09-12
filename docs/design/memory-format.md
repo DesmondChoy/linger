@@ -260,7 +260,10 @@ relationships in a derived store, separate from user-authored memory.
   "generator": {
     "agent": "sculptor",
     "model": "recorded-at-runtime",
-    "prompt_version": "sculptor-memory-v1"
+    "prompt_fingerprint": {
+      "template_id": "sculptor.curation",
+      "digest": "recorded-at-runtime"
+    }
   },
   "created_at": "2026-08-13T11:30:00Z"
 }

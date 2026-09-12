@@ -273,21 +273,18 @@ class AgentInstrumentationTests(TelemetryTestCase):
     def test_prompt_digest_covers_only_the_static_artifact(self) -> None:
         first = PromptFingerprint.from_artifact(
             template_id="test.prompt",
-            version="test-v1",
             instructions="Static instructions.",
             input_contract="TestInput.v1",
             output_contract="TestOutput.v1",
         )
         same = PromptFingerprint.from_artifact(
             template_id="test.prompt",
-            version="test-v2",
             instructions="Static instructions.",
             input_contract="TestInput.v1",
             output_contract="TestOutput.v1",
         )
         changed = PromptFingerprint.from_artifact(
             template_id="test.prompt",
-            version="test-v1",
             instructions="Changed static instructions.",
             input_contract="TestInput.v1",
             output_contract="TestOutput.v1",
@@ -320,7 +317,6 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 input_contract="TestInput.v1",
                 output_contract="TestOutput.v1",
                 prompt_template_id="test.prompt",
-                prompt_version="test-v1",
                 prompt_digest="0" * 64,
                 failure_code="test_model_failed",
             )
@@ -329,8 +325,8 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertNotIn(SECRET_SYSTEM, payload)
         self.assertNotIn(SECRET_MESSAGE, payload)
         self.assertNotIn("zxcas private model output zxcas", payload)
-        self.assertIn("test.prompt", payload)
-        self.assertIn("test-v1", payload)
+        self.assertIn('"prompt.template_id": "test.prompt"', payload)
+        self.assertNotIn("prompt.version", payload)
         self.assertIn('"prompt.digest": "' + "0" * 64 + '"', payload)
         self.assertIn('"input_tokens": 12', payload)
         self.assertIn('"output_tokens": 4', payload)
@@ -376,7 +372,6 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 input_contract="BoundaryInput.v1",
                 output_contract="BoundaryOutput.v1",
                 prompt_template_id="test.boundary",
-                prompt_version="1",
                 prompt_digest="0" * 64,
                 failure_code="test_boundary_failed",
             )
@@ -400,7 +395,6 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 input_contract="TestInput.v1",
                 output_contract="TestOutput.v1",
                 prompt_template_id="test.prompt",
-                prompt_version="test-v1",
                 prompt_digest="0" * 64,
                 failure_code="test_model_failed",
             )
@@ -428,7 +422,6 @@ class AgentInstrumentationTests(TelemetryTestCase):
             input_contract="TestInput.v1",
             output_contract="TestOutput.v1",
             prompt_template_id="test.prompt",
-            prompt_version="test-v1",
             prompt_digest="0" * 64,
             failure_code="test_model_failed",
             result_attrs=fail_projection,
@@ -456,7 +449,6 @@ class AgentInstrumentationTests(TelemetryTestCase):
                 input_contract="TestInput.v1",
                 output_contract="TestOutput.v1",
                 prompt_template_id="test.prompt",
-                prompt_version="test-v1",
                 prompt_digest="0" * 64,
                 failure_code="test_model_failed",
             )

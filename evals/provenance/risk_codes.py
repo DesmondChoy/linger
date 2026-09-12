@@ -375,7 +375,6 @@ class EvaluationReport(StrictModel):
     flow: Literal["4.2.1"]
     model: str
     prompt_template_id: str
-    prompt_version: str
     prompt_digest: str
     summary: EvaluationSummary
     cases: tuple[CaseMeasurement, ...]
@@ -611,7 +610,6 @@ async def run_evaluation(
         flow=selected_cases.flow,
         model=model_name,
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         summary=_summarize(selected_cases, tuple(measurements)),
         cases=tuple(measurements),

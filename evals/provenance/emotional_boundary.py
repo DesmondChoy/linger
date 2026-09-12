@@ -165,7 +165,6 @@ class EvaluationReport(StrictModel):
     model: str
     policy_version: str
     prompt_template_id: str
-    prompt_version: str
     prompt_digest: str
     summary: EvaluationSummary
     cases: tuple[CaseMeasurement, ...]
@@ -294,7 +293,6 @@ async def run_evaluation(
         model=model_name,
         policy_version=selected_cases.policy_version,
         prompt_template_id=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.template_id,
-        prompt_version=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.version,
         prompt_digest=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.digest,
         summary=EvaluationSummary(
             case_count=len(measurements),

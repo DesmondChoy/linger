@@ -52,7 +52,7 @@ def test_fingerprints_track_effective_policy_schemas_and_permissions() -> None:
         replace(selected, tool_retries=2),
     )
     assert all(variant.fingerprint().digest != digest for variant in variants)
-    assert selected.fingerprint(version="renamed").digest == digest
+    assert selected.fingerprint().digest == digest
 
 
 def test_run_options_cannot_leak_mutations_between_runs() -> None:
@@ -93,7 +93,6 @@ def test_traced_run_records_skill_and_the_effective_instructions() -> None:
                 input_contract="SkillInput",
                 output_contract="SkillOutput",
                 prompt_template_id=fingerprint.template_id,
-                prompt_version=fingerprint.version,
                 prompt_digest=fingerprint.digest,
                 failure_code="test_failed",
                 **selected.run_options(),
@@ -105,6 +104,10 @@ def test_traced_run_records_skill_and_the_effective_instructions() -> None:
     exchange, = recorder.exchanges
     assert exchange.skill_id == selected.skill_id
     assert exchange.prompt_fingerprint == fingerprint
+    assert exchange.model_dump(mode="json")["prompt_fingerprint"] == {
+        "template_id": fingerprint.template_id,
+        "digest": fingerprint.digest,
+    }
     assert exchange.message_history == ()
 
 

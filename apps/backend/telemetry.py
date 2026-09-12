@@ -132,7 +132,6 @@ def agent_attrs(
     role: str,
     stage: str,
     prompt_template_id: str,
-    prompt_version: str,
     prompt_digest: str,
 ) -> dict[str, object]:
     """Stable agent metadata; no composed prompt or model content."""
@@ -146,7 +145,6 @@ def agent_attrs(
         "model.provider": provider,
         "model.name": model,
         "prompt.template_id": prompt_template_id,
-        "prompt.version": prompt_version,
         "prompt.digest": prompt_digest,
         "status": "started",
         "retry_count": 0,
@@ -242,7 +240,6 @@ async def run_agent_traced(
     input_contract: str,
     output_contract: str,
     prompt_template_id: str,
-    prompt_version: str,
     prompt_digest: str,
     failure_code: str,
     input_origin: AgentRole | None = None,
@@ -282,7 +279,6 @@ async def run_agent_traced(
             role=role,
             stage=stage,
             prompt_template_id=prompt_template_id,
-            prompt_version=prompt_version,
             prompt_digest=prompt_digest,
         ),
         **handoff_attrs(
@@ -306,7 +302,6 @@ async def run_agent_traced(
                 input_contract=input_contract,
                 output_contract=output_contract,
                 prompt_template_id=prompt_template_id,
-                prompt_version=prompt_version,
                 prompt_digest=prompt_digest,
                 input_prompt=prompt,
                 message_history=run_kwargs.get("message_history", ()),

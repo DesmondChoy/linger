@@ -94,7 +94,6 @@ class SuiteRunReport(StrictModel):
     model: str
     skill_id: str = CONNECTION_DISCOVERY.skill_id
     prompt_template_id: str
-    prompt_version: str
     prompt_digest: str
     git_revision: str | None
     logfire_trace_id: str | None
@@ -427,7 +426,6 @@ async def run_suite(
         dataset_digest=dataset_digest(active_cases),
         model=get_settings().linger_model,
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         git_revision=_git_revision(),
         logfire_trace_id=eval_report.trace_id,

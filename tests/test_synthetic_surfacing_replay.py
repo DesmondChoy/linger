@@ -410,7 +410,7 @@ def test_native_synthetic_evaluation_spans_include_failed_scenes() -> None:
 
 def test_objective_identity_is_independent_of_unexecuted_agent_prompts() -> None:
     first_prompt = PromptFingerprint(
-        template_id="unexecuted", version="1", digest="1" * 64
+        template_id="unexecuted", digest="1" * 64
     )
     second_prompt = first_prompt.model_copy(update={"digest": "2" * 64})
     first = build_surfacing_identities(

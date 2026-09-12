@@ -48,7 +48,6 @@ async def judge_evidence_strength(
             "src.linger.agents.librarian.models.EvidenceStrengthDecision"
         ),
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="evidence_strength_model_failed",
         **EVIDENCE_ASSESSMENT.run_options(),

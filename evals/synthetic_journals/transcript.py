@@ -110,7 +110,6 @@ class SceneTranscriptRecorder:
         input_contract: str,
         output_contract: str,
         prompt_template_id: str,
-        prompt_version: str,
         prompt_digest: str,
         input_prompt: str,
         message_history: Any,
@@ -130,7 +129,6 @@ class SceneTranscriptRecorder:
             correlation_id=active_evaluation_correlation_id(),
             prompt_fingerprint=PromptFingerprint(
                 template_id=prompt_template_id,
-                version=prompt_version,
                 digest=prompt_digest,
             ),
             input_prompt=input_prompt,

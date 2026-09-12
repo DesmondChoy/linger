@@ -4,5 +4,5 @@ from src.linger.agents.librarian.skills import EVIDENCE_ASSESSMENT
 
 
 PROMPT_FINGERPRINT = EVIDENCE_ASSESSMENT.fingerprint(
-    template_id="librarian.evidence-strength", version="5"
+    template_id="librarian.evidence-strength"
 )

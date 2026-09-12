@@ -109,7 +109,6 @@ TRACED_KWARGS = {
     "input_contract": "MuseDraftInput",
     "output_contract": "MuseCandidate",
     "prompt_template_id": "muse",
-    "prompt_version": "1",
     "prompt_digest": "digest",
     "failure_code": "muse_draft_failed",
 }

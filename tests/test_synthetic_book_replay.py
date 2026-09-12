@@ -132,7 +132,6 @@ def _record_boundary(output: BoundaryInferenceDecision) -> None:
                 "src.linger.agents.librarian.models.BoundaryInferenceDecision"
             ),
             prompt_template_id="librarian.boundary-inference",
-            prompt_version="1",
             prompt_digest="0" * 64,
             input_prompt=json.dumps(boundary_input),
             message_history=(),
@@ -162,7 +161,7 @@ def _record_muse_tools(calls, *, stage="draft") -> None:
         role="Muse", stage=stage, input_origin="Application",
         output_receiver="Application", input_contract="MuseDraftInput",
         output_contract="MuseCandidate", prompt_template_id="muse.reflection",
-        prompt_version="test", prompt_digest="0" * 64,
+        prompt_digest="0" * 64,
         input_prompt="synthetic", message_history=(),
         trace_id="0" * 32, span_id="0" * 16,
     )
