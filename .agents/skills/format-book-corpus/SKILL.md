@@ -42,6 +42,12 @@ Prefer the source's own chapters. Preserve prologues, epilogues, letters, acts,
 stories, or other meaningful divisions rather than dropping them or forcing
 them into fake chapters.
 
+Use schema 2 for mixed works and record consecutive source order separately
+from natural chapter numbering. Chapter 1 means the first actual chapter, even
+when a preface, dedication, or letter precedes it. Repeated chapter numbers
+belong to distinct parts. Refer to `douglass.py`, `story_of_my_life.py`, and
+[canonical sections](../../../docs/corpus/canonical-sections.md) for precedents.
+
 If the source has no reliable chapter-like structure, propose the natural unit
 and schema adaptation before implementation. Do not silently split by token
 count or infer ambiguous boundaries.
@@ -128,9 +134,12 @@ them, then start here. Formatting alone leaves runtime registration and access
 unchanged.
 
 - Check that the corpus uses the runtime's supported unit and location schema.
-  The current runtime accepts chapters. Leave schema 2 section corpora disabled
-  until section-boundary support is separately implemented. Never relabel
-  sections as chapters to pass validation.
+  Both schema 1 chapters and schema 2 sections are supported. For mixed works,
+  review `BookCorpus.unit_locations` for every section: kind, part ID/title,
+  display label, natural chapter number when present, and letter recipient/date
+  when available. Named units have no chapter number. Keep source order, stable
+  IDs, and canonical bytes unchanged. Never relabel a preface or letter as a
+  chapter. Validate the mapping through the shared unit loader.
 - Add the validated adapter's `BOOK`, canonical directory, and reviewed aliases
   to `src/linger/corpus/registry.py`. Resolve identity collisions before activation.
 - Add the exact revision to the intended application's effective
@@ -138,15 +147,23 @@ unchanged.
   defaults, preserve existing grants, and keep registration separate from access.
   A file appearing in a folder does not authorize access.
 - Reader loads its shelf from the same registry and exact revision grant through
-  `GET /api/library`. Do not add a separate frontend book list. Chapter text is
-  served by `GET /api/library/{work_id}/{book_version_id}/chapters/{chapter_number}`
+  `GET /api/library`. Do not add a separate frontend book list. Unit text is
+  served by `GET /api/library/{work_id}/{book_version_id}/units/{unit_id}`
   from the canonical corpus, without a book-specific external iframe.
 - Verify identity resolution, collision detection, denial without the exact
   revision grant, and retrieval within the reader's permitted boundary. Check
   that a book title alone cannot grant reading progress. Run the relevant corpus
   checks and repository tests.
+- For mixed works, verify that a chapter ceiling opens only numbered chapters
+  in the selected part and that completing a named unit grants exactly that
+  unit. Test repeated chapter numbers across parts, repeated letter recipients,
+  and cache reuse across scopes. Ambiguous locations must be clarified before
+  retrieval. Keller starts with Part I selected; another part must be selected
+  explicitly, then remains selected for later chapter declarations. Do not
+  derive reading authority from source order.
 - Verify Reader as well as Librarian: the enabled book appears on the shelf,
-  its first and last chapters open with the correct text, and changing chapters
+  it starts at the first main narrative chapter, parts and named units show
+  natural labels, representative first/last units open with exact text, and navigation
   hides any revealed summary. Confirm that denied revisions cannot be listed or
   opened. Reuse `tests/test_library.py` and check the running UI when available;
   report any UI verification gap. Reader navigation and summary reveals must
@@ -164,9 +181,9 @@ chunk sizes, overlap, fusion, reranking, or thresholds unless the current task
 explicitly includes an evaluated retrieval implementation.
 
 Future indexes must be disposable projections of canonical bodies, retain
-resolvable chapter locations, and never cross chapter boundaries. Reading
+resolvable unit locations, and never cross unit boundaries. Reading
 progress is not front matter or durable state; Muse infers or clarifies a
-request-scoped boundary, and application code filters eligible chapter metadata
+request-scoped boundary, and application code filters eligible unit metadata
 before Librarian or another model sees it.
 
 ## Completion
@@ -175,6 +192,6 @@ Update architecture documentation only when the implemented contract changes.
 Report generated files, validation evidence, and any unresolved structural or
 licensing decision. Keep canonical metadata edits human-reviewable in Git.
 When activation was requested, also report the registered work and revision,
-the effective grant, Reader shelf and chapter verification, and whether the
+the effective grant, Reader shelf and location verification, and whether the
 backend needs a restart or the page needs a refresh. Distinguish a validated
 corpus from a book enabled for the running application.

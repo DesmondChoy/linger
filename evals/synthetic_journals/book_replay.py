@@ -39,6 +39,7 @@ from src.linger.contracts.librarian import (
     PassageScope,
     RetrievalFailure,
     RetrievalResult,
+    RoutedWork,
 )
 from src.linger.contracts.turn import ReleaseSource
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
@@ -103,6 +104,8 @@ class GroundingObservation(StrictModel):
     retrieval_outcome: Literal["evidence_found", "no_evidence"] | None = None
     searched_max_chapter: int | None = Field(default=None, ge=0)
     searched_passage_ids: tuple[str, ...] = ()
+    searched_part_id: str = "main"
+    searched_unit_ids: tuple[str, ...] = ()
     work_id: str | None = None
     book_version_id: str | None = None
     evidence: tuple[RuntimeEvidenceObservation, ...] = ()
@@ -582,6 +585,8 @@ def _grounding_observations(
                         None if isinstance(scope, PassageScope)
                         else scope.max_chapter_inclusive
                     ),
+                    searched_part_id=("main" if isinstance(scope, PassageScope) else scope.part_id),
+                    searched_unit_ids=(() if isinstance(scope, PassageScope) else scope.unit_ids),
                     searched_passage_ids=(
                         scope.evidence_ids if isinstance(scope, PassageScope) else ()
                     ),
@@ -740,6 +745,13 @@ def _boundary_handoff_is_content_free(
         parsed = BoundaryInferenceDecision.model_validate(output)
     except ValueError:
         return False
+    if decision == "infer":
+        try:
+            route = RoutedWork.model_validate(routed)
+        except ValueError:
+            return False
+        if route.part_id != "main" or route.unit_ids:
+            return False
     if decision == "infer" and (
         parsed.outcome != "candidate"
         or parsed.work_id != routed["work_id"]
@@ -756,6 +768,8 @@ def _boundary_handoff_is_content_free(
         "title",
         "routing_confidence",
         "max_chapter_inclusive",
+        "part_id",
+        "unit_ids",
         "boundary_confidence",
         "request_id",
         "clarification_id",
@@ -784,6 +798,8 @@ def _scope_failures(
             or context.work_id != scope.work_id
             or context.book_version_id != scope.book_version_id
             or context.chapter_max != ceiling
+            or context.part_id != "main"
+            or context.unit_ids
         ):
             failures.append("reader_confirmed_scope_differs_from_ground_truth")
     elif isinstance(scope, LibrarianInferredBookScope):
@@ -821,12 +837,16 @@ def _scope_failures(
             ceiling is None
             or call.searched_max_chapter is None
             or call.searched_max_chapter > ceiling
+            or call.searched_part_id != "main"
+            or call.searched_unit_ids
         ):
             failures.append("retrieval_exceeded_safe_ceiling")
         if any(
             item.work_id != scope.work_id
             or item.book_version_id != scope.book_version_id
             or ceiling is None
+            or item.chapter_number is None
+            or item.part_id != "main"
             or item.chapter_number > ceiling
             for item in call.evidence
         ):
@@ -953,11 +973,14 @@ def _grade_proposal(
                 failures.append("boundary_support_differs_from_ground_truth")
             for call in observation.grounding_calls:
                 if (
-                    call.searched_max_chapter is not None
-                    and call.searched_max_chapter > safe_ceiling
+                    call.searched_part_id != "main"
+                    or call.searched_unit_ids
+                    or (call.searched_max_chapter is not None
+                    and call.searched_max_chapter > safe_ceiling)
                 ):
                     failures.append("retrieval_exceeded_safe_ceiling")
-                if any(item.chapter_number > safe_ceiling for item in call.evidence):
+                if any(item.chapter_number is None or item.part_id != "main"
+                       or item.chapter_number > safe_ceiling for item in call.evidence):
                     failures.append("evidence_exceeded_safe_ceiling")
         else:
             if observation.routed_ceiling is not None:

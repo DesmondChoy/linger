@@ -33,7 +33,7 @@ class SettingsGroundingFieldTests(unittest.TestCase):
     def test_default_allowed_book_version_ids(self) -> None:
         settings = Settings(_env_file=None, linger_model="openai:gpt-5.6-luna")
         self.assertEqual(
-            ("pg11-v01b38ea4", "pga0100011-vc7ff4da7", "pg500-v6bdc1734"),
+            ("pg11-v01b38ea4", "pga0100011-vc7ff4da7", "pg500-v6bdc1734", "pg23-vd3f08ac3", "pg2397-vb3cc1e13"),
             settings.allowed_book_version_ids,
         )
 

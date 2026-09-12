@@ -10,16 +10,16 @@ from pathlib import Path
 from typing import Literal
 
 from src.linger.corpus import registry
-from src.linger.corpus.book import ChapterFrontMatter, parse_chapter_markdown
+from src.linger.corpus.units import CorpusUnit, load_units, read_unit
 from src.linger.corpus.registry import BookClarification, CorpusRegistration, ResolvedBook
 from src.linger.contracts.librarian import EvidenceRecord, SelectionBasis
 
-from .contracts import EvidenceBundle, EvidenceItem, LibrarianRequest
+from .contracts import BookScope, EvidenceBundle, EvidenceItem, LibrarianRequest
 
 
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
 EVIDENCE_ID = re.compile(
-    r"^(?P<chapter_id>[a-z0-9]+(?:-[a-z0-9]+)*-ch\d+)-ln"
+    r"^(?P<chapter_id>[a-z0-9]+(?:-[a-z0-9]+)*-(?:ch|sec)\d+)-ln"
     r"(?P<start>\d+)-(?P<end>\d+)$"
 )
 STOP_WORDS = {
@@ -59,6 +59,8 @@ class RegisteredCorpusScope:
     book_version_id: str
     title: str
     max_chapter: int
+    part_id: str = "main"
+    part_ids: tuple[str, ...] = ("main",)
 
 
 # Below this, a matched catalog word explains too little of the message to
@@ -108,13 +110,15 @@ def _contains_phrase(text_tokens: tuple[str, ...], phrase: str) -> bool:
     )
 
 
-def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Paragraph, ...]:
+def _paragraphs(metadata: CorpusUnit, markdown_body: str) -> tuple[Paragraph, ...]:
     """Return exact source paragraphs and their inclusive Gutenberg line ranges."""
     try:
         _, source_body = markdown_body.split("\n\n", maxsplit=1)
     except ValueError as exc:
         raise CorpusScopeError(f"{metadata.chapter_id} is missing its Markdown heading") from exc
 
+    if metadata.body_lines is None:
+        raise CorpusScopeError("source locations were not loaded")
     lines = source_body.splitlines()
     paragraphs: list[Paragraph] = []
     start: int | None = None
@@ -137,7 +141,7 @@ def _paragraphs(metadata: ChapterFrontMatter, markdown_body: str) -> tuple[Parag
 
 
 def _record_from_paragraphs(
-    metadata: ChapterFrontMatter, paragraphs: tuple[Paragraph, ...]
+    metadata: CorpusUnit, paragraphs: tuple[Paragraph, ...]
 ) -> EvidenceRecord:
     start, end = paragraphs[0].source_lines[0], paragraphs[-1].source_lines[1]
     return EvidenceRecord(
@@ -146,8 +150,9 @@ def _record_from_paragraphs(
         book_version_id=metadata.book_version_id,
         chapter_id=metadata.chapter_id,
         chapter_number=metadata.chapter_number,
+        part_id=metadata.part_id,
         location=(
-            f"Chapter {metadata.chapter_number} — {metadata.title}, "
+            f"{metadata.label} — {metadata.title}, "
             f"source lines {start}-{end}"
         ),
         source_sha256=metadata.source_sha256,
@@ -187,8 +192,9 @@ def _catalog_cues(
 ) -> tuple[frozenset[str], re.Pattern[str]]:
     """Precompute contextual cues; reviewed identities use the shared resolver."""
     catalog = _load_catalog(registration)
-    chapters = catalog.get("chapters")
-    assert isinstance(chapters, list)
+    chapters = catalog.get("chapters", catalog.get("sections"))
+    if not isinstance(chapters, list):
+        raise CorpusScopeError("catalog units must be a list")
     catalog_markers: set[str] = set()
     for chapter in chapters:
         if not isinstance(chapter, dict):
@@ -211,7 +217,7 @@ def _catalog_cues(
 
 
 class Librarian:
-    """Retrieve exact passages only from a registered revision and chapter range."""
+    """Retrieve exact passages from a registered revision and permitted reading units."""
 
     def has_corpus(self, work_id: str) -> bool:
         return work_id in registry.CORPORA
@@ -224,32 +230,68 @@ class Librarian:
         registration = registry.CORPORA.get(work_id)
         return registration.book.book_version_id if registration else None
 
+    def units_for(self, work_id: str, book_version_id: str) -> tuple[CorpusUnit, ...]:
+        registration = registry.CORPORA.get(work_id)
+        if registration is None or registration.book.book_version_id != book_version_id:
+            raise CorpusScopeError(f"unregistered corpus revision: {work_id}/{book_version_id}")
+        try:
+            return load_units(registration)
+        except (OSError, ValueError) as exc:
+            raise CorpusScopeError(str(exc)) from exc
+
     def registered_scope(
         self,
         work_id: str,
         book_version_id: str,
+        part_id: str = "main",
     ) -> RegisteredCorpusScope | None:
-        """Return trusted metadata without opening any canonical chapter body."""
+        """Return actual chapter extent within one part, never source ordinals."""
         registration = registry.CORPORA.get(work_id)
         if registration is None or registration.book.book_version_id != book_version_id:
             return None
-        catalog = _load_catalog(registration)
-        chapters = catalog.get("chapters")
-        if not isinstance(chapters, list):
-            raise CorpusScopeError("catalog chapters must be a list")
-        numbers = [
-            chapter.get("chapter_number")
-            for chapter in chapters
-            if isinstance(chapter, dict)
-        ]
-        if not numbers or any(not isinstance(number, int) for number in numbers):
-            raise CorpusScopeError("catalog chapter numbers are invalid")
+        if registration.book.unit_kind == "chapter":
+            if part_id != "main":
+                return None
+            catalog = _load_catalog(registration)
+            chapters = catalog.get("chapters")
+            if not isinstance(chapters, list):
+                raise CorpusScopeError("catalog chapters must be a list")
+            numbers = [chapter.get("chapter_number") for chapter in chapters if isinstance(chapter, dict)]
+            if not numbers or any(not isinstance(number, int) for number in numbers):
+                raise CorpusScopeError("catalog chapter numbers are invalid")
+            parts = ("main",)
+        else:
+            units = self.units_for(work_id, book_version_id)
+            parts = tuple(dict.fromkeys(unit.part_id for unit in units if unit.chapter_number is not None))
+            numbers = [unit.chapter_number for unit in units if unit.part_id == part_id and unit.chapter_number is not None]
+            if not numbers:
+                return None
         return RegisteredCorpusScope(
-            work_id=work_id,
-            book_version_id=book_version_id,
-            title=registration.book.title,
-            max_chapter=max(numbers),
+            work_id=work_id, book_version_id=book_version_id,
+            title=registration.book.title, max_chapter=max(numbers),
+            part_id=part_id, part_ids=parts,
         )
+
+    def eligible_units(self, scope: BookScope) -> tuple[CorpusRegistration, tuple[CorpusUnit, ...]]:
+        units = self.units_for(scope.work_id, scope.book_version_id)
+        if scope.unit_ids:
+            available = {unit.chapter_id for unit in units}
+            if not set(scope.unit_ids) <= available:
+                raise CorpusScopeError("requested unit is not part of this corpus revision")
+            selected = tuple(unit for unit in units if unit.chapter_id in scope.unit_ids)
+            if any(unit.part_id != scope.part_id for unit in selected):
+                raise CorpusScopeError("requested unit does not belong to the selected part")
+        else:
+            if scope.chapter_max is None:
+                raise CorpusScopeError("a chapter range or exact units are required")
+            if self.registered_scope(scope.work_id, scope.book_version_id, scope.part_id) is None:
+                raise CorpusScopeError("requested part has no chapters")
+            selected = tuple(
+                unit for unit in units
+                if unit.part_id == scope.part_id and unit.chapter_number is not None
+                and unit.chapter_number <= scope.chapter_max
+            )
+        return registry.CORPORA[scope.work_id], selected
 
     def work_candidates(
         self,
@@ -285,8 +327,9 @@ class Librarian:
             scope = self.registered_scope(book.work_id, book.book_version_id)
             assert scope is not None
             catalog = _load_catalog(registration)
-            chapters = catalog.get("chapters")
-            assert isinstance(chapters, list)
+            chapters = catalog.get("chapters", catalog.get("sections"))
+            if not isinstance(chapters, list):
+                raise CorpusScopeError("catalog units must be a list")
 
             strong_reasons: set[str] = set()
             weak_reasons: set[str] = set()
@@ -405,7 +448,7 @@ class Librarian:
 
     def _resolve_evidence_paragraphs(
         self, evidence_id: str
-    ) -> tuple[ChapterFrontMatter, tuple[Paragraph, ...]] | None:
+    ) -> tuple[CorpusUnit, tuple[Paragraph, ...]] | None:
         """Resolve an exact canonical window without extending its boundaries."""
         match = EVIDENCE_ID.fullmatch(evidence_id)
         if match is None:
@@ -421,40 +464,25 @@ class Librarian:
         ):
             return None
 
-        matches: list[tuple[CorpusRegistration, dict[str, object]]] = []
+        matches: list[tuple[CorpusRegistration, CorpusUnit]] = []
         for registration in registry.CORPORA.values():
-            catalog = _load_catalog(registration)
-            chapters = catalog.get("chapters")
-            if not isinstance(chapters, list):
-                raise CorpusScopeError("catalog chapters must be a list")
+            # Handles encode their immutable revision; other works need no reads.
+            if not chapter_id.startswith(registration.book.book_version_id + "-"):
+                continue
             matches.extend(
-                (registration, chapter)
-                for chapter in chapters
-                if isinstance(chapter, dict) and chapter.get("chapter_id") == chapter_id
+                (registration, unit)
+                for unit in self.units_for(registration.book.work_id, registration.book.book_version_id)
+                if unit.chapter_id == chapter_id
             )
-
         if not matches:
             return None
         if len(matches) != 1:
-            raise CorpusScopeError("evidence chapter identifier is ambiguous")
-
-        registration, chapter = matches[0]
-        relative_path = chapter.get("path")
-        chapter_number = chapter.get("chapter_number")
-        if not isinstance(relative_path, str) or not isinstance(chapter_number, int):
-            raise CorpusScopeError("catalog chapter metadata is invalid")
-
-        metadata, markdown_body = parse_chapter_markdown(
-            (registration.root / relative_path).read_text(encoding="utf-8")
-        )
-        if (
-            metadata.work_id != registration.book.work_id
-            or metadata.book_version_id != registration.book.book_version_id
-            or metadata.chapter_id != chapter_id
-            or metadata.chapter_number != chapter_number
-            or metadata.source_sha256 != registration.book.source_sha256
-        ):
-            raise CorpusScopeError("chapter identity does not match its registered corpus")
+            raise CorpusScopeError("evidence unit identifier is ambiguous")
+        registration, unit = matches[0]
+        try:
+            metadata, markdown_body = read_unit(registration, unit)
+        except (OSError, ValueError) as exc:
+            raise CorpusScopeError(str(exc)) from exc
 
         paragraphs = _paragraphs(metadata, markdown_body)
         first = next(
@@ -502,44 +530,17 @@ class Librarian:
         return tuple(records.values())
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
-        """Search eligible chapter bodies without opening a forbidden chapter."""
+        """Search eligible unit bodies without opening a forbidden unit."""
         query_terms = _terms(request.query)
         selected: list[EvidenceItem] = []
 
         for scope in request.book_scopes:
-            registration = registry.CORPORA.get(scope.work_id)
-            if registration is None or registration.book.book_version_id != scope.book_version_id:
-                raise CorpusScopeError(
-                    f"unregistered corpus revision: {scope.work_id}/{scope.book_version_id}"
-                )
-
-            catalog = _load_catalog(registration)
-            chapters = catalog.get("chapters")
-            if not isinstance(chapters, list):
-                raise CorpusScopeError("catalog chapters must be a list")
-
-            # The metadata-only catalogue is filtered first. A chapter above the
-            # trusted ceiling is never opened and therefore cannot leak text.
-            eligible = [
-                chapter
-                for chapter in chapters
-                if isinstance(chapter, dict)
-                and isinstance(chapter.get("chapter_number"), int)
-                and chapter["chapter_number"] <= scope.chapter_max
-            ]
-            for chapter in eligible:
-                relative_path = chapter.get("path")
-                if not isinstance(relative_path, str):
-                    raise CorpusScopeError("catalog chapter path is invalid")
-                metadata, markdown_body = parse_chapter_markdown(
-                    (registration.root / relative_path).read_text(encoding="utf-8")
-                )
-                if (
-                    metadata.work_id != scope.work_id
-                    or metadata.book_version_id != scope.book_version_id
-                    or metadata.chapter_number != chapter["chapter_number"]
-                ):
-                    raise CorpusScopeError("chapter identity does not match its search scope")
+            registration, eligible = self.eligible_units(scope)
+            for unit in eligible:
+                try:
+                    metadata, markdown_body = read_unit(registration, unit)
+                except (OSError, ValueError) as exc:
+                    raise CorpusScopeError(str(exc)) from exc
 
                 for paragraph in _paragraphs(metadata, markdown_body):
                     relevance = _score(query_terms, paragraph.text)
@@ -554,10 +555,11 @@ class Librarian:
                             chapter_id=metadata.chapter_id,
                             source_title=registration.book.title,
                             location=(
-                                f"Chapter {metadata.chapter_number} — {metadata.title}, "
+                                f"{metadata.label} — {metadata.title}, "
                                 f"source lines {start}-{end}"
                             ),
                             chapter=metadata.chapter_number,
+                            part_id=metadata.part_id,
                             source_sha256=metadata.source_sha256,
                             source_lines=paragraph.source_lines,
                             excerpt=paragraph.text,
@@ -565,14 +567,14 @@ class Librarian:
                         )
                     )
 
-        selected.sort(key=lambda item: (-item.relevance, item.chapter, item.source_lines[0]))
+        selected.sort(key=lambda item: (-item.relevance, item.part_id, item.chapter or 0, item.source_lines[0]))
         diversified: list[EvidenceItem] = []
-        per_chapter: dict[int, int] = {}
+        per_chapter: dict[str, int] = {}
         for item in selected:
-            if per_chapter.get(item.chapter, 0) >= 2:
+            if per_chapter.get(item.chapter_id, 0) >= 2:
                 continue
             diversified.append(item)
-            per_chapter[item.chapter] = per_chapter.get(item.chapter, 0) + 1
+            per_chapter[item.chapter_id] = per_chapter.get(item.chapter_id, 0) + 1
             if len(diversified) == request.max_results:
                 break
         return EvidenceBundle(
@@ -581,6 +583,6 @@ class Librarian:
                 "The complete immutable work was searched privately for boundary inference; "
                 "candidate passage text is not a disclosure grant."
                 if request.purpose == "boundary_inference"
-                else "Only exact text inside the validated corpus revision and chapter boundary was searched."
+                else "Only exact text inside the validated corpus revision and reading locations was searched."
             ),
         )

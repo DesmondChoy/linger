@@ -25,6 +25,7 @@ from src.linger.contracts.librarian import (
     RoutedPassages,
 )
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.reading import permits_scope
 from src.linger.corpus.registry import BookClarification
 from src.linger.evaluation_transcript import bind_evaluation_correlation_id
 from src.linger.orchestration.boundary import infer_spoiler_boundary
@@ -86,6 +87,26 @@ async def _route_reader_message(
             )
 
         scope = decision.scope
+        existing = confirmed_reading()
+        if existing is not None and existing.work_id == scope.work_id and (existing.part_id != "main" or existing.unit_ids):
+            return RoutedWork(
+                kind="routed", request_id=request_id, work_id=scope.work_id,
+                book_version_id=scope.book_version_id, title=scope.title,
+                routing_confidence=decision.confidence,
+                max_chapter_inclusive=existing.chapter_max, part_id=existing.part_id,
+                unit_ids=existing.unit_ids, boundary_confidence=1.0,
+                selection_basis=decision.basis,
+            )
+        selection = sessions.book_selection(session_id()) if session_id() else None
+        if existing is None and selection is not None and selection.book_id == scope.work_id and selection.part_id != "main":
+            sessions.set_pending_clarification(session_id(), sessions.PendingClarification(
+                book_id=scope.work_id, book_title=scope.title, part_id=selection.part_id,
+                reason_code="reading_boundary_unconfirmed",
+            ))
+            return ClarificationRequest(kind="clarification", request_id=request_id,
+                clarification_id=f"clarify_{uuid4().hex}", reason_code="reading_boundary_unconfirmed",
+                question="Which part and chapter, or which named section or dated letter, have you completed?",
+                expected_answer=ExpectedAnswer(type="free_text"))
         span.set_attribute("routing.selection_basis", decision.basis)
         with bind_evaluation_correlation_id(request_id):
             boundary = await infer_spoiler_boundary(
@@ -103,7 +124,7 @@ async def _route_reader_message(
                 # a second permission or silently cross that stated boundary.
                 if any(
                     record.work_id != existing.work_id
-                    or record.chapter_number > existing.chapter_max
+                    or not permits_scope(existing, record)
                     for record in boundary.grant.records
                 ):
                     boundary = BoundaryUncertain(

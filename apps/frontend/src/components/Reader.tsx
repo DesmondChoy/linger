@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { loadChapter, loadLibrary } from '../library'
-import type { LibraryBook, LibraryChapter } from '../library'
+import { loadUnit, loadLibrary } from '../library'
+import type { LibraryBook, LibraryUnit } from '../library'
 
 type Props = { disabled: boolean }
 type LoadState<T> = { kind: 'loading' } | { kind: 'ready'; data: T } | { kind: 'error'; message: string }
@@ -48,7 +48,7 @@ function Library({ disabled, retry }: Props & { retry: () => void }) {
           {library.data.map((book) => (
             <section className="book-card" key={book.book_version_id}>
               <div className="book-cover" aria-hidden="true">{book.title.slice(0, 1)}</div>
-              <div><h3>{book.title}</h3><p>{book.author} · {book.chapters.length} chapters</p></div>
+              <div><h3>{book.title}</h3><p>{book.author}</p></div>
               <button type="button" className="choose-book" onClick={() => setSelected(book)} disabled={disabled} aria-label={`Open ${book.title}`}>
                 Open book
               </button>
@@ -61,59 +61,69 @@ function Library({ disabled, retry }: Props & { retry: () => void }) {
 }
 
 function BookReader({ book, close }: { book: LibraryBook; close: () => void }) {
-  const [chapterNumber, setChapterNumber] = useState(book.chapters[0]?.number)
-  const chapter = book.chapters.find((item) => item.number === chapterNumber)
+  const [unitId, setUnitId] = useState(book.start_unit_id)
+  const unit = book.units.find((item) => item.unit_id === unitId)
+  const parts = new Map<string, { title: string; units: LibraryUnit[] }>()
+  for (const item of book.units) {
+    const part = parts.get(item.part_id)
+    if (part) part.units.push(item)
+    else parts.set(item.part_id, { title: item.part_title, units: [item] })
+  }
   return (
     <section className="reader-view">
       <button type="button" className="back-to-library" onClick={close}><span aria-hidden="true">←</span> Back to library</button>
       <div className="reader-progress">
         <div><p className="eyebrow">Reader</p><h2>{book.title}</h2><p className="reader-author">{book.author}</p></div>
         <label className="chapter-select">
-          Go to chapter
-          <select value={chapterNumber} onChange={(event) => setChapterNumber(Number(event.target.value))}>
-            {book.chapters.map((item) => <option key={item.number} value={item.number}>Chapter {item.number} — {item.title}</option>)}
+          Contents
+          <select value={unitId} onChange={(event) => setUnitId(event.target.value)}>
+            {Array.from(parts, ([partId, part]) => (
+              <optgroup key={partId} label={part.title}>
+                {part.units.map((item) => <option key={item.unit_id} value={item.unit_id}>{item.label}</option>)}
+              </optgroup>
+            ))}
           </select>
         </label>
       </div>
-      {chapter && <ChapterReader key={chapter.number} book={book} chapter={chapter} />}
+      {unit && <UnitReader key={unit.unit_id} book={book} unit={unit} />}
     </section>
   )
 }
 
-function ChapterReader({ book, chapter }: { book: LibraryBook; chapter: LibraryChapter }) {
+function UnitReader({ book, unit }: { book: LibraryBook; unit: LibraryUnit }) {
   const [summaryVisible, setSummaryVisible] = useState(false)
   const [attempt, setAttempt] = useState(0)
   return (
     <>
       <section className="chapter-summary" aria-live="polite">
-        <p className="eyebrow">Chapter summary</p>
-        {summaryVisible ? <p>{chapter.summary}</p> : (
-          <button type="button" onClick={() => setSummaryVisible(true)}>Reveal summary — contains Chapter {chapter.number} spoilers</button>
+        <p className="eyebrow">Summary</p>
+        {summaryVisible ? <p>{unit.summary}</p> : (
+          <button type="button" onClick={() => setSummaryVisible(true)}>Reveal summary — contains spoilers for {unit.label}</button>
         )}
-        <small>Reader-only reference · chapter navigation does not establish a chat spoiler boundary.</small>
+        <small>Reader-only reference · navigation does not establish a chat spoiler boundary.</small>
       </section>
       <article className="chapter-reader">
-        <p className="eyebrow">Chapter {chapter.number}</p><h3>{chapter.title}</h3>
-        <ChapterText key={attempt} book={book} chapter={chapter} retry={() => setAttempt((value) => value + 1)} />
+        <p className="eyebrow">{unit.part_title}</p><h3>{unit.label}</h3>
+        <UnitText key={attempt} book={book} unit={unit} retry={() => setAttempt((value) => value + 1)} />
       </article>
     </>
   )
 }
 
-function ChapterText({ book, chapter, retry }: { book: LibraryBook; chapter: LibraryChapter; retry: () => void }) {
+function UnitText({ book, unit, retry }: { book: LibraryBook; unit: LibraryUnit; retry: () => void }) {
   const [body, setBody] = useState<LoadState<string>>({ kind: 'loading' })
   useEffect(() => {
     const controller = new AbortController()
-    loadChapter(book, chapter, controller.signal).then(
+    loadUnit(book, unit, controller.signal).then(
       (data) => { if (!controller.signal.aborted) setBody({ kind: 'ready', data }) },
       (error: unknown) => {
-        if (!controller.signal.aborted) setBody({ kind: 'error', message: error instanceof Error ? error.message : 'Unable to load this chapter.' })
+        if (!controller.signal.aborted) setBody({ kind: 'error', message: error instanceof Error ? error.message : 'Unable to load this text.' })
       },
     )
     return () => controller.abort()
-  }, [book, chapter])
+  }, [book, unit])
   switch (body.kind) {
-    case 'loading': return <p role="status">Loading chapter…</p>
+    case 'loading': return <p role="status">Loading text…</p>
     case 'error': return <div role="alert"><p>{body.message}</p><button type="button" onClick={retry}>Try again</button></div>
     case 'ready': return <div className="chapter-text">{body.data}</div>
     default: {

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from src.linger.contracts.reading import permits_scope, scope_fields
+
 import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -114,7 +116,7 @@ def _build_task(
                 BookScope(
                     work_id=reading.work_id,
                     book_version_id=book_version_id,
-                    chapter_max=reading.chapter_max,
+                    **scope_fields(reading),
                 ),
             )
 
@@ -210,12 +212,8 @@ def _evidence_is_in_scope(
         return allowed_urls is None or evidence.evidence_id in allowed_urls
     if not isinstance(evidence, EvidenceItem):
         return True
-    ceilings = {
-        (scope.work_id, scope.book_version_id): scope.chapter_max
-        for scope in task.scope.book_scopes
-    }
-    ceiling = ceilings.get((evidence.work_id, evidence.book_version_id))
-    return ceiling is not None and evidence.chapter <= ceiling
+    return any(permits_scope(scope, evidence) for scope in task.scope.book_scopes)
+
 
 
 def _validate_response(

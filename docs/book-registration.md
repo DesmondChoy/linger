@@ -7,14 +7,11 @@ stable work ID comes from its registration; chat never manufactures an ID
 from an unknown title.
 
 The runtime registry and default application grant contain *Alice's Adventures
-in Wonderland*, *Animal Farm*, and *The Adventures of Pinocchio*. Book retrieval
-requires a validated chapter corpus, a registration, and an application grant
+in Wonderland*, *Animal Farm*, *The Adventures of Pinocchio*, *Narrative of the
+Life of Frederick Douglass*, and *The Story of My Life*. Book retrieval
+requires a validated corpus, a registration, and an application grant
 for its exact revision. An explicit `ALLOWED_BOOK_VERSION_IDS` environment value
 replaces the default grant.
-
-The repository also contains validated section corpora for *Narrative of the
-Life of Frederick Douglass* and *The Story of My Life*. These books remain
-disabled until the runtime supports section boundaries.
 
 ## Identity and ambiguity
 
@@ -101,16 +98,18 @@ Ask the [corpus-formatting skill](../.agents/skills/format-book-corpus/SKILL.md)
 to "format and enable this book for Librarian" to include registration and
 access in the same task. Formatting alone creates corpus artifacts without
 changing runtime access. Adding a folder does not register or enable a book.
-Reader uses the same registry and access grant: enabled chapter books appear on
+Reader uses the same registry and access grant: enabled books appear on
 its shelf automatically. No separate frontend book entry is required. Reader
 navigation does not establish reading progress for chat.
 
 1. Use the [corpus-formatting workflow](../.agents/skills/format-book-corpus/SKILL.md)
-   to preserve the immutable source, create canonical chapters, and review
-   semantic chapter metadata. Reuse the shared corpus lifecycle with a
+   to preserve the immutable source, create canonical units, and review
+   semantic routing metadata. Reuse the shared corpus lifecycle with a
    source-specific adapter. For an existing corpus, run its validation check
    without regenerating canonical files. Confirm that its units and locations
-   match the chapter runtime before registration.
+   match the runtime before registration. For mixed works, supply reviewed
+   `BookCorpus.unit_locations` covering every stored section: kind, part, label,
+   natural chapter number where applicable, and recipient/date for letters.
 2. Add its `CorpusRegistration` in `src/linger/corpus/registry.py`. Keep stable
    identity and author information in `BookCorpus`. Classify broad or shared
    names as candidate aliases.
@@ -135,7 +134,9 @@ navigation does not establish reading progress for chat.
 
    Cover the new book's reviewed names and relevant ambiguity cases. Verify
    denial without an exact revision grant and retrieval within the permitted
-   chapter boundary. A title alone must not establish completed reading progress.
+   part and chapter boundary or exact named-unit grant. Cover repeated chapter
+   numbers across parts and ambiguous letter recipients when present. A title
+   alone must not establish completed reading progress.
    The normal test suite also checks the shipped registry for registration errors.
 5. Enable its exact revision in `allowed_book_version_ids` when the corpus is
    ready for use. The application defaults live in `apps/backend/config.py`.
@@ -179,8 +180,28 @@ source-code workflow and does not accept arbitrary uploads or fuzzy name matches
 Works with letters and prefatory material use the
 [canonical section format](corpus/canonical-sections.md). *Narrative of the Life
 of Frederick Douglass* and *The Story of My Life* use schema 2 section artifacts.
-The chapter-based runtime rejects section metadata, including a section file
-placed beneath a chapter catalogue. Section IDs and section reading boundaries
-need separate runtime implementation before these books can be enabled. Keep
-their natural units intact. Relabeling sections as chapters would discard the
-meaning of their locations and reading boundaries.
+The shared unit loader interprets reviewed adapter locations without rewriting
+canonical files or stable section IDs. Source order and natural chapter number
+are separate: Douglass's Chapter 1 is stored as `sec04`; Keller's Part I,
+Chapter 1 is `sec003`, while Part III, Chapter 1 is `sec136`.
+
+Chapter permission contains a part and a completed chapter ceiling. It includes
+only numbered chapters in that part. Keller starts with Part I (`main`) selected;
+Part III must be selected explicitly, and later chapter declarations retain that
+selection until another part or book is selected. Prefaces, letters, and
+other named units use exact unit IDs with no chapter number. Completing one
+letter does not authorize its neighbors. Repeated recipients require a date or
+another unambiguous location. Selecting a book or part alone grants no progress.
+
+These boundaries apply to retrieval, cached indexes, citations, connection
+searches, and final reply release. The Reader groups units by part and opens
+the first main narrative chapter by default. Its text endpoint is
+`GET /api/library/{work_id}/{book_version_id}/units/{unit_id}`. Opening any unit
+or revealing its summary grants no Chat reading permission.
+
+For example, declare "I've finished Chapter 1 of Frederick Douglass" or
+"I've finished Part III, Chapter 1 of The Story of My Life." After selecting
+Keller's book, "I read the letter to Alexander Graham Bell, November 1887"
+authorizes only that letter. If the recipient identifies several letters and
+the date is missing, Chat asks which letter was completed. Declare one location
+at a time; conflicting or combined locations require clarification.

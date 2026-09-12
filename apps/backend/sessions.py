@@ -31,6 +31,7 @@ _turn_records: dict[str, list["TurnRecord"]] = {}
 class BookSelection(BaseModel):
     book_id: str
     book_title: str | None = None
+    part_id: str = "main"
 
 
 class ReadingCandidate(BookSelection):

@@ -7,7 +7,7 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 - **Runtime:** Python 3.12, FastAPI, and Pydantic AI
 - **Reasoning:** five focused agents, with deterministic application control
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
-- **Corpus:** five validated works, with Alice registered for chat retrieval
+- **Corpus:** five validated works enabled for Chat retrieval and Reader
 - **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
 - **Synthetic evaluation:** validated packages, independent Ground truth review,
   chat replay, and bounded curation and surfacing evaluations
@@ -50,8 +50,8 @@ The local development frontend mounts Reader and Inspect for developers working
 with the corpus and backend workflow. They are debugging tools, not product
 frontend surfaces; a user-facing app should omit both.
 
-- **Reader** browses enabled canonical books by chapter and can reveal
-  chapter summaries after an explicit spoiler warning. It helps developers
+- **Reader** browses enabled canonical books by chapter or named section and can
+  reveal summaries after an explicit spoiler warning. It helps developers
   exercise corpus behavior. Its local navigation never establishes reading
   progress, evidence authority, or a chat spoiler boundary.
 - **Inspect** projects each completed turn's request contract, context
@@ -160,14 +160,14 @@ live in `data/gutenberg/`; canonical chapters or sections and their derived
 | *Narrative of the Life of Frederick Douglass, an American Slave* | `douglass` | `pg23-vd3f08ac3` | 16 sections |
 | *The Story of My Life* | `story_of_my_life` | `pg2397-vb3cc1e13` | 140 sections |
 
-Alice, Animal Farm, and Pinocchio are registered in `src/linger/corpus/registry.py`
-and enabled by the default application grant for chat retrieval.
-An `ALLOWED_BOOK_VERSION_IDS` override replaces that default grant. The other
-two works remain validated formatting artifacts. Chapter corpora use schema 1;
-mixed works use schema 2 to preserve prefaces, letters, and chapter titles in
-source order. Section corpora require
-a section-aware runtime contract before registration. Reader loads the same
-enabled registry through the library API and serves canonical chapter text.
+All five works are registered in `src/linger/corpus/registry.py` and enabled by
+the default application grant for Chat retrieval and Reader. An
+`ALLOWED_BOOK_VERSION_IDS` override replaces that default grant. Chapter corpora
+use schema 1; mixed works use schema 2 to preserve prefaces, letters, and chapter
+titles in source order. Reviewed locations preserve natural chapter numbering:
+Douglass starts at Chapter 1, Keller defaults to Part I, and Part III has its own
+chapter sequence. Named letters and prefatory material use exact-unit permission.
+Reader loads the same enabled registry and serves canonical text by stable unit ID.
 
 See [Registering books and resolving their names](docs/book-registration.md)
 for the shared resolver, ambiguity handling, onboarding checks, and ownership

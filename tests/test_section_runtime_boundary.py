@@ -1,4 +1,4 @@
-"""The chapter runtime must reject section metadata before returning evidence."""
+"""A chapter registration must reject a substituted section before returning evidence."""
 
 import json
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from apps.backend.contracts import BookScope, LibrarianRequest
-from apps.backend.librarian import Librarian
+from apps.backend.librarian import CorpusScopeError, Librarian
 from src.linger.corpus import registry
 from src.linger.corpus.alice import BOOK
 from src.linger.corpus.book import CorpusBuildError, initialise_corpus
@@ -40,5 +40,6 @@ def test_chapter_retrieval_rejects_section_file_under_chapter_catalog(
         retrieval_score_threshold=0.5,
     )
 
-    with pytest.raises(CorpusBuildError):
+    with pytest.raises(CorpusScopeError) as caught:
         Librarian().retrieve(request)
+    assert isinstance(caught.value.__cause__, CorpusBuildError)

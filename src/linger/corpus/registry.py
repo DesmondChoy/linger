@@ -14,6 +14,8 @@ from src.linger.corpus.alice import BOOK
 from src.linger.corpus.animal_farm import BOOK as ANIMAL_FARM
 from src.linger.corpus.book import WORD, BookCorpus
 from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
+from src.linger.corpus.douglass import BOOK as DOUGLASS
+from src.linger.corpus.story_of_my_life import BOOK as STORY_OF_MY_LIFE
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,16 @@ CORPORA = {
         book=PINOCCHIO,
         root=PINOCCHIO.default_output,
         aliases=("pinocchio",),
+    ),
+    DOUGLASS.work_id: CorpusRegistration(
+        book=DOUGLASS,
+        root=DOUGLASS.default_output,
+        aliases=("narrative of the life of frederick douglass", "frederick douglass"),
+    ),
+    STORY_OF_MY_LIFE.work_id: CorpusRegistration(
+        book=STORY_OF_MY_LIFE,
+        root=STORY_OF_MY_LIFE.default_output,
+        aliases=("story of my life",),
     ),
 }
 

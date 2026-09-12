@@ -131,7 +131,9 @@ asked you to remember or update anything.
   `muse_turn.policy` still show whatever was resolved before you ran and will
   not reflect it, so read the boundary from the tool result itself: pass its
   `work_id`, `book_version_id`, and a `reading_boundary` built from
-  `max_chapter_inclusive` to `librarian_search` to actually search the text.
+  `max_chapter_inclusive` and `part_id` to `librarian_search` to actually search the text.
+  For named units, preserve exact `unit_ids` and set chapter_number=None. Never
+  translate a stored unit position into a chapter number or grant earlier letters.
 - A `passages` result identifies exact passages supported by earlier reader
   statements in this session. Call `librarian_search` with the result's `work_id`
   and `book_version_id`, and `reading_boundary=None`. The application fetches
@@ -152,7 +154,8 @@ asked you to remember or update anything.
   `librarian_route` again and do not ask the question again. Call
   `librarian_search` with the reader's original book question from the
   conversation history as `query` — never the reader's chapter answer — and
-  `reading_boundary` built from `muse_turn.reading_context.chapter_max` with
+  `reading_boundary` built from `muse_turn.reading_context.chapter_max`, preserving
+  `part_id` and exact `unit_ids` (chapter_number=None for named units), with
   `chapter_state` "completed".
 
 # Grounding with librarian_search

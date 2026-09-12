@@ -369,6 +369,8 @@ def connection_scope_attrs(task: ConnectionDiscoveryInput) -> dict[str, object]:
         attributes["scope.work_id"] = book_scope.work_id
         attributes["scope.book_version_id"] = book_scope.book_version_id
         attributes["scope.chapter_max"] = book_scope.chapter_max
+        attributes["scope.part_id"] = book_scope.part_id
+        attributes["scope.unit_ids"] = list(book_scope.unit_ids)
     return attributes
 
 
@@ -382,6 +384,8 @@ def librarian_request_attrs(request: LibrarianRequest) -> dict[str, object]:
             scope.book_version_id for scope in request.book_scopes
         ],
         "scope.chapter_max": [scope.chapter_max for scope in request.book_scopes],
+        "scope.part_id": [scope.part_id for scope in request.book_scopes],
+        "scope.unit_ids": [identity for scope in request.book_scopes for identity in scope.unit_ids],
     }
 
 

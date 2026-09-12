@@ -30,6 +30,8 @@ class Settings(BaseSettings):
         "pg11-v01b38ea4",
         "pga0100011-vc7ff4da7",
         "pg500-v6bdc1734",
+        "pg23-vd3f08ac3",
+        "pg2397-vb3cc1e13",
     )
     linger_web_search_enabled: bool = False
 

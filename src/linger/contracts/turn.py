@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field
-
-from src.linger.contracts.base import StrictModel
+from src.linger.contracts.reading import ReadingScope
 
 ReleaseSource = Literal[
     "muse_candidate",
@@ -16,16 +14,14 @@ ReleaseSource = Literal[
 ]
 
 
-class ConfirmedReading(StrictModel):
+class ConfirmedReading(ReadingScope):
     """The reader-confirmed boundary, owned by the application. Muse cannot forge it."""
 
     work_id: str  # stable corpus work identifier (e.g. "pg11")
-    chapter_max: int = Field(ge=1)
 
 
-class ReleaseScope(StrictModel):
+class ReleaseScope(ReadingScope):
     """Trusted book revision and spoiler ceiling for one release decision."""
 
     work_id: str
     book_version_id: str
-    chapter_max: int = Field(ge=1)

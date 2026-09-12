@@ -1,14 +1,13 @@
-"""Read-only Reader access to granted, registered canonical chapter corpora."""
+"""Read-only Reader access to granted, registered canonical literary units."""
 
-from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.linger.corpus import registry
-from src.linger.corpus.book import parse_chapter_markdown, sha256
 from src.linger.corpus.registry import CorpusRegistration
+from src.linger.corpus.units import CorpusUnit, load_units, read_unit
 
 from .config import Settings, get_settings
 
@@ -16,9 +15,14 @@ router = APIRouter(prefix="/api/library")
 LibrarySettings = Annotated[Settings, Depends(get_settings)]
 
 
-class LibraryChapter(BaseModel):
-    number: int
+class LibraryUnit(BaseModel):
+    unit_id: str
+    chapter_number: int | None
+    part_id: str
+    part_title: str
+    kind: str
     title: str
+    label: str
     summary: str
 
 
@@ -27,47 +31,19 @@ class LibraryBook(BaseModel):
     book_version_id: str
     title: str
     author: str
-    chapters: list[LibraryChapter]
+    units: list[LibraryUnit]
+    start_unit_id: str
 
 
-class ChapterText(BaseModel):
+class UnitText(BaseModel):
     text: str
 
 
-class CatalogChapter(BaseModel):
-    chapter_id: str
-    chapter_number: int = Field(ge=1, strict=True)
-    title: str
-    routing_description: str
-    path: str
-
-
-class ChapterCatalog(BaseModel):
-    schema_version: Literal[1]
-    work_id: str
-    book_version_id: str
-    source_sha256: str
-    chapters: list[CatalogChapter]
-
-
-def _catalog(registration: CorpusRegistration) -> ChapterCatalog:
+def _units(registration: CorpusRegistration) -> tuple[CorpusUnit, ...]:
     try:
-        catalog = ChapterCatalog.model_validate_json(
-            (registration.root / "catalog.json").read_text(encoding="utf-8")
-        )
-        book = registration.book
-        if (
-            catalog.work_id != book.work_id
-            or catalog.book_version_id != book.book_version_id
-            or catalog.source_sha256 != book.source_sha256
-            or not catalog.chapters
-            or [chapter.chapter_number for chapter in catalog.chapters]
-            != list(range(1, len(catalog.chapters) + 1))
-        ):
-            raise ValueError("invalid catalog identity or chapter sequence")
-        return catalog
+        return load_units(registration)
     except (OSError, ValueError) as exc:
-        raise HTTPException(503, "The book's catalog is unavailable.") from exc
+        raise HTTPException(503, "The book's contents are unavailable.") from exc
 
 
 @router.get("", response_model=list[LibraryBook])
@@ -75,60 +51,54 @@ def list_books(settings: LibrarySettings) -> list[LibraryBook]:
     books = []
     for registration in registry.CORPORA.values():
         book = registration.book
-        if book.book_version_id not in settings.allowed_book_version_ids or book.unit_kind != "chapter":
+        if book.book_version_id not in settings.allowed_book_version_ids:
             continue
-        catalog = _catalog(registration)
+        units = _units(registration)
+        start = next((unit for unit in units if unit.part_id == "main" and unit.kind == "chapter"), None)
+        if start is None:
+            raise HTTPException(503, "The book's starting location is unavailable.")
         books.append(LibraryBook(
             work_id=book.work_id,
             book_version_id=book.book_version_id,
             title=book.title,
             author=book.author,
-            chapters=[LibraryChapter(
-                number=chapter.chapter_number,
-                title=chapter.title,
-                summary=chapter.routing_description,
-            ) for chapter in catalog.chapters],
+            units=[LibraryUnit(
+                unit_id=unit.chapter_id,
+                chapter_number=unit.chapter_number,
+                part_id=unit.part_id,
+                part_title=unit.part_title,
+                kind=unit.kind,
+                title=unit.title,
+                label=unit.label,
+                summary=unit.routing_description,
+            ) for unit in units],
+            start_unit_id=start.chapter_id,
         ))
     return books
 
 
-@router.get("/{work_id}/{book_version_id}/chapters/{chapter_number}", response_model=ChapterText)
-def read_chapter(
+@router.get("/{work_id}/{book_version_id}/units/{unit_id}", response_model=UnitText)
+def read_library_unit(
     work_id: str,
     book_version_id: str,
-    chapter_number: int,
+    unit_id: str,
     settings: LibrarySettings,
-) -> ChapterText:
+) -> UnitText:
     registration = registry.CORPORA.get(work_id)
     if (
         registration is None
         or registration.book.book_version_id != book_version_id
         or book_version_id not in settings.allowed_book_version_ids
-        or registration.book.unit_kind != "chapter"
     ):
         raise HTTPException(404, "Book is unavailable.")
-    catalog = _catalog(registration)
-    chapter = next((item for item in catalog.chapters if item.chapter_number == chapter_number), None)
-    if chapter is None:
-        raise HTTPException(404, "Chapter is unavailable.")
+    unit = next((item for item in _units(registration) if item.chapter_id == unit_id), None)
+    if unit is None:
+        raise HTTPException(404, "Reading location is unavailable.")
     try:
-        root = registration.root.resolve()
-        path = (root / chapter.path).resolve()
-        if not path.is_relative_to(root) or Path(chapter.path).is_absolute():
-            raise ValueError("chapter path is outside its corpus")
-        metadata, body = parse_chapter_markdown(path.read_text(encoding="utf-8"))
+        _, body = read_unit(registration, unit)
         heading, separator, story = body.partition("\n\n")
-        if (
-            metadata.work_id != work_id
-            or metadata.book_version_id != book_version_id
-            or metadata.chapter_id != chapter.chapter_id
-            or metadata.chapter_number != chapter_number
-            or metadata.source_sha256 != registration.book.source_sha256
-            or not heading.startswith("# ")
-            or not separator
-            or sha256(story) != metadata.body_sha256
-        ):
-            raise ValueError("chapter does not match its canonical metadata")
-        return ChapterText(text=story)
+        if not heading.startswith("# ") or not separator:
+            raise ValueError("canonical text has no generated heading")
+        return UnitText(text=story)
     except (OSError, ValueError) as exc:
-        raise HTTPException(503, "The chapter text is unavailable.") from exc
+        raise HTTPException(503, "The text is unavailable.") from exc

@@ -6,26 +6,28 @@ interaction and backend debugging; a user-facing frontend should omit both.
 
 - Chat sends session-scoped reflection turns and displays released replies,
   capture notices, and trace-correlated errors.
-- Reader lets developers browse enabled canonical books by chapter and
+- Reader lets developers browse enabled canonical books by chapter or named section and
   exercise corpus behavior. It loads the shelf from the backend's book registry
-  and exact revision grants, with local chapter text and an expandable panel.
+  and exact revision grants, with local canonical text and an expandable panel.
   It reveals a summary only after an explicit spoiler warning and hides the
-  summary when the developer selects another chapter.
+  summary when the developer selects another location. Contents group units by
+  part, and books open at the first main narrative chapter.
 - Inspect lets developers trace request contracts, context resolution, agent
   hand-offs, direct Librarian calls, fixed Serendipity outcomes, and actual
   release decisions for completed turns. Its raw diagnostics are not intended
   for end users.
 
 Reader navigation and Inspect output are deliberately non-authoritative.
-Selecting or revealing a chapter does not establish a spoiler ceiling for chat,
+Selecting or revealing a location does not establish a spoiler ceiling for chat,
 and diagnostic output cannot grant retrieval, release, capture, or storage
 authority. The backend accepts only the request-scoped reading context described
 in the system specification.
 
-Reader's default library contains Alice, Animal Farm, and Pinocchio. Registering
-and granting a supported chapter corpus makes it available through `/api/library`.
-Opening a chapter fetches its canonical text from the backend. Folder contents
-alone do not populate the shelf; section-based works remain unsupported.
+Reader's default library contains Alice, Animal Farm, Pinocchio, Frederick
+Douglass, and The Story of My Life. Registering and granting a supported corpus
+makes it available through `/api/library`. Opening a unit fetches its canonical
+text through `/api/library/{work_id}/{book_version_id}/units/{unit_id}`. Folder
+contents alone do not populate the shelf.
 
 ## Commands
 
