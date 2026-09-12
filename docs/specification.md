@@ -566,8 +566,7 @@ produce a clarification before private boundary inference. If a book is not
 needed for the response, Muse can continue personal reflection without lookup.
 A book-related follow-up with no book name and no strong cue for a different
 work can route to the session's active selection and enter boundary inference.
-Pronoun-only follow-ups still have an open end-to-end routing issue tracked as
-`linger-3yyi`. Boundary inference asks a chapter-progress clarification
+Boundary inference asks a chapter-progress clarification
 whenever it cannot locate the request in the book, whether because no
 supporting evidence is found before the judge runs or the judge itself
 remains uncertain.
