@@ -14,6 +14,8 @@ from apps.backend.hybrid_librarian import (
     HybridLibrarian,
 )
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
+from src.linger.corpus.animal_farm import BOOK as ANIMAL_FARM
+from src.linger.corpus.pinocchio import BOOK as PINOCCHIO
 
 
 WORDS = re.compile(r"[a-z]+")
@@ -76,6 +78,27 @@ class HybridLibrarianTests(unittest.TestCase):
     def test_unrelated_query_is_removed_by_reranker(self) -> None:
         bundle = self.librarian.retrieve(request("spaceship nebula"))
         self.assertEqual([], bundle.items)
+
+    def test_new_chapter_books_use_the_shared_hybrid_pipeline(self) -> None:
+        for book, query in ((ANIMAL_FARM, "Major dream"), (PINOCCHIO, "Master Cherry")):
+            with self.subTest(book=book.title):
+                source_lines = book.default_source.read_text(encoding="utf-8").splitlines()
+                bundle = self.librarian.retrieve(LibrarianRequest(
+                    query=query,
+                    book_scopes=[BookScope(
+                        work_id=book.work_id,
+                        book_version_id=book.book_version_id,
+                        chapter_max=1,
+                    )],
+                ))
+                self.assertTrue(bundle.items)
+                for item in bundle.items:
+                    self.assertEqual(book.work_id, item.work_id)
+                    self.assertEqual(book.book_version_id, item.book_version_id)
+                    self.assertEqual(1, item.chapter)
+                    start, end = item.source_lines
+                    self.assertEqual("\n".join(source_lines[start - 1:end]), item.excerpt)
+                    self.assertEqual(item.excerpt, self.librarian.fetch_by_id(item.evidence_id).text)
 
     def test_duplicate_query_returns_stable_evidence_ids(self) -> None:
         first = self.librarian.retrieve(request("Caterpillar identity"))

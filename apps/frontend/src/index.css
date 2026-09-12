@@ -136,14 +136,14 @@ textarea::placeholder {
 .book-card { display: grid; grid-template-columns: 3.5rem 1fr; gap: 0.75rem; align-items: center; padding: 0.7rem; border: 1px solid var(--border); border-radius: 0.7rem; background: var(--surface); }
 .book-card h3, .book-card p { margin: 0; }
 .book-card p, .reader-author, .book-source, .chapter-summary small { color: var(--muted); font-size: 0.8rem; }
-.book-cover img { width: 3.5rem; height: 4.8rem; object-fit: cover; border-radius: 0.25rem; }
+.book-cover { display: grid; place-items: center; width: 3.5rem; height: 4.8rem; border-radius: 0.25rem; border-left: 0.3rem solid var(--accent); background: var(--accent-soft); color: var(--text); font: 2rem Georgia, serif; }
 .choose-book { grid-column: 1 / -1; }
 .chapter-summary { margin-top: 1rem; padding: 0.85rem; border: 1px dashed var(--border); border-radius: 0.7rem; }
 .reader-progress { display: grid; gap: 0.75rem; }
 .reader-progress h2 { margin: 0.2rem 0; font-size: 1.15rem; }
 .chapter-select { display: grid; width: 100%; min-width: 0; gap: 0.3rem; font-size: 0.78rem; }
 .chapter-select select { width: 100%; min-width: 0; }
-.chapter-reader iframe { width: 100%; height: 56vh; border: 1px solid var(--border); border-radius: 0.6rem; }
+.chapter-text { white-space: pre-wrap; overflow-wrap: anywhere; font-family: Georgia, serif; line-height: 1.75; }
 .back-to-library { margin-bottom: 1rem; }
 
 .view-tabs { display: inline-flex; gap: 0.2rem; padding: 0.2rem; border: 1px solid var(--border); border-radius: 0.55rem; }

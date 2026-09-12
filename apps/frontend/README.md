@@ -6,9 +6,9 @@ interaction and backend debugging; a user-facing frontend should omit both.
 
 - Chat sends session-scoped reflection turns and displays released replies,
   capture notices, and trace-correlated errors.
-- Reader lets developers browse the public Project Gutenberg edition of
-  *Alice's Adventures in Wonderland* by chapter and exercise corpus behavior.
-  It has a chapter selector, an expandable reading panel, and a source link.
+- Reader lets developers browse enabled canonical books by chapter and
+  exercise corpus behavior. It loads the shelf from the backend's book registry
+  and exact revision grants, with local chapter text and an expandable panel.
   It reveals a summary only after an explicit spoiler warning and hides the
   summary when the developer selects another chapter.
 - Inspect lets developers trace request contracts, context resolution, agent
@@ -22,9 +22,10 @@ and diagnostic output cannot grant retrieval, release, capture, or storage
 authority. The backend accepts only the request-scoped reading context described
 in the system specification.
 
-Reader's library contains Alice only. Canonical corpora elsewhere in the
-repository do not populate this panel, and it does not display section-based
-works.
+Reader's default library contains Alice, Animal Farm, and Pinocchio. Registering
+and granting a supported chapter corpus makes it available through `/api/library`.
+Opening a chapter fetches its canonical text from the backend. Folder contents
+alone do not populate the shelf; section-based works remain unsupported.
 
 ## Commands
 

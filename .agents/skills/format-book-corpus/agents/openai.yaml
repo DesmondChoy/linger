@@ -1,4 +1,4 @@
 interface:
   display_name: "Format Book Corpus"
-  short_description: "Turn source books into retrieval-ready chapters"
-  default_prompt: "Use $format-book-corpus to convert this source book into validated chapter Markdown and a routing catalog."
+  short_description: "Format books and optionally enable them in Linger"
+  default_prompt: "Use $format-book-corpus to format this book as validated canonical Markdown and a routing catalog, and enable it for Librarian and Reader if requested."

@@ -50,7 +50,7 @@ The local development frontend mounts Reader and Inspect for developers working
 with the corpus and backend workflow. They are debugging tools, not product
 frontend surfaces; a user-facing app should omit both.
 
-- **Reader** browses the public-domain Alice corpus by chapter and can reveal
+- **Reader** browses enabled canonical books by chapter and can reveal
   chapter summaries after an explicit spoiler warning. It helps developers
   exercise corpus behavior. Its local navigation never establishes reading
   progress, evidence authority, or a chat spoiler boundary.
@@ -160,11 +160,14 @@ live in `data/gutenberg/`; canonical chapters or sections and their derived
 | *Narrative of the Life of Frederick Douglass, an American Slave* | `douglass` | `pg23-vd3f08ac3` | 16 sections |
 | *The Story of My Life* | `story_of_my_life` | `pg2397-vb3cc1e13` | 140 sections |
 
-Only Alice is registered in `src/linger/corpus/registry.py` and available to
-chat retrieval and Reader. The other four works are validated formatting
-artifacts. Chapter corpora use schema 1; mixed works use schema 2 to preserve
-prefaces, letters, and chapter titles in source order. Section corpora require
-a section-aware runtime contract before registration.
+Alice, Animal Farm, and Pinocchio are registered in `src/linger/corpus/registry.py`
+and enabled by the default application grant for chat retrieval.
+An `ALLOWED_BOOK_VERSION_IDS` override replaces that default grant. The other
+two works remain validated formatting artifacts. Chapter corpora use schema 1;
+mixed works use schema 2 to preserve prefaces, letters, and chapter titles in
+source order. Section corpora require
+a section-aware runtime contract before registration. Reader loads the same
+enabled registry through the library API and serves canonical chapter text.
 
 See [Registering books and resolving their names](docs/book-registration.md)
 for the shared resolver, ambiguity handling, onboarding checks, and ownership
