@@ -277,10 +277,13 @@ Serendipity cannot save or curate memory. Telemetry and fixed request-local
 outcome metadata report a decision but never authorise search, storage, or release.
 
 Serendipity cannot widen citation or public-release authority. A book-only
-proposal uses the canonical book contract. A proposal containing memory or web
-evidence fails closed, and its content-bearing diagnostics are not returned by
-the API. Image evidence is unsupported. A validated decline may still be
-relayed with fixed inspection metadata.
+proposal uses the canonical book contract. A selected web page can support a
+release only when Muse visibly cites its exact opened URL and application code
+resolves that declaration against the current run. Provenance still treats the
+page as untrusted evidence. Stored-memory and image evidence do not become
+reader-visible citations, and their content-bearing diagnostics are not returned
+by the API. A validated decline may still be relayed with fixed inspection
+metadata.
 
 ## Related
 

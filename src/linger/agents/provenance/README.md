@@ -177,10 +177,14 @@ An application-owned clarification records `clarification_capture_suppressed`.
 ### 4.2.3 — Connection discovery (Serendipity)
 
 Serendipity can return book, account-scoped memory, or web search evidence.
-Only selected book-only evidence can support a released connection. A proposal
-citing memory or web records fails deterministic release because those records
-are outside the canonical book citation contract. Provenance still reviews the
-complete candidate for unsupported claims and attribution errors.
+This is the only flow that reaches web evidence, so it is the only flow where
+`uncited_web_claim` can fire. A selected page may support a release when Muse
+visibly cites its exact URL and application code resolves that URL against the
+current Serendipity run. A proposal citing memory records still fails
+deterministic release because those records are outside the citation contract.
+Provenance reviews the complete candidate for unsupported claims and attribution
+errors, and `unsupported_claim` remains important because a tentative connection
+can still overclaim its evidence.
 
 ### `emotional_policy_violation` in the candidate gate
 
