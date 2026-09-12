@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { formatMachineLabel } from './formatMachineLabel'
 import { Inspector } from './Inspector'
-import type { ChatResult } from '../types'
+import type { TurnRecord } from '../types'
 
 describe('formatMachineLabel', () => {
   it('formats every segment of a multiword failure stage', () => {
@@ -12,11 +12,12 @@ describe('formatMachineLabel', () => {
   })
 })
 
-function exampleTurn(): ChatResult {
+function exampleTurn(): TurnRecord {
   return {
     reply: 'How far have you read?',
     trace: { trace_id: '0123456789abcdef0123456789abcdef' },
     memory_capture: null,
+    progress: [],
     inspection: {
       muse_turn: {
         turn_id: 'clarification-test', user_message: 'Why does Alice change?', reading_context: null,
@@ -81,4 +82,38 @@ it('distinguishes the supplementary part in a chapter boundary', () => {
   }
   const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
   expect(html).toContain('through completed chapter 1 in Part III')
+})
+
+it('renders per-agent seconds and the handoffs between agents', () => {
+  const turn = exampleTurn()
+  turn.progress = [
+    {
+      sequence: 1, elapsed_ms: 0, agent: 'Muse', stage: 'draft', status: 'running',
+      detail: 'Muse candidate generation is in progress.',
+      input_origin: 'Application', output_receiver: 'Application',
+    },
+    {
+      sequence: 2, elapsed_ms: 1500, agent: 'Serendipity', stage: 'search_rank_select',
+      status: 'running', detail: 'Serendipity search and comparison is in progress.',
+      input_origin: 'Muse', output_receiver: 'Muse',
+    },
+    {
+      sequence: 3, elapsed_ms: 4500, agent: 'Serendipity', stage: 'search_rank_select',
+      status: 'complete', detail: 'Serendipity search and comparison completed.',
+      input_origin: 'Muse', output_receiver: 'Muse',
+    },
+    {
+      sequence: 4, elapsed_ms: 6000, agent: 'Muse', stage: 'draft', status: 'complete',
+      detail: 'Muse candidate generation completed.',
+      input_origin: 'Application', output_receiver: 'Application',
+    },
+  ]
+
+  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
+
+  expect(html).toContain('Agent timing and handoffs')
+  // Per-agent totals: Muse ran the whole 6.0s span, Serendipity 3.0s of it.
+  expect(html).toContain('6.0s')
+  expect(html).toContain('3.0s')
+  expect(html).toContain('search rank select')
 })

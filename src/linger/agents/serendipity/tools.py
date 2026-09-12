@@ -29,6 +29,7 @@ from src.linger.agents.serendipity.models import (
 )
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
+from src.linger.orchestration.progress_context import emit_progress
 
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
@@ -91,6 +92,37 @@ class SearchTrace:
     operation: str
 
 
+_SEARCH_STAGES = {
+    "search_memories": "memory_search",
+    "search_librarian": "book_corpus_search",
+    "web_search": "web_search",
+    "get_page": "get_page",
+}
+_SEARCH_RECEIVERS: dict[SearchSourceKind, str] = {
+    "memory": "Application",
+    "book_corpus": "Librarian",
+    "web": "Exa",
+}
+
+
+def _emit_search_progress(
+    source: SearchSourceKind,
+    operation: str,
+    outcome: str,
+) -> None:
+    """Report one completed Serendipity search as content-free progress."""
+    emit_progress(
+        "Serendipity",
+        _SEARCH_STAGES.get(operation, "processing"),
+        "complete" if outcome == "evidence_found"
+        else "declined" if outcome == "no_evidence"
+        else "failed",
+        f"Serendipity searched {source}.",
+        input_origin="Serendipity",
+        output_receiver=_SEARCH_RECEIVERS.get(source, "Application"),
+    )
+
+
 @dataclass
 class SerendipityDependencies:
     """Trusted services and mutable evidence ledger hidden from the model."""
@@ -118,6 +150,7 @@ class SerendipityDependencies:
         self.searches.append(
             SearchTrace(source=source, operation=operation, outcome=outcome)
         )
+        _emit_search_progress(source, operation, outcome)
         record_connection_event(ConnectionEvaluationEvent(
             kind="search", status=outcome, source=source, operation=operation,
             evidence_json=tuple(item.model_dump_json() for item in evidence),
@@ -133,6 +166,7 @@ class SerendipityDependencies:
         self.searches.append(
             SearchTrace(source=source, operation=operation, outcome=outcome)
         )
+        _emit_search_progress(source, operation, outcome)
         record_connection_event(ConnectionEvaluationEvent(
             kind="search", status=outcome, source=source, operation=operation,
         ))

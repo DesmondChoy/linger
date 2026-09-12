@@ -12,6 +12,27 @@ export type ConnectionDecline = {
   failure_code: 'connection_discovery_failed' | null
 }
 
+export type AgentName =
+  | 'Application'
+  | 'Muse'
+  | 'Provenance'
+  | 'Librarian'
+  | 'Serendipity'
+  | 'Sculptor'
+  | 'Exa'
+
+/** Content-free stage metadata streamed while a turn is still running. */
+export type ProgressEvent = {
+  sequence: number
+  elapsed_ms: number
+  agent: AgentName
+  stage: string
+  status: 'running' | 'complete' | 'declined' | 'failed'
+  detail: string
+  input_origin: AgentName
+  output_receiver: AgentName
+}
+
 export type AgentTrace = {
   agent: 'Router' | 'Muse' | 'Librarian' | 'Serendipity' | 'Provenance' | 'Memory & Policy'
   status: 'complete' | 'declined' | 'skipped' | 'not_run' | 'failed'
@@ -122,6 +143,11 @@ export type ChatResult = {
   inspection: TurnInspection
   trace: TraceReference
   memory_capture: MemoryCaptureNotice | null
+}
+
+/** One completed turn plus the progress events observed while it ran. */
+export type TurnRecord = ChatResult & {
+  progress: ProgressEvent[]
 }
 
 export type MemoryCaptureNotice = {

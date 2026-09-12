@@ -1,8 +1,65 @@
-import type { ChatResult } from '../types'
+import type { ChatResult, TurnRecord } from '../types'
 import { formatMachineLabel } from './formatMachineLabel'
+import { formatSeconds, toAgentSteps, toAgentTotals } from './progressSummary'
 
 type Props = {
-  timeline: ChatResult[]
+  timeline: TurnRecord[]
+}
+
+function AgentTiming({ turn }: { turn: TurnRecord }) {
+  // A turn recorded before the stream produced anything still renders the rest
+  // of the card rather than blanking the panel.
+  const events = turn.progress ?? []
+  const steps = toAgentSteps(events)
+  if (!steps.length) return null
+  const totals = toAgentTotals(steps)
+  const wallClock = events[events.length - 1].elapsed_ms
+
+  return (
+    <section className="agent-timing">
+      <h4>Agent timing and handoffs</h4>
+      <p className="muted">
+        Server-measured stage metadata only. Prompts, drafts, queries, and evidence never enter
+        the progress stream.
+      </p>
+
+      <ul className="agent-totals">
+        {totals.map((total) => (
+          <li key={total.agent}>
+            <b>{total.agent}</b>
+            <span className="agent-total-time">
+              {formatSeconds(total.durationMs)}
+              {total.partial && '+'}
+            </span>
+            <small>{total.steps === 1 ? '1 stage' : `${total.steps} stages`}</small>
+          </li>
+        ))}
+        <li className="agent-total-wall">
+          <b>Turn</b>
+          <span className="agent-total-time">{formatSeconds(wallClock)}</span>
+          <small>wall clock</small>
+        </li>
+      </ul>
+
+      <ol className="handshake-flow" aria-label="Agent interactions in order">
+        {steps.map((step) => (
+          <li key={step.key} className={step.status}>
+            <span className="progress-time">{formatSeconds(step.startedMs)}</span>
+            <span className="handshake-pair">
+              {step.from} <span aria-hidden="true">→</span> {step.to}
+            </span>
+            <b>{step.agent} · {formatMachineLabel(step.stage)}</b>
+            <span className={`trace-status ${step.status}`}>
+              {formatMachineLabel(step.status)}
+            </span>
+            <span className="progress-duration">
+              {step.durationMs === null ? '—' : formatSeconds(step.durationMs)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
 }
 
 function TraceLink({ turn }: { turn: ChatResult }) {
@@ -149,6 +206,7 @@ export function Inspector({ timeline }: Props) {
                       <p>{turn.inspection.context_resolution.explanation}</p>
                     </section>
 
+                    <AgentTiming turn={turn} />
                     <section>
                       <h4>Agents and decisions</h4>
                       <p>{decisionSummary(turn)}</p>
