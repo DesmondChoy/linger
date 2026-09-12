@@ -26,6 +26,7 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.contracts.reading import permits_scope
+from src.linger.corpus import registry
 from src.linger.corpus.registry import BookClarification
 from src.linger.evaluation_transcript import bind_evaluation_correlation_id
 from src.linger.orchestration.boundary import infer_spoiler_boundary
@@ -164,14 +165,28 @@ async def _route_reader_message(
                 )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
+            escalate = _repeats_clarification(scope)
             _persist_uncertain_candidate(scope, boundary)
+            question = boundary.clarification_question
+            expected_answer = ExpectedAnswer(type="free_text")
+            if escalate:
+                # The same open question already went unanswered once. Ask a
+                # closed question the reader can end, instead of repeating it.
+                question = (
+                    f"Which chapter of {scope.title} have you completed? "
+                    f"Reply with the chapter number, from 1 to {scope.max_chapter}."
+                )
+                expected_answer = ExpectedAnswer(
+                    type="one_of",
+                    values=tuple(str(number) for number in range(1, scope.max_chapter + 1)),
+                )
             return ClarificationRequest(
                 kind="clarification",
                 request_id=request_id,
                 clarification_id=f"clarify_{uuid4().hex}",
                 reason_code=boundary.reason_code,
-                question=boundary.clarification_question,
-                expected_answer=ExpectedAnswer(type="free_text"),
+                question=question,
+                expected_answer=expected_answer,
             )
 
         span.set_attribute("tool.status", "routed")
@@ -215,6 +230,24 @@ async def _route_reader_message(
             boundary_confidence=boundary.confidence,
             selection_basis=decision.basis,
         )
+
+
+def _repeats_clarification(scope: RegisteredCorpusScope) -> bool:
+    """Report an unanswered question for this work that a bare chapter can close."""
+    current_session = session_id()
+    if current_session is None:
+        return False
+    pending = sessions.pending_clarification(current_session)
+    if pending is None or pending.book_id != scope.work_id:
+        return False
+    registration = registry.CORPORA.get(scope.work_id)
+    # A named section or a second part cannot be named by a chapter number, so
+    # only a single-part, fully chapter-numbered work may be asked for one.
+    return (
+        registration is not None
+        and registration.book.unit_kind == "chapter"
+        and scope.part_ids == (scope.part_id,)
+    )
 
 
 def _persist_uncertain_candidate(

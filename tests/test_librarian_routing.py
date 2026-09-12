@@ -73,6 +73,20 @@ def _settings() -> Settings:
     )
 
 
+_UNCERTAIN_QUESTION = "What is the latest chapter or scene you have completed?"
+
+
+async def _uncertain_boundary(_message, *, work_id, book_version_id, **_kwargs):
+    """Stand in for inference that cannot set a ceiling for the routed work."""
+    return BoundaryUncertain(
+        kind="uncertain",
+        work_id=work_id,
+        book_version_id=book_version_id,
+        reason_code="insufficient_context",
+        clarification_question=_UNCERTAIN_QUESTION,
+    )
+
+
 class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._settings_patch = patch(
@@ -475,6 +489,102 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         assert isinstance(result, ClarificationRequest)
         self.assertEqual("progress_unverified", result.reason_code)
         self.assertIsNone(confirmed_reading())
+
+    async def test_first_clarification_for_a_book_stays_free_text(self) -> None:
+        self._set_session("route-session")
+        self._set_message("Can we talk about Alice's Adventures in Wonderland today?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_uncertain_boundary,
+        ):
+            result = await librarian_route()
+
+        self.assertIsInstance(result, ClarificationRequest)
+        assert isinstance(result, ClarificationRequest)
+        self.assertEqual(_UNCERTAIN_QUESTION, result.question)
+        self.assertEqual(ExpectedAnswer(type="free_text"), result.expected_answer)
+
+    async def test_repeated_clarification_for_one_book_asks_for_a_chapter_number(self) -> None:
+        self._set_session("route-session")
+        self._set_message("Can we talk about Alice's Adventures in Wonderland today?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_uncertain_boundary,
+        ):
+            first = await librarian_route()
+            second = await librarian_route()
+
+        assert isinstance(first, ClarificationRequest)
+        assert isinstance(second, ClarificationRequest)
+        self.assertEqual("free_text", first.expected_answer.type)
+        self.assertEqual("one_of", second.expected_answer.type)
+        self.assertEqual(
+            tuple(str(number) for number in range(1, 13)), second.expected_answer.values
+        )
+        self.assertIn("Alice's Adventures in Wonderland", second.question)
+        self.assertIn("1 to 12", second.question)
+        self.assertEqual(first.reason_code, second.reason_code)
+
+    async def test_clarification_for_another_book_does_not_escalate(self) -> None:
+        settings = Settings(
+            _env_file=None,
+            linger_model="google:gemini-2.5-flash",
+            google_api_key="test-key",
+            allowed_book_version_ids=(
+                registry.CORPORA["pg11"].book.book_version_id,
+                registry.CORPORA["pga0100011"].book.book_version_id,
+            ),
+        )
+        self._set_session("route-session")
+        with patch(
+            "src.linger.orchestration.routing.get_settings", return_value=settings
+        ), patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_uncertain_boundary,
+        ):
+            self._set_message("Can we talk about Alice's Adventures in Wonderland today?")
+            await librarian_route()
+            self._set_message("Can we talk about Animal Farm today?")
+            switched = await librarian_route()
+
+        assert isinstance(switched, ClarificationRequest)
+        self.assertEqual(_UNCERTAIN_QUESTION, switched.question)
+        self.assertEqual(ExpectedAnswer(type="free_text"), switched.expected_answer)
+        pending = sessions.pending_clarification("route-session")
+        assert pending is not None
+        self.assertEqual("pga0100011", pending.book_id)
+
+    async def test_section_or_multi_part_work_never_escalates(self) -> None:
+        self._set_session("route-session")
+        for work_id, message in (
+            ("pg23", "Can we talk about the Narrative of the Life of Frederick Douglass?"),
+            ("pg2397", "Can we talk about The Story of My Life today?"),
+        ):
+            with self.subTest(work_id=work_id):
+                sessions.clear("route-session")
+                self._set_message(message)
+                settings = Settings(
+                    _env_file=None,
+                    linger_model="google:gemini-2.5-flash",
+                    google_api_key="test-key",
+                    allowed_book_version_ids=(
+                        registry.CORPORA[work_id].book.book_version_id,
+                    ),
+                )
+                with patch(
+                    "src.linger.orchestration.routing.get_settings", return_value=settings
+                ), patch(
+                    "src.linger.orchestration.routing.infer_spoiler_boundary",
+                    side_effect=_uncertain_boundary,
+                ):
+                    first = await librarian_route()
+                    second = await librarian_route()
+
+                assert isinstance(first, ClarificationRequest)
+                assert isinstance(second, ClarificationRequest)
+                self.assertEqual(work_id, sessions.pending_clarification("route-session").book_id)
+                self.assertEqual(_UNCERTAIN_QUESTION, second.question)
+                self.assertEqual(ExpectedAnswer(type="free_text"), second.expected_answer)
 
 
 class EffectiveRouteResponseTests(unittest.TestCase):
