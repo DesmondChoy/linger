@@ -17,8 +17,9 @@ from src.linger.contracts.librarian import (
     PassageGrant,
     RetrievalOptions,
     RoutedPassages,
+    RoutedWork,
 )
-from src.linger.contracts.reading import ReadingBoundary
+from src.linger.contracts.reading import ReadingBoundary, permits_scope
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration import turn_context
@@ -142,7 +143,6 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(turn_context.confirmed_reading())
 
     async def test_cached_clarification_blocks_grounding_with_confirmed_chapter(self) -> None:
-        turn_context.bind_confirmed_reading(ConfirmedReading(work_id=self.record.work_id, chapter_max=12))
         uncertain = BoundaryUncertain(
             kind="uncertain", work_id=self.record.work_id,
             book_version_id=self.record.book_version_id, reason_code="conflicting_context",
@@ -157,6 +157,7 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
             patch.object(self.librarian, "fetch_by_id", side_effect=AssertionError("fetched")) as fetch,
         ):
             route = await librarian_route()
+            turn_context.bind_confirmed_reading(ConfirmedReading(work_id=self.record.work_id, chapter_max=12))
             response = await grounding_evidence(
                 self.request(), librarian=self.librarian, strength_judge=judge,
             )
@@ -170,16 +171,18 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         judge.assert_not_awaited()
         self.assertEqual({}, dict(turn_context.turn_evidence()))
 
-    async def test_passage_above_explicit_chapter_clarifies_without_binding_grant(self) -> None:
+    async def test_explicit_chapter_prevents_inference_granting_a_later_passage(self) -> None:
         reading = ConfirmedReading(work_id=self.record.work_id, chapter_max=3)
         turn_context.bind_confirmed_reading(reading)
         with patch("src.linger.orchestration.routing.infer_spoiler_boundary", new=AsyncMock(
             return_value=self.boundary,
-        )):
+        )) as inference:
             response = await librarian_route()
 
-        self.assertIsInstance(response, ClarificationRequest)
-        self.assertEqual("conflicting_context", response.reason_code)
+        self.assertIsInstance(response, RoutedWork)
+        self.assertEqual(3, response.max_chapter_inclusive)
+        self.assertFalse(permits_scope(response, self.record))
+        inference.assert_not_awaited()
         self.assertIsNone(turn_context.passage_grant())
         self.assertEqual(reading, turn_context.confirmed_reading())
 

@@ -276,7 +276,7 @@ async def _grounding_evidence(
     )
 
     try:
-        bundle = librarian.retrieve(shipped_request)
+        bundle = librarian.retrieve_for_judgement(shipped_request)
     except Exception:
         failure = RetrievalFailure(
             kind="failure",

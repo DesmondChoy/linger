@@ -154,6 +154,12 @@ unchanged.
   revision grant, and retrieval within the reader's permitted boundary. Check
   that a book title alone cannot grant reading progress. Run the relevant corpus
   checks and repository tests.
+- Check a representative question against the configured local retrieval models
+  and a known supporting passage inside the declared boundary. Scope tests with
+  model doubles do not establish retrieval quality: a correctly stored passage
+  can still be discarded by a score cutoff. Report whether the passage reaches
+  the evidence judge, and distinguish this check from a full model-backed Chat
+  replay. Do not change global thresholds to make one book's example pass.
 - For mixed works, verify that a chapter ceiling opens only numbered chapters
   in the selected part and that completing a named unit grants exactly that
   unit. Test repeated chapter numbers across parts, repeated letter recipients,

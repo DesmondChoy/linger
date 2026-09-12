@@ -88,7 +88,9 @@ async def _route_reader_message(
 
         scope = decision.scope
         existing = confirmed_reading()
-        if existing is not None and existing.work_id == scope.work_id and (existing.part_id != "main" or existing.unit_ids):
+        if existing is not None and existing.work_id == scope.work_id:
+            span.set_attribute("tool.status", "routed")
+            span.set_attribute("routing.selection_basis", decision.basis)
             return RoutedWork(
                 kind="routed", request_id=request_id, work_id=scope.work_id,
                 book_version_id=scope.book_version_id, title=scope.title,

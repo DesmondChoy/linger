@@ -529,6 +529,10 @@ class Librarian:
                 records.setdefault(record.evidence_id, record)
         return tuple(records.values())
 
+    def retrieve_for_judgement(self, request: LibrarianRequest) -> EvidenceBundle:
+        """Supply scoped candidates for the separate answerability judgement."""
+        return self.retrieve(request)
+
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
         """Search eligible unit bodies without opening a forbidden unit."""
         query_terms = _terms(request.query)

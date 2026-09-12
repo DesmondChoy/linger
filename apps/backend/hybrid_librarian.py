@@ -268,6 +268,13 @@ class HybridLibrarian(Librarian):
         return _dedupe(ranked, MAX_RERANKER_CANDIDATES)
 
     def retrieve(self, request: LibrarianRequest) -> EvidenceBundle:
+        return self._retrieve(request, recover_for_judgement=False)
+
+    def retrieve_for_judgement(self, request: LibrarianRequest) -> EvidenceBundle:
+        """Keep one below-cutoff candidate private until answerability is judged."""
+        return self._retrieve(request, recover_for_judgement=True)
+
+    def _retrieve(self, request: LibrarianRequest, *, recover_for_judgement: bool) -> EvidenceBundle:
         index = self._index(request)
         if not index.candidates:
             return EvidenceBundle(items=[], retrieval_note="No eligible chapter text was searched.")
@@ -301,6 +308,8 @@ class HybridLibrarian(Librarian):
             ],
             request.max_results,
         )
+        if not final and recover_for_judgement:
+            final = scored[:1]
 
         items = [
             EvidenceItem(

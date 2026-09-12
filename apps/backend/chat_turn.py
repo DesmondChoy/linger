@@ -98,7 +98,9 @@ BARE_CHAPTER_ANSWER_PATTERN = re.compile(
     r"(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\s*[.!?]?", re.IGNORECASE
 )
 TITLE_PREFIX_PATTERN = re.compile(
-    r"\b(?:i(?:'m| am)\s+)?(?:reading|read(?!\s+through\b))\s+(?P<title>.+)$",
+    r"(?:\bi(?:'m| am)\s+(?:still\s+)?reading|"
+    r"\bi(?:'ve|’ve| have)?\s+read(?!\s+through\b)|"
+    r"^\s*(?:reading|read(?!\s+through\b)))\s+(?P<title>.+)$",
     re.IGNORECASE,
 )
 TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)

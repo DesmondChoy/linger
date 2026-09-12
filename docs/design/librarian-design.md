@@ -614,6 +614,20 @@ Resolve final passages to exact canonical chapter lines
 Librarian judges the evidence set: sufficient, weak, or none
 ```
 
+Direct grounding uses `retrieve_for_judgement`. If candidates survive fusion but
+all fall below the final reranker cutoff, it sends only the highest-ranked
+eligible candidate to the evidence-strength judge. This recovery preserves the
+semantic cutoff, scope, ranking, and original score. It does not grant evidence
+to Muse: the judge must select a supporting record before it enters the turn's
+evidence ledger. A rejection returns no evidence; a failed judge returns a typed
+failure. Ordinary `retrieve`, connection searches, and boundary inference keep
+their existing cutoffs.
+
+This handles a verified false negative in Douglass: the literacy passage in
+Chapter 6 ranks first for the Hugh Auld question but scores about 0.352 against
+the 0.5 cutoff. Finishing Chapter 7 already permits that passage; changing the
+corpus numbering or widening the spoiler boundary would not repair the miss.
+
 The restriction is applied before search, not after retrieval. A duplicate hit
 keeps one canonical evidence record and records both retrieval methods and
 their scores. Strongly overlapping neighbouring windows are merged only after
