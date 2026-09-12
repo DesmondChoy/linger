@@ -27,7 +27,7 @@ from evals.synthetic_journals.surfacing_replay import (
     replay_surfacing_scenes,
 )
 from src.linger.agents.contracts import PromptFingerprint
-from src.linger.agents.sculptor.surfacing_agent import build_surfacing_agent
+from src.linger.agents.sculptor.agent import build_sculptor_agent
 from src.linger.agents.sculptor.surfacing_models import (
     Defer,
     DoNotSurface,
@@ -175,7 +175,7 @@ def test_invalid_source_labels_still_count_in_precision_and_recall(
             return response
         seed = {"surface_now": 0, "defer": 1, "do_not_surface": 2}[response.decision]
         model = TestModel(custom_output_args=response, seed=seed)
-        return await propose_surfacing(input, agent=build_surfacing_agent(model))
+        return await propose_surfacing(input, agent=build_sculptor_agent(model))
 
     result = asyncio.run(replay_surfacing_scenes(
         backstory, truth, handler=handler, configured_model="test:surfacing"
@@ -347,7 +347,7 @@ def test_runtime_transcripts_exclude_answer_key_account_and_backstory_context() 
         seed = {"surface_now": 0, "defer": 1, "do_not_surface": 2}[response.decision]
         model = TestModel(custom_output_args=response, seed=seed)
         models.append(model)
-        return await propose_surfacing(input, agent=build_surfacing_agent(model))
+        return await propose_surfacing(input, agent=build_sculptor_agent(model))
 
     result = asyncio.run(replay_surfacing_scenes(
         backstory, truth, handler=handler, configured_model="test:surfacing"

@@ -1,14 +1,15 @@
 """Application-owned reviewed curation workflow and deterministic hand-off."""
 
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import ValidationError
 from pydantic_ai import Agent
 
 from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.contracts import StrictModel
-from src.linger.agents.provenance.curation import curation_provenance_agent
+from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.agents.provenance.skills import CURATION_REVIEW
 from src.linger.agents.provenance.curation_models import (
     CurationProvenanceReview,
     CurationReviewInput,
@@ -18,6 +19,7 @@ from src.linger.agents.provenance.curation_prompt import (
     PROMPT_FINGERPRINT as CURATION_REVIEW_PROMPT_FINGERPRINT,
 )
 from src.linger.agents.sculptor.agent import sculptor_agent
+from src.linger.agents.sculptor.skills import MEMORY_CURATION
 from src.linger.agents.sculptor.models import (
     AccountScopedMemories,
     CuratableMemory,
@@ -77,7 +79,7 @@ def _model_input(batch: AccountScopedMemories) -> str:
 async def propose_curation(
     batch: AccountScopedMemories,
     *,
-    agent: Agent[None, SculptorResponse] = sculptor_agent,
+    agent: Agent[None, Any] = sculptor_agent,
 ) -> SculptorResponse:
     """Return a validated proposal without exposing account or storage metadata."""
     result = await run_agent_traced(
@@ -93,6 +95,7 @@ async def propose_curation(
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="sculptor_model_failed",
         retryable=False,
+        **MEMORY_CURATION.run_options(),
     )
     try:
         response = SCULPTOR_RESPONSE_ADAPTER.validate_python(result.output)
@@ -112,7 +115,7 @@ async def propose_curation(
 async def review_curation(
     review_input: CurationReviewInput,
     *,
-    agent: Agent[None, CurationProvenanceReview] = curation_provenance_agent,
+    agent: Agent[None, Any] = provenance_agent,
 ) -> CurationProvenanceReview:
     """Obtain a typed no-tool verdict bound to one immutable proposal."""
 
@@ -133,6 +136,7 @@ async def review_curation(
         prompt_digest=CURATION_REVIEW_PROMPT_FINGERPRINT.digest,
         failure_code="curation_provenance_model_failed",
         retryable=False,
+        **CURATION_REVIEW.run_options(),
     )
     try:
         review = CurationProvenanceReview.model_validate(result.output)
@@ -207,8 +211,8 @@ async def run_curation_loop(
     memory_ids: tuple[str, ...],
     *,
     service: MemoryPolicyService,
-    sculptor: Agent[None, SculptorResponse] = sculptor_agent,
-    provenance: Agent[None, CurationProvenanceReview] = curation_provenance_agent,
+    sculptor: Agent[None, Any] = sculptor_agent,
+    provenance: Agent[None, Any] = provenance_agent,
 ) -> CurationLoopResult:
     """Select, propose, review, validate, apply, verify, and expose curation."""
 

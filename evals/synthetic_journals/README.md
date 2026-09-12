@@ -191,7 +191,22 @@ application spans retain fixed agent and hand-off metadata. Normal
 `linger-backend` traffic remains metadata-only.
 
 Runtime prompt fingerprints and a prompt-set system variant identify the
-evaluated static artifacts. The JSON artifact remains the durable, complete
+evaluated static artifacts. `evaluation_agents()` returns the five reusable
+role objects once for instrumentation and model overrides.
+`evaluation_skills()` lists all nine assignments independently of object
+identity. Exchanges record `skill_id`, role, stage, and a task fingerprint.
+Muse's draft and revision have separate input fingerprints within the same
+reflection skill. The full fingerprint set also includes Sculptor surfacing
+and Provenance curation review, even when a particular replay does not invoke
+them. Objective-specific identities continue to include only their executed
+components for behavioral comparison.
+
+Fingerprints include shared and selected instructions, input and output JSON
+schemas, tool and capability permissions, validator identities, and retries.
+Model overrides on a role object apply to all its skills; typed entry points
+still select each task's instructions and schema. See
+[agent runtime skills](../../docs/agent-skills.md) for the assignment and
+isolation contract. The JSON artifact remains the durable, complete
 evaluation record; Logfire is the interactive inspection and comparison view.
 Emotional-boundary observations also record whether the fixed response came
 from the no-tool preflight or the downstream candidate-review fallback.

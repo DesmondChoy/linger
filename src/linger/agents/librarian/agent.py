@@ -1,27 +1,19 @@
-"""Librarian's independent, set-level evidence-strength judge."""
+"""One reusable Librarian Agent; application entry points select its skill."""
 
 from pydantic_ai import Agent
+from pydantic_ai.models import Model
 
 from src.linger.agents.build import build_model
-from src.linger.agents.librarian.boundary_prompt import INSTRUCTIONS as BOUNDARY_INSTRUCTIONS
-from src.linger.agents.librarian.models import (
-    EvidenceStrengthDecision,
-    LibrarianBoundaryDecision,
-)
-from src.linger.agents.librarian.prompt import INSTRUCTIONS
+from src.linger.agents.librarian.skills import SHARED_INSTRUCTIONS
 
 
-librarian_strength_agent: Agent[None, EvidenceStrengthDecision] = Agent(
-    build_model(),
-    name="Librarian",
-    output_type=EvidenceStrengthDecision,
-    instructions=INSTRUCTIONS,
-)
+def build_librarian_agent(model: Model | None = None) -> Agent[None, str]:
+    """Build the role for production or injected-model tests and evaluations."""
+    return Agent[None, str](
+        model if model is not None else build_model(),
+        name="Librarian",
+        instructions=SHARED_INSTRUCTIONS,
+    )
 
 
-librarian_boundary_agent: Agent[None, LibrarianBoundaryDecision] = Agent(
-    build_model(),
-    name="Librarian",
-    output_type=LibrarianBoundaryDecision,
-    instructions=BOUNDARY_INSTRUCTIONS,
-)
+librarian_agent = build_librarian_agent()

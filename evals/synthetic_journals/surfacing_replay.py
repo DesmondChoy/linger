@@ -188,10 +188,7 @@ def build_surfacing_identities(
     objective_prompt_fingerprints: tuple[PromptFingerprint, ...] | None = None,
 ) -> SurfacingEvaluationIdentities:
     model = configured_model or get_settings().linger_model
-    full_prompts = full_prompt_fingerprints or (
-        *RUNTIME_PROMPT_FINGERPRINTS,
-        PROMPT_FINGERPRINT,
-    )
+    full_prompts = full_prompt_fingerprints or RUNTIME_PROMPT_FINGERPRINTS
     objective_prompts = objective_prompt_fingerprints or (PROMPT_FINGERPRINT,)
 
     def identity(
@@ -474,10 +471,9 @@ def _metrics(scenes: tuple[SurfacingSceneObservation, ...]) -> SurfacingMetrics:
 
 
 def _production_components() -> tuple[SurfacingHandler, tuple[Any, ...]]:
-    from src.linger.agents.sculptor.surfacing_agent import surfacing_agent
     from src.linger.orchestration.surfacing import propose_surfacing
 
-    return propose_surfacing, (*evaluation_agents(), surfacing_agent)
+    return propose_surfacing, evaluation_agents()
 
 
 def main(argv: Sequence[str] | None = None) -> int:

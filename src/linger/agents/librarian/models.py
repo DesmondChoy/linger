@@ -1,4 +1,4 @@
-"""Typed output from Librarian's evidence-strength judgment."""
+"""Typed inputs and decisions for Librarian's assigned skills."""
 
 from __future__ import annotations
 
@@ -7,6 +7,32 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from src.linger.contracts.base import StrictModel
+from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.session import ReaderStatement
+
+
+class BoundaryMemory(StrictModel):
+    """A memory projection without account or storage metadata."""
+
+    memory_id: str
+    text: str
+    evidence_ids: tuple[str, ...] = ()
+
+
+class LibrarianBoundaryInferenceInput(StrictModel):
+    """Private evidence and reader signals for one boundary judgment."""
+
+    current_line: str
+    prior_reader_statements: tuple[ReaderStatement, ...]
+    relevant_memories: tuple[BoundaryMemory, ...]
+    full_work_candidates: tuple[EvidenceRecord, ...]
+
+
+class LibrarianEvidenceStrengthInput(StrictModel):
+    """A reader query and exact evidence already admitted by retrieval policy."""
+
+    query: str
+    evidence: tuple[EvidenceRecord, ...]
 
 
 class EvidenceStrengthDecision(StrictModel):

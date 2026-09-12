@@ -27,6 +27,16 @@ dev = [
     "pytest>=9.1.1",
 ]
 
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src", "src.linger*", "apps.backend*"]
+
+[tool.setuptools.package-data]
+"*" = ["shared.md", "skills/*/SKILL.md"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 

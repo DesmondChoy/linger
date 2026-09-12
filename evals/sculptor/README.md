@@ -5,6 +5,14 @@ curation role. The owner identifier in every case is `sculptor`; Muse,
 Provenance, and the Memory & Policy Service retain their separate capture,
 review, and write responsibilities.
 
+One reusable `sculptor_agent` runs two application-selected skills:
+[memory curation](../../src/linger/agents/sculptor/skills/memory-curation/SKILL.md)
+and [memory surfacing](../../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md).
+Each entry point selects its typed output schema and retains independent
+role-and-task tracing. A role model override applies to both tasks. Evaluation
+skill IDs and fingerprints distinguish their contracts and effective shared
+and task instructions, even though they share the Agent object.
+
 ## Case contract
 
 Each JSON file contains one bounded account-scoped memory set, one primary

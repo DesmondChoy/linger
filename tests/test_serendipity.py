@@ -26,6 +26,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     ConnectionScope,
 )
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
     _query_copies_reader_terms,
@@ -375,7 +376,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                 relevance=1.0,
             )
 
-        result = await agent.run(active_task.model_dump_json(), deps=deps)
+        result = await agent.run(active_task.model_dump_json(), deps=deps, **CONNECTION_DISCOVERY.run_options())
 
         self.assertEqual(expected, result.output)
         parameters = model.last_model_request_parameters
@@ -396,9 +397,71 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
         model = TestModel(custom_output_args=expected, seed=1)
         agent = build_serendipity_agent(model)
 
-        result = await agent.run(task().model_dump_json(), deps=self.deps())
+        result = await agent.run(task().model_dump_json(), deps=self.deps(), **CONNECTION_DISCOVERY.run_options())
 
         self.assertEqual(expected, result.output)
+
+    async def test_web_capability_keeps_selected_skill_as_the_effective_policy(self) -> None:
+        expected = ConnectionDecline(
+            reason="unsupported_cue",
+            safe_next_step="No public source is needed for this reflection.",
+        )
+
+        def respond(_messages, info: AgentInfo) -> ModelResponse:
+            self.assertEqual(CONNECTION_DISCOVERY.effective_instructions, info.instructions)
+            self.assertEqual(
+                {"search_librarian", "web_search", "get_page"},
+                {tool.name for tool in info.function_tools},
+            )
+            return ModelResponse(parts=[ToolCallPart(
+                info.output_tools[1].name, expected.model_dump(mode="json")
+            )])
+
+        settings = Settings(
+            _env_file=None,
+            linger_model="google:gemini-2.5-flash",
+            exa_api_key=SecretStr("test-exa-key"),
+            linger_web_search_enabled=True,
+        )
+        with (
+            patch("src.linger.orchestration.connection.get_settings", return_value=settings),
+            patch("src.linger.orchestration.connection.AsyncExa", return_value=SimpleNamespace()),
+            patch("src.linger.orchestration.connection.serendipity_agent", build_serendipity_agent(FunctionModel(respond))),
+        ):
+            run = await _agent_explorer(task(allowed_sources=("web",)), librarian=Librarian())
+
+        self.assertEqual(expected, run.response)
+        self.assertEqual((), run.evidence)
+        self.assertEqual((), run.searches)
+
+    async def test_selected_skill_preserves_two_output_retries_for_unknown_evidence(self) -> None:
+        attempts = 0
+        decline = ConnectionDecline(
+            reason="insufficient_evidence",
+            safe_next_step="No retrieved evidence supports a comparison.",
+        )
+
+        def respond(_messages, info: AgentInfo) -> ModelResponse:
+            nonlocal attempts
+            attempts += 1
+            output = proposal() if attempts <= 2 else decline
+            tool = info.output_tools[0 if attempts <= 2 else 1]
+            return ModelResponse(parts=[ToolCallPart(tool.name, output.model_dump(mode="json"))])
+
+        agent = build_serendipity_agent(FunctionModel(respond))
+        deps = self.deps()
+        result = await agent.run(
+            task().model_dump_json(), deps=deps, **CONNECTION_DISCOVERY.run_options()
+        )
+
+        self.assertEqual(3, attempts)
+        self.assertEqual(decline, result.output)
+        self.assertEqual({}, deps.evidence)
+        self.assertEqual(2, sum(
+            isinstance(part, RetryPromptPart)
+            for message in result.all_messages()
+            for part in message.parts
+        ))
 
     async def test_exa_search_is_only_citable_after_get_page(self) -> None:
         url = "https://example.com/identity"
@@ -479,6 +542,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             active_task.model_dump_json(),
             deps=deps,
             capabilities=[GuardedExaSearch(client=FakeExaClient())],
+            **CONNECTION_DISCOVERY.run_options(),
         )
 
         self.assertIsInstance(result.output, ConnectionProposal)
@@ -590,6 +654,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                     active_task.model_dump_json(),
                     deps=deps,
                     capabilities=[GuardedExaSearch(client=FakeExaClient())],
+                    **CONNECTION_DISCOVERY.run_options(),
                 )
 
                 self.assertIsInstance(result.output, ConnectionDecline)
@@ -673,6 +738,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                 active_task.model_dump_json(),
                 deps=deps,
                 capabilities=[GuardedExaSearch(client=FailingExaClient())],
+                **CONNECTION_DISCOVERY.run_options(),
             )
 
         self.assertEqual(1, len(deps.searches))
@@ -736,6 +802,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             active_task.model_dump_json(),
             deps=deps,
             capabilities=[GuardedExaSearch(client=FakeExaClient())],
+            **CONNECTION_DISCOVERY.run_options(),
         )
 
         self.assertIsInstance(result.output, ConnectionDecline)

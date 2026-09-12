@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Awaitable, Callable
+from typing import Any
+
+from pydantic_ai import Agent
 
 from apps.backend.telemetry import run_agent_traced
-from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.models import (
+    EvidenceStrengthDecision,
+    LibrarianEvidenceStrengthInput,
+)
 from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
+from src.linger.agents.librarian.skills import EVIDENCE_ASSESSMENT
 from src.linger.contracts.librarian import EvidenceRecord
 
 
@@ -19,22 +25,21 @@ StrengthJudge = Callable[
 async def judge_evidence_strength(
     query: str,
     evidence: tuple[EvidenceRecord, ...],
+    *,
+    agent: Agent[None, Any] | None = None,
 ) -> EvidenceStrengthDecision:
     """Ask Librarian to judge answerability, then reject invented evidence IDs."""
     # Imported lazily so contract and boundary-only callers do not need model
     # credentials until an actual non-empty evidence set must be judged.
-    from src.linger.agents.librarian.agent import librarian_strength_agent
+    if agent is None:
+        from src.linger.agents.librarian.agent import librarian_agent
 
-    payload = json.dumps(
-        {
-            "query": query,
-            "evidence": [record.model_dump(mode="json") for record in evidence],
-        },
-        ensure_ascii=False,
-    )
+        agent = librarian_agent
+
+    task = LibrarianEvidenceStrengthInput(query=query, evidence=evidence)
     result = await run_agent_traced(
-        librarian_strength_agent,
-        payload,
+        agent,
+        task.model_dump_json(),
         span_name="librarian.evidence_strength",
         role="Librarian",
         stage="evidence_strength",
@@ -46,6 +51,7 @@ async def judge_evidence_strength(
         prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="evidence_strength_model_failed",
+        **EVIDENCE_ASSESSMENT.run_options(),
     )
     decision = result.output
 

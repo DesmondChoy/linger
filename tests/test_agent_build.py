@@ -1,32 +1,19 @@
-"""Tests for provider-independent agent construction."""
+"""Tests for provider selection shared by all role Agent builders."""
 
 import os
 import unittest
 from unittest.mock import patch
 
 from pydantic import ValidationError
-from pydantic_ai import Tool
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIResponsesModel
 
 from apps.backend.config import Settings
-from src.linger.agents.build import build_agent
+from src.linger.agents.build import build_model
 
 
-def _sample_tool_names(agent) -> set[str]:
-    names: set[str] = set()
-    for toolset in agent.toolsets:
-        names.update(getattr(toolset, "tools", {}).keys())
-    return names
-
-
-def _example_tool(value: int) -> int:
-    """A trivial tool used only to test tool registration."""
-    return value + 1
-
-
-class BuildAgentTests(unittest.TestCase):
+class BuildModelTests(unittest.TestCase):
     def test_requires_explicit_model_configuration(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(ValidationError):
@@ -62,9 +49,9 @@ class BuildAgentTests(unittest.TestCase):
                     "src.linger.agents.build.get_settings",
                     return_value=settings,
                 ):
-                    agent = build_agent("Test instructions")
+                    model = build_model()
 
-                self.assertIsInstance(agent.model, expected_type)
+                self.assertIsInstance(model, expected_type)
 
     def test_rejects_missing_provider_key(self) -> None:
         for key in (None, "", "   "):
@@ -80,7 +67,7 @@ class BuildAgentTests(unittest.TestCase):
                     return_value=settings,
                 ):
                     with self.assertRaisesRegex(RuntimeError, "OPENAI_API_KEY"):
-                        build_agent("Test instructions")
+                        build_model()
 
     def test_rejects_unsupported_or_empty_model(self) -> None:
         for model_name in ("mistral:large", "google:", "gemini-2.5-flash"):
@@ -91,29 +78,7 @@ class BuildAgentTests(unittest.TestCase):
                     return_value=settings,
                 ):
                     with self.assertRaisesRegex(RuntimeError, "Unsupported LINGER_MODEL"):
-                        build_agent("Test instructions")
-
-    def test_default_build_agent_has_no_tools(self) -> None:
-        settings = Settings(
-            _env_file=None,
-            linger_model="google:gemini-2.5-flash",
-            google_api_key="test-key",
-        )
-        with patch("src.linger.agents.build.get_settings", return_value=settings):
-            agent = build_agent("Test instructions")
-
-        self.assertEqual(set(), _sample_tool_names(agent))
-
-    def test_build_agent_registers_supplied_tools(self) -> None:
-        settings = Settings(
-            _env_file=None,
-            linger_model="google:gemini-2.5-flash",
-            google_api_key="test-key",
-        )
-        with patch("src.linger.agents.build.get_settings", return_value=settings):
-            agent = build_agent("Test instructions", tools=[Tool(_example_tool)])
-
-        self.assertIn("_example_tool", _sample_tool_names(agent))
+                        build_model()
 
 
 if __name__ == "__main__":

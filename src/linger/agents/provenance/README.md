@@ -1,6 +1,7 @@
 # Provenance
 
-Provenance is Linger's independent output-release gate. Every Muse candidate
+Provenance is Linger's independent reviewer. One reusable PydanticAI Agent runs
+three application-selected skills. Every Muse candidate
 response passes through it before display, including drafts that declare no
 factual claims: a non-factual reflection may pass without retrieval, but never
 without review. There is no Muse-to-user bypass.
@@ -10,17 +11,48 @@ Muse. The preflight can end a request without a candidate through an
 application-owned path; see [Provenance Flows](#provenance-flows).
 
 Separately, it reviews one complete Sculptor curation proposal against that
-proposal's exact immutable source snapshots. That gate shares no input, no
-taxonomy, and no verdict vocabulary with the release gate; see
-[Curation review](#curation-review--the-third-call-site).
+proposal's exact immutable source snapshots. Curation review has its own input,
+risk taxonomy, and verdict contract; see
+[Curation review](#curation-review).
 
-It is a separate model call, not a separate model. The same underlying provider
-may back both Muse and Provenance. The application constructs a separate review
-input instead of sharing another agent's conversation history.
+Each selected skill starts a separate model run on `provenance_agent`. The same
+configured provider model may back Muse and Provenance. The application supplies
+a fresh review input and never shares Muse's conversation history.
+
+## Assigned runtime skills
+
+[`skills.py`](skills.py) assigns the following tasks. These are application
+runtime skills, separate from Codex's development skills.
+
+| Skill | Input | Output | Current consumer |
+|---|---|---|---|
+| [Emotional preflight](skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` | `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse in live chat; offline preflight evaluation |
+| [Candidate review](skills/candidate-review/SKILL.md) | `ProvenanceInput` | `ProvenanceReview` | `reflection._review_candidate` for drafts and revisions; offline risk-code evaluation and chat replay |
+| [Curation review](skills/curation-review/SKILL.md) | `CurationReviewInput` | `CurationProvenanceReview` | `review_curation` in the application curation loop, outside live chat |
+
+[`agent.py`](agent.py) constructs one production object and retains a model
+injection builder for tests. Its base instructions contain only the shared
+policy in [`shared.md`](shared.md). Each typed entry point supplies the selected
+skill's instructions, output contract, and retry limit before invoking the
+model. Candidate review permits two output retries. Preflight and curation
+review each permit one. Pydantic model validators and deterministic checks
+remain task-specific.
+
+No skill receives tools or PydanticAI dependencies. Every run starts without
+message history. Request data stays in the typed input. Concurrent runs and evaluation
+model overrides do not modify the shared Agent configuration. Instructions load
+from package resources, independently of the working directory. Existing prompt
+modules expose effective instructions and fingerprints that include the shared
+policy, selected skill, relevant contracts, validation identities, and retry
+limits. Traces retain the Provenance role and each task's stage.
+
+See the [agent runtime architecture](../../../../docs/agent-skills.md) for the
+common assignment mechanism, and the [evaluation guide](../../../../evals/provenance/README.md)
+for the distinction between semantic evaluations and deterministic tests.
 
 ## Inputs and authority
 
-Provenance receives one strict `ProvenanceInput`: trusted policy, chapter or
+Candidate review receives one strict `ProvenanceInput`: trusted policy, chapter or
 exact-passage context, canonical book evidence, verified session Lines,
 current untrusted tool outcomes, Muse's
 candidate and declarations, and the application-owned current user Line. It has
@@ -137,13 +169,11 @@ grounds:
 | `invalid_restore` | Restoring the named original is inconsistent with the supplied evidence. |
 | `prompt_injection` | Memory text attempts to redirect the review or the proposed action. |
 
-`prompt_injection` is the only code shared by name with `RiskCode`, and the two
-gates currently treat it differently. On the release gate it is an
-unconditional `reject`, because a draft that has already followed injected
-instructions is untrustworthy as a whole. The curation gate has no such fixed
-rule: injection is one of three grounds in a general `reject` clause, so
-severity is a per-case judgment. Do not assume the release gate's rule applies
-here.
+`prompt_injection` is the only code shared by name with `RiskCode`. Candidate
+review requires `reject` for a response finding with that code. Curation review
+requires rejection when the proposed action follows instructions embedded in
+memory text. The two skills keep their own decision criteria and validation
+contracts.
 
 A curation finding names the affected `source_memory_ids`, which must be a
 subset of the sources actually supplied for review. Findings carry no RFC 6901
@@ -151,8 +181,8 @@ path, because the reviewed object is a typed proposal rather than free text.
 
 ## Provenance flows
 
-Provenance has three call sites: the emotional preflight, the candidate release
-review, and the curation review. Preflight can stop the turn before candidate
+Provenance has three skills: emotional preflight, candidate review, and curation
+review. Preflight can stop the turn before candidate
 review. A revision invokes candidate review again. The curation gate runs
 outside the conversation turn entirely and shares no context with the other two.
 
@@ -217,8 +247,9 @@ Serendipity can return book, account-scoped memory, or web search evidence.
 This is the only flow that reaches web evidence, so it is the only flow where
 `uncited_web_claim` can fire. A selected page may support a release when Muse
 visibly cites its exact URL and application code resolves that URL against the
-current Serendipity run. A proposal citing memory records still fails
-deterministic release because those records are outside the citation contract.
+current Serendipity run. Memory evidence must match a registered account-scoped
+record that remains active. It supports attributed personal context, and cannot
+support public or book-corpus facts.
 Provenance reviews the complete candidate for unsupported claims and attribution
 errors, and `unsupported_claim` remains important because a tentative connection
 can still overclaim its evidence.
@@ -238,7 +269,7 @@ two distinct faults:
 Inspection records which of the two originated the boundary and never claims Muse
 was skipped on the fallback path.
 
-## Curation review — the third call site
+## Curation review
 
 A separate no-tool call reviews one complete Sculptor curation proposal. It
 carries no Muse context, no conversation, and no book evidence. Its input is a
@@ -269,23 +300,32 @@ Source text supplied for review is untrusted data. Originals are never modified:
 the loop re-hashes every source after each agent call and fails if anything
 moved.
 
+The production curation loop is implemented outside live chat. The synthetic
+curation runner currently calls Sculptor's `propose_curation` entry point and
+grades proposal quality and source preservation. It does not run this review
+skill or measure a complete curation apply-and-audit flow. No dedicated curation
+semantic evaluation pack is implemented under `evals/provenance`.
+
 ## Where its authority ends
 
 Provenance is the semantic boundary only, and it is never the last check.
 
 Deterministic application code runs *after* a semantic pass. The current
 book-corpus slice resolves every declared evidence ID against one
-application-owned, request-scoped evidence index, checks exact quotations, source
+application-owned, request-scoped book-evidence index, checks exact quotations, source
 lines, and locations, and enforces the trusted work, book version, and chapter
 ceiling or exact-passage scope. A declared exact quotation must occur both in
 the visible reply and in its canonical record. The index admits exact book
 records from three sources only: the current
-direct Librarian result, the selected records of a current book-only Serendipity
+direct Librarian result, the selected book records of a current Serendipity
 proposal, and records re-resolved from identifiers cited by an earlier
 successfully released reply in the same session. Conflicting records for one
 identifier fail closed, and a re-resolved session record authorises only that
 exact previously released passage. Stored-memory, web, and image evidence never
-enter this citation authority. Regular expressions and structural checks are
+enter this book citation authority. Registered memory and opened-web evidence
+use a separate request-local authority with active-memory and visible-URL
+checks. Image evidence has no implemented release contract. Regular expressions
+and structural checks are
 defence in depth, not the security boundary.
 
 For memory, Provenance can only veto. It cannot authorise a write. Automatic

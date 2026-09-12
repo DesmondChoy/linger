@@ -46,6 +46,7 @@ class AgentExchange(StrictModel):
     sequence: int = Field(ge=1)
     role: str
     stage: str
+    skill_id: str | None = None
     input_origin: str
     input_receiver: str
     output_origin: str
@@ -71,6 +72,7 @@ class _PendingExchange:
     sequence: int
     role: str
     stage: str
+    skill_id: str | None
     input_origin: str
     output_receiver: str
     input_contract: str
@@ -114,11 +116,13 @@ class SceneTranscriptRecorder:
         message_history: Any,
         trace_id: str,
         span_id: str,
+        skill_id: str | None = None,
     ) -> object:
         pending = _PendingExchange(
             sequence=len(self._pending) + 1,
             role=role,
             stage=stage,
+            skill_id=skill_id,
             input_origin=input_origin,
             output_receiver=output_receiver,
             input_contract=input_contract,
@@ -155,6 +159,7 @@ class SceneTranscriptRecorder:
             sequence=handle.sequence,
             role=handle.role,
             stage=handle.stage,
+            skill_id=handle.skill_id,
             input_origin=handle.input_origin,
             input_receiver=handle.role,
             output_origin=handle.role,

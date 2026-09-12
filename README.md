@@ -5,7 +5,7 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 ## At a glance
 
 - **Runtime:** Python 3.12, FastAPI, and Pydantic AI
-- **Reasoning:** five focused agents, with deterministic application control
+- **Reasoning:** five reusable Agents with nine application-selected runtime skills
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
 - **Corpus:** five validated works enabled for Chat retrieval and Reader
 - **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
@@ -15,6 +15,12 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 
 Linger keeps authority over account boundaries, memory writes, validation, and
 user-visible output in application code.
+
+Each logical role owns one reusable PydanticAI `Agent` and an explicit skill
+assignment in its package. The application selects the skill and typed contract
+before a run. A run may make multiple model requests for tools or validation
+retries. See the [agent runtime skills architecture](docs/agent-skills.md) for
+the five-role mapping, current consumers, isolation rules, and evaluation paths.
 
 ## What the prototype does
 
@@ -422,7 +428,7 @@ linger/
 │   ├── backend/                    # FastAPI adapter plus application chat turn
 │   └── frontend/                   # React user interface
 ├── src/linger/
-│   ├── agents/                     # Agent prompts and reasoning
+│   ├── agents/                     # Five role Agents, runtime skills, and contracts
 │   │   ├── muse/
 │   │   ├── librarian/
 │   │   ├── sculptor/

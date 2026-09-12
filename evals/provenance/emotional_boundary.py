@@ -209,13 +209,13 @@ async def classify_with_configured_agent(
     current_line: str,
 ) -> EmotionalBoundaryAssessment:
     """Run the production preflight path with the configured Provenance agent."""
-    from src.linger.agents.provenance.emotional import emotional_boundary_agent
+    from src.linger.agents.provenance.agent import provenance_agent
     from src.linger.orchestration.emotional import assess_emotional_boundary
 
     return await assess_emotional_boundary(
         current_line,
         EmotionalContentPolicy(),
-        provenance=emotional_boundary_agent,
+        provenance=provenance_agent,
     )
 
 

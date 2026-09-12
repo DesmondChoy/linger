@@ -1,17 +1,9 @@
-"""Shared PydanticAI agent construction.
+"""Shared model and provider selection for Linger's five reusable role Agents.
 
-Every Linger agent (Muse, Provenance, ...) is built here, so model and provider
-selection lives in one place and each agent module supplies only its
-instructions. Agents are built at import time and reused for the process, which
-means an unsupported `LINGER_MODEL` fails at startup rather than on the first
-request.
+Role packages construct their own Agents at import time. An unsupported
+`LINGER_MODEL` therefore fails at startup rather than on the first request.
 """
 
-
-from collections.abc import Sequence
-from typing import Any, TypeVar, overload
-
-from pydantic_ai import Agent, AgentRetries, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
@@ -23,7 +15,6 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from apps.backend.config import get_settings
 
 SUPPORTED_PROVIDERS = ("google", "openai", "anthropic")
-OutputT = TypeVar("OutputT")
 
 
 def build_model() -> Model:
@@ -57,45 +48,3 @@ def build_model() -> Model:
             raise AssertionError(f"Unhandled provider: {provider_name}")
 
     return model
-
-
-@overload
-def build_agent(
-    instructions: str,
-    *,
-    output_type: None = None,
-    name: str | None = None,
-    tools: Sequence[Tool[None]] = (),
-    retries: int | AgentRetries | None = None,
-) -> Agent[None, str]: ...
-
-
-@overload
-def build_agent(
-    instructions: str,
-    *,
-    output_type: type[OutputT],
-    name: str | None = None,
-    tools: Sequence[Tool[None]] = (),
-    retries: int | AgentRetries | None = None,
-) -> Agent[None, OutputT]: ...
-
-
-def build_agent(
-    instructions: str,
-    *,
-    output_type: type[Any] | None = None,
-    name: str | None = None,
-    tools: Sequence[Tool[None]] = (),
-    retries: int | AgentRetries | None = None,
-) -> Agent[None, Any]:
-    """Build an agent with the configured model and requested output contract."""
-    selected_output: type[Any] = output_type or str
-    return Agent(
-        build_model(),
-        output_type=selected_output,
-        instructions=instructions,
-        name=name,
-        tools=tools,
-        retries=retries,
-    )

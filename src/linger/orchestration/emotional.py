@@ -1,6 +1,7 @@
 """Application-owned invocation of the emotional-boundary preflight."""
 
 import json
+from typing import Any
 
 from pydantic_ai import Agent
 
@@ -8,6 +9,7 @@ from apps.backend.telemetry import emotional_boundary_attrs, run_agent_traced
 from src.linger.agents.provenance.emotional_prompt import (
     EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.provenance.skills import EMOTIONAL_PREFLIGHT
 from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
     EmotionalBoundaryInput,
@@ -23,7 +25,7 @@ async def assess_emotional_boundary(
     current_line: str,
     policy: EmotionalContentPolicy,
     *,
-    provenance: Agent[None, EmotionalBoundaryAssessment],
+    provenance: Agent[None, Any],
 ) -> EmotionalBoundaryAssessment:
     """Classify one Line before Muse or any Muse-accessible tool can run."""
     preflight_input = EmotionalBoundaryInput(
@@ -45,6 +47,7 @@ async def assess_emotional_boundary(
         prompt_digest=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.digest,
         failure_code="emotional_boundary_preflight_failed",
         result_attrs=lambda run_result: emotional_boundary_attrs(run_result.output),
+        **EMOTIONAL_PREFLIGHT.run_options(),
     )
     try:
         return EmotionalBoundaryAssessment.model_validate(result.output)

@@ -31,6 +31,7 @@ from apps.backend.contracts import (
     MuseRevisionReview,
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate
+from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -47,6 +48,7 @@ from src.linger.agents.provenance.models import (
 from src.linger.agents.provenance.prompt import (
     PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
@@ -747,6 +749,7 @@ async def _review(
         prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
         failure_code="provenance_model_failed",
         result_attrs=lambda run_result: review_attrs(run_result.output),
+        **CANDIDATE_REVIEW.run_options(),
     )
     try:
         review = ProvenanceReview.model_validate(result.output)
@@ -938,6 +941,7 @@ async def _reflection_reply(
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
             message_history=history,
+            **REFLECTION.run_options(),
         )
     except Exception:
         return _record_release(
@@ -1136,6 +1140,7 @@ async def _reflection_reply(
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
             message_history=[*history, *draft_result.new_messages()],
+            **REFLECTION.run_options(),
         )
     except Exception:
         return _record_release(

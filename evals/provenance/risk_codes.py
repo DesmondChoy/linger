@@ -440,9 +440,11 @@ def _first_failure(
 async def review_with_configured_agent(case: RiskCodeEvalCase) -> ProvenanceReview:
     """Run the production gate exactly as `orchestration.reflection` calls it."""
     from src.linger.agents.provenance.agent import provenance_agent
+    from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 
     result = await provenance_agent.run(
         case.review_input.model_dump_json(),
+        **CANDIDATE_REVIEW.run_options(),
     )
     return result.output
 

@@ -14,7 +14,6 @@ from opentelemetry.trace import format_trace_id
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
-from src.linger.agents.provenance.emotional import emotional_boundary_agent
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -803,7 +802,7 @@ async def _run_chat_pipeline(
         boundary = await assess_emotional_boundary(
             request.message,
             EmotionalContentPolicy(),
-            provenance=emotional_boundary_agent,
+            provenance=provenance_agent,
         )
     except asyncio.CancelledError:
         raise

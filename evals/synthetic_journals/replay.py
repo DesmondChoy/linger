@@ -53,6 +53,9 @@ from src.linger.agents.provenance.curation_prompt import (
 from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.sculptor.surfacing_prompt import (
+    PROMPT_FINGERPRINT as SCULPTOR_SURFACING_PROMPT_FINGERPRINT,
+)
 from src.linger.agents.serendipity.prompt import (
     PROMPT_FINGERPRINT as SERENDIPITY_PROMPT_FINGERPRINT,
 )
@@ -93,6 +96,7 @@ RUNTIME_PROMPT_FINGERPRINTS = (
     PROVENANCE_PROMPT_FINGERPRINT,
     CURATION_PROVENANCE_PROMPT_FINGERPRINT,
     SCULPTOR_PROMPT_FINGERPRINT,
+    SCULPTOR_SURFACING_PROMPT_FINGERPRINT,
     SERENDIPITY_PROMPT_FINGERPRINT,
 )
 RUNTIME_SYSTEM_VARIANT = hashlib.sha256(
@@ -699,26 +703,37 @@ def _production_chat_turn_handler() -> ChatTurnHandler:
 
 
 def evaluation_agents() -> tuple[Any, ...]:
-    """Return every named Pydantic AI agent available to synthetic workflows."""
+    """Return each reusable role object once, for instrumentation and overrides."""
 
-    from src.linger.agents.librarian.agent import (
-        librarian_boundary_agent,
-        librarian_strength_agent,
-    )
+    from src.linger.agents.librarian.agent import librarian_agent
     from src.linger.agents.muse.agent import muse_chat_agent
     from src.linger.agents.provenance.agent import provenance_agent
-    from src.linger.agents.provenance.emotional import emotional_boundary_agent
     from src.linger.agents.sculptor.agent import sculptor_agent
     from src.linger.agents.serendipity.agent import serendipity_agent
 
     return (
         muse_chat_agent,
         provenance_agent,
-        emotional_boundary_agent,
-        librarian_boundary_agent,
-        librarian_strength_agent,
+        librarian_agent,
         serendipity_agent,
         sculptor_agent,
+    )
+
+
+def evaluation_skills() -> tuple[Any, ...]:
+    """List task assignments independently of shared Agent object identity."""
+    from src.linger.agents.librarian.skills import SKILLS as librarian_skills
+    from src.linger.agents.muse.skills import SKILLS as muse_skills
+    from src.linger.agents.provenance.skills import SKILLS as provenance_skills
+    from src.linger.agents.sculptor.skills import SKILLS as sculptor_skills
+    from src.linger.agents.serendipity.skills import SKILLS as serendipity_skills
+
+    return (
+        *muse_skills,
+        *provenance_skills,
+        *librarian_skills,
+        *serendipity_skills,
+        *sculptor_skills,
     )
 
 

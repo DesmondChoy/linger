@@ -34,6 +34,7 @@ class EvaluationTranscriptSink(Protocol):
         message_history: Sequence[Any],
         trace_id: str,
         span_id: str,
+        skill_id: str | None = None,
     ) -> object:
         """Reserve the exchange's invocation-order position."""
 

@@ -121,7 +121,7 @@ The system contains five reasoning agents and one deterministic service:
 | Component | Responsibility | Write authority |
 |---|---|---|
 | **Muse** | Maintains the reflection conversation, handles photographs and spoiler clarification, routes work, and produces candidate responses that cannot be sent directly to the user. Its typed output may also nominate one `MemoryCandidate` for automatic capture or return `NoMemoryCandidate`. | None |
-| **Librarian** | Infers request-scoped reading boundaries by cross-referencing authorised memories with the complete corpus, then plans, executes, fuses, and reranks evidence retrieval within the inferred ceiling. | None |
+| **Librarian** | Judges request-scoped reading boundaries and the strength of supplied evidence. Application orchestration and retrieval services select candidates, enforce scope, fuse results, and rerank evidence. | None |
 | **Sculptor** | Curates bounded sets of existing memories for retrieval while preserving originals. In the conversational target, it also judges whether a supplied memory is useful now or should remain unsurfaced. Its separate scheduled system-playbook task runs outside user conversations (Section 9.2). | May propose curation changes, surfacing decisions, and playbook pull requests; no direct writes or user-facing release |
 | **Serendipity** | Searches internal and optional web evidence and proposes or declines tentative connections. | None |
 | **Provenance** | Runs a no-tool emotional-boundary preflight on the current Line before Muse, then semantically reviews every complete Muse candidate. It separately reviews complete Sculptor curation proposals against their exact source snapshots and returns an `allow`, `revise`, or `reject` verdict bound to the proposal digest. | None |
@@ -144,21 +144,44 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | Agent | Allowed tools or capabilities | Implementation source |
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
-| **Librarian** | Search the complete public-domain work and authorised memories for boundary inference; search only the inferred scope for evidence retrieval; resolve selected evidence records. | Thin Linger function-tool adapters over the retrieval and Memory & Policy services; Pydantic AI generates and validates their tool schemas |
+| **Librarian** | No model tools. Boundary inference receives privately selected full-work candidates and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter currently has an offline execution path only. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
 Exa is the sole general web-search integration for the prototype. Install the `pydantic-ai-harness[exa]` extra and register `ExaSearch()` in Serendipity's `capabilities`; do not implement an Exa client or web-search tool locally. The older `exa_search_tool`, related Exa common tools, and `ExaToolset` are deprecated and must not be introduced. Exa results remain untrusted evidence and are still subject to Sections 6.4 and 6.5. This allocation does not authorise browser control, arbitrary URL fetching, shell access, or any external action excluded by Section 3.
 
-Agents are logical roles, not necessarily separate models or processes. Muse handles ordinary interaction; Librarian, Sculptor, and Serendipity are invoked only when their specialised work is needed. Provenance runs the request-local emotional-boundary preflight for every Line and the release review for every Muse candidate.
+Each logical role owns one reusable production PydanticAI `Agent` object. The
+application selects one assigned runtime skill before a model run. It does not
+spawn an Agent object for every request or ask the model to discover skills.
+The same object can execute concurrent runs with separate request state. All
+roles retain the configured `LINGER_MODEL`; consolidation changes neither the
+model-call structure nor the application-owned release and storage decisions.
+
+| Role | Assigned runtime skills | Current consumers |
+|---|---|---|
+| Muse | Reflection and revision | Chat drafts and the single permitted revision use one reflection skill and the stable `MuseCandidate` output. |
+| Librarian | Boundary inference; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
+| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and proposal-quality replay; offline surfacing evaluation. Chat does not initiate either task. |
+| Serendipity | Connection discovery | Muse's `serendipity_explore` tool and component evaluation. |
+| Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
+
+The maintained [agent runtime skills architecture](agent-skills.md) links each
+assignment to its packaged `SKILL.md`, typed inputs, outputs, validation, and
+permitted capabilities. Shared instructions contain only policy common to the
+role. Per-run instructions add only the selected skill. Muse and Serendipity
+retain fixed output schemas with registered validators; other roles select
+their output schema and retry budget per run. Prompts never load repository
+development instructions or treat reader content, memories, retrieved evidence,
+or model candidates as instructions.
 
 The five roles separate conversation and optional memory nomination, retrieval,
 memory curation and usefulness decisions, connection generation, and independent
 verification. Librarian and application services select authorised evidence.
 Sculptor judges the supplied memories' usefulness, timing, and repetition.
-Serendipity proposes broader connections. Each agent receives only the task in
-front of it, never the whole conversation. Deterministic application code
+Serendipity proposes broader connections. Muse retains the application's
+intentionally managed session history and bounded revision context. Other
+roles receive only their task-specific projections. Deterministic application code
 enforces access, capture, writes, and output release.
 
 Each hand-off uses a strict, discriminated envelope and carries only the fields required by the next step. Muse receives either a draft envelope or one revision envelope that preserves the same turn and context authority. Full transcripts and unrestricted working context are not passed between agents.
@@ -216,7 +239,28 @@ logical agent and release flow inside `run_chat_turn`; an HTTP request and a
 synthetic evaluation Scene both enter that same application boundary, so the
 transport extraction does not change the diagram's agent topology.
 
-![Reflection and grounding flow](images/reflection-and-grounding.png)
+```mermaid
+flowchart TD
+    A[Application: typed draft and managed Muse history] --> M[Muse Agent: reflection skill]
+    M -->|optional model-selected tool| L[Application Librarian adapters]
+    L --> B[Librarian Agent: boundary inference]
+    B --> R[Application: validate boundary and retrieve within scope]
+    R --> E[Librarian Agent: evidence assessment]
+    E --> M
+    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery]
+    S -->|validated selected evidence| M
+    M -->|candidate only| P[Provenance Agent: candidate review]
+    P -->|first revise only| V[Application: bounded revision input]
+    V --> M
+    P -->|pass| D[Application: deterministic evidence and policy checks]
+    D --> U[Application releases reply]
+    P -->|reject or exhausted revision| F[Application safe decline]
+```
+
+Repeated role labels denote runs of the same reusable object. Librarian
+retrieval remains application code; boundary inference runs only when routing
+needs it. The [complete skill and authority diagrams](agent-skills.md#authority-and-run-context)
+also show the preflight, curation, and offline surfacing paths.
 
 #### 4.2.2 Reviewed memory capture and curation
 
@@ -1127,7 +1171,10 @@ identities. `linger-backend` remains metadata-only for human runtime traffic.
 The synthetic replay process reconfigures telemetry as `linger-evals` in the
 `synthetic-evaluation` environment, marks the content as synthetic, and enables
 content-bearing instrumentation only for the five fixed named Pydantic AI
-agents. This separation is code-owned; there is no production environment flag
+agents, registering each reusable object once. Task spans record `agent.skill`
+alongside the existing role, stage, and prompt identity. Fingerprints cover the
+effective shared and selected instructions, relevant schemas, tool permissions,
+validator identities, and retry limits. This separation is code-owned; there is no production environment flag
 that can enable synthetic transcript capture.
 
 Logfire's Evals view shows the replay as a dataset, experiment, and ordered

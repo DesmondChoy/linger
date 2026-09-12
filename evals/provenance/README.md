@@ -1,10 +1,30 @@
 # Provenance evaluations
 
-Two versioned case packs cover Provenance's two call sites: the emotional-boundary
-preflight and the candidate gate, whose single review carries both the release
-and the capture decision. Both are agent-level semantic regression suites that
-write metadata-only reports. Neither generates or modifies synthetic journal
-packages.
+Provenance assigns three runtime skills to one reusable `provenance_agent`.
+Two versioned case packs cover emotional preflight and candidate review. The
+candidate review returns independent response and capture decisions. Both packs
+are semantic regression suites that write metadata-only reports. Neither
+generates or modifies synthetic journal packages.
+
+Each evaluation selects its skill before running the shared Agent. Preflight
+uses the production `assess_emotional_boundary` entry point. Risk-code
+evaluation supplies `CANDIDATE_REVIEW.run_options()` to the same Agent. Runs
+receive no tools or message history. Task fingerprints cover the effective
+shared and selected instructions, input and output schemas, validation
+identities, and retry limits. Evaluation model overrides can replace the one
+Agent's provider without replacing skill selection. A saved report describes
+its recorded fingerprint and provider run, not later instruction versions.
+
+The third skill, curation review, is implemented in `review_curation` outside
+live chat. Its deterministic tests cover typed findings, exact proposal-digest
+binding, source membership, no tools, and rejection behavior. There is no
+dedicated curation semantic case pack here. Synthetic curation replay invokes
+Sculptor's `propose_curation` and does not exercise Provenance curation review
+or the complete apply-and-audit loop.
+
+See [Provenance's assigned skills](../../src/linger/agents/provenance/README.md#assigned-runtime-skills)
+for input and output contracts and
+[the common architecture](../../docs/agent-skills.md) for Agent reuse.
 
 ## Candidate-gate risk codes
 

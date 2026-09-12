@@ -12,6 +12,7 @@ from src.linger.agents.provenance.curation_models import (
     CurationReviewInput,
     CurationSourceEvidence,
 )
+from src.linger.agents.provenance.skills import CURATION_REVIEW
 from src.linger.agents.sculptor.models import CurationProposal, DuplicateLink
 
 
@@ -87,9 +88,7 @@ class CurationProvenanceContractTests(unittest.TestCase):
 
     def test_agent_has_typed_output_and_no_tools(self) -> None:
         with patch("src.linger.agents.build.build_model", return_value=TestModel()):
-            from src.linger.agents.provenance.curation import (
-                build_curation_provenance_agent,
-            )
+            from src.linger.agents.provenance.agent import build_provenance_agent
 
         model = TestModel(
             custom_output_args=CurationProvenanceReview(
@@ -97,8 +96,10 @@ class CurationProvenanceContractTests(unittest.TestCase):
                 decision="allow",
             )
         )
-        agent = build_curation_provenance_agent(model)
-        result = agent.run_sync(review_input().model_dump_json())
+        agent = build_provenance_agent(model)
+        result = agent.run_sync(
+            review_input().model_dump_json(), **CURATION_REVIEW.run_options()
+        )
 
         self.assertEqual("allow", result.output.decision)
         parameters = model.last_model_request_parameters

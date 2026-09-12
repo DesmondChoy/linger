@@ -35,6 +35,7 @@ from src.linger.agents.serendipity.models import (
     SerendipityResponse,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.agents.serendipity.tools import (
@@ -147,11 +148,8 @@ def _web_capability() -> GuardedExaSearch:
         max_text_chars=8_000,
         include_deep_search=False,
         client=AsyncExa(api_key=key.get_secret_value().strip()),
-        guidance=(
-            "Use web_search only for a public connection that could materially "
-            "deepen the current cue. Read promising pages with get_page. Never "
-            "put private memory wording or identifying reader details in a query."
-        ),
+        # The selected skill owns policy; suppress Exa's broader default guidance.
+        guidance="",
     )
 
 
@@ -188,6 +186,7 @@ async def _agent_explorer(
             request_limit=SERENDIPITY_REQUEST_LIMIT,
             tool_calls_limit=SERENDIPITY_TOOL_CALL_LIMIT,
         ),
+        **CONNECTION_DISCOVERY.run_options(),
     )
     try:
         response = SERENDIPITY_RESPONSE_ADAPTER.validate_python(result.output)

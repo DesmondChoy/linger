@@ -56,7 +56,7 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             )
         )
         module = ModuleType("src.linger.agents.librarian.agent")
-        module.librarian_strength_agent = agent
+        module.librarian_agent = agent
 
         with patch.dict(sys.modules, {module.__name__: module}):
             decision = await judge_evidence_strength(
@@ -78,7 +78,7 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             )
         )
         module = ModuleType("src.linger.agents.librarian.agent")
-        module.librarian_strength_agent = agent
+        module.librarian_agent = agent
 
         with patch.dict(sys.modules, {module.__name__: module}):
             with self.assertRaises(ValueError):

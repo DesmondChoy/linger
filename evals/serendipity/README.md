@@ -53,8 +53,9 @@ a tied-top decline, while eligibility filtering may either leave a valid winner
 or leave nothing safe to propose.
 
 The runtime supports authorised-memory discovery through `search_memories`,
-using the authenticated account's curated retrieval view. Memory evidence may
-inform Serendipity's internal comparison but cannot authorise a released claim.
+using the authenticated account's curated retrieval view. Selected memory
+evidence can support a personal-context claim only after Muse declares it,
+Provenance reviews it, and application code resolves the exact active record.
 The current component cases cover book and web sources. The memory scenario in
 `cases/future/` remains outside that baseline until executable memory cases and
 their grading are added.
@@ -204,6 +205,15 @@ The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,
 usage, latency, and per-case failures. Content-bearing evaluation data must use
 synthetic or public fixtures only.
+
+The runner selects the production `connection-discovery` skill for every case.
+It reuses one Serendipity Agent across the suite while creating each case's
+dependencies and permitted Exa capability separately. The report's `skill_id`
+and Pydantic Evals case metadata identify `serendipity.connection-discovery`.
+The prompt fingerprint covers shared and selected instructions, input and output
+contracts, permitted tools and capabilities, validation, and retry limits.
+Model injection preserves this selected configuration and its fixed output
+schema. See the [runtime skills architecture](../../docs/agent-skills.md).
 
 When Logfire is configured, the runner also submits the same cases through
 Pydantic Evals. Logfire is the interactive comparison surface; the checked or

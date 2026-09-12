@@ -6,14 +6,40 @@ connections, compares the strongest two or three with an anchored rubric, and
 returns exactly one `ConnectionProposal` or one `ConnectionDecline`.
 
 Serendipity can search active account-scoped curated memories, spoiler-bounded
-book evidence, and optional public-web sources. A selected book-only proposal
-may enter the ordinary Muse, Provenance, and deterministic release path.
-Proposals citing memory or web evidence fail deterministic release. Image
-evidence is unsupported.
+book evidence, and optional public-web sources. Selected evidence may enter
+the Muse, Provenance, and deterministic release path under its source-specific
+citation rules. Image evidence is unsupported.
 
 Serendipity has no write or release authority. Muse owns the conversation,
 Librarian owns internal retrieval, Exa supplies public-web search, application
 code owns access grants, and Provenance reviews every complete Muse draft.
+
+## Assigned runtime skill
+
+One reusable PydanticAI Agent, `serendipity_agent`, owns one runtime skill,
+[`connection-discovery`](skills/connection-discovery/SKILL.md). Application code
+selects it before a model run; the model then chooses permitted searches and
+domain decisions within that skill. An Agent object is reusable configuration.
+A model run is an invocation that can include several searches and retries.
+
+| Assigned skill | Typed input | Typed output | Current consumers |
+| --- | --- | --- | --- |
+| `connection-discovery` | `ConnectionDiscoveryInput` | `ConnectionProposal` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat; `evals.serendipity.runner.run_case` with controlled tool evidence |
+
+[`skills.py`](skills.py) binds the instructions, contracts, tools, optional Exa
+capability, validator, and retry limits. [`shared.md`](shared.md) contains only
+the shared role and authority rules. The Agent's base instructions use this
+shared resource; each run adds the selected skill. Both resources load from the
+package without a working-directory dependency. See the
+[runtime skills architecture](../../../../docs/agent-skills.md).
+
+The Agent keeps its fixed proposal-or-decline output schema and registered
+`validate_serendipity_output` validator. The skill does not override
+`output_type`. It preserves two output retries, the existing default tool retry
+budget of two, and the bounded internal tools' individual limit of one retry.
+`build_serendipity_agent(model)` preserves model injection for tests and
+evaluation. No account, search ledger, or capability instance is stored on the
+shared Agent.
 
 ## Inputs and authority
 
@@ -79,7 +105,7 @@ pages in the evidence ledger.
 ```text
 Application grants source permissions
                 ↓
-Static instructions + ConnectionDiscoveryInput
+Shared policy + selected connection-discovery skill + ConnectionDiscoveryInput
                 ↓
         Serendipity chooses permitted tools to conduct searches
           ├─ Memory: Active account-scoped curated records
@@ -105,8 +131,9 @@ Static instructions + ConnectionDiscoveryInput
          Provenance reviews it
                 ↓
     Deterministic release validation
-       ├─ selected book records: eligible for release
-       └─ any memory or web record: fail closed
+       ├─ book: canonical record, scope, location, and quotation checks
+       ├─ memory: exact active account record and attribution review
+       └─ web: exact opened page and visible URL citation
 ```
 
 Source grants are permissions, not mandatory search steps. Serendipity should
@@ -228,8 +255,9 @@ returns, orchestration verifies that:
 Only the exact records cited by the selected candidate leave this ledger. If
 they include book-corpus records, orchestration converts those records to the
 canonical `EvidenceRecord` contract and adds them to the request-scoped book
-evidence index. Selected memory and web records stay outside that index. The
-complete proposal must be book-only to pass deterministic release.
+evidence index. Selected memory and web records use the separate request-scoped
+connection evidence registry. Their declarations must resolve to those exact
+records before deterministic release.
 
 Exa URLs are their web evidence IDs. Search-result metadata supplies
 request-local page leads, while only a successfully opened `get_page` result is
@@ -246,7 +274,7 @@ Muse, Provenance, and deterministic release validation read one application-
 owned, request-scoped map of exact book records. It has only three inputs:
 
 - direct Librarian results from the current Muse run;
-- the exact selected records from a current book-only Serendipity proposal; and
+- the exact selected book records from a current Serendipity proposal; and
 - records Librarian re-resolved from identifiers cited by an earlier
   successfully released reply in the same session.
 
@@ -266,9 +294,9 @@ After deterministic validation, application orchestration wraps that decision
 with the exact evidence records cited by the selected candidate for the Muse
 tool handshake; losing-candidate evidence stays inside the Serendipity run and
 is discarded instead of being added to Muse's tool result or Inspect. Muse may
-surface a selected book-only proposal only by declaring every book record it
-uses. Provenance receives the complete Muse candidate, validated tool result,
-shared trusted book evidence, and release policy, then checks attribution,
+surface a selected proposal only by declaring every record it uses with its
+actual source kind. Provenance receives the complete Muse candidate, validated
+tool result, exact book and connection evidence, and release policy, then checks attribution,
 privacy, spoilers, sensitive inference, unsupported claims, and prompt
 injection. Application code resolves every declaration against the same records
 after a semantic pass. There is no Serendipity-to-reader bypass.
@@ -276,14 +304,25 @@ after a semantic pass. There is no Serendipity-to-reader bypass.
 Serendipity cannot save or curate memory. Telemetry and fixed request-local
 outcome metadata report a decision but never authorise search, storage, or release.
 
-Serendipity cannot widen citation or public-release authority. A book-only
-proposal uses the canonical book contract. A selected web page can support a
+Serendipity cannot widen citation or public-release authority. Selected book
+records use the canonical book contract. A selected web page can support a
 release only when Muse visibly cites its exact opened URL and application code
 resolves that declaration against the current run. Provenance still treats the
-page as untrusted evidence. Stored-memory and image evidence do not become
-reader-visible citations, and their content-bearing diagnostics are not returned
-by the API. A validated decline may still be relayed with fixed inspection
-metadata.
+page as untrusted evidence. A selected memory must still resolve to its exact
+active account record; it supports the reader's personal context, not public
+facts or causal claims. Image evidence has no runtime contract. Content-bearing
+connection diagnostics are not returned by the API. A validated decline may
+still be relayed with fixed inspection metadata.
+
+## Evaluation scope
+
+The [component pack](../../../../evals/serendipity/README.md) exercises this same
+skill with controlled book and web tool evidence. Its reports retain
+`serendipity.connection-discovery`, effective instruction and contract
+fingerprints, and observed searches. The memory scenario in `cases/future/`
+remains outside that component baseline. Synthetic connection replay and the
+direct production replay also exercise Muse, Provenance, and release validation;
+a component pass does not establish a product objective result.
 
 ## Related
 
@@ -291,8 +330,10 @@ metadata.
   shortlist, proposal, and decline contracts.
 - `src/linger/agents/serendipity/tools.py` — bounded Librarian tool and guarded
   maintained Exa capability.
-- `src/linger/agents/serendipity/agent.py` — search, filtering, comparison, and
-  selection instructions.
+- `src/linger/agents/serendipity/agent.py` — reusable Agent and output validator.
+- `src/linger/agents/serendipity/skills.py` — assigned connection-discovery task.
+- `src/linger/agents/serendipity/prompt.py` — effective instruction and contract
+  fingerprint exports.
 - `src/linger/orchestration/connection.py` — trusted dependency construction,
   run invocation, evidence ledger validation, and fail-closed behavior.
 - `src/linger/orchestration/turn_context.py` — shared request-scoped book-

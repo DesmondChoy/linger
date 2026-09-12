@@ -34,7 +34,7 @@ the exported-payload test are updated together.
 |---|---|
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
-| Agent and model | Agent role and stage; provider and model; prompt-template ID, version, and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
+| Agent and model | Agent role, selected skill, and stage; provider and model; prompt-template ID, version, and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage and code; retryability; owner type (`model`, `validation`, or `application`) |
@@ -45,9 +45,11 @@ server-generated correlation IDs, or identifiers validated against an
 application-owned public registry. Route values must be templates such as
 `/api/sessions/{session_id}`, never resolved paths.
 
-The prompt digest covers only canonical static instructions and input/output
-contract identities. It never covers a composed prompt, user input, retrieved
-evidence, or other runtime content.
+Runtime skill fingerprints cover the effective shared and selected instructions,
+input and output JSON schemas, permitted tools and capabilities, validator
+identities, and retry limits. They never hash reader input, retrieved evidence,
+or other request content. `agent.skill` records the application-selected skill
+identifier. Role and stage continue to identify the task and its caller.
 
 Hand-off metadata describes observable logical routing through the
 application-owned orchestrator. It does not imply that agents communicate
@@ -106,8 +108,9 @@ exports nothing to Logfire.
 
 Each runner uses Pydantic Evals for one native case per Scene and
 content-bearing Pydantic AI instrumentation for the fixed named agents: Muse,
-Provenance, Librarian, Serendipity, and Sculptor. A workflow instruments only
-the agents it invokes. Evaluation spans may record validated synthetic Lines or
+Provenance, Librarian, Serendipity, and Sculptor. Each reusable object is
+registered once; spans appear only for actual runs. Evaluation exchanges record
+`skill_id` independently of object identity. Evaluation spans may record validated synthetic Lines or
 Props, proposed expected outputs, actual outputs, labels, model-visible
 instructions and messages, provider-returned thinking parts, tool calls and
 results, tokens, cost, and fixed evaluation metadata. Binary content and full

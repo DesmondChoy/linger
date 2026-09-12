@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Awaitable, Callable
 from itertools import zip_longest
+from typing import Any
 
 from pydantic import ValidationError
+from pydantic_ai import Agent
 
 from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
 from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.boundary_prompt import PROMPT_FINGERPRINT
 from src.linger.agents.librarian.models import (
+    BoundaryMemory,
     LibrarianBoundaryDecision,
+    LibrarianBoundaryInferenceInput,
     PassageInferenceDecision,
 )
+from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE
 from src.linger.contracts.librarian import (
     BoundaryCandidate,
     BoundaryInferenceResult,
@@ -109,33 +113,31 @@ async def judge_spoiler_boundary(
     memories: tuple[RetrievalMemory, ...],
     evidence: tuple[EvidenceRecord, ...],
     prior_reader_statements: tuple[ReaderStatement, ...],
+    *,
+    agent: Agent[None, Any] | None = None,
 ) -> LibrarianBoundaryDecision:
     """Run Librarian's private boundary judgment without logging its content."""
-    from src.linger.agents.librarian.agent import librarian_boundary_agent
+    if agent is None:
+        from src.linger.agents.librarian.agent import librarian_agent
 
-    payload = json.dumps(
-        {
-            "current_line": current_line,
-            "prior_reader_statements": [
-                statement.model_dump(mode="json") for statement in prior_reader_statements
-            ],
-            "relevant_memories": [
-                {
-                    "memory_id": memory.memory_id,
-                    "text": memory.text,
-                    "evidence_ids": list(memory.evidence_ids),
-                }
-                for memory in memories
-            ],
-            "full_work_candidates": [
-                record.model_dump(mode="json") for record in evidence
-            ],
-        },
-        ensure_ascii=False,
+        agent = librarian_agent
+
+    task = LibrarianBoundaryInferenceInput(
+        current_line=current_line,
+        prior_reader_statements=prior_reader_statements,
+        relevant_memories=tuple(
+            BoundaryMemory(
+                memory_id=memory.memory_id,
+                text=memory.text,
+                evidence_ids=memory.evidence_ids,
+            )
+            for memory in memories
+        ),
+        full_work_candidates=evidence,
     )
     result = await run_agent_traced(
-        librarian_boundary_agent,
-        payload,
+        agent,
+        task.model_dump_json(),
         span_name="librarian.boundary_inference",
         role="Librarian",
         stage="boundary_inference",
@@ -147,6 +149,7 @@ async def judge_spoiler_boundary(
         prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="boundary_inference_model_failed",
+        **BOUNDARY_INFERENCE.run_options(),
     )
     return result.output
 

@@ -1,6 +1,6 @@
 # Librarian Subsystem Design
 
-Status: **Alice runtime retrieval with chapter and exact-passage authority; five prepared corpora**
+Status: **Five registered corpora with bounded chapter, reading-unit, and exact-passage retrieval**
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
@@ -8,18 +8,20 @@ responsibilities and safeguards in [`../specification.md`](../specification.md).
 
 ### Implementation scope
 
-The runtime registry contains Alice. Routing resolves reviewed book identities
-and catalogue cues, with active session selection available for indirect book
-follow-ups. Private inference supports memory-backed chapter ceilings and
-session-supported exact paragraphs. Application code validates every grant
-before a separate evidence search and deterministic release checks.
+The runtime registry and default access list contain Alice, Animal Farm,
+Pinocchio, Frederick Douglass's Narrative, and The Story of My Life. Routing
+resolves reviewed book identities and catalogue cues, with active session
+selection available for indirect book follow-ups. Private inference supports
+memory-backed chapter ceilings and session-supported exact paragraphs.
+Application code validates every grant before a separate evidence search and
+deterministic release checks.
 
 The corpus lifecycle prepares five books, including section-based works.
 Preparation does not register a book for runtime use. The versioned-memory
 design remains deferred and independent of Librarian. Beads owns delivery
 status; `bd ready` and `bd list --status open` show current work.
 
-The benchmark selected spoiler-bounded BM25 plus semantic retrieval,
+The historical Alice benchmark selected spoiler-bounded BM25 plus semantic retrieval,
 reciprocal-rank fusion, overlap deduplication, and local cross-encoder reranking.
 All five configurations passed the zero-forbidden-exposure and exact-resolution
 gates. The selected retrieval path reached 91.7% evidence recall and 82.6%
@@ -27,6 +29,31 @@ candidate precision; the latter is diagnostic because the Librarian judge still
 filters candidates before Muse receives final evidence. The live 12-case
 Librarian → Muse → Provenance release evaluation then reached 91.7% final
 evidence recall, 100% citation precision, and zero spoiler exposure.
+
+### Agent and assigned skills
+
+The Librarian subsystem contains one reusable production PydanticAI object,
+`librarian_agent`. Its explicit assignment in
+[`skills.py`](../../src/linger/agents/librarian/skills.py) contains two skills:
+
+| Skill | Contract | Current consumer |
+|---|---|---|
+| [Boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | Production book routing and synthetic book replay call private inference when explicit progress is unavailable. |
+| [Evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `EvidenceStrengthDecision` | Scoped retrieval supplies canonical evidence for selection and answerability judgment. |
+
+Application code selects one skill before each model run. Both runs use the
+same Agent object with shared trust rules, task-specific instructions, and a
+per-run output schema. They receive no tools or retained conversation history.
+Original reader statements are explicit boundary-inference input data.
+Consolidating the object does not combine the private boundary decision and
+later evidence judgment into one model call.
+
+Work resolution, scoped search, fusion, deduplication, reranking, canonical
+resolution, and permission validation remain application operations. They are
+not additional model skills. See the
+[runtime architecture](../agent-skills.md) and
+[role README](../../src/linger/agents/librarian/README.md) for instructions,
+fingerprints, and ownership.
 
 ## 1. Purpose and scope
 
@@ -36,13 +63,14 @@ The subsystem has two deliberately separate flows:
    canonical, human-readable Markdown chapters and a derived metadata-only
    catalogue.
 2. **Online retrieval** uses a request-scoped reading boundary to either ask one
-   focused clarification or inspect only eligible chapters and return a typed
+   focused clarification or inspect only eligible reading units and return a typed
    evidence result to Muse.
 
-The runtime vertical slice uses Project Gutenberg ebook 11. Offline preparation
-also supports Animal Farm, Pinocchio, Frederick Douglass's Narrative, and
-The Story of My Life. Direct canonical reads remain the benchmark control; the measured
-production path uses bounded BM25 and local embeddings, reciprocal-rank fusion,
+The five prepared corpora are registered for runtime use. Chapter corpora use
+chapter ceilings; section corpora preserve part identity and allow exact unit
+selectors. The walkthrough and historical evaluation below use Alice, Project
+Gutenberg ebook 11. Direct canonical reads remain the benchmark control; the
+measured production path uses bounded BM25 and local embeddings, reciprocal-rank fusion,
 overlap deduplication, and a local cross-encoder reranker before the independent
 Librarian evidence-strength decision.
 
@@ -148,9 +176,9 @@ truth, and non-selected indexes need not remain in the production path.
 | Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
 | Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
 | Application boundary | Supplies the original reader message and access scope, resolves identity, validates chapter or exact-passage scope, and enforces reply release |
-| Librarian agent | Proposes a private chapter ceiling or exact-passage selection, then judges the answerability of separately retrieved bounded evidence |
-| Retrieval and reranker tools | Search and order only candidates already inside the validated scope |
-| Sculptor | Optionally proposes semantic metadata offline for human review; deterministic tooling builds the catalogue. Runtime Sculptor handles memory curation |
+| Librarian agent | Runs the selected boundary-inference or evidence-assessment skill on one reusable Agent object |
+| Retrieval and reranker services | Search and order only candidates already inside the validated scope; they are not model tools granted to Librarian |
+| Sculptor | Has implemented curation and offline surfacing skills. Semantic corpus-metadata proposals remain an unimplemented target; deterministic tooling builds the catalogue |
 | Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
 | Serendipity | Proposes connections; has no book-registration or identity-resolution responsibility |
 
@@ -298,9 +326,11 @@ uv run python -m src.linger.corpus.book src.linger.corpus.douglass check
 
 `--source` and `--output` override the adapter's input and output paths.
 Section corpora use `sections/`, `section_id`, and `section_number`; their
-catalogues use `section_count` and `sections`. Runtime chapter readers reject
-section files. A prepared corpus needs deliberate registration and compatible
-runtime support before it can supply chat evidence.
+catalogues use `section_count` and `sections`. Runtime loading validates each
+unit against its registered corpus kind. A chapter registration rejects a
+substituted section file; registered section corpora support part-aware chapter
+ceilings and exact unit selectors. Preparing a new corpus still requires
+deliberate registration before it can supply chat evidence.
 
 After initial creation, routing metadata may be edited in the canonical chapter
 files and the catalogue rebuilt. The integrity check still requires every
@@ -987,14 +1017,14 @@ unreported rather than being estimated.
 |---|---|
 | First book | Project Gutenberg ebook 11 |
 | Upstream source | Immutable downloaded text with a fixed SHA-256 |
-| Canonical retrieval corpus | Twelve exact-layout Markdown chapter files |
+| Registered retrieval corpora | Five books with exact-layout Markdown chapters or sections; Alice's initial corpus has twelve chapters |
 | Routing metadata | Compact, validated JSON front matter |
 | Agent catalogue | Generated metadata-only JSON projection |
 | Database or index as source of truth | No |
 | Initial retrieval baseline | Agentic catalogue inspection and bounded chapter reads |
 | Retrieval strategy selection | Reranked hybrid won the mandatory five-way comparison |
 | Reading progress | Not persisted; boundary is inferred or clarified per request |
-| Metadata as evidence | No; only canonical chapter bodies are authoritative |
+| Metadata as evidence | No; only canonical chapter or section bodies are authoritative |
 | Ambiguous boundary | Typed clarification; retrieval does not run |
 | Completed retrieval | Typed result with sufficient, weak, or none strength |
 | Weak result | Includes exact evidence details plus limitations |

@@ -5,6 +5,15 @@ configurations on the same Alice query set. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
+Librarian owns one reusable Agent with two application-selected skills:
+[boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md)
+and [evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md).
+Both have typed inputs and per-run outputs and expose no model tools. Retrieval,
+scope filtering, fusion, and reranking remain application code. The retrieval
+benchmark exercises a known boundary; production routing and book replay can
+also invoke the boundary-inference skill. A role model override covers both
+tasks while skill IDs and fingerprints keep their results distinguishable.
+
 The frozen benchmark and provider-backed release report evaluate retrieval
 with a known chapter ceiling. The separate
 [synthetic book replay](../synthetic_journals/README.md#grounded-reflection-and-spoiler-boundary-replay)

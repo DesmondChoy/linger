@@ -33,6 +33,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
     SerendipityDependencies,
@@ -90,6 +91,7 @@ class SuiteRunReport(StrictModel):
     generated_at: datetime
     dataset_digest: str
     model: str
+    skill_id: str = CONNECTION_DISCOVERY.skill_id
     prompt_template_id: str
     prompt_version: str
     prompt_digest: str
@@ -155,7 +157,8 @@ def _web_capability(case: SerendipityEvalCase) -> GuardedExaSearch:
         max_text_chars=8_000,
         include_deep_search=False,
         client=_FixtureExaClient(evidence),
-        guidance="Use only synthetic public fixture evidence for this evaluation.",
+        # The selected production skill owns instructions; tools return fixtures only.
+        guidance="",
     )
 
 
@@ -226,6 +229,7 @@ async def run_case(
         case.input.model_dump_json(),
         deps=deps,
         capabilities=capabilities,
+        **CONNECTION_DISCOVERY.run_options(),
     )
     latency = perf_counter() - started
     messages = result.all_messages()
@@ -374,6 +378,7 @@ async def run_suite(
                 metadata={
                     "scope": "component",
                     "owner": "serendipity",
+                    "skill_id": CONNECTION_DISCOVERY.skill_id,
                     "primary_behavior": case.primary_behavior,
                     "contrast_group": case.contrast_group,
                 },

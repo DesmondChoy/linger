@@ -22,6 +22,7 @@ from src.linger.agents.provenance.models import (
 )
 from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.prompt import INSTRUCTIONS
+from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.muse.models import NoMemoryCandidate
 
 SPEC_RISK_CODES = (
@@ -420,16 +421,13 @@ class ProvenanceAgentTests(unittest.TestCase):
             }
         )
         agent = build_provenance_agent(model)
-        review = agent.run_sync("candidate").output
+        review = agent.run_sync(
+            provenance_input().model_dump_json(), **CANDIDATE_REVIEW.run_options()
+        ).output
 
         self.assertIsInstance(review, ProvenanceReview)
         self.assertEqual("prompt_injection", review.findings[0].code)
         self.assertEqual("reject", review.response_decision)
-
-    def test_agent_retries_output_validation(self) -> None:
-        # pydantic-ai exposes no public accessor for output retries.
-        agent = build_provenance_agent(TestModel())
-        self.assertEqual(2, agent._max_output_retries)
 
     def test_provenance_has_no_tools(self) -> None:
         """Section 3.3: Provenance reviews without any tool authority."""
@@ -445,7 +443,9 @@ class ProvenanceAgentTests(unittest.TestCase):
             }
         )
         agent = build_provenance_agent(model)
-        agent.run_sync("candidate")
+        agent.run_sync(
+            provenance_input().model_dump_json(), **CANDIDATE_REVIEW.run_options()
+        )
 
         self.assertEqual([], model.last_model_request_parameters.function_tools)
 

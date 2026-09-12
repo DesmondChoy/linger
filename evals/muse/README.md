@@ -7,6 +7,14 @@ grounding answers in retrieved evidence, and relaying a Serendipity decline
 honestly. The owner identifier in every case is `muse`; Sculptor, Provenance,
 and the Memory & Policy Service retain their separate responsibilities.
 
+Muse has one reusable Agent and one
+[reflection skill](../../src/linger/agents/muse/skills/reflection/SKILL.md) for
+drafts and bounded revisions. The baseline harness grades supplied outputs;
+production chat and synthetic replay select the same skill before invoking
+Muse. Its fixed `MuseCandidate` schema and registered output validator remain
+active under model overrides. Draft and revision fingerprints identify their
+different input contracts.
+
 ## Case contract
 
 Each JSON file contains one reader message with its dynamic context and tool

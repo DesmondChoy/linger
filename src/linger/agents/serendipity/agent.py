@@ -10,7 +10,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     SerendipityResponse,
 )
-from src.linger.agents.serendipity.prompt import INSTRUCTIONS
+from src.linger.agents.serendipity.skills import SHARED_INSTRUCTIONS
 from src.linger.agents.serendipity.tools import (
     SerendipityDependencies,
     search_librarian,
@@ -68,7 +68,7 @@ def build_serendipity_agent(
         name="Serendipity",
         deps_type=SerendipityDependencies,
         output_type=[ConnectionProposal, ConnectionDecline],
-        instructions=INSTRUCTIONS,
+        instructions=SHARED_INSTRUCTIONS,
         tools=[
             Tool(search_librarian, max_retries=1),
             Tool(search_memories, max_retries=1, prepare=_prepare_memory_search),
