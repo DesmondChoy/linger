@@ -391,6 +391,13 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     assert capture_payload["rows"][0]["inputs"][0]["text"].startswith(
         "I put the rice on"
     )
+    assert capture_payload["rows"][0]["summary"] == "No capture candidate"
+    assert capture_payload["rows"][0]["capture"] == {
+        "nomination": {"kind": "no_candidate"},
+        "provenance_decision": "no_candidate",
+        "reason_code": None,
+    }
+    assert capture_payload["rows"][0]["spans"] == []
     assert capture_payload["replay"]["supported"] is True
     assert "provider-backed" in capture_payload["replay"]["note"]
     assert "billable model calls" in capture_payload["replay"]["note"]
@@ -400,6 +407,43 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
     }
     assert curation_payload["rows"][0]["curation"] is not None
     assert curation_payload["report"]["text"].startswith("# Pre-generation report")
+
+
+@pytest.mark.parametrize(
+    ("decision", "reason_code", "summary"),
+    [
+        ("allow_capture", None, "Capture candidate: allow capture"),
+        ("reject_capture", "sensitive_content", "Capture candidate: reject capture"),
+    ],
+)
+def test_capture_review_preserves_nomination_and_independent_decision(
+    tmp_path: Path,
+    built_ui: Path,
+    decision: str,
+    reason_code: str | None,
+    summary: str,
+) -> None:
+    package = tmp_path / "capture"
+    _copy_package(CAPTURE_PACKAGE, package)
+    ground_truth_path = package / "ground-truth.json"
+    ground_truth = json.loads(ground_truth_path.read_text())
+    proposal = next(
+        item for item in ground_truth["proposals"]
+        if item["capture"]["nomination"]["kind"] == "capture_candidate"
+    )
+    proposal["capture"]["provenance_decision"] = decision
+    proposal["capture"]["reason_code"] = reason_code
+    ground_truth_path.write_text(json.dumps(ground_truth))
+
+    payload = _state(package, built_ui).payload
+    row = next(
+        item for item in payload["rows"]
+        if item["proposalId"] == proposal["proposal_id"]
+    )
+
+    assert row["summary"] == summary
+    assert row["capture"] == proposal["capture"]
+    assert row["spans"] == [proposal["capture"]["nomination"]["span"]]
 
 
 def test_surfacing_review_shows_time_history_sources_and_semantic_rubric(

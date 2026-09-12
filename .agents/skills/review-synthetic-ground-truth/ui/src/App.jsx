@@ -239,10 +239,15 @@ function GroundTruthDetails({ row }) {
       {row.capture ? (
         <section className="typed-expectation">
           <div className="field-pair">
-            <span>Capture expectation</span>
-            <strong>{row.capture.kind.replaceAll('_', ' ')}</strong>
+            <span>Muse nomination</span>
+            <strong>{row.capture.nomination.kind.replaceAll('_', ' ')}</strong>
           </div>
-          {row.capture.span ? <blockquote className="exact-quote">{row.capture.span.text}</blockquote> : null}
+          <div className="field-pair">
+            <span>Provenance decision</span>
+            <strong>{row.capture.provenance_decision.replaceAll('_', ' ')}</strong>
+          </div>
+          {row.capture.reason_code ? <p>Reason: {row.capture.reason_code.replaceAll('_', ' ')}</p> : null}
+          {row.capture.nomination.span ? <blockquote className="exact-quote">{row.capture.nomination.span.text}</blockquote> : null}
         </section>
       ) : null}
       <CurationExpectation value={row.curation} />

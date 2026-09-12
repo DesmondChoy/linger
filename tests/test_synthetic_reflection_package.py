@@ -279,7 +279,10 @@ def test_reflection_proposal_rejects_capture_ground_truth(
     repository_root: Path,
 ) -> None:
     content, ground_truth = package
-    ground_truth["proposals"][1]["capture"] = {"kind": "no_candidate"}  # type: ignore[index]
+    ground_truth["proposals"][1]["capture"] = {  # type: ignore[index]
+        "nomination": {"kind": "no_candidate"},
+        "provenance_decision": "no_candidate",
+    }
 
     with pytest.raises(PackageValidationError) as error:
         _validate(content, ground_truth, repository_root)

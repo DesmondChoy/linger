@@ -34,6 +34,7 @@ from evals.synthetic_journals.book_contract import (  # noqa: E402
     compile_book_replay_plan,
 )
 from evals.synthetic_journals.models import (  # noqa: E402
+    CaptureCandidate,
     GroundTruthProposal,
     ProposedGroundTruth,
     SyntheticBackstory,
@@ -69,11 +70,10 @@ def _proposal_summary(proposal: GroundTruthProposal) -> str:
     if proposal.surfacing is not None:
         return proposal.surfacing.decision.replace("_", " ").capitalize()
     if proposal.capture is not None:
-        return (
-            "Capture candidate"
-            if proposal.capture.kind == "capture_candidate"
-            else "No capture candidate"
-        )
+        if isinstance(proposal.capture.nomination, CaptureCandidate):
+            decision = proposal.capture.provenance_decision.replace("_", " ")
+            return f"Capture candidate: {decision}"
+        return "No capture candidate"
     if proposal.curation is not None:
         expected = proposal.curation.expected
         if isinstance(expected, ExpectedCurationProposal):
@@ -122,8 +122,10 @@ def _source_roles(proposal: GroundTruthProposal) -> dict[str, str]:
 
 def _span_payload(proposal: GroundTruthProposal) -> list[dict[str, Any]]:
     spans = [item.model_dump(mode="json") for item in proposal.exact_spans]
-    if proposal.capture is not None and proposal.capture.kind == "capture_candidate":
-        spans.append(proposal.capture.span.model_dump(mode="json"))
+    if proposal.capture is not None and isinstance(
+        proposal.capture.nomination, CaptureCandidate
+    ):
+        spans.append(proposal.capture.nomination.span.model_dump(mode="json"))
     return spans
 
 
