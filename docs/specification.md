@@ -41,9 +41,10 @@ The repository contains five validated literary corpora: *Alice's Adventures in
 Wonderland*, *Animal Farm*, *The Adventures of Pinocchio*, *Narrative of the Life
 of Frederick Douglass, an American Slave*, and *The Story of My Life*. Their
 immutable source files come from Project Gutenberg and Project Gutenberg
-Australia. Alice is the only work registered for chat retrieval and Reader.
-The other works remain formatting artifacts pending runtime registration and,
-for mixed works, a section-aware runtime contract. The
+Australia. All five works are registered and enabled by default for chat
+retrieval and Reader. Application configuration grants access to exact book
+revisions. Chapter-based and section-based works share the literary-part and
+named-unit permission rules in Section 6.1. The
 [corpus format guide](corpus/canonical-sections.md) links source audits and
 describes the chapter and section schemas. This small, older corpus may contain
 dated cultural perspectives.
@@ -76,9 +77,8 @@ approval. Content about sensitive traits is never captured.
 ### 3.1 In scope
 
 - ongoing Muse conversations using text and user-supplied photographs, with semantic Provenance review of every candidate response;
-- cited retrieval across the registered *Alice's Adventures in Wonderland*
-  corpus, with broader book registration and personal-memory citation release
-  as target capabilities;
+- cited retrieval across the registered literary corpus and reviewed release
+  of selected personal-memory evidence;
 - keyword, semantic, hybrid, fusion, and reranked retrieval strategies;
 - request-specific spoiler filtering and deterministic quotation validation;
 - reviewed automatic memory capture as a controlled evaluation capability, with a visible notice for any committed capture;
@@ -144,7 +144,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | Agent | Allowed tools or capabilities | Implementation source |
 |---|---|---|
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
-| **Librarian** | No model tools. Boundary inference receives privately selected full-work candidates and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
+| **Librarian** | No model tools. Boundary inference receives privately selected candidates from the work's numbered main-text chapters and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter currently has an offline execution path only. | Pydantic AI typed input and output contracts |
 | **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
@@ -210,9 +210,11 @@ against one application-owned, request-scoped evidence index. The index accepts
 only exact book records from the current direct Librarian result, the selected
 book records from a current Serendipity proposal, or records that Librarian
 re-resolved from identifiers cited by an earlier successfully released reply in
-the same session. New retrieval and Serendipity records must match the current
-trusted work, book version, and chapter ceiling. A re-resolved session record
-authorises only that exact previously released passage; it does not establish
+the same session. New records must match the current validated book scope.
+Direct retrieval may use a literary part with a chapter ceiling, exact named
+units, or an exact-paragraph grant. Serendipity book search uses only chapter or
+exact-unit scope. A re-resolved session record authorises only that exact
+previously released passage; it does not establish
 current reading progress or grant neighbouring text. Application code also
 validates source lines, source location, and any exact quotation before release.
 For selected memory and web evidence, `canonical_connection_evidence` gives
@@ -323,6 +325,10 @@ tentative connection for the ordinary Provenance and deterministic release path.
 Losing-candidate evidence is discarded. Content-bearing connection diagnostics are not
 returned by the application API. Image evidence remains unsupported.
 
+Web queries pass the privacy checks in Section 6.4 before execution. Synthetic
+replay records blocked and issued queries separately, so a refused query does
+not count as an external disclosure.
+
 #### 4.2.4 Developer corpus and inspection tools
 
 Reader and Inspect are development and debugging tools, not product frontend
@@ -330,14 +336,14 @@ surfaces. The local development frontend mounts them for convenience while
 developers interact with the corpus and trace backend behavior. A user-facing
 frontend does not expose either tool or depend on either tool's state.
 
-Reader is a developer corpus browser for *Alice's Adventures in Wonderland*. It
-opens the public Project Gutenberg HTML at the selected chapter. Opening the
-book, selecting a chapter, or revealing a chapter summary changes local
-diagnostic state only. Chapter summaries remain hidden behind an explicit
-spoiler warning, and neither chapter navigation nor summary reveal establishes
-reading progress, session evidence, or a chat retrieval boundary. Chat uses only
-the request-scoped context resolution and confirmed ceiling described in Section
-6.1.
+Reader is a developer browser for the enabled registered books. Read-only
+`/api/library` endpoints serve validated local canonical text and group chapters
+and named units by literary part. Reader opens at the first main narrative
+chapter. Opening a book, navigating to a unit, or revealing its summary changes
+local diagnostic state only. Summaries remain hidden behind an explicit spoiler
+warning. Navigation and summary reveal never establish reading progress,
+session evidence, or chat retrieval permission. Chat uses only the
+request-scoped context resolution and permissions described in Section 6.1.
 
 Inspect is a developer-only, read-only projection of each completed chat turn.
 It exposes the reader message, `MuseTurn` policy contract, context resolution,
@@ -353,6 +359,14 @@ searches, web or private evidence payloads, rejected draft text, Provenance
 critiques, or memory content. Inspect metadata cannot authorize retrieval,
 release, capture, or storage, and its trace link follows the metadata-only backend
 telemetry contract in Section 8.1.
+
+Chat displays the active agent stage and elapsed time while a turn runs.
+`POST /api/chat/stream` sends allowlisted role, stage, status, hand-off,
+sequence, and timing metadata, then delivers the complete response after the
+ordinary release checks finish. Inspect derives stage durations from paired
+start and completion events and shows per-agent totals and ordered hand-offs.
+An unpaired event leaves its duration unavailable. Progress metadata never
+contains draft text or grants release authority.
 
 #### 4.2.5 Conversational memory curation and surfacing target
 
@@ -414,8 +428,9 @@ Working context contains only:
 - server-supplied `account_id`;
 - `memory_capture_enabled`;
 - the request-scoped `spoiler_boundary` inferred by Librarian from authorised
-  memories, the current message, and the complete immutable work, or established
-  through clarification;
+  memories, the current message, and the immutable work's numbered main-text
+  chapters, or established through explicit completion or clarification for a
+  selected part or named unit;
 - exact book records re-resolved from identifiers cited by earlier released
   replies in this session, when present;
 - the active topic; and
@@ -428,11 +443,11 @@ spoiler boundary anew for each book-related request.
 For evidence continuity, the session keeps one content-free record per turn:
 the turn identifier, release source, cited evidence identifiers, and review
 finding codes. This record never stores passage text or reading progress.
-Only a turn released as a Muse candidate enters the conversational message
-history itself; an emotional-boundary or safe-decline turn keeps only its
-content-free record. Only identifiers from successfully released Muse replies
-may be re-resolved on a later turn, and session reset removes these handles
-with the conversation.
+Released Muse replies and application-authored clarifications enter the
+conversational message history; an emotional-boundary or safe-decline turn
+keeps only its content-free record. Only identifiers from successfully released
+Muse replies may be re-resolved on a later turn, and session reset removes
+these handles with the conversation.
 
 ### 5.2 Memory record
 
@@ -553,6 +568,21 @@ untrusted internal material; Provenance reviews the later complete Muse draft.
 
 ### 6.1 Spoilers
 
+Reading permission identifies a work, its immutable revision, and a literary
+part, then selects either a completed chapter ceiling or exact named units.
+Book and part selection may persist within a session; reading permission is
+resolved anew for each request.
+Chapter ceilings include only numbered chapters in that part. Prefaces, letters,
+and other named sections have no chapter number; completing one permits only
+that exact unit. Chapter numbering restarts where the source does, while
+canonical section IDs retain their source order. For example, Chapter 1 in
+Part I and Chapter 1 in Part III of *The Story of My Life* are distinct
+locations. The schema field `chapter_id` stores the canonical unit ID;
+`chapter_number` stores the literary chapter number or `null` for named
+sections. These rules govern retrieval, cached indexes, connection searches,
+citation validation, and final release. They are distinct from the narrower
+exact-paragraph grants described below.
+
 When the reader's words indicate that a request depends on a book, Muse asks
 Librarian to route it from metadata. A title, character, scene, or contextual
 pronoun can supply that cue. An active session book alone does not justify a
@@ -571,13 +601,15 @@ whenever it cannot locate the request in the book, whether because no
 supporting evidence is found before the judge runs or the judge itself
 remains uncertain.
 
-Librarian then performs boundary inference. The complete immutable selected
-work is its search scope: Librarian cross-references all chapters against the
-current Line and relevant account-scoped memories to localize the latest event
-the person appears to know. The typed decision declares whether its basis is a
-relevant prior memory or the current Line alone, cites the exact supporting
-memory and evidence identifiers, and returns confidence plus content-free
-locations. It must not return post-boundary story content to Muse.
+Librarian then performs boundary inference. Its private search covers all
+numbered chapters in the selected immutable work's main text, including Part I
+of *The Story of My Life*. Other parts and named sections require explicit
+current-turn completion. Librarian cross-references the eligible chapters
+against the current Line and relevant account-scoped memories to localize the
+latest event the person appears to know. The typed decision declares whether
+its basis is a relevant prior memory or the current Line alone. It cites the
+exact supporting memory and evidence identifiers and returns confidence plus
+content-free locations. It must not return post-boundary story content to Muse.
 
 After inference, application code validates the work, version, memory IDs, and
 evidence IDs. A non-progress question in the current Line may locate an event
@@ -589,8 +621,19 @@ retrieval bounded to that ceiling, and application code rejects evidence outside
 it before Muse can use it. Linger stores memories of what the person discussed,
 not a durable chapter-progress field; the boundary is derived anew for each
 request. This separation lets evaluation compare Librarian's inferred ceiling
-with event-derived Ground truth while preventing full-work inference access from
-becoming full-work disclosure authority.
+with event-derived Ground truth while preventing private inference access from
+becoming disclosure authority.
+
+Cached retrieval indexes use the work, revision, part, and chapter ceiling or
+exact unit IDs as their scope identity. Excessive chapter ceilings are clamped
+to that part's registered maximum before cache lookup. Exact unit membership is
+validated even when an index is cached.
+
+For direct grounding, if every fused candidate falls below the final reranker
+cutoff, the application may retain the highest-ranked eligible candidate for
+Librarian's separate evidence-strength assessment. Only an accepted assessment
+admits that evidence to the release index. Ordinary retrieval, connection
+search, and boundary inference retain their cutoffs.
 
 Earlier reader messages can support a narrower permission without establishing
 chapter progress. Before Muse runs, application code snapshots at most eight
@@ -622,10 +665,10 @@ Ambiguous reading support still requires clarification. See
 [Session-supported exact passages](design/session-passage-design.md) for the
 ownership and failure rules.
 
-The current implementation has both phases for the Alice corpus. Muse, not the
-application, decides whether a request depends on a specific book, and calls
-an argument-less `librarian_route` tool only then — never for an incidental
-word inside otherwise personal reflection. The application supplies the exact
+The current implementation has both phases for each enabled work's numbered
+main-text chapters. Muse decides whether a request depends on a specific book
+and calls an argument-less `librarian_route` tool only then. An incidental word
+inside otherwise personal reflection does not justify a call. The application supplies the exact
 current reader message; Muse cannot substitute its own text. Both explicit
 reading declarations and Librarian routing use the deterministic
 [`book registry`](../src/linger/corpus/registry.py). It matches reviewed titles,
@@ -654,10 +697,10 @@ strong memory support through incidental catalogue words.
 
 A routed work then enters boundary inference: Librarian receives the current
 Line and at most eight items from the account's curated retrieval view that
-independently route to that work, searches the complete immutable revision, and
-returns a typed candidate ceiling, evidence basis, confidence, supporting memory IDs, and
-content-free supporting locations. Full-work candidate passage text remains
-private to this phase and is never copied into Muse, Inspect, the turn
+independently route to that work and searches its immutable numbered main-text
+chapters. It returns a typed candidate ceiling, evidence basis, confidence,
+supporting memory IDs, and content-free supporting locations. Candidate text
+remains private to this phase and is never copied into Muse, Inspect, the turn
 evidence ledger, or the release scope.
 The curated view applies retrieval tombstones and includes derived summaries.
 Curation and audit retain the immutable originals, including tombstoned records.
@@ -665,9 +708,9 @@ Curation and audit retain the immutable originals, including tombstoned records.
 Application code validates the returned work, version, memory identifiers,
 evidence identifiers, authorization basis, and candidate chapter. A Line-only
 candidate, confidence below `0.75`, conflicting context, missing support,
-retrieval failure, or an invalid model decision produces one fixed
-clarification and no evidence search. When account-scoped memory storage is
-unreadable, the application binds an empty memory set, and boundary inference
+retrieval failure, or an invalid model decision produces an application-owned
+clarification and no evidence search for release. When account-scoped memory
+storage is unreadable, the application binds an empty memory set, and boundary inference
 proceeds with no memories available to it. A chapter ceiling still requires memory
 support, but earlier reader statements may independently support exact passages.
 Without either form of support, Librarian requests clarification. A validated
@@ -694,9 +737,13 @@ Clarifications suppress automatic memory capture with
 retains the released question and original reader message in session history
 and keeps the pending clarification state. A reader
 reply on a later turn consisting only of a chapter reference, such as
-"Chapter 2", counts as explicit completed progress for that available book,
-resolving the boundary as `reader_confirmed` before Muse runs. Unresolved
-identity or a book switch clears the pending question. Direct search also
+"2", "two", "second", or "chapter two", counts as explicit completed progress
+only when that chapter exists in the selected part of the available book.
+It resolves the boundary as `reader_confirmed` before Muse runs. A chapter-only
+answer without a pending clarification does not grant progress. Hedged or
+question-shaped replies, unrelated text, and out-of-range chapter answers keep
+the pending question unresolved. Unresolved identity or a book switch clears
+the pending question. Direct search also
 checks identity from the original reader message or validated session selection
 before recording a pending question. Muse then re-issues the original book
 question through `librarian_search` under that validated ceiling. A routed
@@ -705,14 +752,22 @@ review context after Muse runs, not before — a `RoutedWork` result grants the
 same reading-context and policy authority the application would otherwise
 have supplied only when no boundary was already resolved.
 
+When the same progress question remains unanswered for a single-part,
+chapter-based work, routing asks a closed question for a chapter number within
+the work's range. A memory-supported candidate keeps its specific
+confirmation question and candidate chapter. Mixed section-based works retain
+the ordinary clarification instead of switching to chapter-number choices.
+
 ### 6.2 Citations and attribution
 
-Whenever an exact quotation is displayed or stored, application code verifies
-its text, source, and location against the canonical book record in the shared
-request-scoped index. Muse separates evidence from interpretation; Provenance
-reviews every complete draft for undeclared or mislabelled quotations and
-factual claims and checks their semantic support. Web, stored-memory, and image
-records never enter this book-citation authority and therefore fail closed.
+For a book quotation displayed or stored, application code verifies its text,
+source, and location against the canonical book record in the shared
+request-scoped index. Selected memory and web declarations use their separate
+request-scoped evidence index. Web uses require exact Markdown URL citations.
+Neither source can satisfy a book-corpus declaration; image evidence remains
+unsupported. Muse separates evidence from interpretation. Provenance reviews
+every complete draft for undeclared or mislabelled quotations and factual
+claims and checks their semantic support.
 
 ### 6.3 Memory and media control
 
@@ -729,7 +784,20 @@ records never enter this book-citation authority and therefore fail closed.
 
 ### 6.4 Untrusted content and privacy
 
-Book text, web results, photographs, media descriptions, and candidate model responses are untrusted input. Web-search queries use general concepts: maintained detectors reject shaped personal data and secrets, and a deterministic overlap guard rejects every multi-character term copied verbatim from the application-owned current cue. Private memory text is never copied into a web-search query. Evidence supplied to each agent is minimised, account-scoped where applicable, and labelled by trust level; application code owns its verification state. Prompt instructions contained in evidence never gain tool authority.
+Book text, web results, photographs, media descriptions, and candidate model
+responses are untrusted input. Web-search queries use general concepts.
+Maintained detectors reject shaped personal data and secrets. A deterministic
+overlap guard compares each query with the application-owned current cue and
+each supplied memory. For source text of at most eight tokens, it rejects any
+shared token longer than one character. For longer source text, it rejects
+three consecutive copied tokens, or the entire query when it contains fewer
+than three tokens. Tokens are Unicode-normalised and case-folded. Shared topic
+words in longer text do not by themselves trigger rejection.
+
+Private wording must remain outside public queries. Evidence supplied to each
+agent is minimised, account-scoped where applicable, and labelled by trust
+level; application code owns its verification state. Prompt instructions
+contained in evidence never gain tool authority.
 
 ### 6.5 Verification
 
@@ -745,10 +813,10 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - retrieved content attempts to redirect agent behaviour.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
-A `spoiler` or `prompt_injection` finding requires an immediate `reject` verdict.
-Provenance never requests a revision for either finding because the unsafe draft
-cannot be corrected without trusting content that has already crossed the
-boundary.
+A response finding with code `spoiler` or `prompt_injection` requires an
+immediate `response_decision="reject"` rather than a revision. Capture findings
+independently determine `capture_decision`; rejecting an unsafe nomination does
+not by itself block a safe reply.
 
 ### 6.6 Emotional content
 
@@ -810,15 +878,19 @@ and future designs must use these terms instead of ad hoc synonyms such as
 *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the
 vocabulary, Backstory and Ground truth structures, deterministic package
 validator, and Ground truth authority lifecycle below. Interactive independent
-adoption is implemented. The catalog registers capture, bounded-curation,
-session-continuity, grounded-book-reflection, and spoiler-boundary replay as
-supported paths. Existing offline proactive-memory-surfacing replay provides
-component evidence only; it does not execute the adopted conversational
-Objective. The book runner accepts either book Objective alone or both in either
-order. Reflection replay code for
-`weak_evidence_safe_decline` remains an unsupported path. Reusable generation,
-dataset freezing, and replay for other
-Objectives remain downstream decisions.
+adoption is implemented. The catalog registers reviewed automatic capture,
+bounded memory curation, session continuity, grounded book reflection, spoiler
+boundary clarification, cross-source tentative connection, and weak-evidence
+safe decline as supported replay Objectives. The book runner accepts either
+book Objective alone or both in either order. The connection runner accepts
+either connection or weak-evidence Objective alone or both in either order;
+legacy weak-evidence packages delegate to the narrower reflection runner.
+Existing offline proactive-memory-surfacing replay provides component evidence
+only; it does not execute the adopted conversational Objective. Registration
+does not make historical packages compatible with current schemas or establish
+that every expected outcome can pass grading. Section 7.2.2 records those
+limits. Reusable generation, dataset freezing, and replay for other Objectives
+remain downstream decisions.
 
 The Objective governs the generated package. The diagram follows its Props and
 Lines through production replay and the Ground truth lifecycle used for grading.
@@ -869,7 +941,12 @@ rules; the full timestamp remains in the report. It starts with
 `pre-generation-report.md`; after separate human approval, the generator writes
 the sibling `backstory.json` and `ground-truth.json`. Independent confirmation
 adds `ground-truth-adoption.json` without modifying either generated file.
-Executed replay output is not part of this authoring package.
+Replay transcripts and summaries may be retained alongside these files as
+recorded outputs. They do not become authoring inputs or Ground truth. The
+[package index](../synthetic-journal-evaluation/README.md) and
+[generated scenario descriptions](../synthetic-journal-evaluation/scenario_descriptions.md)
+describe the retained evaluations and their evidence limits. Historical adoption
+and current replay compatibility require separate checks.
 
 A Backstory may be memory-only or corpus-backed. In a corpus-backed spoiler scene, a
 Prop and Line may refer naturally to events the person has already discussed;
@@ -923,8 +1000,8 @@ agent without writing adoption or invoking runtime. Confirmation creates the
 separate hash-bound adoption, then returns control to the agent. The browser
 does not select or invoke a runner.
 
-The reviewed automatic-capture package replays without changing these authority
-boundaries. Its runner validates the Backstory, Ground truth, and optional
+A capture package that satisfies the current schema replays without changing
+these authority boundaries. Its runner validates the Backstory, Ground truth, and optional
 adoption, creates a temporary store and unique evaluation account,
 enables capture through the server-owned Memory & Policy Service, and sends
 exactly one Line in a fresh session for each Scene. Pydantic Evals creates one
@@ -935,14 +1012,24 @@ the authority to `adopted`, uses the adopted Ground truth identity as the
 dataset version, and emits `adopted_hard_gate_grade` with
 `passes_hard_gates` or `fails_hard_gates`.
 
-Capture grading checks the final recorded Muse nomination against the exact
-proposed Line span, the review and binding decisions, the release source, and
-actual stored text and record count. A `capture_candidate` expects an allowed,
-exactly bound, committed capture with a normal Muse release. A `no_candidate`
-expects a normal release, no nomination, no capture review authorisation, and no
-write. Unexpected writes or changes to earlier records fail the Scene. Missing
-Muse output cannot pass. Dedicated veto and safe-decline expectations are outside
-this capture-only runner's supported cases.
+Capture Ground truth separates `nomination`, `provenance_decision`, and an
+optional `reason_code`. The nomination is either `capture_candidate` with an
+exact Line span or `no_candidate`. A candidate may independently expect
+`allow_capture` or `reject_capture`; no nomination requires the `no_candidate`
+decision. The review app displays both decisions separately.
+
+Capture grading checks the final recorded Muse nomination, exact proposed span,
+review and binding decisions, release source, stored text, and record count.
+An allowed candidate expects an exactly bound, committed capture with a normal
+Muse release. A rejected candidate expects refusal and no write. No nomination
+expects a normal release, no capture authorisation, and no write. Unexpected
+writes or changes to earlier records fail the Scene. Missing Muse output cannot
+pass. Safe-decline expectations remain outside this runner's supported cases.
+
+Rejected-candidate grading is incomplete: the current grader still requires an
+idempotency retry for every candidate, while replay produces that observation
+only after an allowed commit. A correctly refused candidate therefore reports
+`capture_retry_unavailable` and cannot pass all hard gates.
 
 For an observed exact, allowed commit, the runner resubmits that stored record's
 account, source event, text, and evidence to Memory Policy. The retry must return
@@ -950,8 +1037,14 @@ the same unchanged record with `created=False` and leave the store unchanged.
 This checks policy idempotency; it does not establish server-owned HTTP retry
 identity. Artifact schema 2 records the complete capture expectation, observed
 nomination, failure reasons, and retry result. Older nomination-only runs do not
-provide evidence for these additional checks. The checked-in capture package
-remains proposed until an independent human adopts its Ground truth.
+provide evidence for these additional checks. The retained
+[everyday capture package](../synthetic-journal-evaluation/packages/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth-adoption.json)
+has a hash-bound adoption recorded from an explicit human instruction. Its
+generated Ground truth still uses the earlier capture schema and fails current
+validation. The adoption preserves authority over those historical bytes; it
+does not approve a schema migration or establish a fresh replay result. A
+migrated package needs validation and independent adoption before adopted
+grading under the current contract.
 
 The bounded-curation runner supplies only the isolated Scene's active,
 same-account Props to production `propose_curation`. It preserves and hashes
@@ -1108,6 +1201,15 @@ tools retrieve from memory, the registered corpus, and live public pages bounded
 to the source setup's URLs. Public snapshots define adopted source identity and
 exact expected support. Changed or unavailable live evidence cannot count as
 successful restraint.
+
+The [`capture_public_source` helper](../evals/synthetic_journals/capture_public_source.py)
+opens a supplied public URL through Exa without a model call and renders the
+snapshot with the same formatter used by runtime retrieval. It preserves
+available publication and author metadata and records the source hash and
+retrieval time. Matching the formatter prevents metadata differences alone from
+breaking exact-source checks. Replay requires the observed excerpt to occur in
+the adopted snapshot and contain the expected supporting text.
+
 The replay records invocation, retrieval, selection, presentation, independent
 review, and deterministic release, including the first failed stage and stages
 not reached. A connection decline can lead to a reviewed qualified response or
@@ -1151,7 +1253,7 @@ The test deployment supports multiple accounts and up to five concurrent session
 
 ## 8. Operations and change control
 
-The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI as a thin HTTP transport adapter. The public `run_chat_turn` application boundary owns deterministic orchestration, including session rollback, context resolution, agent sequencing, output release, and automatic capture. `POST /api/chat` supplies trusted dependencies and maps cancellation, success, and application failure to HTTP; synthetic replay calls the same application boundary directly. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
+The implementation stack is Python 3.12 with Pydantic AI for the five reasoning agents and FastAPI as a thin HTTP transport adapter. The public `run_chat_turn` application boundary owns deterministic orchestration, including session rollback, context resolution, agent sequencing, output release, and automatic capture. `POST /api/chat` supplies trusted dependencies and maps cancellation, success, and application failure to HTTP. `POST /api/chat/stream` wraps that same handler with content-free progress events and one final result or error; synthetic replay calls the application boundary directly. Agent-to-agent transitions that affect access, writes, validation, revision, or output release are programmatic hand-offs controlled by application code; no model controls its own authority or release path. OpenAI model calls use the Responses API so reasoning can be retained across tool calls and long-running conversations can be compacted. Agent contexts remain separate and bounded; API conversation state is working context, not durable product memory. Pydantic Logfire is the selected OpenTelemetry-compatible telemetry backend; its data and storage rules are defined exclusively by the [telemetry data contract](telemetry.md). The remaining stack is a lightweight web UI, Docker, and GitHub Actions.
 
 Prompt templates, corpus builds, policies, tool contracts, schemas, evaluation scenes, and the system playbook are versioned. Every model invocation records its template-specific version and a SHA-256 digest of the canonical static instructions and input/output contract identities; the digest excludes runtime content. Synthetic replay records the runtime prompt-fingerprint set without adding it to generated content or proposed Ground truth. Fast mocked contract tests run in CI, while live-model evaluations separately measure output-gate recall, quality, cost, and latency. Prompt changes remain human-reviewed and must pass CI gates. Proposals produced by the self-improvement loops in Section 9 enter through this same review-and-CI path; they have no other route into the repository or the running system. The running test deployment, not only unit tests, is used to exercise rejected-draft suppression, output-gate bypass, account isolation, session reset, spoiler filters, forbidden memory requests, and prompt-injection defences.
 
