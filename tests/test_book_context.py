@@ -385,7 +385,9 @@ class BookContextTests(unittest.TestCase):
         self.assertIsNone(review_context["reading_context"])
 
     def test_bare_chapter_answers_a_pending_clarification(self) -> None:
-        for message in ("chapter 2", "Chapter 2."):
+        for message in (
+            "chapter 2", "Chapter 2.", "2", "two", "2nd", "second", "ch 2", "chap two",
+        ):
             with self.subTest(message=message):
                 sessions.set_book_selection(
                     "context-test",
@@ -420,6 +422,20 @@ class BookContextTests(unittest.TestCase):
         )
         self.assertEqual("inferred", context.status)
         self.assertIsNone(context.chapter_max)
+
+    def test_bare_numeral_without_a_pending_clarification_stays_inferred(self) -> None:
+        for message in ("2", "two", "2nd", "second", "ch 2", "chap two"):
+            with self.subTest(message=message):
+                sessions.set_book_selection(
+                    "context-test",
+                    sessions.BookSelection(book_id="pg11", book_title="Alice's Adventures in Wonderland"),
+                )
+                context = resolve_reading_context(
+                    ChatRequest(session_id="context-test", turn_id="turn-1", message=message)
+                )
+                self.assertEqual("inferred", context.status)
+                self.assertIsNone(context.chapter_max)
+                sessions.clear("context-test")
 
     def test_non_answer_chapter_mentions_keep_the_clarification_pending(self) -> None:
         for message in (
