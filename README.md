@@ -185,7 +185,7 @@ source. Each adapter defines source-specific wrappers, headings, and boundaries
 while using the shared renderer, catalogue builder, and integrity checks.
 BM25 paragraph windows, embeddings, and hybrid indexes are derived artifacts.
 
-Verify all checked-in corpora and the runtime registry with:
+Verify the checked-in corpora and runtime registry:
 
 ```bash
 for adapter in alice animal_farm pinocchio douglass story_of_my_life; do
@@ -194,86 +194,51 @@ done
 uv run python -m src.linger.corpus.registry
 ```
 
-The shared command accepts `init`, `build-catalog`, or `check`, with optional
-`--source` and `--output` paths. `init` requires an empty destination;
-`build-catalog` rebuilds only the derived catalogue from reviewed canonical
-metadata. For source-preservation rules, audits, and examples, see
-[canonical corpus formats](docs/corpus/canonical-sections.md).
+See [canonical corpus formats](docs/corpus/canonical-sections.md) for import,
+catalogue rebuild, and validation instructions.
 
-Muse routes a request when the reader's words indicate that it depends on a
-book. An active book selection alone is insufficient. The shared resolver
-matches reviewed names and aliases; ambiguous catalogue words require
-clarification. An indirect book follow-up can use the session's active
-selection, but that selection grants no passage access or reading progress.
+For book questions, Linger uses supported reading progress to limit the passages
+used in its answer. If the book or reading boundary is unclear, Linger asks for
+clarification. Selecting a book alone does not establish reading progress.
+See the [spoiler and routing contract](docs/specification.md#61-spoilers) for details.
 
-For a book request without explicit progress, Librarian privately searches the
-complete selected work with the current Line, relevant account-scoped memories,
-and bounded earlier reader statements. Application code can accept a
-memory-supported chapter ceiling or grant exact paragraphs supported by earlier
-reading statements. A curiosity-only Line grants neither. The second retrieval
-searches only the accepted chapter range or re-fetches the exact granted
-paragraphs, then reviews evidence strength before returning text to Muse.
+## Skills
 
-An unresolved boundary produces an application-owned clarification. A valid
-chapter answer resumes the original book question. See the
-[spoiler and routing contract](docs/specification.md#61-spoilers) for validation
-rules and the distinction between chapter boundaries, exact-passage grants, and
-previously released evidence.
+Ask your coding agent to use these project-local skills:
 
-## Librarian notebook
-
-[`notebooks/librarian_manual_evaluation.ipynb`](notebooks/librarian_manual_evaluation.ipynb)
-supports an editable end-to-end Librarian run and a step-by-step evaluation of
-boundary filtering, keyword and semantic retrieval, fusion, reranking,
-evidence strength, spoiler safety, and citation resolution.
-
-Launch it from the repository root after installing development dependencies:
-
-```bash
-uv run jupyter lab notebooks/librarian_manual_evaluation.ipynb
-```
-
-Full Librarian cells use the model and matching API key configured in `.env`.
+- [Format book corpus](.agents/skills/format-book-corpus/SKILL.md) converts book
+  sources into Linger's canonical Markdown format and validates content integrity.
+- [Generate synthetic journals](.agents/skills/generate-synthetic-journals/SKILL.md)
+  plans evaluation Objectives and prepares a generator prompt without generating data.
+- [Review synthetic Ground truth](.agents/skills/review-synthetic-ground-truth/SKILL.md)
+  guides human review and adoption of proposed Ground truth, then runs a supported
+  replay after confirmation.
 
 ## Evaluation and validation
 
 ### Human-gated synthetic evaluation
 
-The synthetic evaluation workflow keeps planning, generation, Ground truth
-adoption, and execution behind separate human decisions:
+Use the two synthetic evaluation skills to prepare data, review expected results,
+and test Linger's behavior:
 
-1. Configure Logfire as described above, then ask your coding agent to run the
-   [`generate-synthetic-journals`](.agents/skills/generate-synthetic-journals/SKILL.md)
-   skill.
-2. Select one or more evaluation Objectives in the local selector and confirm
-   the selection. The skill writes only `pre-generation-report.md`; confirming
-   the selection does not authorize synthetic-data generation.
-3. Read the report and approve its design and detached generator prompt, request
-   changes, or abandon the attempt. Generate data only after separate approval
-   and only when the prompt is runnable or all named preconditions have been
-   met. The generator writes sibling `backstory.json` and `ground-truth.json`
-   files, and the repository validator checks them.
-4. Ask your coding agent to run the
-   [`review-synthetic-ground-truth`](.agents/skills/review-synthetic-ground-truth/SKILL.md)
-   skill. An independent human reviewer approves or flags every proposed Ground
-   truth row in the local review app.
-5. **Make Changes** stops without adoption or replay. Confirmation writes the
-   sibling `ground-truth-adoption.json`. For an exact supported selection, the
-   skill starts one provider-backed replay. Automatic routing supports capture,
-   bounded curation, session continuity, either book Objective alone, both book
-   Objectives in either order, either connection or weak-evidence Objective
-   alone, and their combination in either order. Other selections stop after
-   adoption.
-6. Inspect the accepted replay in Pydantic Evals and Logfire, and retain the
-   runner's JSON output as the durable evaluation record.
+1. Configure Logfire as described above, then ask your coding agent to use
+   `generate-synthetic-journals`. Select evaluation Objectives to receive a
+   pre-generation report.
+2. Review the report and approve generation when its prerequisites are met.
+   The agent generates and validates the Backstory and proposed Ground truth.
+3. Ask the agent to use `review-synthetic-ground-truth`. Have an independent
+   human reviewer approve or flag each Ground truth row in the review app.
+4. Request changes or confirm adoption. Confirmation starts a replay for
+   supported Objective selections; other selections stop after adoption.
+5. Inspect replay results in Pydantic Evals and Logfire, and keep the JSON output
+   as the evaluation record.
 
-The browser review app never invokes a model or runner. It returns the human
-decision to the coding agent, which validates the adoption and maps a supported
-Objective to its runner. See the
-[`evals/synthetic_journals` guide](evals/synthetic_journals/README.md) for the
-package, review, replay, and telemetry contracts.
+See the [synthetic evaluation guide](evals/synthetic_journals/README.md) for
+supported Objectives and detailed generation, review, and replay instructions.
 
-Run the complete automated suite and frontend gates from the repository root:
+### Automated checks and agent evaluations
+
+Run the tests, frontend lint, and production build from the repository root:
 
 ```bash
 uv run pytest
@@ -282,140 +247,15 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-The evaluation entry points are:
+For individual agent evaluations, follow the relevant guide:
 
-```bash
-# Deterministic five-strategy Librarian benchmark
-uv run python -m evals.librarian.benchmark
+- [Librarian](evals/librarian/README.md): retrieval benchmarks and live validation.
+- [Provenance](evals/provenance/README.md): emotional boundaries and risk classification.
+- [Serendipity](evals/serendipity/README.md): connection discovery and cross-source evaluation.
+- [Synthetic journals](evals/synthetic_journals/README.md): package validation,
+  Ground truth adoption, and replay.
 
-# Provider-backed Librarian release validation
-uv run python -m evals.librarian.live_validation
-
-# Provider-backed emotional-boundary classification
-uv run python -m evals.provenance.emotional_boundary
-
-# Provider-backed Provenance risk-code classification
-uv run python -m evals.provenance.risk_codes --report /tmp/provenance-risk-codes.json
-
-# Provider-backed Serendipity component cases with fixture evidence
-uv run python -m evals.serendipity.runner --output /tmp/serendipity-components.json
-
-# Validate a synthetic package
-uv run python -m evals.synthetic_journals.validate_package \
-  path/to/backstory.json path/to/ground-truth.json
-
-# Review proposed Ground truth and write a hash-bound adoption after confirmation
-uv run python \
-  .agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py \
-  path/to/backstory.json path/to/ground-truth.json \
-  --reviewer-id REVIEWER_ID
-
-# Replay a capture package through the production application chat boundary
-uv run python -m evals.synthetic_journals.replay \
-  path/to/backstory.json \
-  path/to/ground-truth.json \
-  --output /tmp/reviewed-automatic-memory-capture-run.json
-
-# Replay a bounded-curation package through production Sculptor
-uv run python -m evals.synthetic_journals.curation_replay \
-  path/to/backstory.json path/to/ground-truth.json \
-  --output /tmp/bounded-memory-curation-run.json
-
-# Replay grounded reflection, spoiler clarification, or their combined selection
-uv run python -m evals.synthetic_journals.book_replay \
-  path/to/backstory.json path/to/ground-truth.json \
-  --adoption path/to/ground-truth-adoption.json \
-  --output /tmp/book-reflection-spoiler-run.json
-
-# Replay ordered conversation Lines and a fresh-session comparison
-uv run python -m evals.synthetic_journals.continuity_replay \
-  path/to/backstory.json path/to/ground-truth.json \
-  --output /tmp/session-continuity-run.json
-
-# Manually replay weak-evidence reflection Scenes
-uv run python -m evals.synthetic_journals.reflection_replay \
-  path/to/backstory.json path/to/ground-truth.json \
-  --output /tmp/weak-evidence-reflection-run.json
-
-# Evaluate offline Sculptor surfacing decisions over supplied Props
-uv run python -m evals.synthetic_journals.surfacing_replay \
-  path/to/backstory.json path/to/ground-truth.json \
-  --output /tmp/offline-memory-surfacing-run.json
-
-# Manually exercise the cross-source application path
-uv run python -m evals.serendipity.objective_replay \
-  evals/serendipity/objective_cases/cross-source-outside-essay-v1.json \
-  --output /tmp/cross-source-run.json
-```
-
-The Librarian benchmark accepts `--output`, `--repetitions`, `--target-words`,
-and `--overlap-words`. Live Librarian validation accepts repeatable `--case`,
-`--limit`, and `--report`; both Provenance evaluations accept `--report`.
-The Serendipity component runner requires `--output` and accepts `--no-logfire`
-and `--semantic-review`. Book replay also accepts `--semantic-review` for a
-separate model review that does not change deterministic grades.
-Synthetic package validation accepts `--run-configuration-directory`. The
-Ground truth reviewer requires `--reviewer-id`; `--adoption` selects a sibling
-output path, `--ui` selects a built UI directory, and `--timeout` sets the
-loopback review lifetime in seconds. The `evals.synthetic_journals` replay
-commands accept an optional hash-validated `--adoption` and write JSON to stdout
-unless `--output` is supplied. Cross-source `objective_replay` requires
-`--output` and has no adoption option.
-
-Without `--adoption`, replay compares observed hard gates with proposed Ground
-truth. A complete independent adoption changes the dataset identity and grades
-the same gates as adopted Ground truth. Capture replay accepts only the
-`reviewed_automatic_memory_capture` topology; curation replay accepts only
-isolated `bounded_memory_curation` Scenes containing two to twelve active Props
-and no Lines or offline inputs. Book replay compiles `book_scene_facts` and
-`book_expectation` for `grounded_book_reflection`,
-`spoiler_boundary_clarification`, or both in either order. It grades chapter
-boundaries and completed retrieval, including the final released answer's
-declared support. Exact-passage grants are outside that chapter-scoped Objective.
-
-Continuity replay keeps each Scene's ordered Lines in one session and compares
-with a fresh-session Scene. Its adopted grade covers the specified session
-boundary; conversational correction and leakage remain review judgments.
-Reflection replay accepts only `weak_evidence_safe_decline`. Offline surfacing
-replay accepts one offline input per Scene and no Lines, evaluates
-`surface_now`, `defer`, or `do_not_surface`, and leaves Props unchanged.
-
-The conversational `proactive_memory_surfacing` Objective requires reviewed
-capture, triggered curation, and appropriate memory use in a later chat. That
-complete path remains unimplemented. The offline runner measures only its
-decision component. Adopted connection replay runs one Line per fresh-session
-Scene with exact memory, book, and public-source expectations. Its hard checks
-cover source resolution, typed decisions, citations, and release. Semantic
-quality remains a separate review judgment. The manual Serendipity cross-source
-runner exercises ordered Lines through chat and grades the final turn's recorded
-connection events and release inspection; those structural checks do not
-establish an adopted synthetic Objective grade. See
-[`evals/synthetic_journals/README.md`](evals/synthetic_journals/README.md) and
-the README in each `evals/` subdirectory for the complete contracts and
-artifact boundaries.
-
-Every production agent invocation carries a template-specific prompt ID,
-version, and static-artifact digest. Synthetic replay records the complete
-runtime fingerprint set in its durable JSON transcript and uses the separate
-content-bearing `linger-evals` Logfire service. Normal `linger-backend` traffic
-remains metadata-only.
-
-## Project Gutenberg notebook
-
-[`notebooks/project_gutenberg_query_workflow.ipynb`](notebooks/project_gutenberg_query_workflow.ipynb)
-guides an English-only, public-domain selection workflow:
-
-1. Search the catalogue.
-2. Shortlist and profile candidates using configurable word-count limits.
-3. Record a content-versioned manifest.
-
-Launch JupyterLab after installing dependencies:
-
-```bash
-uv run jupyter lab
-```
-
-Open the notebook and run its cells from top to bottom.
+The guides list commands, model configuration, supported cases, and result formats.
 
 ## Repository layout
 
