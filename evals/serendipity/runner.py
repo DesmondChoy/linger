@@ -19,6 +19,7 @@ from pydantic_ai.messages import ToolCallPart
 from pydantic_ai.models import Model
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
+from pydantic_evals.reporting import ReportCaseFailure
 
 from apps.backend.config import get_settings
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
@@ -65,17 +66,26 @@ class CaseRunReport(StrictModel):
     grade: GradeResult
 
 
+class CaseExecutionErrorReport(StrictModel):
+    case_id: str
+    primary_behavior: str
+    contrast_group: str
+    error_message: str
+    trace_id: str | None
+
+
 class SuiteSummary(StrictModel):
     case_count: int
     hard_pass_count: int
     hard_fail_count: int
+    execution_error_count: int
     semantic_pass_count: int
     semantic_fail_count: int
     semantic_not_reviewed_count: int
 
 
 class SuiteRunReport(StrictModel):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     run_id: str
     generated_at: datetime
     dataset_digest: str
@@ -86,7 +96,7 @@ class SuiteRunReport(StrictModel):
     git_revision: str | None
     logfire_trace_id: str | None
     summary: SuiteSummary
-    cases: tuple[CaseRunReport, ...]
+    cases: tuple[CaseRunReport | CaseExecutionErrorReport, ...]
 
 
 class _FixtureLibrarian:
@@ -294,6 +304,40 @@ def _git_revision() -> str | None:
     return completed.stdout.strip() if completed.returncode == 0 else None
 
 
+def _ordered_results(
+    cases: tuple[SerendipityEvalCase, ...],
+    outputs: tuple[CaseRunReport, ...],
+    failures: tuple[
+        ReportCaseFailure[SerendipityEvalCase, CaseRunReport, dict[str, object]],
+        ...,
+    ],
+) -> tuple[CaseRunReport | CaseExecutionErrorReport, ...]:
+    """Preserve dataset order while making captured task errors reportable."""
+    outputs_by_id = {output.case_id: output for output in outputs}
+    failures_by_id = {failure.name: failure for failure in failures}
+    ordered: list[CaseRunReport | CaseExecutionErrorReport] = []
+    for case in cases:
+        output = outputs_by_id.get(case.case_id)
+        failure = failures_by_id.get(case.case_id)
+        if output is not None and failure is not None:
+            raise RuntimeError(f"case produced both an output and failure: {case.case_id}")
+        if output is not None:
+            ordered.append(output)
+            continue
+        if failure is None:
+            raise RuntimeError(f"case produced neither output nor failure: {case.case_id}")
+        ordered.append(
+            CaseExecutionErrorReport(
+                case_id=case.case_id,
+                primary_behavior=case.primary_behavior,
+                contrast_group=case.contrast_group,
+                error_message=failure.error_message,
+                trace_id=failure.trace_id,
+            )
+        )
+    return tuple(ordered)
+
+
 async def run_suite(
     *,
     cases: tuple[SerendipityEvalCase, ...] | None = None,
@@ -351,16 +395,29 @@ async def run_suite(
             "run_id": run_id,
         },
     )
-    by_id = {output.case_id: output for output in outputs}
-    ordered = tuple(by_id[case.case_id] for case in active_cases)
-    semantic_statuses = [output.grade.semantic_grade.status for output in ordered]
+    ordered = _ordered_results(
+        active_cases,
+        tuple(outputs),
+        tuple(eval_report.failures),
+    )
+    completed = tuple(
+        output for output in ordered if isinstance(output, CaseRunReport)
+    )
+    execution_error_count = len(ordered) - len(completed)
+    semantic_statuses = [output.grade.semantic_grade.status for output in completed]
     summary = SuiteSummary(
         case_count=len(ordered),
-        hard_pass_count=sum(output.grade.hard_pass for output in ordered),
-        hard_fail_count=sum(not output.grade.hard_pass for output in ordered),
+        hard_pass_count=sum(output.grade.hard_pass for output in completed),
+        hard_fail_count=(
+            sum(not output.grade.hard_pass for output in completed)
+            + execution_error_count
+        ),
+        execution_error_count=execution_error_count,
         semantic_pass_count=semantic_statuses.count("pass"),
         semantic_fail_count=semantic_statuses.count("fail"),
-        semantic_not_reviewed_count=semantic_statuses.count("not_reviewed"),
+        semantic_not_reviewed_count=(
+            semantic_statuses.count("not_reviewed") + execution_error_count
+        ),
     )
     return SuiteRunReport(
         run_id=run_id,
