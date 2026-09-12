@@ -87,6 +87,51 @@ async def _uncertain_boundary(_message, *, work_id, book_version_id, **_kwargs):
     )
 
 
+_CANDIDATE_QUESTION = (
+    "Have you completed Chapter 9 of Alice's Adventures in Wonderland, "
+    "or are you still earlier in the book?"
+)
+
+
+async def _line_only_boundary(_message, *, work_id, book_version_id, **_kwargs):
+    """Stand in for a Line-only derivation, which retains no candidate."""
+    return BoundaryUncertain(
+        kind="uncertain",
+        work_id=work_id,
+        book_version_id=book_version_id,
+        reason_code="progress_unverified",
+        confidence=0.9,
+        authorization_basis="line_only",
+        candidate_chapter=9,
+        supporting_locations=(BoundarySupportLocation(
+            evidence_id="pg11-v01b38ea4-ch09-ln0001-0002",
+            chapter_number=9,
+            location="Chapter 9",
+        ),),
+        clarification_question=_UNCERTAIN_QUESTION,
+    )
+
+
+async def _candidate_uncertain_boundary(_message, *, work_id, book_version_id, **_kwargs):
+    """Stand in for a memory-supported question that names a candidate chapter."""
+    return BoundaryUncertain(
+        kind="uncertain",
+        work_id=work_id,
+        book_version_id=book_version_id,
+        reason_code="low_confidence",
+        confidence=0.4,
+        authorization_basis="memory_supported",
+        supporting_memory_ids=("memory-alice",),
+        candidate_chapter=9,
+        supporting_locations=(BoundarySupportLocation(
+            evidence_id="pg11-v01b38ea4-ch09-ln0001-0002",
+            chapter_number=9,
+            location="Chapter 9",
+        ),),
+        clarification_question=_CANDIDATE_QUESTION,
+    )
+
+
 class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._settings_patch = patch(
@@ -524,6 +569,47 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Alice's Adventures in Wonderland", second.question)
         self.assertIn("1 to 12", second.question)
         self.assertEqual(first.reason_code, second.reason_code)
+
+    async def test_repeat_line_only_clarification_still_escalates(self) -> None:
+        self._set_session("route-session")
+        self._set_message("Can we talk about Alice's Adventures in Wonderland today?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_uncertain_boundary,
+        ):
+            await librarian_route()
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_line_only_boundary,
+        ):
+            second = await librarian_route()
+
+        assert isinstance(second, ClarificationRequest)
+        self.assertEqual("one_of", second.expected_answer.type)
+        self.assertIn("1 to 12", second.question)
+        self.assertIsNone(sessions.reading_candidate("route-session"))
+
+    async def test_repeat_candidate_clarification_keeps_the_chapter_question(self) -> None:
+        self._set_session("route-session")
+        self._set_message("Can we talk about Alice's Adventures in Wonderland today?")
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_uncertain_boundary,
+        ):
+            await librarian_route()
+        with patch(
+            "src.linger.orchestration.routing.infer_spoiler_boundary",
+            side_effect=_candidate_uncertain_boundary,
+        ):
+            second = await librarian_route()
+
+        assert isinstance(second, ClarificationRequest)
+        self.assertEqual(_CANDIDATE_QUESTION, second.question)
+        self.assertEqual(ExpectedAnswer(type="free_text"), second.expected_answer)
+        candidate = sessions.reading_candidate("route-session")
+        assert candidate is not None
+        self.assertEqual(9, candidate.chapter)
+        self.assertEqual("pg11", candidate.book_id)
 
     async def test_clarification_for_another_book_does_not_escalate(self) -> None:
         settings = Settings(

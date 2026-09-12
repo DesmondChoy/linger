@@ -165,7 +165,13 @@ async def _route_reader_message(
                 )
         if isinstance(boundary, BoundaryUncertain):
             span.set_attribute("tool.status", "clarification")
-            escalate = _repeats_clarification(scope)
+            # A retained candidate keeps its own closed question, and that
+            # stored chapter only answers that exact wording.
+            retains_candidate = (
+                boundary.authorization_basis == "memory_supported"
+                and boundary.candidate_chapter is not None
+            )
+            escalate = not retains_candidate and _repeats_clarification(scope)
             _persist_uncertain_candidate(scope, boundary)
             question = boundary.clarification_question
             expected_answer = ExpectedAnswer(type="free_text")
