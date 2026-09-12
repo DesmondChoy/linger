@@ -55,6 +55,16 @@ class ChapterAnswerTests(unittest.TestCase):
         self.assertIsNone(parse_chapter_answer("1000"))
         self.assertIsNone(parse_chapter_answer("chapter 1000"))
 
+    def test_implausibly_long_digit_runs_are_not_chapter_answers(self) -> None:
+        for message in ("1" * 4301, "1" * 8000):
+            with self.subTest(length=len(message)):
+                self.assertIsNone(parse_chapter_answer(message))
+
+    def test_a_chapter_token_needs_a_separator_before_a_word(self) -> None:
+        for message in ("chapterone", "chsix", "chaptersixth", "chapsix"):
+            with self.subTest(message=message):
+                self.assertIsNone(parse_chapter_answer(message))
+
     def test_progress_statements_are_not_chapter_answers(self) -> None:
         for message in (
             "I'm at chapter 6",
