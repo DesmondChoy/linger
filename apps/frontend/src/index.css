@@ -155,8 +155,31 @@ textarea::placeholder {
 .event-details { padding: 0 0.9rem 0.9rem; }
 .agent-traces { display: grid; gap: 0.35rem; padding-left: 1rem; }
 .agent-traces li { display: grid; grid-template-columns: 6rem 5rem 1fr; gap: 0.4rem; font-size: 0.82rem; }
+
+/* Agent timing and handoffs */
+.agent-timing { margin-top: 0.9rem; }
+.agent-totals { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.7rem 0; padding: 0; list-style: none; }
+.agent-totals li { display: flex; gap: 0.45rem; align-items: baseline; padding: 0.35rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); font-size: 0.8rem; }
+.agent-totals small { color: var(--muted); }
+.agent-total-time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.agent-total-wall { border-style: dashed; background: none; }
+
+.handshake-flow { display: grid; margin: 0.8rem 0 0; padding: 0; list-style: none; overflow: hidden; border: 1px solid var(--border); border-radius: 0.65rem; }
+.handshake-flow li { display: grid; grid-template-columns: 3.5rem minmax(9rem, 0.6fr) minmax(10rem, 1fr) 6rem 4rem; gap: 0.65rem; align-items: center; padding: 0.55rem 0.75rem; background: var(--panel); font-size: 0.8rem; }
+.handshake-flow li + li { border-top: 1px solid var(--border); }
+.handshake-flow li.running { opacity: 0.75; }
+.handshake-pair { color: var(--muted); }
+.progress-time, .progress-duration { color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress-duration { text-align: right; }
+
+.trace-status { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.trace-status.complete { color: var(--accent); }
+.trace-status.running { color: var(--muted); }
+.trace-status.declined, .trace-status.skipped, .trace-status.not_run { color: var(--muted); }
+.trace-status.failed { color: var(--danger); }
+
 .raw-detail { margin-top: 0.65rem; }
-.raw-detail pre { overflow: auto; padding: 0.7rem; border-radius: 0.5rem; background: var(--surface-alt); font-size: 0.75rem; }
+.raw-detail pre { overflow: auto; padding: 0.7rem; border-radius: 0.5rem; background: var(--panel); font-size: 0.75rem; }
 .process-timeline ol { padding: 0; list-style: none; }
 .event-number { display: none; }
 
@@ -274,8 +297,18 @@ textarea::placeholder {
 }
 
 .bubble.thinking {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  justify-content: space-between;
   color: var(--muted);
   font-style: italic;
+}
+
+.bubble.thinking small {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
 .error {

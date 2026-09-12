@@ -20,6 +20,7 @@ from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
+from src.linger.orchestration.progress_context import emit_progress
 
 from .config import get_settings
 from .contracts import EvidenceBundle, LibrarianRequest
@@ -265,6 +266,14 @@ async def run_agent_traced(
     transcript_failure_code: str | None = failure_code
     transcript_sink = active_evaluation_transcript_sink()
     transcript_handle: object | None = None
+    emit_progress(
+        role,
+        stage,
+        "running",
+        f"{role} started {stage}.",
+        input_origin=resolved_input_origin,
+        output_receiver=resolved_output_receiver,
+    )
     with logfire.span(
         span_name,
         **agent_attrs(
@@ -350,6 +359,15 @@ async def run_agent_traced(
             status=transcript_status,
             failure_code=transcript_failure_code,
         )
+
+    emit_progress(
+        role,
+        stage,
+        "complete" if transcript_status == "success" else "failed",
+        f"{role} finished {stage}.",
+        input_origin=resolved_input_origin,
+        output_receiver=resolved_output_receiver,
+    )
 
     if cancelled:
         raise asyncio.CancelledError

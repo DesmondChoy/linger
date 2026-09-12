@@ -1,10 +1,16 @@
 """FastAPI transport adapter for the Linger chat application."""
 
 import asyncio
+import json
+from collections.abc import AsyncIterator
+from contextlib import suppress
+from dataclasses import asdict
+from time import perf_counter
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 # Configure the exporter before application-owned spans can be created.
 from .telemetry import configure_telemetry, record_failure, set_span_attrs
@@ -22,6 +28,11 @@ from . import sessions  # noqa: E402
 from .chat_turn import ChatTurnError, run_chat_turn  # noqa: E402
 from .config import REPO_ROOT, get_settings  # noqa: E402
 from .logger import configure_logging  # noqa: E402
+from src.linger.orchestration.progress_context import (  # noqa: E402
+    ProgressEvent,
+    begin_progress,
+    reset_progress,
+)
 from .library import router as library_router  # noqa: E402
 from .schemas import ChatRequest, ChatResponse  # noqa: E402
 
@@ -142,6 +153,105 @@ async def chat(
         ) from None
     assert response is not None
     return response
+
+
+def _sse(event: str, payload: dict[str, object]) -> str:
+    return f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _error_payload(detail: object) -> dict[str, object]:
+    """Reuse the atomic endpoint's error contract, including any trace."""
+    if isinstance(detail, dict):
+        return {
+            "detail": detail.get("message", "The request failed."),
+            "trace": detail.get("trace"),
+        }
+    if isinstance(detail, str):
+        return {"detail": detail, "trace": None}
+    return {"detail": "The request failed.", "trace": None}
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(
+    request: ChatRequest,
+    service: MemoryServiceDependency,
+    context: MemoryContextDependency,
+) -> StreamingResponse:
+    """Stream content-free progress, then the same atomic ChatResponse."""
+
+    async def events() -> AsyncIterator[str]:
+        queue: asyncio.Queue[tuple[str, dict[str, object]]] = asyncio.Queue()
+        stream_started = perf_counter()
+        sequence = 0
+
+        def enqueue_progress(progress: ProgressEvent) -> None:
+            nonlocal sequence
+            sequence += 1
+            payload: dict[str, object] = dict(asdict(progress))
+            payload.update(
+                {
+                    "sequence": sequence,
+                    "elapsed_ms": round((perf_counter() - stream_started) * 1_000),
+                }
+            )
+            queue.put_nowait(("progress", payload))
+
+        def publish(progress: ProgressEvent) -> None:
+            # Synchronous tools may execute in a worker thread. Preserve event
+            # ordering by handing their metadata back to this request's loop.
+            try:
+                current_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                current_loop = None
+            if current_loop is loop:
+                enqueue_progress(progress)
+            else:
+                loop.call_soon_threadsafe(enqueue_progress, progress)
+
+        async def run() -> None:
+            token = begin_progress(publish)
+            try:
+                response = await chat(request, service, context)
+            except asyncio.CancelledError:
+                raise
+            except HTTPException as exc:
+                queue.put_nowait(("error", _error_payload(exc.detail)))
+            except Exception:
+                queue.put_nowait(
+                    ("error", {"detail": "The model call failed. Try again.", "trace": None})
+                )
+            else:
+                queue.put_nowait(("result", response.model_dump(mode="json")))
+            finally:
+                reset_progress(token)
+                queue.put_nowait(("done", {}))
+
+        loop = asyncio.get_running_loop()
+        task = asyncio.create_task(run())
+        try:
+            while True:
+                try:
+                    event, payload = await asyncio.wait_for(queue.get(), timeout=15)
+                except TimeoutError:
+                    yield ": keep-alive\n\n"
+                    continue
+                if event == "done":
+                    break
+                yield _sse(event, payload)
+        finally:
+            if not task.done():
+                task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.delete("/api/sessions/{session_id}", status_code=204)

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ChatRequestError, resetSession, sendMessage } from '../api'
 import type {
-  ChatResult,
   MemoryCaptureNotice,
   Message,
+  ProgressEvent,
   TraceReference,
+  TurnRecord,
 } from '../types'
 import { Composer } from './Composer'
 import { Inspector } from './Inspector'
@@ -15,9 +16,10 @@ export function Chat() {
   // One session per page load. Reloading starts a fresh conversation.
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
   const [messages, setMessages] = useState<Message[]>([])
-  const [timeline, setTimeline] = useState<ChatResult[]>([])
+  const [timeline, setTimeline] = useState<TurnRecord[]>([])
   const [view, setView] = useState<'chat' | 'inspect'>('chat')
   const [pending, setPending] = useState(false)
+  const [progress, setProgress] = useState<ProgressEvent[]>([])
   const [error, setError] = useState<string | null>(null)
   const [errorTrace, setErrorTrace] = useState<TraceReference | null>(null)
   const [captureNotice, setCaptureNotice] = useState<MemoryCaptureNotice | null>(null)
@@ -32,14 +34,22 @@ export function Chat() {
     setPending(true)
     setError(null)
     setErrorTrace(null)
+    setProgress([])
+
+    // Collected locally as well as in state so the finished turn keeps every
+    // event even if the last render has not flushed yet.
+    const observed: ProgressEvent[] = []
 
     try {
-      const result = await sendMessage(sessionId, text, turnId)
+      const result = await sendMessage(sessionId, text, turnId, (event) => {
+        observed.push(event)
+        setProgress((current) => [...current, event])
+      })
       setMessages((current) => [
         ...current.slice(0, -1),
         { ...current[current.length - 1], content: result.reply },
       ])
-      setTimeline((current) => [...current, result])
+      setTimeline((current) => [...current, { ...result, progress: observed }])
       setCaptureNotice(result.memory_capture)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Something went wrong.')
@@ -57,6 +67,7 @@ export function Chat() {
     setSessionId(crypto.randomUUID())
     setMessages([])
     setTimeline([])
+    setProgress([])
     setError(null)
     setErrorTrace(null)
     setCaptureNotice(null)
@@ -91,7 +102,11 @@ export function Chat() {
         </header>
 
         {view === 'chat' ? <>
-          <MessageList messages={messages} pending={pending} />
+          <MessageList
+            messages={messages}
+            pending={pending}
+            progress={progress[progress.length - 1]}
+          />
           {captureNotice && (
             <p className="notice">
               <span>{captureNotice.notice}</span>
