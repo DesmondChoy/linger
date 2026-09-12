@@ -99,9 +99,16 @@ TITLE_PREFIX_PATTERN = re.compile(
     r"\b(?:i(?:'m| am)\s+)?(?:reading|read(?!\s+through\b))\s+(?P<title>.+)$",
     re.IGNORECASE,
 )
-TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
+TITLE_SUFFIX_PATTERN = re.compile(
+    r"^\s+(?:of|in|from)\s+(?P<title>[^.!?]+)",
+    re.IGNORECASE,
+)
+SCENE_AND_TITLE_SUFFIX_PATTERN = re.compile(
+    r"^\s*,\s*[^.!?]+?,\s*(?:in|from)\s+(?P<title>[^.!?]+)",
+    re.IGNORECASE,
+)
 TITLE_END_PATTERN = re.compile(
-    r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
+    r"\s*(?:[,;]|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on)\b)",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(
@@ -124,7 +131,10 @@ AFFIRMATION_PATTERN = re.compile(
 
 def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | None:
     if chapter_match:
-        title_match = TITLE_SUFFIX_PATTERN.match(message[chapter_match.end():])
+        suffix = message[chapter_match.end():]
+        title_match = TITLE_SUFFIX_PATTERN.match(suffix)
+        if title_match is None:
+            title_match = SCENE_AND_TITLE_SUFFIX_PATTERN.match(suffix)
         if title_match is None:
             title_match = TITLE_PREFIX_PATTERN.search(message[:chapter_match.start()])
     else:
@@ -135,6 +145,17 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
         " \"'“”.,:;"
     )
     return title or None
+
+
+def _sentence_containing(message: str, match: re.Match[str]) -> str:
+    """Return the sentence that contains a matched progress declaration."""
+    start = max(message.rfind(mark, 0, match.start()) for mark in ".!?") + 1
+    endings = tuple(
+        index for mark in ".!?"
+        if (index := message.find(mark, match.end())) >= 0
+    )
+    end = min(endings) + 1 if endings else len(message)
+    return message[start:end]
 
 
 def resolve_reading_context(request: ChatRequest) -> ContextResolution:
@@ -170,9 +191,23 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
 
     chapter_match = CHAPTER_PATTERN.search(request.message)
     explicit_title = _declared_title(request.message, chapter_match)
-    identity = resolve_book_identity(
-        explicit_title or request.message, settings.allowed_book_version_ids, exact=True
+    identity = (
+        resolve_book_identity(
+            explicit_title, settings.allowed_book_version_ids, exact=True
+        )
+        if explicit_title else None
     )
+    if identity is None and completed and chapter_match:
+        # A declared title can still carry trailing prose the patterns cannot
+        # trim, so fall back to the sentence holding the progress declaration.
+        identity = resolve_book_identity(
+            _sentence_containing(request.message, chapter_match),
+            settings.allowed_book_version_ids,
+        )
+    elif identity is None and not explicit_title:
+        identity = resolve_book_identity(
+            request.message, settings.allowed_book_version_ids, exact=True
+        )
     if explicit_title or identity is not None:
         if not isinstance(identity, ResolvedBook):
             sessions.clear_book_selection(request.session_id)
