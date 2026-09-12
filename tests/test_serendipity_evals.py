@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from pydantic_evals.reporting import ReportCaseFailure
 
 from evals.serendipity.harness import (
     REQUIRED_BEHAVIORS,
@@ -19,7 +20,7 @@ from evals.serendipity.harness import (
     grade_serendipity_run,
     load_serendipity_eval_cases,
 )
-from evals.serendipity.runner import run_case
+from evals.serendipity.runner import CaseExecutionErrorReport, _ordered_results, run_case
 from evals.serendipity.objective_replay import (
     CrossSourceReplayCase,
     grade_cross_source_response,
@@ -191,6 +192,25 @@ class SerendipityEvalContractTests(unittest.TestCase):
 
 
 class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
+    def test_suite_report_preserves_captured_case_execution_errors(self) -> None:
+        case = load_serendipity_eval_cases()[0]
+        failure = ReportCaseFailure(
+            name=case.case_id,
+            inputs=case,
+            metadata=None,
+            expected_output=None,
+            error_message="ModelHTTPError: provider unavailable",
+            error_stacktrace="synthetic traceback",
+            trace_id="1" * 32,
+        )
+
+        ordered = _ordered_results((case,), (), (failure,))
+
+        self.assertEqual(1, len(ordered))
+        self.assertIsInstance(ordered[0], CaseExecutionErrorReport)
+        self.assertEqual(case.case_id, ordered[0].case_id)
+        self.assertEqual("ModelHTTPError: provider unavailable", ordered[0].error_message)
+
     async def test_runner_executes_production_agent_with_fixture_librarian(self) -> None:
         case = next(
             item
