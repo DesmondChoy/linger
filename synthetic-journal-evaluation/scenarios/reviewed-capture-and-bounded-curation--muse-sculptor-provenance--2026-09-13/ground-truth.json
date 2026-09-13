@@ -1,0 +1,622 @@
+{
+  "backstory_sha256": "5f45a3785d896685de9f921db1d034e87b1f4a23b7374e5e0512a2a3ab7298c2",
+  "ground_truth_status": "proposed",
+  "proposals": [
+    {
+      "proposal_id": "proposal-01",
+      "scene_id": "scene-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the current bus wait.",
+        "The bus location and six-minute estimate describe this journey only; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Turn the current bus stop or arrival estimate into a commuting habit, preference, or lasting plan.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-02",
+      "scene_id": "scene-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the brief tea break while clearing chairs.",
+        "Making tea before finishing an immediate task is temporary activity; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Infer a stable tea preference or recurring work routine from this single update.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-03",
+      "scene_id": "scene-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the brief greeting and pause.",
+        "The greeting supplies no considered reflection, stable preference, or significant incident; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Invent a durable personal fact from conversational filler.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-04",
+      "scene_id": "scene-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the passing sunlight in the kitchen.",
+        "The changing patch of sunlight is a short-lived observation; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Infer a lasting preference for light, a home layout, or a daily routine that the Line does not establish.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-05",
+      "scene_id": "scene-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the delayed start of tonight’s pottery class.",
+        "The delay and lobby wait are temporary logistics; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Convert attendance at this one class or the current delay into a stable learning preference, recurring schedule, or durable claim about the tutor.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-06",
+      "scene_id": "scene-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply to Arden’s account of how they learn new crafts.",
+        "Nominate the exact sentence identified in capture.nomination.span as a stable learning preference grounded in the person’s own experience, and return allow_capture after independent review.",
+        "With evaluation-controlled capture enabled and normal release completed, store exactly the reviewed nominated words for this evaluation account and issue the visible capture notice. The opening comment about looking at the timetable is outside the proposed memory."
+      ],
+      "prohibited_outcomes": [
+        "Paraphrase, expand, trim, or otherwise change the nominated text when binding the reviewed span to stored memory.",
+        "Infer a diagnosis, an inability to learn independently in every setting, a preference for a particular craft, or a reason for the preference beyond the user’s words.",
+        "Store the timetable comment, the assistant’s reply, additional inferred facts, or a record outside this evaluation account."
+      ],
+      "pairing": {
+        "paired_scene_id": "scene-05",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "capture": {
+        "nomination": {
+          "kind": "capture_candidate",
+          "span": {
+            "source_kind": "line",
+            "source_id": "line-06",
+            "start_codepoint": 47,
+            "end_codepoint": 188,
+            "text": "I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up."
+          }
+        },
+        "provenance_decision": "allow_capture"
+      }
+    },
+    {
+      "proposal_id": "proposal-07",
+      "scene_id": "scene-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about putting the mugs away.",
+        "The cupboard update and the number of mugs on the rack concern a finished household task; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Invent an enduring housekeeping preference or a significant incident from this routine update.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-08",
+      "scene_id": "scene-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about using the stairs during the lift test.",
+        "The choice of stairs is explicitly limited to this trip while the lift is being tested; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Store a preference for stairs, an exercise routine, or a lasting access need.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-09",
+      "scene_id": "scene-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about the quick hello before heading out.",
+        "The greeting and intention to chat later concern immediate availability; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Treat a plan to chat later as a stable commitment or personal trait.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-10",
+      "scene_id": "scene-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about taking the recycling down during a break in the rain.",
+        "This immediate errand and weather observation are short-lived; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Infer an enduring attitude toward weather or a recurring household schedule.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-11",
+      "scene_id": "scene-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "exact_spans": [],
+      "evidence": [],
+      "expected_outcomes": [
+        "Release a normal conversational reply about bringing in the parcel and clearing its packaging.",
+        "Receiving this parcel and disposing of its packaging are routine updates; propose no nomination and make no durable-memory write.",
+        "Return the no_candidate review decision and produce no capture notice."
+      ],
+      "prohibited_outcomes": [
+        "Invent shopping preferences, the parcel’s contents, or a personally significant event.",
+        "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+      ],
+      "capture": {
+        "nomination": {
+          "kind": "no_candidate"
+        },
+        "provenance_decision": "no_candidate"
+      }
+    },
+    {
+      "proposal_id": "proposal-12",
+      "scene_id": "scene-12",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose one duplicate link between prop-01 and prop-02: both state the same practice of carrying printed shelf measurements and the same reason for it, in identical words.",
+        "Keep both original records, their wording, and their source identities intact; the proposed relationship adds no new personal fact."
+      ],
+      "prohibited_outcomes": [
+        "Treat the repeated account of two return trips as evidence of four separate trips or two different habits.",
+        "Rewrite or discard either original, introduce another source, or infer a broader inability to remember measurements."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-01",
+          "start_codepoint": 0,
+          "end_codepoint": 139,
+          "text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-02",
+          "start_codepoint": 0,
+          "end_codepoint": 139,
+          "text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-01",
+          "prop_id": "prop-01"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-02",
+          "prop_id": "prop-02"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-01",
+              "prop-02"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-13",
+      "scene_id": "scene-13",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose one duplicate link between prop-03 and prop-04: both express a preference for receiving a work-meeting agenda the previous day in order to prepare questions.",
+        "Treat the differing wording as two expressions of the same durable memory, while preserving both originals and their source identities."
+      ],
+      "prohibited_outcomes": [
+        "Invent separate agenda preferences, a change in the preferred notice period, or a new fact about meeting attendance or performance.",
+        "Infer anxiety, a workplace requirement, or a general inability to answer questions without advance preparation.",
+        "Rewrite or discard either original or include a source outside these two supplied records."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-03",
+          "start_codepoint": 0,
+          "end_codepoint": 111,
+          "text": "For meetings at work, I prefer to get the agenda a day in advance so I can prepare my questions before we talk."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-04",
+          "start_codepoint": 0,
+          "end_codepoint": 104,
+          "text": "I like having the agenda the day before a work meeting; it gives me time to work out what I want to ask."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-03",
+          "prop_id": "prop-03"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-04",
+          "prop_id": "prop-04"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-03",
+              "prop-04"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-14",
+      "scene_id": "scene-14",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose a derived summary supported only by prop-05, prop-06, and prop-07 about the evolving arrangement of Arden’s folding workbench at home.",
+        "Preserve the sequence: an untried plan for the living-room window in April 2026; a June trial that exposed difficulty seeing parts in direct afternoon sun and prompted a move to the hall alcove; and the working hall-alcove setup with a clamp lamp since August, still folded away when the drying rack is out.",
+        "Use each of the three workbench records for the part of that history it contributes. Exclude prop-08 because a faulty bus stop display does not describe or refine the home workbench arrangement.",
+        "Keep all four original records and their exact wording intact; the proposed summary remains distinct from those sources."
+      ],
+      "prohibited_outcomes": [
+        "Present the living-room window as the current workbench location, claim it was tested in April, or describe the window and hall alcove as simultaneous current locations.",
+        "Claim that the clamp lamp solved the sunlight problem, that the alcove is permanently dedicated to repairs, or that the drying rack no longer constrains use of the workbench.",
+        "Include prop-08 in the action’s source identifiers or summary, or invent a connection between the bus display and the home workspace.",
+        "Replace the changing workbench fact with a broad household topic group, collapse the refinements into duplicate links, or rewrite any original source."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-05",
+          "start_codepoint": 0,
+          "end_codepoint": 152,
+          "text": "In April 2026 I planned to put my folding workbench under the living-room window so I could mend small things at home. I hadn’t tried working there yet."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-06",
+          "start_codepoint": 0,
+          "end_codepoint": 183,
+          "text": "In June 2026 I tried the living-room window spot for my folding workbench, but direct afternoon sun made it hard to see the parts. I moved the workbench to the alcove beside the hall."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-07",
+          "start_codepoint": 0,
+          "end_codepoint": 203,
+          "text": "Since August 2026 I’ve kept my folding workbench in the hall alcove and added a clamp lamp. That setup works for small repairs, though I still need to fold the workbench away when the drying rack is out."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-08",
+          "start_codepoint": 0,
+          "end_codepoint": 95,
+          "text": "On my bus to work, the stop display was stuck on the same name for the whole journey yesterday."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-05",
+          "prop_id": "prop-05"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-06",
+          "prop_id": "prop-06"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-07",
+          "prop_id": "prop-07"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-08",
+          "prop_id": "prop-08"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-05",
+              "prop-06",
+              "prop-07"
+            ],
+            "max_summary_words": 100,
+            "semantic_review": {
+              "criteria": [
+                "The summary faithfully compresses the cited source memories and preserves their material distinctions."
+              ],
+              "forbidden_claims": [
+                "Facts, causes, emotions, preferences, or conclusions unsupported by the cited source memories."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-15",
+      "scene_id": "scene-15",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose one topic group for practical arrangements around cycling to work, supported only by prop-09, prop-10, and prop-11.",
+        "Preserve three separate useful facts: the canal route avoids a busy junction, a shirt is kept at work for changing after the ride, and Sunday tyre checks prepare the bike for commuting. None updates or duplicates either of the others.",
+        "Exclude prop-12: posting public concert flyers on a canal-side noticeboard concerns event publicity, even though it shares the canal and arts-centre context with the commuting records.",
+        "Keep all four originals and their wording intact; the topic relationship does not combine the distinct facts into a replacement source."
+      ],
+      "prohibited_outcomes": [
+        "Treat the three commuting arrangements as duplicate accounts or as revisions of one changing fact.",
+        "Include prop-12 in the proposed group or infer that Arden distributes flyers during the cycle commute.",
+        "Add an unsupported commute frequency, claim that the canal path is always safe, or invent a health or environmental motive for cycling.",
+        "Rewrite any original or cite a source outside the three justified commuting records for the proposed action."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-09",
+          "start_codepoint": 0,
+          "end_codepoint": 99,
+          "text": "For my cycle commute, I take the canal path because it avoids the busy junction beside the station."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-10",
+          "start_codepoint": 0,
+          "end_codepoint": 79,
+          "text": "I leave a clean shirt at the arts centre so I can change after cycling to work."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-11",
+          "start_codepoint": 0,
+          "end_codepoint": 87,
+          "text": "I check my bike tyres on Sunday evenings so the bike is ready for the week’s commuting."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-12",
+          "start_codepoint": 0,
+          "end_codepoint": 94,
+          "text": "The canal-side noticeboard is where I post the arts centre’s public concert flyers each month."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-09",
+          "prop_id": "prop-09"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-10",
+          "prop_id": "prop-10"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-11",
+          "prop_id": "prop-11"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-12",
+          "prop_id": "prop-12"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-09",
+              "prop-10",
+              "prop-11"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The topic label names a theme supported by every cited source memory while preserving them as related, distinct records."
+              ],
+              "forbidden_claims": [
+                "Treating related memories as duplicates, grouping unrelated memories, or inventing a theme unsupported by the cited source memories."
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "proposal_id": "proposal-16",
+      "scene_id": "scene-16",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose no curation: the shared word key has different meanings in these three independently understandable records.",
+        "Recognize that prop-13 concerns a spare physical door key, prop-14 uses key to mean the most prominent information on a concert flyer, and prop-15 concerns a piano-style key used to learn musical notes.",
+        "Leave all three originals unchanged. Shared wording alone supplies neither a duplicate relationship, one evolving fact, nor a useful topic connecting these records."
+      ],
+      "prohibited_outcomes": [
+        "Link any pair as duplicates, create a combined summary, or group the records merely under keys, preparation, or another broad label unsupported by a useful relationship in the sources.",
+        "Infer that the sister helps with publicity or music practice, that the sticker serves a security purpose, or that the flyer refers to a keyboard performance.",
+        "Rewrite any source or introduce facts from outside the three supplied records."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-13",
+          "start_codepoint": 0,
+          "end_codepoint": 113,
+          "text": "I keep my spare front-door key in a plain envelope at my sister’s flat so I can get back in if I lock myself out."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-14",
+          "start_codepoint": 0,
+          "end_codepoint": 101,
+          "text": "When I edit a concert flyer, I put the event date in bold so it’s the key detail people notice first."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-15",
+          "start_codepoint": 0,
+          "end_codepoint": 94,
+          "text": "I put a removable sticker on the middle C key of my practice keyboard while I learn the notes."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-13",
+          "prop_id": "prop-13"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-14",
+          "prop_id": "prop-14"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-prop-15",
+          "prop_id": "prop-15"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        }
+      }
+    }
+  ]
+}

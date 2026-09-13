@@ -1,0 +1,518 @@
+{
+  "objective_ids": [
+    "reviewed_automatic_memory_capture",
+    "bounded_memory_curation"
+  ],
+  "run_configuration_ids": [
+    "reviewed-automatic-memory-capture-10-to-1"
+  ],
+  "backstory": {
+    "backstory_id": "backstory-arden-20260913",
+    "person_id": "person-arden",
+    "evaluation_account_id": "evaluation-arden-20260913",
+    "context": "Arden is a fictional person who coordinates events at a neighbourhood arts centre and rents a flat nearby. Outside work, Arden cycles, tries practical hobbies, and does small household repairs. Earlier conversations over several months have covered everyday arrangements, ways of learning, and changes to the space available at home. Arden sometimes returns to the same observation without adding anything, and sometimes revises an earlier plan after trying it. The brief conversations here occur on separate days during ordinary work breaks and errands in late summer 2026. The earlier source records are separate remarks from that accumulated history; their wording stands on its own. This authoring context is never supplied to the running system."
+  },
+  "props": [
+    {
+      "prop_id": "prop-01",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-12",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-02",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-12",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-03",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "For meetings at work, I prefer to get the agenda a day in advance so I can prepare my questions before we talk.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-13",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-04",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I like having the agenda the day before a work meeting; it gives me time to work out what I want to ask.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-13",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-05",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "In April 2026 I planned to put my folding workbench under the living-room window so I could mend small things at home. I hadn’t tried working there yet.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-14",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-06",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "In June 2026 I tried the living-room window spot for my folding workbench, but direct afternoon sun made it hard to see the parts. I moved the workbench to the alcove beside the hall.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-14",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-07",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "Since August 2026 I’ve kept my folding workbench in the hall alcove and added a clamp lamp. That setup works for small repairs, though I still need to fold the workbench away when the drying rack is out.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-14",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-08",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "On my bus to work, the stop display was stuck on the same name for the whole journey yesterday.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-14",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-09",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "For my cycle commute, I take the canal path because it avoids the busy junction beside the station.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-15",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-10",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I leave a clean shirt at the arts centre so I can change after cycling to work.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-15",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-11",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I check my bike tyres on Sunday evenings so the bike is ready for the week’s commuting.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-15",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-12",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "The canal-side noticeboard is where I post the arts centre’s public concert flyers each month.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-15",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-13",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I keep my spare front-door key in a plain envelope at my sister’s flat so I can get back in if I lock myself out.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-16",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-14",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "When I edit a concert flyer, I put the event date in bold so it’s the key detail people notice first.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-16",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-15",
+      "backstory_id": "backstory-arden-20260913",
+      "person_id": "person-arden",
+      "evaluation_account_id": "evaluation-arden-20260913",
+      "source_text": "I put a removable sticker on the middle C key of my practice keyboard while I learn the notes.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-16",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-01",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-01"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-02",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-02"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-03",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-03"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-04",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-04"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-05",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 5,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-05"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-06",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 6,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-06"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-07",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 7,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-07"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-08",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 8,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-08"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-09",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 9,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-09"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-10",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 10,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-10"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-11",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture"
+      ],
+      "order": 11,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-11"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-12",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 12,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-01",
+        "prop-02"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-13",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 13,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-03",
+        "prop-04"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-14",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 14,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-05",
+        "prop-06",
+        "prop-07",
+        "prop-08"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-15",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 15,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-09",
+        "prop-10",
+        "prop-11",
+        "prop-12"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-16",
+      "backstory_id": "backstory-arden-20260913",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "order": 16,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-13",
+        "prop-14",
+        "prop-15"
+      ],
+      "line_ids": [],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-01",
+      "scene_id": "scene-01",
+      "order": 1,
+      "text": "I’m waiting for the bus outside the arts centre. The next one is showing six minutes, so I’ve got a little time."
+    },
+    {
+      "line_id": "line-02",
+      "scene_id": "scene-02",
+      "order": 1,
+      "text": "The kettle just clicked off. I’m making a cup of tea before I finish putting the chairs away."
+    },
+    {
+      "line_id": "line-03",
+      "scene_id": "scene-03",
+      "order": 1,
+      "text": "Hi, I’m here. I don’t have much to say yet, just taking a quick break."
+    },
+    {
+      "line_id": "line-04",
+      "scene_id": "scene-04",
+      "order": 1,
+      "text": "There’s a patch of sunlight right across the kitchen floor this morning. It’s already moved past the table."
+    },
+    {
+      "line_id": "line-05",
+      "scene_id": "scene-05",
+      "order": 1,
+      "text": "The pottery class starts half an hour later tonight because the tutor’s train is delayed. I’m waiting in the lobby until the room opens."
+    },
+    {
+      "line_id": "line-06",
+      "scene_id": "scene-06",
+      "order": 1,
+      "text": "I was looking at the class timetable just now. I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up."
+    },
+    {
+      "line_id": "line-07",
+      "scene_id": "scene-07",
+      "order": 1,
+      "text": "I’ve just put the clean mugs back in the cupboard. There were more on the drying rack than I expected."
+    },
+    {
+      "line_id": "line-08",
+      "scene_id": "scene-08",
+      "order": 1,
+      "text": "The lift is being tested this afternoon, so I’m using the stairs for this one trip down."
+    },
+    {
+      "line_id": "line-09",
+      "scene_id": "scene-09",
+      "order": 1,
+      "text": "Just a quick hello before I head out. I’ll have more time to chat later."
+    },
+    {
+      "line_id": "line-10",
+      "scene_id": "scene-10",
+      "order": 1,
+      "text": "The rain’s stopped for the moment. I’m going to take the recycling downstairs before it starts again."
+    },
+    {
+      "line_id": "line-11",
+      "scene_id": "scene-11",
+      "order": 1,
+      "text": "My parcel arrived a few minutes ago. I’ve taken it in from the doorstep and put the packaging in the recycling."
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}
