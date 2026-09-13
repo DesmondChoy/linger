@@ -993,14 +993,20 @@ The end-to-end workflow has distinct human gates:
    requests changes, or abandons the attempt.
 4. Only a separate approval authorizes a generator to write sibling
    `backstory.json` and `ground-truth.json`; the repository validator then
-   checks the scenario. The project has no reusable generation service.
+   checks the scenario. Curation authoring omits evaluator-owned action fields
+   `max_summary_words` and `semantic_review`. The deterministic
+   `complete_curation_ground_truth` command supplies them in the existing schema
+   and validates the completed files before review. It rejects supplied
+   evaluator settings and refuses to modify an adopted Scenario. The project
+   has no reusable generation service.
 5. The developer invokes `review-synthetic-ground-truth`. An independent human
    reviewer approves or flags every proposed Ground truth row.
 6. A change request writes no adoption and invokes no runtime. Confirmation
    writes sibling `ground-truth-adoption.json`. For an exact supported selection,
    the agent validates the adoption and starts one provider-backed replay. The
    supported complete selections are reviewed automatic capture, bounded memory
-   curation, session continuity, either book Objective alone, both book
+   curation, their combined selection in either order, session continuity,
+   either book Objective alone, both book
    Objectives in either order, either connection or weak-evidence Objective
    alone, and their combination in either order. Surfacing is not registered
    for automatic replay because its existing runner covers only the offline
@@ -1078,6 +1084,29 @@ adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
 identity covers the configured model and every deployed prompt fingerprint for
 lineage, while `objective_execution` covers the configured model, Sculptor
 prompt, and active curation contracts for behavioral comparison.
+
+The combined `capture_curation_replay` runner accepts exactly reviewed automatic
+capture and bounded memory curation, in either selection order. It executes
+each Scene in its declared order using the existing production chat or curation
+proposal handler. Capture Scenes have one fresh-session Line and no Props.
+Curation Scenes receive only their designated active Props and contain no
+Lines. The capture preset validates its own Scenes, so its prohibition on Props
+does not exclude Props belonging to separate curation Scenes. The existing
+five-behavior curation contract still applies.
+
+The combined run retains the original Backstory hash, adoption identity, and
+Scene identifiers. Both paths use one isolated evaluation account. Curation
+Props do not enter capture storage, and captured records do not become curation
+inputs. Curation remains a proposal-quality and source-preservation evaluation;
+this combination does not implement the conversational target in Section 4.2.5.
+
+For newly authored curation Ground truth, repository code owns the summary
+length limit and generic semantic-review criteria. The generator supplies only
+candidate relationships, exact source spans, and expected or prohibited
+outcomes. Completion fills omitted evaluator fields without changing the final
+schema or the candidate labels. The independent reviewer sees the completed
+Ground truth before adopting its exact bytes. Existing adopted files retain
+their original settings and hashes.
 
 The adopted `proactive_memory_surfacing` Objective evaluates the conversational
 sequence in Section 4.2.5. Earlier Props establish a preference, a natural Line

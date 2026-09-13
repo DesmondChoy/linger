@@ -60,6 +60,13 @@ explains the provider-backed side effect.
 - For exactly `bounded_memory_curation`, run
   `evals.synthetic_journals.curation_replay` with `--adoption` and a fresh
   temporary output path.
+- For exactly `reviewed_automatic_memory_capture` and
+  `bounded_memory_curation`, in either order, run
+  `evals.synthetic_journals.capture_curation_replay` with `--adoption` and a
+  fresh temporary output path. It preserves the original Scenario and adoption
+  identities while dispatching separate capture and Props-only curation Scenes.
+  Curation evaluates proposals and source preservation, not applied changes or
+  capture-produced upstream memories.
 - For `proactive_memory_surfacing`, stop after adoption. Its adopted target
   includes conversational capture, curation, and later memory-backed release;
   no complete replay is implemented. Existing offline scenarios may still be

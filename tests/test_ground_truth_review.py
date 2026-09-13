@@ -555,6 +555,14 @@ def test_connection_review_shows_complete_source_setup_and_labels(
     [
         (("reviewed_automatic_memory_capture",), "evals.synthetic_journals.replay"),
         (("bounded_memory_curation",), "evals.synthetic_journals.curation_replay"),
+        (
+            ("reviewed_automatic_memory_capture", "bounded_memory_curation"),
+            "evals.synthetic_journals.capture_curation_replay",
+        ),
+        (
+            ("bounded_memory_curation", "reviewed_automatic_memory_capture"),
+            "evals.synthetic_journals.capture_curation_replay",
+        ),
         (("cross_source_tentative_connection",), "evals.synthetic_journals.connection_replay"),
         (("weak_evidence_safe_decline",), "evals.synthetic_journals.connection_replay"),
         (
@@ -599,6 +607,38 @@ def test_replay_selection_rejects_unknown_and_mixed_sets() -> None:
     assert replay_support_for(
         ("grounded_book_reflection", "weak_evidence_safe_decline")
     ) is None
+
+
+def test_combined_authoring_completion_reaches_review_with_original_identity(
+    tmp_path: Path, built_ui: Path,
+) -> None:
+    from evals.synthetic_journals.complete_curation_ground_truth import main as complete
+    from tests.test_synthetic_capture_curation_replay import _combined_documents
+
+    document, ground_truth, backstory_bytes = _combined_documents()
+    for proposal in ground_truth["proposals"]:
+        action = (proposal.get("curation") or {}).get("expected", {}).get("action", {})
+        action.pop("max_summary_words", None)
+        action.pop("semantic_review", None)
+    scenario = tmp_path / "combined"
+    scenario.mkdir()
+    backstory_path = scenario / "backstory.json"
+    ground_truth_path = scenario / "ground-truth.json"
+    backstory_path.write_bytes(backstory_bytes)
+    ground_truth_path.write_text(json.dumps(ground_truth), encoding="utf-8")
+
+    assert complete([str(backstory_path), str(ground_truth_path)]) == 0
+    payload = _state(scenario, built_ui).payload
+
+    assert payload["scenario"]["objectiveIds"] == document["objective_ids"]
+    assert payload["scenario"]["backstorySha256"] == hashlib.sha256(backstory_bytes).hexdigest()
+    assert payload["scenario"]["proposedGroundTruthSha256"] == hashlib.sha256(ground_truth_path.read_bytes()).hexdigest()
+    assert payload["replay"]["supported"]
+    assert payload["replay"]["module"] == "evals.synthetic_journals.capture_curation_replay"
+    assert payload["replay"]["confirmLabel"] == "Confirm and run evaluation"
+    assert len(payload["rows"]) == 16
+    assert not (scenario / "ground-truth-adoption.json").exists()
+    assert backstory_path.read_bytes() == backstory_bytes
 
 
 def test_review_rejects_book_scenario_changed_after_payload_creation(

@@ -123,17 +123,18 @@ The complete workflow is:
    after separate approval and only when the prompt is runnable or all named
    preconditions have been met.
 4. A separately authorized generator writes `backstory.json` and
-   `ground-truth.json` beside the report. Validate both files with the command
-   below.
+   `ground-truth.json` beside the report. For curation, complete the omitted
+   evaluator-owned fields as described below. Then validate both files.
 5. Invoke the `review-synthetic-ground-truth` skill. A human independent of the
    generator approves or flags every proposed Ground truth row.
 6. **Make Changes** returns the decision without writing an adoption or starting
    runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
    supported selection, the agent validates that adoption and starts one
    provider-backed replay. Supported selections include capture, curation,
-   continuity, either book Objective alone, both book Objectives in
-   either order, either connection or weak-evidence Objective alone, and their
-   combined selection. Other selections stop after adoption.
+   their combination in either order, continuity, either book Objective alone,
+   both book Objectives in either order, either connection or weak-evidence
+   Objective alone, and their combined selection. Other selections stop after
+   adoption.
 7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
    providers, and Live views. Keep the runner's JSON output as the durable,
    complete evaluation record.
@@ -218,9 +219,61 @@ does not rewrite `ground-truth.json`.
 The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
-post-confirmation routes cover capture, curation, continuity, either
-book Objective alone, both book Objectives, either connection or weak-evidence
-Objective alone, and their combination. Other selections stop after adoption.
+post-confirmation routes cover capture, curation, their combination, continuity,
+either book Objective alone, both book Objectives, either connection or
+weak-evidence Objective alone, and their combination. Other selections stop
+after adoption.
+
+## Complete curation Ground truth
+
+For new curation authoring, omit `max_summary_words` and `semantic_review` from
+the expected action in each curation proposal. Keep candidate relationships,
+source identifiers, exact spans, and expected or prohibited outcomes in the
+existing Ground truth fields. Do not ask the generator to choose a grading
+threshold or author a judge rubric.
+
+Before strict validation or human review, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.complete_curation_ground_truth \
+  path/to/backstory.json path/to/ground-truth.json
+```
+
+Repository code supplies the evaluator-owned fields and validates the completed
+Scenario before replacing the proposed Ground truth file. The final schema is
+unchanged. The command rejects supplied evaluator fields and refuses adopted
+files. Validation failures leave the source bytes unchanged. After successful
+completion, use the normal validator rather than rerunning completion.
+
+The independent reviewer sees the completed file and must adopt its exact
+bytes. Completion neither adopts candidate labels nor grades system behavior.
+Existing adopted Scenarios keep their original settings and hashes.
+
+## Combined capture and curation replay
+
+Select exactly `reviewed_automatic_memory_capture` and
+`bounded_memory_curation`, in either order. The capture preset applies to its
+eleven capture Scenes; curation retains its five required Props-only Scenes.
+The validator permits curation Props elsewhere in the same Backstory but still
+rejects Props or offline inputs assigned to a capture Scene.
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.capture_curation_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/capture-curation-run.json
+```
+
+The runner uses one ordered experiment, one isolated account, and the original
+Scenario and adoption identities. Each Scene enters either the production chat
+handler or the curation proposal handler. Capture Scenes start fresh chats and
+retain actual capture state across those chats. Curation receives only its
+designated active Props; those Props never enter capture storage. Captured
+records never become curation inputs. Curation grades proposal quality and
+source preservation, with semantic quality left for separate review.
+
+The same combined runner is registered for the review and guided-run workflows.
+It does not implement conversational capture-triggered curation or surfacing.
 
 ## Capture replay
 

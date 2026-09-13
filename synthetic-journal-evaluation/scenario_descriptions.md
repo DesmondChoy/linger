@@ -1,19 +1,22 @@
 # Scenario descriptions
 
-This reference describes the generated scenarios in [scenarios/](scenarios/).
+This reference describes generated scenarios and planned evaluations in
+[scenarios/](scenarios/).
 Each entry summarizes the setup, expected behavior, and distinctions that matter
-when developing or debugging the evaluated agents. Scene IDs match the source
-JSON. A Scenario is the complete evaluation design for one person and account.
+when developing or debugging the evaluated agents. Generated scenarios use Scene
+IDs from their source JSON. A Scenario is the complete evaluation design for one
+person and account.
 Each Scenario contains one or more Scenes, each graded as a unit. A Prop is a
 supplied memory record. The
 [canonical vocabulary](../docs/specification.md#721-canonical-vocabulary)
 defines all seven terms.
 
-Expectations come from each scenario's `ground-truth.json`; they are not replay
-results. [The scenario index](README.md) records adoption, replay evidence, and
-schema compatibility. Some historical scenarios require migration before replay
-under the current schema. The [Objective catalog](evaluation-objectives.yaml)
-defines the evaluation goals.
+Generated-scenario expectations come from `ground-truth.json`; they are not
+replay results. Planned entries summarize their linked pre-generation reports.
+[The scenario index](README.md) records adoption, replay evidence, and schema
+compatibility for generated scenarios. Some historical scenarios require
+migration before replay under the current schema. The
+[Objective catalog](evaluation-objectives.yaml) defines the evaluation goals.
 
 ## Pottery memory curation
 
@@ -161,3 +164,35 @@ of nursing-team conditions and willingness to report errors.
 usefulness of the reply. Its connection requirement is stricter than identity
 `S2`: the three sources must not be presented as jointly explaining the reader's
 conduct. Private details must not enter public-search queries.
+
+## Reviewed capture and bounded curation (planned)
+
+Objective: Evaluate selective memory capture and source-preserving curation by storing durable content, leaving low-signal content unstored, and distinguishing duplicate, evolving, related, and unrelated records.
+
+[Pre-generation report](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/pre-generation-report.md).
+Planned evaluation of Muse, Sculptor, and Provenance for
+`reviewed_automatic_memory_capture` and `bounded_memory_curation`.
+
+The implementation supports the complete design. Generation approval, Scenario
+authoring, and independent Ground truth adoption remain pending. This Scenario
+has no generated JSON, assigned Scene IDs, or replay results.
+
+One Backstory covers one person and account. Eleven capture Scenes each start a
+fresh conversation with one Line and no Props. Five curation Scenes then inspect
+15 separately supplied earlier Props. Each curation Scene uses only its
+designated sources; captured records do not become curation inputs.
+
+| Planned Scene group | Scenes | Props | Expected behavior |
+| --- | --- | --- | --- |
+| Durable content | 1 | 0 | Muse nominates an exact source span, Provenance approves it independently, and Memory & Policy stores the approved words once. |
+| Low-signal content | 10 | 0 | Useful replies to temporary logistics, filler, short-lived observations, and routine updates produce no nomination, save notice, or memory write. |
+| Exact duplicates | 1 | 2 | Sculptor proposes `link_duplicates` for two identical records, preserving both originals. |
+| Paraphrased duplicates | 1 | 2 | Sculptor proposes `link_duplicates` for differently worded versions of the same fact. |
+| Evolving fact with noise | 1 | 4 | Sculptor proposes `update_derived_summary` from three refining records, preserving the refinement and excluding one unrelated record. |
+| Related distinct facts | 1 | 4 | Sculptor proposes `assign_topic_group` for three related records, preserving their distinct meanings and excluding one distractor. |
+| Superficial overlap | 1 | 3 | Sculptor returns `no_curation_proposal` for unrelated records that merely share wording. |
+
+These 16 Scenes evaluate capture through reviewed storage and curation through
+proposal quality and source preservation. Curation proposals are not applied in
+this evaluation. Every supplied original must remain unchanged, and generated
+summaries and topic labels still require semantic review.

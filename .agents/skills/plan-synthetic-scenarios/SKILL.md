@@ -133,6 +133,21 @@ authorize synthetic-data generation.
     minimum. The scenario contains one Backstory; a full capture dataset repeats
     the 11-Scene pattern in separately validated scenarios with different
     Backstories.
+    When `bounded_memory_curation` is selected, require all five behaviors in
+    the adopted validator, including paraphrased duplication. Keep its Scenes
+    Props-only. A capture-and-curation selection uses separate Scene inputs:
+    capture Scenes receive no Props, while curation Scenes receive only their
+    designated earlier Props. The combined runner does not feed observed
+    captures into curation.
+    For curation Ground truth, instruct the generator to omit the action fields
+    `max_summary_words` and `semantic_review`. Before strict validation, run
+    `evals.synthetic_journals.complete_curation_ground_truth` with the two output
+    paths. Repository code supplies those evaluator-owned fields in the existing
+    schema, validates the completed Scenario, and updates only the proposed
+    Ground truth file. The generator must not read the completion policy,
+    supply those fields, or choose evaluator thresholds or judge rubrics.
+    Candidate relationships and source-grounded expected/prohibited outcomes
+    remain generator-authored proposals. Completion does not adopt them.
     When `longitudinal_memory_retrieval` is selected, use
     `synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json`
     unless the developer explicitly supplied another adopted configuration.

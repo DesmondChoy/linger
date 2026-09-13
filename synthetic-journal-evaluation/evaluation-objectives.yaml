@@ -100,6 +100,10 @@ developer_workflow:
       - spoiler_boundary_clarification
       - cross_source_tentative_connection
       - weak_evidence_safe_decline
+    supported_replay_combinations:
+      - [reviewed_automatic_memory_capture, bounded_memory_curation]
+      - [grounded_book_reflection, spoiler_boundary_clarification]
+      - [cross_source_tentative_connection, weak_evidence_safe_decline]
     component_replay_coverage:
       proactive_memory_surfacing: >-
         evals/synthetic_journals/surfacing_replay.py retains the earlier offline
@@ -165,6 +169,12 @@ ground_truth_lifecycle:
     Ground truth file contains proposals anchored to the
     generated identifiers, relationships, exact spans, Scene pairings, and
     intended expected or prohibited outcomes.
+    For bounded curation, the generator omits evaluator-owned max_summary_words
+    and semantic_review action fields. The repository completion command
+    evals.synthetic_journals.complete_curation_ground_truth supplies those fields
+    in the existing contract and validates the result before independent review.
+    The generator proposes relationships and source-grounded expected and
+    prohibited outcomes, but neither chooses nor receives evaluator settings.
   deterministic_validation: >-
     Code verifies objective facts such as schema conformance, reference
     resolution, span boundaries, permitted identifiers, ordering, and matched

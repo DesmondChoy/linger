@@ -137,6 +137,69 @@ def _stub_replay(
     return calls
 
 
+@pytest.mark.parametrize("failed_index", [None, 0, 11])
+def test_guided_combined_run_preserves_original_files_and_reports_both_objectives(
+    scenario_repo, monkeypatch, failed_index
+) -> None:
+    from tests.test_synthetic_capture_curation_replay import _combined_documents
+
+    repository, _ = scenario_repo
+    scenario = scenario_catalog.scenario_root(repository) / "combined-capture-curation"
+    scenario.mkdir()
+    backstory, truth, backstory_bytes = _combined_documents()
+    truth_bytes = json.dumps(truth).encode()
+    (scenario / "backstory.json").write_bytes(backstory_bytes)
+    (scenario / "ground-truth.json").write_bytes(truth_bytes)
+    _, proposed = validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
+    adoption = build_ground_truth_adoption(proposed, truth_bytes, reviewer_id="isolated-test-reviewer")
+    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json())
+    original_hashes = scenario_catalog.scenario_hashes(scenario)
+    menu_path, menu = run_scenario.create_menu(repository, repository / "menu.json")
+    entry = next(item for item in menu["entries"] if item["scenario"] == scenario.name)
+    assert entry["issues"] == []
+    observations = []
+    for index, scene in enumerate(backstory["scenes"]):
+        passed = index != failed_index
+        observation = {
+            "scene_id": scene["scene_id"],
+            "ground_truth_result": "passes_hard_gates" if passed else "fails_hard_gates",
+        }
+        if scene["objective_ids"] == ["reviewed_automatic_memory_capture"]:
+            observation["hard_failures"] = [] if passed else ["nomination_mismatch"]
+        else:
+            observation["grade"] = {
+                "hard_pass": passed,
+                "failures": [] if passed else ["expected link_duplicates"],
+            }
+        observations.append(observation)
+    calls = _stub_replay(monkeypatch, artifact={
+        "objective_ids": backstory["objective_ids"],
+        "ground_truth_status": "adopted",
+        "scenes": observations,
+    })
+
+    result = run_scenario.run_selected(
+        menu_path, entry["number"], "openai:selected-model", repository_root=repository
+    )
+
+    assert result["status"] == ("passed" if failed_index is None else "failed")
+    assert calls[0][0][2:5] == [
+        "evals.synthetic_journals.capture_curation_replay",
+        str(scenario / "backstory.json"), str(scenario / "ground-truth.json"),
+    ]
+    command = calls[0][0]
+    assert command[command.index("--adoption") + 1] == str(scenario / "ground-truth-adoption.json")
+    assert scenario_catalog.scenario_hashes(scenario) == original_hashes
+    assert result["results"]["scenes_total"] == 16
+    assert result["results"]["judgments_failed"] == (0 if failed_index is None else 1)
+    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    assert analysis["evidence"]["run_identity"]["objective_ids"] == backstory["objective_ids"]
+    assert [scene["scene_id"] for scene in analysis["scenes"]] == [
+        scene["scene_id"] for scene in backstory["scenes"]
+    ]
+    assert all(scene["status"] != "not_run" for scene in analysis["scenes"])
+
+
 def test_provider_failure_inside_zero_exit_artifact_is_execution_error(scenario_repo, monkeypatch):
     repository, _ = scenario_repo
     menu, number = _menu(repository)

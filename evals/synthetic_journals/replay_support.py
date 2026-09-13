@@ -23,6 +23,10 @@ _CURATION = ReplaySupport(
     name="bounded curation",
     module="evals.synthetic_journals.curation_replay",
 )
+_CAPTURE_CURATION = ReplaySupport(
+    name="capture and bounded curation",
+    module="evals.synthetic_journals.capture_curation_replay",
+)
 _CONTINUITY = ReplaySupport(
     name="session continuity",
     module="evals.synthetic_journals.continuity_replay",
@@ -43,6 +47,7 @@ _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection", "weak_evidence_safe_decline"}): _CONNECTION,
     frozenset({"reviewed_automatic_memory_capture"}): _CAPTURE,
     frozenset({"bounded_memory_curation"}): _CURATION,
+    frozenset({"reviewed_automatic_memory_capture", "bounded_memory_curation"}): _CAPTURE_CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,
     frozenset({"grounded_book_reflection"}): _BOOK,
     frozenset({"spoiler_boundary_clarification"}): _BOOK,

@@ -164,6 +164,54 @@ def test_validates_one_positive_and_ten_no_candidates() -> None:
     )
 
 
+@pytest.mark.parametrize("input_kind", ["Prop", "offline inputs"])
+def test_capture_preset_rejects_non_line_inputs_in_its_scenes(input_kind: str) -> None:
+    content_document = _content_document()
+    scene = content_document["scenes"][0]
+    if input_kind == "Prop":
+        content_document["props"] = [{
+            "prop_id": "prop-capture",
+            "backstory_id": "backstory-01",
+            "person_id": "person-01",
+            "evaluation_account_id": "account-01",
+            "source_text": "Earlier source text.",
+            "lifecycle": [{"scene_id": scene["scene_id"], "state": "active"}],
+        }]
+        scene["prop_ids"] = ["prop-capture"]
+    else:
+        content_document["offline_inputs"] = [{
+            "offline_input_id": "offline-capture",
+            "scene_id": scene["scene_id"],
+            "order": 1,
+            "kind": "test",
+            "text": "An offline instruction is not a capture Line.",
+        }]
+        scene["offline_input_ids"] = ["offline-capture"]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
+
+    with pytest.raises(ScenarioValidationError, match=f"capture Scene scene-01 cannot use {input_kind}"):
+        validate_scenario(
+            content, ground_truth, backstory_bytes=backstory_bytes,
+            run_configurations=_run_configurations(),
+        )
+
+
+def test_capture_configuration_allows_props_owned_by_curation_scenes() -> None:
+    from tests.test_synthetic_capture_curation_replay import _combined_documents
+
+    document, proposal_document, backstory_bytes = _combined_documents()
+    backstory, ground_truth = _validated_models(document, proposal_document)
+    validate_scenario(
+        backstory, ground_truth, backstory_bytes=backstory_bytes,
+        run_configurations=_run_configurations(),
+    )
+    assert len(backstory.scenes) == 16
+    assert backstory.props
+    assert all(not scene.prop_ids for scene in backstory.scenes if OBJECTIVE_ID in scene.objective_ids)
+
+
 def test_file_entrypoint_uses_exact_backstory_bytes(tmp_path: Path) -> None:
     content_document = _content_document()
     backstory_bytes = json.dumps(content_document, indent=2).encode("utf-8")

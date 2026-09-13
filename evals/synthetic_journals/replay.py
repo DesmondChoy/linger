@@ -80,6 +80,7 @@ from .models import (
     CaptureExpectation,
     GroundTruthAdoption,
     ProposedGroundTruth,
+    Scene,
     StrictModel,
     SyntheticBackstory,
 )
@@ -298,7 +299,6 @@ async def replay_capture_scenes(
     account = AccountContext(
         f"synthetic-eval:{backstory.backstory.evaluation_account_id}:{run_id}"
     )
-    proposals = {proposal.scene_id: proposal for proposal in ground_truth.proposals}
     cases: list[
         Case[
             CaptureEvaluationInput,
@@ -307,31 +307,18 @@ async def replay_capture_scenes(
         ]
     ] = []
     for order, (scene_id, line_id, line_text) in enumerate(scene_lines, start=1):
-        proposal = proposals[scene_id]
-        if proposal.capture is None:  # pragma: no cover - validator invariant
-            raise RuntimeError(f"Scene {scene_id} has no capture proposal")
-        if isinstance(proposal.capture.nomination, CaptureCandidate):
-            span = proposal.capture.nomination.span
-            if (
-                span.source_kind != "line"
-                or span.source_id != line_id
-                or not span.text.strip()
-                or line_text[span.start_codepoint : span.end_codepoint] != span.text
-            ):
-                raise ValueError(f"Scene {scene_id} requires an exact nonblank Line span")
+        inputs = CaptureEvaluationInput(
+            order=order,
+            scene_id=scene_id,
+            line_id=line_id,
+            line=line_text,
+        )
+        expected = capture_scene_expectation(inputs, ground_truth, ground_truth_status)
         cases.append(
             Case(
                 name=scene_id,
-                inputs=CaptureEvaluationInput(
-                    order=order,
-                    scene_id=scene_id,
-                    line_id=line_id,
-                    line=line_text,
-                ),
-                expected_output=CaptureEvaluationExpected(
-                    capture=proposal.capture,
-                    ground_truth_status=ground_truth_status,
-                ),
+                inputs=inputs,
+                expected_output=expected,
                 metadata={
                     "objective_id": CAPTURE_OBJECTIVE_ID,
                     "line_id": line_id,
@@ -363,7 +350,7 @@ async def replay_capture_scenes(
             expected = cases[inputs.order - 1].expected_output
             if not isinstance(expected, CaptureEvaluationExpected):
                 raise RuntimeError("synthetic evaluation proposal is unavailable")
-            observation = await _replay_capture_scene(
+            observation = await replay_capture_scene(
                 inputs,
                 expected,
                 run_id=run_id,
@@ -430,7 +417,7 @@ async def replay_capture_scenes(
     )
 
 
-async def _replay_capture_scene(
+async def replay_capture_scene(
     inputs: CaptureEvaluationInput,
     expected: CaptureEvaluationExpected,
     *,
@@ -679,23 +666,62 @@ def _capture_scene_lines(
     if backstory.props or backstory.offline_inputs:
         raise ValueError("capture replay does not accept Props or offline inputs")
 
+    inputs = (
+        capture_scene_input(backstory, scene)
+        for scene in sorted(backstory.scenes, key=lambda item: item.order)
+    )
+    return tuple((item.scene_id, item.line_id, item.line) for item in inputs)
+
+
+def capture_scene_input(
+    backstory: SyntheticBackstory, scene: Scene
+) -> CaptureEvaluationInput:
+    """Compile one isolated capture Scene without passing its labels to chat."""
+
+    if scene.objective_ids != (CAPTURE_OBJECTIVE_ID,):
+        raise ValueError(f"Scene {scene.scene_id} must select only {CAPTURE_OBJECTIVE_ID}")
+    if not scene.fresh_session:
+        raise ValueError(f"Scene {scene.scene_id} must use a fresh session")
+    if scene.prop_ids or scene.offline_input_ids:
+        raise ValueError(f"Scene {scene.scene_id} cannot use Props or offline inputs")
+    if len(scene.line_ids) != 1:
+        raise ValueError(f"Scene {scene.scene_id} must contain exactly one Line")
     lines = {line.line_id: line for line in backstory.lines}
-    scene_lines: list[tuple[str, str, str]] = []
-    for scene in sorted(backstory.scenes, key=lambda item: item.order):
-        if not scene.fresh_session:
-            raise ValueError(f"Scene {scene.scene_id} must use a fresh session")
-        if scene.prop_ids or scene.offline_input_ids:
-            raise ValueError(
-                f"Scene {scene.scene_id} cannot use Props or offline inputs"
-            )
-        if len(scene.line_ids) != 1:
-            raise ValueError(f"Scene {scene.scene_id} must contain exactly one Line")
-        line_id = scene.line_ids[0]
-        line = lines[line_id]
-        if line.order != 1:
-            raise ValueError(f"Scene {scene.scene_id} Line must have order 1")
-        scene_lines.append((scene.scene_id, line_id, line.text))
-    return tuple(scene_lines)
+    line = lines[scene.line_ids[0]]
+    if line.order != 1:
+        raise ValueError(f"Scene {scene.scene_id} Line must have order 1")
+    return CaptureEvaluationInput(
+        order=scene.order, scene_id=scene.scene_id, line_id=line.line_id, line=line.text
+    )
+
+
+def capture_scene_expectation(
+    inputs: CaptureEvaluationInput,
+    ground_truth: ProposedGroundTruth,
+    ground_truth_status: GroundTruthStatus,
+) -> CaptureEvaluationExpected:
+    """Resolve the capture label separately from the production input."""
+
+    proposals = [
+        proposal for proposal in ground_truth.proposals
+        if proposal.scene_id == inputs.scene_id
+        and proposal.objective_id == CAPTURE_OBJECTIVE_ID
+    ]
+    if len(proposals) != 1 or proposals[0].capture is None:
+        raise ValueError(f"Scene {inputs.scene_id} lacks typed capture Ground truth")
+    expectation = proposals[0].capture
+    if isinstance(expectation.nomination, CaptureCandidate):
+        span = expectation.nomination.span
+        if (
+            span.source_kind != "line"
+            or span.source_id != inputs.line_id
+            or not span.text.strip()
+            or inputs.line[span.start_codepoint : span.end_codepoint] != span.text
+        ):
+            raise ValueError(f"Scene {inputs.scene_id} requires an exact nonblank Line span")
+    return CaptureEvaluationExpected(
+        capture=expectation, ground_truth_status=ground_truth_status
+    )
 
 
 def _production_chat_turn_handler() -> ChatTurnHandler:

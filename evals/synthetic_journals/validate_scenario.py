@@ -729,16 +729,16 @@ def _validate_run_configurations(
                 f"{configuration.scene_count} Scenes, found {len(scenes)}"
             )
         if configuration.capture_mix is not None:
-            if backstory.props:
-                failures.append(
-                    f"run configuration {configuration_id} capture Scenes cannot use Props"
-                )
-            if backstory.offline_inputs:
-                failures.append(
-                    f"run configuration {configuration_id} capture Scenes cannot use offline inputs"
-                )
             lines_by_id = {line.line_id: line for line in backstory.lines}
             for scene in scenes:
+                if scene.prop_ids:
+                    failures.append(
+                        f"capture Scene {scene.scene_id} cannot use Props"
+                    )
+                if scene.offline_input_ids:
+                    failures.append(
+                        f"capture Scene {scene.scene_id} cannot use offline inputs"
+                    )
                 if not scene.fresh_session:
                     failures.append(
                         f"capture Scene {scene.scene_id} must use a fresh session"
