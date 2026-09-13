@@ -6,7 +6,7 @@ description: Review a validated Linger synthetic Backstory and proposed Ground t
 # Review Synthetic Ground Truth
 
 Use this skill only after a generator has written sibling `backstory.json` and
-`ground-truth.json` files in one synthetic-journal package directory. The human
+`ground-truth.json` files in one synthetic scenario package directory. The human
 reviewer must be independent of the generator. Neither proposed nor adopted
 Ground truth enters the system under evaluation.
 

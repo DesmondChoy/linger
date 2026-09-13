@@ -208,7 +208,7 @@ Ask your coding agent to use these project-local skills:
 
 - [Format book corpus](.agents/skills/format-book-corpus/SKILL.md) converts book
   sources into Linger's canonical Markdown format and validates content integrity.
-- [Generate synthetic journals](.agents/skills/generate-synthetic-journals/SKILL.md)
+- [Plan synthetic scenarios](.agents/skills/plan-synthetic-scenarios/SKILL.md)
   plans evaluation Objectives and prepares a generator prompt without generating data.
 - [Review synthetic Ground truth](.agents/skills/review-synthetic-ground-truth/SKILL.md)
   guides human review and adoption of proposed Ground truth, then runs a supported
@@ -222,7 +222,7 @@ Use the two synthetic evaluation skills to prepare data, review expected results
 and test Linger's behavior:
 
 1. Configure Logfire as described above, then ask your coding agent to use
-   `generate-synthetic-journals`. Select evaluation Objectives to receive a
+   `plan-synthetic-scenarios`. Select evaluation Objectives to receive a
    pre-generation report.
 2. Review the report and approve generation when its prerequisites are met.
    The agent generates and validates the Backstory and proposed Ground truth.
@@ -252,7 +252,7 @@ For individual agent evaluations, follow the relevant guide:
 - [Librarian](evals/librarian/README.md): retrieval benchmarks and live validation.
 - [Provenance](evals/provenance/README.md): emotional boundaries and risk classification.
 - [Serendipity](evals/serendipity/README.md): connection discovery and cross-source evaluation.
-- [Synthetic journals](evals/synthetic_journals/README.md): package validation,
+- [Synthetic scenarios](evals/synthetic_journals/README.md): package validation,
   Ground truth adoption, and replay.
 
 The guides list commands, model configuration, supported cases, and result formats.

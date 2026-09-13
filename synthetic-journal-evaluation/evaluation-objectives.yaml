@@ -1,5 +1,5 @@
 catalog_id: synthetic-journal-evaluation-objectives
-title: Synthetic journal evaluation objectives
+title: Synthetic scenario evaluation objectives
 purpose: >-
   Let developers select one or more evaluation objectives and review their
   scenarios before the project adopts a complete downstream workflow. The
@@ -282,7 +282,7 @@ evaluation_objectives:
         - A durable reflection, preference, intention, or incident that may help in a later session.
         - A transient, logistical, or ordinary note that should not become durable memory.
       generation_requirements:
-        - Write every line as natural journal or conversation input in the person's own words.
+        - Write every line as natural conversation input in the person's own words.
         - Make the durable scene specific enough to remain useful outside its immediate conversation.
         - Vary low-signal scenes across temporary logistics, conversational filler, short-lived observations, and routine updates rather than repeating one template.
         - Do not express either scene as an explicit save control event.
@@ -321,7 +321,7 @@ evaluation_objectives:
         - Only an approved, policy-compliant candidate reaches storage.
         - An application-authored safe decline produces no automatic write or save notice.
       failure_conditions:
-        - Raw journal text bypasses the capture workflow and enters storage directly.
+        - Raw user input bypasses the capture workflow and enters storage directly.
         - A candidate differs from or extends beyond its source span.
         - Vetoed, sensitive, or conflicting capture produces an unauthorized write.
         - A safe-declined Scene commits a memory or reports that one was saved.
@@ -424,7 +424,7 @@ evaluation_objectives:
       expected_generated_data:
         - A backstory containing a multi-session history with an earlier memory-producing event.
         - Later lines for the relevant-memory and comparison scenes.
-        - Source text for realistic props from the same person's history, stored separately from the raw journal after replay or scene setup.
+        - Source text for realistic props from the same person's history, stored separately from the original conversation input after replay or scene setup.
       must_avoid:
         - Relying on earlier chat messages as durable recall.
         - Making every later reflection depend on a stored memory.

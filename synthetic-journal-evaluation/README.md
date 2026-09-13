@@ -25,7 +25,7 @@ describe the intended evaluation path and do not establish implementation.
 Status, grades, and compatibility belong in this index. Same-day name collisions
 use `-02`, `-03`, and so on. Full timestamps remain in report snapshots.
 
-The [generation skill](../.agents/skills/generate-synthetic-journals/SKILL.md)
+The [planning skill](../.agents/skills/plan-synthetic-scenarios/SKILL.md)
 uses this convention for new reports. Canonical Objective IDs and generated
 package identifiers are unchanged by directory renaming. Recorded JSON artifacts
 may contain historical paths; their bytes remain unchanged to preserve evidence.

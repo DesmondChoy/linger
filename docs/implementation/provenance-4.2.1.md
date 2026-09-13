@@ -5,7 +5,7 @@ Design status and gap analysis for the Provenance agentic flow as it serves
 fixed agent design is [`src/linger/agents/provenance/README.md`](../../src/linger/agents/provenance/README.md);
 this document does not restate it. Scope here is *what is built, what is
 missing, and how the missing part gets evaluated* through the
-[`generate-synthetic-journals`](../../.agents/skills/generate-synthetic-journals/SKILL.md)
+[`plan-synthetic-scenarios`](../../.agents/skills/plan-synthetic-scenarios/SKILL.md)
 skill.
 
 Historical evaluation snapshot: 2026-09-02, branch `km-provenance-reflection`.
@@ -527,7 +527,7 @@ passes everything in the suite today. The codes are only load-bearing for the
 single Muse revision critique (`ProvenanceReview.critique`) and for evaluation —
 which is exactly the part that does not yet exist.
 
-## 4. How to evaluate it with `generate-synthetic-journals`
+## 4. How to evaluate it with `plan-synthetic-scenarios`
 
 ### 4.1 Objective selection
 

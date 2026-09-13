@@ -353,7 +353,7 @@ composition constraints. `tests/test_chat_capture.py:476` covers it
 deterministically. No synthetic Scene exercises it, and E5's expectation member
 is what would let one be authored.
 
-## 11. How to evaluate it with `generate-synthetic-journals`
+## 11. How to evaluate it with `plan-synthetic-scenarios`
 
 ### 11.1 Objective selection
 

@@ -1,4 +1,4 @@
-# Synthetic journal evaluation
+# Synthetic scenario evaluation
 
 ## Package contract
 
@@ -46,7 +46,7 @@ available in Logfire.
 
 The complete workflow is:
 
-1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
+1. Invoke the `plan-synthetic-scenarios` skill. A human selects one or more
    Objectives in the loopback selector and confirms the complete selection.
 2. The skill creates a descriptively named package directory containing only
    `pre-generation-report.md`. Selection confirmation is not generation

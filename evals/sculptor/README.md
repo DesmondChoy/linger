@@ -33,7 +33,7 @@ uv run pytest tests/test_sculptor_evals.py
 
 ## Provider-backed bounded-curation replay
 
-The synthetic-journal runner converts each isolated Scene's active,
+The synthetic scenario runner converts each isolated Scene's active,
 same-account Props into `AccountScopedMemories` and calls production
 `propose_curation`:
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Synthetic Journal Objectives"
-  short_description: "Plan and assess synthetic journal evaluation data"
-  default_prompt: "Use $generate-synthetic-journals to choose evaluation objectives and write an implementation-oriented pre-generation report for review."

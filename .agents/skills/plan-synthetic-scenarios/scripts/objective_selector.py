@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the local synthetic-journal objective selector and return its result."""
+"""Serve the local synthetic scenario objective selector and return its result."""
 
 from __future__ import annotations
 

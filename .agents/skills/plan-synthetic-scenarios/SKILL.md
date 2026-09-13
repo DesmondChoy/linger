@@ -1,9 +1,9 @@
 ---
-name: generate-synthetic-journals
-description: Select and confirm Linger evaluation objectives, inspect current implementation readiness, and write an implementation-oriented target-state report with a proposed generator prompt. Use when a developer wants to plan synthetic journal evaluation data without generating a dataset or invoking generation models.
+name: plan-synthetic-scenarios
+description: Select and confirm Linger evaluation objectives, inspect current implementation readiness, and write an implementation-oriented target-state report with a proposed generator prompt. Use when a developer wants to plan synthetic scenario evaluation data without generating a dataset or invoking generation models.
 ---
 
-# Generate Synthetic Journals
+# Plan synthetic scenarios
 
 Use `synthetic-journal-evaluation/evaluation-objectives.yaml` as the sole source
 of evaluation-objective text, composition rules, and prompt boundaries. Never

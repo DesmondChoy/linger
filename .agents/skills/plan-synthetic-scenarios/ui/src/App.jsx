@@ -235,7 +235,7 @@ function App() {
     <main className="selector-shell">
       <header className="selector-header">
         <div>
-          <p className="eyebrow">Linger · synthetic journal evaluation</p>
+          <p className="eyebrow">Linger · synthetic scenario evaluation</p>
           <h1>Choose what the evaluation should prove.</h1>
           <p className="intro">
             Select the fewest objectives that cover the behavior you want to examine.

@@ -867,13 +867,13 @@ Evaluation must test the product behaviour and authority boundaries in Sections 
 - Verify that every derived record resolves to its originals and that retrieval
   tombstones are reversible without physical deletion.
 
-The suggested measures in the [synthetic journal evaluation-objective catalog](../synthetic-journal-evaluation/evaluation-objectives.yaml) identify relevant signals. They are not adopted thresholds, aggregate scores, or release gates. Every factual web claim must include a retrievable citation, every evidence identifier must resolve, and any LLM-as-judge result is secondary and labelled non-independent.
+The suggested measures in the [synthetic scenario evaluation-objective catalog](../synthetic-journal-evaluation/evaluation-objectives.yaml) identify relevant signals. They are not adopted thresholds, aggregate scores, or release gates. Every factual web claim must include a retrievable citation, every evidence identifier must resolve, and any LLM-as-judge result is secondary and labelled non-independent.
 
-### 7.2 Scenario-first synthetic journal evaluation
+### 7.2 Scenario-first synthetic evaluation
 
 #### 7.2.1 Canonical vocabulary
 
-Synthetic journal evaluation uses the following six terms. Documentation, skills,
+Synthetic scenario evaluation uses the following six terms. Documentation, skills,
 and future designs must use these terms instead of ad hoc synonyms such as
 *artifact*, *world*, *case*, *action*, or *fixture*. The repository defines the
 vocabulary, Backstory and Ground truth structures, deterministic package
@@ -957,14 +957,14 @@ Everything after a Line enters the production chat boundary — preflight, routi
 
 #### 7.2.2 Objective selection and downstream boundary
 
-The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for synthetic journal evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules. The selector derives the available Objective count from the catalog and requires unique IDs.
+The [`evaluation-objectives.yaml`](../synthetic-journal-evaluation/evaluation-objectives.yaml) catalog is the authority for synthetic scenario evaluation objectives, scenario descriptions, composition constraints, generation briefs, prompt boundaries, and selection rules. The selector derives the available Objective count from the catalog and requires unique IDs.
 
 The end-to-end workflow has distinct human gates:
 
 1. Before a provider-backed evaluation, the developer configures the Linger
    Logfire project so the eventual replay can publish Pydantic Evals and
    synthetic-only traces.
-2. The developer invokes `generate-synthetic-journals`, selects one or more
+2. The developer invokes `plan-synthetic-scenarios`, selects one or more
    Objectives in its local selector, and confirms that complete selection.
 3. Selection confirmation writes only `pre-generation-report.md`. The developer
    reads the report and separately approves its design and detached prompt,
@@ -988,7 +988,7 @@ The end-to-end workflow has distinct human gates:
    Evals and the `linger-evals` Logfire service provide interactive result,
    agent, provider, and trace views.
 
-The [`generate-synthetic-journals`](../.agents/skills/generate-synthetic-journals/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one descriptively named package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
+The [`plan-synthetic-scenarios`](../.agents/skills/plan-synthetic-scenarios/SKILL.md) skill lets a developer select objectives, review the applicable scenarios and composition constraints, and confirm the selection. It then inspects the current repository and academic briefing, creates one descriptively named package directory, and writes `pre-generation-report.md` there for human review. The report assesses current execution readiness per Scene, describes the complete target evaluation design, uses the defined Backstory and Ground truth structures, and identifies the required implementation work. A current implementation gap does not weaken a confirmed Objective: the report instead includes a target-state generator prompt with explicit non-runnable preconditions. The prompt instructs a future generator to create sibling `backstory.json` and `ground-truth.json` files containing Backstories, Props, Scenes, Lines or offline inputs, and proposed Ground truth together. The deterministic package validator checks objective facts before an independent reviewer can adopt Ground truth. The system under evaluation receives neither proposed nor adopted Ground truth. A future generator receives read-only repository paths, including `data/corpus/` only when book material is useful, and discovers current corpus data there instead of receiving a hardcoded book. The report is never passed to a generator and creates no synthetic evaluation data.
 
 After a generator produces the two validated JSON files, the
 [`review-synthetic-ground-truth`](../.agents/skills/review-synthetic-ground-truth/SKILL.md)

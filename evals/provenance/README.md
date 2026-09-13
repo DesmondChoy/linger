@@ -4,7 +4,7 @@ Provenance assigns three runtime skills to one reusable `provenance_agent`.
 Two versioned case packs cover emotional preflight and candidate review. The
 candidate review returns independent response and capture decisions. Both packs
 are semantic regression suites that write metadata-only reports. Neither
-generates or modifies synthetic journal packages.
+generates or modifies synthetic scenario packages.
 
 Each evaluation selects its skill before running the shared Agent. Preflight
 uses the production `assess_emotional_boundary` entry point. Risk-code

@@ -1,4 +1,4 @@
-"""Tests for strict synthetic journal package validation."""
+"""Tests for strict synthetic scenario package validation."""
 
 from __future__ import annotations
 
