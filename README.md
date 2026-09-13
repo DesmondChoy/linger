@@ -1,130 +1,99 @@
 # Linger
 
-An academic prototype of a **provenance-first reflection and memory companion**.
+Linger is a multi-agent AI systems project developed for the NUS-ISS Graduate
+Certificate in Architecting AI Systems. It investigates how specialised agents
+can coordinate reasoning, tool use, and memory with traceable decisions and
+explicit security and privacy controls.
 
-## At a glance
+The application is a personal reflection and memory companion. It aims to help
+people understand why an idea or experience mattered, preserve that meaning,
+and rediscover relevant connections over time, starting with conversations and
+a small literary corpus.
 
-- **Runtime:** Python 3.12, FastAPI, and Pydantic AI
-- **Reasoning:** five reusable Agents with nine application-selected runtime skills
-- **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
-- **Corpus:** five validated works enabled for Chat retrieval and Reader
-- **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
-- **Synthetic evaluation:** validated scenarios, independent Ground truth review,
-  chat replay, and bounded curation and surfacing evaluations
-- **Issue tracking:** [Beads](https://github.com/gastownhall/beads), backed by a local Dolt database
+## Multi-agent architecture
 
-Linger keeps authority over account boundaries, memory writes, validation, and
-user-visible output in application code.
+![Five reusable role agents operate within application orchestration, which selects runtime skills and typed tasks. Application services control scoped retrieval, memory policy, and output release.](docs/images/multi-agent-architecture-v1.png)
 
-Each logical role owns one reusable PydanticAI `Agent` and an explicit skill
-assignment in its package. The application selects the skill and typed contract
-before a run. A run may make multiple model requests for tools or validation
-retries. See the [agent runtime skills architecture](docs/agent-skills.md) for
-the five-role mapping, current consumers, isolation rules, and evaluation paths.
+**Muse** conducts the conversation and requests specialist assistance.
+**Librarian** assesses reading boundaries and book evidence. **Serendipity**
+explores connections across memories, books, and authorised web sources.
+**Sculptor** proposes memory curation and surfacing decisions in separate
+controlled workflows. **Provenance** reviews emotional boundaries, reply
+candidates, and curation proposals.
 
-## What the prototype does
+Each role uses one reusable PydanticAI Agent with application-selected runtime
+skills. Typed task contracts keep each invocation's context and permissions
+explicit. Application code coordinates the handoffs and controls retrieval,
+memory writes, and user-visible output. See the
+[agent runtime architecture](docs/agent-skills.md) for the contracts and consumers.
 
-- **Reflect:** sends each Line through a no-tool emotional-boundary preflight,
-  Muse, optional specialists, Provenance, and deterministic release checks.
-  Failed or rejected candidates produce application-owned responses.
-- **Ground:** retrieves exact, spoiler-bounded book passages through Librarian.
-  Chapter boundaries and exact-passage grants remain request-scoped. Book
-  evidence declarations resolve to the canonical corpus; declarations of earlier
-  reader wording must match a retained Line in the same session.
-- **Reconnect:** lets Serendipity explore account-scoped curated memories,
-  bounded book evidence, and configured public-web evidence through Exa.
-  Private wording is blocked from web-search queries. Released connections
-  resolve declared book, memory, and web evidence against exact request-scoped
-  records reviewed by Provenance.
-- **Capture:** supports reviewed automatic memory capture only through
-  server-controlled evaluation policy. The interactive POC keeps capture
-  disabled and exposes no memory-management actions.
-- **Curate:** supports application-owned curation over bounded stored originals.
-  Sculptor proposes summaries, duplicate links, topic groups, or retrieval
-  tombstones. Provenance reviews the proposal before deterministic policy can
-  apply it. Originals remain intact, and retrieval uses the curated view.
-- **Evaluate:** validates synthetic scenarios, records independent
-  human adoption without rewriting generated files, and replays supported
-  capture, curation, book, session-continuity, connection, and restraint
-  Objectives. Manual runners also cover weak-evidence reflection, cross-source
-  execution, and offline surfacing decisions with the limits described in the
-  evaluation guides.
+The project explores evidence-backed connection discovery, retrieval constrained
+by reading progress, and memory curation that preserves original records.
+Human-reviewed synthetic scenarios evaluate coordination, security boundaries,
+and decisions to clarify or decline. Automated tests and privacy-conscious
+tracing support verification and diagnosis.
 
-## Developer tools
+<details>
+<summary>How chat and curation are reviewed</summary>
 
-The local development frontend mounts Reader and Inspect for developers working
-with the corpus and backend workflow. They are debugging tools, not product
-frontend surfaces; a user-facing app should omit both.
+![Chat passes through Provenance preflight, Muse with optional specialists, Provenance candidate review, and application release checks. Separate curation passes bounded originals through Sculptor, Provenance, and memory policy to produce a curated view while preserving originals.](docs/images/reviewed-agent-workflows-v1.png)
 
-- **Reader** browses enabled canonical books by chapter or named section and can
-  reveal summaries after an explicit spoiler warning. It helps developers
-  exercise corpus behavior. Its local navigation never establishes reading
-  progress, evidence authority, or a chat spoiler boundary.
-- **Inspect** projects each completed turn's request contract, context
-  resolution, specialist outcomes, Provenance release path, capture outcome,
-  and server-generated Logfire trace ID. It helps developers trace backend
-  hand-offs and decisions; its diagnostic data grants no runtime authority.
+The diagram shows the successful paths. Emotional preflight can stop a chat
+before Muse runs. A candidate may receive one reviewed revision; rejected or
+invalid candidates produce an application-owned response. Curation applies
+only an approved, validated proposal and runs separately from interactive chat.
 
-## Startup
+</details>
+
+## Current prototype
+
+The local app supports chat, book-grounded reflection, and connections to
+available memories and optional public-web sources. Interactive memory capture
+is disabled, and the app exposes no memory-management actions. Controlled
+workflows support capture and curation; the full conversational capture,
+curation, and later surfacing sequence remains a target.
+
+This is a single-user prototype with no end-user authentication. Conversation
+history lives in the backend process and disappears on restart. Chat content
+is sent to the configured model provider. Optional backend telemetry records
+metadata rather than conversation content. Synthetic evaluations may also
+record synthetic inputs and outputs. See the [telemetry contract](docs/telemetry.md).
+
+The stack is Python, FastAPI, Pydantic AI, and React.
+
+## Run locally
 
 ### Prerequisites
 
 - [Python](https://www.python.org/) 3.12 or later
 - [uv](https://docs.astral.sh/uv/) for Python environments and locked dependencies
 - [Node.js](https://nodejs.org/) 20.19+ or 22.12+ and [pnpm](https://pnpm.io/) for the frontend
-- An API key for the model provider you choose: Google, OpenAI, or Anthropic
+- An API key for Google, OpenAI, or Anthropic
 
-### Install the project libraries
+### Install and configure
 
-From the repository root:
+From the repository root, create `.env` if you do not already have one:
 
 ```bash
-# Create local configuration and choose a model provider
 cp -f .env.example .env
+```
 
-# Install Python application and development dependencies from uv.lock
+Install the dependencies:
+
+```bash
 uv sync --dev
-
-# Install frontend dependencies
 pnpm install --dir apps/frontend
 ```
 
-Edit `.env` to set `LINGER_MODEL` and the matching API key. The checked-in
-default is `openai:gpt-5.6-luna`; supported provider prefixes are `google`,
-`openai`, and `anthropic`. Only the selected provider's key is needed.
+Edit `.env` to set `LINGER_MODEL` and the matching API key. The example selects
+`openai:gpt-5.6-luna`, which requires `OPENAI_API_KEY`. Models with the `google:`
+prefix use `GOOGLE_API_KEY`; models with `anthropic:` use `ANTHROPIC_API_KEY`.
+Only the selected provider's key is needed.
 
-- `google:gemini-2.5-flash` → `GOOGLE_API_KEY`
-- `openai:gpt-5.6-luna` → `OPENAI_API_KEY`
-- `anthropic:claude-sonnet-4-5` → `ANTHROPIC_API_KEY`
-
-Optional public-web connection discovery requires both settings:
-
-```dotenv
-EXA_API_KEY=...
-LINGER_WEB_SEARCH_ENABLED=true
-```
-
-`LINGER_ACCOUNT_ID` supplies the server-owned account for the single-user
-prototype. `LINGER_ALLOWED_ORIGINS` accepts a comma-separated list of browser
-origins and defaults to `http://localhost:5173`.
-
-`ALLOWED_BOOK_VERSION_IDS` accepts a JSON array of permitted registered corpus
-revisions and defaults to `["pg11-v01b38ea4"]`. This setting restricts retrieval;
-it does not register a corpus. See [app configuration](apps/README.md).
-
-To send the backend's metadata-only telemetry and synthetic evaluation telemetry
-to the Linger Logfire project:
-
-```bash
-uv run logfire --region us auth
-uv run logfire --region us projects use --org desmond-choy linger
-```
-
-Use `LOGFIRE_TOKEN` instead in deployed or CI environments. The telemetry
-allowlist and privacy constraints are defined in [`docs/telemetry.md`](docs/telemetry.md).
-Configure Logfire before starting a provider-backed synthetic evaluation so the
-accepted replay is available in Pydantic Evals and Logfire's Agents, LLMs and
-providers, and Live views.
+Public-web discovery is optional and requires both `EXA_API_KEY` and
+`LINGER_WEB_SEARCH_ENABLED=true`. See [app configuration](apps/README.md#setup)
+for other settings and [evaluation setup](evals/synthetic_journals/README.md#human-gated-end-to-end-workflow)
+for Logfire credentials.
 
 ### Start the app
 
@@ -143,64 +112,34 @@ pnpm --dir apps/frontend dev
 Open <http://localhost:5173>. Interactive API documentation is available at
 <http://127.0.0.1:8000/docs>.
 
-The frontend can call a separately hosted API by setting `VITE_API_URL` before
-starting or building it. Without that variable, Vite proxies `/api` to the
-local backend.
+## Try a conversation
 
-### Get Beads working
+For a book-grounded reflection, send a message such as:
 
-For Beads setup and usage, ask your coding agent to consult the
-[official Beads GitHub page](https://github.com/gastownhall/beads).
+> I've finished Chapter 2 of Alice's Adventures in Wonderland. Alice's changes
+> in size made me think about feeling out of place. Can we explore that?
 
-## Corpus
+This gives Linger both a book and a completed reading boundary. Any retrieved
+book passages must stay within that boundary. If the book or your progress is
+unclear, Linger asks for clarification. Naming a book alone does not establish
+reading progress.
 
-The repository contains five validated literary corpora. Immutable source files
-live in `data/gutenberg/`; canonical chapters or sections and their derived
-`catalog.json` files live in `data/corpus/<work-slug>/<book-version-id>/`.
+The default configuration enables these books:
 
-| Work | Adapter under `src.linger.corpus` | Revision | Canonical units |
-| --- | --- | --- | --- |
-| *Alice's Adventures in Wonderland* | `alice` | `pg11-v01b38ea4` | 12 chapters |
-| *Animal Farm* | `animal_farm` | `pga0100011-vc7ff4da7` | 10 chapters |
-| *The Adventures of Pinocchio* | `pinocchio` | `pg500-v6bdc1734` | 36 chapters |
-| *Narrative of the Life of Frederick Douglass, an American Slave* | `douglass` | `pg23-vd3f08ac3` | 16 sections |
-| *The Story of My Life* | `story_of_my_life` | `pg2397-vb3cc1e13` | 140 sections |
+- *Alice's Adventures in Wonderland*
+- *Animal Farm*
+- *The Adventures of Pinocchio*
+- *Narrative of the Life of Frederick Douglass, an American Slave*
+- *The Story of My Life*
 
-All five works are registered in `src/linger/corpus/registry.py` and enabled by
-the default application grant for Chat retrieval and Reader. An
-`ALLOWED_BOOK_VERSION_IDS` override replaces that default grant. Chapter corpora
-use schema 1; mixed works use schema 2 to preserve prefaces, letters, and chapter
-titles in source order. Reviewed locations preserve natural chapter numbering:
-Douglass starts at Chapter 1, Keller defaults to Part I, and Part III has its own
-chapter sequence. Named letters and prefatory material use exact-unit permission.
-Reader loads the same enabled registry and serves canonical text by stable unit ID.
+The local frontend also includes two developer tools:
 
-See [Registering books and resolving their names](docs/book-registration.md)
-for the shared resolver, ambiguity handling, onboarding checks, and ownership
-boundaries.
+- **Reader** browses canonical books by chapter or named section. Its navigation
+  does not set reading progress for chat.
+- **Inspect** shows a turn's context, agent outcomes, release decisions, and
+  Logfire trace ID. Its diagnostics grant no runtime authority.
 
-The shared corpus lifecycle preserves source layout, uses compact JSON front
-matter for routing, and validates canonical artifacts against their immutable
-source. Each adapter defines source-specific wrappers, headings, and boundaries
-while using the shared renderer, catalogue builder, and integrity checks.
-BM25 paragraph windows, embeddings, and hybrid indexes are derived artifacts.
-
-Verify the checked-in corpora and runtime registry:
-
-```bash
-for adapter in alice animal_farm pinocchio douglass story_of_my_life; do
-	uv run python -m src.linger.corpus.book "src.linger.corpus.$adapter" check
-done
-uv run python -m src.linger.corpus.registry
-```
-
-See [canonical corpus formats](docs/corpus/canonical-sections.md) for import,
-catalogue rebuild, and validation instructions.
-
-For book questions, Linger uses supported reading progress to limit the passages
-used in its answer. If the book or reading boundary is unclear, Linger asks for
-clarification. Selecting a book alone does not establish reading progress.
-See the [spoiler and routing contract](docs/specification.md#61-spoilers) for details.
+Both tools are for local development and should be omitted from a product frontend.
 
 ## Skills
 
@@ -218,32 +157,7 @@ Ask your coding agent to use these project-local skills:
   It returns a Logfire link and saves an analysis report covering every Scene,
   including potentially misleading passes.
 
-## Evaluation and validation
-
-### Human-gated synthetic evaluation
-
-Use the synthetic evaluation skills to prepare data, review expected results,
-and test Linger's behavior:
-
-1. Configure Logfire as described above, then ask your coding agent to use
-   `plan-synthetic-scenarios`. Select evaluation Objectives to receive a
-   pre-generation report.
-2. Review the report and approve generation when its prerequisites are met.
-   The agent generates and validates the Backstory and proposed Ground truth.
-3. Ask the agent to use `review-synthetic-ground-truth`. Have an independent
-   human reviewer approve or flag each Ground truth row in the review app.
-4. Request changes or confirm adoption. Confirmation starts a replay for
-   supported Objective selections; other selections stop after adoption.
-5. Inspect replay results in Pydantic Evals and Logfire, and keep the JSON output
-   as the evaluation record.
-
-To run an already adopted scenario, use `run-scenario` and select its menu number.
-Confirm the provider and model to start the replay.
-
-See the [synthetic evaluation guide](evals/synthetic_journals/README.md) for
-supported Objectives and detailed generation, review, and replay instructions.
-
-### Automated checks and agent evaluations
+## Run checks and evaluations
 
 Run the tests, frontend lint, and production build from the repository root:
 
@@ -254,45 +168,23 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
-For individual agent evaluations, follow the relevant guide:
+The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
+scenario generation, independent human Ground truth adoption, supported
+Objectives, and replay. Use the Skills above to follow those workflows.
 
-- [Librarian](evals/librarian/README.md): retrieval benchmarks and live validation.
-- [Provenance](evals/provenance/README.md): emotional boundaries and risk classification.
-- [Serendipity](evals/serendipity/README.md): connection discovery and cross-source evaluation.
-- [Synthetic scenarios](evals/synthetic_journals/README.md): scenario validation,
-  Ground truth adoption, and replay.
+Individual agent evaluation guides cover [Muse](evals/muse/README.md),
+[Librarian](evals/librarian/README.md), [Provenance](evals/provenance/README.md),
+[Serendipity](evals/serendipity/README.md), and [Sculptor](evals/sculptor/README.md).
 
-The guides list commands, model configuration, supported cases, and result formats.
+## Documentation
 
-## Repository layout
-
-Each agent owns its prompts and reasoning logic; orchestration, typed hand-offs,
-and deterministic services remain shared.
-
-```text
-linger/
-├── apps/                           # Runnable backend and frontend
-│   ├── backend/                    # FastAPI adapter plus application chat turn
-│   └── frontend/                   # React user interface
-├── src/linger/
-│   ├── agents/                     # Five role Agents, runtime skills, and contracts
-│   │   ├── muse/
-│   │   ├── librarian/
-│   │   ├── sculptor/
-│   │   ├── serendipity/
-│   │   └── provenance/
-│   ├── corpus/                     # Canonical chapter and section processing
-│   ├── orchestration/              # Reflection, capture, and connection flows
-│   ├── contracts/                  # Typed agent hand-offs
-│   └── services/                   # Memory policy, retrieval, and citations
-├── data/                           # Corpus, manifests, and fixtures
-├── evals/                          # Benchmarks, scenario validation, adoption, and replay
-├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and authored scenarios
-├── tests/                          # Integration, security, and end-to-end tests
-├── memories/                       # Git-ignored runtime Markdown memories
-├── notebooks/                      # Manual Librarian and Gutenberg workflows
-├── prompts/                        # Repository-owned prompt artifacts
-└── docs/                           # Specification, telemetry contract, designs, and reports
-```
-
-For app-specific details, see [`apps/README.md`](apps/README.md).
+- [Architecture](docs/agent-skills.md): agent roles, runtime skills, typed
+  contracts, and application ownership.
+- [App guide](apps/README.md): configuration, API, and backend workflow.
+- [Book registration](docs/book-registration.md) and
+  [corpus formats](docs/corpus/canonical-sections.md): add books, understand
+  reading boundaries, and validate canonical sources.
+- [Telemetry](docs/telemetry.md): what backend and evaluation runs send to Logfire.
+- [Product specification](docs/specification.md): product scope and acceptance
+  criteria, including target behavior that is not yet implemented.
+- [Contributor instructions](AGENTS.md): repository workflow and Beads task tracking.
