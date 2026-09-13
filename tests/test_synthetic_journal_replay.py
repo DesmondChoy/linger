@@ -359,6 +359,97 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
 
 
 @pytest.mark.parametrize(
+    ("fault", "expected_failures"),
+    [
+        ("none", ()),
+        ("approval", ("capture_review_mismatch",)),
+        ("storage", ("stored_record_count_mismatch", "unexpected_memory_writes")),
+        (
+            "approval_and_storage",
+            (
+                "capture_review_mismatch",
+                "capture_storage_mismatch",
+                "stored_record_count_mismatch",
+                "unexpected_memory_writes",
+            ),
+        ),
+        ("wrong_reason", ("capture_reason_code_mismatch",)),
+        ("wrong_offsets", ("nominated_span_mismatch",)),
+        ("wrong_binding", ("capture_binding_mismatch",)),
+    ],
+)
+def test_capture_replay_grades_expected_veto(
+    fault: str, expected_failures: tuple[str, ...]
+) -> None:
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    proposal = next(
+        item for item in ground_truth.proposals
+        if isinstance(item.capture.nomination, CaptureCandidate)
+    )
+    assert isinstance(proposal.capture.nomination, CaptureCandidate)
+    span = proposal.capture.nomination.span
+    veto = CaptureExpectation(
+        nomination=proposal.capture.nomination,
+        provenance_decision="reject_capture",
+        reason_code="sensitive_content",
+    )
+    ground_truth = ground_truth.model_copy(update={
+        "proposals": tuple(
+            item.model_copy(update={"capture": veto})
+            if item.proposal_id == proposal.proposal_id else item
+            for item in ground_truth.proposals
+        ),
+    })
+    veto_line = next(line.text for line in content.lines if line.line_id == span.source_id)
+
+    async def chat_handler(request, service, account):
+        if request.message != veto_line:
+            return _no_capture_response()
+        offset_error = int(fault == "wrong_offsets")
+        response = _no_capture_response(MemoryCandidate(
+            kind="memory_candidate",
+            text=span.text,
+            start_codepoint=span.start_codepoint + offset_error,
+            end_codepoint=span.end_codepoint + offset_error,
+            reason_code="durable_reflection",
+        ))
+        if fault in {"storage", "approval_and_storage"}:
+            service.save_automatic(account, AutomaticMemoryCandidate(
+                text=span.text,
+                source_event_id=request.turn_id,
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ))
+        response.inspection.release.capture = CaptureInspection(
+            nomination="candidate",
+            provenance_decision=(
+                "allow_capture" if fault in {"approval", "approval_and_storage"}
+                else "reject_capture"
+            ),
+            binding="invalid" if fault == "wrong_binding" else "exact",
+            storage="committed" if fault == "approval_and_storage" else "refused",
+            reason_code="low_signal" if fault == "wrong_reason" else "sensitive_content",
+        )
+        return response
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    observation = next(scene for scene in result.scenes if scene.scene_id == proposal.scene_id)
+    assert observation.expected_capture == veto
+    assert observation.hard_failures == expected_failures
+    assert observation.ground_truth_result == (
+        "differs_from_proposal" if expected_failures else "matches_proposal"
+    )
+    assert observation.existing_memories_unchanged
+    if fault == "none":
+        assert observation.retry is None
+        assert observation.stored_record_count == 0
+        assert observation.created_memory_ids == ()
+        assert result.final_active_memory_ids == ()
+
+
+@pytest.mark.parametrize(
     ("fault", "failure"),
     [
         ("none", None),
@@ -370,6 +461,7 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
         ("safe_decline", "release_source_mismatch"),
         ("extra_write", "unexpected_memory_writes"),
         ("wrong_event", "stored_record_count_mismatch"),
+        ("missing_storage", "stored_record_count_mismatch"),
         ("duplicate_retry", "capture_retry_not_idempotent"),
         ("failed_retry", "capture_retry_not_idempotent"),
     ],
@@ -414,7 +506,8 @@ def test_capture_replay_grades_observed_outcomes(
             review_allows_capture=True,
             contains_sensitive_content=False,
         )
-        service.save_automatic(account, candidate)
+        if fault != "missing_storage":
+            service.save_automatic(account, candidate)
         if fault == "extra_write":
             service.save_automatic(
                 account, replace(candidate, source_event_id=request.turn_id + ":extra")
@@ -455,13 +548,20 @@ def test_capture_replay_grades_observed_outcomes(
         assert observation.hard_failures == ()
         assert observation.retry is not None
         assert observation.retry.created is False
+        assert observation.retry.memory_id == observation.memory_id
+        assert observation.retry.original_unchanged
         assert observation.retry.store_unchanged
+        assert observation.stored_text == span.text
+        assert observation.stored_record_count == 1
         assert len(result.final_active_memory_ids) == 1
     else:
         assert observation.ground_truth_result == "differs_from_proposal"
         assert failure in observation.hard_failures
     assert result.artifact_schema_version == "2"
     assert observation.expected_capture == proposal.capture
+    if fault == "missing_storage":
+        assert observation.retry is None
+        assert "capture_retry_unavailable" in observation.hard_failures
     if fault == "failed_retry":
         assert observation.retry.error == "MemoryConflictError"
         assert observation.retry.store_unchanged

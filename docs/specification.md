@@ -1043,15 +1043,16 @@ decision. The review app displays both decisions separately.
 Capture grading checks the final recorded Muse nomination, exact proposed span,
 review and binding decisions, release source, stored text, and record count.
 An allowed candidate expects an exactly bound, committed capture with a normal
-Muse release. A rejected candidate expects refusal and no write. No nomination
+Muse release. A rejected candidate expects capture rejection and no write. No nomination
 expects a normal release, no capture authorisation, and no write. Unexpected
 writes or changes to earlier records fail the Scene. Missing Muse output cannot
 pass. Safe-decline expectations remain outside this runner's supported cases.
 
-Rejected-candidate grading is incomplete: the current grader still requires an
-idempotency retry for every candidate, while replay produces that observation
-only after an allowed commit. A correctly refused candidate therefore reports
-`capture_retry_unavailable` and cannot pass all hard gates.
+Retry expectations follow the expected capture outcome. An expected allowed
+capture requires an idempotency retry. An expected rejection requires no writes
+and does not require a storage retry. The grader still checks the exact
+nomination, Provenance decision, any expected rejection reason, unexpected
+writes, and unchanged existing memories.
 
 For an observed exact, allowed commit, the runner resubmits that stored record's
 account, source event, text, and evidence to Memory Policy. The retry must return
@@ -1059,14 +1060,15 @@ the same unchanged record with `created=False` and leave the store unchanged.
 This checks policy idempotency; it does not establish server-owned HTTP retry
 identity. Artifact schema 2 records the complete capture expectation, observed
 nomination, failure reasons, and retry result. Older nomination-only runs do not
-provide evidence for these additional checks. The retained
-[everyday capture scenario](../synthetic-journal-evaluation/scenarios/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth-adoption.json)
-has a hash-bound adoption recorded from an explicit human instruction. Its
-generated Ground truth still uses the earlier capture schema and fails current
-validation. The adoption preserves authority over those historical bytes; it
-does not approve a schema migration or establish a fresh replay result. A
-migrated scenario needs validation and independent adoption before adopted
-grading under the current contract.
+provide evidence for these additional checks. The original Everyday memory
+capture Scenario and its migration-only successor were deleted at the
+developer's request on 13 September 2026, including their Ground truth, adoption,
+and reports. Regeneration is planned for a separate conversation. The reusable
+[regression fixture](../tests/fixtures/synthetic_capture/README.md), capture
+runner, and generation preset remain available. A newly generated Scenario
+needs validation and fresh independent human adoption of its exact files before
+adopted grading under the current contract. Historical approval does not carry
+over to new files.
 
 The bounded-curation runner supplies only the isolated Scene's active,
 same-account Props to production `propose_curation`. It preserves and hashes

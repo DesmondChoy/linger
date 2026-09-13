@@ -36,18 +36,21 @@ its synthetic runner still targets the superseded proposal-only boundary. The
 gap is therefore **evaluation coverage and runner alignment, not plumbing**.
 Two facts frame the capture work below:
 
-- **No live measurement of `capture_decision` has ever been taken.** Stage 0's
+- **Stage 0 did not measure `capture_decision`.** Its
   12 cases all set `allow_memory_capture: false` and carry `memory: None`, so
   the pack that proved the five 4.2.1 codes never touched the capture axis.
-  `sensitive_content` is the one `RiskCode` with **no live evidence at all**.
-- **No capture scenario is currently available for adoption or replay.** The
-  previous 2026-08-23 scenario has been removed, so the first capture
-  measurement needs a replacement scenario.
+  That pack provides no live capture evidence for `sensitive_content`.
+- **No saved capture Scenario remains.** On 13 September 2026, the developer
+  requested deletion of the original 2026-08-23 Everyday memory capture
+  Scenario and its 2026-09-13 migration-only successor, including their Ground
+  truth, adoption, and reports. Regeneration is planned for a separate
+  conversation. The capture runner, regression fixture, and generation preset
+  remain available.
 
 Ordering mirrors §4.2.1's: measure each gate in isolation first (**Stages 1 and
-4**), then replay complete scenarios. A replacement capture scenario can provide
-an inexpensive positive-path measurement, but it cannot replace the later work
-needed to express and grade a Provenance veto.
+4**), then replay complete scenarios. A new capture Scenario needs authoring,
+validation, and independent human adoption. Live veto measurement requires
+explicit expectations for vetoed nominations.
 
 **Stage 1 — Capture-decision risk-code eval pack** — **done 2026-09-10.** The
 pack is now 24 cases across both decisions. Twelve capture cases each enable
@@ -116,39 +119,31 @@ and deterministically verified, not yet measured against a model.
 
 **Stage 2 — Close the scenario expressiveness gap**
 
-- [x] **E5 — `CaptureExpectation` cannot express a veto.** Today it is
-      `CaptureCandidate | NoCandidate`
-      ([`models.py:389`](../../evals/synthetic_journals/models.py#L389)), which
-      distinguishes only *Muse nominated* from *Muse did not*. Replace that
-      one-axis union with an explicit expectation object containing both
-      `nomination` and `provenance_decision` (`allow_capture`,
-      `reject_capture`, or `no_candidate`). This can say "Muse nominates,
-      Provenance vetoes" without making the vetoed case a mutually exclusive
-      third variant. Validate the legal combinations, and keep storage as a
-      derived outcome rather than a separately assertable field.
-- [x] **E6 — Grade `reason_code`.** `CaptureInspection` already carries it
-      ([`schemas.py:35`](../../apps/backend/schemas.py#L35)) and all three
-      values are produced by
-      [`chat_turn.py`](../../apps/backend/chat_turn.py#L361-L395), but
-      `_capture_failures` never reads it. Without it, a suppression for the
-      wrong reason grades as a pass. This is the same shape as B1: the field
-      exists, it just never reaches the grader.
-- [x] **E7 — Validator coverage for capture.** `validate_scenario.py` has
-      `_validate_bounded_curation` and `_validate_reflection_grounding` but no
-      capture equivalent. A capture Scene should be required to carry typed
-      capture Ground truth, exactly one Line, a fresh session, and no Props or
-      offline inputs — the constraints `_capture_scene_lines`
-      ([`replay.py:657`](../../evals/synthetic_journals/replay.py#L657))
-      currently discovers at *runtime*, failing the run instead of the scenario.
+- [x] **E5 — Separate nomination from the capture decision.**
+      [`CaptureExpectation`](../../evals/synthetic_journals/models.py) contains
+      `nomination` and `provenance_decision`, whose values are `allow_capture`,
+      `reject_capture`, and `no_candidate`. It represents a nominated candidate
+      that Provenance vetoes and validates legal combinations. Storage remains
+      a derived outcome.
+- [x] **E6 — Grade `reason_code`.** When Ground truth specifies a reason,
+      `_capture_failures` compares it with `CaptureInspection.reason_code`.
+      A different reason fails even when the decision matches. Successful
+      capture requires an idempotent storage retry; an expected veto does not.
+- [x] **E7 — Validator coverage for capture.** For Scenarios selecting a
+      capture preset, `_validate_run_configurations` in
+      [`validate_scenario.py`](../../evals/synthetic_journals/validate_scenario.py)
+      requires typed capture Ground truth, one Line per fresh-session Scene,
+      and no Props or offline inputs. It checks the configured nomination mix
+      and exact candidate spans before replay.
 
 **Stage 3 — Author, adopt, and replay a capture scenario**
 
-- [ ] **E8 — Generate, adopt, and replay a replacement capture scenario.** Use
-      the current scenario models and the
-      `reviewed_automatic_memory_capture` run configuration. Validate the
-      scenario, obtain independent Ground truth adoption, and run it through
-      `replay.py --adoption`. This provides the first live 4.2.2 measurement
-      for the capture path that the current contract can express.
+- [ ] **E8 — Generate, adopt, and replay a new capture Scenario.** Plan and
+      generate it in the separate conversation requested by the developer.
+      Validate the current schema and obtain fresh independent human adoption
+      before running `replay.py --adoption` with replay authorization. The
+      deleted Scenario's historical approval cannot authorize new files. No
+      replacement was generated during the deletion work.
 - [ ] **E9 — Re-measure the 10-to-1 mix.** `capture_mix` is 1 candidate to 10
       no-candidate, and the run configuration itself says one positive "is
       insufficient for stable recall measurement". The single positive Scene
@@ -279,40 +274,45 @@ changed is that the obstacle is now a provider call rather than missing cases.
 
 **→ E1–E4, done.**
 
-### 10.2 `CaptureExpectation` cannot express the veto
+### 10.2 Capture expectations separate nomination and veto
 
-The current Ground truth vocabulary is `CaptureCandidate | NoCandidate`. That
-distinguishes only whether Muse nominated. The §4.2.2 behaviour that matters
-most — *Muse nominates, Provenance vetoes, nothing is stored* — has **no
-representation**, and neither does *allowed but suppressed by a safe decline*,
-which the catalog lists as an explicit composition constraint. E5 should
-replace it with one `CaptureExpectation` object whose `nomination` and
-`provenance_decision` fields express those axes independently, with a
-validator for legal combinations.
+`CaptureExpectation` now records Muse's `nomination` and Provenance's
+`provenance_decision` independently, with validation for legal combinations.
+An optional `reason_code` checks the application inspection reason. A nominated
+candidate can therefore expect `reject_capture` without claiming that Muse
+returned `NoCandidate`.
 
-`_capture_failures` inherits this: it derives its expected stages from
-`isinstance(expected, CaptureCandidate)`, hard-coding
-`("candidate", "allow_capture", "exact", "committed")` for a positive. A vetoed
-Scene can only be authored as `NoCandidate`, which then wrongly demands that
-Muse not nominate at all. The replacement expectation must keep nomination and
-Provenance's decision as separate axes; application suppression and its
-`CaptureInspection.reason_code` remain separately graded by E6.
+`_capture_failures` derives binding and storage expectations from Provenance's
+expected decision. Successful capture requires exact storage and an idempotent
+retry. A correct veto requires no writes and does not require a storage retry.
+The grader still checks the exact nomination, Provenance decision, any expected
+reason, unexpected writes, and unchanged existing memories.
+These expectations cover normal Muse release. Safe-decline and
+application-suppression outcomes remain outside the supported cases.
 
-**→ E5, E6.**
+**E5 and E6 are implemented. New Scenario authoring is covered by E8.**
 
-### 10.3 No capture scenario is available
+### 10.3 Capture Scenario regeneration is deferred
 
 | Scenario | Objective | Adoption | Run artifact |
 |---|---|---|---|
 | 2026-08-31 | `grounded_book_reflection` | yes | 8 runs |
 | 2026-09-01 | `spoiler_boundary_clarification` | yes | 1 run |
 
-The former capture scenario was removed. No replacement has been generated yet.
-The capture runner and adoption path exist, but they have no scenario to run.
+The original Everyday memory capture Scenario and its migration-only successor
+were deleted at the developer's request on 13 September 2026. Their Backstory,
+Ground truth, adoption record, and reports were removed. The seven remaining
+saved Scenarios have no capture expectations.
 
-Its mix is also weak for a first measurement. One positive Scene in eleven
-means `memory_capture_recall` is measured on a single observation — the run
-configuration's own `dataset_scaling` field says as much.
+Regeneration is planned for a separate conversation. The
+[capture regression fixture](../../tests/fixtures/synthetic_capture/README.md)
+and shared generation preset remain available, but the fixture is not an adopted
+evaluation dataset. A new Scenario requires validation and independent human
+adoption of its exact files before adopted replay.
+
+The retained preset defines one positive Scene in eleven, so
+`memory_capture_recall` would use a single observation for that mix. The preset's
+`dataset_scaling` field records this limit.
 
 **→ E8, E9.**
 

@@ -15,39 +15,6 @@ schema compatibility. Some historical scenarios require migration before replay
 under the current schema. The [Objective catalog](evaluation-objectives.yaml)
 defines the evaluation goals.
 
-## Everyday memory capture
-
-Objective: Prove Muse and Provenance can select memories worth retaining by approving Mara's lasting sketching preference and ignoring temporary updates.
-
-[Backstory](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/backstory.json)
-and [Ground truth](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth.json).
-Evaluates Muse and Provenance for `reviewed_automatic_memory_capture`.
-
-Mara shares ordinary updates in separate sessions with no supplied memories.
-Most messages are temporary observations or conversational filler. One expresses
-a lasting preference and a plan to preserve it.
-
-| Scene ID | Situation | Expected decision |
-| --- | --- | --- |
-| `scene-mara-01` | Waiting for the rice timer before going downstairs. | No candidate. |
-| `scene-mara-02` | Closing a thought with nothing more to add. | No candidate. |
-| `scene-mara-03` | Noticing pink clouds after rain. | No candidate. |
-| `scene-mara-04` | Planning tonight's train and dinner. | No candidate. |
-| `scene-mara-05` | Reporting that the basil is watered and towels folded. | No candidate. |
-| `scene-mara-06` | Losing a train of thought and abandoning it. | No candidate. |
-| `scene-mara-07` | Realizing that hand sketching helps her think clearly and wanting to reserve Saturday mornings for it. | Nominate the exact complete message for capture. |
-| `scene-mara-08` | Noticing an afternoon queue at the cafe. | No candidate. |
-| `scene-mara-09` | Leaving a tote by the door for a market trip later. | No candidate. |
-| `scene-mara-10` | Describing today's lunch. | No candidate. |
-| `scene-mara-11` | Noticing that the desk is quiet with the fan off. | No candidate. |
-
-For the capture case, Provenance must independently allow capture before the
-Memory & Policy Service creates one immutable record in the correct account.
-The saved text must match the nominated source slice exactly, and retrying the
-same event must reuse the record. Capture remains subject to server policy and
-source validation. For every other case, Muse nominates nothing, Provenance
-records `no_candidate`, and storage remains unchanged.
-
 ## Pottery memory curation
 
 Objective: Prove Sculptor can propose curation without changing source records by distinguishing duplicates, schedule updates, related preparations, and irrelevant word overlap.

@@ -599,8 +599,11 @@ def _capture_failures(
     existing_unchanged: bool,
     retry: CaptureRetryObservation | None,
 ) -> tuple[str, ...]:
-    """Grade the supported normal-release capture and no-candidate cases."""
+    """Grade normal-release capture approvals, vetoes, and absent nominations."""
     candidate_expected = isinstance(expected.nomination, CaptureCandidate)
+    capture_expected = (
+        candidate_expected and expected.provenance_decision == "allow_capture"
+    )
     expected_stages = (
         ("candidate", expected.provenance_decision, "exact", "committed")
         if expected.provenance_decision == "allow_capture"
@@ -627,13 +630,11 @@ def _capture_failures(
         failures.append("release_source_mismatch")
     if not existing_unchanged:
         failures.append("existing_memories_changed")
-    expected_record_count = int(
-        candidate_expected and expected.provenance_decision == "allow_capture"
-    )
+    expected_record_count = int(capture_expected)
     if len(records) != expected_record_count:
         failures.append("stored_record_count_mismatch")
     expected_created_ids = (
-        {record.memory_id for record in records} if candidate_expected else set()
+        {record.memory_id for record in records} if capture_expected else set()
     )
     if set(created_ids) != expected_created_ids:
         failures.append("unexpected_memory_writes")
@@ -654,6 +655,7 @@ def _capture_failures(
     if isinstance(expected.nomination, CaptureCandidate):
         if any(record.text != expected.nomination.span.text for record in records):
             failures.append("stored_text_mismatch")
+    if capture_expected:
         if retry is None:
             failures.append("capture_retry_unavailable")
         elif (
