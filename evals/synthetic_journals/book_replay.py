@@ -52,6 +52,7 @@ from src.linger.services.memory import (
 from .book_contract import BookReplayPlan, ValidatedBookScene, compile_book_replay_plan
 from .book_evidence import ResolvedCorpusSpan
 from .book_semantics import SpoilerSemanticResult, review_spoiler_semantics
+from .evaluation_link import emit_evaluation_link
 from .adoption import (
     GroundTruthAdoptionError,
     validate_ground_truth_adoption_files,
@@ -378,6 +379,7 @@ async def replay_book_scenes(
                 "ground_truth_evaluation": evaluation_name,
             },
         )
+        emit_evaluation_link(report)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic book cases failed: {failed_cases}")
@@ -1081,7 +1083,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         GroundTruthAdoptionError,

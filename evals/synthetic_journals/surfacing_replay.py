@@ -42,6 +42,7 @@ from .adoption import (
     validate_ground_truth_adoption,
     validate_ground_truth_adoption_files,
 )
+from .evaluation_link import emit_evaluation_link
 from .models import (
     GroundTruthAdoption,
     ProposedGroundTruth,
@@ -326,6 +327,7 @@ async def replay_surfacing_scenes(
             "semantic_quality_evaluated": False,
         },
     )
+    emit_evaluation_link(report)
     if report.failures or len(observations) != len(scene_inputs):
         raise RuntimeError(
             "surfacing evaluation framework failed to record every Scene"
@@ -507,7 +509,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         PackageValidationError,

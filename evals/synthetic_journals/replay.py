@@ -74,6 +74,7 @@ from .adoption import (
     GroundTruthAdoptionError,
     validate_ground_truth_adoption_files,
 )
+from .evaluation_link import emit_evaluation_link
 from .models import (
     CaptureCandidate,
     CaptureExpectation,
@@ -406,6 +407,7 @@ async def replay_capture_scenes(
                 "artifact_schema_version": "2",
             },
         )
+        emit_evaluation_link(report)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic evaluation cases failed: {failed_cases}")
@@ -771,7 +773,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         GroundTruthAdoptionError,

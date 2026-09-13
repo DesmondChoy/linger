@@ -1,5 +1,61 @@
 # Synthetic scenario evaluation
 
+## Run a saved scenario
+
+Ask your coding agent to use
+[`run-scenario`](../../.agents/skills/run-scenario/SKILL.md). Choose one package
+from its numbered menu, then confirm the provider and model for that run. The
+skill checks the selected provider's API key, Logfire credentials, package
+compatibility, and independent Ground truth adoption before calling a model.
+If a key is missing, add it to the repository `.env` and ask the agent to recheck.
+
+The menu copies descriptions from `scenario_descriptions.md` and computes
+readiness from current files. Each selection runs all Scenes in its package.
+The selected model overrides `LINGER_MODEL` for that process only. Public-source
+packages enable web search for their run and require `EXA_API_KEY`.
+
+The result links to the specific Logfire evaluation and a unique run directory
+inside the package, containing `evaluation.json`, `summary.json`, and `run.log`.
+Every run, including one where all checks pass, produces an
+`analysis-report-<timestamp>-<identifier>.md` beside the package's source files.
+Blocked preflight checks produce the same report with Scenes marked as not run.
+
+The report covers results, commentary for every Scene, scenario validity, and
+ordered next steps with verification criteria. Passing Scenes explain which
+behavior supports the pass and whether missing coverage could hide a false
+positive. The automated grade remains separate from the agent's assessment.
+The skill completes the review using a shared rubric, then validates and renders
+the fixed format. Its companion JSON preserves the facts, review, and detailed
+evidence. Identical saved review data renders identically; another model's
+interpretation can still differ.
+
+The agent checks current requirements and relevant diffs before recommending a
+scenario or application change. A changed expectation requires fresh independent
+adoption. The skill does not modify package sources or retry evaluations automatically.
+
+For terminal inspection without a model call, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario menu
+```
+
+Keep the printed `SCENARIO_MENU_FILE` path. `inspect` reads a numbered entry;
+`check` also saves a report when blocked. `run` requires `--confirmed-model`,
+which the skill supplies only after explicit user confirmation. Use `--help`
+on those subcommands for their arguments.
+
+To render a completed review from its saved JSON without a model call, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario report \
+  --analysis PATH_TO_ANALYSIS_REPORT.json
+```
+
+This command rejects incomplete reviews, omitted Scenes, and assessments that
+contradict the recorded grade. The skill's
+[analysis instructions](../../.agents/skills/run-scenario/references/analysis-report.md)
+define the review fields and the checks for misleading passes and failures.
+
 ## Package contract
 
 The package has two JSON files: `backstory.json` contains the generated
