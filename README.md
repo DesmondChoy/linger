@@ -34,14 +34,15 @@ and decisions to clarify or decline. Automated tests and privacy-conscious
 tracing support verification and diagnosis.
 
 <details>
-<summary>How chat and curation are reviewed</summary>
+<summary>How runtime skills work</summary>
 
-![Chat passes through Provenance preflight, Muse with optional specialists, Provenance candidate review, and application release checks. Separate curation passes bounded originals through Sculptor, Provenance, and memory policy to produce a curated view while preserving originals.](docs/images/reviewed-agent-workflows-v1.png)
+![One reusable Provenance Agent has three assigned skills. For curation review, the application selects the skill, loads its instructions and typed contract, runs the Agent with fresh context, then validates the verdict and applies policy.](docs/images/runtime-skills-detail-v1.png)
 
-The diagram shows the successful paths. Emotional preflight can stop a chat
-before Muse runs. A candidate may receive one reviewed revision; rejected or
-invalid candidates produce an application-owned response. Curation applies
-only an approved, validated proposal and runs separately from interactive chat.
+Provenance illustrates the shared pattern. The application selects a skill and
+supplies its instructions, evidence, and output schema before the model runs.
+Each review uses fresh context through the same Agent object. An `allow` verdict
+still requires application validation before any memory change. Other roles
+retain their own tools and context rules, including Muse's session history.
 
 </details>
 

@@ -9,16 +9,23 @@ views of the current implementation, not deployment or complete branch diagrams.
   skills, and application-owned services. Not all roles run on each chat turn.
 - `reviewed-agent-workflows-v1.png`: successful chat and curation paths. Curation
   is separate from interactive chat; the image does not establish that a
-  proposal-only evaluation runs the full curation workflow.
+  proposal-only evaluation runs the full curation workflow. Retained as a
+  supporting asset; the README now uses the runtime-skills detail below.
+- `runtime-skills-detail-v1.png`: the implemented Provenance Agent and its three
+  runtime skills, showing application selection, fresh review context, typed
+  verdicts, and deterministic policy enforcement. Updated from the 2026-09-12
+  proposal image using built-in imagegen.
 
 Checked against `docs/agent-skills.md`, `apps/backend/chat_turn.py`,
 `src/linger/orchestration/reflection.py`, and
-`src/linger/orchestration/curation.py`. The README includes text descriptions,
-including the emotional-preflight stop path omitted from the simplified arrows.
+`src/linger/orchestration/curation.py`. The workflow arrows omit the
+emotional-preflight stop path. The runtime-skills detail also matches
+`src/linger/agents/provenance/agent.py`, `skills.py`, and `curation_models.py`.
+The README includes a text description of the illustrated skill execution.
 
-Existing images were inspected but not reused. The older reflection and connection
-flows include photograph input and an automatic failure-to-evaluation path that
-are not current runtime capabilities. The book identity diagram is a detailed
+The initial repository-image review excluded the older reflection and connection
+flows. They include photograph input and an automatic failure-to-evaluation path,
+neither of which is a current runtime capability. The book identity diagram is a detailed
 chapter-focused snapshot; it does not cover current named-section permissions.
 The evaluation-vocabulary image inspected at the start used the older package
 terminology. This change does not replace existing image files.
@@ -80,3 +87,27 @@ Make only these three changes:
 2. Change only the fill of the bottom-lane "Memory policy" box from pale blue to the same light gray used by the bottom-lane "Application" box. Memory policy is deterministic application code, not an AI agent. Keep its shield icon and all text.
 3. Replace the bottom-lane explanatory note with this exact sentence: "Only approved, validated proposals are applied. If no proposal is made or review fails, memories remain unchanged."
 Do not change any other element or add any content.
+
+## Runtime-skills detail edit prompt
+
+Source: the Provenance proposal diagram generated on 2026-09-12 in the task
+"Locate provenance curation ownership". The original is preserved in Codex's
+generated-image storage. Only the updated asset is referenced by the README.
+
+Use case: infographic-diagram.
+Input image: edit target, the existing Linger diagram titled "Inside an agent: skills define the task".
+Primary request: Update this diagram to describe the implemented architecture, preserving its two-column layout, all boxes, connectors, icons, three assigned skills, five review steps, white background, pale-blue and teal palette, navy typography, and readable text. This is a targeted documentation update, not a redesign.
+Make these exact text changes:
+1. Change the subtitle "Provenance example — proposed design" to "Provenance example: implemented runtime skills".
+2. Change the top-right badge "PROPOSED" to "IMPLEMENTED".
+3. Change the bottom strip from "Same responsibilities • No skill-discovery model call • Existing authority preserved" to "Explicit responsibilities • No skill-discovery model call • Application-owned authority".
+4. Change the final footer to exactly: "All five agents use this pattern. Each retains its own tools, context, and authority limits."
+Preserve all other words and meaning, including:
+- "1 reusable Agent"
+- "Emotional preflight", "Candidate review", "Curation review"
+- "Selection stays in application code"
+- "Same object, separate review runs"
+- "Markdown holds instructions; Python enforces contracts."
+- the right-hand sequence: application selects Curation review, load selected task contract, run shared Provenance Agent with fresh review context, return a typed verdict (allow/revise/reject), application validates and applies policy
+- "An allow verdict alone does not write data".
+The diagram shows Provenance, which has no tools and uses fresh review context. Do not add a tool or cross-run memory. The same reuse pattern applies to all five roles, but their tools and histories differ. Do not suggest production readiness, model-selected skills, automatic learning, direct writes, or new capabilities. Output a crisp high-resolution raster image with all labels fully legible and no clipping.
