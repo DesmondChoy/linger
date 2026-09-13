@@ -229,14 +229,26 @@ def _history_evidence(
     ]
     dirty = _git(repository_root, "status", "--short", "--untracked-files=all", "--", *sources, *scope)
     result["scoped_working_tree_changes"] = _safe_text(dirty, 4000) if dirty is not None else None
-    baseline = _git(repository_root, "log", "-1", "--format=%H", "--", *sources)
+    path_snapshot = _git(repository_root, "log", "-1", "--format=%H", "--", *sources)
+    content_commits = {
+        commit for source in sources
+        if (commit := _git(
+            repository_root, "log", "-1", "--follow", "--find-renames=100%",
+            "--diff-filter=AMDT", "--format=%H", "--", source,
+        ))
+    }
+    baseline = _git(
+        repository_root, "log", "-1", "--topo-order", "--format=%H", *sorted(content_commits),
+    ) if content_commits else None
     result["scenario_commit"] = baseline or None
     if baseline:
         result["scenario_commit_description"] = _safe_text(
             _git(repository_root, "show", "-s", "--format=%h %cI %s", baseline)
         )
         def matches_source(name: str) -> bool:
-            committed_blob = _git(repository_root, "rev-parse", f"{baseline}:{(relative / name).as_posix()}")
+            # The content baseline can precede exact renames; the latest path
+            # snapshot retains those same bytes under the current filenames.
+            committed_blob = _git(repository_root, "rev-parse", f"{path_snapshot}:{(relative / name).as_posix()}")
             return committed_blob is not None and committed_blob == _git(
                 repository_root, "hash-object", "--no-filters", str(scenario_dir / name)
             )

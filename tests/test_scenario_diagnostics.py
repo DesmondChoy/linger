@@ -171,6 +171,55 @@ def test_dirty_scenario_is_not_described_as_a_committed_generation(tmp_path):
     assert evidence["git"]["current_scenario_matches_commit"] is False
 
 
+@pytest.mark.parametrize("adopted", [False, True])
+def test_directory_rename_preserves_scenario_content_baseline_and_runtime_drift(tmp_path, adopted):
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "user.name", "Test")
+    _git(tmp_path, "config", "user.email", "test@example.invalid")
+    scenario = _scenario(tmp_path)
+    if not adopted:
+        (scenario / "ground-truth-adoption.json").unlink()
+    old_directory = scenario.parent.with_name("packages")
+    scenario.parent.rename(old_directory)
+    _git(tmp_path, "add", "synthetic-journal-evaluation")
+    _git(tmp_path, "commit", "-qm", "Create proposed scenario")
+    content_revision = _git(tmp_path, "rev-parse", "HEAD")
+    runtime = tmp_path / "src" / "linger" / "agents" / "muse.py"
+    runtime.parent.mkdir(parents=True)
+    runtime.write_text("changed_contract = True\n")
+    _git(tmp_path, "add", "src")
+    _git(tmp_path, "commit", "-qm", "Change runtime before directory rename")
+    old_directory.rename(scenario.parent)
+    _git(tmp_path, "add", "-A", "synthetic-journal-evaluation")
+    _git(tmp_path, "commit", "-qm", "Rename scenario directory only")
+
+    evidence = collect_diagnostic_evidence(scenario, tmp_path)
+    assert bool(evidence["declared_adoption_time"]) is adopted
+    assert evidence["git"]["scenario_commit"] == content_revision
+    assert evidence["git"]["current_scenario_matches_commit"] is True
+    assert evidence["git"]["history_window"] == (
+        "since earlier declared adoption time, including changes before a later scenario move or edit"
+        if adopted else "after scenario-content baseline"
+    )
+    assert "Change runtime before directory rename" in evidence["git"]["recent_commits"]
+
+    with (scenario / "ground-truth.json").open("a") as stream:
+        stream.write("\n")
+    dirty_evidence = collect_diagnostic_evidence(scenario, tmp_path)
+    assert dirty_evidence["git"]["scenario_commit"] == content_revision
+    assert dirty_evidence["git"]["current_scenario_matches_commit"] is False
+
+    _git(tmp_path, "add", "synthetic-journal-evaluation")
+    _git(tmp_path, "commit", "-qm", "Update Ground truth after rename")
+    edited_revision = _git(tmp_path, "rev-parse", "HEAD")
+    edited_evidence = collect_diagnostic_evidence(scenario, tmp_path)
+    assert edited_evidence["git"]["scenario_commit"] == edited_revision
+    assert edited_evidence["git"]["current_scenario_matches_commit"] is True
+    assert ("Change runtime before directory rename" in edited_evidence["git"]["recent_commits"]) is adopted
+    if adopted:
+        assert edited_evidence["adoption_hash_matches"]["ground-truth.json"]["matches"] is False
+
+
 def test_untracked_scenario_does_not_invent_generation_revision(tmp_path):
     _git(tmp_path, "init", "-q")
     _git(tmp_path, "config", "user.name", "Test")
