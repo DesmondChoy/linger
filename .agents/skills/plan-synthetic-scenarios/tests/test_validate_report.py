@@ -53,10 +53,10 @@ One Line has a likely response and success check.
 STATUS: Target state — do not run.
 PRECONDITIONS: contract adopted.
 Create one Backstory, no Props, three Scenes, and one Line per Scene.
-Write PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at
-PACKAGE_DIRECTORY/ground-truth.json containing proposed Ground truth.
+Write SCENARIO_DIRECTORY/backstory.json and the separate Ground truth file at
+SCENARIO_DIRECTORY/ground-truth.json containing proposed Ground truth.
 Use evals/synthetic_journals/models.py and validate with
-evals/synthetic_journals/validate_package.py.
+evals/synthetic_journals/validate_scenario.py.
 {prompt}
 ```
 
@@ -99,9 +99,9 @@ def test_rejects_excess_narrative(tmp_path: Path) -> None:
 
 def test_rejects_prompt_without_ground_truth_file(tmp_path: Path) -> None:
     text = report_text().replace(
-        "Write PACKAGE_DIRECTORY/backstory.json and the separate Ground truth file at\n"
-        "PACKAGE_DIRECTORY/ground-truth.json containing proposed Ground truth.\n",
-        "Write PACKAGE_DIRECTORY/backstory.json.\n",
+        "Write SCENARIO_DIRECTORY/backstory.json and the separate Ground truth file at\n"
+        "SCENARIO_DIRECTORY/ground-truth.json containing proposed Ground truth.\n",
+        "Write SCENARIO_DIRECTORY/backstory.json.\n",
     )
     path = write_report(tmp_path, text)
 
@@ -110,15 +110,15 @@ def test_rejects_prompt_without_ground_truth_file(tmp_path: Path) -> None:
     assert any("proposed Ground truth" in error for error in errors)
 
 
-def test_rejects_prompt_without_adopted_package_validator(tmp_path: Path) -> None:
+def test_rejects_prompt_without_adopted_scenario_validator(tmp_path: Path) -> None:
     text = report_text().replace(
-        "evals/synthetic_journals/validate_package.py.",
+        "evals/synthetic_journals/validate_scenario.py.",
         "an unspecified validator.",
     )
     path = write_report(tmp_path, text)
 
     assert any(
-        "deterministic package validator" in error
+        "deterministic scenario validator" in error
         for error in validate_report(path)
     )
 
@@ -211,15 +211,15 @@ def test_accepts_blocked_conversational_surfacing_target(tmp_path: Path) -> None
 @pytest.mark.parametrize(
     ("omitted", "error_label"),
     [
-        ("evals/synthetic_journals/models.py", "package models"),
+        ("evals/synthetic_journals/models.py", "scenario models"),
         (
-            "evals/synthetic_journals/validate_package.py",
-            "deterministic package validator",
+            "evals/synthetic_journals/validate_scenario.py",
+            "deterministic scenario validator",
         ),
-        ("PACKAGE_DIRECTORY/ground-truth.json", "package Ground truth path"),
+        ("SCENARIO_DIRECTORY/ground-truth.json", "scenario Ground truth path"),
     ],
 )
-def test_blocked_surfacing_prompt_still_requires_shared_package_contract(
+def test_blocked_surfacing_prompt_still_requires_shared_scenario_contract(
     tmp_path: Path, omitted: str, error_label: str
 ) -> None:
     text = conversational_surfacing_report().replace(omitted, "omitted")
@@ -230,14 +230,14 @@ def test_blocked_surfacing_prompt_still_requires_shared_package_contract(
     assert any(error_label in error for error in errors)
 
 
-def test_rejects_prompt_without_sibling_package_paths(tmp_path: Path) -> None:
+def test_rejects_prompt_without_sibling_scenario_paths(tmp_path: Path) -> None:
     text = report_text().replace(
-        "PACKAGE_DIRECTORY/backstory.json",
+        "SCENARIO_DIRECTORY/backstory.json",
         "backstory.json",
     )
     path = write_report(tmp_path, text)
 
-    assert any("package Backstory path" in error for error in validate_report(path))
+    assert any("scenario Backstory path" in error for error in validate_report(path))
 
 
 def test_rejects_bad_filename(tmp_path: Path) -> None:

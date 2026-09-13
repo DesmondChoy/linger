@@ -118,7 +118,7 @@ an objective pass.
 ## Cross-source production replay
 
 [`evals.synthetic_journals.connection_replay`](../synthetic_journals/README.md#connection-and-restraint-replay)
-supports independently adopted packages for `cross_source_tentative_connection`,
+supports independently adopted scenarios for `cross_source_tentative_connection`,
 `weak_evidence_safe_decline`, or both. The typed path runs production chat with
 isolated memory storage, registered corpus retrieval, and live public retrieval
 bounded to the supplied URLs. Adopted public snapshots define the exact evidence
@@ -130,7 +130,7 @@ The release gate checks selected memory and public evidence against the exact
 current-run records reviewed by Provenance. Unknown or changed evidence fails
 closed. Structural stage results remain separate from human judgments about
 usefulness, tentativeness, honest restraint, and support for public claims.
-Legacy weak-evidence-only packages delegate to the reflection runner and retain
+Legacy weak-evidence-only scenarios delegate to the reflection runner and retain
 its narrower hard checks. A component result never substitutes for a released
 production response.
 
@@ -146,7 +146,7 @@ uv run python -m evals.serendipity.objective_replay \
 
 The positional `case` contains a `CrossSourceReplayCase`, including ordered
 messages, an expected decision, and an expected release source. `--output` is
-required. This command has no synthetic-package or `--adoption` argument.
+required. This command has no synthetic-scenario or `--adoption` argument.
 Provider-backed chat uses `LINGER_MODEL` and its matching API key. Actual web
 tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 
@@ -170,7 +170,7 @@ These structural checks support production diagnosis. They do not independently
 grade semantic presentation, exact source selection, the correctness of a
 Provenance verdict, or every earlier turn. `hard_gate_pass` means that all listed
 checks passed; `semantic_review_required` remains true. It is not an
-independently adopted synthetic-package grade. Fixture-backed component grades
+independently adopted synthetic-scenario grade. Fixture-backed component grades
 remain separate.
 
 ## Running and reports

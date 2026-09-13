@@ -100,7 +100,7 @@ configuration or environment flag enables this service or its recorder.
 
 Configure that project before beginning the human-gated synthetic evaluation
 workflow. Objective selection and `pre-generation-report.md` approval emit no
-evaluation telemetry. Package generation and independent Ground truth review
+evaluation telemetry. Scenario generation and independent Ground truth review
 also emit no replay result. After the human confirms every review row, the
 review skill writes `ground-truth-adoption.json` and routes a supported single
 Objective to one provider-backed runner; that runner publishes the Pydantic
@@ -216,7 +216,7 @@ envelope. A revision adds another Muse and Provenance cycle within the same
 case.
 
 Proposal mode emits `proposal_comparison` with `matches_proposal` or
-`differs_from_proposal`. When the exact package has a validated independent
+`differs_from_proposal`. When the exact scenario has a validated independent
 adoption, the same case position emits `adopted_hard_gate_grade` with
 `passes_hard_gates` or `fails_hard_gates` and uses the adopted Ground truth
 identity as the dataset version.

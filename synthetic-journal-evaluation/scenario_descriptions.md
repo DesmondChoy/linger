@@ -1,13 +1,17 @@
 # Scenario descriptions
 
-This reference describes the generated scenarios in [packages/](packages/).
+This reference describes the generated scenarios in [scenarios/](scenarios/).
 Each entry summarizes the setup, expected behavior, and distinctions that matter
 when developing or debugging the evaluated agents. Scene IDs match the source
-JSON. A Scene is one evaluation case; a Prop is a supplied memory record.
+JSON. A Scenario is the complete evaluation design for one person and account.
+Each Scenario contains one or more Scenes, each graded as a unit. A Prop is a
+supplied memory record. The
+[canonical vocabulary](../docs/specification.md#721-canonical-vocabulary)
+defines all seven terms.
 
-Expectations come from each package's `ground-truth.json`; they are not replay
-results. [The package index](README.md) records adoption, replay evidence, and
-schema compatibility. Some historical packages require migration before replay
+Expectations come from each scenario's `ground-truth.json`; they are not replay
+results. [The scenario index](README.md) records adoption, replay evidence, and
+schema compatibility. Some historical scenarios require migration before replay
 under the current schema. The [Objective catalog](evaluation-objectives.yaml)
 defines the evaluation goals.
 
@@ -15,8 +19,8 @@ defines the evaluation goals.
 
 Objective: Prove Muse and Provenance can select memories worth retaining by approving Mara's lasting sketching preference and ignoring temporary updates.
 
-[Backstory](packages/everyday-memory-capture--muse-provenance--2026-08-23/backstory.json)
-and [Ground truth](packages/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth.json).
+[Backstory](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/backstory.json)
+and [Ground truth](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth.json).
 Evaluates Muse and Provenance for `reviewed_automatic_memory_capture`.
 
 Mara shares ordinary updates in separate sessions with no supplied memories.
@@ -48,8 +52,8 @@ records `no_candidate`, and storage remains unchanged.
 
 Objective: Prove Sculptor can propose curation without changing source records by distinguishing duplicates, schedule updates, related preparations, and irrelevant word overlap.
 
-[Backstory](packages/pottery-memory-curation--sculptor--2026-08-29/backstory.json)
-and [Ground truth](packages/pottery-memory-curation--sculptor--2026-08-29/ground-truth.json).
+[Backstory](scenarios/pottery-memory-curation--sculptor--2026-08-29/backstory.json)
+and [Ground truth](scenarios/pottery-memory-curation--sculptor--2026-08-29/ground-truth.json).
 Evaluates Sculptor for `bounded_memory_curation`.
 
 Maya's pottery open-house notes provide duplicate facts, schedule changes,
@@ -69,8 +73,8 @@ the original records, identifiers, and provenance must remain unchanged.
 
 Objective: Prove Muse, Librarian, and Provenance can ground reflection without spoilers by quoting the Caterpillar exchange, clarifying ambiguous progress, and answering personal concerns without retrieval.
 
-[Backstory](packages/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/backstory.json)
-and [Ground truth](packages/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth.json).
+[Backstory](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/backstory.json)
+and [Ground truth](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth.json).
 Evaluates Muse, Librarian, and Provenance for `grounded_book_reflection` and
 `spoiler_boundary_clarification`.
 
@@ -92,8 +96,8 @@ limited to chapter 5 or earlier.
 
 Objective: Prove Muse, Librarian, and Provenance can retrieve only when needed by checking Alice's exact wording for a quotation request and skipping retrieval for personal reflection.
 
-[Backstory](packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/backstory.json)
-and [Ground truth](packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth.json).
+[Backstory](scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/backstory.json)
+and [Ground truth](scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth.json).
 Evaluates Muse, Librarian, and Provenance for `grounded_book_reflection`.
 
 Both cases have the same memory of reaching the Caterpillar episode. The current
@@ -108,8 +112,8 @@ request determines whether book retrieval is useful.
 
 Objective: Prove Muse, Librarian, and Provenance can respect reading boundaries by recognizing the kitchen episode as chapter 6 and asking for clarification when size changes leave progress ambiguous.
 
-[Backstory](packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/backstory.json)
-and [Ground truth](packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/ground-truth.json).
+[Backstory](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/backstory.json)
+and [Ground truth](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/ground-truth.json).
 Evaluates Muse, Librarian, and Provenance for `spoiler_boundary_clarification`.
 
 Priya remembers events rather than chapter numbers. Each case supplies a different
@@ -124,8 +128,8 @@ memory to test whether those events establish her reading position.
 
 Objective: Prove Muse, Librarian, and Provenance can ground answers within supported reading progress by quoting the Pigeon exchange accurately and clarifying an uncertain later growth episode.
 
-[Backstory](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json)
-and [Ground truth](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json).
+[Backstory](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json)
+and [Ground truth](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json).
 Evaluates Muse, Librarian, and Provenance for `grounded_book_reflection` and
 `spoiler_boundary_clarification`.
 
@@ -147,8 +151,8 @@ authorize a reading position or disclosure of those episodes.
 
 Objective: Prove Muse, Librarian, Serendipity, and Provenance can connect sources tentatively by comparing Lina's note with Alice and Hume while rejecting unsupported conclusions about lasting personality change.
 
-[Backstory](packages/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/backstory.json)
-and [Ground truth](packages/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/ground-truth.json).
+[Backstory](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/backstory.json)
+and [Ground truth](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/ground-truth.json).
 Evaluates Muse, Librarian, Serendipity, and Provenance for
 `cross_source_tentative_connection` and `weak_evidence_safe_decline`.
 
@@ -171,8 +175,8 @@ details must not enter public-search queries.
 
 Objective: Prove Muse, Librarian, Serendipity, and Provenance can distinguish reflection from causal proof by comparing concealment across memory, Alice, and research without claiming these explain the reader's silence.
 
-[Backstory](packages/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json)
-and [Ground truth](packages/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json).
+[Backstory](scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json)
+and [Ground truth](scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json).
 Evaluates Muse, Librarian, Serendipity, and Provenance for
 `cross_source_tentative_connection` and `weak_evidence_safe_decline`.
 

@@ -179,7 +179,7 @@ evidence; they do not describe this refactor or replace maintained docs.
 and all nine `SKILL.md` resources. `importlib.resources` resolves the catalogue
 from `src.linger.prompts` and skills from each installed role package. Prompt
 and skill loading do not depend on a repository checkout or the process working
-directory. Corpus data, configuration, and evaluation packages retain their
+directory. Corpus data, configuration, and evaluation Scenarios retain their
 existing deployment requirements.
 
 The test suite exercises task selection, schema-specific retries, registered

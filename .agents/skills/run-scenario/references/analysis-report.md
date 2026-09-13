@@ -8,9 +8,9 @@ additional model-based grader or a replacement for recorded Ground truth grades.
 ## Use the saved facts
 
 Read the `analysis_data` JSON returned by the helper. It contains `summary`, all
-`scenes` in package order, `telemetry`, detailed `evidence`, and `review: null`.
+`scenes` in scenario order, `telemetry`, detailed `evidence`, and `review: null`.
 Fill only `review`. Use the typed expectations, actual Scene results, original
-evaluation artifact, and current package files. Follow evidence references when
+evaluation artifact, and current scenario files. Follow evidence references when
 an excerpt cannot answer a review question. Read current grading code before
 claiming that a particular behavior was checked.
 
@@ -18,17 +18,17 @@ Keep execution, automated results, and interpretation separate. An execution
 error does not demonstrate an application behavior failure. A passing grade
 does not establish semantic quality. Missing observations are inconclusive;
 they do not establish that work never ran. An ungraded Scene is not a pass.
-For blocked preflight, assess package readiness and mark behavior as unexercised.
+For blocked preflight, assess scenario readiness and mark behavior as unexercised.
 Missing, duplicate, or unexpected Scene results prevent a complete evaluation
 even when every available grade passes. Preserve valid observed grades and
-explain the coverage problem; do not call the package successful.
+explain the coverage problem; do not call the scenario successful.
 
 The renderer controls these sections and their order:
 
 1. **Outcome:** execution, counts, verdict, and whether the goal, inputs, and
    Ground truth remain appropriate. Keep model and date compact.
 2. **Scene results:** every Scene's recorded status, expected behavior, and
-   observed behavior, in package order.
+   observed behavior, in scenario order.
 3. **Scene analysis:** why each result occurred, assessment, confidence, grade
    reliability, and a Scene-specific next step.
 4. **Next steps:** ordered changes or diagnostic checks with observable
@@ -56,7 +56,7 @@ For each Scene, answer these questions in its structured review fields:
 - Does the current input provide the information needed for the expected
   answer? Does the Ground truth still follow current requirements? Distinguish
   scenario drift, an application defect, a grader defect, setup failure, and
-  insufficient evidence. Package age and commit lists alone prove none of these.
+  insufficient evidence. Scenario age and commit lists alone prove none of these.
 - How trustworthy is this grade? For a pass, consider a potential false
   positive. For a failure, consider a potential false negative. State the
   specific evidence and remaining uncertainty.
@@ -137,7 +137,7 @@ The authoritative schema is `AnalysisReview` in
 ```
 
 Replace the example prose and include every actual Scene exactly once. The
-renderer preserves package order. `evidence_refs` must identify facts or files
+renderer preserves scenario order. `evidence_refs` must identify facts or files
 actually read, such as the supplied Scene evidence reference, a saved evaluation
 field, or a relevant source line. Do not fabricate support or copy example IDs.
 The renderer checks coverage and compatible assessment labels; the skill must
@@ -150,7 +150,7 @@ unresolved, choose the next discriminating check and explain what its possible
 outcomes imply. An empty next-step list is appropriate when no corrective action
 is warranted. Do not weaken Ground truth merely to obtain green results.
 
-If a scenario needs revision, recommend a successor package, validation, and
+If a scenario needs revision, recommend a successor scenario, validation, and
 fresh independent adoption before another confirmed run. When an expectation
 still applies and the application violates it, recommend an application fix.
 Any local probe used in analysis must be reported as such; it does not prove a

@@ -87,8 +87,10 @@ authorize synthetic-data generation.
    generator-authored Ground truth or grading unless the catalog or a separate
    adopted scope decision requires them. State which complete product path
    exists and which portion the current evaluation runner intentionally covers.
-6. Read Section 7.2.1 completely and use its six canonical nouns exactly:
-   `Objective`, `Backstory`, `Prop`, `Scene`, `Line`, and `Ground truth`. Use
+6. Read Section 7.2.1 completely and use its seven canonical nouns exactly:
+   `Objective`, `Scenario`, `Backstory`, `Prop`, `Scene`, `Line`, and
+   `Ground truth`. A Scenario combines one Backstory, its Scenes, and separate
+   Ground truth for the selected Objectives. A Scene remains the graded unit. Use
    implementation terms such as `batch` only for actual runtime objects, never
    as replacements for canonical nouns.
 7. Read the complete academic source
@@ -113,9 +115,9 @@ authorize synthetic-data generation.
    **partially runnable** when a named adapter or grading path is missing. Mark it
    **blocked** when a required capability or source is missing. Missing downstream
    freezing or replay alone does not weaken the target design; report the gap.
-11. Inspect the package models in
+11. Inspect the scenario models in
    `evals/synthetic_journals/models.py` and deterministic validator in
-   `evals/synthetic_journals/validate_package.py`. Use them unchanged. The
+   `evals/synthetic_journals/validate_scenario.py`. Use them unchanged. The
    `backstory.json` represents one Backstory, Props, Scenes, Lines, and offline
    inputs. The separate `ground-truth.json` contains proposed Ground truth
    anchored to those identifiers, exact spans, evidence, per-Scene Prop
@@ -128,8 +130,8 @@ authorize synthetic-data generation.
     `synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json`
     unless the developer explicitly supplied another adopted configuration.
     Treat its 1:10 capture mix as this run's configuration, not a catalog-wide
-    minimum. The package contains one Backstory; a full capture dataset repeats
-    the 11-Scene pattern in separately validated packages with different
+    minimum. The scenario contains one Backstory; a full capture dataset repeats
+    the 11-Scene pattern in separately validated scenarios with different
     Backstories.
     When `longitudinal_memory_retrieval` is selected, use
     `synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json`
@@ -165,7 +167,7 @@ authorize synthetic-data generation.
     generator how to produce the Backstory, Props or no Props, Scenes, Lines or
     offline inputs, and separate proposed Ground truth required by the plan. It
     must write `backstory.json` and `ground-truth.json` beside the report in the
-    same package directory. Do not weaken or descope a confirmed Objective because
+    same scenario directory. Do not weaken or descope a confirmed Objective because
     current code is incomplete.
 14. Put a precondition header inside the fenced prompt. If every Scene is
     runnable, label the prompt **Runnable after human approval**. Otherwise
@@ -181,7 +183,7 @@ authorize synthetic-data generation.
     to the current checkout and must inspect permitted paths at invocation time.
 16. Preserve the three-stage Ground truth lifecycle. First, require the generator
     to write proposed Ground truth in `ground-truth.json`, separate from
-    `backstory.json`. Second, run the adopted package validator for objective
+    `backstory.json`. Second, run the adopted scenario validator for objective
     facts including schema conformance, Backstory hashing, reference and
     span resolution, ordering, permitted evidence, declared matched-Scene
     differences, complete Prop relevance judgments, and resolved
@@ -204,9 +206,9 @@ mark the affected Scene blocked until event-led inference exists.
 
 ## Write the pre-generation report
 
-Create exactly one package directory under
-`synthetic-journal-evaluation/packages/`. Name it
-`<scenario-set>--<agents>--<YYYY-MM-DD>`, using lowercase words separated by
+Create exactly one scenario directory under
+`synthetic-journal-evaluation/scenarios/`. Name it
+`<scenario-name>--<agents>--<YYYY-MM-DD>`, using lowercase words separated by
 hyphens and the local date. Describe the complete planned Scene set rather than
 a person's name or a single Scene. List only agents participating in the
 evaluated path, in the stable order `muse`, `librarian`, `serendipity`,
@@ -218,11 +220,11 @@ Choose the description from the selected evaluation design and inspected sources
 do not invent a persona or generate data to obtain a name. Keep status and
 grades out of the name. If it exists, append `-02`, `-03`, and so on without
 overwriting it. Preserve the full local timestamp in the report's repository
-snapshot. Folder labels do not replace canonical Objective IDs or package
-identifiers. For an isolated test, use the caller's package directory instead.
+snapshot. Folder labels do not replace canonical Objective IDs or scenario
+identifiers. For an isolated test, use the caller's scenario directory instead.
 Write the Markdown report to `pre-generation-report.md` inside that directory.
 The report is the only file this skill creates. Its fenced generator prompt must
-use the same directory as `PACKAGE_DIRECTORY` and reserve exactly two sibling
+use the same directory as `SCENARIO_DIRECTORY` and reserve exactly two sibling
 output paths: `backstory.json` and `ground-truth.json`.
 
 Before drafting, invoke `$google-developer-docs-style` when available and follow
@@ -246,7 +248,7 @@ in order:
 2. **Your selection.** Use one short bullet per selected Objective with its
    title, ID, and a plain-language summary derived only from `menu.summary`.
 3. **Target evaluation design.** Link `docs/specification.md` Section 7.2.1 at
-   the first canonical-noun reference. From the default package directory, use
+   the first canonical-noun reference. From the default scenario directory, use
    `../../../docs/specification.md#721-canonical-vocabulary`; for an isolated
    test, use the equivalent relative link. Follow it with a compact two-column
    table containing exactly six body rows in this order: `Objective`,
@@ -258,7 +260,7 @@ in order:
    proposed versus adopted Ground truth in the final row.
 4. **Current implementation and required work.** Use **Observed**, **Proposed**,
    and **Assumed** labels. Cite implementation and focused-test evidence. Name
-   reusable `evals/` assets, including the adopted package validator, the recent
+   reusable `evals/` assets, including the adopted scenario validator, the recent
    commits that establish or change the workflow, and relevant open and closed
    Beads. State the reconciled product path, the Objective evaluation endpoint,
    and current runner coverage. Do not call an intentionally downstream product
@@ -299,7 +301,7 @@ never offer execution before the named preconditions are met.
 The report is only for the human or developer and must never be sent wholesale
 to a generator. Do not invoke a generation model or create Backstories, Props,
 Scenes, Lines, offline inputs, Ground truth files, proposed or adopted Ground
-truth, annotations, packages, frozen releases, or replay data.
+truth, annotations, scenarios, frozen releases, or replay data.
 
 After writing the report, resolve `scripts/validate_report.py` relative to this
 `SKILL.md` and run it with the repository's Python environment, passing every
@@ -320,7 +322,7 @@ word count. Then verify the semantic requirements that the script cannot prove:
 - Every unresolved material contradiction is named as a source gap, makes the
   plan insufficient, and appears as a **Target state — do not run** precondition.
 - The target design satisfies every confirmed Objective without descoping.
-- The fenced prompt uses the package models and validator without inventing
+- The fenced prompt uses the scenario models and validator without inventing
   another contract.
 - The fenced prompt creates proposed Ground truth in a separate
   `ground-truth.json` without grading recorded behavior or claiming adoption.
@@ -343,5 +345,5 @@ the Backstory and Ground truth contracts and deterministic validator.
 This skill does not authorize generation. After separately authorized generation
 writes the two JSON files, `$review-synthetic-ground-truth` owns independent
 review, adoption, and the handoff to an implemented Objective-specific replay.
-Full-dataset assembly, package freezing, and unsupported replay paths remain
+Full-dataset assembly, scenario freezing, and unsupported replay paths remain
 unadopted until separately approved.

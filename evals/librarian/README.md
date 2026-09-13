@@ -20,7 +20,7 @@ with a known chapter ceiling. The separate
 evaluates production book routing, full-work boundary inference, clarification,
 grounding, and release against typed proposed or independently adopted Ground
 truth. Its chapter-scoped grades do not cover runtime passage grants. Each
-report's package, adoption, model, and prompt identity determine its evidence
+report's scenario, adoption, model, and prompt identity determine its evidence
 scope.
 
 ## Manual notebook

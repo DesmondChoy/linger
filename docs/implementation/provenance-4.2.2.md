@@ -30,7 +30,7 @@ sound. The material gap is measurement, not runtime design:
 ## TODO
 
 The capture runtime is **more complete than §4.2.1's was**: its review
-contract, binding module, policy service, replay runner, and package models all
+contract, binding module, policy service, replay runner, and scenario models all
 exist and validate. The curation runtime and contracts are also complete, but
 its synthetic runner still targets the superseded proposal-only boundary. The
 gap is therefore **evaluation coverage and runner alignment, not plumbing**.
@@ -40,12 +40,12 @@ Two facts frame the capture work below:
   12 cases all set `allow_memory_capture: false` and carry `memory: None`, so
   the pack that proved the five 4.2.1 codes never touched the capture axis.
   `sensitive_content` is the one `RiskCode` with **no live evidence at all**.
-- **No capture package is currently available for adoption or replay.** The
-  previous 2026-08-23 package has been removed, so the first capture
-  measurement needs a replacement package.
+- **No capture scenario is currently available for adoption or replay.** The
+  previous 2026-08-23 scenario has been removed, so the first capture
+  measurement needs a replacement scenario.
 
 Ordering mirrors §4.2.1's: measure each gate in isolation first (**Stages 1 and
-4**), then replay complete packages. A replacement capture package can provide
+4**), then replay complete scenarios. A replacement capture scenario can provide
 an inexpensive positive-path measurement, but it cannot replace the later work
 needed to express and grade a Provenance veto.
 
@@ -114,7 +114,7 @@ and deterministically verified, not yet measured against a model.
       to confirm it binds and yields the deterministic flags its expectation
       implies.
 
-**Stage 2 — Close the package expressiveness gap**
+**Stage 2 — Close the scenario expressiveness gap**
 
 - [x] **E5 — `CaptureExpectation` cannot express a veto.** Today it is
       `CaptureCandidate | NoCandidate`
@@ -133,20 +133,20 @@ and deterministically verified, not yet measured against a model.
       `_capture_failures` never reads it. Without it, a suppression for the
       wrong reason grades as a pass. This is the same shape as B1: the field
       exists, it just never reaches the grader.
-- [x] **E7 — Validator coverage for capture.** `validate_package.py` has
+- [x] **E7 — Validator coverage for capture.** `validate_scenario.py` has
       `_validate_bounded_curation` and `_validate_reflection_grounding` but no
       capture equivalent. A capture Scene should be required to carry typed
       capture Ground truth, exactly one Line, a fresh session, and no Props or
       offline inputs — the constraints `_capture_scene_lines`
       ([`replay.py:657`](../../evals/synthetic_journals/replay.py#L657))
-      currently discovers at *runtime*, failing the run instead of the package.
+      currently discovers at *runtime*, failing the run instead of the scenario.
 
-**Stage 3 — Author, adopt, and replay a capture package**
+**Stage 3 — Author, adopt, and replay a capture scenario**
 
-- [ ] **E8 — Generate, adopt, and replay a replacement capture package.** Use
-      the current package models and the
+- [ ] **E8 — Generate, adopt, and replay a replacement capture scenario.** Use
+      the current scenario models and the
       `reviewed_automatic_memory_capture` run configuration. Validate the
-      package, obtain independent Ground truth adoption, and run it through
+      scenario, obtain independent Ground truth adoption, and run it through
       `replay.py --adoption`. This provides the first live 4.2.2 measurement
       for the capture path that the current contract can express.
 - [ ] **E9 — Re-measure the 10-to-1 mix.** `capture_mix` is 1 candidate to 10
@@ -173,7 +173,7 @@ and deterministically verified, not yet measured against a model.
       handler in
       [`curation_replay.py:279`](../../evals/synthetic_journals/curation_replay.py#L279)
       and grade `CurationLoopResult.status` across all four values. Do this
-      before generating the replacement package, or the package will encode the
+      before generating the replacement scenario, or the scenario will encode the
       old proposal-only boundary again.
 - [ ] **E13 — Extend `CurationExpectation` past the proposal.** Add the
       verdict, applied outcome, and audit-verification result, plus expectation
@@ -191,7 +191,7 @@ and deterministically verified, not yet measured against a model.
       proposal and review, and a verdict bound to the wrong digest. Grade these
       as named failures rather than allowing the bare immutable-source runtime
       error to appear only as a crash.
-- [ ] **E16 — Retire the superseded curation package explicitly.** Mark
+- [ ] **E16 — Retire the superseded curation scenario explicitly.** Mark
       `2026-08-29T142004` as evidence for the removed proposal-only boundary so
       it cannot be replayed as evidence about the current flow.
 
@@ -253,8 +253,8 @@ save through `MemoryPolicyService` and asserting `created is False` with the
 store unchanged. It also asserts that pre-existing memories are untouched,
 catching an unexpected write.
 
-**Package models.** `CaptureExpectation`, `CaptureMix`, and a committed
-`RunConfiguration` all exist, and the 11-Scene package validates unchanged.
+**Scenario models.** `CaptureExpectation`, `CaptureMix`, and a committed
+`RunConfiguration` all exist, and the 11-Scene scenario validates unchanged.
 
 ## 10. Where the gaps are
 
@@ -300,15 +300,15 @@ Provenance's decision as separate axes; application suppression and its
 
 **→ E5, E6.**
 
-### 10.3 No capture package is available
+### 10.3 No capture scenario is available
 
-| Package | Objective | Adoption | Run artifact |
+| Scenario | Objective | Adoption | Run artifact |
 |---|---|---|---|
 | 2026-08-31 | `grounded_book_reflection` | yes | 8 runs |
 | 2026-09-01 | `spoiler_boundary_clarification` | yes | 1 run |
 
-The former capture package was removed. No replacement has been generated yet.
-The capture runner and adoption path exist, but they have no package to run.
+The former capture scenario was removed. No replacement has been generated yet.
+The capture runner and adoption path exist, but they have no scenario to run.
 
 Its mix is also weak for a first measurement. One positive Scene in eleven
 means `memory_capture_recall` is measured on a single observation — the run
@@ -335,12 +335,12 @@ existing pack is the better starting point for the case wording.
 
 **→ E10.**
 
-### 10.5 Validation happens at run time, not package time
+### 10.5 Validation happens at run time, not scenario time
 
 `_capture_scene_lines` raises on Props, offline inputs, a non-fresh session, a
-multi-Line Scene, or a wrong Line order — all deterministic package properties
-that `validate_package.py` checks for curation and reflection but not capture.
-The cost is a failed replay instead of a rejected package, which for a live
+multi-Line Scene, or a wrong Line order — all deterministic scenario properties
+that `validate_scenario.py` checks for curation and reflection but not capture.
+The cost is a failed replay instead of a rejected scenario, which for a live
 run means burnt provider calls.
 
 **→ E7.**
@@ -360,20 +360,20 @@ is what would let one be authored.
 Two Objectives, in this order:
 
 1. **`reviewed_automatic_memory_capture`** — has a run configuration, a runner,
-   and package models, but no current package. Generating, adopting, and
-   replaying a replacement package (E8) is the shortest path to a first live
+   and scenario models, but no current scenario. Generating, adopting, and
+   replaying a replacement scenario (E8) is the shortest path to a first live
    capture number.
 2. **`sensitive_inference_and_capture_veto`** — the Objective that actually
    exercises Provenance's veto. Needs E5, E7, and runner support first.
 
 The catalog marks them `combines_well_with` each other, but they should be
-**separate packages for the first runs**. §4.2.1's C1 note applies: the selector
+**separate scenarios for the first runs**. §4.2.1's C1 note applies: the selector
 runs one Objective per report, and combining an unmeasured gate with an
 unmeasured runner would leave a failure undiagnosable.
 
 ### 11.2 Target Scene shape
 
-The veto package needs four Scene kinds, one per row. Only the first is
+The veto scenario needs four Scene kinds, one per row. Only the first is
 expressible today.
 
 | Scene | Line | Expected | New vocabulary |
@@ -383,7 +383,7 @@ expressible today.
 | distress boundary | a first-person distressing disclosure | Muse skipped, `application_emotional_boundary`, `emotional_boundary_capture_suppressed` | `CaptureExpectation` with candidate/no-candidate as applicable + `reason_code` grading (E6) |
 | non-distressing control | emotional but below the boundary | ordinary release, capture per policy | none |
 
-The fourth row is not optional. Without it the package cannot distinguish a
+The fourth row is not optional. Without it the scenario cannot distinguish a
 correctly-cautious gate from one that refuses everything — the same pairing
 argument §5.3 makes for the risk codes, and the reason S0.8's over-refusal
 measurement was worth fixing rather than dropping.
@@ -407,7 +407,7 @@ candidate is not the same thing as a Provenance veto.
 ### 11.4 Sequencing
 
 E8 first for the currently expressible positive path. Then E1–E4 in parallel
-with E5–E7, since the gate pack and package harness share no code. E10 last,
+with E5–E7, since the gate pack and scenario harness share no code. E10 last,
 as it depends on the veto representation and validator support.
 
 ## 12. Open questions for 4.2.2
@@ -442,7 +442,7 @@ and [`src/linger/contracts/curation.py`](../../src/linger/contracts/curation.py)
 **The contracts are sound.** The digest chain is the strongest binding in the
 codebase, and the review below found no correctness defect in it. The finding is
 the same one §10.1 makes for capture: a **new taxonomy with no live-model
-measurement**, now with the removal of the only synthetic package as an
+measurement**, now with the removal of the only synthetic scenario as an
 aggravating factor.
 
 ### 13.1 What the review confirms
@@ -557,14 +557,14 @@ Notably the two retrieval actions, `tombstone_for_retrieval` and
 `restore_to_retrieval`, have **no expectation member at all** — they are not
 proposal-shaped in the old vocabulary and were never added.
 
-**13.3.3 The removed package leaves no curation coverage in place.**
+**13.3.3 The removed scenario leaves no curation coverage in place.**
 
-The proposal-only package was removed as part of the change, correctly, since it
+The proposal-only scenario was removed as part of the change, correctly, since it
 graded a flow that no longer exists. But the replacement is described as
 "generated separately", so between now and then §4.2.2 curation has **zero**
 synthetic coverage. The
-[2026-08-29T142004](../../synthetic-journal-evaluation/packages/2026-08-29T142004+0800/)
-package remains on disk with `bounded_memory_curation` Ground truth and an
+[2026-08-29T142004](../../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/)
+scenario remains on disk with `bounded_memory_curation` Ground truth and an
 adoption file; it should be treated as superseded and not replayed for evidence
 about the current flow, since a pass from it would be a pass against the old
 boundary.
@@ -578,8 +578,8 @@ B1: the observability exists and simply never reaches a grader.
 
 ### 13.4 Recommended sequencing
 
-E12 first and before the replacement package is generated — the runner defines
-what the package can express, so generating against the current runner would bake
+E12 first and before the replacement scenario is generated — the runner defines
+what the scenario can express, so generating against the current runner would bake
 in the old boundary. E13 alongside it, since a status-only grade cannot
 distinguish a correct `applied` from one that applied the wrong action. E14 runs
 independently of both and can proceed in parallel. E15 and E16 are cleanup.
@@ -602,5 +602,5 @@ types.
 - [`src/linger/orchestration/capture.py`](../../src/linger/orchestration/capture.py) — sole origin of capture flags
 - [`src/linger/services/memory.py`](../../src/linger/services/memory.py) — deterministic policy and curation gates
 - [`evals/synthetic_journals/replay.py`](../../evals/synthetic_journals/replay.py) — capture replay runner and grader
-- [`synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json`](../../synthetic-journal-evaluation/run-configurations/reviewed-automatic-memory-capture-10-to-1.json)
-- [`synthetic-journal-evaluation/packages/2026-08-29T142004+0800/`](../../synthetic-journal-evaluation/packages/2026-08-29T142004+0800/) — superseded proposal-only curation package
+- [`synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json`](../../synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json)
+- [`synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/`](../../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/) — superseded proposal-only curation scenario

@@ -113,15 +113,15 @@ def validate_report(
             ("Lines or offline inputs", r"\bLines?\b|\boffline inputs?\b"),
             ("Ground truth file", r"\bground truth file\b"),
             ("proposed Ground truth", r"\bproposed Ground truth\b"),
-            ("package models", r"evals/synthetic_journals/models\.py"),
+            ("scenario models", r"evals/synthetic_journals/models\.py"),
             (
-                "deterministic package validator",
-                r"evals/synthetic_journals/validate_package\.py",
+                "deterministic scenario validator",
+                r"evals/synthetic_journals/validate_scenario\.py",
             ),
-            ("package Backstory path", r"PACKAGE_DIRECTORY/backstory\.json"),
+            ("scenario Backstory path", r"SCENARIO_DIRECTORY/backstory\.json"),
             (
-                "package Ground truth path",
-                r"PACKAGE_DIRECTORY/ground-truth\.json",
+                "scenario Ground truth path",
+                r"SCENARIO_DIRECTORY/ground-truth\.json",
             ),
         ):
             if not re.search(pattern, prompt, flags=re.IGNORECASE):

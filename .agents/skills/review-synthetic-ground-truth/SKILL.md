@@ -6,7 +6,7 @@ description: Review a validated Linger synthetic Backstory and proposed Ground t
 # Review Synthetic Ground Truth
 
 Use this skill only after a generator has written sibling `backstory.json` and
-`ground-truth.json` files in one synthetic scenario package directory. The human
+`ground-truth.json` files in one synthetic scenario directory. The human
 reviewer must be independent of the generator. Neither proposed nor adopted
 Ground truth enters the system under evaluation.
 
@@ -39,7 +39,7 @@ synthetic traces to Logfire.
    non-loopback address.
 4. Continue only after one `GROUND_TRUTH_REVIEW_JSON` record is printed. Verify
    the returned Backstory and proposed Ground truth hashes against the current
-   files. A timeout, missing result, stale hash, invalid package, or malformed
+   files. A timeout, missing result, stale hash, invalid scenario, or malformed
    result is a hard stop.
 
 ## Follow the human decision
@@ -62,7 +62,7 @@ explains the provider-backed side effect.
   temporary output path.
 - For `proactive_memory_surfacing`, stop after adoption. Its adopted target
   includes conversational capture, curation, and later memory-backed release;
-  no complete replay is implemented. Existing offline packages may still be
+  no complete replay is implemented. Existing offline scenarios may still be
   reviewed as component evidence, but their adoption does not approve the
   expanded Objective. Run `evals.synthetic_journals.surfacing_replay` only when
   the developer separately authorizes that offline component evaluation.
@@ -90,7 +90,7 @@ explains the provider-backed side effect.
   confirmation. The runner records the production connection and release path.
   Report deterministic stage results separately from semantic judgments about
   the connection, tentativeness, honest restraint, and public claims. Legacy
-  weak-evidence-only packages with `grounding` expectations use the existing
+  weak-evidence-only scenarios with `grounding` expectations use the existing
   reflection replay through this command and retain its narrower hard checks.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.

@@ -1,11 +1,17 @@
-# Synthetic evaluation packages
+# Synthetic evaluation scenarios
 
-`packages/` contains seven generated packages. Generation, human review,
+`scenarios/` contains the saved evaluation Scenarios. A Scenario combines a
+Backstory, optional Props, one or more Scenes, and separate Ground truth for one
+person and evaluation account. Its selected Objectives define the behavior under
+evaluation; each Scene is graded as a unit. See the
+[canonical vocabulary](../docs/specification.md#721-canonical-vocabulary).
+
+Generation, human review,
 formal adoption, replay, and current compatibility are separate stages. A missing
 adoption sidecar or replay artifact does not mean a scenario was never
-implemented. `clean-up/` contains the everyday-curation package and the
+implemented. `clean-up/` contains the everyday-curation scenario and the
 report-only memory–book–web plan, both deferred by explicit developer choice.
-Failed evaluations remain useful evidence and stay with their packages.
+Failed evaluations remain useful evidence and stay with their scenarios.
 
 Housekeeping checked this evidence on 11 September 2026 against `a2e9c0b`.
 Bead `linger-e0xi` tracks the cleanup. Recorded replay outcomes below are
@@ -13,8 +19,8 @@ historical results, not fresh model evaluations.
 
 ## Folder names
 
-Packages use `<scenario-set>--<agents>--<YYYY-MM-DD>`. For example,
-`pottery-memory-curation--sculptor--2026-08-29` identifies the scenario set,
+Scenarios use `<scenario-name>--<agents>--<YYYY-MM-DD>`. For example,
+`pottery-memory-curation--sculptor--2026-08-29` identifies the Scenario,
 evaluated agent, and creation date without opening a report. A name describes
 the complete Scene set, including its comparison cases.
 
@@ -27,19 +33,19 @@ use `-02`, `-03`, and so on. Full timestamps remain in report snapshots.
 
 The [planning skill](../.agents/skills/plan-synthetic-scenarios/SKILL.md)
 uses this convention for new reports. Canonical Objective IDs and generated
-package identifiers are unchanged by directory renaming. Recorded JSON artifacts
+scenario identifiers are unchanged by directory renaming. Recorded JSON artifacts
 may contain historical paths; their bytes remain unchanged to preserve evidence.
 
-## Packages with recorded adoption and replay
+## Scenarios with recorded adoption and replay
 
-| Package | Evaluated behavior | Adoption and replay evidence | Recorded result | Current package compatibility |
+| Scenario | Evaluated behavior | Adoption and replay evidence | Recorded result | Current scenario compatibility |
 | --- | --- | --- | --- | --- |
-| [pottery-memory-curation--sculptor--2026-08-29](packages/pottery-memory-curation--sculptor--2026-08-29/) | Bounded memory curation: five offline Scenes using 15 Props. | Local adoption record; closed Bead `linger-3ry` records independent approval and one completed provider replay. No replay transcript is retained in this directory. | Five Scenes passed deterministic hard gates and source-immutability checks. This evaluates curation proposals, not applied memory changes or semantic quality. | Package and adoption validate. |
-| [alice-quotation-grounding--muse-librarian-provenance--2026-08-31](packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/) | Grounded book reflection: quotation request and personal-reflection comparison. | Local adoption record and eight full transcripts: `reflection-run.json` and `reflection-run-0.json` through `reflection-run-6.json`. | Quotation Scene passed in runs 2 and 5 and failed in six runs. Personal comparison passed in all eight. | Historical schema. Current validation rejects book proposals without typed `book_expectation`. |
-| [alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01](packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/) | Spoiler-boundary clarification: a remembered kitchen event and an ambiguous size-change comparison. | Local adoption record and [full replay transcript](packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/reflection-run.json). | Grounded Scene failed with `missing_retrieval`; ambiguous comparison passed its hard gates. | Historical schema. Current validation rejects book proposals without typed `book_expectation`. |
-| [alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/) | Grounded reflection and spoiler clarification: three Scenes with four adopted judgments. | Local adoption, nine adopted replay summaries, and [evaluation findings](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/evaluation-findings.md). Closed Beads `linger-h4gl` and `linger-hzdg` record passing replays. | Earlier runs passed two or three judgments. Conditional-policy, post-pull, and [connection-update regression](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/connection-update-regression-summary.json) runs each passed all four. | Package and adoption validate. |
+| [pottery-memory-curation--sculptor--2026-08-29](scenarios/pottery-memory-curation--sculptor--2026-08-29/) | Bounded memory curation: five offline Scenes using 15 Props. | Local adoption record; closed Bead `linger-3ry` records independent approval and one completed provider replay. No replay transcript is retained in this directory. | Five Scenes passed deterministic hard gates and source-immutability checks. This evaluates curation proposals, not applied memory changes or semantic quality. | Scenario and adoption validate. |
+| [alice-quotation-grounding--muse-librarian-provenance--2026-08-31](scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/) | Grounded book reflection: quotation request and personal-reflection comparison. | Local adoption record and eight full transcripts: `reflection-run.json` and `reflection-run-0.json` through `reflection-run-6.json`. | Quotation Scene passed in runs 2 and 5 and failed in six runs. Personal comparison passed in all eight. | Historical schema. Current validation rejects book proposals without typed `book_expectation`. |
+| [alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/) | Spoiler-boundary clarification: a remembered kitchen event and an ambiguous size-change comparison. | Local adoption record and [full replay transcript](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/reflection-run.json). | Grounded Scene failed with `missing_retrieval`; ambiguous comparison passed its hard gates. | Historical schema. Current validation rejects book proposals without typed `book_expectation`. |
+| [alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/) | Grounded reflection and spoiler clarification: three Scenes with four adopted judgments. | Local adoption, nine adopted replay summaries, and [evaluation findings](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/evaluation-findings.md). Closed Beads `linger-h4gl` and `linger-hzdg` record passing replays. | Earlier runs passed two or three judgments. Conditional-policy, post-pull, and [connection-update regression](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/connection-update-regression-summary.json) runs each passed all four. | Scenario and adoption validate. |
 
-| [alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12](packages/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Cross-source connection and weak-evidence decline: three fresh-session Scenes over one active Prop, with a real public study snapshot alongside book and memory evidence. | Two adoption rounds. Five `connection-run-pre-snapshot-fix-*.json` transcripts belong to the first adoption `6ad90f5d`; `connection-run-1.json` and `connection-run-2.json` belong to the current adoption `ae4ec801` after the stored snapshot was recaptured. | Before the fix, S1 failed `retrieval` in all five runs on `public_source_changed_or_unresolved`, which masked everything downstream. After it, S1 reaches `muse_presentation` and fails on missing citations, and S3 passed once in two runs. S2 has never invoked Serendipity except in pre-fix run 3, so it failed 6 of 7. Provenance rejected S1 once in seven. Filed as `linger-w995` and `linger-5wrf`. | Package and adoption validate. |
+| [alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12](scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Cross-source connection and weak-evidence decline: three fresh-session Scenes over one active Prop, with a real public study snapshot alongside book and memory evidence. | Two adoption rounds. Five `connection-run-pre-snapshot-fix-*.json` transcripts belong to the first adoption `6ad90f5d`; `connection-run-1.json` and `connection-run-2.json` belong to the current adoption `ae4ec801` after the stored snapshot was recaptured. | Before the fix, S1 failed `retrieval` in all five runs on `public_source_changed_or_unresolved`, which masked everything downstream. After it, S1 reaches `muse_presentation` and fails on missing citations, and S3 passed once in two runs. S2 has never invoked Serendipity except in pre-fix run 3, so it failed 6 of 7. Provenance rejected S1 once in seven. Filed as `linger-w995` and `linger-5wrf`. | Scenario and adoption validate. |
 
 All five adoption records still match the exact Backstory and proposed Ground
 truth bytes. Hash agreement does not make the two historical schemas valid
@@ -51,27 +57,27 @@ independent adoption before a new graded replay.
 The September 3 summaries retain outcomes and selected evidence. Their full
 transcripts point to temporary local paths whose availability is not established
 by this index. The directory also contains a
-[clarification follow-up](packages/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/clarification-followup-findings.md)
+[clarification follow-up](scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/clarification-followup-findings.md)
 that tests a separate two-message conversation. That follow-up is not a replay
-of the adopted package. The connection-update regression summary follows the
+of the adopted scenario. The connection-update regression summary follows the
 post-pull result described as latest in the older findings narrative.
 
 Deterministic passes do not establish independent semantic quality or a general
 model success rate. Keep failed runs alongside passing runs.
 
-## Other generated packages
+## Other generated scenarios
 
-These packages have generated Backstory and Ground truth files. Their later
+These scenarios have generated Backstory and Ground truth files. Their later
 review and replay stages differ; they are not classified as abandoned work.
 
-| Package | Generation | Review and adoption | Replay evidence | Current compatibility |
+| Scenario | Generation | Review and adoption | Replay evidence | Current compatibility |
 | --- | --- | --- | --- | --- |
-| [Everyday memory capture](packages/everyday-memory-capture--muse-provenance--2026-08-23/) | Complete: 11 Scenes and 11 proposals. | [Adoption record](packages/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth-adoption.json) adopts all 11 proposals on 11 September 2026 through `explicit_human_instruction`, as requested by the developer in this task. `linger-1y3` separately records earlier human approval. | `linger-n4h` records replay `e0b8d0a8847e48d3818e4fbe7aed8a66` and a capture failure. Its temporary transcript is unavailable. `linger-urvq` subsequently changed the grader, so the old run does not establish success under current capture grading. No replay was run for the new adoption. | Package and adoption validate. |
-| [Alice Caterpillar grounding and spoilers](packages/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/) | Complete: three Scenes and four proposals. | [Adoption record](packages/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth-adoption.json) records a human developer's interactive review on 29 August 2026 at 15:31 +08 and four adopted decisions. Source hashes, proposal references, and adoption identity match. | Completion unverified. `linger-ck1` records implementation and generation, not a completed provider evaluation. | Historical schema; current validator rejects removed book fields. The adoption record does not establish compatibility with the current schema. |
-| [Alice identity connections and restraint](packages/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/) | Complete: three Scenes and four proposals. | No adoption sidecar or verified adoption completion. | No verified completed replay. | Package validates. |
+| [Everyday memory capture](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/) | Complete: 11 Scenes and 11 proposals. | [Adoption record](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/ground-truth-adoption.json) adopts all 11 proposals on 11 September 2026 through `explicit_human_instruction`, as requested by the developer in this task. `linger-1y3` separately records earlier human approval. | `linger-n4h` records replay `e0b8d0a8847e48d3818e4fbe7aed8a66` and a capture failure. Its temporary transcript is unavailable. `linger-urvq` subsequently changed the grader, so the old run does not establish success under current capture grading. No replay was run for the new adoption. | Scenario and adoption validate. |
+| [Alice Caterpillar grounding and spoilers](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/) | Complete: three Scenes and four proposals. | [Adoption record](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth-adoption.json) records a human developer's interactive review on 29 August 2026 at 15:31 +08 and four adopted decisions. Source hashes, proposal references, and adoption identity match. | Completion unverified. `linger-ck1` records implementation and generation, not a completed provider evaluation. | Historical schema; current validator rejects removed book fields. The adoption record does not establish compatibility with the current schema. |
+| [Alice identity connections and restraint](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/) | Complete: three Scenes and four proposals. | No adoption sidecar or verified adoption completion. | No verified completed replay. | Scenario validates. |
 
 The capture test fixture retains an unchanged copy of the everyday capture JSON.
-Generated package files and historical adoption records are preserved unchanged;
+Generated scenario files and historical adoption records are preserved unchanged;
 review and replay evidence are reported at the level supported by files and Beads.
 
 ## Cleanup items
@@ -81,7 +87,7 @@ contains only a historical pre-generation report. It has no generated Backstory,
 Ground truth, adoption, or replay.
 
 [Everyday memory curation](clean-up/everyday-memory-curation--sculptor--2026-08-24/)
-was moved here at the developer's request. It remains a valid generated package
+was moved here at the developer's request. It remains a valid generated scenario
 with five Scenes and five proposals. `linger-a4u.2` records human coherence and
 plausibility inspection, but no adoption sidecar exists. The same Bead records
 provider replay `db8f77cafb434e7d80b1324367a0b287`, with four of five proposal
@@ -100,40 +106,40 @@ for Objective definitions and selection rules. Its catalog is not limited to
 Objectives with completed evaluations. The shared files in
 [generation-presets/](generation-presets/) remain inputs to generation and
 validation, including the capture test fixture. The generation skill and
-validators use these files; the everyday capture package selects the capture preset.
+validators use these files; the everyday capture scenario selects the capture preset.
 Presets define reusable Scene
 and Prop proportions; they are not execution settings or replay results.
 
 ### Preset references
 
-A package selects a preset through `backstory.json`'s `run_configuration_ids`,
+A scenario selects a preset through `backstory.json`'s `run_configuration_ids`,
 which matches the preset's `run_configuration_id`. These existing JSON fields
 retain their names so generated files and adoption hashes remain unchanged.
 The directory name does not create a one-to-one mapping between presets and
-packages.
+scenarios.
 
-| Generation preset | Saved package that references it | Other consumers |
+| Generation preset | Saved scenario that references it | Other consumers |
 | --- | --- | --- |
-| [reviewed-automatic-memory-capture-10-to-1.json](generation-presets/reviewed-automatic-memory-capture-10-to-1.json) | [Everyday capture Backstory](packages/everyday-memory-capture--muse-provenance--2026-08-23/backstory.json), via `reviewed-automatic-memory-capture-10-to-1`. | Its unchanged [test fixture](../tests/fixtures/synthetic_capture/backstory.json) selects the same ID. |
-| [longitudinal-memory-retrieval-10-to-1.json](generation-presets/longitudinal-memory-retrieval-10-to-1.json) | None. | No saved package in `packages/` or `clean-up/` references it. The generation skill uses it for future longitudinal-retrieval packages; retrieval validation tests exercise it. |
+| [reviewed-automatic-memory-capture-10-to-1.json](generation-presets/reviewed-automatic-memory-capture-10-to-1.json) | [Everyday capture Backstory](scenarios/everyday-memory-capture--muse-provenance--2026-08-23/backstory.json), via `reviewed-automatic-memory-capture-10-to-1`. | Its unchanged [test fixture](../tests/fixtures/synthetic_capture/backstory.json) selects the same ID. |
+| [longitudinal-memory-retrieval-10-to-1.json](generation-presets/longitudinal-memory-retrieval-10-to-1.json) | None. | No saved scenario in `scenarios/` or `clean-up/` references it. The generation skill uses it for future longitudinal-retrieval scenarios; retrieval validation tests exercise it. |
 
 The other seven generated Backstories have empty or omitted
 `run_configuration_ids`. Their Scenes, Props, and Lines are defined directly in
 each Backstory, with expected outcomes in the sibling Ground truth file.
 
-The [evaluation guide](../evals/synthetic_journals/README.md) documents package
+The [evaluation guide](../evals/synthetic_journals/README.md) documents scenario
 contracts, review, and replay commands. The generation skill still creates a
-report first. New reports may appear under `packages/` while work is active.
-Generated packages remain there with generation, review, adoption, replay, and
+report first. New reports may appear under `scenarios/` while work is active.
+Generated scenarios remain there with generation, review, adoption, replay, and
 compatibility recorded separately. Moving a plan to `clean-up/` is an explicit
 housekeeping decision, not an automatic consequence of a missing later stage.
 
-Package validation runs without a provider call:
+Scenario validation runs without a provider call:
 
 ```bash
-uv run python -m evals.synthetic_journals.validate_package \
-  synthetic-journal-evaluation/packages/<package-name>/backstory.json \
-  synthetic-journal-evaluation/packages/<package-name>/ground-truth.json
+uv run python -m evals.synthetic_journals.validate_scenario \
+  synthetic-journal-evaluation/scenarios/<scenario-name>/backstory.json \
+  synthetic-journal-evaluation/scenarios/<scenario-name>/ground-truth.json
 ```
 
 The compatibility column above distinguishes expected historical failures from

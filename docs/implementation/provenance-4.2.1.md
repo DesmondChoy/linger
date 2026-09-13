@@ -16,11 +16,11 @@ digest, as defined in the [runtime skills architecture](../agent-skills.md).
 
 The measurements and investigation below describe that dated run. For current
 runtime behavior, use the [Provenance design overview](../design/provenance-design.html),
-[Librarian design](librarian-design.md), and
-[synthetic book replay contract](synthetic-book-replay-contract.md).
+[Librarian design](../design/librarian-design.md), and
+[synthetic book replay contract](../design/synthetic-book-replay-contract.md).
 The runtime supports memory-backed chapter inference, session-supported exact
 passages, application-delivered clarification, and a separate curation review.
-Current book packages use shared Scene facts and Objective-owned expectations;
+Current book scenarios use shared Scene facts and Objective-owned expectations;
 the historical generic-grounding examples below are not the authoring contract.
 
 ---
@@ -138,7 +138,7 @@ table above is its direct measurement.
       `targets_pass=true`, twice in three runs; the third run's only failure was
       the known S0.10 offset error.
 
-**A. Close the runtime gap (blocks the synthetic package, not Stage 0)**
+**A. Close the runtime gap (blocks the synthetic scenario, not Stage 0)**
 
 - [x] **A1 — Grounding ground-truth expectations.**
       [`evals/reflection/harness.py`](../../evals/reflection/harness.py) defines
@@ -146,7 +146,7 @@ table above is its direct measurement.
       `GroundTruthProposal` beside `capture` and `curation`. Placed with the flow
       it grades, following `CurationExpectation` in
       [`evals/sculptor/harness.py`](../../evals/sculptor/harness.py), rather than
-      growing a fourth inline expectation in the package models.
+      growing a fourth inline expectation in the scenario models.
       The expected release is a **discriminated union** — `grounded_release`
       (permitted evidence IDs + chapter ceiling), `ungrounded_release`,
       `clarification_release`, `safe_decline` — so `retrieval_required`,
@@ -155,7 +155,7 @@ table above is its direct measurement.
       permitted evidence. A cross-field validator additionally requires every
       permitted evidence ID to be declared by the proposal's own `evidence`.
       → [13 tests](../../tests/test_reflection_expectations.py); all three
-      existing packages still validate unchanged.
+      existing scenarios still validate unchanged.
 - [x] **A2 — Reflection replay runner.**
       [`reflection_replay.py`](../../evals/synthetic_journals/reflection_replay.py)
       accepts the three retrieval-family Objectives, reusing `replay.py`'s
@@ -181,7 +181,7 @@ table above is its direct measurement.
       fails closed on an Objective it cannot grade.
 - [x] **A3 — Validator coverage.**
       `_validate_reflection_grounding` in
-      [`validate_package.py`](../../evals/synthetic_journals/validate_package.py)
+      [`validate_scenario.py`](../../evals/synthetic_journals/validate_scenario.py)
       covers the three objectives, following the `_validate_bounded_curation`
       pattern. Deterministic checks only — no behavioural judgment:
       a reflection Scene carries typed grounding Ground truth, has at least one
@@ -192,8 +192,8 @@ table above is its direct measurement.
       Grounding on a non-reflection Objective is rejected, mirroring the existing
       curation rule. Existing `RepositoryTextEvidence` SHA-256 and span checks
       already applied and were left untouched.
-      → [8 tests](../../tests/test_synthetic_reflection_package.py); all three
-      existing packages still validate through the CLI.
+      → [8 tests](../../tests/test_synthetic_reflection_scenario.py); all three
+      existing scenarios still validate through the CLI.
 
 **B. Make the flow observable enough to grade**
 
@@ -228,16 +228,16 @@ table above is its direct measurement.
       Verified by deleting `boundary_source` from the contract and watching all
       six fail.
 
-**C. Author and run the package**
+**C. Author and run the scenario**
 
 - [x] **C1 — Run the skill** (`grounded_book_reflection`).
-      [2026-08-31 report](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md):
+      [2026-08-31 report](../../synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md):
       implementation **sufficient**, both Scenes plus pairing and Prop placement
       `runnable`, prompt labelled *Runnable after human approval*. The earlier
       prediction of *partially runnable* is superseded — A1/A2/A3 landed first.
       *(One Objective per selector run, so `spoiler_boundary_clarification` needs
       its own report — see C5.)*
-- [x] **C2/C3/C4 — Package generated, adopted, and replayed.** First end-to-end
+- [x] **C2/C3/C4 — Scenario generated, adopted, and replayed.** First end-to-end
       4.2.1 measurement through the production chat path, graded against
       **adopted** Ground truth (`adopted_hard_gate_grade`, dataset version
       `5fa5eb15ef10`). **1 of 2 Scenes passed.** The failure was an
@@ -250,8 +250,8 @@ table above is its direct measurement.
 | `scene-personal-reflection` | non-grounded | `passes_hard_gates` | none |
 | `scene-grounded-quotation` | grounded | `fails_hard_gates` | `release_source_mismatch`, `missing_retrieval` |
 
-- [x] **C5 — `spoiler_boundary_clarification` package replayed.**
-      [2026-09-01 package](../../synthetic-journal-evaluation/packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01),
+- [x] **C5 — `spoiler_boundary_clarification` scenario replayed.**
+      [2026-09-01 scenario](../../synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01),
       adopted Ground truth, dataset `57b1d301e84e`. **1 of 2 Scenes passed**, and
       the failure is a real product defect — see
       [§5.14](#514-c5-spoiler-boundary-replay).
@@ -284,10 +284,10 @@ table above is its direct measurement.
       fallback, so a weak candidate is not released as fact.
       Fix is a separate, lower threshold for `purpose="boundary_inference"`.
       **Needs a measured before/after** — lowering it changes which chapters the
-      judge sees, so re-run the C5 package and confirm the ceiling resolves to 6
+      judge sees, so re-run the C5 scenario and confirm the ceiling resolves to 6
       without the ambiguous Scene losing its clarification.
 
-- [ ] **D2 — Injection overlay in the synthetic package.** Stage 0 covers
+- [ ] **D2 — Injection overlay in the synthetic scenario.** Stage 0 covers
       `prompt_injection` at the gate in isolation; the end-to-end case still
       needs `untrusted_content_injection_resistance` layered onto the grounded
       Scene per the catalog's `security_overlay_rule`.
@@ -321,7 +321,7 @@ table above is its direct measurement.
       including a semantic-rejection case proving the flag does *not* fire on a
       deterministic-validation decline.
 - [x] **D10 — Evidence-ID namespace mismatch. Harness defect, now fixed.**
-      `permitted_evidence_ids` held the package's own labels
+      `permitted_evidence_ids` held the scenario's own labels
       (`ev-caterpillar-explain-myself`) while `released_evidence_ids` carries
       Linger's retrieval-window IDs (`pg11-v01b38ea4-ch05-ln0960-1016`). The two
       namespaces can never match, so `unpermitted_evidence` fired on *correct*
@@ -338,9 +338,9 @@ table above is its direct measurement.
       → 4 tests in
       [`test_synthetic_reflection_replay.py`](../../tests/test_synthetic_reflection_replay.py).
 
-- [x] **D8 — Failure rate measured across 8 runs of the adopted package.**
+- [x] **D8 — Failure rate measured across 8 runs of the adopted scenario.**
       Artifacts `reflection-run.json` and `reflection-run-{0..6}.json` under the
-      package directory. `scene-personal-reflection` passed in all 8.
+      scenario directory. `scene-personal-reflection` passed in all 8.
       `scene-grounded-quotation` split four ways:
 
 | Outcome | Count | Meaning |
@@ -425,11 +425,11 @@ names as a live-model measurement, was unmeasured for 4.2.1.
 measures all five codes live and passes 12/12. It found two production prompt
 defects in the process (§5.9, §5.10).
 
-### 3.2 No synthetic package can replay a 4.2.1 Scene — ✅ closed by A2
+### 3.2 No synthetic scenario can replay a 4.2.1 Scene — ✅ closed by A2
 
 *Was:* the hard blocker. Both runners were objective-locked —
 [`replay.py:466`](../../evals/synthetic_journals/replay.py#L466) accepted only
-`reviewed_automatic_memory_capture` and line 468 **rejected any package
+`reviewed_automatic_memory_capture` and line 468 **rejected any scenario
 containing Props**, while
 [`curation_replay.py:448`](../../evals/synthetic_journals/curation_replay.py#L448)
 accepted only `bounded_memory_curation`. A `grounded_book_reflection` Scene
@@ -543,11 +543,11 @@ and the catalog explicitly pairs the first two:
 `grounded_book_reflection.composition.combines_well_with` names
 `spoiler_boundary_clarification`, so one corpus-backed Backstory can carry both.
 `weak_evidence_safe_decline` lists `cross_source_tentative_connection` as its
-partner — that pulls in Serendipity and 4.2.3, so for a 4.2.1-only package select
-it alone or defer it to a second package.
+partner — that pulls in Serendipity and 4.2.3, so for a 4.2.1-only scenario select
+it alone or defer it to a second scenario.
 
 **Recommendation:** select `grounded_book_reflection` +
-`spoiler_boundary_clarification` for the first package. One person, one
+`spoiler_boundary_clarification` for the first scenario. One person, one
 evaluation account, one corpus-backed Backstory over Alice.
 
 ### 4.2 Target Scene shape
@@ -586,7 +586,7 @@ hard-gate pass does not claim semantic quality.
 
 This section previously predicted **partially runnable** Scenes pending A1–A3.
 That prediction is superseded: with A1, A2, A3, B1, and B2 landed, the
-[2026-08-31 report](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md)
+[2026-08-31 report](../../synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/pre-generation-report.md)
 for `grounded_book_reflection` assesses the implementation **sufficient**, marks
 both Scenes, their pairing, and Prop placement `runnable`, and labels its
 generator prompt *Runnable after human approval*.
@@ -598,7 +598,7 @@ Scenes can be authored.
 
 ## 5. Stage 0 — the risk-code eval pack
 
-This is written before any synthetic-package work. It targets the candidate gate
+This is written before any synthetic-scenario work. It targets the candidate gate
 directly and needs none of A–C: `build_provenance_agent` takes a
 `ProvenanceInput` and returns a `ProvenanceReview` with no orchestration, no
 tools, and no session — the same property that makes the preflight pack simple.
@@ -725,11 +725,11 @@ on a versioned fingerprint — which is exactly the evidence §8's "prompt chang
 remain human-reviewed and must pass CI gates" wants, and better support for the
 academic write-up than a passing assertion.
 
-### 5.7 Relationship to the synthetic package
+### 5.7 Relationship to the synthetic scenario
 
 Stage 0 and A–C measure different things and neither replaces the other. Stage 0
 isolates the gate on hand-built envelopes: precise, cheap, fast to iterate,
-proves *the gate can detect X*. The synthetic package drives real Lines through
+proves *the gate can detect X*. The synthetic scenario drives real Lines through
 the production chat path: proves *the whole flow reaches the gate with the right
 inputs and does the right thing with its verdict*. Stage 0 first because a
 synthetic failure is ambiguous — Muse, Librarian, orchestration, or gate — while
@@ -961,7 +961,7 @@ so D5 should wait on it.
 ### 5.13 C4 first end-to-end replay
 
 Two Scenes, adopted Ground truth, dataset version `5fa5eb15ef10`, artifact at
-[`reflection-run.json`](../../synthetic-journal-evaluation/packages/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/reflection-run.json).
+[`reflection-run.json`](../../synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/reflection-run.json).
 
 | Scene | Behaviour | Result | Gates |
 |---|---|---|---|
@@ -1021,7 +1021,7 @@ live provider failure mid-gate.
 ### 5.14 C5 spoiler-boundary replay
 
 Two Scenes, adopted Ground truth, dataset `57b1d301e84e`, artifact at
-[`reflection-run.json`](../../synthetic-journal-evaluation/packages/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/reflection-run.json).
+[`reflection-run.json`](../../synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/reflection-run.json).
 
 | Scene | Behaviour | Result | Gates |
 |---|---|---|---|
@@ -1089,8 +1089,8 @@ accurate. Every part of the harness did its job; the product path is what fails.
    exposes the ceiling, its source, confidence, and content-free supporting
    locations, without carrying post-boundary story text. Grading needs no new
    disclosure path.
-2. **Package split.** Keeping `weak_evidence_safe_decline` out of the first
-   package avoids dragging Serendipity's fail-closed web path into a 4.2.1
+2. **Scenario split.** Keeping `weak_evidence_safe_decline` out of the first
+   scenario avoids dragging Serendipity's fail-closed web path into a 4.2.1
    evaluation. Confirm before selection.
 3. **Case-file authoring.** Stage 0 cases embed real corpus text and must be
    hand-written and reviewed, not model-generated — a gate evaluated on cases
@@ -1104,6 +1104,6 @@ open design questions — Stage 0 answers both empirically, S0.7 and S0.6.)*
 - [`docs/specification.md`](../specification.md) §4.1, §4.2.1, §6.1, §6.2, §6.5, §7.2
 - [`src/linger/agents/provenance/README.md`](../../src/linger/agents/provenance/README.md) — fixed agent design
 - [`src/linger/orchestration/reflection.py`](../../src/linger/orchestration/reflection.py) — release path
-- [`evals/synthetic_journals/`](../../evals/synthetic_journals/) — package models, validator, runners
+- [`evals/synthetic_journals/`](../../evals/synthetic_journals/) — scenario models, validator, runners
 - [`synthetic-journal-evaluation/evaluation-objectives.yaml`](../../synthetic-journal-evaluation/evaluation-objectives.yaml) — objective catalog
 - [`docs/design/provenance-design.html`](../design/provenance-design.html) — progress page (this doc supersedes its gap list for 4.2.1)

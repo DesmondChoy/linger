@@ -9,7 +9,7 @@ An academic prototype of a **provenance-first reflection and memory companion**.
 - **Observability:** Pydantic Logfire (OpenTelemetry-compatible)
 - **Corpus:** five validated works enabled for Chat retrieval and Reader
 - **Developer tooling:** corpus Reader and per-turn Inspect diagnostics
-- **Synthetic evaluation:** validated packages, independent Ground truth review,
+- **Synthetic evaluation:** validated scenarios, independent Ground truth review,
   chat replay, and bounded curation and surfacing evaluations
 - **Issue tracking:** [Beads](https://github.com/gastownhall/beads), backed by a local Dolt database
 
@@ -43,7 +43,7 @@ the five-role mapping, current consumers, isolation rules, and evaluation paths.
   Sculptor proposes summaries, duplicate links, topic groups, or retrieval
   tombstones. Provenance reviews the proposal before deterministic policy can
   apply it. Originals remain intact, and retrieval uses the curated view.
-- **Evaluate:** validates synthetic Backstory packages, records independent
+- **Evaluate:** validates synthetic scenarios, records independent
   human adoption without rewriting generated files, and replays supported
   capture, curation, book, session-continuity, connection, and restraint
   Objectives. Manual runners also cover weak-evidence reflection, cross-source
@@ -213,7 +213,7 @@ Ask your coding agent to use these project-local skills:
 - [Review synthetic Ground truth](.agents/skills/review-synthetic-ground-truth/SKILL.md)
   guides human review and adoption of proposed Ground truth, then runs a supported
   replay after confirmation.
-- [Run scenario](.agents/skills/run-scenario/SKILL.md) runs a saved package selected
+- [Run scenario](.agents/skills/run-scenario/SKILL.md) runs a saved scenario selected
   from a numbered menu after provider and model confirmation and credential checks.
   It returns a Logfire link and saves an analysis report covering every Scene,
   including potentially misleading passes.
@@ -237,7 +237,7 @@ and test Linger's behavior:
 5. Inspect replay results in Pydantic Evals and Logfire, and keep the JSON output
    as the evaluation record.
 
-To run an already adopted package, use `run-scenario` and select its menu number.
+To run an already adopted scenario, use `run-scenario` and select its menu number.
 Confirm the provider and model to start the replay.
 
 See the [synthetic evaluation guide](evals/synthetic_journals/README.md) for
@@ -259,7 +259,7 @@ For individual agent evaluations, follow the relevant guide:
 - [Librarian](evals/librarian/README.md): retrieval benchmarks and live validation.
 - [Provenance](evals/provenance/README.md): emotional boundaries and risk classification.
 - [Serendipity](evals/serendipity/README.md): connection discovery and cross-source evaluation.
-- [Synthetic scenarios](evals/synthetic_journals/README.md): package validation,
+- [Synthetic scenarios](evals/synthetic_journals/README.md): scenario validation,
   Ground truth adoption, and replay.
 
 The guides list commands, model configuration, supported cases, and result formats.
@@ -286,8 +286,8 @@ linger/
 │   ├── contracts/                  # Typed agent hand-offs
 │   └── services/                   # Memory policy, retrieval, and citations
 ├── data/                           # Corpus, manifests, and fixtures
-├── evals/                          # Benchmarks, package validation, adoption, and replay
-├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and authoring packages
+├── evals/                          # Benchmarks, scenario validation, adoption, and replay
+├── synthetic-journal-evaluation/   # Objective catalog, run configurations, and authored scenarios
 ├── tests/                          # Integration, security, and end-to-end tests
 ├── memories/                       # Git-ignored runtime Markdown memories
 ├── notebooks/                      # Manual Librarian and Gutenberg workflows

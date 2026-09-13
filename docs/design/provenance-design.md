@@ -163,7 +163,7 @@ run and prompt fingerprint.
 Synthetic capture expectations now represent nomination and independent
 Provenance decisions. Replay grades review, exact binding, storage, record
 preservation, and the supported capture retry behavior. These capabilities do
-not establish new live-model results or adoption of a synthetic package.
+not establish new live-model results or adoption of a synthetic Scenario.
 
 Synthetic curation replay still calls `propose_curation`, not
 `run_curation_loop`. It measures Sculptor proposal quality and source

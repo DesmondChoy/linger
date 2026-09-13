@@ -32,7 +32,7 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
     assert "longitudinal_memory_retrieval" in catalog.ids
     assert "proactive_memory_surfacing" in catalog.ids
     assert "user_controlled_memory_lifecycle" not in catalog.ids
-    assert "objective, backstory, prop, scene, line, ground truth" in document[
+    assert "Objective, Scenario, Backstory, Prop, Scene, Line, Ground truth" in document[
         "canonical_vocabulary"
     ]
     assert "backstory_generation" in document["developer_workflow"]["handoff_boundary"][
@@ -59,7 +59,7 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
         "independent_adoption",
         "exposure",
     }
-    assert "adopted_package_contract" in document["prompt_boundary"][
+    assert "adopted_scenario_contract" in document["prompt_boundary"][
         "generator_receives"
     ]
     assert "evaluation_metadata" in document["prompt_boundary"]["generator_does_not_receive"]

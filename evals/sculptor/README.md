@@ -56,7 +56,7 @@ model and every deployed prompt for lineage. `objective_execution` covers the
 configured model, Sculptor prompt, and active curation contracts for behavioral
 comparison. See
 [`evals/synthetic_journals/README.md`](../synthetic_journals/README.md) for the
-package topology, review command, and replay options.
+scenario topology, review command, and replay options.
 
 ## Offline memory-surfacing decisions
 

@@ -5,12 +5,12 @@ purpose: >-
   scenarios before the project adopts a complete downstream workflow. The
   catalog defines what future evaluation data must exercise and the Ground
   truth authority lifecycle. The repository-owned Backstory and Ground truth
-  contracts define package structure; generation, adoption, freezing,
+  contracts define scenario structure; generation, adoption, freezing,
   and replay tooling remain separate decisions.
 
 canonical_vocabulary: >-
-  The canonical vocabulary for this pipeline (objective, backstory, prop, scene,
-  line, ground truth) is defined in docs/specification.md, section 7.2.1
+  The seven canonical terms for this pipeline (Objective, Scenario, Backstory,
+  Prop, Scene, Line, Ground truth) are defined in docs/specification.md, section 7.2.1
   "Canonical vocabulary".
 
 prompt_input_terms:
@@ -88,8 +88,8 @@ developer_workflow:
     report_is_generator_input: false
     dataset_generation_authorized: false
     downstream_workflow: independent_review_and_supported_replay_defined_other_stages_intentionally_undefined
-    package_contract: evals/synthetic_journals/models.py
-    package_validator: evals/synthetic_journals/validate_package.py
+    scenario_contract: evals/synthetic_journals/models.py
+    scenario_validator: evals/synthetic_journals/validate_scenario.py
     ground_truth_reviewer: .agents/skills/review-synthetic-ground-truth/SKILL.md
     adoption_validator: evals/synthetic_journals/adoption.py
     supported_replay_objectives:
@@ -137,7 +137,7 @@ prompt_boundary:
     - permitted_repository_paths
     - resolved_workflow_inputs
     - resolved_run_configuration
-    - adopted_package_contract
+    - adopted_scenario_contract
     - proposed_ground_truth_requirements
   generator_does_not_receive:
     - prompt_inputs
@@ -146,12 +146,12 @@ prompt_boundary:
   target_state_prompt_uses:
     - adopted_backstory_contract
     - adopted_ground_truth_contract
-    - deterministic_package_validator
+    - deterministic_scenario_validator
     - workflow_preconditions
   reason: >-
     The generator reads current repository-backed context from explicitly
     permitted paths and receives concrete run-specific inputs plus the adopted
-    package contract. The renderer translates only the selected
+    scenario contract. The renderer translates only the selected
     Ground truth requirements needed to create coherent candidate labels; it
     does not expose raw evaluation metadata, internal component routes, numeric
     thresholds, judge rubrics, or developer selection advice. Evaluation-aware
@@ -925,11 +925,11 @@ evaluation_objectives:
         - Instructions, internal agent names, or expected decisions embedded in Props or Lines.
         - Unsupported personal claims, diagnoses, or sensitive-trait inferences.
         - Treating a curation proposal as an applied change or a surfacing proposal as a released response.
-        - Inventing a parallel package schema or claiming that the current offline package contract represents the complete sequence.
+        - Inventing a parallel scenario schema or claiming that the current offline scenario contract represents the complete sequence.
     prompt_inputs:
       - id: conversational_memory_contract
         supplied_by: generator_repository_access
-        description: The maintained conversational target, capture policy, curation source-preservation rules, memory-evidence release boundary, and existing package models and validator; identify missing contracts before generation.
+        description: The maintained conversational target, capture policy, curation source-preservation rules, memory-evidence release boundary, and existing scenario models and validator; identify missing contracts before generation.
       - id: initial_memory_and_capture_plan
         supplied_by: workflow
         description: Earlier active same-account Prop roles and server-controlled capture enablement for the evaluation account, without expected capture spans or curation labels in runtime inputs.
