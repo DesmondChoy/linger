@@ -19,7 +19,10 @@ from evals.synthetic_journals.validate_scenario import validate_scenario_files
 ROOT = Path(__file__).resolve().parents[1]
 POTTERY = "pottery-memory-curation--sculptor--2026-08-29"
 ROSES = "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12"
-LOGFIRE_URL = "https://logfire.example/project/evals/compare?experiment=0123456789-abcdef"
+LOGFIRE_URL = (
+    "https://logfire.example/project/evals/scenario/compare"
+    "?experiment=0123456789-abcdef"
+)
 FAKE_KEYS = {
     "OPENAI_API_KEY": "unit-test-openai-key",
     "GOOGLE_API_KEY": "unit-test-google-key",

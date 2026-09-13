@@ -327,7 +327,7 @@ async def replay_surfacing_scenes(
             "semantic_quality_evaluated": False,
         },
     )
-    emit_evaluation_link(report)
+    emit_evaluation_link(report, dataset_name=dataset.name)
     if report.failures or len(observations) != len(scene_inputs):
         raise RuntimeError(
             "surfacing evaluation framework failed to record every Scene"

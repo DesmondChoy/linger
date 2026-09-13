@@ -394,7 +394,7 @@ async def replay_capture_scenes(
                 "artifact_schema_version": "2",
             },
         )
-        emit_evaluation_link(report)
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic evaluation cases failed: {failed_cases}")

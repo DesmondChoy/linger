@@ -286,7 +286,7 @@ async def replay_capture_curation_scenes(
                 "ground_truth_evaluation": dataset.evaluators[0].get_default_evaluation_name(),
             },
         )
-        emit_evaluation_link(report)
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic evaluation cases failed: {failed_cases}")

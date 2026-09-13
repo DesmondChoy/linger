@@ -350,7 +350,7 @@ async def replay_connection_scenes(
             task_name="connection_and_restraint_workflow", max_concurrency=1, progress=False,
             metadata={"content_classification": "synthetic", "dataset_version": adoption.adopted_ground_truth_identity},
         )
-        emit_evaluation_link(report)
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures or len(observations) != len(plan.scenes):
             raise RuntimeError("connection evaluation did not complete every Scene")
     return ConnectionEvaluationRun(

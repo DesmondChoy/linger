@@ -365,7 +365,7 @@ async def replay_continuity_scenes(
                 "ground_truth_evaluation": evaluation_name,
             },
         )
-        emit_evaluation_link(report)
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic continuity cases failed: {failed_cases}")
