@@ -213,12 +213,16 @@ Ask your coding agent to use these project-local skills:
 - [Review synthetic Ground truth](.agents/skills/review-synthetic-ground-truth/SKILL.md)
   guides human review and adoption of proposed Ground truth, then runs a supported
   replay after confirmation.
+- [Run scenario](.agents/skills/run-scenario/SKILL.md) runs a saved package selected
+  from a numbered menu after provider and model confirmation and credential checks.
+  It returns a Logfire link and saves an analysis report covering every Scene,
+  including potentially misleading passes.
 
 ## Evaluation and validation
 
 ### Human-gated synthetic evaluation
 
-Use the two synthetic evaluation skills to prepare data, review expected results,
+Use the synthetic evaluation skills to prepare data, review expected results,
 and test Linger's behavior:
 
 1. Configure Logfire as described above, then ask your coding agent to use
@@ -232,6 +236,9 @@ and test Linger's behavior:
    supported Objective selections; other selections stop after adoption.
 5. Inspect replay results in Pydantic Evals and Logfire, and keep the JSON output
    as the evaluation record.
+
+To run an already adopted package, use `run-scenario` and select its menu number.
+Confirm the provider and model to start the replay.
 
 See the [synthetic evaluation guide](evals/synthetic_journals/README.md) for
 supported Objectives and detailed generation, review, and replay instructions.
