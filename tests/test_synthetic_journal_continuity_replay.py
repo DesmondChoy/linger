@@ -59,7 +59,7 @@ from evals.synthetic_journals.models import (
     ScenePairing,
     SyntheticBackstory,
 )
-from evals.synthetic_journals.validate_package import validate_package
+from evals.synthetic_journals.validate_scenario import validate_scenario
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
@@ -165,7 +165,7 @@ def _pairing(paired_scene_id: str) -> ScenePairing:
     )
 
 
-def _continuity_package() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
+def _continuity_scenario() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
     """Build a validated four-Line continuity Scene and its comparison Scene."""
 
     lines = tuple(
@@ -193,7 +193,7 @@ def _continuity_package() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
             ),
         ),
     )
-    validate_package(
+    validate_scenario(
         backstory,
         ground_truth,
         backstory_bytes=backstory.model_dump_json().encode("utf-8"),
@@ -343,7 +343,7 @@ def _dummy_handler(*_args: object) -> None:  # pragma: no cover - guard tests on
 
 
 def test_continuity_replay_threads_one_session_per_scene() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     requests: list[ChatRequest] = []
     store_lengths: list[int] = []
     accounts: set[str] = set()
@@ -404,7 +404,7 @@ def test_continuity_replay_threads_one_session_per_scene() -> None:
 
 
 def test_continuity_replay_grades_only_the_proposed_session_boundary() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -425,7 +425,7 @@ def test_continuity_replay_grades_only_the_proposed_session_boundary() -> None:
 
 
 def test_continuity_replay_reports_a_broken_session_boundary() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -460,7 +460,7 @@ def test_continuity_replay_reports_a_broken_session_boundary() -> None:
 
 
 def test_continuity_replay_records_a_mid_sequence_decline() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -496,7 +496,7 @@ def test_continuity_replay_records_a_mid_sequence_decline() -> None:
 
 
 def test_continuity_replay_reports_an_unrecorded_turn() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -522,7 +522,7 @@ def test_continuity_replay_reports_an_unrecorded_turn() -> None:
 
 
 def test_continuity_replay_keeps_backstory_context_out_of_every_request() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     requests: list[ChatRequest] = []
 
     async def chat_handler(
@@ -548,7 +548,7 @@ def test_continuity_replay_keeps_backstory_context_out_of_every_request() -> Non
 
 
 def test_continuity_replay_rejects_another_objective() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     scenes = tuple(
         scene.model_copy(
             update={"objective_ids": ("reviewed_automatic_memory_capture",)}
@@ -573,7 +573,7 @@ def test_continuity_replay_rejects_another_objective() -> None:
 
 
 def test_continuity_replay_rejects_a_run_configuration() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     invalid = backstory.model_copy(
         update={"run_configuration_ids": ("continuity-run-configuration",)}
     )
@@ -589,7 +589,7 @@ def test_continuity_replay_rejects_a_run_configuration() -> None:
 
 
 def test_continuity_replay_rejects_props() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     prop = Prop(
         prop_id="prop-1",
         backstory_id=BACKSTORY_ID,
@@ -615,7 +615,7 @@ def test_continuity_replay_rejects_props() -> None:
 
 
 def test_continuity_replay_rejects_offline_inputs() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     offline_input = OfflineInput(
         offline_input_id="offline-1",
         scene_id=CONTINUITY_SCENE_ID,
@@ -642,7 +642,7 @@ def test_continuity_replay_rejects_offline_inputs() -> None:
 
 
 def test_continuity_replay_rejects_a_continued_session() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     scenes = (
         backstory.scenes[0],
         backstory.scenes[1].model_copy(update={"fresh_session": False}),
@@ -733,7 +733,7 @@ def test_continuity_replay_rejects_a_scene_in_two_pairing_edges() -> None:
 
 
 def test_continuity_replay_rejects_an_unpaired_single_line_scene() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     extra_scene = _scene("scene-single", 3, ("line-single",))
     invalid = backstory.model_copy(
         update={
@@ -756,7 +756,7 @@ def test_continuity_replay_rejects_an_unpaired_single_line_scene() -> None:
 
 
 def test_continuity_replay_rejects_a_comparison_line_that_differs() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     lines = (
         *backstory.lines[:-1],
         _line(
@@ -779,7 +779,7 @@ def test_continuity_replay_rejects_a_comparison_line_that_differs() -> None:
 
 
 def test_continuity_replay_requires_at_least_one_pairing() -> None:
-    backstory, _ = _continuity_package()
+    backstory, _ = _continuity_scenario()
     ground_truth = _ground_truth(
         backstory,
         (_proposal(CONTINUITY_SCENE_ID), _proposal(COMPARISON_SCENE_ID)),
@@ -864,7 +864,7 @@ def test_turn_observation_requires_a_complete_exchange_range() -> None:
 
 
 def test_continuity_replay_grades_a_declined_comparison_turn_on_the_boundary() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -893,7 +893,7 @@ def test_continuity_replay_grades_a_declined_comparison_turn_on_the_boundary() -
 
 
 def test_continuity_replay_indexes_recorded_exchanges_by_turn() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -943,7 +943,7 @@ def _case_labels(exporter: TestExporter) -> dict[str, dict[str, dict[str, object
 
 
 def test_continuity_replay_labels_every_case_with_a_role_honest_grade() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     exporter = TestExporter()
     logfire.configure(
         send_to_logfire=False,
@@ -1145,7 +1145,7 @@ def test_structural_evaluator_rejects_a_recomputed_grade_mismatch() -> None:
 
 
 def test_continuity_replay_labels_a_broken_session_as_deviated() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1201,7 +1201,7 @@ async def _clean_handler(
 
 
 def test_continuity_replay_grades_adopted_ground_truth_with_hard_gates() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     adoption = _adoption(ground_truth)
 
     result = asyncio.run(
@@ -1257,7 +1257,7 @@ def test_continuity_replay_grades_adopted_ground_truth_with_hard_gates() -> None
 
 
 def test_continuity_replay_fails_hard_gates_for_a_leaked_comparison_session() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     adoption = _adoption(ground_truth)
 
     async def chat_handler(
@@ -1295,7 +1295,7 @@ def test_continuity_replay_fails_hard_gates_for_a_leaked_comparison_session() ->
 
 
 def test_continuity_replay_exports_adopted_cases_in_scene_order() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     adoption = _adoption(ground_truth)
     exporter = TestExporter()
     logfire.configure(
@@ -1376,7 +1376,7 @@ def _muse_drafts(scene: object) -> list[object]:
 
 
 def test_continuity_replay_threads_history_through_the_production_pipeline() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     get_settings.cache_clear()
     try:
         with patch.dict(
@@ -1449,7 +1449,7 @@ def test_continuity_replay_threads_history_through_the_production_pipeline() -> 
 
 
 def test_continuity_replay_gates_the_comparison_scene_on_rehydrated_evidence() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1471,7 +1471,7 @@ def test_continuity_replay_gates_the_comparison_scene_on_rehydrated_evidence() -
 
 
 def test_continuity_replay_flags_routed_agent_participation() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1495,7 +1495,7 @@ def test_continuity_replay_flags_routed_agent_participation() -> None:
 
 
 def test_continuity_replay_does_not_flag_unrouted_agent_participation() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1519,7 +1519,7 @@ def test_continuity_replay_does_not_flag_unrouted_agent_participation() -> None:
 
 
 def test_continuity_replay_attributes_routed_agent_findings_per_turn() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1546,7 +1546,7 @@ def test_continuity_replay_attributes_routed_agent_findings_per_turn() -> None:
 
 
 def test_continuity_replay_does_not_flag_resolved_context_without_routing() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1569,7 +1569,7 @@ def test_continuity_replay_does_not_flag_resolved_context_without_routing() -> N
 
 
 def test_continuity_replay_rejects_a_non_empty_store_at_scene_entry() -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1596,7 +1596,7 @@ def test_continuity_replay_rejects_a_non_empty_store_at_scene_entry() -> None:
 def test_continuity_replay_rejects_a_committed_memory_while_capture_is_disabled() -> (
     None
 ):
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
 
     async def chat_handler(
         request: ChatRequest,
@@ -1620,11 +1620,11 @@ def test_continuity_replay_rejects_a_committed_memory_while_capture_is_disabled(
         )
 
 
-def test_cli_returns_nonzero_for_an_invalid_package(
+def test_cli_returns_nonzero_for_an_invalid_scenario(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    backstory, ground_truth = _continuity_package()
+    backstory, ground_truth = _continuity_scenario()
     backstory_path = tmp_path / "backstory.json"
     ground_truth_path = tmp_path / "ground-truth.json"
     backstory_path.write_text(backstory.model_dump_json(), encoding="utf-8")

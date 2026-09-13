@@ -58,7 +58,7 @@ from .replay import (
 )
 from .surfacing_contract import CompiledSurfacingScene, compile_surfacing_scenes
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 SURFACING_OBJECTIVE_ID = "proactive_memory_surfacing"
 OBJECTIVE_COMPONENTS = (
@@ -145,7 +145,7 @@ class SurfacingMetrics(StrictModel):
 
 
 class SurfacingEvaluationRun(StrictModel):
-    artifact_schema_version: Literal["1"] = "1"
+    artifact_schema_version: Literal["2"] = "2"
     content_classification: Literal["synthetic"] = "synthetic"
     run_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
@@ -153,7 +153,7 @@ class SurfacingEvaluationRun(StrictModel):
     dataset_version: str = Field(pattern=r"^[0-9a-f]{64}$")
     backstory_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     proposed_ground_truth_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    package_bytes_verified: bool
+    scenario_bytes_verified: bool
     ground_truth_status: GroundTruthStatus
     identities: SurfacingEvaluationIdentities
     scenes: tuple[SurfacingSceneObservation, ...]
@@ -234,10 +234,10 @@ async def replay_surfacing_scenes(
 ) -> SurfacingEvaluationRun:
     """Run every Scene, retaining model failures in the evaluation denominator."""
     scene_inputs = compile_surfacing_scenes(backstory, ground_truth)
-    package_bytes_verified = (
+    scenario_bytes_verified = (
         backstory_bytes is not None and ground_truth_bytes is not None
     )
-    if adoption is not None and not package_bytes_verified:
+    if adoption is not None and not scenario_bytes_verified:
         raise ValueError(
             "adopted replay requires exact backstory_bytes and ground_truth_bytes"
         )
@@ -339,7 +339,7 @@ async def replay_surfacing_scenes(
         dataset_version=dataset_version,
         backstory_sha256=ground_truth.backstory_sha256,
         proposed_ground_truth_sha256=proposed_sha256,
-        package_bytes_verified=package_bytes_verified,
+        scenario_bytes_verified=scenario_bytes_verified,
         ground_truth_status=ground_truth_status,
         identities=identities,
         scenes=scenes,
@@ -487,7 +487,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -511,7 +511,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.output.write_text(rendered, encoding="utf-8")
     except (
         OSError,
-        PackageValidationError,
+        ScenarioValidationError,
         GroundTruthAdoptionError,
         RuntimeError,
         ValueError,

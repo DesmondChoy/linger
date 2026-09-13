@@ -38,13 +38,13 @@ from src.linger.agents.sculptor.surfacing_models import (
 from src.linger.orchestration.surfacing import propose_surfacing
 from tests.surfacing_fixtures import (
     json_bytes,
-    make_surfacing_package,
+    make_surfacing_scenario,
     surfacing_documents,
 )
 
 
 def _responses():
-    backstory, ground_truth = make_surfacing_package()
+    backstory, ground_truth = make_surfacing_scenario()
     scenes = compile_surfacing_scenes(backstory, ground_truth)
     responses = {}
     for scene in scenes:
@@ -87,7 +87,7 @@ def test_records_ordered_scenes_without_claiming_semantic_quality() -> None:
         scene.scene_id for scene in compiled
     ]
     assert result.ground_truth_status == "proposed"
-    assert result.package_bytes_verified is False
+    assert result.scenario_bytes_verified is False
     assert all(
         scene.ground_truth_result == "matches_proposal" for scene in result.scenes
     )
@@ -296,7 +296,7 @@ def test_adopted_grading_requires_exact_complete_ground_truth_bytes() -> None:
     ))
     assert result.ground_truth_status == "adopted"
     assert result.dataset_version == adoption.adopted_ground_truth_identity
-    assert result.package_bytes_verified is True
+    assert result.scenario_bytes_verified is True
     assert all(
         scene.ground_truth_result == "passes_hard_gates" for scene in result.scenes
     )
@@ -370,7 +370,7 @@ def test_runtime_transcripts_exclude_answer_key_account_and_backstory_context() 
 
 
 def test_native_synthetic_evaluation_spans_include_failed_scenes() -> None:
-    backstory, truth = make_surfacing_package()
+    backstory, truth = make_surfacing_scenario()
     secret_marker = "PROVIDER_EXCEPTION_SECRET_MUST_NOT_BE_EXPORTED"
     exporter = TestExporter()
     logfire.configure(
@@ -461,7 +461,7 @@ def test_cli_validates_before_provider_access_and_writes_durable_failure_artifac
     assert "EVALUATION_RUN_ERROR=" in capsys.readouterr().err
 
 
-def test_invalid_cli_package_does_not_initialize_provider(tmp_path: Path) -> None:
+def test_invalid_cli_scenario_does_not_initialize_provider(tmp_path: Path) -> None:
     result = subprocess.run(
         [
             sys.executable, "-m", "evals.synthetic_journals.surfacing_replay",

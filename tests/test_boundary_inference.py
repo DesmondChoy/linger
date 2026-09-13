@@ -177,12 +177,12 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([1, 12], [record.chapter_number for record in received[:2]])
 
     async def test_adopted_prop_reaches_private_judge_from_saved_memory(self) -> None:
-        package = Path(__file__).resolve().parents[1] / (
-            "synthetic-journal-evaluation/packages/"
+        scenario = Path(__file__).resolve().parents[1] / (
+            "synthetic-journal-evaluation/scenarios/"
             "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/"
             "backstory.json"
         )
-        backstory = json.loads(package.read_text())
+        backstory = json.loads(scenario.read_text())
         prop = backstory["props"][0]
         with tempfile.TemporaryDirectory() as root:
             service = MemoryPolicyService(Path(root))

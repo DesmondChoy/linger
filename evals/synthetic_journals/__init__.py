@@ -1,1 +1,1 @@
-"""Contracts and deterministic validation for synthetic scenario packages."""
+"""Contracts and deterministic validation for synthetic scenarios."""

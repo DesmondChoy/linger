@@ -45,7 +45,7 @@ from evals.synthetic_journals.replay import (
     replay_capture_scenes,
 )
 from evals.synthetic_journals.transcript import SceneTranscriptRecorder
-from evals.synthetic_journals.validate_package import validate_package_files
+from evals.synthetic_journals.validate_scenario import validate_scenario_files
 from src.linger.agents.muse.models import (
     MemoryCandidate,
     MemoryNomination,
@@ -237,7 +237,7 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
 
 
 def test_replay_isolates_account_store_sessions_and_turns() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     requests: list[ChatRequest] = []
     accounts: set[str] = set()
     store_roots: set[Path] = set()
@@ -292,7 +292,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
 
 
 def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     adoption = build_ground_truth_adoption(
         ground_truth,
         GROUND_TRUTH_PATH.read_bytes(),
@@ -324,7 +324,7 @@ def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
 
 
 def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     positive = next(
         proposal for proposal in ground_truth.proposals
         if isinstance(proposal.capture.nomination, CaptureCandidate)
@@ -377,7 +377,7 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
 def test_capture_replay_grades_observed_outcomes(
     fault: str, failure: str | None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     proposal = next(
         item for item in ground_truth.proposals
         if isinstance(item.capture.nomination, CaptureCandidate)
@@ -469,7 +469,7 @@ def test_capture_replay_grades_observed_outcomes(
 
 
 def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     calls = 0
     stored = None
 
@@ -501,7 +501,7 @@ def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> N
 
 
 def test_replay_cannot_pass_without_recorded_muse_output() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     response = _no_capture_response()
 
     async def chat_handler(_request, _service, _account):
@@ -515,7 +515,7 @@ def test_replay_cannot_pass_without_recorded_muse_output() -> None:
 
 
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     first_scene = content.scenes[0].model_copy(
         update={"line_ids": (content.lines[0].line_id, content.lines[1].line_id)}
     )
@@ -534,7 +534,7 @@ def test_replay_rejects_more_than_one_line_per_scene() -> None:
 
 
 def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     exporter = TestExporter()
     logfire.configure(
         send_to_logfire=False,
@@ -589,7 +589,7 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> No
         )
 
 
-def test_cli_returns_nonzero_for_an_invalid_package(
+def test_cli_returns_nonzero_for_an_invalid_scenario(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -605,7 +605,7 @@ def test_cli_returns_nonzero_for_an_invalid_package(
 
 
 def test_replay_uses_production_capture_path_without_handing_off_labels() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     lines = {line.line_id: line for line in content.lines}
     scenes_by_text = {
         lines[scene.line_ids[0]].text: scene.scene_id for scene in content.scenes

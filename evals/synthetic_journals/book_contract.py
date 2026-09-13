@@ -61,7 +61,7 @@ def compile_book_replay_plan(
     *,
     repository_root: Path = REPOSITORY_ROOT,
 ) -> BookReplayPlan:
-    """Resolve one book package into the only representation replay may consume."""
+    """Resolve one book scenario into the only representation replay may consume."""
 
     try:
         backstory = SyntheticBackstory.model_validate_json(backstory.model_dump_json())
@@ -153,7 +153,7 @@ def compile_book_replay_plan(
         ceiling: int | None = None
         if facts is not None:
             failures.extend(_validate_scene_facts(facts, scene, props))
-            from .validate_package import _validate_span
+            from .validate_scenario import _validate_span
 
             for span in facts.basis_spans:
                 failures.extend(_validate_span(span, scene, props, lines, {}))
@@ -218,7 +218,7 @@ def compile_book_replay_plan(
             )
         )
 
-    from .validate_package import _validate_pairing
+    from .validate_scenario import _validate_pairing
 
     for case in compiled:
         for proposal in case.proposals:

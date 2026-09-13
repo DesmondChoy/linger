@@ -280,7 +280,7 @@ async def replay_connection_scenes(
     if (ProposedGroundTruth.model_validate_json(ground_truth_bytes) != ground_truth
         or SyntheticBackstory.model_validate_json(backstory_bytes) != backstory
         or hashlib.sha256(backstory_bytes).hexdigest() != ground_truth.backstory_sha256):
-        raise ValueError("replay objects do not match the independently adopted package bytes")
+        raise ValueError("replay objects do not match the independently adopted scenario bytes")
     validate_ground_truth_adoption(ground_truth, adoption, ground_truth_bytes=ground_truth_bytes)
     plan = compile_connection_replay_plan(backstory, ground_truth)
     if chat_handler is None:

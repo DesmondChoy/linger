@@ -16,10 +16,10 @@ from uuid import uuid4
 from .scenario_catalog import (
     REPOSITORY_ROOT,
     discover,
-    inspect_package,
-    package_hashes,
+    inspect_scenario,
+    scenario_hashes,
     redact,
-    selected_package,
+    selected_scenario,
 )
 from .scenario_analysis import render_analysis_report, write_analysis_report
 from .scenario_diagnostics import summarize_artifact
@@ -34,7 +34,7 @@ def write_json(path: Path, value: Any) -> None:
 
 def create_menu(repository_root: Path, output: Path | None = None) -> tuple[Path, dict[str, Any]]:
     menu = {
-        "schema_version": 1,
+        "schema_version": 2,
         "repository_root": str(repository_root.resolve()),
         "created_at": datetime.now().astimezone().isoformat(),
         "entries": discover(repository_root),
@@ -47,17 +47,17 @@ def create_menu(repository_root: Path, output: Path | None = None) -> tuple[Path
 
 def read_selection(menu_path: Path, number: int, repository_root: Path) -> tuple[Path, dict[str, Any]]:
     menu = json.loads(menu_path.read_text())
-    if menu.get("schema_version") != 1 or menu.get("repository_root") != str(repository_root.resolve()):
+    if menu.get("schema_version") != 2 or menu.get("repository_root") != str(repository_root.resolve()):
         raise ValueError("The menu belongs to another checkout or version; refresh it.")
-    return selected_package(menu, number, repository_root)
+    return selected_scenario(menu, number, repository_root)
 
 
-def preflight(package: Path, entry: dict[str, Any], repository_root: Path, model: str | None) -> dict[str, Any]:
-    current = inspect_package(package, repository_root, model)
+def preflight(scenario: Path, entry: dict[str, Any], repository_root: Path, model: str | None) -> dict[str, Any]:
+    current = inspect_scenario(scenario, repository_root, model)
     if current["hashes"] != entry["hashes"]:
         current["issues"].insert(0, {
             "category": "selection",
-            "detail": "Package files changed after the displayed menu; refresh it and choose again.",
+            "detail": "Scenario files changed after the displayed menu; refresh it and choose again.",
         })
     return current
 
@@ -82,13 +82,13 @@ def run_selected(
     repository_root: Path = REPOSITORY_ROOT,
     timeout_seconds: float = 1800,
 ) -> dict[str, Any]:
-    package, entry = read_selection(menu_path, number, repository_root)
-    check = preflight(package, entry, repository_root, confirmed_model)
+    scenario, entry = read_selection(menu_path, number, repository_root)
+    check = preflight(scenario, entry, repository_root, confirmed_model)
     model = check["configuration"]["model"]
     if check["issues"]:
         problems = [item["detail"] for item in check["issues"]]
         report = write_analysis_report(
-            package, repository_root=repository_root, model=model,
+            scenario, repository_root=repository_root, model=model,
             category=check["issues"][0]["category"], problems=problems,
             execution_status="not_started",
         )
@@ -99,23 +99,23 @@ def run_selected(
         }
 
     stamp = datetime.now().astimezone().strftime("%Y-%m-%dT%H%M%S%z")
-    run_directory = Path(tempfile.mkdtemp(prefix=f"scenario-run-{stamp}-", dir=package))
+    run_directory = Path(tempfile.mkdtemp(prefix=f"scenario-run-{stamp}-", dir=scenario))
     artifact_path = run_directory / "evaluation.json"
     log_path = run_directory / "run.log"
     summary_path = run_directory / "summary.json"
     command = [
         sys.executable, "-m", check["runner"],
-        str(package / "backstory.json"), str(package / "ground-truth.json"),
-        "--adoption", str(package / "ground-truth-adoption.json"),
+        str(scenario / "backstory.json"), str(scenario / "ground-truth.json"),
+        "--adoption", str(scenario / "ground-truth-adoption.json"),
         "--output", str(artifact_path),
     ]
     environment = dict(os.environ, LINGER_MODEL=model)
     if check["requires_web"]:
         environment["LINGER_WEB_SEARCH_ENABLED"] = "true"
     result: dict[str, Any] = {
-        "package": package.name, "model": model, "command": command,
+        "scenario": scenario.name, "model": model, "command": command,
         "started_at": datetime.now().astimezone().isoformat(),
-        "package_hashes": check["hashes"],
+        "scenario_hashes": check["hashes"],
         "artifact": str(artifact_path), "run_log": str(log_path),
         "summary_file": str(summary_path),
         "execution_status": "failed",
@@ -163,7 +163,7 @@ def run_selected(
                 or set(observed_ids) != set(check["scene_ids"])
             ):
                 raise ValueError(
-                    "Replay results must cover every package Scene exactly once; "
+                    "Replay results must cover every scenario Scene exactly once; "
                     "missing, duplicate, or unexpected Scene observations prevent a complete evaluation."
                 )
             summary = summarize_artifact(artifact)
@@ -189,14 +189,14 @@ def run_selected(
         if not problems:
             category = "telemetry"
         problems.append("Logfire link or successful telemetry flush was unavailable; remote visibility is unverified.")
-    if package_hashes(package) != check["hashes"]:
+    if scenario_hashes(scenario) != check["hashes"]:
         category = "selection"
-        problems.append("Package files changed during execution; do not treat this run as evidence for the current package.")
+        problems.append("Scenario files changed during execution; do not treat this run as evidence for the current scenario.")
     result["status"] = "failed" if problems else "passed"
     result["problems"] = problems
     result["finished_at"] = datetime.now().astimezone().isoformat()
     report = write_analysis_report(
-        package, repository_root=repository_root, model=model,
+        scenario, repository_root=repository_root, model=model,
         category=category if problems else "none", problems=problems, artifact=artifact,
         logfire_url=result["logfire_url"], output_path=artifact_path if artifact_path.is_file() else None,
         run_log_path=log_path, execution_status=result["execution_status"], telemetry=telemetry,
@@ -210,7 +210,7 @@ def run_selected(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subcommands = parser.add_subparsers(dest="action", required=True)
-    menu = subcommands.add_parser("menu", help="Discover packages and save the numbered selection.")
+    menu = subcommands.add_parser("menu", help="Discover scenarios and save the numbered selection.")
     menu.add_argument("--output", type=Path)
     report = subcommands.add_parser("report", help="Validate and render a completed analysis without running models.")
     report.add_argument("--analysis", type=Path, required=True)
@@ -229,7 +229,8 @@ def main(argv: list[str] | None = None) -> int:
             path, snapshot = create_menu(REPOSITORY_ROOT, args.output)
             for entry in snapshot["entries"]:
                 reasons = list(dict.fromkeys(item["category"] for item in entry["issues"]))
-                status = "Ready" if not reasons else "Needs " + ", ".join(reasons)
+                labels = ["scenario validation" if reason == "scenario" else reason for reason in reasons]
+                status = "Ready" if not reasons else "Blocked: " + ", ".join(labels)
                 print(f"{entry['number']}. {entry['title']} — {entry['scene_count']} Scenes · {status}\n   {entry['description']}")
             print(f"SCENARIO_MENU_FILE={path}")
             return 0
@@ -239,11 +240,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.action == "run":
             result = run_selected(args.menu, args.number, args.confirmed_model, timeout_seconds=args.timeout_seconds)
         else:
-            package, entry = read_selection(args.menu, args.number, REPOSITORY_ROOT)
-            result = preflight(package, entry, REPOSITORY_ROOT, args.model)
+            scenario, entry = read_selection(args.menu, args.number, REPOSITORY_ROOT)
+            result = preflight(scenario, entry, REPOSITORY_ROOT, args.model)
             if args.action == "check" and result["issues"]:
                 report = write_analysis_report(
-                    package, repository_root=REPOSITORY_ROOT, model=result["configuration"]["model"],
+                    scenario, repository_root=REPOSITORY_ROOT, model=result["configuration"]["model"],
                     category=result["issues"][0]["category"],
                     problems=[item["detail"] for item in result["issues"]],
                     execution_status="not_started",

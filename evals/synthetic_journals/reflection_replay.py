@@ -74,11 +74,11 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import (
-    PackageValidationError,
+from .validate_scenario import (
+    ScenarioValidationError,
     REFLECTION_OBJECTIVE_IDS,
     REPOSITORY_ROOT,
-    validate_package_files,
+    validate_scenario_files,
 )
 
 FailureStage = Literal[
@@ -243,7 +243,7 @@ def resolve_corpus_evidence_ids(
     evidence: RepositoryTextEvidence,
     repository_root: Path = REPOSITORY_ROOT,
 ) -> frozenset[str]:
-    """Map one package evidence span to every ID Librarian could cite for it.
+    """Map one scenario evidence span to every ID Librarian could cite for it.
 
     Ground truth locates evidence by repository path and code-point span, while
     a released citation names `{chapter_id}-ln{start}-{end}` built from the
@@ -683,7 +683,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -693,8 +693,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     args.backstory, args.ground_truth, args.adoption
                 )
             )
-    except (PackageValidationError, GroundTruthAdoptionError) as error:
-        print(f"PACKAGE_VALIDATION_FAILED={error}", file=sys.stderr)
+    except (ScenarioValidationError, GroundTruthAdoptionError) as error:
+        print(f"SCENARIO_VALIDATION_FAILED={error}", file=sys.stderr)
         return 1
 
     try:

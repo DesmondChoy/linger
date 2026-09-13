@@ -29,10 +29,10 @@ from evals.synthetic_journals.book_replay import (
 )
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from evals.synthetic_journals.transcript import ToolExchange
-from evals.synthetic_journals.validate_package import (
-    PackageValidationError,
+from evals.synthetic_journals.validate_scenario import (
+    ScenarioValidationError,
     load_run_configurations,
-    validate_package,
+    validate_scenario,
 )
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
@@ -84,7 +84,7 @@ def _models(
     backstory_bytes = _json_bytes(content)
     backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
     proposed = ProposedGroundTruth.model_validate_json(_json_bytes(ground_truth))
-    validate_package(
+    validate_scenario(
         backstory,
         proposed,
         backstory_bytes=backstory_bytes,
@@ -359,7 +359,7 @@ def _grounding_call(query: str, *, searched_max: int = 5) -> dict[str, object]:
     }
 
 
-def test_package_validator_requires_typed_book_ground_truth() -> None:
+def test_scenario_validator_requires_typed_book_ground_truth() -> None:
     content, ground_truth = _documents()
     backstory_bytes = _json_bytes(content)
     proposal = ground_truth["proposals"][0]  # type: ignore[index]

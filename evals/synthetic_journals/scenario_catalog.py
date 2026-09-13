@@ -1,4 +1,4 @@
-"""Discover saved scenario packages without importing agents or calling providers."""
+"""Discover saved scenarios without importing agents or calling providers."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ from dotenv import dotenv_values
 
 from .adoption import validate_ground_truth_adoption_files
 from .replay_support import replay_support_for
-from .validate_package import validate_package_files
+from .validate_scenario import validate_scenario_files
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-PACKAGE_FILES = ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")
+SCENARIO_FILES = ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")
 PROVIDER_KEYS = {
     "openai": "OPENAI_API_KEY",
     "google": "GOOGLE_API_KEY",
@@ -26,15 +26,15 @@ PROVIDER_KEYS = {
 SECRET_KEYS = (*PROVIDER_KEYS.values(), "EXA_API_KEY", "LOGFIRE_TOKEN")
 
 
-def package_root(repository_root: Path) -> Path:
-    return repository_root / "synthetic-journal-evaluation" / "packages"
+def scenario_root(repository_root: Path) -> Path:
+    return repository_root / "synthetic-journal-evaluation" / "scenarios"
 
 
-def package_hashes(package: Path) -> dict[str, str | None]:
+def scenario_hashes(scenario: Path) -> dict[str, str | None]:
     return {
-        name: hashlib.sha256((package / name).read_bytes()).hexdigest()
-        if (package / name).is_file() else None
-        for name in PACKAGE_FILES
+        name: hashlib.sha256((scenario / name).read_bytes()).hexdigest()
+        if (scenario / name).is_file() else None
+        for name in SCENARIO_FILES
     }
 
 
@@ -115,11 +115,11 @@ def objective_titles(repository_root: Path) -> dict[str, str]:
         return {}
 
 
-def inspect_package(package: Path, repository_root: Path, model: str | None = None) -> dict[str, Any]:
+def inspect_scenario(scenario: Path, repository_root: Path, model: str | None = None) -> dict[str, Any]:
     issues: list[dict[str, str]] = []
     raw: dict[str, Any] = {}
     try:
-        loaded = json.loads((package / "backstory.json").read_text())
+        loaded = json.loads((scenario / "backstory.json").read_text())
         if isinstance(loaded, dict):
             raw = loaded
     except (OSError, ValueError):
@@ -129,16 +129,16 @@ def inspect_package(package: Path, repository_root: Path, model: str | None = No
         objectives = []
     support = replay_support_for(objectives)
     try:
-        validate_package_files(package / "backstory.json", package / "ground-truth.json")
-        if (package / "ground-truth-adoption.json").is_file():
+        validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
+        if (scenario / "ground-truth-adoption.json").is_file():
             try:
-                validate_ground_truth_adoption_files(*(package / name for name in PACKAGE_FILES))
+                validate_ground_truth_adoption_files(*(scenario / name for name in SCENARIO_FILES))
             except (OSError, ValueError) as exc:
                 issues.append({"category": "adoption", "detail": str(exc)})
         else:
             issues.append({"category": "adoption", "detail": "Independent Ground truth adoption is missing."})
     except (OSError, ValueError) as exc:
-        issues.append({"category": "package", "detail": str(exc)})
+        issues.append({"category": "scenario", "detail": str(exc)})
     if support is None:
         issues.append({"category": "runner", "detail": "No supported replay for this exact Objective selection."})
     config = configuration(repository_root, model)
@@ -148,9 +148,9 @@ def inspect_package(package: Path, repository_root: Path, model: str | None = No
         isinstance(item, dict) and item.get("public_sources") for item in setups
     )
     if public_sources and not config["web_key_present"]:
-        issues.append({"category": "configuration", "detail": "Missing EXA_API_KEY for this package's public sources."})
+        issues.append({"category": "configuration", "detail": "Missing EXA_API_KEY for this scenario's public sources."})
     return {
-        "package": package.name,
+        "scenario": scenario.name,
         "objective_ids": objectives,
         "scene_count": len(raw.get("scenes", [])) if isinstance(raw.get("scenes"), list) else 0,
         "scene_ids": [
@@ -159,7 +159,7 @@ def inspect_package(package: Path, repository_root: Path, model: str | None = No
         ] if isinstance(raw.get("scenes"), list) else [],
         "runner": support.module if support else None,
         "requires_web": bool(public_sources),
-        "hashes": package_hashes(package),
+        "hashes": scenario_hashes(scenario),
         "configuration": config,
         "issues": [{**item, "detail": redact(item["detail"], repository_root)} for item in issues],
     }
@@ -169,27 +169,27 @@ def discover(repository_root: Path = REPOSITORY_ROOT) -> list[dict[str, Any]]:
     labels = descriptions(repository_root)
     titles = objective_titles(repository_root)
     entries = []
-    for package in sorted(package_root(repository_root).iterdir()):
-        if not package.is_dir() or package.is_symlink():
+    for scenario in sorted(scenario_root(repository_root).iterdir()):
+        if not scenario.is_dir() or scenario.is_symlink():
             continue
-        item = inspect_package(package, repository_root)
+        item = inspect_scenario(scenario, repository_root)
         fallback = "; ".join(titles.get(key, key) for key in item["objective_ids"])
         title, description = labels.get(
-            (package / "backstory.json").resolve(),
-            (package.name.split("--")[0].replace("-", " ").capitalize(), fallback or "No generated Backstory or description is available."),
+            (scenario / "backstory.json").resolve(),
+            (scenario.name.split("--")[0].replace("-", " ").capitalize(), fallback or "No generated Backstory or description is available."),
         )
         entries.append({**item, "title": title, "description": description})
-    entries.sort(key=lambda item: (item["title"].casefold(), item["package"]))
+    entries.sort(key=lambda item: (item["title"].casefold(), item["scenario"]))
     return [{"number": index, **item} for index, item in enumerate(entries, 1)]
 
 
-def selected_package(menu: dict[str, Any], number: int, repository_root: Path) -> tuple[Path, dict[str, Any]]:
+def selected_scenario(menu: dict[str, Any], number: int, repository_root: Path) -> tuple[Path, dict[str, Any]]:
     entries = menu.get("entries", [])
     matches = [entry for entry in entries if entry.get("number") == number]
     if len(matches) != 1:
         raise ValueError("Choose a number from the displayed menu.")
     entry = matches[0]
-    package = (package_root(repository_root) / entry["package"]).resolve()
-    if package.parent != package_root(repository_root).resolve() or not package.is_dir():
-        raise ValueError("The selected package is no longer in the scenario directory; refresh the menu.")
-    return package, entry
+    scenario = (scenario_root(repository_root) / entry["scenario"]).resolve()
+    if scenario.parent != scenario_root(repository_root).resolve() or not scenario.is_dir():
+        raise ValueError("The selected scenario is no longer in the scenario directory; refresh the menu.")
+    return scenario, entry

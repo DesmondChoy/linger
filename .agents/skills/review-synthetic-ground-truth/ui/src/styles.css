@@ -34,12 +34,12 @@ code { font-family: "SFMono-Regular", Consolas, monospace; }
 .eyebrow { margin: 0 0 9px; color: var(--forest); font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 h1 { margin: 0; max-width: 900px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 47px; font-weight: 600; letter-spacing: -.045em; line-height: .98; }
 .intro { max-width: 850px; margin: 14px 0 0; color: #59675f; font-size: 16px; line-height: 1.48; }
-.package-stamp { border: 1px solid #98aa9e; background: rgba(247, 249, 247, .78); box-shadow: 6px 6px 0 rgba(39, 98, 70, .11); padding: 17px 19px; }
-.package-stamp > span, .context-band span { color: var(--forest); font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.package-stamp dl { display: grid; gap: 6px; margin: 11px 0 0; }
-.package-stamp dl div { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid #d4dcd6; padding-top: 6px; }
-.package-stamp dt { color: #647169; font-size: 12px; }
-.package-stamp dd { margin: 0; font-size: 12px; font-weight: 700; }
+.scenario-stamp { border: 1px solid #98aa9e; background: rgba(247, 249, 247, .78); box-shadow: 6px 6px 0 rgba(39, 98, 70, .11); padding: 17px 19px; }
+.scenario-stamp > span, .context-band span { color: var(--forest); font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.scenario-stamp dl { display: grid; gap: 6px; margin: 11px 0 0; }
+.scenario-stamp dl div { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid #d4dcd6; padding-top: 6px; }
+.scenario-stamp dt { color: #647169; font-size: 12px; }
+.scenario-stamp dd { margin: 0; font-size: 12px; font-weight: 700; }
 
 .context-band { display: grid; grid-template-columns: 1.1fr 1fr auto; gap: 1px; margin: 22px 0 30px; border: 1px solid var(--rule); background: var(--rule); }
 .context-band > div, .context-band > details { min-width: 0; background: rgba(247, 249, 247, .86); padding: 16px 18px; }

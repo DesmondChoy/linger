@@ -19,7 +19,7 @@ SURFACING_OBJECTIVE_ID = "proactive_memory_surfacing"
 
 
 class SurfacingContractError(ValueError):
-    """A package cannot establish the standalone surfacing evaluation."""
+    """A scenario cannot establish the standalone surfacing evaluation."""
 
 
 @dataclass(frozen=True)
@@ -38,7 +38,7 @@ def compile_surfacing_scenes(
         backstory = SyntheticBackstory.model_validate_json(backstory.model_dump_json())
         ground_truth = ProposedGroundTruth.model_validate_json(ground_truth.model_dump_json())
     except ValidationError as error:
-        raise SurfacingContractError("invalid surfacing package graph") from error
+        raise SurfacingContractError("invalid surfacing scenario graph") from error
     if set(backstory.objective_ids) != {SURFACING_OBJECTIVE_ID}:
         raise SurfacingContractError("surfacing replay requires its sole Objective")
     props = {item.prop_id: item for item in backstory.props}
@@ -110,7 +110,7 @@ def compile_surfacing_scenes(
     kinds = {item.expectation.case_kind for item in compiled}
     if kinds != set(CASE_DECISIONS):
         raise SurfacingContractError(
-            "surfacing package must cover timely, deferred, superseded, repeated, "
+            "surfacing scenario must cover timely, deferred, superseded, repeated, "
             "unsupported and sensitive cases"
         )
     _require_temporal_pair(compiled, ground_truth)

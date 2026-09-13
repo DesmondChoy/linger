@@ -1,4 +1,4 @@
-"""Tests for package-backed bounded-curation replay."""
+"""Tests for scenario-backed bounded-curation replay."""
 
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ from evals.synthetic_journals.curation_replay import (
 )
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from evals.synthetic_journals.replay import RUNTIME_PROMPT_FINGERPRINTS
-from evals.synthetic_journals.validate_package import (
-    PackageValidationError,
-    validate_package,
+from evals.synthetic_journals.validate_scenario import (
+    ScenarioValidationError,
+    validate_scenario,
 )
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.sculptor.agent import build_sculptor_agent
@@ -271,7 +271,7 @@ def _response_for(
 def test_validates_exactly_one_scene_per_accepted_curation_behavior() -> None:
     backstory, ground_truth, backstory_bytes = _curation_models()
 
-    validate_package(
+    validate_scenario(
         backstory,
         ground_truth,
         backstory_bytes=backstory_bytes,
@@ -305,8 +305,8 @@ def test_rejects_missing_ground_truth_inactive_props_and_duplicate_evidence() ->
             )
         }
     )
-    with pytest.raises(PackageValidationError, match="lacks typed curation"):
-        validate_package(
+    with pytest.raises(ScenarioValidationError, match="lacks typed curation"):
+        validate_scenario(
             backstory,
             missing_curation,
             backstory_bytes=backstory_bytes,
@@ -324,8 +324,8 @@ def test_rejects_missing_ground_truth_inactive_props_and_duplicate_evidence() ->
     inactive_backstory = backstory.model_copy(
         update={"props": (inactive_prop, *backstory.props[1:])}
     )
-    with pytest.raises(PackageValidationError, match="must be active"):
-        validate_package(
+    with pytest.raises(ScenarioValidationError, match="must be active"):
+        validate_scenario(
             inactive_backstory,
             ground_truth,
             backstory_bytes=backstory_bytes,
@@ -339,8 +339,8 @@ def test_rejects_missing_ground_truth_inactive_props_and_duplicate_evidence() ->
     invalid_evidence = ground_truth.model_copy(
         update={"proposals": (duplicate_evidence, *ground_truth.proposals[1:])}
     )
-    with pytest.raises(PackageValidationError, match="exactly once"):
-        validate_package(
+    with pytest.raises(ScenarioValidationError, match="exactly once"):
+        validate_scenario(
             backstory,
             invalid_evidence,
             backstory_bytes=backstory_bytes,
@@ -371,8 +371,8 @@ def test_rejects_duplicate_or_unsupported_expected_source_ids() -> None:
         }
     )
 
-    with pytest.raises(PackageValidationError, match="duplicate expected source IDs"):
-        validate_package(
+    with pytest.raises(ScenarioValidationError, match="duplicate expected source IDs"):
+        validate_scenario(
             backstory,
             invalid_sources,
             backstory_bytes=backstory_bytes,
@@ -387,8 +387,8 @@ def test_rejects_duplicate_or_unsupported_expected_source_ids() -> None:
             )
         }
     )
-    with pytest.raises(PackageValidationError, match="lacks exact spans"):
-        validate_package(
+    with pytest.raises(ScenarioValidationError, match="lacks exact spans"):
+        validate_scenario(
             backstory,
             missing_span,
             backstory_bytes=backstory_bytes,
@@ -608,7 +608,7 @@ def test_replay_exports_synthetic_native_evaluation_cases() -> None:
     } == {"matches_proposal"}
 
 
-def test_cli_returns_nonzero_for_an_invalid_package(
+def test_cli_returns_nonzero_for_an_invalid_scenario(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:

@@ -168,17 +168,17 @@ def _run_log_tail(path: Path) -> str:
 
 
 def collect_diagnostic_evidence(
-    package_dir: Path, repository_root: Path, run_log_path: Path | None = None,
+    scenario_dir: Path, repository_root: Path, run_log_path: Path | None = None,
 ) -> dict:
     """Collect local hashes and bounded history without exporting reviewer data."""
     hashes: dict[str, str | None] = {}
     for name in _SOURCE_NAMES:
         try:
-            with (package_dir / name).open("rb") as source:
+            with (scenario_dir / name).open("rb") as source:
                 hashes[name] = hashlib.file_digest(source, "sha256").hexdigest()
         except OSError:
             hashes[name] = None
-    adoption = _read_json(package_dir / "ground-truth-adoption.json")
+    adoption = _read_json(scenario_dir / "ground-truth-adoption.json")
     adoption_matches = {}
     for name, key in (
         ("backstory.json", "backstory_sha256"),
@@ -198,11 +198,11 @@ def collect_diagnostic_evidence(
         "source_hashes": hashes,
         "adoption_hash_matches": adoption_matches,
         "declared_adoption_time": reviewed_time.isoformat() if reviewed_time else None,
-        "git": _history_evidence(package_dir, repository_root, hashes, reviewed_time),
+        "git": _history_evidence(scenario_dir, repository_root, hashes, reviewed_time),
         "run_log_tail": _run_log_tail(run_log_path) if run_log_path else None,
         "limits": [
-            "Hash matches do not validate adoption decisions or package contracts.",
-            "Adoption time and a matching package commit do not establish the generation revision.",
+            "Hash matches do not validate adoption decisions or scenario contracts.",
+            "Adoption time and a matching scenario commit do not establish the generation revision.",
             "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
             "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker.",
         ],
@@ -210,7 +210,7 @@ def collect_diagnostic_evidence(
 
 
 def _history_evidence(
-    package_dir: Path, repository_root: Path, hashes: dict[str, str | None],
+    scenario_dir: Path, repository_root: Path, hashes: dict[str, str | None],
     reviewed_time: datetime | None,
 ) -> dict:
     revision = _git(repository_root, "rev-parse", "HEAD")
@@ -218,9 +218,9 @@ def _history_evidence(
         return {"available": False, "reason": "Git revision and history are unavailable."}
     result: dict[str, Any] = {"available": True, "revision": revision}
     try:
-        relative = package_dir.resolve().relative_to(repository_root.resolve())
+        relative = scenario_dir.resolve().relative_to(repository_root.resolve())
     except ValueError:
-        result["reason"] = "Package is outside this repository; no package baseline is available."
+        result["reason"] = "Scenario is outside this repository; no scenario baseline is available."
         return result
     sources = [(relative / name).as_posix() for name in _SOURCE_NAMES]
     scope = [
@@ -230,34 +230,34 @@ def _history_evidence(
     dirty = _git(repository_root, "status", "--short", "--untracked-files=all", "--", *sources, *scope)
     result["scoped_working_tree_changes"] = _safe_text(dirty, 4000) if dirty is not None else None
     baseline = _git(repository_root, "log", "-1", "--format=%H", "--", *sources)
-    result["package_commit"] = baseline or None
+    result["scenario_commit"] = baseline or None
     if baseline:
-        result["package_commit_description"] = _safe_text(
+        result["scenario_commit_description"] = _safe_text(
             _git(repository_root, "show", "-s", "--format=%h %cI %s", baseline)
         )
         def matches_source(name: str) -> bool:
             committed_blob = _git(repository_root, "rev-parse", f"{baseline}:{(relative / name).as_posix()}")
             return committed_blob is not None and committed_blob == _git(
-                repository_root, "hash-object", "--no-filters", str(package_dir / name)
+                repository_root, "hash-object", "--no-filters", str(scenario_dir / name)
             )
 
-        result["current_package_matches_commit"] = all(
+        result["current_scenario_matches_commit"] = all(
             matches_source(name)
             for name, digest in hashes.items() if digest is not None
         ) and all(hashes.get(name) for name in ("backstory.json", "ground-truth.json"))
         committed_at = _git(repository_root, "show", "-s", "--format=%cI", baseline)
         if reviewed_time and committed_at and reviewed_time < datetime.fromisoformat(committed_at):
             history_args = [f"--since={reviewed_time.isoformat()}"]
-            result["history_window"] = "since earlier declared adoption time, including changes before a later package move or edit"
+            result["history_window"] = "since earlier declared adoption time, including changes before a later scenario move or edit"
         else:
             history_args = [f"{baseline}..HEAD"]
-            result["history_window"] = "after package-content baseline"
+            result["history_window"] = "after scenario-content baseline"
     elif reviewed_time:
         history_args = [f"--since={reviewed_time.isoformat()}"]
-        result["history_window"] = "since declared adoption time; no package commit was found"
+        result["history_window"] = "since declared adoption time; no scenario commit was found"
     else:
         history_args = []
-        result["history_window"] = "recent commits; no package or adoption baseline was found"
+        result["history_window"] = "recent commits; no scenario or adoption baseline was found"
     history = _git(repository_root, "log", "-12", *history_args, "--format=%h %cI %s", "--name-only", "--", *scope)
     result["recent_commits"] = _safe_text(history, 6500) if history is not None else None
     return result

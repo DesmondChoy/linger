@@ -27,7 +27,7 @@ from evals.synthetic_journals.models import (
     HumanGroundTruthReviewer,
 )
 from evals.synthetic_journals.replay_support import replay_support_for
-from evals.synthetic_journals.validate_package import validate_package_files
+from evals.synthetic_journals.validate_scenario import validate_scenario_files
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,7 +45,7 @@ reviewer = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = reviewer
 SPEC.loader.exec_module(reviewer)
 
-CAPTURE_PACKAGE = (
+CAPTURE_SCENARIO = (
     ROOT
     / "tests"
     / "fixtures"
@@ -64,14 +64,14 @@ BOOK_CHAPTER = (
 BOOK_QUOTE = "“Who are _you?_” said the Caterpillar."
 
 
-def _copy_package(source: Path, destination: Path) -> None:
+def _copy_scenario(source: Path, destination: Path) -> None:
     destination.mkdir()
     for name in ("backstory.json", "ground-truth.json"):
         shutil.copyfile(source / name, destination / name)
     (destination / "pre-generation-report.md").write_text("Fixture report")
 
 
-def _write_book_package(destination: Path) -> None:
+def _write_book_scenario(destination: Path) -> None:
     prop_text = "Alice and the Caterpillar's questions about identity stayed with me."
     grounded_line = "Why does Alice struggle to explain who she is?"
     personal_line = "I struggle to explain who I am when my plans change."
@@ -221,13 +221,13 @@ def _write_book_package(destination: Path) -> None:
         encoding="utf-8",
     )
     (destination / "pre-generation-report.md").write_text(
-        "# Pre-generation report\n\nTest-only book review package.\n",
+        "# Pre-generation report\n\nTest-only book review scenario.\n",
         encoding="utf-8",
     )
 
 
-def _write_curation_package(destination: Path) -> None:
-    """Build a compact package from the maintained Sculptor baseline cases."""
+def _write_curation_scenario(destination: Path) -> None:
+    """Build a compact scenario from the maintained Sculptor baseline cases."""
 
     case_paths = sorted((ROOT / "evals" / "sculptor" / "cases").glob("*.json"))
     cases = [json.loads(path.read_text(encoding="utf-8")) for path in case_paths]
@@ -304,7 +304,7 @@ def _write_curation_package(destination: Path) -> None:
             "backstory_id": backstory_id,
             "person_id": person_id,
             "evaluation_account_id": account_id,
-            "context": "Test-only curation review package.",
+            "context": "Test-only curation review scenario.",
         },
         "props": props,
         "scenes": scenes,
@@ -330,11 +330,11 @@ def _write_curation_package(destination: Path) -> None:
     )
 
 
-def _state(package: Path, ui: Path) -> reviewer.ReviewState:
+def _state(scenario: Path, ui: Path) -> reviewer.ReviewState:
     return reviewer.create_review_state(
         argparse.Namespace(
-            backstory=package / "backstory.json",
-            ground_truth=package / "ground-truth.json",
+            backstory=scenario / "backstory.json",
+            ground_truth=scenario / "ground-truth.json",
             adoption=None,
             reviewer_id="independent.developer@example.com",
             ui=ui,
@@ -380,8 +380,8 @@ def test_review_payload_joins_lines_props_and_typed_ground_truth(
 ) -> None:
     capture = tmp_path / "capture"
     curation = tmp_path / "curation"
-    _copy_package(CAPTURE_PACKAGE, capture)
-    _write_curation_package(curation)
+    _copy_scenario(CAPTURE_SCENARIO, capture)
+    _write_curation_scenario(curation)
 
     capture_payload = _state(capture, built_ui).payload
     curation_payload = _state(curation, built_ui).payload
@@ -423,9 +423,9 @@ def test_capture_review_preserves_nomination_and_independent_decision(
     reason_code: str | None,
     summary: str,
 ) -> None:
-    package = tmp_path / "capture"
-    _copy_package(CAPTURE_PACKAGE, package)
-    ground_truth_path = package / "ground-truth.json"
+    scenario = tmp_path / "capture"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    ground_truth_path = scenario / "ground-truth.json"
     ground_truth = json.loads(ground_truth_path.read_text())
     proposal = next(
         item for item in ground_truth["proposals"]
@@ -435,7 +435,7 @@ def test_capture_review_preserves_nomination_and_independent_decision(
     proposal["capture"]["reason_code"] = reason_code
     ground_truth_path.write_text(json.dumps(ground_truth))
 
-    payload = _state(package, built_ui).payload
+    payload = _state(scenario, built_ui).payload
     row = next(
         item for item in payload["rows"]
         if item["proposalId"] == proposal["proposal_id"]
@@ -451,13 +451,13 @@ def test_surfacing_review_shows_time_history_sources_and_semantic_rubric(
 ) -> None:
     from tests.surfacing_fixtures import surfacing_documents, json_bytes
 
-    package = tmp_path / "surfacing"
-    package.mkdir()
+    scenario = tmp_path / "surfacing"
+    scenario.mkdir()
     _, truth, payload = surfacing_documents()
-    (package / "backstory.json").write_bytes(payload)
-    (package / "ground-truth.json").write_bytes(json_bytes(truth))
-    (package / "pre-generation-report.md").write_text("Fixture report")
-    review = _state(package, built_ui).payload
+    (scenario / "backstory.json").write_bytes(payload)
+    (scenario / "ground-truth.json").write_bytes(json_bytes(truth))
+    (scenario / "pre-generation-report.md").write_text("Fixture report")
+    review = _state(scenario, built_ui).payload
     assert review["replay"]["supported"] is False
     assert review["replay"]["module"] is None
     assert review["replay"]["confirmLabel"] == "Confirm Ground truth"
@@ -477,10 +477,10 @@ def test_review_payload_shows_shared_book_facts_and_expectation(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "book"
-    _write_book_package(package)
+    scenario = tmp_path / "book"
+    _write_book_scenario(scenario)
 
-    payload = _state(package, built_ui).payload
+    payload = _state(scenario, built_ui).payload
     grounded = payload["rows"][0]
 
     assert grounded["bookSceneFacts"]["scope"]["kind"] == "librarian_inferred"
@@ -508,17 +508,17 @@ def test_review_payload_shows_shared_book_facts_and_expectation(
 def test_connection_review_shows_complete_source_setup_and_labels(
     tmp_path: Path, built_ui: Path,
 ) -> None:
-    from tests.test_synthetic_connection_package import connection_documents
+    from tests.test_synthetic_connection_scenario import connection_documents
 
     content, labels = connection_documents(ROOT)
-    package = tmp_path / "connection"
-    package.mkdir()
+    scenario = tmp_path / "connection"
+    scenario.mkdir()
     backstory_bytes = json.dumps(content, sort_keys=True).encode("utf-8")
     labels["backstory_sha256"] = hashlib.sha256(backstory_bytes).hexdigest()
-    (package / "backstory.json").write_bytes(backstory_bytes)
-    (package / "ground-truth.json").write_text(json.dumps(labels), encoding="utf-8")
+    (scenario / "backstory.json").write_bytes(backstory_bytes)
+    (scenario / "ground-truth.json").write_text(json.dumps(labels), encoding="utf-8")
 
-    state = _state(package, built_ui)
+    state = _state(scenario, built_ui)
     payload = state.payload
     assert payload["replay"]["module"] == "evals.synthetic_journals.connection_replay"
     assert len(payload["rows"]) == len(labels["proposals"]) == 4
@@ -601,30 +601,30 @@ def test_replay_selection_rejects_unknown_and_mixed_sets() -> None:
     ) is None
 
 
-def test_review_rejects_book_package_changed_after_payload_creation(
+def test_review_rejects_book_scenario_changed_after_payload_creation(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "book"
-    _write_book_package(package)
-    state = _state(package, built_ui)
-    ground_truth_path = package / "ground-truth.json"
+    scenario = tmp_path / "book"
+    _write_book_scenario(scenario)
+    state = _state(scenario, built_ui)
+    ground_truth_path = scenario / "ground-truth.json"
     ground_truth_path.write_text(
         ground_truth_path.read_text(encoding="utf-8") + "\n",
         encoding="utf-8",
     )
 
     with pytest.raises(reviewer.ReviewError, match="changed while review was open"):
-        reviewer._assert_package_unchanged(state)
+        reviewer._assert_scenario_unchanged(state)
 
 
 def test_make_changes_returns_to_agent_without_writing_adoption(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
     server, thread, base_url = _start_server(state)
     first_id = state.proposal_ids[0]
     try:
@@ -653,9 +653,9 @@ def test_confirm_requires_every_row_and_writes_exact_adoption(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _write_curation_package(package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _write_curation_scenario(scenario)
+    state = _state(scenario, built_ui)
     server, thread, base_url = _start_server(state)
     try:
         with pytest.raises(HTTPError) as partial:
@@ -687,8 +687,8 @@ def test_confirm_requires_every_row_and_writes_exact_adoption(
         assert state.result["replay_supported"] is True
         assert state.adoption_path.is_file()
         _, ground_truth, adoption = validate_ground_truth_adoption_files(
-            package / "backstory.json",
-            package / "ground-truth.json",
+            scenario / "backstory.json",
+            scenario / "ground-truth.json",
             state.adoption_path,
         )
         assert adoption.ground_truth_status == "adopted"
@@ -704,11 +704,11 @@ def test_confirm_rejects_files_changed_while_review_is_open(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
     server, thread, base_url = _start_server(state)
-    ground_truth_path = package / "ground-truth.json"
+    ground_truth_path = scenario / "ground-truth.json"
     original = ground_truth_path.read_text(encoding="utf-8")
     ground_truth_path.write_text(original + "\n", encoding="utf-8")
     try:
@@ -735,9 +735,9 @@ def test_make_changes_rejects_approved_and_flagged_overlap(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
     server, thread, base_url = _start_server(state)
     first_id = state.proposal_ids[0]
     try:
@@ -764,51 +764,51 @@ def test_adoption_rejects_stale_or_partial_decisions(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
     ground_truth = json.loads(
-        (package / "ground-truth.json").read_text(encoding="utf-8")
+        (scenario / "ground-truth.json").read_text(encoding="utf-8")
     )
     adoption = reviewer.build_ground_truth_adoption(
-        reviewer.validate_package_files(
-            package / "backstory.json",
-            package / "ground-truth.json",
+        reviewer.validate_scenario_files(
+            scenario / "backstory.json",
+            scenario / "ground-truth.json",
         )[1],
-        (package / "ground-truth.json").read_bytes(),
+        (scenario / "ground-truth.json").read_bytes(),
         reviewer_id="independent.developer@example.com",
     )
     partial = adoption.model_copy(update={"decisions": adoption.decisions[:-1]})
     state.adoption_path.write_text(partial.model_dump_json(indent=2), encoding="utf-8")
     with pytest.raises(GroundTruthAdoptionError, match="every proposal"):
         validate_ground_truth_adoption_files(
-            package / "backstory.json",
-            package / "ground-truth.json",
+            scenario / "backstory.json",
+            scenario / "ground-truth.json",
             state.adoption_path,
         )
 
     state.adoption_path.unlink()
     ground_truth["proposals"][0]["expected_outcomes"].append("Changed proposal")
-    (package / "ground-truth.json").write_text(
+    (scenario / "ground-truth.json").write_text(
         json.dumps(ground_truth, indent=2) + "\n",
         encoding="utf-8",
     )
     state.adoption_path.write_text(adoption.model_dump_json(indent=2), encoding="utf-8")
     with pytest.raises(GroundTruthAdoptionError, match="exact file bytes"):
         validate_ground_truth_adoption_files(
-            package / "backstory.json",
-            package / "ground-truth.json",
+            scenario / "backstory.json",
+            scenario / "ground-truth.json",
             state.adoption_path,
         )
 
 
-def test_review_server_rejects_unauthorized_package_reads(
+def test_review_server_rejects_unauthorized_scenario_reads(
     tmp_path: Path,
     built_ui: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    state = _state(package, built_ui)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    state = _state(scenario, built_ui)
     server, thread, base_url = _start_server(state)
     try:
         with pytest.raises(HTTPError) as error:
@@ -843,18 +843,18 @@ def test_ground_truth_adoption_model_rejects_naive_review_time() -> None:
 def test_explicit_human_adoption_round_trips_and_rejects_changed_source(
     tmp_path: Path,
 ) -> None:
-    package = tmp_path / "package"
-    _copy_package(CAPTURE_PACKAGE, package)
-    backstory = package / "backstory.json"
-    ground_truth = package / "ground-truth.json"
-    _, proposed = validate_package_files(backstory, ground_truth)
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    backstory = scenario / "backstory.json"
+    ground_truth = scenario / "ground-truth.json"
+    _, proposed = validate_scenario_files(backstory, ground_truth)
     adoption = build_ground_truth_adoption(
         proposed, ground_truth.read_bytes(), reviewer_id="developer@example.com"
     ).model_copy(update={"reviewer": HumanGroundTruthReviewer(
         reviewer_id="developer@example.com",
         review_method="explicit_human_instruction",
     )})
-    path = package / "ground-truth-adoption.json"
+    path = scenario / "ground-truth-adoption.json"
     path.write_text(adoption.model_dump_json())
     _, _, loaded = validate_ground_truth_adoption_files(backstory, ground_truth, path)
     assert loaded.reviewer.review_method == "explicit_human_instruction"

@@ -16,7 +16,7 @@ from .models import (
     ProposedGroundTruth,
     SyntheticBackstory,
 )
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 
 class GroundTruthAdoptionError(ValueError):
@@ -141,9 +141,9 @@ def validate_ground_truth_adoption_files(
     ground_truth_path: Path,
     adoption_path: Path,
 ) -> tuple[SyntheticBackstory, ProposedGroundTruth, GroundTruthAdoption]:
-    """Load and validate one package plus its exact independent adoption."""
+    """Load and validate one scenario plus its exact independent adoption."""
 
-    backstory, ground_truth = validate_package_files(
+    backstory, ground_truth = validate_scenario_files(
         backstory_path,
         ground_truth_path,
     )
@@ -168,7 +168,7 @@ def validate_ground_truth_adoption_files(
 
 __all__ = [
     "GroundTruthAdoptionError",
-    "PackageValidationError",
+    "ScenarioValidationError",
     "adopted_ground_truth_identity",
     "build_ground_truth_adoption",
     "proposed_ground_truth_sha256",

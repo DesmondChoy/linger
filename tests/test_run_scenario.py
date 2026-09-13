@@ -14,7 +14,7 @@ import pytest
 
 from evals.synthetic_journals import run_scenario, scenario_catalog
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
-from evals.synthetic_journals.validate_package import validate_package_files
+from evals.synthetic_journals.validate_scenario import validate_scenario_files
 
 ROOT = Path(__file__).resolve().parents[1]
 POTTERY = "pottery-memory-curation--sculptor--2026-08-29"
@@ -29,11 +29,11 @@ FAKE_KEYS = {
 }
 
 
-def _copy_package(repository: Path, name: str = POTTERY, source: str = POTTERY) -> Path:
-    destination = scenario_catalog.package_root(repository) / name
+def _copy_scenario(repository: Path, name: str = POTTERY, source: str = POTTERY) -> Path:
+    destination = scenario_catalog.scenario_root(repository) / name
     destination.mkdir(parents=True)
-    for filename in scenario_catalog.PACKAGE_FILES:
-        shutil.copyfile(scenario_catalog.package_root(ROOT) / source / filename, destination / filename)
+    for filename in scenario_catalog.SCENARIO_FILES:
+        shutil.copyfile(scenario_catalog.scenario_root(ROOT) / source / filename, destination / filename)
     return destination
 
 
@@ -42,7 +42,7 @@ def scenario_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path
     for name in (*scenario_catalog.SECRET_KEYS, "LINGER_MODEL", "LOGFIRE_CREDENTIALS_DIR", "LINGER_WEB_SEARCH_ENABLED"):
         monkeypatch.delenv(name, raising=False)
     repository = tmp_path / "repository"
-    package = _copy_package(repository)
+    scenario = _copy_scenario(repository)
     (repository / ".env").write_text(
         "LINGER_MODEL=openai:configured-model\n"
         + "".join(f"{key}={value}\n" for key, value in FAKE_KEYS.items())
@@ -54,43 +54,43 @@ def scenario_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path
         "    menu:\n"
         "      title: Preserve supplied memory sources\n"
     )
-    return repository, package
+    return repository, scenario
 
 
 def _menu(repository: Path) -> tuple[Path, int]:
     path, menu = run_scenario.create_menu(repository, repository / "menu.json")
-    entry = next(item for item in menu["entries"] if item["package"] == POTTERY)
+    entry = next(item for item in menu["entries"] if item["scenario"] == POTTERY)
     assert entry["issues"] == []
     return path, entry["number"]
 
 
-def test_supported_legacy_reflection_package_is_not_rejected_by_connection_compiler(scenario_repo):
+def test_supported_legacy_reflection_scenario_is_not_rejected_by_connection_compiler(scenario_repo):
     from tests.test_synthetic_reflection_replay import (
         _content_document, _ground_truth_document, _json_bytes,
     )
 
     repository, _ = scenario_repo
-    package = scenario_catalog.package_root(repository) / "legacy-reflection"
-    package.mkdir()
+    scenario = scenario_catalog.scenario_root(repository) / "legacy-reflection"
+    scenario.mkdir()
     backstory_bytes = _json_bytes(_content_document())
     truth = _ground_truth_document(backstory_bytes)
     truth["proposals"][0]["prop_relevance"] = [{"prop_id": "prop-01", "relevance": "relevant"}]
     truth_bytes = _json_bytes(truth)
-    (package / "backstory.json").write_bytes(backstory_bytes)
-    (package / "ground-truth.json").write_bytes(truth_bytes)
-    _, proposed = validate_package_files(package / "backstory.json", package / "ground-truth.json")
+    (scenario / "backstory.json").write_bytes(backstory_bytes)
+    (scenario / "ground-truth.json").write_bytes(truth_bytes)
+    _, proposed = validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
     adoption = build_ground_truth_adoption(proposed, truth_bytes, reviewer_id="isolated-test-reviewer")
-    (package / "ground-truth-adoption.json").write_text(adoption.model_dump_json())
+    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json())
 
-    inspected = scenario_catalog.inspect_package(package, repository, "openai:confirmed-model")
+    inspected = scenario_catalog.inspect_scenario(scenario, repository, "openai:confirmed-model")
     assert inspected["runner"] == "evals.synthetic_journals.connection_replay"
     assert inspected["issues"] == []
 
 
-def _artifact(*, failed: bool = False, package_name: str = POTTERY) -> dict:
+def _artifact(*, failed: bool = False, scenario_name: str = POTTERY) -> dict:
     scene_ids = [
         scene["scene_id"] for scene in json.loads(
-            (scenario_catalog.package_root(ROOT) / package_name / "backstory.json").read_text()
+            (scenario_catalog.scenario_root(ROOT) / scenario_name / "backstory.json").read_text()
         )["scenes"]
     ]
     return {
@@ -153,54 +153,66 @@ def test_provider_failure_inside_zero_exit_artifact_is_execution_error(scenario_
     assert analysis["summary"]["execution_failures"]
 
 
-def test_menu_discovers_packages_and_extracts_description_without_generation(scenario_repo) -> None:
-    repository, package = scenario_repo
-    fallback = _copy_package(repository, "zebra-notes--test")
-    unfinished = scenario_catalog.package_root(repository) / "unfinished"
+def test_menu_discovers_scenarios_and_extracts_description_without_generation(scenario_repo) -> None:
+    repository, scenario = scenario_repo
+    fallback = _copy_scenario(repository, "zebra-notes--test")
+    unfinished = scenario_catalog.scenario_root(repository) / "unfinished"
     unfinished.mkdir()
-    (scenario_catalog.package_root(repository) / "README.md").write_text("A file, not a package.")
-    (scenario_catalog.package_root(repository) / "linked-package").symlink_to(package, target_is_directory=True)
+    (scenario_catalog.scenario_root(repository) / "README.md").write_text("A file, not a scenario.")
+    (scenario_catalog.scenario_root(repository) / "linked-scenario").symlink_to(scenario, target_is_directory=True)
     (repository / "synthetic-journal-evaluation" / "scenario_descriptions.md").write_text(
         "# Scenarios\n\n## Pottery from the source document\n\n"
         "Objective: Prove source preservation\n"
         "  across duplicate notes and unrelated topics.\n\n"
-        f"[Backstory](packages/{package.name}/backstory.json)\n"
+        f"[Backstory](scenarios/{scenario.name}/backstory.json)\n"
         "This following paragraph is not part of the objective.\n"
     )
 
     entries = scenario_catalog.discover(repository)
 
-    assert {entry["package"] for entry in entries} == {package.name, fallback.name, unfinished.name}
+    assert {entry["scenario"] for entry in entries} == {scenario.name, fallback.name, unfinished.name}
     assert [entry["number"] for entry in entries] == [1, 2, 3]
-    by_package = {entry["package"]: entry for entry in entries}
-    described = by_package[package.name]
+    by_scenario = {entry["scenario"]: entry for entry in entries}
+    described = by_scenario[scenario.name]
     assert described["title"] == "Pottery from the source document"
     assert described["description"] == "Prove source preservation across duplicate notes and unrelated topics."
     assert described["scene_count"] == 5
     assert described["issues"] == []
-    assert by_package[fallback.name]["title"] == "Zebra notes"
-    assert by_package[fallback.name]["description"] == "Preserve supplied memory sources"
-    assert by_package[unfinished.name]["issues"]
+    assert by_scenario[fallback.name]["title"] == "Zebra notes"
+    assert by_scenario[fallback.name]["description"] == "Preserve supplied memory sources"
+    assert by_scenario[unfinished.name]["issues"]
 
 
-def test_saved_menu_number_keeps_its_package_after_discovery_changes(scenario_repo, monkeypatch) -> None:
-    repository, package = scenario_repo
+def test_saved_menu_number_keeps_its_scenario_after_discovery_changes(scenario_repo, monkeypatch) -> None:
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
-    _copy_package(repository, "aaa-new-scenario--test")
-    assert scenario_catalog.discover(repository)[0]["package"] != package.name
+    _copy_scenario(repository, "aaa-new-scenario--test")
+    assert scenario_catalog.discover(repository)[0]["scenario"] != scenario.name
     calls = _stub_replay(monkeypatch, artifact=_artifact())
 
     result = run_scenario.run_selected(menu_path, number, "openai:selected-model", repository_root=repository)
 
     assert result["status"] == "passed"
-    assert result["package"] == package.name
-    assert calls[0][0][3] == str(package / "backstory.json")
+    assert result["scenario"] == scenario.name
+    assert calls[0][0][3] == str(scenario / "backstory.json")
 
 
-def test_changed_package_hashes_block_invocation_and_save_diagnosis(scenario_repo, monkeypatch) -> None:
-    repository, package = scenario_repo
+def test_pre_rename_menu_requests_refresh_before_selection(scenario_repo) -> None:
+    repository, _ = scenario_repo
+    path, menu = run_scenario.create_menu(repository, repository / "old-menu.json")
+    menu["schema_version"] = 1
+    for entry in menu["entries"]:
+        entry["package"] = entry.pop("scenario")
+    path.write_text(json.dumps(menu))
+
+    with pytest.raises(ValueError, match="refresh"):
+        run_scenario.read_selection(path, 1, repository)
+
+
+def test_changed_scenario_hashes_block_invocation_and_save_diagnosis(scenario_repo, monkeypatch) -> None:
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
-    truth = package / "ground-truth.json"
+    truth = scenario / "ground-truth.json"
     truth.write_text(truth.read_text() + "\n")
     calls = _stub_replay(monkeypatch, artifact=_artifact())
 
@@ -209,12 +221,12 @@ def test_changed_package_hashes_block_invocation_and_save_diagnosis(scenario_rep
     assert result["status"] == "blocked"
     assert calls == []
     report = Path(result["analysis_report"])
-    assert report.parent == package
-    assert "Package files changed after the displayed menu" in report.read_text()
+    assert report.parent == scenario
+    assert "Scenario files changed after the displayed menu" in report.read_text()
     analysis = json.loads(Path(result["analysis_data"]).read_text())
     assert analysis["execution_status"] == "not_started"
     assert all(scene["status"] == "not_run" for scene in analysis["scenes"])
-    assert not list(package.glob("scenario-run-*"))
+    assert not list(scenario.glob("scenario-run-*"))
 
 
 def test_cli_requires_explicit_confirmed_model_before_run(scenario_repo, monkeypatch, capsys) -> None:
@@ -233,15 +245,15 @@ def test_cli_requires_explicit_confirmed_model_before_run(scenario_repo, monkeyp
 
 def test_selected_model_and_web_search_are_scoped_to_provider_process(scenario_repo, monkeypatch) -> None:
     repository, _ = scenario_repo
-    roses = _copy_package(repository, ROSES, ROSES)
+    roses = _copy_scenario(repository, ROSES, ROSES)
     monkeypatch.setenv("LINGER_MODEL", "openai:ambient-model")
     monkeypatch.setenv("LINGER_WEB_SEARCH_ENABLED", "false")
     original_env_file = (repository / ".env").read_bytes()
     menu_path, menu = run_scenario.create_menu(repository, repository / "menu.json")
-    entry = next(item for item in menu["entries"] if item["package"] == roses.name)
+    entry = next(item for item in menu["entries"] if item["scenario"] == roses.name)
     assert entry["issues"] == []
     assert entry["requires_web"] is True
-    calls = _stub_replay(monkeypatch, artifact=_artifact(package_name=ROSES))
+    calls = _stub_replay(monkeypatch, artifact=_artifact(scenario_name=ROSES))
 
     result = run_scenario.run_selected(menu_path, entry["number"], "google:selected-model", repository_root=repository)
 
@@ -257,7 +269,7 @@ def test_selected_model_and_web_search_are_scoped_to_provider_process(scenario_r
 
 
 def test_missing_selected_provider_key_blocks_and_report_contains_no_credentials(scenario_repo, monkeypatch, capsys) -> None:
-    repository, package = scenario_repo
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     env_file = repository / ".env"
     env_file.write_text(env_file.read_text().replace(f"ANTHROPIC_API_KEY={FAKE_KEYS['ANTHROPIC_API_KEY']}\n", ""))
@@ -268,7 +280,7 @@ def test_missing_selected_provider_key_blocks_and_report_contains_no_credentials
     assert result["status"] == "blocked"
     assert calls == []
     report = Path(result["analysis_report"])
-    assert report.parent == package
+    assert report.parent == scenario
     text = report.read_text()
     assert "Missing ANTHROPIC_API_KEY" in text
     rendered = json.dumps(result) + text + Path(result["analysis_data"]).read_text() + capsys.readouterr().out
@@ -276,7 +288,7 @@ def test_missing_selected_provider_key_blocks_and_report_contains_no_credentials
 
 
 def test_failed_grades_fail_wrapper_even_when_runner_exits_zero(scenario_repo, monkeypatch) -> None:
-    repository, package = scenario_repo
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     _stub_replay(monkeypatch, artifact=_artifact(failed=True))
 
@@ -288,7 +300,7 @@ def test_failed_grades_fail_wrapper_even_when_runner_exits_zero(scenario_repo, m
     assert result["results"]["judgments_failed"] == 1
     assert result["logfire_url"] == LOGFIRE_URL
     report = Path(result["analysis_report"])
-    assert report.parent == package
+    assert report.parent == scenario
     analysis = json.loads(Path(result["analysis_data"]).read_text())
     assert analysis["category"] == "behavioral"
     assert analysis["execution_status"] == "completed"
@@ -317,7 +329,7 @@ def test_failed_runner_keeps_exact_stderr_evaluation_link(scenario_repo, monkeyp
 
 @pytest.mark.parametrize("saved_artifact", [False, True])
 def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatch, saved_artifact) -> None:
-    repository, package = scenario_repo
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
 
     def timeout(command, **kwargs):
@@ -339,7 +351,7 @@ def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatc
     assert result["status"] == "failed"
     assert result["execution_status"] == "timed_out"
     assert any("0.25-second execution limit" in problem for problem in result["problems"])
-    assert Path(result["analysis_report"]).parent == package
+    assert Path(result["analysis_report"]).parent == scenario
     log = Path(result["run_log"]).read_text()
     assert "partial provider response" in log
     assert "[REDACTED]" in log
@@ -349,7 +361,7 @@ def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatc
 
 
 def test_repeated_runs_preserve_previous_output_and_use_unique_directories(scenario_repo, monkeypatch) -> None:
-    repository, package = scenario_repo
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     calls = _stub_replay(monkeypatch, artifact=_artifact())
     first = run_scenario.run_selected(menu_path, number, "openai:selected-model", repository_root=repository)
@@ -362,7 +374,7 @@ def test_repeated_runs_preserve_previous_output_and_use_unique_directories(scena
     first_directory = Path(first["artifact"]).parent
     second_directory = Path(second["artifact"]).parent
     assert first_directory != second_directory
-    assert first_directory.parent == second_directory.parent == package
+    assert first_directory.parent == second_directory.parent == scenario
     assert first_directory.name.startswith("scenario-run-")
     for name, original in previous.items():
         assert Path(first[name]).read_bytes() == original
@@ -375,7 +387,7 @@ def test_existing_menu_snapshot_is_never_overwritten(scenario_repo, tmp_path) ->
     menu_path = tmp_path / "chosen-menu.json"
     run_scenario.create_menu(repository, menu_path)
     displayed = menu_path.read_bytes()
-    _copy_package(repository, "another-scenario--test")
+    _copy_scenario(repository, "another-scenario--test")
 
     with pytest.raises(FileExistsError):
         run_scenario.create_menu(repository, menu_path)
@@ -383,8 +395,8 @@ def test_existing_menu_snapshot_is_never_overwritten(scenario_repo, tmp_path) ->
     assert menu_path.read_bytes() == displayed
 
 
-def test_passing_run_also_saves_analysis_of_every_package_scene(scenario_repo, monkeypatch) -> None:
-    repository, package = scenario_repo
+def test_passing_run_also_saves_analysis_of_every_scenario_scene(scenario_repo, monkeypatch) -> None:
+    repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     _stub_replay(monkeypatch, artifact=_artifact())
 
@@ -396,7 +408,7 @@ def test_passing_run_also_saves_analysis_of_every_package_scene(scenario_repo, m
     data = json.loads(Path(result["analysis_data"]).read_text())
     assert data["review"] is None
     assert data["summary"]["judgments_passed"] == 5
-    expected_scene_ids = [scene["scene_id"] for scene in json.loads((package / "backstory.json").read_text())["scenes"]]
+    expected_scene_ids = [scene["scene_id"] for scene in json.loads((scenario / "backstory.json").read_text())["scenes"]]
     assert [scene["scene_id"] for scene in data["scenes"]] == expected_scene_ids
     assert all(scene["status"] == "passed" for scene in data["scenes"])
 

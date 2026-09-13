@@ -79,8 +79,8 @@ class SceneFacts(StrictModel):
 
 
 class AnalysisDocument(StrictModel):
-    schema_version: Literal["1"] = "1"
-    package_dir: str
+    schema_version: Literal["2"] = "2"
+    scenario_dir: str
     created_at: str
     model: str
     execution_status: ExecutionStatus
@@ -169,7 +169,7 @@ def _scene_facts(backstory: dict, ground_truth: dict, artifact: dict | None, exe
         if observed is not None:
             try:
                 if planned_ids and scene_id not in planned_ids:
-                    raise ValueError("artifact Scene is not present in the package")
+                    raise ValueError("artifact Scene is not present in the scenario")
                 if scene_id in duplicate_ids:
                     raise ValueError("artifact has duplicate Scene observations")
                 result = summarize_artifact({"scenes": [observed]})
@@ -211,7 +211,7 @@ def _scene_facts(backstory: dict, ground_truth: dict, artifact: dict | None, exe
 
 
 def write_analysis_report(
-    package_dir: Path,
+    scenario_dir: Path,
     *,
     repository_root: Path,
     model: str,
@@ -226,12 +226,12 @@ def write_analysis_report(
     telemetry: dict | None = None,
 ) -> Path:
     """Save review-ready facts and an initial Markdown report for every attempt."""
-    package_dir = package_dir.resolve()
+    scenario_dir = scenario_dir.resolve()
     stamp = timestamp or datetime.now().astimezone().isoformat(timespec="seconds")
     safe_stamp = re.sub(r"[^A-Za-z0-9_+-]", "", stamp)[:60] or "undated"
-    data_path = package_dir / f"analysis-report-{safe_stamp}-{uuid4().hex[:8]}.json"
+    data_path = scenario_dir / f"analysis-report-{safe_stamp}-{uuid4().hex[:8]}.json"
     scenes, summary, errors = _scene_facts(
-        _read_json(package_dir / "backstory.json"), _read_json(package_dir / "ground-truth.json"),
+        _read_json(scenario_dir / "backstory.json"), _read_json(scenario_dir / "ground-truth.json"),
         artifact, execution_status,
     )
     transport = {key: (telemetry or {})[key] for key in (
@@ -243,15 +243,15 @@ def write_analysis_report(
     evidence = {
         "artifact_path": str(output_path.resolve()) if output_path else None,
         "run_log_path": str(run_log_path.resolve()) if run_log_path else None,
-        "package_sources": {name: str(package_dir / name) for name in ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")},
+        "scenario_sources": {name: str(scenario_dir / name) for name in ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")},
         "run_identity": {key: artifact[key] for key in (
             "run_id", "trace_id", "dataset_version", "system_variant", "objective_id", "objective_ids", "ground_truth_status",
         ) if artifact and key in artifact},
-        "diagnostics": collect_diagnostic_evidence(package_dir, repository_root, run_log_path),
+        "diagnostics": collect_diagnostic_evidence(scenario_dir, repository_root, run_log_path),
         "artifact_problems": errors,
     }
     document = AnalysisDocument.model_validate(_redact({
-        "package_dir": str(package_dir), "created_at": stamp, "model": model,
+        "scenario_dir": str(scenario_dir), "created_at": stamp, "model": model,
         "execution_status": execution_status, "category": category, "problems": problems,
         "summary": summary, "scenes": scenes, "telemetry": transport, "evidence": evidence, "review": None,
     }))
@@ -276,7 +276,7 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
     review = document.review
     counts = document.summary
     report = ["# Scenario analysis", "", "## Outcome", "",
-        f"Package: `{_text(Path(document.package_dir).name)}`. Model API: `{_text(document.model)}`.", "",
+        f"Scenario: `{_text(Path(document.scenario_dir).name)}`. Model API: `{_text(document.model)}`.", "",
         f"Report generated at: `{_text(document.created_at)}`.", "",
         f"Execution: **{_label(document.execution_status)}**. Recorded results: "
         f"**{counts['scenes_passed']} passed, {counts['scenes_failed']} failed, {counts['scenes_ungraded']} ungraded**. "

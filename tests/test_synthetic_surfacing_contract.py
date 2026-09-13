@@ -1,4 +1,4 @@
-"""Package admission and hard-grading tests for proactive memory surfacing."""
+"""Scenario admission and hard-grading tests for proactive memory surfacing."""
 
 import hashlib
 
@@ -12,8 +12,8 @@ from evals.synthetic_journals.surfacing_contract import (
     SurfacingContractError,
     compile_surfacing_scenes,
 )
-from evals.synthetic_journals.validate_package import PackageValidationError, validate_package
-from tests.surfacing_fixtures import json_bytes, make_surfacing_package, surfacing_documents
+from evals.synthetic_journals.validate_scenario import ScenarioValidationError, validate_scenario
+from tests.surfacing_fixtures import json_bytes, make_surfacing_scenario, surfacing_documents
 
 
 def _validate(backstory, truth):
@@ -21,7 +21,7 @@ def _validate(backstory, truth):
     truth["backstory_sha256"] = hashlib.sha256(payload).hexdigest()
     b = SyntheticBackstory.model_validate_json(payload)
     g = ProposedGroundTruth.model_validate_json(json_bytes(truth))
-    validate_package(b, g, backstory_bytes=payload, run_configurations={})
+    validate_scenario(b, g, backstory_bytes=payload, run_configurations={})
     return compile_surfacing_scenes(b, g)
 
 
@@ -35,7 +35,7 @@ def test_compiler_uses_active_bank_without_answer_key_or_backstory():
     assert {m.memory_id for m in scenes[0].input.memories} == {"prop-intention"}
     assert "Generator-only" not in scenes[0].input.model_dump_json()
     assert "semantic_criteria" not in scenes[0].input.model_dump_json()
-    normal = compile_surfacing_scenes(*make_surfacing_package())
+    normal = compile_surfacing_scenes(*make_surfacing_scenario())
     assert len(normal[0].input.memories) == 2
     assert "prop-noise" not in normal[0].expectation.allowed_source_ids
 
@@ -71,19 +71,19 @@ def test_rejects_invalid_surfacing_design(mutation, match):
         b["offline_inputs"][0]["kind"] = "other"
     elif mutation == "continued_scene":
         b["scenes"][0]["fresh_session"] = False
-    with pytest.raises((PackageValidationError, ValidationError), match=match):
+    with pytest.raises((ScenarioValidationError, ValidationError), match=match):
         _validate(b, g)
 
 
 def test_compiler_rejects_cross_account_model_copy_bypass():
-    b, g = make_surfacing_package()
+    b, g = make_surfacing_scenario()
     forged = b.props[0].model_copy(update={"evaluation_account_id": "someone-else"})
-    with pytest.raises(SurfacingContractError, match="package graph"):
+    with pytest.raises(SurfacingContractError, match="scenario graph"):
         compile_surfacing_scenes(b.model_copy(update={"props": (forged, *b.props[1:])}), g)
 
 
 def test_grading_retains_semantic_review_after_hard_pass():
-    scene = compile_surfacing_scenes(*make_surfacing_package())[1]
+    scene = compile_surfacing_scenes(*make_surfacing_scenario())[1]
     response = {
         "decision": "surface_now", "source_memory_ids": ["prop-intention"],
         "suggestion": "Invented advice that needs independent review.",
@@ -101,7 +101,7 @@ def test_grading_retains_semantic_review_after_hard_pass():
     (["unknown"], "invalid_response"),
 ])
 def test_grading_rejects_bad_provenance(sources, match):
-    scene = compile_surfacing_scenes(*make_surfacing_package())[1]
+    scene = compile_surfacing_scenes(*make_surfacing_scenario())[1]
     grade = grade_surfacing_expectation(scene.input, {
         "decision": "surface_now", "source_memory_ids": sources,
         "suggestion": "Collect the novel.", "rationale": "Collection is open.",
@@ -111,7 +111,7 @@ def test_grading_rejects_bad_provenance(sources, match):
 
 
 def test_condition_meaning_is_not_exact_string_graded():
-    scene = compile_surfacing_scenes(*make_surfacing_package())[0]
+    scene = compile_surfacing_scenes(*make_surfacing_scenario())[0]
     expected = scene.expectation.model_dump()
     expected["reconsideration"] = {"kind": "condition", "condition": "The library opens collection."}
     expected = type(scene.expectation).model_validate(expected)

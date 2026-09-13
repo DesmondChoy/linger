@@ -257,7 +257,7 @@ def grade_curation_expectation(
     input_memory_ids: tuple[str, ...],
     response: SculptorResponse | dict[str, object],
 ) -> GradeResult:
-    """Grade one package-backed expectation with the adopted hard gates."""
+    """Grade one scenario-backed expectation with the adopted hard gates."""
     semantic_review = _semantic_review(expectation.expected)
     try:
         parsed = RESPONSE_ADAPTER.validate_python(response)

@@ -50,7 +50,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 CONTINUITY_OBJECTIVE_ID = "session_scoped_conversation_continuity"
 MESSAGES_PER_EXCHANGE = 2
@@ -674,7 +674,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -701,7 +701,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         OSError,
         GroundTruthAdoptionError,
-        PackageValidationError,
+        ScenarioValidationError,
         RuntimeError,
         ValueError,
     ) as error:

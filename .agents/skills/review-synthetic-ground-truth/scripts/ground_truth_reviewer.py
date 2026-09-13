@@ -42,9 +42,9 @@ from evals.synthetic_journals.models import (  # noqa: E402
 from evals.synthetic_journals.replay_support import (  # noqa: E402
     replay_support_for,
 )
-from evals.synthetic_journals.validate_package import (  # noqa: E402
-    PackageValidationError,
-    validate_package_files,
+from evals.synthetic_journals.validate_scenario import (  # noqa: E402
+    ScenarioValidationError,
+    validate_scenario_files,
 )
 
 
@@ -139,7 +139,7 @@ def build_review_payload(
     ground_truth_bytes: bytes,
     report_path: Path | None,
 ) -> dict[str, Any]:
-    """Join package entities into a legible, deterministic review projection."""
+    """Join scenario entities into a legible, deterministic review projection."""
 
     selected_objectives = frozenset(backstory.objective_ids)
     replay = replay_support_for(selected_objectives)
@@ -285,7 +285,7 @@ def build_review_payload(
     if report_path is not None:
         report_text = report_path.read_text(encoding="utf-8")
     return {
-        "package": {
+        "scenario": {
             "backstoryPath": str(backstory_path),
             "groundTruthPath": str(ground_truth_path),
             "backstorySha256": _sha256(backstory_bytes),
@@ -454,7 +454,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
             result = _handle_decision(state, payload)
         except (
             ReviewError,
-            PackageValidationError,
+            ScenarioValidationError,
             json.JSONDecodeError,
             OSError,
         ) as error:
@@ -483,12 +483,12 @@ def _validate_id_list(
     return tuple(value)
 
 
-def _assert_package_unchanged(state: ReviewState) -> ProposedGroundTruth:
+def _assert_scenario_unchanged(state: ReviewState) -> ProposedGroundTruth:
     if state.backstory_path.read_bytes() != state.backstory_bytes:
         raise ReviewError("backstory.json changed while review was open.")
     if state.ground_truth_path.read_bytes() != state.ground_truth_bytes:
         raise ReviewError("ground-truth.json changed while review was open.")
-    _, ground_truth = validate_package_files(
+    _, ground_truth = validate_scenario_files(
         state.backstory_path,
         state.ground_truth_path,
     )
@@ -552,7 +552,7 @@ def _handle_decision(state: ReviewState, payload: Any) -> dict[str, Any]:
             for proposal_id in state.proposal_ids
             if proposal_id not in set(reviewed)
         ],
-        "objective_ids": state.payload["package"]["objectiveIds"],
+        "objective_ids": state.payload["scenario"]["objectiveIds"],
     }
     if action == "make_changes":
         return common
@@ -563,7 +563,7 @@ def _handle_decision(state: ReviewState, payload: Any) -> dict[str, Any]:
     ):
         raise ReviewError("Review every Ground truth row before confirming.")
 
-    ground_truth = _assert_package_unchanged(state)
+    ground_truth = _assert_scenario_unchanged(state)
     adoption = build_ground_truth_adoption(
         ground_truth,
         state.ground_truth_bytes,
@@ -591,7 +591,7 @@ def create_review_state(args: argparse.Namespace) -> ReviewState:
     if backstory_path.parent != ground_truth_path.parent:
         raise ReviewError("Backstory and Ground truth must be sibling files.")
     if adoption_path.parent != backstory_path.parent:
-        raise ReviewError("Ground truth adoption must be written beside the package.")
+        raise ReviewError("Ground truth adoption must be written beside the scenario.")
     if adoption_path.exists():
         raise ReviewError(f"Adoption output already exists: {adoption_path}")
     reviewer_id = args.reviewer_id.strip()
@@ -603,7 +603,7 @@ def create_review_state(args: argparse.Namespace) -> ReviewState:
     if args.timeout < 1:
         raise ReviewError("Timeout must be at least one second.")
 
-    backstory, ground_truth = validate_package_files(
+    backstory, ground_truth = validate_scenario_files(
         backstory_path,
         ground_truth_path,
     )
@@ -649,7 +649,7 @@ def main() -> int:
     args = parse_args()
     try:
         state = create_review_state(args)
-    except (OSError, PackageValidationError, ReviewError) as error:
+    except (OSError, ScenarioValidationError, ReviewError) as error:
         print(f"Ground truth review error: {error}", file=sys.stderr)
         return 1
     try:

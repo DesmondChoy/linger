@@ -58,7 +58,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 OBJECTIVE_COMPONENTS = (
@@ -512,7 +512,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -539,7 +539,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         OSError,
         GroundTruthAdoptionError,
-        PackageValidationError,
+        ScenarioValidationError,
         RuntimeError,
         ValueError,
     ) as error:

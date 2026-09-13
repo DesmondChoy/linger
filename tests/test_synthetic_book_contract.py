@@ -15,7 +15,7 @@ from evals.synthetic_journals.book_contract import (
     compile_book_replay_plan,
 )
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
-from evals.synthetic_journals.validate_package import validate_package
+from evals.synthetic_journals.validate_scenario import validate_scenario
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = "pg11-v01b38ea4"
@@ -287,7 +287,7 @@ def _validated(objective_ids: tuple[str, ...]):
     backstory_bytes = json.dumps(backstory_doc, sort_keys=True).encode()
     backstory = SyntheticBackstory.model_validate_json(json.dumps(backstory_doc))
     ground_truth = ProposedGroundTruth.model_validate_json(json.dumps(ground_truth_doc))
-    validate_package(
+    validate_scenario(
         backstory, ground_truth, backstory_bytes=backstory_bytes, run_configurations={}
     )
     return compile_book_replay_plan(backstory, ground_truth)
@@ -364,7 +364,7 @@ def test_compiler_rejects_wrong_chapter_identity_for_equal_text() -> None:
     backstory = SyntheticBackstory.model_validate_json(json.dumps(backstory_doc))
     ground_truth = ProposedGroundTruth.model_validate_json(json.dumps(ground_truth_doc))
     with pytest.raises((BookContractError, ValueError), match="chapter|span|text"):
-        validate_package(
+        validate_scenario(
             backstory,
             ground_truth,
             backstory_bytes=backstory_bytes,

@@ -11,20 +11,20 @@ from pydantic import ValidationError
 from evals.synthetic_journals.scenario_analysis import render_analysis_report, write_analysis_report
 
 
-def _package(root: Path) -> Path:
-    package = root / "example"
-    package.mkdir()
-    (package / "backstory.json").write_text(json.dumps({"scenes": [
+def _scenario(root: Path) -> Path:
+    scenario = root / "example"
+    scenario.mkdir()
+    (scenario / "backstory.json").write_text(json.dumps({"scenes": [
         {"scene_id": "second", "order": 2}, {"scene_id": "first", "order": 1},
     ]}))
-    (package / "ground-truth.json").write_text(json.dumps({"proposals": [
+    (scenario / "ground-truth.json").write_text(json.dumps({"proposals": [
         {"scene_id": scene_id, "proposal_id": f"p-{scene_id}", "objective_id": "grounded_book_reflection",
          "expected_outcomes": [f"Quote the passage for {scene_id}."],
          "prohibited_outcomes": ["Invent a passage."],
          "book_expectation": {"kind": "grounded_book_reflection", "retrieval": "required"}}
         for scene_id in ("first", "second")
     ]}))
-    return package
+    return scenario
 
 
 def _scene(scene_id: str, *, failed: bool = False) -> dict:
@@ -35,9 +35,9 @@ def _scene(scene_id: str, *, failed: bool = False) -> dict:
 
 
 def _write(root: Path, *, artifact: dict | None = None, execution_status: str = "completed", **kwargs) -> Path:
-    package = _package(root)
+    scenario = _scenario(root)
     return write_analysis_report(
-        package, repository_root=root, model="openai:test", category="none", problems=[],
+        scenario, repository_root=root, model="openai:test", category="none", problems=[],
         artifact=artifact, execution_status=execution_status, **kwargs,
     )
 
@@ -76,7 +76,7 @@ def _save_review(path: Path, review: dict | None = None) -> dict:
     return data
 
 
-def test_all_pass_attempt_saves_pending_report_for_every_scene_in_package_order(tmp_path):
+def test_all_pass_attempt_saves_pending_report_for_every_scene_in_scenario_order(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("second"), _scene("first")]})
     data = json.loads(path.with_suffix(".json").read_text())
     assert data["review"] is None
@@ -130,7 +130,7 @@ def test_mixed_results_preserve_failed_grades_when_review_explains_unexercised_b
         "assessment": "not_exercised", "interpretation": "An upstream book clarification prevented quotation retrieval.",
         "grade_reliability": "The failed grade correctly records absent quotation; it does not establish a quotation-model defect.",
     })
-    review["next_steps"] = [{"target": "scenario", "action": "Clarify the work identity in the input.", "verification": "Validate the revised package and obtain fresh adoption."}]
+    review["next_steps"] = [{"target": "scenario", "action": "Clarify the work identity in the input.", "verification": "Validate the revised scenario and obtain fresh adoption."}]
     _save_review(data_path, review)
     render_analysis_report(data_path)
     report = path.read_text()
@@ -152,7 +152,7 @@ def test_review_requires_exact_scene_coverage(tmp_path, kind):
     elif kind == "duplicate":
         review["scenes"].append(review["scenes"][0])
     else:
-        review["scenes"][1]["scene_id"] = "not-in-package"
+        review["scenes"][1]["scene_id"] = "not-in-scenario"
     _save_review(data_path, review)
     pending = path.read_bytes()
     with pytest.raises(ValidationError, match="cover every recorded Scene exactly once"):
@@ -234,18 +234,18 @@ def test_execution_failure_remains_separate_from_passing_scene_results(tmp_path)
 
 
 def test_raw_evidence_stays_in_json_and_report_creation_is_unique(tmp_path):
-    package = _package(tmp_path)
-    log_path = package / "run.log"
+    scenario = _scenario(tmp_path)
+    log_path = scenario / "run.log"
     log_path.write_text("RAW_TRACEBACK_LINE\nOPENAI_API_KEY=sk-private1234567890abcdefghij\n")
-    authority_before = {p.name: p.read_bytes() for p in package.glob("*.json")}
+    authority_before = {p.name: p.read_bytes() for p in scenario.glob("*.json")}
     arguments = dict(
         repository_root=tmp_path, model="openai:test", category="provider", problems=["Provider failed."],
         artifact={"scenes": [_scene("first"), _scene("second")]}, run_log_path=log_path,
         telemetry={"flushed": True, "url": "https://logfire.example/run/1", "remote_visibility": "verified"},
         timestamp="2026-09-13T12:00:00+08:00", execution_status="completed",
     )
-    first = write_analysis_report(package, **arguments)
-    second = write_analysis_report(package, **arguments)
+    first = write_analysis_report(scenario, **arguments)
+    second = write_analysis_report(scenario, **arguments)
     assert first != second
     assert first.with_suffix(".json").exists()
     raw = first.with_suffix(".json").read_text()
@@ -259,7 +259,7 @@ def test_raw_evidence_stays_in_json_and_report_creation_is_unique(tmp_path):
     assert "Open this run in Logfire" in report
     assert "Remote trace visibility: unverified" in report
     for name, original in authority_before.items():
-        assert (package / name).read_bytes() == original
+        assert (scenario / name).read_bytes() == original
 
 
 def test_review_can_identify_a_possible_false_positive_without_changing_pass(tmp_path):
@@ -277,11 +277,11 @@ def test_review_can_identify_a_possible_false_positive_without_changing_pass(tmp
     assert "2 passed, 0 failed" in path.read_text()
 
 
-def test_partial_grade_and_malformed_package_fields_still_produce_reviewable_facts(tmp_path):
-    package = _package(tmp_path)
-    (package / "ground-truth.json").write_text('{"proposals":null}')
+def test_partial_grade_and_malformed_scenario_fields_still_produce_reviewable_facts(tmp_path):
+    scenario = _scenario(tmp_path)
+    (scenario / "ground-truth.json").write_text('{"proposals":null}')
     path = write_analysis_report(
-        package, repository_root=tmp_path, model="openai:test", category="execution", problems=[],
+        scenario, repository_root=tmp_path, model="openai:test", category="execution", problems=[],
         artifact={"scenes": [{"scene_id": "first", "grades": None}]}, execution_status="failed",
     )
     data = json.loads(path.with_suffix(".json").read_text())
@@ -301,14 +301,14 @@ def test_structured_secrets_are_redacted_without_losing_authorization_basis(tmp_
 
 
 def test_book_scene_scope_remains_available_for_ground_truth_validity_review(tmp_path):
-    package = _package(tmp_path)
-    truth_path = package / "ground-truth.json"
+    scenario = _scenario(tmp_path)
+    truth_path = scenario / "ground-truth.json"
     truth = json.loads(truth_path.read_text())
     facts = {"scene_id": "first", "scope": {"kind": "librarian_inferred", "supporting_evidence_ids": ["identity", "quote"]}}
     truth["book_scene_facts"] = [facts]
     truth_path.write_text(json.dumps(truth))
     path = write_analysis_report(
-        package, repository_root=tmp_path, model="openai:test", category="none", problems=[],
+        scenario, repository_root=tmp_path, model="openai:test", category="none", problems=[],
         artifact={"scenes": [_scene("first"), _scene("second")]}, execution_status="completed",
     )
     data = json.loads(path.with_suffix(".json").read_text())

@@ -110,9 +110,9 @@ def _git(root: Path, *args: str) -> str:
     ).stdout.strip()
 
 
-def _package(root: Path) -> Path:
-    package = root / "synthetic-journal-evaluation" / "packages" / "example"
-    package.mkdir(parents=True)
+def _scenario(root: Path) -> Path:
+    scenario = root / "synthetic-journal-evaluation" / "scenarios" / "example"
+    scenario.mkdir(parents=True)
     backstory = json.dumps({"objective_ids": ["grounded_book_reflection"]})
     ground_truth = json.dumps({"proposals": [{
         "proposal_id": "p1", "scene_id": "s1", "objective_id": "grounded_book_reflection",
@@ -120,25 +120,25 @@ def _package(root: Path) -> Path:
         "prohibited_outcomes": ["Reveal the later chapter."],
         "book_expectation": {"kind": "grounded_book_reflection", "required_evidence_ids": ["e1"]},
     }]})
-    (package / "backstory.json").write_text(backstory)
-    (package / "ground-truth.json").write_text(ground_truth)
-    (package / "ground-truth-adoption.json").write_text(json.dumps({
+    (scenario / "backstory.json").write_text(backstory)
+    (scenario / "ground-truth.json").write_text(ground_truth)
+    (scenario / "ground-truth-adoption.json").write_text(json.dumps({
         "backstory_sha256": hashlib.sha256(backstory.encode()).hexdigest(),
         "proposed_ground_truth_sha256": hashlib.sha256(ground_truth.encode()).hexdigest(),
         "reviewed_at": "2026-09-01T12:00:00+08:00",
         "reviewer": {"reviewer_id": "private-reviewer-name"},
     }))
-    return package
+    return scenario
 
 
 def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
     _git(tmp_path, "init", "-q")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
-    package = _package(tmp_path)
+    scenario = _scenario(tmp_path)
     _git(tmp_path, "add", "synthetic-journal-evaluation")
-    _git(tmp_path, "commit", "-qm", "Adopt the example package")
-    package_revision = _git(tmp_path, "rev-parse", "HEAD")
+    _git(tmp_path, "commit", "-qm", "Adopt the example scenario")
+    scenario_revision = _git(tmp_path, "rev-parse", "HEAD")
     runtime = tmp_path / "src" / "linger" / "agents" / "muse.py"
     runtime.parent.mkdir(parents=True)
     runtime.write_text("changed_contract = True\n")
@@ -146,10 +146,10 @@ def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
     _git(tmp_path, "commit", "-qm", "Change grounded response contract")
     current_revision = _git(tmp_path, "rev-parse", "HEAD")
     runtime.write_text("changed_contract = False\n")
-    evidence = collect_diagnostic_evidence(package, tmp_path)
-    assert evidence["git"]["package_commit"] == package_revision
+    evidence = collect_diagnostic_evidence(scenario, tmp_path)
+    assert evidence["git"]["scenario_commit"] == scenario_revision
     assert evidence["git"]["revision"] == current_revision
-    assert evidence["git"]["current_package_matches_commit"] is True
+    assert evidence["git"]["current_scenario_matches_commit"] is True
     assert "Change grounded response contract" in evidence["git"]["recent_commits"]
     assert "M src/linger/agents/muse.py" in evidence["git"]["scoped_working_tree_changes"]
     assert evidence["adoption_hash_matches"]["ground-truth.json"]["matches"] is True
@@ -157,36 +157,36 @@ def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
     assert "private-reviewer-name" not in json.dumps(evidence)
 
 
-def test_dirty_package_is_not_described_as_a_committed_generation(tmp_path):
+def test_dirty_scenario_is_not_described_as_a_committed_generation(tmp_path):
     _git(tmp_path, "init", "-q")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
-    package = _package(tmp_path)
+    scenario = _scenario(tmp_path)
     _git(tmp_path, "add", "synthetic-journal-evaluation")
-    _git(tmp_path, "commit", "-qm", "Package baseline")
-    with (package / "ground-truth.json").open("a") as stream:
+    _git(tmp_path, "commit", "-qm", "Scenario baseline")
+    with (scenario / "ground-truth.json").open("a") as stream:
         stream.write("\n")
-    evidence = collect_diagnostic_evidence(package, tmp_path)
+    evidence = collect_diagnostic_evidence(scenario, tmp_path)
     assert evidence["adoption_hash_matches"]["ground-truth.json"]["matches"] is False
-    assert evidence["git"]["current_package_matches_commit"] is False
+    assert evidence["git"]["current_scenario_matches_commit"] is False
 
 
-def test_untracked_package_does_not_invent_generation_revision(tmp_path):
+def test_untracked_scenario_does_not_invent_generation_revision(tmp_path):
     _git(tmp_path, "init", "-q")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
     (tmp_path / "README.md").write_text("Example\n")
     _git(tmp_path, "add", "README.md")
     _git(tmp_path, "commit", "-qm", "Repository baseline")
-    package = _package(tmp_path)
-    evidence = collect_diagnostic_evidence(package, tmp_path)
-    assert evidence["git"]["package_commit"] is None
-    assert "no package commit" in evidence["git"]["history_window"]
+    scenario = _scenario(tmp_path)
+    evidence = collect_diagnostic_evidence(scenario, tmp_path)
+    assert evidence["git"]["scenario_commit"] is None
+    assert "no scenario commit" in evidence["git"]["history_window"]
 
 
 def test_log_evidence_is_bounded_redacted_and_works_without_git(tmp_path):
-    package = _package(tmp_path)
-    run_log = package / "run.log"
+    scenario = _scenario(tmp_path)
+    run_log = scenario / "run.log"
     run_log.write_text(
         "EARLY_NOISE\n" * 2000
         + "Verbose traceback data\n" * 20
@@ -194,7 +194,7 @@ def test_log_evidence_is_bounded_redacted_and_works_without_git(tmp_path):
         + "Authorization: Bearer privatebearer456\n"
         + "ProviderError: model was unavailable\n"
     )
-    evidence = collect_diagnostic_evidence(package, tmp_path, run_log)
+    evidence = collect_diagnostic_evidence(scenario, tmp_path, run_log)
     tail = evidence["run_log_tail"]
     assert "ProviderError: model was unavailable" in tail
     assert "[REDACTED]" in tail
