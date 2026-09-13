@@ -43,6 +43,7 @@ Do not use Git worktrees. Work in the main working directory and stay on the cur
 ## Commit and Push
 
 - Every authorised commit-and-push workflow must also run `bd dolt push` after Beads updates and before `git push`.
+- Run `bd dolt push` outside the sandbox with escalated permissions on the first attempt (`sandbox_permissions: "require_escalated"`). The sandbox restricts network access and can prevent resolution of the remote host.
 - Treat an explicit request to commit and push as authorisation to sync the configured Beads Dolt remote. The user does not need to request the Beads sync separately.
 - A current instruction not to commit or push still wins. If either Dolt sync or Git push fails, stop and report the exact command and error.
 
