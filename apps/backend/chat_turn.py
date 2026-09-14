@@ -148,7 +148,12 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
         if title_match is None:
             title_match = TITLE_PREFIX_PATTERN.search(before)
         if title_match is None:
-            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(after)
+            # Only the sentence holding the chapter can name its book. Searching
+            # further reads an unrelated later clause as a declared title, and an
+            # unresolvable declared title clears the reader's confirmed book.
+            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(
+                re.split(r"[.!?]", after, maxsplit=1)[0]
+            )
         if title_match is None:
             title_match = TITLE_LEAD_PATTERN.match(before)
     else:
@@ -299,7 +304,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     candidate = sessions.reading_candidate(request.session_id)
     selection = sessions.book_selection(request.session_id)
     if selection and librarian_service.version_for(selection.book_id) not in settings.allowed_book_version_ids:
-        sessions.clear_book_selection(request.session_id)
+        sessions.clear_book_selection(request.session_id, cause="out_of_scope")
         selection = None
         candidate = None
     if candidate and librarian_service.version_for(candidate.book_id) not in settings.allowed_book_version_ids:
@@ -318,7 +323,8 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         candidate and not in_progress and AFFIRMATION_PATTERN.search(request.message)
     )
     if candidate and candidate_confirmed:
-        selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title, part_id=candidate.part_id)
+        selection = sessions.BookSelection(book_id=candidate.book_id, book_title=candidate.book_title,
+            part_id=candidate.part_id, source="reader_stated")
         sessions.set_book_selection(request.session_id, selection)
 
     progress_message = completed_location if completed_location is not None else request.message
@@ -340,7 +346,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     )
     if explicit_title or identity is not None:
         if not isinstance(identity, ResolvedBook):
-            sessions.clear_book_selection(request.session_id)
+            sessions.clear_book_selection(request.session_id, cause="reader_named_other_book")
             clarification = identity if isinstance(identity, BookClarification) else BookClarification()
             return ContextResolution(
                 status="unknown",
@@ -352,7 +358,10 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             sessions.clear_reading_candidate(request.session_id)
             candidate = None
         selection = sessions.BookSelection(book_id=book.work_id, book_title=book.title,
-            part_id=selection.part_id if selection and selection.book_id == book.work_id else "main")
+            part_id=selection.part_id if selection and selection.book_id == book.work_id else "main",
+            # A title the reader declared is theirs; a fuzzy match on the whole
+            # message is the application's guess and must stay retractable.
+            source="reader_stated" if explicit_title else "inferred")
         sessions.set_book_selection(request.session_id, selection)
 
     if completed and selection and (
@@ -419,7 +428,7 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
         # whatever its lexical form ("6", "six", "chapter 6").
         chapter = answered_chapter
         selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title,
-            part_id=selection.part_id if selection else pending.part_id)
+            part_id=selection.part_id if selection else pending.part_id, source="reader_stated")
         sessions.set_book_selection(request.session_id, selection)
         reading = _chapter_reading(selection, chapter)
         # An answer the work cannot support leaves the question open, so the next
@@ -814,6 +823,7 @@ def _apply_initial_reading(
         raise ValueError("initial reading conflicts with the reader's chapter declaration")
     sessions.set_book_selection(request.session_id, sessions.BookSelection(
         book_id=registered.work_id, book_title=registered.title, part_id=initial_reading.part_id,
+        source="reader_stated",
     ))
     resolved = resolve_reading_context(request)
     if resolved.clarification_question or (

@@ -168,7 +168,7 @@ async def _grounding_evidence(
                 reader_message() or "", request.access_scope.allowed_book_version_ids
             )
             if isinstance(decision, BookClarification):
-                sessions.clear_book_selection(current_session)
+                sessions.clear_book_selection(current_session, cause="tool_uncertain")
                 return _clarification(
                     request.request_id,
                     "book_identity_unresolved",
@@ -182,7 +182,7 @@ async def _grounding_evidence(
             )
             scope = librarian.registered_scope(request.work_id, request.book_version_id)
             if scope is None or resolved_work_id != scope.work_id:
-                sessions.clear_book_selection(current_session)
+                sessions.clear_book_selection(current_session, cause="out_of_scope")
                 return _clarification(
                     request.request_id,
                     "book_identity_unresolved",

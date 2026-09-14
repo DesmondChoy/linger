@@ -117,3 +117,53 @@ it('renders per-agent seconds and the handoffs between agents', () => {
   expect(html).toContain('3.0s')
   expect(html).toContain('search rank select')
 })
+
+it('surfaces provenance finding codes on a candidate that was corrected and released', () => {
+  const turn = exampleTurn()
+  turn.inspection.release = {
+    ...turn.inspection.release!,
+    release_source: 'muse_candidate',
+    provenance_verdicts: ['revise', 'pass'],
+    finding_codes: ['unresolved_evidence'],
+    revision_count: 1,
+  }
+
+  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
+
+  expect(html).toContain('unresolved evidence')
+  expect(html).toContain('cited evidence the turn never actually retrieved')
+  expect(html).toContain('revise → pass')
+  expect(html).toContain('1 revision')
+  expect(html).toContain('corrected and released')
+})
+
+it('marks findings as blocking when the candidate was withheld', () => {
+  const turn = exampleTurn()
+  turn.inspection.release = {
+    ...turn.inspection.release!,
+    release_source: 'application_safe_decline',
+    provenance_verdicts: ['reject'],
+    finding_codes: ['unsupported_claim', 'spoiler'],
+    revision_count: 1,
+  }
+
+  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
+
+  expect(html).toContain('unsupported claim')
+  expect(html).toContain('spoiler')
+  expect(html).toContain('withheld')
+  expect(html).toContain('finding blocking')
+})
+
+it('says plainly when a clean release raised no findings', () => {
+  const turn = exampleTurn()
+  turn.inspection.release = {
+    ...turn.inspection.release!,
+    release_source: 'muse_candidate', provenance_verdicts: ['pass'],
+    finding_codes: [], revision_count: 0,
+  }
+
+  const html = renderToStaticMarkup(createElement(Inspector, { timeline: [turn] }))
+
+  expect(html).toContain('No findings were raised')
+})

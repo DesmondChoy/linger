@@ -8,6 +8,7 @@ database means changing this module and nothing else.
 """
 
 from dataclasses import dataclass
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_ai.messages import (
@@ -32,6 +33,9 @@ class BookSelection(BaseModel):
     book_id: str
     book_title: str | None = None
     part_id: str = "main"
+    # How this selection was established. A book the reader named or confirmed
+    # outranks one the application inferred, and only the reader can retract it.
+    source: Literal["reader_stated", "inferred"] = "inferred"
 
 
 class ReadingCandidate(BookSelection):
@@ -175,10 +179,36 @@ def set_book_selection(session_id: str, selection: BookSelection) -> None:
     _book_selections[session_id] = selection
 
 
-def clear_book_selection(session_id: str) -> None:
+ClearCause = Literal["out_of_scope", "reader_named_other_book", "tool_uncertain"]
+
+
+def clear_book_selection(session_id: str, *, cause: ClearCause) -> bool:
+    """Discard the active book, and report whether anything was discarded.
+
+    Who is unsure decides what survives. A reader who names a different book has
+    moved on even when that book cannot be resolved, and keeping the old one
+    would apply their new chapter to the wrong text, so the selection goes. A
+    book that has left the permitted scope is a policy matter and also goes.
+
+    A retrieval or routing tool that cannot decide is the application being
+    unsure, not the reader changing books. Discarding a reader-stated selection
+    on that basis silently ends their reading context for the rest of the
+    session, so it survives; a selection the application merely inferred does
+    not. Tool uncertainty also leaves any pending clarification alone, since the
+    reader may be partway through answering it.
+    """
+    selection = _book_selections.get(session_id)
+    if (
+        cause == "tool_uncertain"
+        and selection is not None
+        and selection.source == "reader_stated"
+    ):
+        return False
     _book_selections.pop(session_id, None)
     _reading_candidates.pop(session_id, None)
-    _pending_clarifications.pop(session_id, None)
+    if cause != "tool_uncertain":
+        _pending_clarifications.pop(session_id, None)
+    return True
 
 
 def reading_candidate(session_id: str) -> ReadingCandidate | None:
