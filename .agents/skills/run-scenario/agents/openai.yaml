@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Scenario"
+  short_description: "Run a saved evaluation and analyze every Scene"
+  default_prompt: "Use $run-scenario to choose a saved scenario, confirm its model, and run it with a Logfire link and an analysis of every Scene, including the reliability of passing results."

@@ -9,27 +9,15 @@ connections.
 
 import json
 
-from pydantic_ai import ModelRetry, RunContext, Tool
+from pydantic_ai import Agent, ModelRetry, RunContext, Tool
+from pydantic_ai.models import Model
 
-from src.linger.agents.build import build_agent
+from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import MuseCandidate
-from src.linger.agents.muse.prompt import INSTRUCTIONS
+from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import turn_evidence
-
-
-muse_chat_agent = build_agent(
-    INSTRUCTIONS,
-    name="Muse",
-    output_type=MuseCandidate,
-    tools=[
-        Tool(librarian_route),
-        Tool(librarian_search),
-        Tool(serendipity_explore, sequential=True),
-    ],
-    retries={"tools": 1, "output": 3},
-)
 
 
 def _available_evidence() -> dict[str, EvidenceRecord]:
@@ -37,7 +25,6 @@ def _available_evidence() -> dict[str, EvidenceRecord]:
     return dict(turn_evidence())
 
 
-@muse_chat_agent.output_validator
 def validate_muse_output(
     _ctx: RunContext[None], output: MuseCandidate
 ) -> MuseCandidate:
@@ -82,3 +69,24 @@ def validate_muse_output(
                 "canonical_book_evidence": record.model_dump(mode="json"),
             }, ensure_ascii=False))
     return output
+
+
+def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
+    """Build an injectable Muse; typed orchestration selects its reflection skill."""
+    agent = Agent[None, MuseCandidate](
+        model if model is not None else build_model(),
+        instructions=SHARED_INSTRUCTIONS,
+        name="Muse",
+        output_type=MuseCandidate,
+        tools=[
+            Tool(librarian_route),
+            Tool(librarian_search),
+            Tool(serendipity_explore, sequential=True),
+        ],
+        retries={"tools": 1, "output": 3},
+    )
+    agent.output_validator(validate_muse_output)
+    return agent
+
+
+muse_chat_agent = build_muse_agent()

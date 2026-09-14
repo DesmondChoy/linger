@@ -52,6 +52,7 @@ from src.linger.services.memory import (
 from .book_contract import BookReplayPlan, ValidatedBookScene, compile_book_replay_plan
 from .book_evidence import ResolvedCorpusSpan
 from .book_semantics import SpoilerSemanticResult, review_spoiler_semantics
+from .evaluation_link import emit_evaluation_link
 from .adoption import (
     GroundTruthAdoptionError,
     validate_ground_truth_adoption_files,
@@ -76,7 +77,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder, ToolExchange
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 GROUNDED_OBJECTIVE_ID = "grounded_book_reflection"
 SPOILER_OBJECTIVE_ID = "spoiler_boundary_clarification"
@@ -378,6 +379,7 @@ async def replay_book_scenes(
                 "ground_truth_evaluation": evaluation_name,
             },
         )
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic book cases failed: {failed_cases}")
@@ -886,7 +888,7 @@ def _grade_proposal(
 
     if proposal.objective_id == GROUNDED_OBJECTIVE_ID:
         expected = proposal.book_expectation
-        if expected is None:  # pragma: no cover - package validator invariant
+        if expected is None:  # pragma: no cover - scenario validator invariant
             raise RuntimeError("grounded proposal lacks typed expectation")
         actual_evidence = tuple(
             item for call in observation.grounding_calls for item in call.evidence
@@ -942,7 +944,7 @@ def _grade_proposal(
                 failures.append("non_factual_reflection_used_book_evidence")
     elif proposal.objective_id == SPOILER_OBJECTIVE_ID:
         expected = proposal.book_expectation
-        if expected is None:  # pragma: no cover - package validator invariant
+        if expected is None:  # pragma: no cover - scenario validator invariant
             raise RuntimeError("spoiler proposal lacks typed expectation")
         scope = scene.facts.scope
         if not set(scope.authorised_prop_ids) <= {
@@ -1058,7 +1060,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -1081,11 +1083,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         GroundTruthAdoptionError,
-        PackageValidationError,
+        ScenarioValidationError,
         RuntimeError,
         ValueError,
     ) as error:

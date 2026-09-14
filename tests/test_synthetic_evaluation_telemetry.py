@@ -24,9 +24,7 @@ SYNTHETIC_RESPONSE = "synthetic response returned by Muse"
 
 
 def test_synthetic_configuration_is_named_and_content_bearing() -> None:
-    agents = tuple(SimpleNamespace(name=name) for name in EVALUATION_AGENT_NAMES) + (
-        SimpleNamespace(name="Provenance"),
-    )
+    agents = tuple(SimpleNamespace(name=name) for name in EVALUATION_AGENT_NAMES)
     with (
         patch("apps.backend.telemetry.get_settings") as get_settings,
         patch.object(logfire, "configure") as configure,
@@ -64,6 +62,12 @@ def test_synthetic_configuration_fails_without_all_five_agents() -> None:
         configure_synthetic_evaluation_telemetry(
             (SimpleNamespace(name="Muse"), SimpleNamespace(name="Provenance"))
         )
+
+
+def test_synthetic_configuration_rejects_duplicate_role_objects() -> None:
+    agents = tuple(SimpleNamespace(name=name) for name in EVALUATION_AGENT_NAMES)
+    with pytest.raises(ValueError, match="exactly once"):
+        configure_synthetic_evaluation_telemetry((*agents, agents[0]))
 
 
 def test_native_pydantic_ai_spans_include_synthetic_messages() -> None:

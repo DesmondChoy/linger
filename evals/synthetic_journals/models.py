@@ -190,7 +190,7 @@ class SceneSourceSetup(StrictModel):
 
 
 class SyntheticBackstory(StrictModel):
-    """Generated package rooted in one Backstory, person, and account."""
+    """Generated Backstory and Scene inputs for one Scenario, person, and account."""
 
     objective_ids: tuple[Identifier, ...] = Field(min_length=1)
     run_configuration_ids: tuple[Identifier, ...] = ()
@@ -298,7 +298,7 @@ class SyntheticBackstory(StrictModel):
                 != self.backstory.evaluation_account_id
             ):
                 raise ValueError(
-                    f"Prop {prop.prop_id} is outside the package Backstory, "
+                    f"Prop {prop.prop_id} is outside the scenario Backstory, "
                     "person, or evaluation account"
                 )
             lifecycle_scenes = {item.scene_id for item in prop.lifecycle}

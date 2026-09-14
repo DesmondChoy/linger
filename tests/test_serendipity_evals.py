@@ -38,6 +38,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionProposal,
 )
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 
 
 def _proposal(case) -> ConnectionProposal:
@@ -220,6 +221,11 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
         expected = _proposal(case)
 
         def respond(messages, info: AgentInfo) -> ModelResponse:
+            self.assertEqual(CONNECTION_DISCOVERY.effective_instructions, info.instructions)
+            self.assertEqual(
+                {"search_librarian", "web_search", "get_page"},
+                {tool.name for tool in info.function_tools},
+            )
             returns = [
                 part
                 for message in messages

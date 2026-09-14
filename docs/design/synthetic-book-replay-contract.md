@@ -31,7 +31,7 @@ be authored.
 
 ## Trusted boundary
 
-Package validation is the only raw-data boundary. It validates package graph
+Scenario validation is the only raw-data boundary. It validates scenario graph
 coverage, Scene scope, exact source spans, the corpus catalog, and Objective
 ownership. It then produces a closed replay plan used by both review and
 execution.
@@ -73,7 +73,7 @@ and proposal, and reported separately from the deterministic hard pass.
 
 Adoption remains one human decision per proposal and stays bound to the exact
 proposed Ground truth file hash. Changing shared Scene facts invalidates the
-entire adoption. Old book packages and their approvals are not translated or
+entire adoption. Old book scenarios and their approvals are not translated or
 reused.
 
 ## Rejected alternatives
@@ -83,5 +83,5 @@ discriminated union, but it would migrate unrelated capture, curation, and
 continuity paths. Keeping the existing book fields and reconciling them in a
 validator would leave duplicate authorities in the wire format. Letting one
 proposal own shared scope would make ownership depend on which Objectives a
-package selects. The Scene-owned book record avoids all three problems while
+scenario selects. The Scene-owned book record avoids all three problems while
 limiting the breaking change to book evaluation.

@@ -53,8 +53,9 @@ a tied-top decline, while eligibility filtering may either leave a valid winner
 or leave nothing safe to propose.
 
 The runtime supports authorised-memory discovery through `search_memories`,
-using the authenticated account's curated retrieval view. Memory evidence may
-inform Serendipity's internal comparison but cannot authorise a released claim.
+using the authenticated account's curated retrieval view. Selected memory
+evidence can support a personal-context claim only after Muse declares it,
+Provenance reviews it, and application code resolves the exact active record.
 The current component cases cover book and web sources. The memory scenario in
 `cases/future/` remains outside that baseline until executable memory cases and
 their grading are added.
@@ -117,7 +118,7 @@ an objective pass.
 ## Cross-source production replay
 
 [`evals.synthetic_journals.connection_replay`](../synthetic_journals/README.md#connection-and-restraint-replay)
-supports independently adopted packages for `cross_source_tentative_connection`,
+supports independently adopted scenarios for `cross_source_tentative_connection`,
 `weak_evidence_safe_decline`, or both. The typed path runs production chat with
 isolated memory storage, registered corpus retrieval, and live public retrieval
 bounded to the supplied URLs. Adopted public snapshots define the exact evidence
@@ -129,7 +130,7 @@ The release gate checks selected memory and public evidence against the exact
 current-run records reviewed by Provenance. Unknown or changed evidence fails
 closed. Structural stage results remain separate from human judgments about
 usefulness, tentativeness, honest restraint, and support for public claims.
-Legacy weak-evidence-only packages delegate to the reflection runner and retain
+Legacy weak-evidence-only scenarios delegate to the reflection runner and retain
 its narrower hard checks. A component result never substitutes for a released
 production response.
 
@@ -145,7 +146,7 @@ uv run python -m evals.serendipity.objective_replay \
 
 The positional `case` contains a `CrossSourceReplayCase`, including ordered
 messages, an expected decision, and an expected release source. `--output` is
-required. This command has no synthetic-package or `--adoption` argument.
+required. This command has no synthetic-scenario or `--adoption` argument.
 Provider-backed chat uses `LINGER_MODEL` and its matching API key. Actual web
 tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 
@@ -169,7 +170,7 @@ These structural checks support production diagnosis. They do not independently
 grade semantic presentation, exact source selection, the correctness of a
 Provenance verdict, or every earlier turn. `hard_gate_pass` means that all listed
 checks passed; `semantic_review_required` remains true. It is not an
-independently adopted synthetic-package grade. Fixture-backed component grades
+independently adopted synthetic-scenario grade. Fixture-backed component grades
 remain separate.
 
 ## Running and reports
@@ -200,10 +201,22 @@ The component tools return fixture evidence, so they require no Exa credential
 or live retrieval. The Serendipity agent uses the configured `LINGER_MODEL` and
 matching provider API key.
 
+The optional semantic reviewer loads `evaluation.serendipity_review` from the
+[`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
+
 The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,
 usage, latency, and per-case failures. Content-bearing evaluation data must use
 synthetic or public fixtures only.
+
+The runner selects the production `connection-discovery` skill for every case.
+It reuses one Serendipity Agent across the suite while creating each case's
+dependencies and permitted Exa capability separately. The report's `skill_id`
+and Pydantic Evals case metadata identify `serendipity.connection-discovery`.
+The prompt fingerprint covers shared and selected instructions, input and output
+contracts, permitted tools and capabilities, validation, and retry limits.
+Model injection preserves this selected configuration and its fixed output
+schema. See the [runtime skills architecture](../../docs/agent-skills.md).
 
 When Logfire is configured, the runner also submits the same cases through
 Pydantic Evals. Logfire is the interactive comparison surface; the checked or

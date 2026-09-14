@@ -28,6 +28,12 @@ justifies them.
 - Make production architectural decisions for the long term. Disposable experiments and prototypes may use temporary implementations to resolve uncertainty. Before promoting a prototype to production, bring it up to the production requirements; discard experiments that no longer serve a purpose.
 - For substantial, unfamiliar design decisions, study how established products solve the problem and adopt proven patterns where they fit. For routine changes with a clear local precedent, use the existing architecture without a separate prior-art research step.
 
+The preferred architecture for every Linger agent is one reusable PydanticAI
+`Agent` per logical role, with explicit application-selected skills and typed
+task contracts. Preserve each role's tool, context, validation, release, and
+storage authority boundaries. Follow the maintained
+[agent runtime skills architecture](docs/agent-skills.md).
+
 Do not use Git worktrees. Work in the main working directory and stay on the current branch unless the user explicitly asks for another branch.
 
 ## GitHub CLI
@@ -37,6 +43,7 @@ Do not use Git worktrees. Work in the main working directory and stay on the cur
 ## Commit and Push
 
 - Every authorised commit-and-push workflow must also run `bd dolt push` after Beads updates and before `git push`.
+- Run `bd dolt push` outside the sandbox with escalated permissions on the first attempt (`sandbox_permissions: "require_escalated"`). The sandbox restricts network access and can prevent resolution of the remote host.
 - Treat an explicit request to commit and push as authorisation to sync the configured Beads Dolt remote. The user does not need to request the Beads sync separately.
 - A current instruction not to commit or push still wins. If either Dolt sync or Git push fails, stop and report the exact command and error.
 

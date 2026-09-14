@@ -200,7 +200,7 @@ class EvidenceIdResolutionTests(unittest.TestCase):
             self.assertRegex(evidence_id, r"^pg11-v01b38ea4-ch\d\d-ln\d{4}-\d{4}$")
 
     def test_resolution_bridges_the_two_id_namespaces(self) -> None:
-        """The package's own ID could never match a released citation."""
+        """The scenario's own ID could never match a released citation."""
         evidence = self._evidence(QUOTE)
         self.assertNotIn(evidence.evidence_id, resolve_corpus_evidence_ids(evidence))
 
@@ -343,7 +343,7 @@ def _json_bytes(document: dict[str, object]) -> bytes:
     return json.dumps(document, ensure_ascii=False, sort_keys=True).encode("utf-8")
 
 
-def _package() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
+def _scenario() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
     content = _content_document()
     backstory_bytes = _json_bytes(content)
     return (
@@ -447,7 +447,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                 retryable=True,
             ),
         )
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         for outcome in outcomes:
             with self.subTest(kind=outcome.kind):
                 async def handler(request, service, account):
@@ -470,7 +470,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("missing_citation", run.scenes[0].gate_failures)
 
     async def test_routing_clarification_passes_a_clarification_expectation(self) -> None:
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         proposal = ground_truth.proposals[0].model_copy(update={
             "grounding": GroundingExpectation(
                 primary_behavior="bounded_clarification",
@@ -506,7 +506,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((), run.scenes[0].gate_failures)
 
     async def test_inferred_ceiling_is_read_from_the_routed_outcome(self) -> None:
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         for explicit_ceiling, routed_ceiling, expected_ceiling in (
             (None, 6, 6),
             (None, 9, 9),
@@ -549,7 +549,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
                 )
 
     async def test_replays_both_scenes_and_places_props(self) -> None:
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         seen_memory_counts: list[int] = []
 
         async def handler(request, service, account):
@@ -576,7 +576,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([1, 0], seen_memory_counts)
 
     async def test_props_are_visible_to_the_scene_that_declares_them(self) -> None:
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         prop_texts: list[tuple[str, ...]] = []
 
         async def handler(request, service, account):
@@ -597,7 +597,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_scenes_do_not_inherit_each_others_props(self) -> None:
         """A Scene is graded as a unit with only its own designated Props."""
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
         accounts: list[str] = []
 
         async def handler(request, service, account):
@@ -616,7 +616,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_gate_failures_are_recorded_without_raising(self) -> None:
         """A wrong outcome is a graded failure, not a runner crash."""
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
 
         async def handler(request, service, account):
             # Scene 2 retrieves when it should not, and cites unpermitted evidence.
@@ -639,7 +639,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
     async def test_an_agent_call_failure_is_identifiable_in_the_artifact(self) -> None:
         """The C4 replay declined from a failed Provenance call, but the gate
         codes alone could not say so — this is what D7 closes."""
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
 
         async def handler(request, service, account):
             return _response(
@@ -668,7 +668,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_a_semantic_rejection_is_not_an_infrastructure_failure(self) -> None:
         """A deterministic-validation decline is Linger's verdict, not a fault."""
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
 
         async def handler(request, service, account):
             return _response(
@@ -691,7 +691,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("validation", scene.turns[0].failure_type)
 
     async def test_a_clean_scene_records_no_failure_classification(self) -> None:
-        backstory, ground_truth = _package()
+        backstory, ground_truth = _scenario()
 
         async def handler(request, service, account):
             grounded_scene = "hoping to find" in request.message
@@ -717,7 +717,7 @@ class ReflectionReplayTests(unittest.IsolatedAsyncioTestCase):
             scene["objective_ids"] = ["reviewed_automatic_memory_capture"]  # type: ignore[index]
         backstory_bytes = _json_bytes(content)
         backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
-        _, ground_truth = _package()
+        _, ground_truth = _scenario()
 
         async def handler(request, service, account):  # pragma: no cover
             raise AssertionError("handler must not run")

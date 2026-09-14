@@ -110,7 +110,7 @@
       <div class="section-head"><span class="label">03 · lifecycle</span><div><h2>Synthetic data moves from design to evidence.</h2><p class="intro">The generated material is evaluation input, not an evaluation result. Ground truth becomes authoritative only after validation and independent adoption.</p></div></div>
       <div class="flow">
         <div><span class="label">1</span><strong>Select objectives</strong><p>Choose the smallest coherent set from the catalog.</p></div>
-        <div><span class="label">2</span><strong>Author packages</strong><p>Create Backstory, Props, Scenes, Lines, and proposed Ground truth.</p></div>
+        <div><span class="label">2</span><strong>Author scenarios</strong><p>Create Backstory, Props, Scenes, Lines, and proposed Ground truth.</p></div>
         <div><span class="label">3</span><strong>Validate</strong><p>Check schemas, references, hashes, spans, and composition rules.</p></div>
         <div><span class="label">4</span><strong>Adopt Ground truth</strong><p>An independent human approves, revises, or rejects proposed labels.</p></div>
         <div><span class="label">5</span><strong>Replay &amp; grade</strong><p>Run production paths and record gates, semantic review, traces, and reports.</p></div>
@@ -121,8 +121,8 @@
       <div class="section-head"><span class="label">04 · repository</span><div><h2>What exists today</h2><p class="intro">The current folders already represent these layers, although some component harnesses still enforce one case per behavior.</p></div></div>
       <div class="table-wrap"><table><thead><tr><th>Repository asset</th><th>Evaluation role</th><th>Scope</th></tr></thead><tbody>
         <tr><td><code>evaluation-objectives.yaml</code></td><td>Canonical catalog of ten Linger objectives, composition constraints, expected architecture, and suggested measures.</td><td>End-to-end design</td></tr>
-        <tr><td><code>synthetic-journal-evaluation/packages/</code></td><td>Objective-linked synthetic Backstories, Scenes, Props, Lines, and proposed/adopted Ground truth.</td><td>End-to-end datasets</td></tr>
-        <tr><td><code>evals/synthetic_journals/</code></td><td>Package models, deterministic validation, adoption, replay, trace capture, and objective-specific grading.</td><td>End-to-end infrastructure</td></tr>
+        <tr><td><code>synthetic-journal-evaluation/scenarios/</code></td><td>Objective-linked synthetic Backstories, Scenes, Props, Lines, and proposed/adopted Ground truth.</td><td>End-to-end datasets</td></tr>
+        <tr><td><code>evals/synthetic_journals/</code></td><td>Scenario models, deterministic validation, adoption, replay, trace capture, and objective-specific grading.</td><td>End-to-end infrastructure</td></tr>
         <tr><td><code>evals/muse/</code></td><td>Conversational instruction behaviors such as probing, grounding, reflection, and honest relay.</td><td>Component suite</td></tr>
         <tr><td><code>evals/serendipity/</code></td><td>Connection proposal and decline behaviors under controlled source and evidence boundaries.</td><td>Component suite</td></tr>
         <tr><td><code>evals/sculptor/</code></td><td>Post-capture curation behaviors with immutable originals and provenance constraints.</td><td>Component suite</td></tr>

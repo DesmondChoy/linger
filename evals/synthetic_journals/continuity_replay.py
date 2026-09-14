@@ -31,6 +31,7 @@ from .adoption import (
     GroundTruthAdoptionError,
     validate_ground_truth_adoption_files,
 )
+from .evaluation_link import emit_evaluation_link
 from .models import (
     GroundTruthAdoption,
     Line,
@@ -49,7 +50,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 CONTINUITY_OBJECTIVE_ID = "session_scoped_conversation_continuity"
 MESSAGES_PER_EXCHANGE = 2
@@ -364,6 +365,7 @@ async def replay_continuity_scenes(
                 "ground_truth_evaluation": evaluation_name,
             },
         )
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures:
             failed_cases = [failure.name for failure in report.failures]
             raise RuntimeError(f"synthetic continuity cases failed: {failed_cases}")
@@ -672,7 +674,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -696,11 +698,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         GroundTruthAdoptionError,
-        PackageValidationError,
+        ScenarioValidationError,
         RuntimeError,
         ValueError,
     ) as error:

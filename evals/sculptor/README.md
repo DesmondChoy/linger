@@ -5,6 +5,14 @@ curation role. The owner identifier in every case is `sculptor`; Muse,
 Provenance, and the Memory & Policy Service retain their separate capture,
 review, and write responsibilities.
 
+One reusable `sculptor_agent` runs two application-selected skills:
+[memory curation](../../src/linger/agents/sculptor/skills/memory-curation/SKILL.md)
+and [memory surfacing](../../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md).
+Each entry point selects its typed output schema and retains independent
+role-and-task tracing. A role model override applies to both tasks. Evaluation
+skill IDs and fingerprints distinguish their contracts and effective shared
+and task instructions, even though they share the Agent object.
+
 ## Case contract
 
 Each JSON file contains one bounded account-scoped memory set, one primary
@@ -25,7 +33,7 @@ uv run pytest tests/test_sculptor_evals.py
 
 ## Provider-backed bounded-curation replay
 
-The synthetic-journal runner converts each isolated Scene's active,
+The synthetic scenario runner converts each isolated Scene's active,
 same-account Props into `AccountScopedMemories` and calls production
 `propose_curation`:
 
@@ -48,7 +56,7 @@ model and every deployed prompt for lineage. `objective_execution` covers the
 configured model, Sculptor prompt, and active curation contracts for behavioral
 comparison. See
 [`evals/synthetic_journals/README.md`](../synthetic_journals/README.md) for the
-package topology, review command, and replay options.
+scenario topology, review command, and replay options.
 
 ## Offline memory-surfacing decisions
 

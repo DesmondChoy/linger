@@ -1,22 +1,89 @@
-# Synthetic journal evaluation
+# Synthetic scenario evaluation
 
-## Package contract
+## Run a saved scenario
 
-The package has two JSON files: `backstory.json` contains the generated
+Ask your coding agent to use
+[`run-scenario`](../../.agents/skills/run-scenario/SKILL.md). Choose one scenario
+from its numbered menu, then confirm the provider and model for that run. The
+skill checks the selected provider's API key, Logfire credentials, scenario
+compatibility, and independent Ground truth adoption before calling a model.
+If a key is missing, add it to the repository `.env` and ask the agent to recheck.
+
+The menu copies descriptions from `scenario_descriptions.md` and computes
+readiness from current files. Each selection runs all Scenes in its scenario.
+The selected model overrides `LINGER_MODEL` for that process only. Public-source
+scenarios enable web search for their run and require `EXA_API_KEY`.
+
+The result links to the specific Logfire evaluation and a unique run directory
+inside the scenario, containing `evaluation.json`, `summary.json`, and `run.log`.
+Every run, including one where all checks pass, produces an
+`analysis-report-<timestamp>-<identifier>.md` beside the scenario's source files.
+Blocked preflight checks produce the same report with Scenes marked as not run.
+
+The report covers results, commentary for every Scene, scenario validity, and
+ordered next steps with verification criteria. Passing Scenes explain which
+behavior supports the pass and whether missing coverage could hide a false
+positive. The automated grade remains separate from the agent's assessment.
+The skill completes the review using a shared rubric, then validates and renders
+the fixed format. Its companion JSON preserves the facts, review, and detailed
+evidence. Identical saved review data renders identically; another model's
+interpretation can still differ.
+
+The agent checks current requirements and relevant diffs before recommending a
+scenario or application change. A changed expectation requires fresh independent
+adoption. The skill does not modify scenario sources or retry evaluations automatically.
+
+For terminal inspection without a model call, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario menu
+```
+
+Keep the printed `SCENARIO_MENU_FILE` path. `inspect` reads a numbered entry;
+`check` also saves a report when blocked. `run` requires `--confirmed-model`,
+which the skill supplies only after explicit user confirmation. Use `--help`
+on those subcommands for their arguments.
+
+To render a completed review from its saved JSON without a model call, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.run_scenario report \
+  --analysis PATH_TO_ANALYSIS_REPORT.json
+```
+
+This command rejects incomplete reviews, omitted Scenes, and assessments that
+contradict the recorded grade. The skill's
+[analysis instructions](../../.agents/skills/run-scenario/references/analysis-report.md)
+define the review fields and the checks for misleading passes and failures.
+
+## Scenario contract
+
+A Scenario is a coherent evaluation design for one person and one evaluation
+account, targeting one or more selected Objectives. It contains one Backstory,
+optional Props, one or more Scenes, and separate Ground truth. Each Scene is
+graded as a unit. See the
+[canonical vocabulary](../../docs/specification.md#721-canonical-vocabulary).
+
+The Scenario has two JSON files: `backstory.json` contains the generated
 Backstory, Props, Scenes, Lines, and offline inputs; `ground-truth.json` contains
 only proposed Ground truth and hashes the exact `backstory.json` bytes. One
-package contains one Backstory, person, and evaluation account; build a full
-dataset from multiple independently validated packages.
+scenario contains one Backstory, person, and evaluation account; build a full
+dataset from multiple independently validated scenarios.
 
-Checked-in authoring packages live under
-`synthetic-journal-evaluation/packages/<scenario-set>--<agents>--<YYYY-MM-DD>/`.
+The running system never receives the complete Scenario, its Backstory, or its
+Ground truth. The runner supplies the designated Props, Lines, bounded offline
+inputs, and application-controlled workflow state. Run outputs remain evidence
+about the Scenario; they do not become generated inputs or Ground truth.
+
+Checked-in authoring scenarios live under
+`synthetic-journal-evaluation/scenarios/<scenario-name>--<agents>--<YYYY-MM-DD>/`.
 The human-only
 `pre-generation-report.md` sits beside `backstory.json` and
 `ground-truth.json` but is not validator input. Shared resolved constraints
-remain under `synthetic-journal-evaluation/generation-presets/` because packages
-reference them by ID and the validator applies them across packages.
+remain under `synthetic-journal-evaluation/generation-presets/` because scenarios
+reference them by ID and the validator applies them across scenarios.
 
-Book packages store shared Scene facts in `ProposedGroundTruth.book_scene_facts`.
+Book scenarios store shared Scene facts in `ProposedGroundTruth.book_scene_facts`.
 Each book proposal stores one discriminated `book_expectation` that matches its
 Objective ID. Generic `grounding` belongs only to
 `weak_evidence_safe_decline`.
@@ -46,9 +113,9 @@ available in Logfire.
 
 The complete workflow is:
 
-1. Invoke the `generate-synthetic-journals` skill. A human selects one or more
+1. Invoke the `plan-synthetic-scenarios` skill. A human selects one or more
    Objectives in the loopback selector and confirms the complete selection.
-2. The skill creates a descriptively named package directory containing only
+2. The skill creates a descriptively named scenario directory containing only
    `pre-generation-report.md`. Selection confirmation is not generation
    approval.
 3. A human reads the report and approves its design and detached generator
@@ -56,17 +123,18 @@ The complete workflow is:
    after separate approval and only when the prompt is runnable or all named
    preconditions have been met.
 4. A separately authorized generator writes `backstory.json` and
-   `ground-truth.json` beside the report. Validate both files with the command
-   below.
+   `ground-truth.json` beside the report. For curation, complete the omitted
+   evaluator-owned fields as described below. Then validate both files.
 5. Invoke the `review-synthetic-ground-truth` skill. A human independent of the
    generator approves or flags every proposed Ground truth row.
 6. **Make Changes** returns the decision without writing an adoption or starting
    runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
    supported selection, the agent validates that adoption and starts one
    provider-backed replay. Supported selections include capture, curation,
-   continuity, either book Objective alone, both book Objectives in
-   either order, either connection or weak-evidence Objective alone, and their
-   combined selection. Other selections stop after adoption.
+   their combination in either order, continuity, either book Objective alone,
+   both book Objectives in either order, either connection or weak-evidence
+   Objective alone, and their combined selection. Other selections stop after
+   adoption.
 7. Inspect the experiment in Pydantic Evals and the Logfire Agents, LLMs and
    providers, and Live views. Keep the runner's JSON output as the durable,
    complete evaluation record.
@@ -76,20 +144,20 @@ server invokes a generator, model, or replay runner.
 
 The adopted `proactive_memory_surfacing` Objective includes a conversational
 sequence: a preference-update Line, reviewed capture and curation, and memory
-use in a later fresh chat. The current package contract and runner do not
+use in a later fresh chat. The current scenario contract and runner do not
 represent that sequence. Its pre-generation report must describe the target
 and name those gaps before generation can be approved. See
 [the conversational target](../../docs/specification.md#425-conversational-memory-curation-and-surfacing-target).
 The direct `surfacing_replay` module remains an offline component test for
-existing packages. It does not establish the expanded Objective and is not
+existing scenarios. It does not establish the expanded Objective and is not
 automatically dispatched by Ground truth review. Existing adoption records
 remain bound to the component expectations they approved.
 
-The Pydantic models in `models.py` are the schema authority. Validate a package
+The Pydantic models in `models.py` are the schema authority. Validate a scenario
 from the repository root:
 
 ```bash
-uv run python -m evals.synthetic_journals.validate_package \
+uv run python -m evals.synthetic_journals.validate_scenario \
   path/to/backstory.json path/to/ground-truth.json
 ```
 
@@ -114,7 +182,7 @@ decision, without claiming that the review UI was used. Both methods bind every
 proposal to the exact Backstory and Ground truth bytes. Direct adoption alone
 does not authorize a provider replay or retroactively grade historical runs.
 
-Review a validated package with the desktop-only local app:
+Review a validated scenario with the desktop-only local app:
 
 ```bash
 uv run python \
@@ -127,16 +195,16 @@ The reviewer command accepts these options:
 
 - `--reviewer-id ID` records the required stable human identity.
 - `--adoption PATH` selects the adoption output path. The default is
-  `ground-truth-adoption.json` beside the package, and a custom path must remain
+  `ground-truth-adoption.json` beside the scenario, and a custom path must remain
   in the same directory.
 - `--ui PATH` serves another built review UI. The default is the checked-in
   `.agents/skills/review-synthetic-ground-truth/ui/dist` build.
 - `--timeout SECONDS` sets the loopback server lifetime and defaults to 1800.
 
-The command validates the package before binding to `127.0.0.1`, prints one
+The command validates the scenario before binding to `127.0.0.1`, prints one
 token-bearing `GROUND_TRUTH_REVIEW_URL`, and exits with one
 `GROUND_TRUTH_REVIEW_JSON` decision. It refuses an existing adoption path,
-package changes during review, a non-sibling adoption path, an incomplete
+scenario changes during review, a non-sibling adoption path, an incomplete
 confirmation, or a timeout. It never overwrites an adoption.
 
 The app joins each Scene's Lines, Props, offline inputs, and source setup with the complete
@@ -145,19 +213,71 @@ evaluation** remains disabled until the reviewer approves every row. **Make
 Changes** returns the reviewed, flagged, and unchecked proposal IDs without
 writing an adoption or starting runtime. Confirmation writes a separate
 `ground-truth-adoption.json` beside the two immutable generated JSON files. The
-adoption binds the human identity and decisions to the exact package hashes; it
+adoption binds the human identity and decisions to the exact scenario hashes; it
 does not rewrite `ground-truth.json`.
 
 The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
-post-confirmation routes cover capture, curation, continuity, either
-book Objective alone, both book Objectives, either connection or weak-evidence
-Objective alone, and their combination. Other selections stop after adoption.
+post-confirmation routes cover capture, curation, their combination, continuity,
+either book Objective alone, both book Objectives, either connection or
+weak-evidence Objective alone, and their combination. Other selections stop
+after adoption.
+
+## Complete curation Ground truth
+
+For new curation authoring, omit `max_summary_words` and `semantic_review` from
+the expected action in each curation proposal. Keep candidate relationships,
+source identifiers, exact spans, and expected or prohibited outcomes in the
+existing Ground truth fields. Do not ask the generator to choose a grading
+threshold or author a judge rubric.
+
+Before strict validation or human review, run:
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.complete_curation_ground_truth \
+  path/to/backstory.json path/to/ground-truth.json
+```
+
+Repository code supplies the evaluator-owned fields and validates the completed
+Scenario before replacing the proposed Ground truth file. The final schema is
+unchanged. The command rejects supplied evaluator fields and refuses adopted
+files. Validation failures leave the source bytes unchanged. After successful
+completion, use the normal validator rather than rerunning completion.
+
+The independent reviewer sees the completed file and must adopt its exact
+bytes. Completion neither adopts candidate labels nor grades system behavior.
+Existing adopted Scenarios keep their original settings and hashes.
+
+## Combined capture and curation replay
+
+Select exactly `reviewed_automatic_memory_capture` and
+`bounded_memory_curation`, in either order. The capture preset applies to its
+eleven capture Scenes; curation retains its five required Props-only Scenes.
+The validator permits curation Props elsewhere in the same Backstory but still
+rejects Props or offline inputs assigned to a capture Scene.
+
+```bash
+.venv/bin/python -m evals.synthetic_journals.capture_curation_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/capture-curation-run.json
+```
+
+The runner uses one ordered experiment, one isolated account, and the original
+Scenario and adoption identities. Each Scene enters either the production chat
+handler or the curation proposal handler. Capture Scenes start fresh chats and
+retain actual capture state across those chats. Curation receives only its
+designated active Props; those Props never enter capture storage. Captured
+records never become curation inputs. Curation grades proposal quality and
+source preservation, with semantic quality left for separate review.
+
+The same combined runner is registered for the review and guided-run workflows.
+It does not implement conversational capture-triggered curation or surfacing.
 
 ## Capture replay
 
-Replay a validated capture-only package through the production Muse path:
+Replay a validated capture-only scenario through the production Muse path:
 
 ```bash
 uv run python -m evals.synthetic_journals.replay \
@@ -191,7 +311,22 @@ application spans retain fixed agent and hand-off metadata. Normal
 `linger-backend` traffic remains metadata-only.
 
 Runtime prompt fingerprints and a prompt-set system variant identify the
-evaluated static artifacts. The JSON artifact remains the durable, complete
+evaluated static artifacts. `evaluation_agents()` returns the five reusable
+role objects once for instrumentation and model overrides.
+`evaluation_skills()` lists all nine assignments independently of object
+identity. Exchanges record `skill_id`, role, stage, and a task fingerprint.
+Muse's draft and revision have separate input fingerprints within the same
+reflection skill. The full fingerprint set also includes Sculptor surfacing
+and Provenance curation review, even when a particular replay does not invoke
+them. Objective-specific identities continue to include only their executed
+components for behavioral comparison.
+
+Fingerprints include shared and selected instructions, input and output JSON
+schemas, tool and capability permissions, validator identities, and retries.
+Model overrides on a role object apply to all its skills; typed entry points
+still select each task's instructions and schema. See
+[agent runtime skills](../../docs/agent-skills.md) for the assignment and
+isolation contract. The JSON artifact remains the durable, complete
 evaluation record; Logfire is the interactive inspection and comparison view.
 Emotional-boundary observations also record whether the fixed response came
 from the no-tool preflight or the downstream candidate-review fallback.
@@ -234,7 +369,7 @@ Line.
 
 ## Bounded-curation replay
 
-Replay a validated bounded-curation package through production Sculptor:
+Replay a validated bounded-curation scenario through production Sculptor:
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
@@ -267,7 +402,7 @@ the latter.
 
 ## Offline memory-surfacing component replay
 
-Evaluate Sculptor's bounded surfacing decision with a validated offline package:
+Evaluate Sculptor's bounded surfacing decision with a validated offline scenario:
 
 ```bash
 uv run python -m evals.synthetic_journals.surfacing_replay \
@@ -282,7 +417,7 @@ decision time, current context, up to twenty prior surfaced or dismissed items,
 and at most twelve active, same-account memories. The compiler resolves these
 memories from the Scene's Props and keeps proposed decisions out of the input.
 
-A package covers timely, deferred, superseded, repeated, unsupported, and
+A scenario covers timely, deferred, superseded, repeated, unsupported, and
 sensitive cases. It includes a declared timely and deferred pair whose inputs
 differ only in decision time. Repeated cases require prior surfacing history.
 Source expectations require exact Prop spans and evidence references.
@@ -310,7 +445,7 @@ of dispatching the component command as a complete evaluation.
 
 ## Session-continuity replay
 
-Replay a validated session-continuity package through the production chat
+Replay a validated session-continuity scenario through the production chat
 boundary:
 
 ```bash
@@ -343,7 +478,7 @@ a rename, can restore visibility.
 
 ## Weak-evidence reflection replay
 
-Replay a validated `weak_evidence_safe_decline` package through production chat:
+Replay a validated `weak_evidence_safe_decline` scenario through production chat:
 
 ```bash
 uv run python -m evals.synthetic_journals.reflection_replay \
@@ -373,7 +508,7 @@ the Ground truth reviewer. The two book Objectives use `book_replay` and typed
 
 ## Grounded reflection and spoiler-boundary replay
 
-Replay a validated book package through the production
+Replay a validated book scenario through the production
 application chat-turn boundary:
 
 ```bash
@@ -387,7 +522,7 @@ Select `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
 either order, with no run configuration. Each Scene has one Line in a fresh
 session and only active Props. Grounded reflection requires retrieval and
 no-retrieval comparisons. Spoiler evaluation requires event-led inference and
-clarification comparisons. A combined package includes a shared inferred Scene.
+clarification comparisons. A combined scenario includes a shared inferred Scene.
 The runner does not require exactly one Prop or three Scenes.
 
 These typed book Objectives grade chapter boundaries. Runtime passage grants
@@ -424,8 +559,11 @@ of paraphrased disclosure. Its `pass`, `fail`, `not_run`, or `error` result is
 stored separately and labeled non-independent. It does not change the hard
 grade or establish semantic accuracy. Human review remains necessary.
 
+The semantic reviewer loads `evaluation.book_spoiler_review` from the
+[`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
+
 The command shares the other runners' proposal, adoption, and output behavior.
-It does not adopt labels. Historical book packages using the removed fields
+It does not adopt labels. Historical book scenarios using the removed fields
 remain unchanged but are obsolete replay inputs. New Ground truth requires new
 independent review; an old adoption cannot approve changed shared Scene facts.
 
@@ -442,7 +580,7 @@ LINGER_WEB_SEARCH_ENABLED=true uv run python -m evals.synthetic_journals.connect
 ```
 
 Live public retrieval requires `EXA_API_KEY`. The command enables web retrieval
-for this run; packages without public sources do not require that setting.
+for this run; scenarios without public sources do not require that setting.
 
 Each typed Scene has one Line in a fresh session. Its `source_setups` entry in
 `backstory.json` supplies any reader-confirmed book scope and complete public
@@ -468,7 +606,7 @@ Hard checks establish source resolution, the typed decision, citation bounds,
 release behavior, and source immutability. A reviewer still judges whether the
 connection is useful and tentative, restraint is honest, and public claims are
 supported. Deterministic success does not establish semantic success. Legacy
-weak-evidence-only packages with `grounding` expectations delegate to
+weak-evidence-only scenarios with `grounding` expectations delegate to
 `reflection_replay` and retain its existing, narrower hard checks.
 
 The adopted run configurations keep imbalanced tests explicit and scoped to

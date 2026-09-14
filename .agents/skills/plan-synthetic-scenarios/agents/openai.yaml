@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan synthetic scenarios"
+  short_description: "Plan and assess synthetic scenario evaluation data"
+  default_prompt: "Use $plan-synthetic-scenarios to choose evaluation objectives and write an implementation-oriented pre-generation report for review."

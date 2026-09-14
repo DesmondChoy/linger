@@ -43,9 +43,11 @@ from .adoption import (
     GroundTruthAdoptionError,
     validate_ground_truth_adoption_files,
 )
+from .evaluation_link import emit_evaluation_link
 from .models import (
     GroundTruthAdoption,
     ProposedGroundTruth,
+    Scene,
     StrictModel,
     SyntheticBackstory,
 )
@@ -57,7 +59,7 @@ from .replay import (
     evaluation_agents,
 )
 from .transcript import AgentExchange, SceneTranscriptRecorder
-from .validate_package import PackageValidationError, validate_package_files
+from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 CURATION_OBJECTIVE_ID = "bounded_memory_curation"
 OBJECTIVE_COMPONENTS = (
@@ -324,7 +326,7 @@ async def replay_curation_scenes(
         scene_id, batch, expectation = scene_inputs[inputs.order - 1]
         if scene_id != inputs.scene_id:
             raise RuntimeError("synthetic curation Scene identity changed")
-        observation = await _replay_curation_scene(
+        observation = await replay_curation_scene(
             scene_id,
             batch,
             expectation,
@@ -368,6 +370,7 @@ async def replay_curation_scenes(
             "ground_truth_evaluation": evaluation_name,
         },
     )
+    emit_evaluation_link(report, dataset_name=dataset.name)
     if report.failures:
         failed_cases = [failure.name for failure in report.failures]
         raise RuntimeError(f"synthetic curation cases failed: {failed_cases}")
@@ -386,7 +389,7 @@ async def replay_curation_scenes(
     )
 
 
-async def _replay_curation_scene(
+async def replay_curation_scene(
     scene_id: str,
     batch: AccountScopedMemories,
     expectation: CurationExpectation,
@@ -451,53 +454,56 @@ def _curation_scene_inputs(
     if backstory.lines or backstory.offline_inputs:
         raise ValueError("bounded curation replay accepts Props only")
 
+    return tuple(
+        curation_scene_input(backstory, ground_truth, scene)
+        for scene in sorted(backstory.scenes, key=lambda item: item.order)
+    )
+
+
+def curation_scene_input(
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+    scene: Scene,
+    *,
+    account_scope: str | None = None,
+) -> tuple[str, AccountScopedMemories, CurationExpectation]:
+    """Compile designated active Props, independent of runtime capture storage."""
+
+    if scene.objective_ids != (CURATION_OBJECTIVE_ID,):
+        raise ValueError(f"Scene {scene.scene_id} must select only bounded_memory_curation")
+    if not scene.fresh_session:
+        raise ValueError(f"Scene {scene.scene_id} must be isolated")
+    if scene.line_ids or scene.offline_input_ids:
+        raise ValueError(f"Scene {scene.scene_id} accepts Props only")
+    if not 2 <= len(scene.prop_ids) <= 12:
+        raise ValueError(f"Scene {scene.scene_id} requires 2-12 Props")
+
     props = {prop.prop_id: prop for prop in backstory.props}
-    proposals = {
-        proposal.scene_id: proposal for proposal in ground_truth.proposals
-    }
-    inputs = []
-    for scene in sorted(backstory.scenes, key=lambda item: item.order):
-        if scene.objective_ids != (CURATION_OBJECTIVE_ID,):
-            raise ValueError(
-                f"Scene {scene.scene_id} must select only bounded_memory_curation"
-            )
-        if not scene.fresh_session:
-            raise ValueError(f"Scene {scene.scene_id} must be isolated")
-        if scene.line_ids or scene.offline_input_ids:
-            raise ValueError(f"Scene {scene.scene_id} accepts Props only")
-        if not 2 <= len(scene.prop_ids) <= 12:
-            raise ValueError(f"Scene {scene.scene_id} requires 2-12 Props")
-
-        memories = []
-        for prop_id in scene.prop_ids:
-            prop = props[prop_id]
-            lifecycle = next(
-                item for item in prop.lifecycle if item.scene_id == scene.scene_id
-            )
-            if lifecycle.state != "active":
-                raise ValueError(
-                    f"Scene {scene.scene_id} Prop {prop_id} is not active"
-                )
-            memories.append(
-                CuratableMemory(memory_id=prop.prop_id, text=prop.source_text)
-            )
-
-        proposal = proposals.get(scene.scene_id)
-        if proposal is None or proposal.curation is None:
-            raise ValueError(
-                f"Scene {scene.scene_id} lacks typed curation Ground truth"
-            )
-        inputs.append(
-            (
-                scene.scene_id,
-                AccountScopedMemories(
-                    account_scope=backstory.backstory.evaluation_account_id,
-                    memories=tuple(memories),
-                ),
-                proposal.curation,
-            )
+    memories = []
+    for prop_id in scene.prop_ids:
+        prop = props[prop_id]
+        lifecycle = next(
+            (item for item in prop.lifecycle if item.scene_id == scene.scene_id), None
         )
-    return tuple(inputs)
+        if lifecycle is None or lifecycle.state != "active":
+            raise ValueError(f"Scene {scene.scene_id} Prop {prop_id} is not active")
+        memories.append(CuratableMemory(memory_id=prop.prop_id, text=prop.source_text))
+
+    proposals = [
+        proposal for proposal in ground_truth.proposals
+        if proposal.scene_id == scene.scene_id
+        and proposal.objective_id == CURATION_OBJECTIVE_ID
+    ]
+    if len(proposals) != 1 or proposals[0].curation is None:
+        raise ValueError(f"Scene {scene.scene_id} lacks typed curation Ground truth")
+    return (
+        scene.scene_id,
+        AccountScopedMemories(
+            account_scope=account_scope or backstory.backstory.evaluation_account_id,
+            memories=tuple(memories),
+        ),
+        proposals[0].curation,
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -510,7 +516,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         if args.adoption is None:
-            backstory, ground_truth = validate_package_files(
+            backstory, ground_truth = validate_scenario_files(
                 args.backstory, args.ground_truth
             )
             adoption = None
@@ -534,11 +540,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(rendered, end="")
         else:
             args.output.write_text(rendered, encoding="utf-8")
-        logfire.force_flush()
     except (
         OSError,
         GroundTruthAdoptionError,
-        PackageValidationError,
+        ScenarioValidationError,
         RuntimeError,
         ValueError,
     ) as error:

@@ -22,6 +22,7 @@ from src.linger.agents.provenance.models import (
 )
 from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.prompt import INSTRUCTIONS
+from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.muse.models import NoMemoryCandidate
 
 SPEC_RISK_CODES = (
@@ -308,8 +309,8 @@ class ProvenanceReviewTests(unittest.TestCase):
     ) -> None:
         """Otherwise every correct recall reply is unsupportable by construction."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
-        self.assertIn("is exempt from `canonical_book_evidence`", lowered)
-        self.assertIn("session-continuity contract", lowered)
+        self.assertIn("does not require book evidence", lowered)
+        self.assertIn("no access to omitted conversation history", lowered)
         self.assertIn("book-corpus claim", lowered)
         self.assertIn("matching record in `canonical_book_evidence`", lowered)
 
@@ -343,10 +344,11 @@ class ProvenanceReviewTests(unittest.TestCase):
         """Otherwise the model repeats the field name in path and validation fails."""
         lowered = " ".join(INSTRUCTIONS.lower().split())
         self.assertIn(
-            "path` must be `\"\"` (empty string) — never repeat the field name "
-            "inside the path".replace("`", ""),
-            lowered.replace("`", ""),
+            'use `path=""` for the field itself, including `candidate.response` '
+            'and `current_line.text`',
+            lowered,
         )
+        self.assertIn("never repeat the source field's name in the path", lowered)
 
     def test_prompt_describes_canonical_session_lines(self) -> None:
         lowered = " ".join(INSTRUCTIONS.lower().split())
@@ -420,16 +422,13 @@ class ProvenanceAgentTests(unittest.TestCase):
             }
         )
         agent = build_provenance_agent(model)
-        review = agent.run_sync("candidate").output
+        review = agent.run_sync(
+            provenance_input().model_dump_json(), **CANDIDATE_REVIEW.run_options()
+        ).output
 
         self.assertIsInstance(review, ProvenanceReview)
         self.assertEqual("prompt_injection", review.findings[0].code)
         self.assertEqual("reject", review.response_decision)
-
-    def test_agent_retries_output_validation(self) -> None:
-        # pydantic-ai exposes no public accessor for output retries.
-        agent = build_provenance_agent(TestModel())
-        self.assertEqual(2, agent._max_output_retries)
 
     def test_provenance_has_no_tools(self) -> None:
         """Section 3.3: Provenance reviews without any tool authority."""
@@ -445,7 +444,9 @@ class ProvenanceAgentTests(unittest.TestCase):
             }
         )
         agent = build_provenance_agent(model)
-        agent.run_sync("candidate")
+        agent.run_sync(
+            provenance_input().model_dump_json(), **CANDIDATE_REVIEW.run_options()
+        )
 
         self.assertEqual([], model.last_model_request_parameters.function_tools)
 

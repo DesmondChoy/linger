@@ -32,7 +32,7 @@ from src.linger.agents.sculptor.surfacing_prompt import PROMPT_FINGERPRINT
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 
 with patch("src.linger.agents.build.build_model", return_value=TestModel()):
-    from src.linger.agents.sculptor.surfacing_agent import build_surfacing_agent
+    from src.linger.agents.sculptor.agent import build_sculptor_agent
     from src.linger.orchestration.surfacing import (
         InvalidSurfacingProposal,
         propose_surfacing,
@@ -155,7 +155,7 @@ def test_typed_decisions_run_without_tools_and_keep_account_private(response, se
     recorder = SceneTranscriptRecorder()
     with bind_evaluation_transcript_sink(recorder):
         result = asyncio.run(
-            propose_surfacing(_input(), agent=build_surfacing_agent(model))
+            propose_surfacing(_input(), agent=build_sculptor_agent(model))
         )
 
     assert result == response
@@ -342,7 +342,7 @@ def test_failed_model_run_records_a_fixed_failure_code_without_exception_text():
         with pytest.raises(RuntimeError, match="private model exception"):
             asyncio.run(
                 propose_surfacing(
-                    _input(), agent=build_surfacing_agent(FunctionModel(fail))
+                    _input(), agent=build_sculptor_agent(FunctionModel(fail))
                 )
             )
     exchange = recorder.exchanges[0]

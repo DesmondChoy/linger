@@ -61,9 +61,9 @@ def configure_synthetic_evaluation_telemetry(agents: Sequence[Any]) -> None:
     """Enable native AI panels only for the explicit synthetic replay process."""
 
     agent_names = {getattr(agent, "name", None) for agent in agents}
-    if agent_names != EVALUATION_AGENT_NAMES:
+    if agent_names != EVALUATION_AGENT_NAMES or len(agents) != len(EVALUATION_AGENT_NAMES):
         raise ValueError(
-            "synthetic evaluation instrumentation requires the five named agents"
+            "synthetic evaluation instrumentation requires the five named agents exactly once"
         )
 
     token = get_settings().logfire_token
@@ -132,7 +132,6 @@ def agent_attrs(
     role: str,
     stage: str,
     prompt_template_id: str,
-    prompt_version: str,
     prompt_digest: str,
 ) -> dict[str, object]:
     """Stable agent metadata; no composed prompt or model content."""
@@ -146,7 +145,6 @@ def agent_attrs(
         "model.provider": provider,
         "model.name": model,
         "prompt.template_id": prompt_template_id,
-        "prompt.version": prompt_version,
         "prompt.digest": prompt_digest,
         "status": "started",
         "retry_count": 0,
@@ -242,7 +240,6 @@ async def run_agent_traced(
     input_contract: str,
     output_contract: str,
     prompt_template_id: str,
-    prompt_version: str,
     prompt_digest: str,
     failure_code: str,
     input_origin: AgentRole | None = None,
@@ -266,6 +263,8 @@ async def run_agent_traced(
     transcript_failure_code: str | None = failure_code
     transcript_sink = active_evaluation_transcript_sink()
     transcript_handle: object | None = None
+    metadata = run_kwargs.get("metadata")
+    skill_id = metadata.get("linger_skill") if isinstance(metadata, Mapping) else None
     emit_progress(
         role,
         stage,
@@ -280,7 +279,6 @@ async def run_agent_traced(
             role=role,
             stage=stage,
             prompt_template_id=prompt_template_id,
-            prompt_version=prompt_version,
             prompt_digest=prompt_digest,
         ),
         **handoff_attrs(
@@ -291,17 +289,19 @@ async def run_agent_traced(
             output_contract=output_contract,
         ),
     ) as span:
+        if skill_id is not None:
+            span.set_attribute("agent.skill", skill_id)
         span_context = span.get_span_context()
         if transcript_sink is not None:
             transcript_handle = transcript_sink.begin_agent_exchange(
                 role=role,
                 stage=stage,
+                skill_id=skill_id,
                 input_origin=resolved_input_origin,
                 output_receiver=resolved_output_receiver,
                 input_contract=input_contract,
                 output_contract=output_contract,
                 prompt_template_id=prompt_template_id,
-                prompt_version=prompt_version,
                 prompt_digest=prompt_digest,
                 input_prompt=prompt,
                 message_history=run_kwargs.get("message_history", ()),

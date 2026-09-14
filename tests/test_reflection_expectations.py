@@ -118,7 +118,7 @@ class GroundTruthProposalGroundingTests(unittest.TestCase):
         self.assertIsNone(proposal().grounding)
 
     def test_permitted_evidence_must_be_declared_by_the_proposal(self) -> None:
-        """A permitted citation the package never declares cannot be graded."""
+        """A permitted citation absent from Ground truth cannot be graded."""
         with self.assertRaisesRegex(ValidationError, "absent from the proposal"):
             proposal(grounding=grounded("ev-missing"))
 

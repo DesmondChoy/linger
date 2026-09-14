@@ -45,7 +45,7 @@ from evals.synthetic_journals.replay import (
     replay_capture_scenes,
 )
 from evals.synthetic_journals.transcript import SceneTranscriptRecorder
-from evals.synthetic_journals.validate_package import validate_package_files
+from evals.synthetic_journals.validate_scenario import validate_scenario_files
 from src.linger.agents.muse.models import (
     MemoryCandidate,
     MemoryNomination,
@@ -96,7 +96,6 @@ def _no_capture_response(
             input_contract="Input.v1",
             output_contract="src.linger.agents.muse.models.MuseCandidate",
             prompt_template_id="muse.test",
-            prompt_version="1",
             prompt_digest="0" * 64,
             input_prompt="synthetic input",
             message_history=(),
@@ -189,7 +188,6 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
         input_contract="Input.v1",
         output_contract="Output.v1",
         prompt_template_id="muse.test",
-        prompt_version="1",
         prompt_digest="0" * 64,
         input_prompt='{"line":"synthetic"}',
         message_history=(),
@@ -239,7 +237,7 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
 
 
 def test_replay_isolates_account_store_sessions_and_turns() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     requests: list[ChatRequest] = []
     accounts: set[str] = set()
     store_roots: set[Path] = set()
@@ -294,7 +292,7 @@ def test_replay_isolates_account_store_sessions_and_turns() -> None:
 
 
 def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     adoption = build_ground_truth_adoption(
         ground_truth,
         GROUND_TRUTH_PATH.read_bytes(),
@@ -326,7 +324,7 @@ def test_replay_grades_adopted_ground_truth_with_adoption_identity() -> None:
 
 
 def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     positive = next(
         proposal for proposal in ground_truth.proposals
         if isinstance(proposal.capture.nomination, CaptureCandidate)
@@ -361,6 +359,97 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
 
 
 @pytest.mark.parametrize(
+    ("fault", "expected_failures"),
+    [
+        ("none", ()),
+        ("approval", ("capture_review_mismatch",)),
+        ("storage", ("stored_record_count_mismatch", "unexpected_memory_writes")),
+        (
+            "approval_and_storage",
+            (
+                "capture_review_mismatch",
+                "capture_storage_mismatch",
+                "stored_record_count_mismatch",
+                "unexpected_memory_writes",
+            ),
+        ),
+        ("wrong_reason", ("capture_reason_code_mismatch",)),
+        ("wrong_offsets", ("nominated_span_mismatch",)),
+        ("wrong_binding", ("capture_binding_mismatch",)),
+    ],
+)
+def test_capture_replay_grades_expected_veto(
+    fault: str, expected_failures: tuple[str, ...]
+) -> None:
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    proposal = next(
+        item for item in ground_truth.proposals
+        if isinstance(item.capture.nomination, CaptureCandidate)
+    )
+    assert isinstance(proposal.capture.nomination, CaptureCandidate)
+    span = proposal.capture.nomination.span
+    veto = CaptureExpectation(
+        nomination=proposal.capture.nomination,
+        provenance_decision="reject_capture",
+        reason_code="sensitive_content",
+    )
+    ground_truth = ground_truth.model_copy(update={
+        "proposals": tuple(
+            item.model_copy(update={"capture": veto})
+            if item.proposal_id == proposal.proposal_id else item
+            for item in ground_truth.proposals
+        ),
+    })
+    veto_line = next(line.text for line in content.lines if line.line_id == span.source_id)
+
+    async def chat_handler(request, service, account):
+        if request.message != veto_line:
+            return _no_capture_response()
+        offset_error = int(fault == "wrong_offsets")
+        response = _no_capture_response(MemoryCandidate(
+            kind="memory_candidate",
+            text=span.text,
+            start_codepoint=span.start_codepoint + offset_error,
+            end_codepoint=span.end_codepoint + offset_error,
+            reason_code="durable_reflection",
+        ))
+        if fault in {"storage", "approval_and_storage"}:
+            service.save_automatic(account, AutomaticMemoryCandidate(
+                text=span.text,
+                source_event_id=request.turn_id,
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ))
+        response.inspection.release.capture = CaptureInspection(
+            nomination="candidate",
+            provenance_decision=(
+                "allow_capture" if fault in {"approval", "approval_and_storage"}
+                else "reject_capture"
+            ),
+            binding="invalid" if fault == "wrong_binding" else "exact",
+            storage="committed" if fault == "approval_and_storage" else "refused",
+            reason_code="low_signal" if fault == "wrong_reason" else "sensitive_content",
+        )
+        return response
+
+    result = asyncio.run(
+        replay_capture_scenes(content, ground_truth, chat_handler=chat_handler)
+    )
+    observation = next(scene for scene in result.scenes if scene.scene_id == proposal.scene_id)
+    assert observation.expected_capture == veto
+    assert observation.hard_failures == expected_failures
+    assert observation.ground_truth_result == (
+        "differs_from_proposal" if expected_failures else "matches_proposal"
+    )
+    assert observation.existing_memories_unchanged
+    if fault == "none":
+        assert observation.retry is None
+        assert observation.stored_record_count == 0
+        assert observation.created_memory_ids == ()
+        assert result.final_active_memory_ids == ()
+
+
+@pytest.mark.parametrize(
     ("fault", "failure"),
     [
         ("none", None),
@@ -372,6 +461,7 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
         ("safe_decline", "release_source_mismatch"),
         ("extra_write", "unexpected_memory_writes"),
         ("wrong_event", "stored_record_count_mismatch"),
+        ("missing_storage", "stored_record_count_mismatch"),
         ("duplicate_retry", "capture_retry_not_idempotent"),
         ("failed_retry", "capture_retry_not_idempotent"),
     ],
@@ -379,7 +469,7 @@ def test_replay_fails_a_nominated_positive_that_was_not_stored() -> None:
 def test_capture_replay_grades_observed_outcomes(
     fault: str, failure: str | None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     proposal = next(
         item for item in ground_truth.proposals
         if isinstance(item.capture.nomination, CaptureCandidate)
@@ -416,7 +506,8 @@ def test_capture_replay_grades_observed_outcomes(
             review_allows_capture=True,
             contains_sensitive_content=False,
         )
-        service.save_automatic(account, candidate)
+        if fault != "missing_storage":
+            service.save_automatic(account, candidate)
         if fault == "extra_write":
             service.save_automatic(
                 account, replace(candidate, source_event_id=request.turn_id + ":extra")
@@ -457,13 +548,20 @@ def test_capture_replay_grades_observed_outcomes(
         assert observation.hard_failures == ()
         assert observation.retry is not None
         assert observation.retry.created is False
+        assert observation.retry.memory_id == observation.memory_id
+        assert observation.retry.original_unchanged
         assert observation.retry.store_unchanged
+        assert observation.stored_text == span.text
+        assert observation.stored_record_count == 1
         assert len(result.final_active_memory_ids) == 1
     else:
         assert observation.ground_truth_result == "differs_from_proposal"
         assert failure in observation.hard_failures
     assert result.artifact_schema_version == "2"
     assert observation.expected_capture == proposal.capture
+    if fault == "missing_storage":
+        assert observation.retry is None
+        assert "capture_retry_unavailable" in observation.hard_failures
     if fault == "failed_retry":
         assert observation.retry.error == "MemoryConflictError"
         assert observation.retry.store_unchanged
@@ -471,7 +569,7 @@ def test_capture_replay_grades_observed_outcomes(
 
 
 def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     calls = 0
     stored = None
 
@@ -503,7 +601,7 @@ def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> N
 
 
 def test_replay_cannot_pass_without_recorded_muse_output() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     response = _no_capture_response()
 
     async def chat_handler(_request, _service, _account):
@@ -517,7 +615,7 @@ def test_replay_cannot_pass_without_recorded_muse_output() -> None:
 
 
 def test_replay_rejects_more_than_one_line_per_scene() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     first_scene = content.scenes[0].model_copy(
         update={"line_ids": (content.lines[0].line_id, content.lines[1].line_id)}
     )
@@ -536,7 +634,7 @@ def test_replay_rejects_more_than_one_line_per_scene() -> None:
 
 
 def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     exporter = TestExporter()
     logfire.configure(
         send_to_logfire=False,
@@ -591,7 +689,7 @@ def test_replay_exports_native_evaluation_cases_with_synthetic_backstory() -> No
         )
 
 
-def test_cli_returns_nonzero_for_an_invalid_package(
+def test_cli_returns_nonzero_for_an_invalid_scenario(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -607,7 +705,7 @@ def test_cli_returns_nonzero_for_an_invalid_package(
 
 
 def test_replay_uses_production_capture_path_without_handing_off_labels() -> None:
-    content, ground_truth = validate_package_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
+    content, ground_truth = validate_scenario_files(BACKSTORY_PATH, GROUND_TRUTH_PATH)
     lines = {line.line_id: line for line in content.lines}
     scenes_by_text = {
         lines[scene.line_ids[0]].text: scene.scene_id for scene in content.scenes

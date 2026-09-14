@@ -14,7 +14,6 @@ from opentelemetry.trace import format_trace_id
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
-from src.linger.agents.provenance.emotional import emotional_boundary_agent
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -68,6 +67,7 @@ from src.linger.services.memory import (
 )
 
 from . import sessions
+from .chapter_reference import parse_chapter_answer
 from .config import get_settings
 from .contracts import (
     ContextResolution,
@@ -409,19 +409,25 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
             explanation="The reader confirmed the candidate book and completed scene in the current message.",
         )
 
+    answered_chapter = parse_chapter_answer(request.message)
     if (
         pending
-        and chapter_match
-        and BARE_CHAPTER_ANSWER_PATTERN.fullmatch(request.message.strip())
+        and answered_chapter is not None
         and (selection is None or selection.book_id == pending.book_id)
     ):
-        chapter = int(chapter_match.group(1))
+        # A reply that is only a chapter reference answers the pending question,
+        # whatever its lexical form ("6", "six", "chapter 6").
+        chapter = answered_chapter
         selection = sessions.BookSelection(book_id=pending.book_id, book_title=pending.book_title,
             part_id=selection.part_id if selection else pending.part_id)
         sessions.set_book_selection(request.session_id, selection)
-        sessions.clear_pending_clarification(request.session_id)
-        sessions.clear_reading_candidate(request.session_id)
-        return ContextResolution(**_chapter_reading(selection, chapter))
+        reading = _chapter_reading(selection, chapter)
+        # An answer the work cannot support leaves the question open, so the next
+        # clarification still knows it is a repeat.
+        if reading["status"] == "confirmed":
+            sessions.clear_pending_clarification(request.session_id)
+            sessions.clear_reading_candidate(request.session_id)
+        return ContextResolution(**reading)
 
     if selection:
         return ContextResolution(
@@ -842,7 +848,7 @@ async def _run_chat_pipeline(
         boundary = await assess_emotional_boundary(
             request.message,
             EmotionalContentPolicy(),
-            provenance=emotional_boundary_agent,
+            provenance=provenance_agent,
         )
     except asyncio.CancelledError:
         raise

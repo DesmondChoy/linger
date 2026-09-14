@@ -15,10 +15,9 @@ class StrictModel(BaseModel):
 
 
 class PromptFingerprint(StrictModel):
-    """Versioned identity for one static prompt template and its contracts."""
+    """Content identity for one static prompt template and its contracts."""
 
     template_id: str = Field(min_length=1)
-    version: str = Field(min_length=1)
     digest: str = Field(pattern=r"^[0-9a-f]{64}$")
 
     @classmethod
@@ -26,7 +25,6 @@ class PromptFingerprint(StrictModel):
         cls,
         *,
         template_id: str,
-        version: str,
         instructions: str,
         input_contract: str,
         output_contract: str,
@@ -44,6 +42,5 @@ class PromptFingerprint(StrictModel):
         ).encode("utf-8")
         return cls(
             template_id=template_id,
-            version=version,
             digest=hashlib.sha256(artifact).hexdigest(),
         )

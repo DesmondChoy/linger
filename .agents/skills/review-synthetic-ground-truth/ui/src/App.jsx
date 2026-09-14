@@ -239,10 +239,15 @@ function GroundTruthDetails({ row }) {
       {row.capture ? (
         <section className="typed-expectation">
           <div className="field-pair">
-            <span>Capture expectation</span>
-            <strong>{row.capture.kind.replaceAll('_', ' ')}</strong>
+            <span>Muse nomination</span>
+            <strong>{row.capture.nomination.kind.replaceAll('_', ' ')}</strong>
           </div>
-          {row.capture.span ? <blockquote className="exact-quote">{row.capture.span.text}</blockquote> : null}
+          <div className="field-pair">
+            <span>Provenance decision</span>
+            <strong>{row.capture.provenance_decision.replaceAll('_', ' ')}</strong>
+          </div>
+          {row.capture.reason_code ? <p>Reason: {row.capture.reason_code.replaceAll('_', ' ')}</p> : null}
+          {row.capture.nomination.span ? <blockquote className="exact-quote">{row.capture.nomination.span.text}</blockquote> : null}
         </section>
       ) : null}
       <CurationExpectation value={row.curation} />
@@ -413,7 +418,7 @@ function App() {
   }
 
   if (fatalError) {
-    return <main className="state-screen"><p className="eyebrow">Review unavailable</p><h1>The package could not be opened.</h1><p>{fatalError}</p></main>
+    return <main className="state-screen"><p className="eyebrow">Review unavailable</p><h1>The scenario could not be opened.</h1><p>{fatalError}</p></main>
   }
   if (!review) return <main className="state-screen"><p className="loading">Validating and arranging the Ground truth ledger…</p></main>
   if (completed) {
@@ -437,19 +442,19 @@ function App() {
           <h1>Read every source. Approve every answer key.</h1>
           <p className="intro">The generated JSON remains the proposal authority. Your confirmed review creates a separate, hash-bound adoption record.</p>
         </div>
-        <div className="package-stamp">
-          <span>Package proof</span>
+        <div className="scenario-stamp">
+          <span>Scenario proof</span>
           <dl>
-            <div><dt>Backstory</dt><dd><Hash value={review.package.backstorySha256} /></dd></div>
-            <div><dt>Ground truth</dt><dd><Hash value={review.package.proposedGroundTruthSha256} /></dd></div>
-            <div><dt>Status</dt><dd>{review.package.groundTruthStatus}</dd></div>
+            <div><dt>Backstory</dt><dd><Hash value={review.scenario.backstorySha256} /></dd></div>
+            <div><dt>Ground truth</dt><dd><Hash value={review.scenario.proposedGroundTruthSha256} /></dd></div>
+            <div><dt>Status</dt><dd>{review.scenario.groundTruthStatus}</dd></div>
           </dl>
         </div>
       </header>
 
       <section className="context-band">
-        <div><span>Backstory</span><strong>{review.package.backstoryId}</strong><p>{review.package.backstoryContext}</p></div>
-        <div><span>Objectives</span><strong>{review.package.objectiveIds.join(', ')}</strong><p>{review.replay.note}</p></div>
+        <div><span>Backstory</span><strong>{review.scenario.backstoryId}</strong><p>{review.scenario.backstoryContext}</p></div>
+        <div><span>Objectives</span><strong>{review.scenario.objectiveIds.join(', ')}</strong><p>{review.replay.note}</p></div>
         {review.report.text ? (
           <details>
             <summary>Pre-generation report and generator prompt</summary>

@@ -1,0 +1,110 @@
+{
+  "backstory_sha256": "5f45a3785d896685de9f921db1d034e87b1f4a23b7374e5e0512a2a3ab7298c2",
+  "proposed_ground_truth_sha256": "f1c409a4133ed6ea905b348078077d99d30d8d7d67cee8d4679eaaf83f680dd8",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-13T23:45:17.821298+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-01",
+      "scene_id": "scene-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-02",
+      "scene_id": "scene-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-03",
+      "scene_id": "scene-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-04",
+      "scene_id": "scene-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-05",
+      "scene_id": "scene-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-06",
+      "scene_id": "scene-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-07",
+      "scene_id": "scene-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-08",
+      "scene_id": "scene-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-09",
+      "scene_id": "scene-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-10",
+      "scene_id": "scene-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-11",
+      "scene_id": "scene-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-12",
+      "scene_id": "scene-12",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-13",
+      "scene_id": "scene-13",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-14",
+      "scene_id": "scene-14",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-15",
+      "scene_id": "scene-15",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-16",
+      "scene_id": "scene-16",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "05845be9965ee02ec3242764250b88d1faa8e23a88e68901182b6fde3f513d79"
+}

@@ -32,7 +32,7 @@ The remaining backend settings are:
 |---|---|---|
 | `LINGER_ACCOUNT_ID` | Server-owned account for the single-user prototype | `local-prototype-user` |
 | `LINGER_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173` |
-| `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | `["pg11-v01b38ea4"]` |
+| `ALLOWED_BOOK_VERSION_IDS` | JSON array of permitted registered corpus revisions | All five revisions in [`Settings`](backend/config.py) |
 | `LINGER_WEB_SEARCH_ENABLED` | Grants Serendipity public-web search when `EXA_API_KEY` is also set | `false` |
 | `EXA_API_KEY` | Exa credential for optional public-web search | unset |
 | `LOGFIRE_TOKEN` | Logfire write token for deployed or CI runs | unset |
@@ -41,10 +41,11 @@ Local Logfire credentials can come from `uv run logfire projects use` instead
 of `LOGFIRE_TOKEN`. Backend telemetry is metadata-only under
 [`../docs/telemetry.md`](../docs/telemetry.md).
 
-The runtime registry and default grant contain *Alice's Adventures in
-Wonderland*. Corpus files for other works do not enable chat retrieval. See
-[book registration](../docs/book-registration.md) for the registration and
-revision checks. Section-based corpora are outside the chapter-based runtime.
+The runtime registry and default grant enable all five supplied works for chat
+retrieval and Reader, including both chapter-based and section-based corpora.
+An `ALLOWED_BOOK_VERSION_IDS` override replaces the default grant; it does not
+register a corpus. See [book registration](../docs/book-registration.md) for
+supported works, reading boundaries, and revision checks.
 
 ## Running
 
@@ -76,7 +77,7 @@ Reader and Inspect are developer-only tools mounted in the local frontend for
 convenience. They support corpus interaction and backend debugging and are not
 part of the user-facing frontend contract. A product frontend should omit them.
 
-- **Reader** opens the public Project Gutenberg Alice corpus by chapter so a
+- **Reader** opens enabled canonical books by chapter or named section so a
   developer can exercise corpus behavior. Navigation and summary reveal remain
   local diagnostic state and never authorize book retrieval in chat.
 - **Inspect** records each released turn's input contract, context resolution,

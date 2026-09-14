@@ -27,7 +27,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 class ConnectionContractError(ValueError):
-    """A connection package cannot be executed under its declared authority."""
+    """A connection scenario cannot be executed under its declared authority."""
 
     def __init__(self, failures: list[str]) -> None:
         self.failures = tuple(failures)
@@ -59,7 +59,7 @@ def compile_connection_replay_plan(
     repository_root: Path = REPOSITORY_ROOT,
 ) -> ConnectionReplayPlan:
     """Validate source identity and compile one-account, isolated Scene inputs."""
-    from .validate_package import _pair_field, _validate_evidence, _validate_pairing, _validate_span
+    from .validate_scenario import _pair_field, _validate_evidence, _validate_pairing, _validate_span
 
     selected = frozenset(backstory.objective_ids)
     if not selected or not selected <= CONNECTION_OBJECTIVE_IDS:

@@ -1,21 +1,20 @@
-"""Independent semantic release gate for every Muse candidate."""
+"""One reusable, no-tool Agent for Provenance's selected review skill."""
+
+from typing import Any
 
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
 from src.linger.agents.build import build_model
-from src.linger.agents.provenance.models import ProvenanceReview
-from src.linger.agents.provenance.prompt import INSTRUCTIONS
+from src.linger.agents.provenance.skills import SHARED_INSTRUCTIONS
 
 
-def build_provenance_agent(model: Model | None = None) -> Agent[None, ProvenanceReview]:
-    """Build Provenance with the shared provider model and typed outputs."""
-    return Agent[None, ProvenanceReview](
+def build_provenance_agent(model: Model | None = None) -> Agent[None, Any]:
+    """Build the role once; typed task entry points select each run's contract."""
+    return Agent[None, Any](
         model if model is not None else build_model(),
         name="Provenance",
-        output_type=ProvenanceReview,
-        instructions=INSTRUCTIONS,
-        retries={"output": 2},
+        instructions=SHARED_INSTRUCTIONS,
     )
 
 

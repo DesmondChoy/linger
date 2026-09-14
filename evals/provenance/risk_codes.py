@@ -375,7 +375,6 @@ class EvaluationReport(StrictModel):
     flow: Literal["4.2.1"]
     model: str
     prompt_template_id: str
-    prompt_version: str
     prompt_digest: str
     summary: EvaluationSummary
     cases: tuple[CaseMeasurement, ...]
@@ -440,9 +439,11 @@ def _first_failure(
 async def review_with_configured_agent(case: RiskCodeEvalCase) -> ProvenanceReview:
     """Run the production gate exactly as `orchestration.reflection` calls it."""
     from src.linger.agents.provenance.agent import provenance_agent
+    from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 
     result = await provenance_agent.run(
         case.review_input.model_dump_json(),
+        **CANDIDATE_REVIEW.run_options(),
     )
     return result.output
 
@@ -609,7 +610,6 @@ async def run_evaluation(
         flow=selected_cases.flow,
         model=model_name,
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_version=PROMPT_FINGERPRINT.version,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         summary=_summarize(selected_cases, tuple(measurements)),
         cases=tuple(measurements),

@@ -1,1 +1,1 @@
-"""Contracts and deterministic validation for synthetic journal packages."""
+"""Contracts and deterministic validation for synthetic scenarios."""

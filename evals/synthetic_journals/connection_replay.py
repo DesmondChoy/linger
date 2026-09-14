@@ -28,6 +28,7 @@ from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate,
 
 from .adoption import validate_ground_truth_adoption, validate_ground_truth_adoption_files
 from .connection_contract import ValidatedConnectionScene, compile_connection_replay_plan
+from .evaluation_link import emit_evaluation_link
 from .models import (
     GroundTruthAdoption, GroundTruthProposal, PropEvidence, ProposedGroundTruth,
     PublicSourceEvidence, StrictModel, SyntheticBackstory,
@@ -279,7 +280,7 @@ async def replay_connection_scenes(
     if (ProposedGroundTruth.model_validate_json(ground_truth_bytes) != ground_truth
         or SyntheticBackstory.model_validate_json(backstory_bytes) != backstory
         or hashlib.sha256(backstory_bytes).hexdigest() != ground_truth.backstory_sha256):
-        raise ValueError("replay objects do not match the independently adopted package bytes")
+        raise ValueError("replay objects do not match the independently adopted scenario bytes")
     validate_ground_truth_adoption(ground_truth, adoption, ground_truth_bytes=ground_truth_bytes)
     plan = compile_connection_replay_plan(backstory, ground_truth)
     if chat_handler is None:
@@ -349,6 +350,7 @@ async def replay_connection_scenes(
             task_name="connection_and_restraint_workflow", max_concurrency=1, progress=False,
             metadata={"content_classification": "synthetic", "dataset_version": adoption.adopted_ground_truth_identity},
         )
+        emit_evaluation_link(report, dataset_name=dataset.name)
         if report.failures or len(observations) != len(plan.scenes):
             raise RuntimeError("connection evaluation did not complete every Scene")
     return ConnectionEvaluationRun(

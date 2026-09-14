@@ -117,6 +117,6 @@ def surfacing_documents() -> tuple[dict, dict, bytes]:
     return backstory, truth, payload
 
 
-def make_surfacing_package() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
+def make_surfacing_scenario() -> tuple[SyntheticBackstory, ProposedGroundTruth]:
     _, truth, payload = surfacing_documents()
     return SyntheticBackstory.model_validate_json(payload), ProposedGroundTruth.model_validate_json(json_bytes(truth))

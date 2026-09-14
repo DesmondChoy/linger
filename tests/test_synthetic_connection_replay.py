@@ -9,12 +9,12 @@ import pytest
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.connection_replay import grade_connection_scene, replay_connection_scenes
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
-from tests.test_synthetic_connection_package import connection_documents, validate_documents
+from tests.test_synthetic_connection_scenario import connection_documents, validate_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def package():
+def scenario():
     content, labels = connection_documents(ROOT)
     plan = validate_documents(content, labels, ROOT)
     backstory_bytes = json.dumps(content, sort_keys=True).encode()
@@ -44,7 +44,7 @@ def restraint_events(scene):
 
 
 def test_restraint_requires_inspected_sources_even_without_required_citations():
-    plan, *_ = package()
+    plan, *_ = scenario()
     scene = plan.scenes[1]
     events = restraint_events(scene)
     grades = grade_connection_scene(scene, response(), events, {"memory": "memory-runtime"})
@@ -55,7 +55,7 @@ def test_restraint_requires_inspected_sources_even_without_required_citations():
 
 
 def test_sent_private_query_fails_but_blocked_query_is_not_disclosure():
-    plan, *_ = package()
+    plan, *_ = scenario()
     scene = plan.scenes[1]
     for status, expected in (("sent", True), ("blocked", False)):
         events = (*restraint_events(scene), ConnectionEvaluationEvent(kind="query", status=status, query=scene.props[0].source_text))
@@ -64,7 +64,7 @@ def test_sent_private_query_fails_but_blocked_query_is_not_disclosure():
 
 
 def test_discovery_failure_after_inspection_is_a_selection_failure():
-    plan, *_ = package()
+    plan, *_ = scenario()
     scene = plan.scenes[1]
     events = list(restraint_events(scene))
     events[-2] = ConnectionEvaluationEvent(kind="discovery", status="failed", failure_code="connection_discovery_failed")
@@ -74,7 +74,7 @@ def test_discovery_failure_after_inspection_is_a_selection_failure():
 
 
 def test_book_source_hash_change_is_not_accepted():
-    plan, *_ = package()
+    plan, *_ = scenario()
     scene = plan.scenes[1]
     events = list(restraint_events(scene))
     record = json.loads(events[1].evidence_json[0])
@@ -84,7 +84,7 @@ def test_book_source_hash_change_is_not_accepted():
 
 
 def test_adopted_replay_preserves_account_scope_and_never_passes_labels():
-    plan, adoption, raw, truth_raw = package()
+    plan, adoption, raw, truth_raw = scenario()
     accounts, counts, scopes, urls = [], [], [], []
 
     async def handler(request, service, account, *, initial_reading, public_source_urls):
@@ -109,15 +109,15 @@ def test_adopted_replay_preserves_account_scope_and_never_passes_labels():
 
 
 def test_changed_objects_cannot_reuse_adopted_bytes():
-    plan, adoption, raw, truth_raw = package()
+    plan, adoption, raw, truth_raw = scenario()
     changed = plan.ground_truth.model_copy(update={"proposals": ()})
-    with pytest.raises(ValueError, match="adopted package bytes"):
+    with pytest.raises(ValueError, match="adopted scenario bytes"):
         asyncio.run(replay_connection_scenes(plan.backstory, changed, adoption=adoption, ground_truth_bytes=truth_raw, backstory_bytes=raw))
 
 
 def test_full_mixed_citations_are_graded_from_private_release_event():
     from src.linger.agents.serendipity.models import ConnectionCandidate, CandidateRubric, ConnectionProposal
-    plan, *_ = package()
+    plan, *_ = scenario()
     scene = plan.scenes[0]
     searches = source_events(scene)
     ids = tuple(json.loads(event.evidence_json[0])["evidence_id"] for event in searches)

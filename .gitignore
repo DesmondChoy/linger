@@ -25,6 +25,8 @@ data/gutenberg/pg*.metadata.json
 # Miscellaneous
 tmp/
 __pycache__/
+build/
+*.egg-info/
 
 # Logfire local project credentials (from `logfire projects use`)
 .logfire/

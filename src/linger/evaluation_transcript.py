@@ -28,12 +28,12 @@ class EvaluationTranscriptSink(Protocol):
         input_contract: str,
         output_contract: str,
         prompt_template_id: str,
-        prompt_version: str,
         prompt_digest: str,
         input_prompt: str,
         message_history: Sequence[Any],
         trace_id: str,
         span_id: str,
+        skill_id: str | None = None,
     ) -> object:
         """Reserve the exchange's invocation-order position."""
 

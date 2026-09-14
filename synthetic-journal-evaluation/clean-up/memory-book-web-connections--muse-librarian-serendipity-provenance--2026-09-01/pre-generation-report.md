@@ -5,7 +5,7 @@
 
 ## Decision
 
-The current implementation is **insufficient** for the complete selected plan. Do not generate this package yet: both required Scenes depend on account-scoped memory evidence, releasable public evidence, and an Objective-specific replay and grading path that do not exist together.
+The current implementation is **insufficient** for the complete selected plan. Do not generate this scenario yet: both required Scenes depend on account-scoped memory evidence, releasable public evidence, and an Objective-specific replay and grading path that do not exist together.
 
 | Required Scene | Target behavior | Status | Exact evidence or gap |
 |---|---|---|---|
@@ -20,18 +20,19 @@ The Objective evaluates the released connection or acceptable decline, its evide
 
 ## Target evaluation design
 
-Use the six [canonical evaluation nouns](../../../docs/specification.md#721-canonical-vocabulary) as follows.
+Use the seven [canonical evaluation nouns](../../../docs/specification.md#721-canonical-vocabulary) as follows.
 
-| Noun | Application in this package |
+| Noun | Application in this scenario |
 |---|---|
 | **Objective** | One selected Objective with its catalog minimum of two contrasting Scenes. No run configuration applies, so `run_configuration_ids` is empty. |
+| **Scenario** | The complete evaluation design in this report: the selected Objectives, one Backstory, its Scenes, and separate Ground truth. |
 | **Backstory** | One corpus-backed history for one person and one evaluation account, including a prior reflection and two plausible later cues. The running system never receives it. |
 | **Prop** | One separately written, account-scoped memory record, active before both Scenes. It is not copied from a Line and has a lifecycle role in each Scene. |
 | **Scene** | Two fresh-session units: one supportable connection and one nearby overreach comparison. They share the Backstory and Prop but differ in Line and public-evidence offline input. |
 | **Line** | One natural conversational input sent to Muse in each Scene. Workflow controls are not Lines. Each Scene also has one offline input containing only its resolved public-evidence bundle. |
 | **Ground truth** | Separate proposed labels bind target connections or acceptable decline, supporting Prop, repository, and offline-input evidence, exact spans, public claims needing citations, the Scene pairing, expected outcomes, and prohibited leakage or certainty. Independent review alone can make them adopted Ground truth. |
 
-[`SyntheticBackstory` and `ProposedGroundTruth`](../../../evals/synthetic_journals/models.py) require one strict graph of Backstory, Props, Scenes, Lines, offline inputs, evidence, pairings, and proposals. The [package validator](../../../evals/synthetic_journals/validate_package.py) checks the exact Backstory hash, topology, ordering, spans, repository text, references, and declared pairing differences. It does not decide whether the connection is insightful or the labels are correct.
+[`SyntheticBackstory` and `ProposedGroundTruth`](../../../evals/synthetic_journals/models.py) require one strict graph of Backstory, Props, Scenes, Lines, offline inputs, evidence, pairings, and proposals. The [scenario validator](../../../evals/synthetic_journals/validate_scenario.py) checks the exact Backstory hash, topology, ordering, spans, repository text, references, and declared pairing differences. It does not decide whether the connection is insightful or the labels are correct.
 
 ## Current implementation and required work
 
@@ -41,7 +42,7 @@ The recent diffs establish that boundary: `6d32e6a` removed the obsolete memory/
 
 **Proposed.** Close five gaps with the smallest existing-architecture extension: a **capability gap** adds a typed, account-scoped Serendipity memory adapter over the active memories already loaded by the Memory & Policy Service; a second **capability gap** admits successfully opened web records to a deterministic citation authority; a third **capability gap** checks outgoing queries against authorized Prop text; an **adapter gap** adds a two-Scene replay that seeds Props, supplies resolved public evidence, and records queries and releases; and a **grading gap** applies deterministic citation and non-leak checks while leaving semantic connection quality to independent review. Acceptance requires same-account active-only retrieval, no private phrase reaching Exa, resolvable support for every released factual claim, fail-closed unsupported evidence, no storage change, and adopted-label grading only.
 
-**Assumed.** The generic package contracts can represent this plan unchanged. A **source gap** remains until the workflow supplies an independently reviewed, retrievable public-evidence bundle for both Scenes. No material authority contradiction remains.
+**Assumed.** The generic scenario contracts can represent this plan unchanged. A **source gap** remains until the workflow supplies an independently reviewed, retrievable public-evidence bundle for both Scenes. No material authority contradiction remains.
 
 Snapshot: `main@77164fb5a3a9266b4060346303d47789c90ff9da`, clean, `2026-09-01T22:26:00+0800`; fingerprints: catalog `35efc39c`, specification `80c2d7c3`, models `a7afb1a3`, validator `58a84b8d`, connection `0f4289ec`, Serendipity contract `f77072fb`. `HEAD` alone reproduces the inspected implementation.
 
@@ -54,7 +55,7 @@ The plan contains Lines and public-evidence offline inputs. In the supported Sce
 ```text
 STATUS: Target state — do not run
 
-PACKAGE_DIRECTORY=synthetic-journal-evaluation/clean-up/memory-book-web-connections--muse-librarian-serendipity-provenance--2026-09-01
+SCENARIO_DIRECTORY=synthetic-journal-evaluation/clean-up/memory-book-web-connections--muse-librarian-serendipity-provenance--2026-09-01
 
 PRECONDITIONS:
 - The application has a typed, account-scoped active-memory grant for connection discovery.
@@ -67,7 +68,7 @@ If any precondition is false or any resolved workflow input is missing, stop wit
 
 You have read-only access to the current checkout. Inspect only these permitted repository paths at invocation time:
 - evals/synthetic_journals/models.py
-- evals/synthetic_journals/validate_package.py
+- evals/synthetic_journals/validate_scenario.py
 - data/corpus/
 
 Do not read this report. Discover the available corpus work, immutable version, structure, and exact evidence from data/corpus/ at invocation time. Do not hardcode corpus facts from an earlier run. Use the supplied public-evidence bundle exactly; do not invent or replace public sources.
@@ -81,12 +82,12 @@ Create exactly two fresh-session Scenes. The supported Scene must make one tenta
 Write a separate proposed Ground truth file. Include one GroundTruthProposal for each Scene and this Objective. Anchor the intended target connection or acceptable decline, expected and prohibited outcomes, supporting evidence identifiers, exact relevant spans, every public factual claim that requires a retrievable citation, and the matched-Scene relationship. Use PropEvidence for the personal record, RepositoryTextEvidence with current hashes and exact spans for book support, and OfflineInputEvidence for public support. Pair the Scenes so Backstory, fresh-session state, Prop IDs, and Line count match while Line text and public-evidence content differ. Record that private Prop wording must not appear verbatim in any public-search query and that unsupported causation or certainty is prohibited.
 
 Write only these two sibling outputs:
-- PACKAGE_DIRECTORY/backstory.json
-- PACKAGE_DIRECTORY/ground-truth.json
+- SCENARIO_DIRECTORY/backstory.json
+- SCENARIO_DIRECTORY/ground-truth.json
 
 Set ground_truth_status to "proposed" and bind ground-truth.json to the exact backstory.json SHA-256. Proposed Ground truth must not enter the system under evaluation. Do not observe or grade Linger's behavior, claim adoption, create an adoption file, or create replay output.
 
-Run evals/synthetic_journals/validate_package.py against the two files. Treat any schema, hash, reference, span, ordering, evidence, pairing, or configuration failure as a generation failure. Deterministic validation does not establish semantic realism or label quality; an independent human reviewer must later adopt, revise, or reject every proposal.
+Run evals/synthetic_journals/validate_scenario.py against the two files. Treat any schema, hash, reference, span, ordering, evidence, pairing, or configuration failure as a generation failure. Deterministic validation does not establish semantic realism or label quality; an independent human reviewer must later adopt, revise, or reject every proposal.
 ```
 
 ## Ground truth lifecycle
