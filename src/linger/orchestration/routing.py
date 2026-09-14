@@ -77,7 +77,7 @@ async def _route_reader_message(
             span.set_attribute("tool.status", "clarification")
             current_session = session_id()
             if current_session is not None:
-                sessions.clear_book_selection(current_session)
+                sessions.clear_book_selection(current_session, cause="tool_uncertain")
             return ClarificationRequest(
                 kind="clarification",
                 request_id=request_id,

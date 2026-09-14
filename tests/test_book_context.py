@@ -30,6 +30,48 @@ class BookContextTests(unittest.TestCase):
         )
         self.assertIsNone(context.chapter_max)
 
+    def test_tool_uncertainty_does_not_discard_a_book_the_reader_stated(self) -> None:
+        # A routing or retrieval tool that cannot decide is the application being
+        # unsure, not the reader changing books. Discarding what the reader
+        # stated on that basis ends their reading context for the whole session.
+        sessions.set_book_selection("context-test", sessions.BookSelection(
+            book_id="pg11", book_title="Alice's Adventures in Wonderland",
+            source="reader_stated",
+        ))
+        sessions.set_pending_clarification("context-test", sessions.PendingClarification(
+            book_id="pg11", reason_code="insufficient_context",
+        ))
+
+        discarded = sessions.clear_book_selection("context-test", cause="tool_uncertain")
+
+        self.assertFalse(discarded)
+        self.assertIsNotNone(sessions.book_selection("context-test"))
+        # The reader may be partway through answering; keep the question too.
+        self.assertIsNotNone(sessions.pending_clarification("context-test"))
+        sessions.clear("context-test")
+
+    def test_tool_uncertainty_still_discards_a_book_only_inferred(self) -> None:
+        sessions.set_book_selection("context-test", sessions.BookSelection(book_id="pg11"))
+
+        discarded = sessions.clear_book_selection("context-test", cause="tool_uncertain")
+
+        self.assertTrue(discarded)
+        self.assertIsNone(sessions.book_selection("context-test"))
+        sessions.clear("context-test")
+
+    def test_a_book_out_of_permitted_scope_is_always_discarded(self) -> None:
+        # Policy outranks provenance: a book that left the allowed scope goes
+        # even when the reader stated it.
+        sessions.set_book_selection("context-test", sessions.BookSelection(
+            book_id="pg11", source="reader_stated",
+        ))
+
+        discarded = sessions.clear_book_selection("context-test", cause="out_of_scope")
+
+        self.assertTrue(discarded)
+        self.assertIsNone(sessions.book_selection("context-test"))
+        sessions.clear("context-test")
+
     def test_unknown_book_does_not_invent_identity_or_reuse_previous_progress(self) -> None:
         sessions.set_book_selection(
             "context-test", sessions.BookSelection(book_id="pg11")
