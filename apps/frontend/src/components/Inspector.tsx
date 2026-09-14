@@ -1,4 +1,4 @@
-import type { ChatResult, TurnRecord } from '../types'
+import type { ChatResult, ReleaseInspection, RiskCode, TurnRecord } from '../types'
 import { formatMachineLabel } from './formatMachineLabel'
 import { formatSeconds, toAgentSteps, toAgentTotals } from './progressSummary'
 
@@ -146,6 +146,55 @@ function releaseDecisionSummary(turn: ChatResult) {
   return 'The Muse candidate was withheld and the application supplied a safe decline.'
 }
 
+// What each Provenance finding means for the reader, in plain language. These
+// are the codes that explain why a candidate was revised or withheld, so they
+// are the first thing worth reading when a turn ends in a safe decline.
+const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
+  unresolved_evidence: 'The draft cited evidence the turn never actually retrieved.',
+  misattribution: 'The draft attributed something to the wrong source.',
+  spoiler: 'The draft reached past the confirmed reading boundary.',
+  uncited_web_claim: 'The draft made a web-sourced claim without citing the page.',
+  unsupported_claim: 'The draft asserted something no retrieved evidence supports.',
+  sensitive_content: 'The draft handled sensitive material outside policy.',
+  emotional_policy_violation: 'The draft breached the emotional boundary contract.',
+  prompt_injection: 'Retrieved content tried to steer the agent.',
+}
+
+function ReviewFindings({ release }: { release: ReleaseInspection }) {
+  const verdicts = release.provenance_verdicts
+  const survived = release.release_source === 'muse_candidate'
+
+  if (!release.finding_codes.length) {
+    return (
+      <p className="muted">
+        Review path: {verdicts.join(' → ') || 'unavailable'}. No findings were raised.
+      </p>
+    )
+  }
+
+  return (
+    <div className="review-findings">
+      <p className="muted">
+        Review path: {verdicts.join(' → ') || 'unavailable'}
+        {release.revision_count > 0 && ` · ${release.revision_count} revision${release.revision_count === 1 ? '' : 's'}`}
+        {survived
+          ? ' · the candidate was corrected and released.'
+          : ' · the candidate was withheld.'}
+      </p>
+      <ul className="finding-codes">
+        {release.finding_codes.map((code, index) => (
+          <li key={`${code}-${index}`}>
+            <b className={survived ? 'finding corrected' : 'finding blocking'}>
+              {formatMachineLabel(code)}
+            </b>
+            <span>{FINDING_EXPLANATIONS[code] ?? 'Provenance raised this finding.'}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
   const decline = turn.inspection.connection_decline
   if (!decline) return null
@@ -251,6 +300,7 @@ export function Inspector({ timeline }: Props) {
                           {releaseDecisionSummary(turn)}
                         </p>
                         {turn.inspection.release.failure_stage && <p className="muted">Failure stage: {formatMachineLabel(turn.inspection.release.failure_stage)}</p>}
+                        <ReviewFindings release={turn.inspection.release} />
                       </section>
                     )}
                     <section>

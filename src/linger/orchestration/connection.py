@@ -73,8 +73,17 @@ class ExplorationResult:
 
 
 Explorer = Callable[[ConnectionDiscoveryInput], Awaitable[ExplorationResult]]
-SERENDIPITY_REQUEST_LIMIT = 8
-SERENDIPITY_TOOL_CALL_LIMIT = 6
+# Serendipity may not cite a web_search hit directly: every URL it intends to
+# use has to be opened with get_page first. One book search, one web search and
+# a page open for each of WEB_SEARCH_RESULTS is therefore the shortest run that
+# can still cite the whole shortlist, and a second search pass is ordinary. A
+# budget that cannot cover that flow aborts the agent mid-run, which surfaces to
+# the reader as an unexplained safe decline rather than an honest decline.
+WEB_SEARCH_RESULTS = 5
+SERENDIPITY_TOOL_CALL_LIMIT = 2 * (1 + 1 + WEB_SEARCH_RESULTS)
+# Each tool result costs one further model request, plus the opening request and
+# the one that returns the shortlist.
+SERENDIPITY_REQUEST_LIMIT = SERENDIPITY_TOOL_CALL_LIMIT + 2
 
 
 class InvalidConnectionResponse(ValueError):
@@ -144,7 +153,7 @@ def _web_capability() -> GuardedExaSearch:
     if key is None or not key.get_secret_value().strip():
         raise RuntimeError("EXA_API_KEY is required when web search is enabled")
     return GuardedExaSearch(
-        num_results=5,
+        num_results=WEB_SEARCH_RESULTS,
         max_text_chars=8_000,
         include_deep_search=False,
         client=AsyncExa(api_key=key.get_secret_value().strip()),

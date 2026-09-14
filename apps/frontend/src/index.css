@@ -172,6 +172,16 @@ textarea::placeholder {
 .progress-time, .progress-duration { color: var(--muted); font-variant-numeric: tabular-nums; }
 .progress-duration { text-align: right; }
 
+
+/* Provenance review findings */
+.review-findings { margin-top: 0.5rem; }
+.finding-codes { display: grid; gap: 0.4rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
+.finding-codes li { display: grid; grid-template-columns: minmax(9rem, 12rem) 1fr; gap: 0.6rem; align-items: baseline; padding: 0.45rem 0.6rem; border-left: 3px solid var(--border); border-radius: 0 0.4rem 0.4rem 0; background: var(--panel); font-size: 0.8rem; }
+.finding-codes .finding { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.finding-codes li:has(.blocking) { border-left-color: var(--danger); }
+.finding.blocking { color: var(--danger); }
+.finding.corrected { color: var(--muted); }
+
 .trace-status { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .trace-status.complete { color: var(--accent); }
 .trace-status.running { color: var(--muted); }
