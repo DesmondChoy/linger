@@ -369,7 +369,7 @@ Line.
 
 ## Bounded-curation replay
 
-Replay a validated bounded-curation scenario through production Sculptor:
+Replay a validated bounded-curation scenario through the reviewed production curation loop:
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
@@ -378,15 +378,16 @@ uv run python -m evals.synthetic_journals.curation_replay \
 ```
 
 This runner accepts generated Props only. For each isolated Scene, application
-code resolves the active, same-account Props into one
-`AccountScopedMemories` value and calls `propose_curation`. Sculptor receives
-only memory IDs and text, has no function tools or write surface, and never
-receives the Backstory or proposed Ground truth. The durable artifact records
-every source hash before and after the call, the complete observable Sculptor
-exchange, the typed response, deterministic hard-gate comparison, and separate
-semantic criteria. Proposal mode remains an exploratory comparison. Adopted
-mode grades deterministic hard gates while continuing to expose semantic
-criteria for separate review; a hard-gate pass is not a semantic-quality claim.
+code resolves the active, same-account Props into the Memory & Policy Service and
+calls `run_curation_loop`. Sculptor receives only memory IDs and text, has no
+function tools or write surface, and never receives the Backstory or proposed
+Ground truth. The loop then binds the proposal, runs the no-tool Provenance
+curation review, applies only an exact `allow`, and verifies the immutable audit
+result. The durable artifact records source hashes, the typed Sculptor response,
+the curation-loop status, deterministic hard-gate comparison, and separate
+semantic criteria. Proposal mode remains an exploratory comparison. Adopted mode
+grades deterministic hard gates while continuing to expose semantic criteria for
+separate review; a hard-gate pass is not a semantic-quality claim.
 
 The curation command uses the same `--adoption` and `--output` behavior. It
 accepts exactly the `bounded_memory_curation` Objective, no run configuration,

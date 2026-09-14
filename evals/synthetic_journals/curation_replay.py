@@ -1,4 +1,4 @@
-"""Replay bounded-curation Props through Linger's production Sculptor boundary."""
+"""Replay bounded-curation Props through Linger's reviewed curation loop."""
 
 from __future__ import annotations
 
@@ -7,9 +7,11 @@ import asyncio
 import hashlib
 import json
 import sys
+import tempfile
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -37,7 +39,9 @@ from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
 )
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
-from src.linger.orchestration.curation import propose_curation
+from src.linger.agents.provenance.curation_models import CurationProvenanceReview
+from src.linger.orchestration.curation import CurationLoopResult, run_curation_loop
+from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
 
 from .adoption import (
     GroundTruthAdoptionError,
@@ -72,6 +76,47 @@ OBJECTIVE_COMPONENTS = (
 CurationHandler = Callable[[AccountScopedMemories], Awaitable[SculptorResponse]]
 
 
+class _SyntheticMemoryService(MemoryPolicyService):
+    """Expose scenario Props as immutable service records for the replay."""
+
+    def __init__(self, records: tuple[MemoryRecord, ...], root: Path) -> None:
+        super().__init__(root)
+        self._synthetic_records = {record.memory_id: record for record in records}
+
+    def _records_by_id(self, context: AccountContext) -> dict[str, MemoryRecord]:
+        return dict(self._synthetic_records)
+
+
+class _AllowingProvenance:
+    """Keep injected unit-test Sculptor handlers offline while using the loop."""
+
+    async def run(self, prompt: str, **_: Any) -> SimpleNamespace:
+        payload = json.loads(prompt)
+        return SimpleNamespace(
+            output=CurationProvenanceReview(
+                proposal_digest=payload["proposal_digest"],
+                decision="allow",
+            ),
+            new_messages=lambda: (),
+        )
+
+
+class _InjectedSculptor:
+    """Adapt the replay's test handler to the Agent interface used by the loop."""
+
+    def __init__(self, handler: CurationHandler, batch: AccountScopedMemories) -> None:
+        self.handler = handler
+        self.batch = batch
+
+    async def run(self, prompt: str, **_: Any) -> SimpleNamespace:
+        if "account_scope" in prompt:
+            raise AssertionError("account scope leaked into Sculptor prompt")
+        return SimpleNamespace(
+            output=await self.handler(self.batch),
+            new_messages=lambda: (),
+        )
+
+
 class EvaluationIdentity(StrictModel):
     """Content-derived identity with one documented comparison purpose."""
 
@@ -93,7 +138,7 @@ class SourceHash(StrictModel):
 
 
 class CurationSceneObservation(StrictModel):
-    """Complete durable observation for one bounded Sculptor call."""
+    """Complete durable observation for one reviewed curation loop."""
 
     scene_id: str
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
@@ -105,6 +150,9 @@ class CurationSceneObservation(StrictModel):
     source_hashes_before: tuple[SourceHash, ...]
     source_hashes_after: tuple[SourceHash, ...]
     source_immutable: Literal[True]
+    curation_status: Literal[
+        "no_change", "provenance_revise", "provenance_reject", "applied"
+    ]
     agent_exchanges: tuple[AgentExchange, ...]
 
 
@@ -255,7 +303,7 @@ async def replay_curation_scenes(
     curation_handler: CurationHandler | None = None,
     configured_model: str | None = None,
 ) -> CurationEvaluationRun:
-    """Run validated synthetic Props through production ``propose_curation``."""
+    """Run validated synthetic Props through production ``run_curation_loop``."""
 
     scene_inputs = _curation_scene_inputs(backstory, ground_truth)
     ground_truth_status: GroundTruthStatus = (
@@ -273,15 +321,13 @@ async def replay_curation_scenes(
         if ground_truth_status == "adopted"
         else "proposal_comparison"
     )
+    handler = curation_handler
     if curation_handler is None:
         if configured_model is not None:
             raise ValueError(
                 "configured_model may only label an injected evaluation handler"
             )
-        handler = propose_curation
         configure_synthetic_evaluation_telemetry(evaluation_agents())
-    else:
-        handler = curation_handler
 
     run_id = uuid4().hex
     identities = build_curation_identities(configured_model=configured_model)
@@ -394,13 +440,45 @@ async def replay_curation_scene(
     batch: AccountScopedMemories,
     expectation: CurationExpectation,
     *,
-    handler: CurationHandler,
+    handler: CurationHandler | None,
     ground_truth_status: GroundTruthStatus,
+    use_production_provenance: bool = False,
 ) -> CurationSceneObservation:
     recorder = SceneTranscriptRecorder()
+    account = AccountContext(batch.account_scope)
     before = _source_hashes(batch)
-    with bind_evaluation_transcript_sink(recorder):
-        response = await handler(batch)
+    records = tuple(
+        MemoryRecord(
+            memory_id=memory.memory_id,
+            account_key=hashlib.sha256(batch.account_scope.encode("utf-8")).hexdigest(),
+            text=memory.text,
+            capture_type="automatic",
+            source_event_id=f"synthetic:{scene_id}:{memory.memory_id}",
+            idempotency_key=f"synthetic:{scene_id}:{memory.memory_id}",
+            evidence_ids=(),
+            created_at="2026-01-01T00:00:00+00:00",
+            updated_at="2026-01-01T00:00:00+00:00",
+        )
+        for memory in batch.memories
+    )
+    with tempfile.TemporaryDirectory(prefix="linger-curation-replay-") as root:
+        service = _SyntheticMemoryService(records, Path(root))
+
+        loop_kwargs: dict[str, Any] = {}
+        if handler is not None:
+            loop_kwargs.update(
+                sculptor=_InjectedSculptor(handler, batch),
+            )
+            if not use_production_provenance:
+                loop_kwargs["provenance"] = _AllowingProvenance()
+        with bind_evaluation_transcript_sink(recorder):
+            loop: CurationLoopResult = await run_curation_loop(
+                account,
+                tuple(memory.memory_id for memory in batch.memories),
+                service=service,
+                **loop_kwargs,
+            )
+    response = loop.sculptor_response
     after = _source_hashes(batch)
     if after != before:
         raise RuntimeError(f"Scene {scene_id} changed supplied source content")
@@ -429,6 +507,7 @@ async def replay_curation_scene(
         source_hashes_before=before,
         source_hashes_after=after,
         source_immutable=True,
+        curation_status=loop.status,
         agent_exchanges=recorder.exchanges,
     )
 
