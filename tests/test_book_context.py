@@ -143,6 +143,38 @@ class BookContextTests(unittest.TestCase):
                 self.assertEqual(8, context.chapter_max)
                 sessions.clear("context-test")
 
+    def test_a_later_sentence_is_not_read_as_a_declared_book_title(self) -> None:
+        # A clause such as "... from The way Napoleon drove out Snowball" sits in
+        # its own sentence and names a scene, not a book. Reading it as a title
+        # yields an unresolvable book, and an unresolvable declared title clears
+        # the reader's confirmed selection, silently losing it for the rest of
+        # the session.
+        resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message="I have finished Chapter 5 of Animal Farm.",
+        ))
+
+        context = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message=(
+                "I finished chapter 5. I want to explore political dynamics "
+                "from The way Napoleon drove out Snowball with the dogs"
+            ),
+        ))
+
+        self.assertEqual("confirmed", context.status)
+        self.assertEqual("Animal Farm", context.work_title)
+        self.assertEqual(5, context.chapter_max)
+        self.assertIsNotNone(sessions.book_selection("context-test"))
+
+        # The book must still be known on the next, bookless follow-up.
+        follow_up = resolve_reading_context(ChatRequest(
+            session_id="context-test",
+            message="Is there a comparison to real life politics?",
+        ))
+        self.assertEqual("Animal Farm", follow_up.work_title)
+        sessions.clear("context-test")
+
     def test_declared_title_ignores_prose_after_the_declaration(self) -> None:
         # The title suffix must stop at the sentence end and at trailing
         # clauses; otherwise it swallows the rest of the message and the

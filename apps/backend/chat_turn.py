@@ -148,7 +148,12 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
         if title_match is None:
             title_match = TITLE_PREFIX_PATTERN.search(before)
         if title_match is None:
-            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(after)
+            # Only the sentence holding the chapter can name its book. Searching
+            # further reads an unrelated later clause as a declared title, and an
+            # unresolvable declared title clears the reader's confirmed book.
+            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(
+                re.split(r"[.!?]", after, maxsplit=1)[0]
+            )
         if title_match is None:
             title_match = TITLE_LEAD_PATTERN.match(before)
     else:
