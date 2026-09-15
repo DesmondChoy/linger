@@ -3,6 +3,7 @@
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -22,15 +23,18 @@ from src.linger.agents.sculptor.models import (
     RetrievalTombstone,
     TopicGroup,
 )
+from src.linger.contracts.curation import ApprovedCuration
 from src.linger.services.memory import (
     AccountContext,
     AutomaticMemoryCandidate,
+    CurationPolicyError,
     MemoryPolicyService,
     MemoryRecord,
 )
 
 with patch("src.linger.agents.build.build_model", return_value=TestModel()):
     from src.linger.orchestration.curation import (
+        CurationSourceMutation,
         InvalidCurationReview,
         run_curation_loop,
     )
@@ -70,6 +74,24 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
             )
         )
         return agent
+
+    @staticmethod
+    def approved_plan(service, account, records, action, review=None):
+        from src.linger.orchestration.curation import prepare_curation_plan
+
+        plan = prepare_curation_plan(
+            records,
+            CurationProposal(kind="curation_proposal", action=action),
+            base_state_sha256=service.curation_state_sha256(account),
+        )
+        return ApprovedCuration(
+            plan=plan,
+            review=review
+            or CurationProvenanceReview(
+                proposal_digest=plan.digest,
+                decision="allow",
+            ),
+        )
 
     @staticmethod
     def allowing_provenance() -> AsyncMock:
@@ -202,7 +224,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 decision="allow",
             )
         )
-        with self.assertRaises(InvalidCurationReview):
+        with self.assertRaises(InvalidCurationReview) as raised:
             await run_curation_loop(
                 self.account,
                 (first.memory_id, second.memory_id),
@@ -210,7 +232,92 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 sculptor=self.sculptor_for(action),
                 provenance=unbound,
             )
+        self.assertEqual("curation_review_unbound", raised.exception.code)
         self.assertEqual((), self.service.list_curation_audit(self.account))
+
+    async def test_source_mutation_fails_closed_with_named_error(self) -> None:
+        class MutatingService(MemoryPolicyService):
+            selections = 0
+
+            def select_for_curation(self, context, memory_ids):
+                records = super().select_for_curation(context, memory_ids)
+                self.selections += 1
+                if self.selections == 2:
+                    return (records[0], replace(records[1], text="Changed after proposal."))
+                return records
+
+        service = MutatingService(self.directory.name + "/mutating")
+        service.set_capture_enabled(self.account, True)
+        first = service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="A repeated preference.",
+                source_event_id="mutating-source-1",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        ).record
+        second = service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="A repeated preference.",
+                source_event_id="mutating-source-2",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        ).record
+        action = DuplicateLink(
+            action="link_duplicates",
+            source_memory_ids=(first.memory_id, second.memory_id),
+        )
+
+        with self.assertRaises(CurationSourceMutation) as raised:
+            await run_curation_loop(
+                self.account,
+                (first.memory_id, second.memory_id),
+                service=service,
+                sculptor=self.sculptor_for(action),
+                provenance=self.allowing_provenance(),
+            )
+        self.assertEqual("curation_source_mutated", raised.exception.code)
+        self.assertEqual((), service.list_curation_audit(self.account))
+
+    def test_stale_state_is_named_and_does_not_apply(self) -> None:
+        first, second = self.seed("Same preference.", "Same preference.")
+        action = DuplicateLink(
+            action="link_duplicates",
+            source_memory_ids=(first.memory_id, second.memory_id),
+        )
+        approved = self.approved_plan(
+            self.service, self.account, (first, second), action
+        )
+        stale_action = TopicGroup(
+            action="assign_topic_group",
+            source_memory_ids=(first.memory_id, second.memory_id),
+            topic_label="A shared preference",
+        )
+        stale = self.approved_plan(
+            self.service, self.account, (first, second), stale_action
+        )
+        self.service.apply_curation(self.account, approved)
+
+        with self.assertRaises(CurationPolicyError) as raised:
+            self.service.apply_curation(self.account, stale)
+        self.assertEqual("curation_state_stale", raised.exception.reason)
+
+    def test_cross_account_plan_is_named_and_does_not_apply(self) -> None:
+        first, second = self.seed("Same preference.", "Same preference.")
+        action = DuplicateLink(
+            action="link_duplicates",
+            source_memory_ids=(first.memory_id, second.memory_id),
+        )
+        approved = self.approved_plan(
+            self.service, self.account, (first, second), action
+        )
+
+        with self.assertRaises(CurationPolicyError) as raised:
+            self.service.apply_curation(AccountContext("other-account"), approved)
+        self.assertEqual("curation_account_scope_mismatch", raised.exception.reason)
 
     async def test_no_proposal_skips_provenance_and_storage(self) -> None:
         first, second = self.seed("Unrelated one", "Unrelated two")

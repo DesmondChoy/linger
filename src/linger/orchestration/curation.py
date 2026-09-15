@@ -43,12 +43,38 @@ from src.linger.services.memory import (
 )
 
 
-class InvalidCurationProposal(ValueError):
+class CurationLoopError(ValueError):
+    """Named fail-closed error at the reviewed curation boundary."""
+
+    code: str
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+class InvalidCurationProposal(CurationLoopError):
     """Raised when a proposal escapes its typed, account-scoped input."""
 
+    def __init__(self, message: str) -> None:
+        super().__init__("curation_invalid_proposal", message)
 
-class InvalidCurationReview(ValueError):
+
+class InvalidCurationReview(CurationLoopError):
     """Raised when Provenance does not review the exact proposed curation."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__("curation_review_unbound", message)
+
+
+class CurationSourceMutation(CurationLoopError):
+    """Raised when a curation agent changes an immutable source snapshot."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "curation_source_mutated",
+            "curation agents changed immutable source records",
+        )
 
 
 class CurationLoopResult(StrictModel):
@@ -289,4 +315,4 @@ def _require_immutable_sources(
     after: tuple[CurationSourceSnapshot, ...],
 ) -> None:
     if before != after:
-        raise RuntimeError("curation agents changed immutable source records")
+        raise CurationSourceMutation()
