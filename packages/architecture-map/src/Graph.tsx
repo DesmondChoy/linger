@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 import { Icon } from './Icon'
 import { components } from './scenarios'
 import { layoutScene } from './layout'
@@ -36,6 +36,17 @@ function connection(source: GraphNode, target: GraphNode) {
   return { d: `M${source.x},${y1} C${source.x},${mid} ${target.x},${mid} ${target.x},${y2}`, x: (source.x + target.x) / 2 + 85, y: mid + 4, labelSpace: 170 }
 }
 
+const TOOLTIP_WIDTH = 330
+
+export function anchor(rect: DOMRect): CSSProperties {
+  const half = TOOLTIP_WIDTH / 2
+  const left = Math.min(Math.max(rect.left + rect.width / 2, half + 10), window.innerWidth - half - 10)
+  const flip = rect.bottom + 270 > window.innerHeight
+  return flip
+    ? { position: 'fixed', left, top: rect.top - 10, transform: 'translate(-50%, -100%)' }
+    : { position: 'fixed', left, top: rect.bottom + 10, transform: 'translateX(-50%)' }
+}
+
 function activate(event: KeyboardEvent<SVGGElement>, action: () => void) {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault()
@@ -44,8 +55,8 @@ function activate(event: KeyboardEvent<SVGGElement>, action: () => void) {
 }
 
 export function Graph({ scene, step, onSelect, description = 'expected architecture' }: { scene: Scene; step: WalkthroughStep | null; onSelect: (selection: InspectorSelection) => void; description?: string }) {
-  const [hovered, setHovered] = useState<GraphNode | null>(null)
-  const [hoveredEdge, setHoveredEdge] = useState<{ edge: GraphEdge; x: number; y: number } | null>(null)
+  const [hovered, setHovered] = useState<{ node: GraphNode; rect: DOMRect } | null>(null)
+  const [hoveredEdge, setHoveredEdge] = useState<{ edge: GraphEdge; rect: DOMRect } | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
   const layout = useMemo(() => layoutScene(scene), [scene])
   useEffect(() => {
@@ -83,7 +94,7 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
             const line = connection(source, target)
             const active = step ? step.edges.includes(edge.id) : edge.emphasis
             const marker = active ? 'url(#arrow-active)' : 'url(#arrow-neutral)'
-            return <g key={edge.id} className={`graph-edge ${active ? 'is-active' : ''}`} role="button" tabIndex={0} aria-label={`Explore connection: ${components[edge.source].label} to ${components[edge.target].label}${edge.label ? `, ${edge.label}` : ''}`} onMouseEnter={() => setHoveredEdge({ edge, x: line.x, y: line.y })} onMouseLeave={() => setHoveredEdge(null)} onFocus={() => setHoveredEdge({ edge, x: line.x, y: line.y })} onBlur={() => setHoveredEdge(null)} onClick={() => { setHoveredEdge(null); onSelect({ kind: 'edge', id: edge.id }) }} onKeyDown={event => activate(event, () => onSelect({ kind: 'edge', id: edge.id }))}>
+            return <g key={edge.id} className={`graph-edge ${active ? 'is-active' : ''}`} role="button" tabIndex={0} aria-label={`Explore connection: ${components[edge.source].label} to ${components[edge.target].label}${edge.label ? `, ${edge.label}` : ''}`} onMouseEnter={event => setHoveredEdge({ edge, rect: event.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setHoveredEdge(null)} onFocus={event => setHoveredEdge({ edge, rect: event.currentTarget.getBoundingClientRect() })} onBlur={() => setHoveredEdge(null)} onClick={() => { setHoveredEdge(null); onSelect({ kind: 'edge', id: edge.id }) }} onKeyDown={event => activate(event, () => onSelect({ kind: 'edge', id: edge.id }))}>
               <title>{edge.summary}</title>
               <path className="edge-hit" d={line.d} />
               <path className="edge-line" d={line.d} markerEnd={marker} markerStart={edge.bidirectional ? marker : undefined} />
@@ -98,7 +109,7 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
           const role = node.id === 'preflight' ? 'Provenance' : node.role ?? definition.role
           const active = step?.nodes.includes(node.id)
           return <foreignObject key={node.id} data-node={node.id} x={node.x - 92} y={node.y - 80} width="184" height={node.footer ? 248 : 180} className={`graph-node ${active ? 'is-active' : ''}`}>
-            <button className={`node-button node-${compact ? 'service' : definition.kind} identity-${node.id} ${node.id === 'preflight' ? 'compact-agent' : ''} ${node.muted ? 'is-muted' : ''} ${node.footer ? 'has-footer' : ''}`} onMouseEnter={() => setHovered(node)} onMouseLeave={() => setHovered(null)} onFocus={() => setHovered(node)} onBlur={() => setHovered(null)} onClick={() => { setHovered(null); onSelect({ kind: 'node', id: node.id }) }} aria-label={`Explore ${label}: ${role}`}>
+            <button className={`node-button node-${compact ? 'service' : definition.kind} identity-${node.id} ${node.id === 'preflight' ? 'compact-agent' : ''} ${node.muted ? 'is-muted' : ''} ${node.footer ? 'has-footer' : ''}`} onMouseEnter={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setHovered(null)} onFocus={event => setHovered({ node, rect: event.currentTarget.getBoundingClientRect() })} onBlur={() => setHovered(null)} onClick={() => { setHovered(null); onSelect({ kind: 'node', id: node.id }) }} aria-label={`Explore ${label}: ${role}`}>
               <span className={`node-tile tile-${node.id}`}><Icon name={node.id} size={!compact && definition.kind === 'agent' ? 48 : 28} />{compact && <span>{label}</span>}</span>
               {!compact && <span className="node-name">{label}</span>}
               <span className="node-role">{role}</span>
@@ -110,20 +121,20 @@ export function Graph({ scene, step, onSelect, description = 'expected architect
           </foreignObject>
         })}
       </svg>
-      {hovered && !step && <div className="node-tooltip" role="tooltip" style={{ left: `${Math.min(82, Math.max(18, hovered.x / layout.width * 100))}%`, top: `${Math.min(78, (hovered.y + 105) / layout.height * 100)}%` }}>
-        <strong>{components[hovered.id].kind === 'agent' ? 'Reasoning agent' : components[hovered.id].kind === 'service' ? 'Deterministic service' : 'Workflow context'}</strong>
-        <span>{components[hovered.id].summary}</span>
+      {hovered && !step && <div className="node-tooltip" role="tooltip" style={anchor(hovered.rect)}>
+        <strong>{components[hovered.node.id].kind === 'agent' ? 'Reasoning agent' : components[hovered.node.id].kind === 'service' ? 'Deterministic service' : 'Workflow context'}</strong>
+        <span>{components[hovered.node.id].summary}</span>
         <dl className="tooltip-contract">
           <dt>Receives</dt>
-          <dd>{components[hovered.id].receives.join(' · ')}</dd>
+          <dd>{components[hovered.node.id].receives.join(' · ')}</dd>
           <dt>Returns</dt>
-          <dd>{components[hovered.id].returns.join(' · ')}</dd>
+          <dd>{components[hovered.node.id].returns.join(' · ')}</dd>
           <dt>Authority</dt>
-          <dd>{components[hovered.id].authority}</dd>
+          <dd>{components[hovered.node.id].authority}</dd>
         </dl>
         <small>Click to open the full contract</small>
       </div>}
-      {hoveredEdge && !step && <div className="node-tooltip edge-tooltip" role="tooltip" style={{ left: `${Math.min(82, Math.max(18, hoveredEdge.x / layout.width * 100))}%`, top: `${Math.min(78, (hoveredEdge.y + 70) / layout.height * 100)}%` }}>
+      {hoveredEdge && !step && <div className="node-tooltip edge-tooltip" role="tooltip" style={anchor(hoveredEdge.rect)}>
         <strong>{components[hoveredEdge.edge.source].label} <span aria-hidden="true">→</span> {components[hoveredEdge.edge.target].label}</strong>
         <span>{hoveredEdge.edge.summary}</span>
         {hoveredEdge.edge.payload.length > 0 && <dl className="tooltip-contract">

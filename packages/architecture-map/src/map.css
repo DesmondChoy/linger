@@ -110,7 +110,7 @@
 .architecture-map .graph-edge.is-active .edge-label text, .architecture-map .graph-edge:hover .edge-label text { fill: #075ccd; }
 .architecture-map .graph-edge:focus-visible .edge-hit { stroke: #0766eb20; }
 .architecture-map.status-target .edge-line , .architecture-map .status-target .edge-line { stroke-dasharray: 6 6; }
-.architecture-map .node-tooltip { position: absolute; width: 280px; padding: 15px 18px 13px; background: #fffffff5; color: var(--secondary); box-shadow: 0 8px 30px #2a49762b; border: 1px solid #cbd6e5; border-radius: 12px; transform: translateX(-50%); pointer-events: none; z-index: 3; font-size: 14px; line-height: 1.5; }
+.architecture-map .node-tooltip { position: fixed; width: 330px; padding: 15px 18px 13px; background: #fffffff5; color: var(--secondary); box-shadow: 0 8px 30px #2a49762b; border: 1px solid #cbd6e5; border-radius: 12px; transform: translateX(-50%); pointer-events: none; z-index: 50; font-size: 14px; line-height: 1.5; }
 .architecture-map .node-tooltip strong { color: var(--ink); display: block; font-size: 13px; margin-bottom: 5px; }
 .architecture-map .node-tooltip small { display: block; color: #53647c; margin-top: 7px; font-size: 12px; }
 
@@ -273,7 +273,6 @@
 
 /* Hover reveals the contract itself, so the map answers "what crosses here?"
    without a click. Clicking still opens the full drawer. */
-.architecture-map .node-tooltip { width: 330px; }
 .architecture-map .tooltip-contract { display: grid; grid-template-columns: 74px 1fr; gap: 3px 10px; margin: 10px 0 0; padding-top: 9px; border-top: 1px solid #e3e9f1; }
 .architecture-map .tooltip-contract dt { color: #7b8896; font-size: 11.5px; font-weight: 600; }
 .architecture-map .tooltip-contract dd { margin: 0; color: #415168; font-size: 12px; line-height: 1.45; }
