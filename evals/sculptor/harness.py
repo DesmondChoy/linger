@@ -13,6 +13,8 @@ from src.linger.agents.sculptor.models import (
     DerivedSummary as DerivedSummaryResponse,
     DuplicateLink as DuplicateLinkResponse,
     NoCurationProposal as NoCurationProposalResponse,
+    RetrievalRestore as RetrievalRestoreResponse,
+    RetrievalTombstone as RetrievalTombstoneResponse,
     SCULPTOR_RESPONSE_ADAPTER as RESPONSE_ADAPTER,
     SculptorResponse,
     TopicGroup as TopicGroupResponse,
@@ -104,10 +106,42 @@ class TopicGroupExpectation(StrictModel):
     semantic_review: SemanticReview
 
 
+class RetrievalTombstoneExpectation(StrictModel):
+    action: Literal["tombstone_for_retrieval"]
+    source_memory_ids: tuple[str, ...] = Field(min_length=2, max_length=2)
+    memory_id: str = Field(min_length=1)
+    canonical_memory_id: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_linked_distinct_sources(self) -> Self:
+        if self.memory_id == self.canonical_memory_id:
+            raise ValueError("a retrieval tombstone requires distinct targets")
+        if set(self.source_memory_ids) != {
+            self.memory_id,
+            self.canonical_memory_id,
+        }:
+            raise ValueError("retrieval tombstone sources must match its targets")
+        return self
+
+
+class RetrievalRestoreExpectation(StrictModel):
+    action: Literal["restore_to_retrieval"]
+    source_memory_ids: tuple[str, ...] = Field(min_length=1, max_length=1)
+    memory_id: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_target_source(self) -> Self:
+        if self.source_memory_ids != (self.memory_id,):
+            raise ValueError("retrieval restore source must be its target")
+        return self
+
+
 ExpectedAction = Annotated[
     DuplicateLinkExpectation
     | DerivedSummaryExpectation
-    | TopicGroupExpectation,
+    | TopicGroupExpectation
+    | RetrievalTombstoneExpectation
+    | RetrievalRestoreExpectation,
     Field(discriminator="action"),
 ]
 
@@ -128,11 +162,24 @@ ExpectedResponse = Annotated[
 ]
 
 
+class CurationOutcomeExpectation(StrictModel):
+    """Expected result after the proposal has passed through the reviewed loop."""
+
+    provenance_decision: Literal["allow", "revise", "reject", "not_reviewed"] | None = None
+    status: Literal[
+        "no_change", "provenance_revise", "provenance_reject", "applied"
+    ] | None = None
+    application_created: bool | None = None
+    audit_verified: bool | None = None
+    retrieval_memory_ids: tuple[str, ...] | None = None
+
+
 class CurationExpectation(StrictModel):
     """Reusable expected behavior for one bounded curation invocation."""
 
     primary_behavior: PrimaryBehavior
     expected: ExpectedResponse
+    outcome: CurationOutcomeExpectation = CurationOutcomeExpectation()
 
     @model_validator(mode="after")
     def validate_expected_behavior(self) -> Self:
@@ -256,15 +303,21 @@ def grade_curation_expectation(
     expectation: CurationExpectation,
     input_memory_ids: tuple[str, ...],
     response: SculptorResponse | dict[str, object],
+    *,
+    outcome: CurationOutcomeExpectation | None = None,
 ) -> GradeResult:
     """Grade one scenario-backed expectation with the adopted hard gates."""
     semantic_review = _semantic_review(expectation.expected)
     try:
         parsed = RESPONSE_ADAPTER.validate_python(response)
     except ValidationError as exc:
+        outcome_failures = _grade_curation_outcome(expectation.outcome, outcome)
         return GradeResult(
             hard_pass=False,
-            failures=(f"invalid_response:{exc.error_count()}_validation_error(s)",),
+            failures=(
+                f"invalid_response:{exc.error_count()}_validation_error(s)",
+                *outcome_failures,
+            ),
             **semantic_review,
         )
 
@@ -272,6 +325,7 @@ def grade_curation_expectation(
     if isinstance(expectation.expected, ExpectedNoCurationProposal):
         if not isinstance(parsed, NoCurationProposalResponse):
             failures.append("expected_no_curation_proposal")
+        failures.extend(_grade_curation_outcome(expectation.outcome, outcome))
         return GradeResult(
             hard_pass=not failures,
             failures=tuple(failures),
@@ -280,8 +334,9 @@ def grade_curation_expectation(
 
     if not isinstance(parsed, CurationProposalResponse):
         failures.append("expected_curation_proposal")
+        failures.extend(_grade_curation_outcome(expectation.outcome, outcome))
         return GradeResult(
-            hard_pass=False,
+            hard_pass=not failures,
             failures=tuple(failures),
             **semantic_review,
         )
@@ -309,12 +364,47 @@ def grade_curation_expectation(
     ):
         if len(actual_action.summary.split()) > expected_action.max_summary_words:
             failures.append("summary_exceeds_word_limit")
+    if isinstance(expected_action, RetrievalTombstoneExpectation):
+        if not isinstance(actual_action, RetrievalTombstoneResponse):
+            failures.append("expected_retrieval_tombstone")
+        elif (
+            actual_action.memory_id != expected_action.memory_id
+            or actual_action.canonical_memory_id != expected_action.canonical_memory_id
+        ):
+            failures.append("retrieval_tombstone_target_mismatch")
+    if isinstance(expected_action, RetrievalRestoreExpectation):
+        if not isinstance(actual_action, RetrievalRestoreResponse):
+            failures.append("expected_retrieval_restore")
+        elif actual_action.memory_id != expected_action.memory_id:
+            failures.append("retrieval_restore_target_mismatch")
+
+    failures.extend(_grade_curation_outcome(expectation.outcome, outcome))
 
     return GradeResult(
         hard_pass=not failures,
         failures=tuple(failures),
         **semantic_review,
     )
+
+
+def _grade_curation_outcome(
+    expected: CurationOutcomeExpectation,
+    actual: CurationOutcomeExpectation | None,
+) -> list[str]:
+    if actual is None:
+        return [] if expected == CurationOutcomeExpectation() else ["missing_curation_outcome"]
+    failures: list[str] = []
+    for field in (
+        "provenance_decision",
+        "status",
+        "application_created",
+        "audit_verified",
+        "retrieval_memory_ids",
+    ):
+        expected_value = getattr(expected, field)
+        if expected_value is not None and expected_value != getattr(actual, field):
+            failures.append(f"{field}_mismatch")
+    return failures
 
 
 def _semantic_review(expected: ExpectedResponse) -> dict[str, object]:

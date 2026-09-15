@@ -140,8 +140,9 @@ async def replay_capture_curation_scenes(
 
     Capture Scenes share one temporary account store across fresh conversations.
     Curation Scenes inspect only their designated immutable Props under the same
-    account; their evaluated endpoint remains the Sculptor proposal. An injected
-    ``configured_model`` labels the shared model used by both injected handlers.
+    account; curation Scenes use the reviewed ``run_curation_loop`` endpoint.
+    An injected ``configured_model`` labels the shared model used by both
+    injected handlers.
     """
 
     if len(backstory.objective_ids) != 2 or set(backstory.objective_ids) != set(OBJECTIVE_IDS):

@@ -252,8 +252,11 @@ def test_combined_replay_uses_production_handlers_and_original_adoption(
     assert all(scene.grade.hard_pass and scene.source_hashes_before == scene.source_hashes_after
                for scene in curation_observations)
     assert sum(scene.grade.semantic_review_required for scene in curation_observations) == 2
-    assert all([exchange.role for exchange in scene.agent_exchanges] == ["Sculptor"]
-               for scene in curation_observations)
+    assert all(
+        scene.curation_status
+        == ("applied" if scene.response.kind == "curation_proposal" else "no_change")
+        for scene in curation_observations
+    )
     assert all(
         {memory.memory_id for memory in scene.input_memories}.isdisjoint(
             result.final_active_memory_ids
@@ -302,7 +305,13 @@ def test_combined_replay_emits_one_ordered_native_evaluation() -> None:
         if isinstance(scene, CurationSceneObservation) and not scene.grade.hard_pass
     )
     assert "capture_nomination_mismatch" in failed_capture.hard_failures
-    assert failed_curation.grade.failures == ("expected_curation_proposal",)
+    assert failed_curation.grade.failures == (
+        "expected_curation_proposal",
+        "provenance_decision_mismatch",
+        "status_mismatch",
+        "application_created_mismatch",
+        "audit_verified_mismatch",
+    )
     assert failed_curation.response.kind == "no_curation_proposal"
     assert failed_curation.ground_truth_result == "differs_from_proposal"
     spans = exporter.exported_spans_as_dict()

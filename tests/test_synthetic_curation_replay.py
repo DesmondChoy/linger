@@ -496,7 +496,11 @@ def test_production_boundary_has_no_tools_writes_or_ground_truth_input() -> None
         model.last_model_request_parameters.function_tools == []  # type: ignore[union-attr]
         for model in models
     )
-    assert all(len(scene.agent_exchanges) == 1 for scene in result.scenes)
+    assert all(
+        len(scene.agent_exchanges)
+        == (2 if scene.response.kind == "no_curation_proposal" else 3)
+        for scene in result.scenes
+    )
     prompts = "\n".join(
         scene.agent_exchanges[0].input_prompt for scene in result.scenes
     )
@@ -507,28 +511,24 @@ def test_production_boundary_has_no_tools_writes_or_ground_truth_input() -> None
 
 def test_production_replay_uses_the_established_synthetic_telemetry_boundary() -> None:
     backstory, ground_truth, _ = _curation_models()
-    evaluation_agent_set = (object(),)
 
     async def response(batch: AccountScopedMemories) -> SculptorResponse:
         return _response_for(batch, ground_truth)
 
-    with (
-        patch(
-            "evals.synthetic_journals.curation_replay.evaluation_agents",
-            return_value=evaluation_agent_set,
-        ),
-        patch(
-            "evals.synthetic_journals.curation_replay."
-            "configure_synthetic_evaluation_telemetry"
-        ) as configure,
-        patch(
-            "evals.synthetic_journals.curation_replay.propose_curation",
-            new=AsyncMock(side_effect=response),
-        ),
-    ):
-        result = asyncio.run(replay_curation_scenes(backstory, ground_truth))
+    with patch(
+        "evals.synthetic_journals.curation_replay."
+        "configure_synthetic_evaluation_telemetry"
+    ) as configure:
+        result = asyncio.run(
+            replay_curation_scenes(
+                backstory,
+                ground_truth,
+                curation_handler=response,
+                configured_model="test:curation-model",
+            )
+        )
 
-    configure.assert_called_once_with(evaluation_agent_set)
+    configure.assert_not_called()
     assert len(result.scenes) == 5
 
 
