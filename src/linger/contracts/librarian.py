@@ -27,10 +27,13 @@ class RetrievalOptions(StrictModel):
 
 
 class LibrarianRequest(StrictModel):
-    """Muse's question plus the trusted, validated scope to answer it in."""
+    """Original reader question and the application-validated scope for planning."""
 
     request_id: str
-    query: str = Field(min_length=1, max_length=2000)
+    query: str = Field(
+        min_length=1, max_length=8000,
+        description="Original reader text for book-request planning; not the derived retrieval query.",
+    )
     work_id: str
     book_version_id: str
     reading_boundary: ReadingBoundary | None

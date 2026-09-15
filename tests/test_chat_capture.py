@@ -62,6 +62,7 @@ def review(
     *,
     risk_code: str | None = None,
     response_decision: str = "pass",
+    finding_resolutions: tuple[dict[str, object], ...] = (),
 ) -> ProvenanceReview:
     findings = []
     if risk_code is not None:
@@ -95,6 +96,7 @@ def review(
         response_decision=response_decision,
         emotional_boundary_decision="not_required",
         capture_decision=capture_decision,
+        finding_resolutions=finding_resolutions,
     )
 
 
@@ -398,6 +400,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             update={
                 "evidence_uses": (
                     BookEvidenceUse(
+                        supported_claims=(valid.reply,),
                         source_kind="book_corpus",
                         evidence_id="unknown-evidence",
                         source_location="Unknown source",
@@ -416,7 +419,12 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                 [valid, valid],
                 [
                     review("allow_capture", response_decision="revise"),
-                    review("allow_capture", response_decision="reject"),
+                    review("allow_capture", response_decision="reject",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
                 ],
                 None,
             ),
@@ -424,7 +432,12 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                 [valid, valid],
                 [
                     review("allow_capture", response_decision="revise"),
-                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="revise",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
                 ],
                 None,
             ),
@@ -437,7 +450,11 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                 [valid, unsupported],
                 [
                     review("allow_capture", response_decision="revise"),
-                    review("allow_capture"),
+                    review("allow_capture", finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'resolved',
+                        'explanation': 'The reviewer accepts the citation; application identity validation remains required.',
+                    },)),
                 ],
                 "deterministic_validation",
             ),

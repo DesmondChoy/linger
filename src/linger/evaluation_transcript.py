@@ -15,6 +15,15 @@ from typing import Any, Protocol, Literal
 from dataclasses import dataclass
 
 
+AgentFailureCategory = Literal[
+    "model_response_error",
+    "usage_limit",
+    "provider_error",
+    "unknown_error",
+    "cancelled",
+]
+
+
 class EvaluationTranscriptSink(Protocol):
     """Receives one agent exchange without exporting it to Logfire."""
 
@@ -44,8 +53,10 @@ class EvaluationTranscriptSink(Protocol):
         result: Any | None,
         status: str,
         failure_code: str | None,
+        partial_messages: Sequence[Any] = (),
+        failure_category: AgentFailureCategory | None = None,
     ) -> None:
-        """Attach the model result or fixed failure outcome."""
+        """Attach a result or failure with evaluation-only attempted messages."""
 
 
 _ACTIVE_SINK: ContextVar[EvaluationTranscriptSink | None] = ContextVar(

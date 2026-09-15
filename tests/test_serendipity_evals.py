@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import AsyncMock, patch
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
@@ -237,7 +238,7 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
                     parts=[
                         ToolCallPart(
                             "search_librarian",
-                            {"query": "identity change explanation"},
+                            {},
                         )
                     ]
                 )
@@ -251,7 +252,12 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
                 ]
             )
 
-        report = await run_case(case, model=FunctionModel(respond))
+        with patch(
+            "src.linger.orchestration.book_evidence.plan_book_request",
+            new=AsyncMock(side_effect=AssertionError("Fixture evaluation must not call a live judge")),
+        ) as live_judge:
+            report = await run_case(case, model=FunctionModel(respond))
+        live_judge.assert_not_awaited()
 
         self.assertTrue(report.grade.hard_pass, report.grade.failures)
         self.assertEqual("search_librarian", report.observation.searches[0].operation)

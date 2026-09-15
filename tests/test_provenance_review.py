@@ -497,9 +497,9 @@ class ProvenanceInputTests(unittest.TestCase):
             emotional_boundary_decision="not_required",
             capture_decision="no_candidate",
         )
-        provenance_input().validate_review_locations(review)
+        provenance_input().validate_review(review)
         with self.assertRaisesRegex(ValueError, "does not match"):
-            provenance_input("different text").validate_review_locations(review)
+            provenance_input("different text").validate_review(review)
 
     def test_quote_contained_in_a_longer_source_string_still_matches(self) -> None:
         review = ProvenanceReview(
@@ -520,7 +520,7 @@ class ProvenanceInputTests(unittest.TestCase):
             emotional_boundary_decision="not_required",
             capture_decision="no_candidate",
         )
-        provenance_input("this is an offending span within a longer response").validate_review_locations(
+        provenance_input("this is an offending span within a longer response").validate_review(
             review
         )
 
@@ -543,7 +543,7 @@ class ProvenanceInputTests(unittest.TestCase):
             emotional_boundary_decision="required",
             capture_decision="no_candidate",
         )
-        provenance_input().validate_review_locations(review)
+        provenance_input().validate_review(review)
 
     def test_location_validation_serializes_the_input_once(self) -> None:
         review = ProvenanceReview(
@@ -562,7 +562,7 @@ class ProvenanceInputTests(unittest.TestCase):
             return original(self, *args, **kwargs)
 
         with patch.object(ProvenanceInput, "model_dump", counted_model_dump):
-            review_input.validate_review_locations(review)
+            review_input.validate_review(review)
 
         self.assertEqual(1, calls)
 
@@ -602,7 +602,7 @@ class ProvenanceInputTests(unittest.TestCase):
         )
         payload = provenance_input().model_dump(mode="json")
         payload["canonical_session_lines"] = ["I lost my job last spring"]
-        ProvenanceInput.model_validate(payload).validate_review_locations(review)
+        ProvenanceInput.model_validate(payload).validate_review(review)
 
     def test_structural_path_must_exist(self) -> None:
         # Response findings cannot point at candidate.memory.
@@ -636,4 +636,4 @@ class ProvenanceInputTests(unittest.TestCase):
             capture_decision="no_candidate",
         )
         with self.assertRaisesRegex(ValueError, "missing array item"):
-            provenance_input().validate_review_locations(missing_path)
+            provenance_input().validate_review(missing_path)

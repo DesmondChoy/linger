@@ -93,11 +93,15 @@ class SessionLineUseTests(unittest.TestCase):
         for fragment in ("I ", "the ", "yes it was"):
             with self.subTest(fragment=fragment):
                 with self.assertRaises(ValidationError):
-                    SessionLineUse(source_kind="session_line", quote=fragment)
+                    SessionLineUse(
+                        source_kind="session_line", quote=fragment,
+                        supported_claims=(fragment,),
+                    )
 
     def test_accepts_a_substantive_quote(self) -> None:
         use = SessionLineUse(
-            source_kind="session_line", quote="I lost my job last spring"
+            source_kind="session_line", quote="I lost my job last spring",
+            supported_claims=("I lost my job last spring",),
         )
         self.assertEqual("I lost my job last spring", use.quote)
 
@@ -157,6 +161,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             memory=_no_memory(),
             evidence_uses=(
                 BookEvidenceUse(
+                    supported_claims=('Alice is unsure of herself.',),
                     source_kind="book_corpus",
                     evidence_id="evidence-1",
                     source_location="Chapter 5, source lines 1-2",
@@ -181,6 +186,7 @@ class MuseOutputValidationTests(unittest.TestCase):
                     memory=_no_memory(),
                     evidence_uses=(
                         BookEvidenceUse(
+                            supported_claims=('The Caterpillar asks, "Who are you?"',),
                             source_kind="book_corpus",
                             evidence_id="evidence-1",
                             source_location="Chapter 5, source lines 1-2",
@@ -208,6 +214,7 @@ class MuseOutputValidationTests(unittest.TestCase):
                     reply=reply,
                     memory=_no_memory(),
                     evidence_uses=(BookEvidenceUse(
+                        supported_claims=(reply,),
                         source_kind="book_corpus",
                         evidence_id=record.evidence_id,
                         source_location=record.location,
@@ -217,13 +224,16 @@ class MuseOutputValidationTests(unittest.TestCase):
                 with self.assertRaises(ModelRetry) as caught:
                     validate_muse_output(self.context(record), candidate)
                 repair = json.loads(str(caught.exception))
-                source = repair["canonical_book_evidence"]
+                quote_error, = repair["errors"]
+                self.assertEqual(quote_error["path"], "evidence_uses[0].exact_quote")
+                source = quote_error["canonical_book_evidence"]
                 self.assertEqual(source["evidence_id"], record.evidence_id)
                 self.assertEqual(source["text"], record.text)
                 corrected = candidate.model_copy(update={
                     "reply": source["text"],
                     "evidence_uses": (candidate.evidence_uses[0].model_copy(update={
                         "exact_quote": source["text"],
+                        "supported_claims": (source["text"],),
                     }),),
                 })
                 self.assertIs(
@@ -240,6 +250,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             memory=_no_memory(),
             evidence_uses=(
                 BookEvidenceUse(
+                    supported_claims=('The Caterpillar asks, "Who are you?"',),
                     source_kind="book_corpus",
                     evidence_id=record.evidence_id,
                     source_location=record.location,
@@ -260,6 +271,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             memory=_no_memory(),
             evidence_uses=(
                 BookEvidenceUse(
+                    supported_claims=('A supported paraphrase.',),
                     source_kind="book_corpus",
                     evidence_id="unknown-evidence",
                     source_location=record.location,
@@ -279,6 +291,7 @@ class MuseOutputValidationTests(unittest.TestCase):
             memory=_no_memory(),
             evidence_uses=(
                 BookEvidenceUse(
+                    supported_claims=('A supported paraphrase.',),
                     source_kind="book_corpus",
                     evidence_id=record.evidence_id,
                     source_location=record.location,

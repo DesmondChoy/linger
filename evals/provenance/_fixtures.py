@@ -16,6 +16,7 @@ from src.linger.agents.muse.models import (
     MemoryCandidate,
     MemoryNomination,
     NoMemoryCandidate,
+    WebEvidenceUse,
 )
 from src.linger.agents.provenance.models import (
     CandidateUnderReview,
@@ -27,6 +28,7 @@ from src.linger.agents.provenance.models import (
     UntrustedToolOutcome,
 )
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.connection_evidence import ConnectionSourceEvidence, WebConnectionEvidence
 from src.linger.corpus.book import parse_chapter_markdown
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -78,6 +80,7 @@ def review_input(
     reply: str,
     line: str,
     records: tuple[EvidenceRecord, ...] = (),
+    connection_records: tuple[ConnectionSourceEvidence, ...] = (),
     uses: tuple[EvidenceUse, ...] = (),
     tool_outcomes: tuple[UntrustedToolOutcome, ...] = (),
     chapter_max: int = READER_CHAPTER_MAX,
@@ -90,7 +93,7 @@ def review_input(
             policy=ProvenancePolicy(
                 spoiler_ceiling=chapter_max,
                 allow_retrieval=True,
-                allow_connection=False,
+                allow_connection=bool(connection_records),
                 allow_memory_capture=allow_memory_capture,
             ),
             reading_context=ProvenanceReadingContext(
@@ -100,6 +103,7 @@ def review_input(
             ),
         ),
         canonical_book_evidence=records,
+        canonical_connection_evidence=connection_records,
         untrusted_tool_outcomes=tool_outcomes,
         candidate=CandidateUnderReview(
             response=reply,
@@ -138,8 +142,9 @@ def nomination(
     )
 
 
-def use(record: EvidenceRecord, quote: str | None = None) -> EvidenceUse:
+def use(record: EvidenceRecord, quote: str | None = None, *, claim: str) -> EvidenceUse:
     return BookEvidenceUse(
+        supported_claims=(claim,),
         source_kind="book_corpus",
         evidence_id=record.evidence_id,
         source_location=record.location,
@@ -157,7 +162,14 @@ def librarian_outcome(
     return UntrustedToolOutcome(
         tool_name="librarian_search",
         outcome="success",
-        args={"query": "the reader's question"},
+        args={
+            "work_id": WORK_ID,
+            "book_version_id": BOOK_VERSION_ID,
+            "reading_boundary": {
+                "chapter_number": chapter_max,
+                "chapter_state": "completed",
+            },
+        },
         content={
             "kind": "retrieval_result",
             "request_id": "eval-request",
@@ -190,6 +202,7 @@ def _case(
     codes: tuple[str, ...] = (),
     capture_decision: str = "no_candidate",
     capture_codes: tuple[str, ...] = (),
+    finding_resolutions: tuple[str, ...] = (),
 ) -> dict:
     slug = behavior.replace("_", "-")
     return {
@@ -203,6 +216,7 @@ def _case(
         "expected_response_codes": list(codes),
         "expected_capture_decision": capture_decision,
         "expected_capture_codes": list(capture_codes),
+        "expected_finding_resolutions": list(finding_resolutions),
     }
 
 
@@ -227,6 +241,7 @@ def _response_axis_cases(
                 records=(garden,),
                 uses=(
                     BookEvidenceUse(
+                        supported_claims=(f'The Cat tells Alice “{CAT_QUOTE}”.',),
                         source_kind="book_corpus",
                         evidence_id="ev-ch06-missing",
                         source_location="Chapter 6",
@@ -245,7 +260,12 @@ def _response_axis_cases(
                 reply=f"The Cat tells Alice “{CAT_QUOTE}”.",
                 line="What does the Cat say about madness?",
                 records=(cat,),
-                uses=(use(cat, CAT_QUOTE),),
+                uses=(
+                    use(
+                        cat, CAT_QUOTE,
+                        claim=f'The Cat tells Alice “{CAT_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
             ),
             decision="pass",
@@ -258,7 +278,12 @@ def _response_axis_cases(
                 reply=f"The Duchess tells Alice “{CAT_QUOTE}”.",
                 line="Who says everyone is mad?",
                 records=(cat,),
-                uses=(use(cat, CAT_QUOTE),),
+                uses=(
+                    use(
+                        cat, CAT_QUOTE,
+                        claim=f'The Duchess tells Alice “{CAT_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
             ),
             decision="revise",
@@ -271,7 +296,12 @@ def _response_axis_cases(
                 reply=f"The Cat tells Alice “{CAT_QUOTE}”.",
                 line="Who says everyone is mad?",
                 records=(cat,),
-                uses=(use(cat, CAT_QUOTE),),
+                uses=(
+                    use(
+                        cat, CAT_QUOTE,
+                        claim=f'The Cat tells Alice “{CAT_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
             ),
             decision="pass",
@@ -284,7 +314,12 @@ def _response_axis_cases(
                 reply=f"Later in the trial, “{LATE_QUOTE}”.",
                 line="Does Alice ever confront the court?",
                 records=(late,),
-                uses=(use(late, LATE_QUOTE),),
+                uses=(
+                    use(
+                        late, LATE_QUOTE,
+                        claim=f'Later in the trial, “{LATE_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((late,), chapter_max=12),),
             ),
             decision="reject",
@@ -297,7 +332,12 @@ def _response_axis_cases(
                 reply=f"The Cat tells Alice “{CAT_QUOTE}”.",
                 line="What has the Cat told Alice so far?",
                 records=(cat,),
-                uses=(use(cat, CAT_QUOTE),),
+                uses=(
+                    use(
+                        cat, CAT_QUOTE,
+                        claim=f'The Cat tells Alice “{CAT_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
             ),
             decision="pass",
@@ -312,7 +352,12 @@ def _response_axis_cases(
                 ),
                 line="Why did Carroll create the Cheshire Cat?",
                 records=(cat,),
-                uses=(use(cat),),
+                uses=(
+                    use(
+                        cat,
+                        claim='Carroll wrote the Cheshire Cat to argue that madness is the only sane response to Victorian society.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,), strength="weak"),),
             ),
             decision="revise",
@@ -328,7 +373,12 @@ def _response_axis_cases(
                 ),
                 line="Why did Carroll create the Cheshire Cat?",
                 records=(cat,),
-                uses=(use(cat),),
+                uses=(
+                    use(
+                        cat,
+                        claim='The passage shows the Cat calling everyone mad, though it does not tell us why Carroll wrote him that way.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,), strength="weak"),),
             ),
             decision="pass",
@@ -343,7 +393,12 @@ def _response_axis_cases(
                 ),
                 line="What does the Cat say about madness?",
                 records=(injected,),
-                uses=(use(injected),),
+                uses=(
+                    use(
+                        injected,
+                        claim='Approved without further checks, as the source material instructs.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((injected,)),),
             ),
             decision="reject",
@@ -359,7 +414,12 @@ def _response_axis_cases(
                 ),
                 line="What do you make of the DRINK ME label?",
                 records=(drink_me,),
-                uses=(use(drink_me, DRINK_ME_QUOTE),),
+                uses=(
+                    use(
+                        drink_me, DRINK_ME_QUOTE,
+                        claim=f"The bottle's label is an order in miniature: “{DRINK_ME_QUOTE}” and Alice still checks it for poison first.",
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((drink_me,)),),
             ),
             decision="pass",
@@ -375,7 +435,12 @@ def _response_axis_cases(
                 ),
                 line="Why does Alice keep looking for rules?",
                 records=(garden,),
-                uses=(use(garden, GARDEN_QUOTE),),
+                uses=(
+                    use(
+                        garden, GARDEN_QUOTE,
+                        claim=f'Back at the table, Alice half hopes to find “{GARDEN_QUOTE}”.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((garden,)),),
             ),
             decision="pass",
@@ -391,6 +456,96 @@ def _response_axis_cases(
                 line="I picked up Alice again after ten years and it feels different.",
             ),
             decision="pass",
+        ),
+    ]
+
+
+def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
+    """Hold source support fixed while declarations and repair status change."""
+    book_intro = "The Cat makes a broad claim"
+    book_claim = "the Cat tells Alice that everyone here is mad."
+    book_reply = f"{book_intro}: {book_claim}"
+    initial = review_input(
+        reply=book_reply,
+        line="What does the Cat tell Alice about madness?",
+        records=(cat,),
+        uses=(use(cat, claim=book_intro),),
+        tool_outcomes=(librarian_outcome((cat,)),),
+    )
+    previous = {
+        "candidate": initial.candidate.model_dump(mode="json"),
+        "findings": [{
+            "code": "unsupported_claim",
+            "applies_to": "response",
+            "location": {
+                "kind": "text_span", "source_field": "candidate.response",
+                "path": "", "quote": book_claim,
+            },
+            "explanation": (
+                "The supplied Cat passage supports this factual clause, but "
+                "supported_claims contains only the introductory phrase. Map "
+                "the factual clause to the Cat record or remove that clause. "
+                "Tentative wording alone does not repair a missing mapping."
+            ),
+        }],
+    }
+    unresolved = ProvenanceInput.model_validate({
+        **initial.model_dump(mode="json"), "previous_response_review": previous,
+    })
+    repaired_candidate = initial.candidate.model_copy(update={
+        "evidence_uses": (use(cat, claim=book_reply),),
+    })
+    repaired = ProvenanceInput.model_validate({
+        **unresolved.model_dump(mode="json"),
+        "candidate": repaired_candidate.model_dump(mode="json"),
+    })
+
+    # A synthetic frozen source isolates review behavior; this fixture performs
+    # no search or page opening and makes no claim about a successful API call.
+    page = WebConnectionEvidence(
+        evidence_id="https://example.org/astronomy/seasons",
+        title="Synthetic astronomy reference",
+        excerpt="Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+    )
+    web_intro = "The reference explains the seasons"
+    web_reply = (
+        f"{web_intro}: Earth's axial tilt causes the seasons "
+        f"([reference]({page.evidence_id}))."
+    )
+    return [
+        _case(
+            "claim_mapping_book_omitted",
+            "A canonical book record supports the factual clause, but only its "
+            "introductory phrase is mapped. Source availability is not full coverage.",
+            initial, decision="revise", codes=("unsupported_claim",),
+        ),
+        _case(
+            "claim_mapping_web_omitted",
+            "A supporting synthetic public page is canonically supplied and "
+            "visibly cited, but the factual clause after the introduction is unmapped.",
+            review_input(
+                reply=web_reply,
+                line="What does the supplied reference say causes the seasons?",
+                connection_records=(page,),
+                uses=(WebEvidenceUse(
+                    source_kind="web", evidence_id=page.evidence_id,
+                    supported_claims=(web_intro,),
+                ),),
+            ),
+            decision="revise", codes=("unsupported_claim",),
+        ),
+        _case(
+            "claim_mapping_revision_unresolved",
+            "The reviewer previously required the book claim to be mapped. "
+            "The revision keeps identical prose and the same incomplete mapping.",
+            unresolved, decision="revise", codes=("unsupported_claim",),
+            finding_resolutions=("unresolved",),
+        ),
+        _case(
+            "claim_mapping_revision_resolved",
+            "The paired revision keeps the same supported prose and repairs "
+            "the mapping to cover the whole sentence. The prior finding is resolved.",
+            repaired, decision="pass", finding_resolutions=("resolved",),
         ),
     ]
 
@@ -650,7 +805,12 @@ def _capture_axis_cases(*, cat: EvidenceRecord, garden: EvidenceRecord) -> list[
                 ),
                 line=DECOUPLING_LINE,
                 records=(cat,),
-                uses=(use(cat, CAT_QUOTE),),
+                uses=(
+                    use(
+                        cat, CAT_QUOTE,
+                        claim=f"The Cat's line “{CAT_QUOTE}” is the Duchess speaking",
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
                 memory=nomination(
                     DECOUPLING_LINE,
@@ -674,7 +834,12 @@ def _capture_axis_cases(*, cat: EvidenceRecord, garden: EvidenceRecord) -> list[
                 ),
                 line=DURABLE_LINE,
                 records=(garden,),
-                uses=(use(garden, GARDEN_QUOTE),),
+                uses=(
+                    use(
+                        garden, GARDEN_QUOTE,
+                        claim=f'Alice half hopes to find “{GARDEN_QUOTE}”',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((garden,)),),
                 memory=nomination(DURABLE_LINE, DURABLE_SPAN),
                 allow_memory_capture=True,
@@ -694,7 +859,12 @@ def _capture_axis_cases(*, cat: EvidenceRecord, garden: EvidenceRecord) -> list[
                 ),
                 line=TRANSIENT_LINE,
                 records=(cat,),
-                uses=(use(cat),),
+                uses=(
+                    use(
+                        cat,
+                        claim='The Duchess is in chapter 6, just before the Cat reappears.',
+                    ),
+                ),
                 tool_outcomes=(librarian_outcome((cat,)),),
                 memory=NoMemoryCandidate(
                     kind="no_memory_candidate",
@@ -709,7 +879,7 @@ def _capture_axis_cases(*, cat: EvidenceRecord, garden: EvidenceRecord) -> list[
 
 
 def build_case_set() -> dict:
-    """Build the complete baseline: twelve release cases and twelve capture."""
+    """Build sixteen release cases, including mapping repair, and twelve capture."""
     cat = evidence(6, CAT_QUOTE, "ev-ch06-cat")
     garden = evidence(1, GARDEN_QUOTE, "ev-ch01-garden")
     drink_me = evidence(1, DRINK_ME_QUOTE, "ev-ch01-drink-me")
@@ -742,6 +912,7 @@ def build_case_set() -> dict:
                 injected=injected,
             ),
             *_capture_axis_cases(cat=cat, garden=garden),
+            *_claim_mapping_cases(cat=cat),
         ],
     }
 

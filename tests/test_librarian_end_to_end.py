@@ -134,13 +134,16 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         failing = HybridLibrarian(
             embedding_model=FailingEmbedding(), reranker=TermReranker()
         )
+        judge = AsyncMock()
         response = await grounding_evidence(
             self.request(
                 "Caterpillar",
                 ReadingBoundary(chapter_number=5, chapter_state="completed"),
             ),
             librarian=failing,
+            strength_judge=judge,
         )
+        judge.assert_not_awaited()
         self.assertIsInstance(response, RetrievalFailure)
         self.assertEqual("retrieval_unavailable", response.error_code)
 

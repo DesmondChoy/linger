@@ -100,6 +100,17 @@ class RiskFinding(StrictModel):
         return self
 
 
+class FindingResolution(StrictModel):
+    """The reviewer's disposition of one earlier response finding."""
+
+    finding_index: int = Field(ge=0, description="Zero-based index in previous_response_review.findings.")
+    status: Literal["resolved", "unresolved"]
+    explanation: str = Field(
+        min_length=1, max_length=500,
+        description="Explain the actual repair, why the earlier finding was mistaken, or what remains unfixed.",
+    )
+
+
 class ProvenanceReview(StrictModel):
     """One review of one candidate, carrying both release decisions."""
 
@@ -108,6 +119,7 @@ class ProvenanceReview(StrictModel):
     response_decision: Literal["pass", "revise", "reject"]
     emotional_boundary_decision: Literal["not_required", "required"]
     capture_decision: Literal["allow_capture", "reject_capture", "no_candidate"]
+    finding_resolutions: tuple[FindingResolution, ...] = ()
 
     @model_validator(mode="after")
     def require_decision_specific_justification(self) -> Self:
@@ -138,6 +150,10 @@ class ProvenanceReview(StrictModel):
             )
         if self.response_decision == "pass" and response_findings:
             raise ValueError("a passed response cannot have response findings")
+        if self.response_decision == "pass" and any(
+            resolution.status == "unresolved" for resolution in self.finding_resolutions
+        ):
+            raise ValueError("a passed response cannot have unresolved prior findings")
         if self.response_decision != "pass" and not response_findings:
             raise ValueError(
                 "a non-pass response_decision requires a response finding"
@@ -205,6 +221,16 @@ class ProvenanceContext(StrictModel):
     policy: ProvenancePolicy
     reading_context: ProvenanceReadingContext | None
     passage_scope: PassageScope | None = None
+    required_clarification: str | None = Field(
+        default=None,
+        min_length=1,
+        pattern=r"\S",
+        description=(
+            "Exact application-selected question from validated routing. Its book "
+            "identity and reading-boundary alternatives may be repeated without "
+            "corpus evidence; this grants no authority for an additional book claim."
+        ),
+    )
 
     @model_validator(mode="after")
     def _one_current_permission(self) -> "ProvenanceContext":
@@ -238,6 +264,21 @@ class CurrentLine(StrictModel):
     text: str = Field(max_length=20_000)
 
 
+class PreviousResponseReview(StrictModel):
+    """Application-supplied original candidate and findings to recheck on revision."""
+
+    candidate: CandidateUnderReview
+    findings: tuple[RiskFinding, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_response_findings(self) -> Self:
+        if len(self.findings) > MAX_FINDINGS or any(
+            finding.applies_to != "response" for finding in self.findings
+        ):
+            raise ValueError("previous response review must contain only bounded response findings")
+        return self
+
+
 class ProvenanceInput(StrictModel):
     """Complete, typed input for one independent Provenance review."""
 
@@ -253,6 +294,7 @@ class ProvenanceInput(StrictModel):
     untrusted_tool_outcomes: tuple[UntrustedToolOutcome, ...] = ()
     candidate: CandidateUnderReview
     current_line: CurrentLine
+    previous_response_review: PreviousResponseReview | None = None
 
     @model_validator(mode="after")
     def require_unique_canonical_evidence(self) -> Self:
@@ -266,8 +308,17 @@ class ProvenanceInput(StrictModel):
             raise ValueError("canonical session lines must be unique")
         return self
 
-    def validate_review_locations(self, review: ProvenanceReview) -> None:
-        """Resolve every model-authored finding against this exact input."""
+    def validate_review(self, review: ProvenanceReview) -> None:
+        """Bind current findings and prior-finding resolutions to this exact task."""
+        expected = (
+            len(self.previous_response_review.findings)
+            if self.previous_response_review else 0
+        )
+        indices = [resolution.finding_index for resolution in review.finding_resolutions]
+        if len(indices) != expected or set(indices) != set(range(expected)):
+            raise ValueError(
+                "finding_resolutions must account for every previous response finding exactly once"
+            )
         payload = self.model_dump(mode="json")
         for finding in review.findings:
             location = finding.location
@@ -281,6 +332,7 @@ class ProvenanceInput(StrictModel):
                 raise ValueError("a text-span finding must resolve to a string")
             if location.quote not in value:
                 raise ValueError("a finding quote does not match its declared source")
+
 
 def _resolve_json_pointer(value: JsonValue, path: str) -> JsonValue:
     """Resolve a bounded RFC 6901 pointer, rejecting missing paths."""

@@ -207,7 +207,7 @@ _public_source_urls: contextvars.ContextVar[tuple[str, ...] | None] = contextvar
 
 
 def set_public_source_urls(value: tuple[str, ...] | None) -> contextvars.Token:
-    """Bind an optional application-owned public source restriction."""
+    """Bind exact application-known public pages, restricting access to that set."""
     return _public_source_urls.set(value)
 
 

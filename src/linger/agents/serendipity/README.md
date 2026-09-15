@@ -91,15 +91,21 @@ The ownership boundary is:
 | Exa | Public-web search and page retrieval for Serendipity |
 | Muse | Chooses whether to invoke connection discovery and supplies its intent |
 
-`search_librarian` is a thin Pydantic AI tool over Linger's existing Librarian
-service. Every book query is clamped to the granted revision and chapter
-ceiling. The maintained
-`pydantic_ai_harness.exa.ExaSearch` capability supplies `web_search` and
+`search_librarian` invokes the same Librarian path as Muse and accepts no
+model-written book query. Application code supplies the original reader cue and
+earlier reader statements. Librarian plans the request before private retrieval;
+the exact planned spans form the search query, and assessment reuses that plan.
+Book retrieval stays within the granted revision and reading scope. Selected
+records and their judgment remain subject to the existing evidence and release
+checks.
+
+The maintained `pydantic_ai_harness.exa.ExaSearch` capability supplies `web_search` and
 `get_page`; Linger wraps that capability only to enforce source permission,
-bound query size, reject personal data and every multi-character term copied
-verbatim from the reader's cue, require
-`get_page` URLs to come from the current run's search results, and record opened
-pages in the evidence ledger.
+bound query size, reject private data and copied reader or memory wording, and
+record opened pages in the evidence ledger. An exact public URL supplied by
+the application may be opened directly; other URLs require a lead from the
+current run's search results. Page URLs pass privacy checks in raw and decoded
+form. The returned page identity must match the request before it is citable.
 
 ## Search, shortlist, and selection flow
 

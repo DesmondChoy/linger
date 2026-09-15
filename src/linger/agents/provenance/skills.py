@@ -34,7 +34,7 @@ CANDIDATE_REVIEW = RuntimeSkill(
     output_type=ProvenanceReview,
     validators=(
         "ProvenanceReview.require_decision_specific_justification",
-        "ProvenanceInput.validate_review_locations",
+        "ProvenanceInput.validate_review",
     ),
     output_retries=2,
 )

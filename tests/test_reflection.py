@@ -109,6 +109,7 @@ def candidate(
     if evidence_id is not None:
         uses = (
             BookEvidenceUse(
+                supported_claims=(reply,),
                 source_kind="book_corpus",
                 evidence_id=evidence_id,
                 source_location=location,
@@ -128,7 +129,9 @@ def candidate(
 def session_line_candidate(reply: str, *, quote: str) -> MuseCandidate:
     return MuseCandidate(
         reply=reply,
-        evidence_uses=(SessionLineUse(source_kind="session_line", quote=quote),),
+        evidence_uses=(SessionLineUse(
+            source_kind="session_line", quote=quote, supported_claims=(reply,),
+        ),),
         memory=NoMemoryCandidate(
             kind="no_memory_candidate",
             reason_code="transient_or_low_signal",
@@ -285,6 +288,7 @@ def review(
     *,
     capture: str = "no_candidate",
     finding: str = "",
+    finding_resolutions: tuple[dict[str, object], ...] = (),
 ) -> ProvenanceReview:
     """Build a review, supplying the finding a non-pass decision requires."""
     findings = []
@@ -319,6 +323,7 @@ def review(
         response_decision=decision,
         emotional_boundary_decision="not_required",
         capture_decision=capture,
+        finding_resolutions=finding_resolutions,
     )
 
 
@@ -570,7 +575,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         register_connection_evidence((source,))
         draft = candidate(f"This may echo [the public source]({source.evidence_id}).")
         draft = draft.model_copy(update={"evidence_uses": (
-            WebEvidenceUse(source_kind="web", evidence_id=source.evidence_id),
+            WebEvidenceUse(
+                source_kind="web", evidence_id=source.evidence_id,
+                supported_claims=(draft.reply,),
+            ),
         )})
         muse = AsyncMock()
         muse.run.return_value = result(draft, ToolReturnPart("serendipity_explore", exploration))
@@ -596,7 +604,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         ):
             with self.subTest(reply=reply):
                 draft = candidate(reply).model_copy(update={"evidence_uses": (
-                    WebEvidenceUse(source_kind="web", evidence_id=source.evidence_id, exact_quote=quote),
+                    WebEvidenceUse(
+                        source_kind="web", evidence_id=source.evidence_id,
+                        exact_quote=quote, supported_claims=(reply,),
+                    ),
                 )})
                 muse = AsyncMock()
                 muse.run.return_value = result(draft, ToolReturnPart("serendipity_explore", exploration))
@@ -628,7 +639,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             source_memory_ids=(source.evidence_id,), created_at="2026-09-07T00:00:00Z",
         )
         draft = candidate(text).model_copy(update={"evidence_uses": (
-            MemoryEvidenceUse(source_kind="memory", evidence_id=source.evidence_id, exact_quote=text),
+            MemoryEvidenceUse(
+                source_kind="memory", evidence_id=source.evidence_id,
+                exact_quote=text, supported_claims=(text,),
+            ),
         )})
         for memories, expected in (((active,), "muse_candidate"), ((), "application_safe_decline")):
             with self.subTest(active=bool(memories)):
@@ -666,6 +680,40 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual((EVIDENCE_ID,), release.evidence_ids)
+
+    async def test_empty_direct_search_preserves_selected_evidence_authority(self) -> None:
+        self.register_evidence()
+        empty_search = retrieval_result(evidence=[])
+        exploration = connection_result()
+        for declared_id, verdict, expected in (
+            (EVIDENCE_ID, "pass", "muse_candidate"),
+            ("invented-evidence", "pass", "application_safe_decline"),
+            (EVIDENCE_ID, "reject", "application_safe_decline"),
+        ):
+            with self.subTest(declared_id=declared_id, verdict=verdict):
+                muse = AsyncMock()
+                muse.run.return_value = result(
+                    candidate("The passage may echo this reflection.", evidence_id=declared_id),
+                    ToolReturnPart("librarian_search", empty_search),
+                    ToolReturnPart("serendipity_explore", exploration),
+                )
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review(verdict))
+
+                release = await reflection_reply(
+                    "Find a connection", [], muse=muse, provenance=provenance,
+                    release_scope=RELEASE_SCOPE,
+                )
+
+                payload = json.loads(provenance.run.await_args.args[0])
+                self.assertEqual(empty_search, payload["untrusted_tool_outcomes"][0]["content"])
+                self.assertEqual(
+                    [EVIDENCE_ID],
+                    [item["evidence_id"] for item in payload["canonical_book_evidence"]],
+                )
+                self.assertEqual(expected, release.release_source)
+                if declared_id == "invented-evidence":
+                    self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_serendipity_decline_can_be_relayed_after_semantic_pass(self) -> None:
         muse = AsyncMock()
@@ -761,7 +809,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.side_effect = [
             result(review("revise", finding="Qualify the claim.")),
-            result(review("pass")),
+            result(review("pass", finding_resolutions=({
+                'finding_index': 0,
+                'status': 'resolved',
+                'explanation': 'The revised reply removes the draft claim.',
+            },))),
         ]
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
@@ -790,7 +842,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.side_effect = [
             result(review("revise", capture="reject_capture")),
-            result(review("pass")),
+            result(review("pass", finding_resolutions=({
+                'finding_index': 0,
+                'status': 'resolved',
+                'explanation': 'The revised reply addresses the response concern; capture findings are reviewed separately.',
+            },))),
         ]
 
         await reflection_reply("Hello", [], muse=muse, provenance=provenance)
@@ -862,7 +918,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             result("Which chapter have you finished?", clarification),
         ]
         provenance = AsyncMock()
-        provenance.run.side_effect = [result(review("revise")), result(review("pass"))]
+        provenance.run.side_effect = [result(review("revise")), result(review("pass", finding_resolutions=({
+            'finding_index': 0,
+            'status': 'resolved',
+            'explanation': 'The unsupported book answer was replaced with a reading-scope question.',
+        },)))]
 
         release = await reflection_reply(
             "Why does Alice struggle to explain who she is?",
@@ -1163,7 +1223,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.side_effect = [
             result(review("revise", finding="Add support.")),
-            result(review("pass")),
+            result(review("pass", finding_resolutions=({
+                'finding_index': 0,
+                'status': 'resolved',
+                'explanation': 'The reviewer accepts the added support; canonical citation identity still needs application validation.',
+            },))),
         ]
 
         release = await reflection_reply(
@@ -1368,7 +1432,11 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.side_effect = [
             result(review("revise", finding="Try again.")),
-            result(review("revise", finding="Still unsafe.")),
+            result(review("revise", finding="Still unsafe.", finding_resolutions=({
+                'finding_index': 0,
+                'status': 'unresolved',
+                'explanation': 'The revised candidate is still unsafe and needs another correction.',
+            },))),
         ]
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)

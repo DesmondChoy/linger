@@ -1,5 +1,6 @@
 """Typed Muse output used by the application release and capture boundaries."""
 
+import re
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
@@ -22,7 +23,30 @@ NoMemoryCandidateReasonCode = Literal[
 ]
 
 
-class BookEvidenceUse(StrictModel):
+class EvidenceClaimSupport(StrictModel):
+    """Exact reply spans claimed to be supported by one source declaration."""
+
+    supported_claims: tuple[
+        Annotated[str, Field(min_length=1, max_length=20_000)], ...
+    ] = Field(
+        min_length=1,
+        description=(
+            "Exact substantive clauses or sentences from reply supported by this source. "
+            "Include the factual description or interpretation itself, not just its introductory phrase. "
+            "Map all claims that rely on this source and update them when revising the reply."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def require_distinct_claims(self) -> Self:
+        if any(not claim.strip() for claim in self.supported_claims):
+            raise ValueError("supported_claims must not contain blank text")
+        if len(set(self.supported_claims)) != len(self.supported_claims):
+            raise ValueError("supported_claims must not repeat a claim for the same source")
+        return self
+
+
+class BookEvidenceUse(EvidenceClaimSupport):
     """One book-corpus record Muse declares as support for its reply."""
 
     source_kind: Literal["book_corpus"]
@@ -31,7 +55,7 @@ class BookEvidenceUse(StrictModel):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
-class MemoryEvidenceUse(StrictModel):
+class MemoryEvidenceUse(EvidenceClaimSupport):
     """An exact account-scoped memory selected during this turn's discovery."""
 
     source_kind: Literal["memory"]
@@ -39,7 +63,7 @@ class MemoryEvidenceUse(StrictModel):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
-class WebEvidenceUse(StrictModel):
+class WebEvidenceUse(EvidenceClaimSupport):
     """An opened public page selected during this turn's discovery."""
 
     source_kind: Literal["web"]
@@ -47,7 +71,7 @@ class WebEvidenceUse(StrictModel):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
-class SessionLineUse(StrictModel):
+class SessionLineUse(EvidenceClaimSupport):
     """The reader's exact earlier wording Muse declares as support for its reply."""
 
     source_kind: Literal["session_line"]
@@ -97,3 +121,59 @@ class MuseCandidate(StrictModel):
     reply: str = Field(min_length=1, max_length=20_000)
     evidence_uses: tuple[EvidenceUse, ...] = ()
     memory: MemoryNomination
+
+
+def supported_claim_errors(
+    reply: str, evidence_uses: tuple[EvidenceUse, ...]
+) -> list[dict[str, object]]:
+    """Locate every mapping error without deciding whether a source entails it."""
+    errors: list[dict[str, object]] = []
+    for evidence_index, declared in enumerate(evidence_uses):
+        path = f"evidence_uses[{evidence_index}].supported_claims"
+        claims = declared.supported_claims
+        if not claims:
+            errors.append({
+                "path": path, "value": [],
+                "error": "supported_claims must contain at least one exact claim span.",
+            })
+        seen: set[str] = set()
+        for claim_index, claim in enumerate(claims):
+            problems = []
+            if not claim.strip():
+                problems.append("must not be blank")
+            if claim in seen:
+                problems.append("duplicates an earlier claim for this source")
+            if claim not in reply:
+                problems.append("is not an exact span from the current reply")
+            if problems:
+                error: dict[str, object] = {
+                    "path": f"{path}[{claim_index}]", "value": claim,
+                    "error": "supported_claims entry " + "; ".join(problems) + ".",
+                }
+                span = claim.rstrip(".,;:!?")
+                start = r"(?<![\w.,:/’'-])" if span[:1].isdigit() else r"(?<![\w’'-])"
+                end = r"(?![\w’'-]|[.,:/]\d)" if span[-1:].isdigit() else r"(?![\w’'-])"
+                if (
+                    claim not in reply
+                    and span != claim
+                    and span.strip()
+                    and re.search(start + re.escape(span) + end, reply)
+                ):
+                    error["suggested_span"] = span
+                    error["suggestion_reason"] = (
+                        "Removing only terminal punctuation yields this exact reply span. "
+                        "A citation or Markdown marker may separate the text from its "
+                        "sentence punctuation. Explicitly use this span if it maps the "
+                        "complete substantive claim, or revise the reply and remap it."
+                    )
+                errors.append(error)
+            seen.add(claim)
+    return errors
+
+
+def validate_supported_claims(reply: str, evidence_uses: tuple[EvidenceUse, ...]) -> None:
+    """Check mapping structure, not whether the source entails the claim."""
+    if supported_claim_errors(reply, evidence_uses):
+        raise ValueError(
+            "supported_claims must contain distinct, non-empty exact spans from the current reply"
+        )

@@ -6,6 +6,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import unquote
 
 from pydantic_ai import ModelRetry, RunContext
 from pydantic_ai.messages import ToolReturn
@@ -16,7 +17,6 @@ from pydantic_ai_harness.guardrails.detectors import (
     redact_secrets,
 )
 
-from apps.backend.contracts import BookScope, EvidenceItem, LibrarianRequest
 from apps.backend.librarian import Librarian
 from src.linger.agents.serendipity.models import (
     ConnectionDiscoveryInput,
@@ -28,7 +28,10 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
+from src.linger.contracts.session import ReaderStatement
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
+from src.linger.orchestration.book_evidence import retrieve_book_evidence
+from src.linger.orchestration.evidence_strength import StrengthJudge
 from src.linger.orchestration.progress_context import emit_progress
 
 MAX_RESULTS_PER_SOURCE = 5
@@ -130,6 +133,8 @@ class SerendipityDependencies:
     task: ConnectionDiscoveryInput
     librarian: Librarian
     memories: tuple[CuratedMemory, ...] = ()
+    strength_judge: StrengthJudge | None = None
+    prior_reader_statements: tuple[ReaderStatement, ...] = ()
     evidence: dict[str, ConnectionEvidence] = field(default_factory=dict)
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
@@ -204,35 +209,31 @@ def search_memories(
     return MemorySearchResult(outcome=outcome, evidence=evidence)
 
 
-def search_librarian(
+async def search_librarian(
     ctx: RunContext[SerendipityDependencies],
-    query: str,
     max_results_per_source: int = MAX_RESULTS_PER_SOURCE,
 ) -> InternalSearchResult:
-    """Search the permitted book scope through Librarian.
+    """Find book support for the application-supplied reader cue.
 
-    Args:
-        query: A concise search query derived from the current connection cue.
-        max_results_per_source: Maximum records returned by each source.
-
-    Returns:
-        Several eligible book records, or a bounded no-evidence or
-        retrieval-failure result.
+    Librarian identifies the requested book material from the original cue and
+    prior reader statements before searching the permitted scope. The caller
+    cannot replace the reader's question or expand its requested book account.
+    max_results_per_source limits the selected records, not reading permission.
     """
-    if not query.strip():
-        raise ModelRetry("Librarian search requires a non-empty query.")
     if "book_corpus" not in ctx.deps.task.scope.allowed_sources:
         raise ModelRetry("Book-corpus search was not granted for this request.")
 
     limit = max(1, min(max_results_per_source, MAX_RESULTS_PER_SOURCE))
     try:
-        request = LibrarianRequest(
-            query=query,
-            book_scopes=list(ctx.deps.task.scope.book_scopes),
+        result = await retrieve_book_evidence(
+            ctx.deps.task.cue,
+            book_scopes=ctx.deps.task.scope.book_scopes,
             max_results=limit,
             purpose="connection_discovery",
+            librarian=ctx.deps.librarian,
+            strength_judge=ctx.deps.strength_judge,
+            prior_reader_statements=ctx.deps.prior_reader_statements,
         )
-        bundle = ctx.deps.librarian.retrieve(request)
     except Exception:
         ctx.deps.record_search(
             "book_corpus",
@@ -241,9 +242,10 @@ def search_librarian(
         )
         return InternalSearchResult(
             outcome="retrieval_unavailable",
+            judgement=None,
         )
 
-    book_items: tuple[EvidenceItem, ...] = tuple(bundle.items)
+    book_items = result.items
     ctx.deps.record(
         "book_corpus",
         "search_librarian",
@@ -253,6 +255,19 @@ def search_librarian(
     return InternalSearchResult(
         outcome="evidence_found" if book_items else "no_evidence",
         evidence=book_items,
+        judgement=result.judgement,
+    )
+
+
+def _private_web_input(text: str, deps: SerendipityDependencies) -> bool:
+    return (
+        _query_contains_private_data(text)
+        or _query_copies_reader_terms(text, deps.task.cue)
+        or any(_query_copies_reader_terms(text, record.text) for record in deps.memories)
+        or any(
+            _query_copies_reader_terms(text, statement.text)
+            for statement in deps.prior_reader_statements
+        )
     )
 
 
@@ -276,34 +291,45 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                     "Use one concise, non-empty public-web query of at most "
                     f"{MAX_WEB_QUERY_CHARS} characters."
                 )
-            if _query_contains_private_data(query) or _query_copies_reader_terms(
-                query, ctx.deps.task.cue
-            ) or any(
-                _query_copies_reader_terms(query, record.text)
-                for record in ctx.deps.memories
-            ):
+            if _private_web_input(query, ctx.deps):
                 record_connection_event(ConnectionEvaluationEvent(
                     kind="query", status="blocked", source="web", operation=name,
                     query=query, failure_code="private_query",
                 ))
-                raise ModelRetry(
-                    "Rewrite the web query using only a general, non-identifying "
+                guidance = (
+                    "Open the requested exact URL from scope.web_source_urls "
+                    "with get_page, without adding the title or reader wording. "
+                    "The URL must "
+                    "still pass the privacy checks."
+                    if ctx.deps.task.scope.web_source_urls
+                    else "Rewrite the web query using only a general, non-identifying "
                     "concept; do not copy the reader's wording or personal data."
                 )
+                raise ModelRetry(guidance)
         elif name == "get_page":
             requested_url = str(tool_args.get("url", "")).strip()
             permitted_urls = ctx.deps.task.scope.web_source_urls
             if permitted_urls is not None and requested_url not in permitted_urls:
                 raise ModelRetry("The page is outside this request's permitted public sources.")
-            if requested_url not in ctx.deps.web_leads:
+            if any(_private_web_input(value, ctx.deps) for value in (
+                requested_url, unquote(requested_url),
+            )):
+                record_connection_event(ConnectionEvaluationEvent(
+                    kind="query", status="blocked", source="web", operation=name,
+                    query=requested_url, failure_code="private_query",
+                ))
+                raise ModelRetry("The requested page URL failed the privacy checks.")
+            if permitted_urls is None and requested_url not in ctx.deps.web_leads:
                 raise ModelRetry(
-                    "get_page may open only an exact URL returned by web_search "
-                    "during this Serendipity run."
+                    "Without an application-supplied public URL grant, get_page "
+                    "may open only an exact URL returned by web_search during "
+                    "this Serendipity run."
                 )
 
-        if name == "web_search":
+        if name in {"web_search", "get_page"}:
             record_connection_event(ConnectionEvaluationEvent(
-                kind="query", status="sent", source="web", operation=name, query=query,
+                kind="query", status="sent", source="web", operation=name,
+                query=query if name == "web_search" else requested_url,
             ))
         try:
             result = await super().call_tool(name, tool_args, ctx, tool)

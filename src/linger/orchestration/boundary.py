@@ -15,6 +15,7 @@ from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.boundary_prompt import PROMPT_FINGERPRINT
 from src.linger.agents.librarian.models import (
     BoundaryMemory,
+    boundary_memory_assessment_errors,
     LibrarianBoundaryDecision,
     LibrarianBoundaryInferenceInput,
     PassageInferenceDecision,
@@ -108,6 +109,27 @@ def relevant_memories(
     return tuple(reversed(matching[:MAX_BOUNDARY_MEMORIES]))
 
 
+def _boundary_input(
+    current_line: str,
+    memories: tuple[RetrievalMemory, ...],
+    evidence: tuple[EvidenceRecord, ...],
+    prior_reader_statements: tuple[ReaderStatement, ...],
+) -> LibrarianBoundaryInferenceInput:
+    return LibrarianBoundaryInferenceInput(
+        current_line=current_line,
+        prior_reader_statements=prior_reader_statements,
+        relevant_memories=tuple(
+            BoundaryMemory(
+                memory_id=memory.memory_id,
+                text=memory.text,
+                evidence_ids=memory.evidence_ids,
+            )
+            for memory in memories
+        ),
+        full_work_candidates=evidence,
+    )
+
+
 async def judge_spoiler_boundary(
     current_line: str,
     memories: tuple[RetrievalMemory, ...],
@@ -122,19 +144,7 @@ async def judge_spoiler_boundary(
 
         agent = librarian_agent
 
-    task = LibrarianBoundaryInferenceInput(
-        current_line=current_line,
-        prior_reader_statements=prior_reader_statements,
-        relevant_memories=tuple(
-            BoundaryMemory(
-                memory_id=memory.memory_id,
-                text=memory.text,
-                evidence_ids=memory.evidence_ids,
-            )
-            for memory in memories
-        ),
-        full_work_candidates=evidence,
-    )
+    task = _boundary_input(current_line, memories, evidence, prior_reader_statements)
     result = await run_agent_traced(
         agent,
         task.model_dump_json(),
@@ -325,6 +335,14 @@ async def infer_spoiler_boundary(
     if isinstance(decision, PassageInferenceDecision):
         return _validated_passages(
             decision, scope, evidence, prior_reader_statements, confidence_threshold, librarian
+        )
+
+    if boundary_memory_assessment_errors(
+        decision, _boundary_input(current_line, selected_memories, evidence, prior_reader_statements),
+    ):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable", clarification_question=_clarification(scope),
         )
 
     if decision.outcome == "uncertain":

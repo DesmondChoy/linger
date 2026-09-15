@@ -37,8 +37,12 @@ the exported-payload test are updated together.
 | Agent and model | Agent role, selected skill, and stage; provider and model; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
-| Failure | Fixed failure stage and code; retryability; owner type (`model`, `validation`, or `application`) |
+| Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
 | Evaluation | Objective ID, case ID, dataset version, run ID, system variant, Ground truth status, expected and actual fixed labels, proposal comparison or adopted-label pass/fail, aggregate counts and metrics, latency, tokens, and cost |
+
+For traced agent failures, `failure.category` is one of `model_response_error`,
+`usage_limit`, `provider_error`, `unknown_error`, or `cancelled`. Classification
+uses known exception types, never exception text or arbitrary class names.
 
 Values must be fixed enums, booleans, numbers, repository versions,
 server-generated correlation IDs, or identifiers validated against an
@@ -127,6 +131,21 @@ criteria, full-deployment and objective-execution identities, and correlated
 trace IDs. Both artifacts omit thinking parts. Logfire may display only
 thinking content that the provider actually returned; absence does not
 establish that a model performed no internal reasoning.
+
+When an agent invocation fails or is cancelled, `run_agent_traced` retains
+available partial model messages only if a synthetic transcript sink is bound.
+The durable `AgentExchange` records the fixed `failure_category` alongside the
+existing failure code. Calls that end without a result have no typed output or
+completed usage result. Their partial messages can still show attempted tool
+calls, returned tool results, and retry feedback; thinking parts remain omitted.
+
+`model_messages_include_history` is true when a failed call retains a nonempty
+attempted conversation, which may include the supplied message history.
+Successful calls retain only new messages and leave this flag false.
+`tool_exchanges` excludes earlier history's tool calls in either case, so a
+failed follow-up does not report old tool work as new. An early failure may
+have no captured messages. Production requests never bind this sink and export
+only the permitted failure metadata, without partial messages.
 
 Book-grounding replay records routing selection, boundary authorization,
 completed retrieval, final permitted citations, and release outcomes. Its

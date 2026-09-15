@@ -197,6 +197,11 @@ The component command accepts these options:
 - `--no-logfire` skips the runner's Logfire configuration. The component model
   still runs and writes its JSON report.
 
+Book searches use the shared scoped retrieval operation with fixture passages
+and a simulated sufficient judgment over the permitted fixture records. This
+keeps the component evaluation focused on Serendipity; it does not measure live
+Librarian relevance judgment or read the case's expected labels into the judge.
+
 The component tools return fixture evidence, so they require no Exa credential
 or live retrieval. The Serendipity agent uses the configured `LINGER_MODEL` and
 matching provider API key.

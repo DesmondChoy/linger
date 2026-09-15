@@ -18,6 +18,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 from apps.backend.config import Settings
 from apps.backend.contracts import BookScope, ConnectionBrief, EvidenceItem
 from apps.backend.librarian import Librarian
+from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.agents.serendipity.models import (
     CandidateRubric,
     ConnectionCandidate,
@@ -351,9 +352,17 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
     def deps(
         self, active_task: ConnectionDiscoveryInput | None = None
     ) -> SerendipityDependencies:
+        async def judge(_query, records):
+            return EvidenceStrengthDecision(
+                evidence_strength="sufficient",
+                strength_reason="Deterministic book support for agent wiring tests.",
+                relevant_evidence_ids=tuple(record.evidence_id for record in records),
+            )
+
         return SerendipityDependencies(
             task=active_task or task(),
             librarian=Librarian(),
+            strength_judge=judge,
         )
 
     async def test_agent_exposes_librarian_search_and_typed_outputs(self) -> None:
@@ -559,6 +568,79 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("complete public page", deps.evidence[url].excerpt)
         self.assertEqual("external", deps.evidence[url].trust_level)
 
+    async def test_blocked_title_directs_retry_to_permitted_url_and_opened_lead(self) -> None:
+        url = "https://www.gutenberg.org/files/4705/4705-h/4705-h.htm"
+        outside_url = "https://example.com/unrequested"
+        queries: list[str] = []
+        opened: list[str] = []
+
+        class FakeExaClient:
+            async def search(self, query, **_kwargs):
+                queries.append(query)
+                return SimpleNamespace(
+                    results=[SimpleNamespace(
+                        url=source_url, title="A public essay", published_date=None,
+                        author=None, highlights=["A search lead."],
+                    ) for source_url in (url, outside_url)],
+                    output=None,
+                )
+
+            async def get_contents(self, urls, **_kwargs):
+                opened.append(urls)
+                return SimpleNamespace(results=[SimpleNamespace(
+                    url=url, title="A public essay", published_date=None,
+                    author=None, text="The permitted public page was opened.",
+                )])
+
+        def respond(messages, info: AgentInfo) -> ModelResponse:
+            retries = [
+                part for message in messages for part in message.parts
+                if isinstance(part, RetryPromptPart)
+            ]
+            returns = [
+                part for message in messages for part in message.parts
+                if isinstance(part, ToolReturnPart)
+            ]
+            if not retries:
+                return ModelResponse(parts=[ToolCallPart(
+                    "web_search", {"query": "Hume Of personal identity"},
+                )])
+            self.assertIn("scope.web_source_urls", str(retries[0].content))
+            if not any(part.tool_name == "web_search" for part in returns):
+                return ModelResponse(parts=[ToolCallPart("web_search", {"query": url})])
+            if not any(part.tool_name == "get_page" for part in returns):
+                self.assertEqual({url}, deps.web_leads)
+                self.assertEqual({}, deps.evidence)
+                requested_url = outside_url if len(retries) == 1 else url
+                return ModelResponse(parts=[ToolCallPart("get_page", {"url": requested_url})])
+            return ModelResponse(parts=[ToolCallPart(
+                info.output_tools[1].name,
+                ConnectionDecline(
+                    reason="insufficient_evidence",
+                    safe_next_step="The inspected page does not settle your question.",
+                ).model_dump(mode="json"),
+            )])
+
+        active_task = task(allowed_sources=("web",)).model_copy(update={
+            "cue": (
+                "Compare Hume Of personal identity with the other sources "
+                "before deciding whether my work self is an act."
+            ),
+            "scope": ConnectionScope(allowed_sources=("web",), web_source_urls=(url,)),
+        })
+        deps = self.deps(active_task)
+        result = await build_serendipity_agent(FunctionModel(respond)).run(
+            active_task.model_dump_json(), deps=deps,
+            capabilities=[GuardedExaSearch(client=FakeExaClient())],
+            **CONNECTION_DISCOVERY.run_options(),
+        )
+        self.assertIsInstance(result.output, ConnectionDecline)
+        self.assertEqual([url], queries)
+        self.assertEqual([url], opened)
+        self.assertEqual({url}, deps.web_leads)
+        self.assertEqual({url}, set(deps.opened_web_evidence))
+        self.assertEqual({url}, set(deps.evidence))
+
     async def test_agent_explorer_enforces_a_small_tool_call_budget(self) -> None:
         exa_calls = 0
 
@@ -662,21 +744,16 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsInstance(result.output, ConnectionDecline)
                 self.assertEqual(0, search_calls)
 
-    def test_failed_librarian_search_records_a_content_free_handoff(self) -> None:
+    async def test_failed_librarian_search_records_a_content_free_handoff(self) -> None:
         class FailingLibrarian:
-            def retrieve(self, _request):
+            def retrieve_for_judgement(self, _request):
                 raise RuntimeError("private retrieval failure")
 
         active_task = task()
-        deps = SerendipityDependencies(
-            task=active_task,
-            librarian=FailingLibrarian(),
-        )
+        deps = self.deps(active_task)
+        deps.librarian = FailingLibrarian()
 
-        result = search_librarian(
-            SimpleNamespace(deps=deps),
-            query="identity change",
-        )
+        result = await search_librarian(SimpleNamespace(deps=deps))
 
         self.assertEqual("retrieval_unavailable", result.outcome)
         self.assertEqual(1, len(deps.searches))

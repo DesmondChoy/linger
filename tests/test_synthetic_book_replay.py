@@ -34,12 +34,16 @@ from evals.synthetic_journals.validate_scenario import (
     load_run_configurations,
     validate_scenario,
 )
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from src.linger.agents.librarian.models import (
+    BoundaryInferenceDecision, LibrarianBoundaryInferenceInput,
+    boundary_memory_assessment_errors,
+)
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.librarian import BoundarySupportLocation
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
 from src.linger.orchestration.reflection import ReflectionRelease
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
 
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORT_ID = "pg11-v01b38ea4-ch05-ln0964-0964"
@@ -111,14 +115,24 @@ def _corpus_record():
     return Librarian().fetch_by_id(SUPPORT_ID).model_dump(mode="json")
 
 
-def _record_boundary(output: BoundaryInferenceDecision) -> None:
+def _record_boundary(
+    output: BoundaryInferenceDecision, *,
+    memories: tuple[MemoryRecord | CuratedMemory, ...], current_line: str,
+) -> None:
     sink = active_evaluation_transcript_sink()
     assert sink is not None
     boundary_input = {
-        "current_line": "synthetic current line",
-        "relevant_memories": [],
+        "current_line": current_line,
+        "prior_reader_statements": [],
+        "relevant_memories": [{
+            "memory_id": memory.memory_id, "text": memory.text,
+            "evidence_ids": list(memory.evidence_ids),
+        } for memory in memories],
         "full_work_candidates": [_corpus_record()],
     }
+    assert not boundary_memory_assessment_errors(
+        output, LibrarianBoundaryInferenceInput.model_validate(boundary_input),
+    )
     from src.linger.evaluation_transcript import bind_evaluation_correlation_id
 
     with bind_evaluation_correlation_id("route-synthetic"):
@@ -190,11 +204,16 @@ def _response(
     *,
     kind: str,
     searched_max: int = 5,
-    supporting_memory_ids: tuple[str, ...] = (),
+    memories: tuple[MemoryRecord | CuratedMemory, ...] = (),
 ) -> ChatResponse:
+    supporting_memory_ids = tuple(memory.memory_id for memory in memories)
     if kind == "infer":
         _record_boundary(
             BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (SUPPORT_ID,),
+                    "reason": "The controlled canonical passages ground the remembered book event."}
+                    for memory_id in supporting_memory_ids),
                 outcome="candidate",
                 work_id="pg11",
                 book_version_id="pg11-v01b38ea4",
@@ -203,7 +222,8 @@ def _response(
                 authorization_basis="memory_supported",
                 supporting_memory_ids=supporting_memory_ids,
                 supporting_evidence_ids=(SUPPORT_ID,),
-            )
+            ),
+            memories=memories, current_line=request.message,
         )
         context = ContextResolution(
             status="confirmed",
@@ -227,16 +247,22 @@ def _response(
         reply = f"The passage says {QUOTE} That uncertainty can echo change."
         grounding = [
             _route_call(ceiling=5),
-            _grounding_call(request.message, searched_max=searched_max),
+            _grounding_call(searched_max=searched_max),
         ]
         evidence_ids = (SUPPORT_ID,)
     elif kind == "clarify":
         _record_boundary(
             BoundaryInferenceDecision(
+                memory_assessments=tuple({
+                    "memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (SUPPORT_ID,),
+                    "reason": "Earlier book knowledge is grounded, but the current stopping point is ambiguous.",
+                } for memory in memories),
                 outcome="uncertain",
                 confidence=0.4,
                 reason_code="insufficient_context",
-            )
+            ),
+            memories=memories, current_line=request.message,
         )
         context = ContextResolution(
             status="inferred",
@@ -337,10 +363,13 @@ def _route_clarification_call() -> dict[str, object]:
     }
 
 
-def _grounding_call(query: str, *, searched_max: int = 5) -> dict[str, object]:
+def _grounding_call(*, searched_max: int = 5) -> dict[str, object]:
     return {
         "tool_name": "librarian_search",
-        "request": {"query": query},
+        "request": {
+            "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
+            "reading_boundary": {"chapter_number": searched_max, "chapter_state": "completed"},
+        },
         "outcome": "success",
         "response": {
             "kind": "result",
@@ -392,9 +421,7 @@ def test_book_replay_isolates_props_accounts_sessions_and_ground_truth() -> None
         return _response(
             request,
             kind=kind,
-            supporting_memory_ids=tuple(
-                record.memory_id for record in service.list_active(account)
-            ),
+            memories=tuple(service.list_active(account)),
         )
 
     result = asyncio.run(
@@ -446,9 +473,7 @@ def test_book_replay_uses_adopted_identity_and_grades_ceiling_failure() -> None:
             request,
             kind=kind,
             searched_max=6 if kind == "infer" else 5,
-            supporting_memory_ids=tuple(
-                record.memory_id for record in _service.list_active(_account)
-            ),
+            memories=tuple(_service.list_active(_account)),
         )
 
     result = asyncio.run(
@@ -490,7 +515,8 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
     async def reflection(prompt, *_args, **_kwargs):
         from src.linger.orchestration.turn_context import active_memories
 
-        supporting_memory_ids = tuple(record.memory_id for record in active_memories())
+        memories = active_memories()
+        supporting_memory_ids = tuple(record.memory_id for record in memories)
         payload = json.loads(prompt)
         line = payload["muse_turn"]["user_message"]
         serialized = json.dumps(payload)
@@ -502,6 +528,10 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
             # that inference runs inside Muse's own turn.
             _record_boundary(
                 BoundaryInferenceDecision(
+                    memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                        "evidence_ids": (SUPPORT_ID,),
+                        "reason": "The controlled canonical passages ground the remembered book event."}
+                        for memory_id in supporting_memory_ids),
                     outcome="candidate",
                     work_id="pg11",
                     book_version_id="pg11-v01b38ea4",
@@ -510,9 +540,10 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
                     authorization_basis="memory_supported",
                     supporting_memory_ids=supporting_memory_ids,
                     supporting_evidence_ids=(SUPPORT_ID,),
-                )
+                ),
+                memories=memories, current_line=line,
             )
-            calls = (_route_call(ceiling=5), _grounding_call(line))
+            calls = (_route_call(ceiling=5), _grounding_call())
             _record_muse_tools(calls)
             if declined:
                 _record_muse_tools(calls, stage="revision")
@@ -530,10 +561,16 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
         if "Alice's conversation" in line:
             _record_boundary(
                 BoundaryInferenceDecision(
+                    memory_assessments=tuple({
+                    "memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (SUPPORT_ID,),
+                    "reason": "Earlier book knowledge is grounded, but the current stopping point is ambiguous.",
+                } for memory in memories),
                     outcome="uncertain",
                     confidence=0.4,
                     reason_code="insufficient_context",
-                )
+                ),
+                memories=memories, current_line=line,
             )
             _record_muse_tools((_route_clarification_call(),))
             return ReflectionRelease(
@@ -624,9 +661,7 @@ def replay_observed():
         return _response(
             request,
             kind=kind,
-            supporting_memory_ids=tuple(
-                record.memory_id for record in service.list_active(account)
-            ),
+            memories=tuple(service.list_active(account)),
         )
 
     return plan, asyncio.run(replay_book_scenes(plan, chat_handler=handler))
@@ -655,9 +690,7 @@ def test_replay_each_supported_selection(objective_ids):
         return _response(
             request,
             kind=kind,
-            supporting_memory_ids=tuple(
-                record.memory_id for record in service.list_active(account)
-            ),
+            memories=tuple(service.list_active(account)),
         )
 
     result = asyncio.run(
@@ -804,7 +837,7 @@ def test_passage_retrieval_records_exact_scope_without_a_chapter():
     from evals.synthetic_journals.book_replay import _grounding_observations
     from src.linger.contracts.librarian import PassageScope
 
-    call = _grounding_call("Quote the Caterpillar's question.")
+    call = _grounding_call()
     call["response"]["searched_scope"] = PassageScope(
         work_id="pg11", book_version_id="pg11-v01b38ea4",
         evidence_ids=(SUPPORT_ID,),
@@ -819,7 +852,7 @@ def test_passage_retrieval_records_exact_scope_without_a_chapter():
 def test_incomplete_private_tool_calls_do_not_look_like_success(outcome):
     from evals.synthetic_journals.book_replay import _grounding_observations, _route_outcome
 
-    route, search = _tool_calls([_route_call(), _grounding_call("Find a passage.")])
+    route, search = _tool_calls([_route_call(), _grounding_call()])
     calls = tuple(
         call.model_copy(update={"result": None, "outcome": outcome})
         for call in (route, search)

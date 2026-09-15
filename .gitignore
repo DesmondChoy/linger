@@ -1,4 +1,3 @@
-.DS_Store
 .venv/
 
 apps/evaluation-explorer/node_modules/
@@ -15,6 +14,9 @@ data/gutenberg/pg*.metadata.json
 !data/
 !data/corpus/
 !data/corpus/**
+
+# Keep Finder metadata ignored after the corpus allowlist.
+.DS_Store
 
 # Beads / Dolt files (added by bd init)
 .dolt/

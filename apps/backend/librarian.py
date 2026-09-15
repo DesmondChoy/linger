@@ -405,6 +405,9 @@ class Librarian:
         lowered = _normalize(text)
         allowed = set(allowed_book_version_ids)
         ranked: list[tuple[RegisteredCorpusScope, float, int]] = []
+        title_anchored_work_ids: set[str] = set()
+        title_anchored_cues: set[str] = set()
+        counted_cues_by_work: dict[str, set[str]] = {}
         for registration in registry.CORPORA.values():
             book = registration.book
             if book.book_version_id not in allowed:
@@ -435,9 +438,25 @@ class Librarian:
             confidence = min(1.0, 0.3 + 0.2 * distinct_cues)
             if confidence >= ROUTING_CONFIDENCE_THRESHOLD:
                 ranked.append((scope, confidence, distinct_cues))
+                counted_cues_by_work[book.work_id] = counted_cues
+                if any(
+                    re.search(rf"(?<!\w){re.escape(cue)}(?!\w)", _normalize(book.title))
+                    for cue in counted_cues
+                ):
+                    title_anchored_work_ids.add(book.work_id)
+                    title_anchored_cues.update(catalog_markers)
 
         if not ranked:
             return None
+        if title_anchored_work_ids:
+            ranked = [
+                item for item in ranked
+                if item[0].work_id in title_anchored_work_ids
+                or any(
+                    not any(_contains_phrase(_phrase_tokens(marker), cue) for marker in title_anchored_cues)
+                    for cue in counted_cues_by_work[item[0].work_id]
+                )
+            ]
         ranked.sort(key=lambda item: (-item[1], -item[2], item[0].work_id))
         if len(ranked) > 1:
             return BookClarification(tuple(

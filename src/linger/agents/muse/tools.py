@@ -22,18 +22,18 @@ from src.linger.orchestration.turn_context import reader_message
 
 
 async def librarian_search(
-    query: str,
     work_id: str,
     book_version_id: str,
     reading_boundary: ReadingBoundary | None,
     max_final_evidence: int = 5,
 ) -> LibrarianResponse:
-    """Search application-authorized book text for passages relevant to `query`.
+    """Retrieve permitted book evidence for the reader's current request.
 
     Use this when answering would benefit from grounding in the book's actual
-    text rather than general knowledge. Copy the reader's question together
-    with its scene description into `query`. Keep character names and events
-    even when the reader describes them as the part they just finished.
+    text rather than general knowledge. The application supplies the current
+    reader message and prior reader statements. Librarian identifies the book
+    request before searching, preserving the reader's wording and resolving
+    follow-ups without a model-written replacement question.
     `work_id` and `book_version_id` must
     match the application-validated request scope. Pass the validated current
     chapter position from `reading_context` as `reading_boundary` (its
@@ -48,7 +48,10 @@ async def librarian_search(
     a retrieval failure — handle all three without assuming evidence exists.
     For a clarification, ask its exact question without evidence or other tools.
     """
-    request = build_request(query, work_id, book_version_id, reading_boundary, max_final_evidence)
+    message = reader_message()
+    if message is None:
+        raise RuntimeError("librarian_search requires an active reader turn")
+    request = build_request(message, work_id, book_version_id, reading_boundary, max_final_evidence)
     return await grounding_evidence(request)
 
 
@@ -86,18 +89,22 @@ async def serendipity_explore(
 ) -> ConnectionExplorationResult:
     """Explore a reader's cue for a tentative, evidence-backed connection worth surfacing.
 
-    Use this when the reader shares a feeling, question, or recurring idea and
-    an unexpected connection to a confirmed book or a wider public resonance
-    might deepen their reflection — not for routine grounding, which
-    `librarian_search` already covers. The application supplies the exact current
-    reader message as the cue; the model cannot replace it. The book, chapter,
+    Use this when answering requires comparing named sources or assessing
+    whether those sources support the reader's proposed conclusion, including
+    when the supported answer may be a decline. Also use it when a connection
+    to a confirmed book or wider public resonance could deepen reflection.
+    Routine book grounding uses `librarian_search`. Personal wording requests
+    without source comparison or source support do not require exploration.
+    The application supplies the exact current reader message as the cue;
+    the model cannot replace it. The book, chapter,
     and source scope are also fixed by the application. Passage-only permission
     does not grant Serendipity book search. Serendipity chooses bounded Librarian
     and optional Exa searches within its authorized sources,
     compares a shortlist, and returns a validated proposal or decline together
     with its request-local evidence. Use `get_recommendation` when the reader
     explicitly asks for an essay, artwork, song, thinker, or other outside
-    source; use `find_connection` for an optional reflective resonance. Never
+    source; use `find_connection` for source comparison, assessment of a
+    proposed conclusion, or an optional reflective resonance. Never
     invent a connection when the decision is a decline — relay the safe next
     step instead.
     """

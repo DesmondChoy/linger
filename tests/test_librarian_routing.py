@@ -1,5 +1,6 @@
 """Tests for the Muse-facing `librarian_route` tool and its confidence union."""
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ from logfire.testing import TestExporter
 
 from apps.backend import sessions
 from apps.backend.config import Settings
+from apps.backend.librarian import Librarian, RoutingDecision
 from corpus_fixtures import fake_registration
 from src.linger.agents.librarian.models import BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
@@ -132,6 +134,36 @@ async def _candidate_uncertain_boundary(_message, *, work_id, book_version_id, *
     )
 
 
+class CatalogCueIdentityTests(unittest.TestCase):
+    allowed = ("pg11-v01b38ea4", "pg500-v6bdc1734")
+
+    def test_named_alice_episode_is_not_ambiguous_with_pinocchio(self) -> None:
+        scenario = Path(__file__).resolve().parents[1] / (
+            "synthetic-journal-evaluation/scenarios/"
+            "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/"
+            "backstory.json"
+        )
+        document = json.loads(scenario.read_text())
+        line = next(item["text"] for item in document["lines"] if item["scene_id"] == "pigeon-reflection")
+        result = Librarian().route_work(line, self.allowed)
+        self.assertIsInstance(result, RoutingDecision)
+        self.assertEqual("pg11", result.scope.work_id)
+
+    def test_shared_story_cues_and_two_explicit_titles_remain_ambiguous(self) -> None:
+        for line in (
+            "The Caterpillar, Pigeon and serpent made that scene confusing.",
+            "Compare Alice and the Caterpillar with Geppetto and the Talking Cricket.",
+            "Compare Alice's Adventures in Wonderland and The Adventures of Pinocchio.",
+        ):
+            with self.subTest(line=line):
+                result = Librarian().route_work(line, self.allowed)
+                self.assertIsInstance(result, registry.BookClarification)
+                self.assertEqual({"pg11", "pg500"}, {item.book.work_id for item in result.candidates})
+
+    def test_person_named_alice_does_not_become_a_book_selection(self) -> None:
+        self.assertIsNone(Librarian().route_work("My friend Alice is stressed about work.", self.allowed))
+
+
 class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self._settings_patch = patch(
@@ -228,6 +260,10 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
         async def confident_judge(_line, memories, evidence, _statements):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": [record.evidence_id for record in evidence],
+                    "reason": "The controlled canonical passages ground the remembered book event."}
+                    for memory_id in [memory.memory_id for memory in memories]),
                 outcome="candidate",
                 work_id="pg11",
                 book_version_id="pg11-v01b38ea4",
@@ -277,6 +313,9 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def test_low_confidence_boundary_yields_clarification(self) -> None:
         async def uncertain_judge(_line, _memories, _evidence, _statements):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _memories),
                 outcome="uncertain",
                 confidence=0.2,
                 reason_code="insufficient_context",
@@ -405,6 +444,9 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     async def test_unrelated_turn_after_selection_reaches_inference_and_is_declined(self) -> None:
         async def declining_judge(_line, _memories, _evidence, _statements):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _memories),
                 outcome="uncertain", confidence=0.1, reason_code="insufficient_context",
             )
 
@@ -512,6 +554,9 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         async def line_only_judge(_line, _memories, evidence, _statements):
             self.assertTrue(evidence, "retrieval must surface evidence for the judge to run")
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _memories),
                 outcome="candidate",
                 work_id="pg11",
                 book_version_id="pg11-v01b38ea4",

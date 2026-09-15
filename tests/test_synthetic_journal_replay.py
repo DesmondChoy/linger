@@ -196,7 +196,10 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
     )
     tool_call = ToolCallPart(
         tool_name="librarian_search",
-        args={"query": "synthetic query"},
+        args={
+            "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
+            "reading_boundary": None,
+        },
         tool_call_id="call-1",
     )
     tool_return = ToolReturnPart(
@@ -230,7 +233,10 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
     exchange = recorder.exchanges[0]
     assert exchange.output == {"reply": "synthetic reply"}
     assert exchange.tool_exchanges[0].tool_name == "librarian_search"
-    assert exchange.tool_exchanges[0].arguments == {"query": "synthetic query"}
+    assert exchange.tool_exchanges[0].arguments == {
+        "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
+        "reading_boundary": None,
+    }
     assert exchange.tool_exchanges[0].result == {"kind": "result", "evidence": []}
     assert "hidden model reasoning" not in json.dumps(exchange.model_messages)
     assert "opaque-signature" not in json.dumps(exchange.model_messages)

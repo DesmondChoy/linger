@@ -30,6 +30,7 @@ def review(
     source_field="candidate.response",
     capture_decision: str | None = None,
     capture_codes: tuple[str, ...] = (),
+    resolution_statuses: tuple[str, ...] | None = None,
 ) -> ProvenanceReview:
     """Build a review whose findings resolve against the case being graded."""
     findings = []
@@ -67,8 +68,18 @@ def review(
         capture_decision = (
             case.expected_capture_decision if case is not None else "no_candidate"
         )
+    if resolution_statuses is None:
+        resolution_statuses = (
+            tuple("resolved" if decision == "pass" else status
+                  for status in case.expected_finding_resolutions)
+            if case is not None else ()
+        )
     return ProvenanceReview(
         findings=tuple(findings),
+        finding_resolutions=tuple({
+            "finding_index": index, "status": status,
+            "explanation": f"controlled test review marks finding {index} {status}",
+        } for index, status in enumerate(resolution_statuses)),
         response_decision=decision,
         emotional_boundary_decision="not_required",
         capture_decision=capture_decision,
@@ -94,10 +105,10 @@ class RiskCodeCaseSetTests(unittest.TestCase):
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
         self.assertEqual("4.2.1", self.case_set.flow)
-        self.assertEqual(24, len(self.case_set.cases))
+        self.assertEqual(28, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
-        self.assertEqual(5, len(self.case_set.positives))
-        self.assertEqual(7, len(self.case_set.negatives))
+        self.assertEqual(8, len(self.case_set.positives))
+        self.assertEqual(8, len(self.case_set.negatives))
         self.assertEqual(5, len(self.case_set.capture_positives))
         self.assertEqual(6, len(self.case_set.capture_negatives))
 
@@ -109,6 +120,43 @@ class RiskCodeCaseSetTests(unittest.TestCase):
             negative = self.by_behavior[f"{code}_negative"]
             self.assertEqual("pass", negative.expected_response_decision)
             self.assertEqual((), negative.expected_response_codes)
+
+    def test_mapping_cases_separate_missing_declarations_from_missing_support(self) -> None:
+        for behavior, source in (
+            ("claim_mapping_book_omitted", "book_corpus"),
+            ("claim_mapping_web_omitted", "web"),
+        ):
+            with self.subTest(behavior=behavior):
+                case = self.by_behavior[behavior]
+                candidate = case.review_input.candidate
+                declared = candidate.evidence_uses[0]
+                records = (
+                    *case.review_input.canonical_book_evidence,
+                    *case.review_input.canonical_connection_evidence,
+                )
+                self.assertEqual(source, declared.source_kind)
+                self.assertIn(declared.evidence_id, {record.evidence_id for record in records})
+                self.assertEqual((candidate.response.split(":", 1)[0],), declared.supported_claims)
+                self.assertEqual("revise", case.expected_response_decision)
+                self.assertEqual(("unsupported_claim",), case.expected_response_codes)
+
+    def test_revision_pair_changes_only_the_claim_mapping(self) -> None:
+        broken = self.by_behavior["claim_mapping_revision_unresolved"]
+        repaired = self.by_behavior["claim_mapping_revision_resolved"]
+        self.assertEqual(
+            broken.review_input.previous_response_review,
+            repaired.review_input.previous_response_review,
+        )
+        self.assertEqual(
+            broken.review_input.candidate.response,
+            repaired.review_input.candidate.response,
+        )
+        self.assertEqual(("unresolved",), broken.expected_finding_resolutions)
+        self.assertEqual(("resolved",), repaired.expected_finding_resolutions)
+        self.assertNotEqual(
+            broken.review_input.candidate.evidence_uses,
+            repaired.review_input.candidate.evidence_uses,
+        )
 
     def test_every_veto_code_has_a_positive_and_a_paired_negative(self) -> None:
         for code in FLOW_422_CODES:
@@ -270,6 +318,29 @@ class RiskCodeGradingTests(unittest.TestCase):
         grade = grade_review(case, review("reject", "spoiler", case=case))
         self.assertTrue(grade.passed)
         self.assertEqual(("spoiler",), grade.actual_codes)
+
+    def test_revision_without_resolution_is_invalid_even_with_expected_decision(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_unresolved"]
+        grade = grade_review(case, review(
+            "revise", "unsupported_claim", case=case, resolution_statuses=(),
+        ))
+        self.assertFalse(grade.passed)
+        self.assertEqual("invalid_review", grade.failure_code)
+
+    def test_wrong_resolution_fails_even_when_decision_and_code_match(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_unresolved"]
+        grade = grade_review(case, review(
+            "revise", "unsupported_claim", case=case, resolution_statuses=("resolved",),
+        ))
+        self.assertFalse(grade.passed)
+        self.assertEqual("finding_resolution_mismatch", grade.failure_code)
+        self.assertEqual(("resolved",), grade.actual_finding_resolutions)
+
+    def test_repaired_mapping_passes_with_an_explicit_resolution(self) -> None:
+        case = self.by_behavior["claim_mapping_revision_resolved"]
+        grade = grade_review(case, expected_review(case))
+        self.assertTrue(grade.passed)
+        self.assertEqual(("resolved",), grade.actual_finding_resolutions)
 
     def test_wrong_decision_is_a_decision_mismatch(self) -> None:
         case = self.by_behavior["spoiler_positive"]
@@ -564,7 +635,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(report.summary.targets_pass)
         self.assertEqual(1.0, report.summary.block_recall)
-        self.assertEqual(0.2, report.summary.code_precision)
+        self.assertEqual(0.5, report.summary.code_precision)
         self.assertEqual(1.0, report.summary.capture_veto_recall)
         self.assertEqual(0.2, report.summary.capture_code_precision)
 
@@ -575,7 +646,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(24, report.summary.evaluation_error_count)
+        self.assertEqual(28, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 

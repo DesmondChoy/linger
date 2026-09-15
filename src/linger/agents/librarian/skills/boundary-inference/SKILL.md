@@ -53,12 +53,46 @@ Session-supported passages:
   permission to disclose that fragment.
 
 Memory-supported chapter inference:
-- Use `current_line` and memories as separate knowledge signals.
-- Use candidate passages only to locate those signals inside the work.
-- Return `candidate` only when the signals map coherently to one latest chapter.
-- Declare `authorization_basis=memory_supported` only when one or more supplied
-  memories genuinely demonstrate knowledge of the selected event, and cite
-  their exact input memory IDs. Otherwise declare `authorization_basis=line_only`.
+- Fill `memory_assessments` before choosing the outcome and authorization basis.
+  Include one entry for every supplied memory, using its exact `memory_id`.
+  Compare the memory's text with `full_work_candidates`. Stored memory
+  `evidence_ids` may be empty: that is missing stored linkage, not a judgment
+  that its text lacks canonical support.
+- Mark `grounded_prior_knowledge` when candidate passages locate an event the
+  memory shows the reader knows and the knowledge is consistent with the
+  current report. Cite those exact candidate IDs in the assessment and explain
+  the match. The remembered event may be earlier than the current stopping scene.
+- Mark `not_supported` when the memory supplies no such knowledge, explaining
+  why. Mark `conflicting` when its claimed progress conflicts with the current
+  report or canonical evidence; explain the conflict. Do not mark an earlier
+  remembered event conflicting merely because the reader now reports a later one.
+- For a candidate, `supporting_memory_ids` must match grounded assessments and
+  `supporting_evidence_ids` must include their canonical anchors alongside the
+  current event. Grounded assessments require `memory_supported`; without them
+  use `line_only`, which grants nothing. Conflicting assessments require
+  `uncertain`. Even with grounded prior knowledge, an unresolved current event
+  remains `uncertain`; do not manufacture a stopping point.
+- Assess supplied memories before choosing an authorization basis. Locate any
+  earlier event they demonstrate the reader knows, then independently locate
+  the event the reader now reports reading in `current_line`.
+- Use candidate passages only to locate those separate knowledge signals.
+  Recognizing the current scene from the Line alone does not erase an earlier
+  memory's independently grounded support.
+- Return `candidate` only when those signals map coherently to one latest
+  chapter. A specific current reading report can extend remembered knowledge
+  within the same chapter or into a later chapter; the memory need not describe
+  the current stopping scene.
+- Declare `authorization_basis=memory_supported` when supplied memories genuinely
+  demonstrate knowledge of an event in this work and the current reading report
+  coherently locates the same or a later event. Cite the exact input memory IDs.
+  The memory need not describe the later event: the earlier remembered encounter
+  and a specific current report of reading further are separate knowledge signals.
+  Both must be located by supplied passages. Choose `authorization_basis=line_only`
+  only after checking the supplied memories and finding no grounded earlier
+  knowledge that supports the current reading report. Do not choose it merely
+  because the Line was sufficient to identify the current scene.
+  Memory presence alone is not support: unrelated, ungrounded, hypothetical,
+  second-hand, or contradicted memory content cannot authorize progress.
 - A reader message may locate an event without proving reading progress. Do not
   relabel a curiosity question, adaptation reference, quotation, or second-hand
   mention as memory-supported knowledge.
@@ -74,7 +108,10 @@ Memory-supported chapter inference:
   `supporting_evidence_ids`, even if both events are in the same chapter. A
   passage locating only the memory does not establish the current stopping point.
   If the current event cannot be distinguished, return `uncertain`; do not use
-  the memory's chapter as a substitute for resolving `current_line`.
+  the memory's chapter as a substitute for resolving `current_line`. Shared
+  themes or repeated events do not identify a stopping point. A current
+  correction that the reader has not reached an event defeats older memory
+  support; do not use the memory to override that correction.
 - Use `conflicting_context` when credible signals point to incompatible reading
   positions, `insufficient_context` when no event can be located, and
   `low_confidence` when a possible location remains ambiguous.

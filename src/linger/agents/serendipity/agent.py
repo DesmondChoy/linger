@@ -30,7 +30,7 @@ def validate_serendipity_output(
     ctx: RunContext[SerendipityDependencies],
     output: SerendipityResponse,
 ) -> SerendipityResponse:
-    """Retry proposals that cite leads instead of retrieved run evidence."""
+    """Retry unresolved citations and flags that misdescribe the selected evidence."""
     if isinstance(output, ConnectionDecline):
         return output
     cited_ids = {
@@ -55,6 +55,17 @@ def validate_serendipity_output(
             "Every shortlisted evidence_id must exactly match evidence returned "
             "by a search tool in this run. Remove or replace these unresolved "
             f"IDs: {sorted(unknown_ids)}."
+        )
+    winner_has_web = any(
+        ctx.deps.evidence[evidence_id].source_kind == "web"
+        for evidence_id in output.selected_candidate.evidence_ids
+    )
+    if winner_has_web != ("contains_web_claim" in output.policy_flags):
+        action = "Include" if winner_has_web else "Remove"
+        raise ModelRetry(
+            f"{action} contains_web_claim in policy_flags to match the selected "
+            "candidate's evidence. Evidence used only by another shortlisted "
+            "candidate does not determine this flag."
         )
     return output
 

@@ -19,8 +19,11 @@ cited by an earlier released reply in the same session. Exact earlier reader
 wording has a separate `session_line` declaration, checked against retained
 reader Lines from that session. Selected memory and web records use a separate
 request-scoped index. Memory records must match the authenticated account's
-active records. Web records must match an opened page from an authorized search
-lead. Image evidence, richer declared claims, and sensitive-inference flags
+active records. Web records must match an opened page from an exact
+application-supplied public URL or an authorized search lead. Each evidence use
+now names the exact reply spans it supports through
+`supported_claims`; source matching is checked by code and meaning by Provenance.
+Image evidence and sensitive-inference flags
 remain later slices. The implemented curation slice
 selects a bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
@@ -204,7 +207,13 @@ requires the ordinary Provenance gate.
 At target completion, every Muse invocation returns a typed candidate containing the complete response text plus its declared claims, quotations, evidence identifiers, sensitive-inference flags, and `MemoryCandidate | NoMemoryCandidate`. Those fields assist review but do not authorise release or capture: Provenance examines the entire draft and any proposed memory and may identify items Muse omitted or misclassified. Regular expressions and structural checks may provide defence in depth, but they are not the semantic security boundary.
 
 The current release contract includes the complete response text plus declared evidence
-identifiers, exact quotations, and source locations. After each passing original
+identifiers, exact quotations, source locations, and `supported_claims`. Each
+declaration maps one source to one or more exact spans from the current reply;
+several sources may support the same span. Muse output validation and final
+release reject empty or stale spans. Provenance checks whether each source
+supports its mapped claims and scans the entire response for omitted claims.
+Mappings do not establish completeness or semantic support. Non-factual personal
+reflection may have no evidence declarations. After each passing original
 or revised Provenance verdict, application code resolves every book declaration
 against one application-owned, request-scoped evidence index. The index accepts
 only exact book records from the current direct Librarian result, the selected
@@ -217,10 +226,23 @@ exact-unit scope. A re-resolved session record authorises only that exact
 previously released passage; it does not establish
 current reading progress or grant neighbouring text. Application code also
 validates source lines, source location, and any exact quotation before release.
+An empty, weak, or failed direct Librarian search describes that search only.
+It does not invalidate independently retrieved, application-validated evidence
+from another permitted search or a selected Serendipity proposal. Muse and
+Provenance must assess each claim against the canonical evidence that actually
+supports it. A resolved source cannot support an unrelated claim, and an
+unresolved work or reading boundary still requires clarification before book
+answering. If no canonical evidence supports a claim, the direct search's
+limitation remains binding.
 For selected memory and web evidence, `canonical_connection_evidence` gives
 Provenance the exact request-owned records. Memory records bind their identifier
 and text to the authenticated active-memory snapshot. Web records bind to a page
-opened from a permitted search lead. The release validator checks each declared
+opened from an exact application-supplied public URL or a permitted search lead.
+Application-supplied URLs can be opened directly; model-discovered URLs require
+a lead from the current run. A nonempty URL allowlist still excludes all other
+pages, and an empty one excludes every page. Page requests are checked for
+private data and copied reader or memory wording in both raw and percent-decoded
+URLs before retrieval. The release validator checks each declared
 use against that index, checks any quotation against both source and reply,
 and requires web URLs to appear as exact Markdown citations. Personal memories
 support attributed personal context, not public factual claims. Unsupported,
@@ -228,6 +250,16 @@ ambiguous, or changed evidence fails closed to the application-authored safe
 decline. This staged contract does not remove the remaining target fields above.
 
 Provenance returns `pass`, `revise`, or `reject` for the user-facing response and, when a `MemoryCandidate` is present, an independent `allow_capture` or `reject_capture` decision. Rejecting capture does not suppress an otherwise safe response. The two semantic decisions remain independent, but deterministic storage eligibility also requires a released Muse candidate. Every `application_safe_decline` suppresses an otherwise eligible automatic write, including when Provenance independently returned `allow_capture`; inspection retains that decision, records `safe_decline_capture_suppressed`, and produces no save notice. Every emotional-boundary release records `emotional_boundary_capture_suppressed`. The preflight branch has no Muse nomination. A candidate-review fallback may retain the candidate's content-free nomination and independent capture decision for inspection, but it always suppresses storage. After a semantic pass, application code validates exact quotations, citation locations, account scope, and spoiler constraints where applicable. Only approved output is displayed. A first `revise` verdict gives Muse one discriminated revision envelope, the draft run's tool messages, and the same request-scoped evidence index, then returns through the same review path; a rejection or failed revision produces an application-authored safe decline.
+
+For that second review, the application adds `previous_response_review` with
+the original candidate and its response findings. Provenance returns one
+`finding_resolutions` entry per earlier finding, identified by its zero-based
+index, with a resolved or unresolved status and an explanation. Missing,
+duplicate, or unknown indices fail validation; unresolved findings prohibit
+approval. The reviewer still checks the entire revised reply against current
+canonical evidence. It may explain that an earlier finding was mistaken, but
+the earlier review cannot grant evidence or reading authority. Capture findings
+remain separate and are not carried as response-repair obligations.
 
 ### 4.2 End-to-end flows
 
@@ -328,6 +360,29 @@ returned by the application API. Image evidence remains unsupported.
 Web queries pass the privacy checks in Section 6.4 before execution. Synthetic
 replay records blocked and issued queries separately, so a refused query does
 not count as an external disclosure.
+
+Muse grounding and Serendipity book search use the same application-owned
+judged retrieval operation. Both use hybrid `retrieve_for_judgement`, using a
+private shortlist of at most five
+passages that retains the strongest fused-search candidate alongside reranker
+leaders, including below-cutoff candidates for independent judgment. Application
+code filters the candidates against the
+trusted work, book version, and reading scope before invoking Librarian's
+evidence-assessment skill on its reusable Agent. The result carries
+`sufficient`, `weak`, or `none`, a reason, and limitations. The judge receives
+the requested release limit separately from the
+private shortlist budget. Only judge-selected canonical records within that
+limit return to either caller; an oversized selection fails closed instead of
+truncating a verdict about a larger evidence set. Retrieval or judge failure
+returns no evidence.
+
+Serendipity receives the source strength, reason, and limitations in the book
+search result's `judgement` field, then evaluates the broader connection. Weak
+source evidence may support a limited comparison. Serendipity declines when the
+evidence cannot support the proposed relationship. Provenance still reviews
+Muse's complete draft. This common retrieval contract does not widen reading
+scope or lower global cutoffs. Ordinary retrieval and boundary inference retain
+their existing cutoffs.
 
 #### 4.2.4 Developer corpus and inspection tools
 

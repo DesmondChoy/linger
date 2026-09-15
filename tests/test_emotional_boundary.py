@@ -221,7 +221,11 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                     parts=[
                         ToolCallPart(
                             "librarian_search",
-                            {"query": "identity", "work_id": "pg11"},
+                            {
+                                "work_id": "pg11",
+                                "book_version_id": "pg11-v01b38ea4",
+                                "reading_boundary": None,
+                            },
                             "boundary-call",
                         ),
                         ToolReturnPart(
@@ -530,6 +534,11 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
                         ),
                     ),
                     response_decision="reject",
+                    finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'unresolved',
+                        'explanation': 'The revised invitation still does not handle the current emotional boundary.',
+                    },),
                     emotional_boundary_decision="required",
                     capture_decision="no_candidate",
                 )
@@ -600,6 +609,11 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             result(
                 ProvenanceReview(
                     response_decision="pass",
+                    finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'resolved',
+                        'explanation': 'The diagnosis was removed and replaced with asking what the colleague needs.',
+                    },),
                     emotional_boundary_decision="not_required",
                     capture_decision="no_candidate",
                 )

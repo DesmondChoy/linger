@@ -5,6 +5,7 @@ read by `librarian_route`/`librarian_search` inside one Muse turn, and by the
 deterministic release gate afterward) rather than mocking `reflection_reply`.
 """
 
+import json
 import os
 import tempfile
 import unittest
@@ -32,11 +33,12 @@ from pydantic_core import to_jsonable_python
 
 from src.linger.agents.librarian.models import (
     BoundaryInferenceDecision,
-    EvidenceStrengthDecision,
 )
+from src.linger.agents.librarian.agent import librarian_agent
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
+from src.linger.orchestration.grounding import librarian_service
 from src.linger.services.memory import (
     AccountContext,
     AutomaticMemoryCandidate,
@@ -46,12 +48,31 @@ from src.linger.services.memory import (
 BOOK_REQUEST_MESSAGE = "Why does the Caterpillar ask who Alice is?"
 
 
-async def _sufficient_strength(query, evidence):
-    return EvidenceStrengthDecision(
-        evidence_strength="sufficient",
-        strength_reason="The passages directly answer the question.",
-        relevant_evidence_ids=[record.evidence_id for record in evidence],
-    )
+def _librarian_book_model(messages, info):
+    """Controlled planning and assessment, including the saved book question."""
+    payload = json.loads(next(
+        part.content for message in messages for part in message.parts
+        if isinstance(getattr(part, "content", None), str)
+        and part.content.startswith("{")
+    ))
+    if "current_line" in payload:
+        reader_texts = [payload["current_line"], *(
+            statement["text"] for statement in payload["prior_reader_statements"]
+        )]
+        requested = BOOK_REQUEST_MESSAGE if BOOK_REQUEST_MESSAGE in reader_texts else payload["current_line"]
+        output = {"parts": [{"context_spans": [], "purpose": "answer", "reader_spans": [requested]}]}
+    else:
+        records = payload["evidence"][:payload["max_evidence_records"]]
+        output = {
+            "evidence_strength": "sufficient",
+            "strength_reason": "The controlled passages answer the requested book question.",
+            "relevant_evidence_ids": [record["evidence_id"] for record in records],
+            "support": [{
+                "part_index": 0, "evidence_id": record["evidence_id"],
+                "necessary_support": "The passage supports the planned book question.",
+            } for record in records],
+        }
+    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
 
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
@@ -138,7 +159,6 @@ def _muse_routes_then_searches(captured: list):
                     ToolCallPart(
                         "librarian_search",
                         {
-                            "query": BOOK_REQUEST_MESSAGE,
                             "work_id": route_result["work_id"],
                             "book_version_id": route_result["book_version_id"],
                             "reading_boundary": {
@@ -158,6 +178,7 @@ def _muse_routes_then_searches(captured: list):
                     "source_kind": "book_corpus",
                     "evidence_id": evidence[0]["evidence_id"],
                     "source_location": evidence[0]["location"],
+                    "supported_claims": ["The Caterpillar keeps pressing Alice to explain who she is."],
                     "exact_quote": None,
                 }
             ]
@@ -195,7 +216,6 @@ def _muse_routes_then_overreaches(captured: list):
                     ToolCallPart(
                         "librarian_search",
                         {
-                            "query": BOOK_REQUEST_MESSAGE,
                             "work_id": route_result["work_id"],
                             "book_version_id": route_result["book_version_id"],
                             "reading_boundary": {
@@ -278,7 +298,6 @@ def _muse_searches_directly(captured: list, *, chapter: int):
                     ToolCallPart(
                         "librarian_search",
                         {
-                            "query": BOOK_REQUEST_MESSAGE,
                             "work_id": "pg11",
                             "book_version_id": "pg11-v01b38ea4",
                             "reading_boundary": {
@@ -298,6 +317,7 @@ def _muse_searches_directly(captured: list, *, chapter: int):
                     "source_kind": "book_corpus",
                     "evidence_id": evidence[0]["evidence_id"],
                     "source_location": evidence[0]["location"],
+                    "supported_claims": ["Yes, that scene is about Alice struggling to say who she is."],
                     "exact_quote": None,
                 }
             ]
@@ -323,6 +343,10 @@ def _muse_searches_directly(captured: list, *, chapter: int):
 
 async def _confident_judge(_line, memories, evidence, _statements):
     return BoundaryInferenceDecision(
+        memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+            "evidence_ids": [record.evidence_id for record in evidence],
+            "reason": "The controlled canonical passages ground the remembered book event."}
+            for memory_id in [memory.memory_id for memory in memories]),
         outcome="candidate",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
@@ -336,6 +360,10 @@ async def _confident_judge(_line, memories, evidence, _statements):
 
 async def _low_confidence_candidate_judge(_line, memories, evidence, _statements):
     return BoundaryInferenceDecision(
+        memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+            "evidence_ids": [record.evidence_id for record in evidence],
+            "reason": "The controlled canonical passages ground the remembered book event."}
+            for memory_id in [memory.memory_id for memory in memories]),
         outcome="candidate",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
@@ -349,6 +377,9 @@ async def _low_confidence_candidate_judge(_line, memories, evidence, _statements
 
 async def _insufficient_context_judge(_line, _memories, _evidence, _statements):
     return BoundaryInferenceDecision(
+        memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+            "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+            for memory in _memories),
         outcome="uncertain",
         confidence=0.2,
         reason_code="insufficient_context",
@@ -366,7 +397,6 @@ def _muse_searches_cold_then_relays_clarification():
                     ToolCallPart(
                         "librarian_search",
                         {
-                            "query": BOOK_REQUEST_MESSAGE,
                             "work_id": "pg11",
                             "book_version_id": "pg11-v01b38ea4",
                             "reading_boundary": None,
@@ -396,6 +426,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
     session_id = "librarian-route-e2e"
 
     def setUp(self) -> None:
+        self.enterContext(librarian_agent.override(model=FunctionModel(_librarian_book_model)))
         self._directory = tempfile.TemporaryDirectory()
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
@@ -462,7 +493,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         with (
             muse_chat_agent.override(model=FunctionModel(_muse_searches_directly(captured, chapter=3))),
             provenance_agent.override(model=FunctionModel(_provenance_pass)),
-            patch("src.linger.orchestration.grounding.judge_evidence_strength", side_effect=_sufficient_strength),
         ):
             completed = await main.chat(
                 ChatRequest(session_id=self.session_id, message="I've finished Chapter 3."),
@@ -523,10 +553,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 "src.linger.orchestration.boundary.judge_spoiler_boundary",
                 side_effect=_confident_judge,
             ),
-            patch(
-                "src.linger.orchestration.grounding.judge_evidence_strength",
-                side_effect=_sufficient_strength,
-            ),
         ):
             with muse_chat_agent.override(model=FunctionModel(_muse_routes_then_searches(captured))):
                 with provenance_agent.override(model=FunctionModel(_provenance_pass)):
@@ -560,10 +586,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 "src.linger.orchestration.boundary.judge_spoiler_boundary",
                 side_effect=_confident_judge,
             ),
-            patch(
-                "src.linger.orchestration.grounding.judge_evidence_strength",
-                side_effect=_sufficient_strength,
-            ),
         ):
             with muse_chat_agent.override(
                 model=FunctionModel(_muse_routes_then_searches(muse_captured))
@@ -593,10 +615,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
             patch(
                 "src.linger.orchestration.boundary.judge_spoiler_boundary",
                 side_effect=_confident_judge,
-            ),
-            patch(
-                "src.linger.orchestration.grounding.judge_evidence_strength",
-                side_effect=_sufficient_strength,
             ),
         ):
             with muse_chat_agent.override(model=FunctionModel(_muse_routes_then_overreaches(captured))):
@@ -628,10 +646,6 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
             patch(
                 "src.linger.orchestration.boundary.judge_spoiler_boundary",
                 side_effect=_confident_judge,
-            ),
-            patch(
-                "src.linger.orchestration.grounding.judge_evidence_strength",
-                side_effect=_sufficient_strength,
             ),
         ):
             with muse_chat_agent.override(model=FunctionModel(_muse_routes_then_overreaches(captured))):
@@ -729,10 +743,10 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
         captured: list = []
         follow_up = ChatRequest(session_id=self.session_id, message="chapter 2")
-        with patch(
-            "src.linger.orchestration.grounding.judge_evidence_strength",
-            side_effect=_sufficient_strength,
-        ):
+        with patch.object(
+            librarian_service, "retrieve_for_judgement",
+            wraps=librarian_service.retrieve_for_judgement,
+        ) as retrieval:
             with muse_chat_agent.override(
                 model=FunctionModel(_muse_searches_directly(captured, chapter=2))
             ):
@@ -750,7 +764,8 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, captured[0]["searched_scope"]["max_chapter_inclusive"])
         grounding = second_response.inspection.librarian_grounding
         self.assertEqual(1, len(grounding))
-        self.assertEqual(BOOK_REQUEST_MESSAGE, grounding[0]["request"]["query"])
+        self.assertNotIn("query", grounding[0]["request"])
+        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
     async def test_bare_chapter_answer_after_search_clarification_reaches_bounded_search(
@@ -781,10 +796,10 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
         captured: list = []
         follow_up = ChatRequest(session_id=self.session_id, message="chapter 2")
-        with patch(
-            "src.linger.orchestration.grounding.judge_evidence_strength",
-            side_effect=_sufficient_strength,
-        ):
+        with patch.object(
+            librarian_service, "retrieve_for_judgement",
+            wraps=librarian_service.retrieve_for_judgement,
+        ) as retrieval:
             with muse_chat_agent.override(
                 model=FunctionModel(_muse_searches_directly(captured, chapter=2))
             ):
@@ -795,6 +810,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, second_response.inspection.context_resolution["chapter_max"])
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
+        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
         self.assertEqual(2, captured[0]["searched_scope"]["max_chapter_inclusive"])
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
@@ -849,10 +865,10 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
             session_id=self.session_id,
             message=f"I've finished Chapter {candidate.chapter}.",
         )
-        with patch(
-            "src.linger.orchestration.grounding.judge_evidence_strength",
-            side_effect=_sufficient_strength,
-        ):
+        with patch.object(
+            librarian_service, "retrieve_for_judgement",
+            wraps=librarian_service.retrieve_for_judgement,
+        ) as retrieval:
             with muse_chat_agent.override(
                 model=FunctionModel(_muse_searches_directly(captured, chapter=candidate.chapter))
             ):
@@ -869,12 +885,16 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", second_response.inspection.release.release_source)
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
+        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
     async def test_generic_clarification_does_not_leave_a_confirmable_chapter(self) -> None:
         async def line_only_judge(_line, _memories, evidence, _statements):
             record = next(item for item in evidence if item.chapter_number == 5)
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _memories),
                 outcome="candidate",
                 work_id=record.work_id,
                 book_version_id=record.book_version_id,

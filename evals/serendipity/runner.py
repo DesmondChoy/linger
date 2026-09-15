@@ -26,6 +26,8 @@ from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.telemetry import configure_component_evaluation_telemetry
 from src.linger.agents.build import build_model
 from src.linger.agents.contracts import StrictModel
+from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.agents.serendipity.agent import build_serendipity_agent
 from src.linger.agents.serendipity.models import (
     ConnectionDecline,
@@ -105,11 +107,21 @@ class _FixtureLibrarian:
     def __init__(self, evidence: tuple[EvidenceItem, ...]) -> None:
         self.evidence = evidence
 
-    def retrieve(self, _request: object) -> EvidenceBundle:
+    def retrieve_for_judgement(self, _request: object) -> EvidenceBundle:
         return EvidenceBundle(
             items=list(self.evidence),
             retrieval_note="Fixture-backed Serendipity component evaluation.",
         )
+
+
+async def _fixture_book_judgement(
+    _query: str, records: tuple[EvidenceRecord, ...]
+) -> EvidenceStrengthDecision:
+    return EvidenceStrengthDecision(
+        evidence_strength="sufficient",
+        strength_reason="Fixture-supplied passages; live Librarian judgment is outside this component evaluation.",
+        relevant_evidence_ids=tuple(record.evidence_id for record in records),
+    )
 
 
 class _FixtureExaClient:
@@ -213,6 +225,7 @@ async def run_case(
     deps = SerendipityDependencies(
         task=case.input,
         librarian=_FixtureLibrarian(book_evidence),  # type: ignore[arg-type]
+        strength_judge=_fixture_book_judgement,
     )
     capabilities = (
         [_web_capability(case)]

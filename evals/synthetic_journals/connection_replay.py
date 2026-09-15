@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+from urllib.parse import unquote
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
@@ -29,6 +30,7 @@ from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate,
 from .adoption import validate_ground_truth_adoption, validate_ground_truth_adoption_files
 from .connection_contract import ValidatedConnectionScene, compile_connection_replay_plan
 from .evaluation_link import emit_evaluation_link
+from .frozen_public_sources import bind_frozen_public_sources
 from .models import (
     GroundTruthAdoption, GroundTruthProposal, PropEvidence, ProposedGroundTruth,
     PublicSourceEvidence, StrictModel, SyntheticBackstory,
@@ -72,7 +74,8 @@ class ConnectionSceneObservation(StrictModel):
 
 
 class ConnectionEvaluationRun(StrictModel):
-    artifact_schema_version: Literal["1"] = "1"
+    artifact_schema_version: Literal["1", "2"] = "2"
+    public_source_mode: Literal["live", "adopted_snapshot", "injected"] = "live"
     content_classification: Literal["synthetic"] = "synthetic"
     ground_truth_status: Literal["adopted"] = "adopted"
     run_id: str
@@ -205,8 +208,10 @@ def grade_connection_scene(
     private_texts = [scene.line.text, *(prop.source_text for prop in scene.props)]
     if any(
         event.kind == "query" and event.status == "sent" and event.query is not None
-        and (_query_contains_private_data(event.query) or any(
-            _query_copies_reader_terms(event.query, text) for text in private_texts
+        and any(_query_contains_private_data(outbound) or any(
+            _query_copies_reader_terms(outbound, text) for text in private_texts
+        ) for outbound in (
+            (event.query, unquote(event.query)) if event.operation == "get_page" else (event.query,)
         )) for event in events
     ):
         common.append("private_query_disclosure")
@@ -234,6 +239,8 @@ def grade_connection_scene(
                 failures.append("unexpected_release_source")
             elif release.failure_stage == "deterministic_validation":
                 failures.append("invalid_evidence_release")
+            elif not release.provenance_verdicts or release.provenance_verdicts[-1] != "pass":
+                failures.append("missing_review_approval")
         mapped, evidence_failures = _runtime_ids(scene, proposal, prop_ids, ledger)
         failures.extend(evidence_failures)
         if decision != "not_requested" and any(not ids for ids in mapped.values()):
@@ -283,7 +290,8 @@ async def replay_connection_scenes(
         raise ValueError("replay objects do not match the independently adopted scenario bytes")
     validate_ground_truth_adoption(ground_truth, adoption, ground_truth_bytes=ground_truth_bytes)
     plan = compile_connection_replay_plan(backstory, ground_truth)
-    if chat_handler is None:
+    production_handler = chat_handler is None
+    if production_handler:
         from apps.backend.chat_turn import run_chat_turn
         chat_handler = run_chat_turn
         configure_synthetic_evaluation_telemetry(evaluation_agents())
@@ -320,7 +328,10 @@ async def replay_connection_scenes(
             recorder = SceneTranscriptRecorder()
             session_id = f"{run_id}:{scene.scene.order}"
             try:
-                with bind_evaluation_transcript_sink(recorder):
+                with (
+                    bind_evaluation_transcript_sink(recorder),
+                    bind_frozen_public_sources(tuple(setup.public_sources) if setup else ()),
+                ):
                     response = await handler(
                         ChatRequest(session_id=session_id, turn_id=f"{run_id}:{scene.line.line_id}", message=scene.line.text),
                         service, account, initial_reading=reading, public_source_urls=urls,
@@ -354,6 +365,7 @@ async def replay_connection_scenes(
         if report.failures or len(observations) != len(plan.scenes):
             raise RuntimeError("connection evaluation did not complete every Scene")
     return ConnectionEvaluationRun(
+        public_source_mode="adopted_snapshot" if production_handler else "injected",
         run_id=run_id, objective_ids=backstory.objective_ids,
         dataset_version=adoption.adopted_ground_truth_identity, system_variant=RUNTIME_SYSTEM_VARIANT,
         runtime_prompt_fingerprints=RUNTIME_PROMPT_FINGERPRINTS,

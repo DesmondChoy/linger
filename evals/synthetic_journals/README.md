@@ -567,6 +567,33 @@ It does not adopt labels. Historical book scenarios using the removed fields
 remain unchanged but are obsolete replay inputs. New Ground truth requires new
 independent review; an old adoption cannot approve changed shared Scene facts.
 
+## Capture a public source for a connection plan
+
+Configure `EXA_API_KEY` in the repository-root `.env`, then capture the proposed
+public source before approving generation:
+
+```bash
+uv run python -m evals.synthetic_journals.public_source_capture \
+	--source-id hume-personal-identity \
+	--url https://davidhume.org/texts/t/1/4/6 \
+	--public-query 'David Hume personal identity Treatise 1.4.6 davidhume.org' \
+	--output /tmp/hume-public-source-snapshot.json
+```
+
+Use public terms in the query. The helper calls the production guarded Exa
+tools directly, without a model or reader data. It opens the URL only after
+the search returns that exact permitted URL. A missing lead, failed open, or
+different returned URL fails the capture.
+
+The output is one `PublicSourceSnapshot`, including the exact bounded text
+from the production evidence ledger, its SHA-256, and the UTC retrieval time.
+The text preserves the maintained Exa formatter's title and URL headers and
+the runtime's excerpt limit. Keep that text unchanged when supplying trusted
+public sources to a generation prompt. The helper refuses an existing output
+path and does not create synthetic data, adopt Ground truth, or start replay.
+Public pages are retrieved again during replay, so the snapshot does not
+guarantee that live evidence will remain unchanged.
+
 ## Connection and restraint replay
 
 Replay `cross_source_tentative_connection`, `weak_evidence_safe_decline`, or
@@ -592,11 +619,23 @@ claims. Evidence references resolve exact Prop, corpus, and public-source spans.
 The validator checks source hashes, scope, and references before independent
 review. Neither proposed nor adopted Ground truth enters runtime.
 
-The runner bounds public retrieval to the supplied source URLs, seeds isolated
-memory storage, and executes the production chat path with automatic capture
-disabled. Exa searches and opens public pages live. Snapshots establish the
-adopted source identity and exact support for grading; missing or changed live
-evidence cannot pass as intended restraint. The recorded path includes Muse invocation,
+The runner bounds public retrieval to the supplied source URLs. Search remains
+live when invoked. The production guard permits `get_page` for an exact
+application-supplied public URL without a search lead; other URLs require a
+lead from the current run. After URL and privacy checks, replay returns the
+exact page snapshot from the Backstory's source setup. The model can therefore
+inspect a supplied source even when live search omits it. This keeps approved
+test inputs stable when live page metadata changes. Production still fetches
+live page contents. Replay verifies source handling against the supplied snapshot,
+not the freshness or availability of the live page body. Version 2 run artifacts
+record `public_source_mode=adopted_snapshot`; historical runs without that field
+remain labeled `live`, and injected test handlers use `injected`.
+
+The runner seeds isolated memory storage and executes the production chat path
+with automatic capture disabled. Strict grading still binds the observed page
+text to its supplied snapshot. A failed review cannot count as successful
+restraint merely because the application releases a safe fallback. The recorded
+path includes Muse invocation,
 retrieval, Serendipity selection, Muse presentation, Provenance review, and
 deterministic release. It retains the released response and distinguishes the
 first failed stage from stages that were not reached. The supplied URL bounds

@@ -10,16 +10,27 @@ the separate evaluation service.
 
 import asyncio
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import nullcontext
 from contextvars import ContextVar
 from typing import Any, Literal
 
 import logfire
 from opentelemetry.trace import format_span_id, format_trace_id
+from pydantic_ai import capture_run_messages
+from pydantic_ai.exceptions import (
+    ModelAPIError,
+    ModelRetry,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.evaluation_transcript import active_evaluation_transcript_sink
+from src.linger.evaluation_transcript import (
+    AgentFailureCategory,
+    active_evaluation_transcript_sink,
+)
 from src.linger.orchestration.progress_context import emit_progress
 
 from .config import get_settings
@@ -230,6 +241,17 @@ def _record_agent_success(span: Any, result: Any) -> None:
     )
 
 
+def _agent_failure_category(error: Exception) -> AgentFailureCategory:
+    """Classify only known exception types, never their content or class names."""
+    if isinstance(error, UsageLimitExceeded):
+        return "usage_limit"
+    if isinstance(error, ModelAPIError):
+        return "provider_error"
+    if isinstance(error, (UnexpectedModelBehavior, ModelRetry)):
+        return "model_response_error"
+    return "unknown_error"
+
+
 async def run_agent_traced(
     agent: Any,
     prompt: str,
@@ -261,6 +283,8 @@ async def run_agent_traced(
     result: Any = None
     transcript_status = "failure"
     transcript_failure_code: str | None = failure_code
+    failure_category: AgentFailureCategory | None = None
+    captured_messages: Sequence[Any] = ()
     transcript_sink = active_evaluation_transcript_sink()
     transcript_handle: object | None = None
     metadata = run_kwargs.get("metadata")
@@ -310,11 +334,16 @@ async def run_agent_traced(
             )
         role_token = _ACTIVE_AGENT_ROLE.set(role)
         try:
-            result = await agent.run(prompt, **run_kwargs)
+            with (
+                capture_run_messages() if transcript_sink is not None else nullcontext(())
+            ) as captured_messages:
+                result = await agent.run(prompt, **run_kwargs)
         except asyncio.CancelledError:
             cancelled = True
             transcript_status = "cancelled"
             transcript_failure_code = "request_cancelled"
+            failure_category = "cancelled"
+            span.set_attribute("failure.category", failure_category)
             record_failure(
                 span,
                 stage=stage,
@@ -325,6 +354,8 @@ async def run_agent_traced(
         except Exception as exc:
             caught = exc
             transcript_failure_code = failure_code
+            failure_category = _agent_failure_category(exc)
+            span.set_attribute("failure.category", failure_category)
             record_failure(
                 span,
                 stage=stage,
@@ -338,6 +369,8 @@ async def run_agent_traced(
                     set_span_attrs(span, result_attrs(result))
             except Exception:
                 transcript_failure_code = "agent_result_projection_failed"
+                failure_category = "unknown_error"
+                span.set_attribute("failure.category", failure_category)
                 record_failure(
                     span,
                     stage=stage,
@@ -358,6 +391,8 @@ async def run_agent_traced(
             result=result,
             status=transcript_status,
             failure_code=transcript_failure_code,
+            partial_messages=captured_messages if result is None else (),
+            failure_category=failure_category,
         )
 
     emit_progress(

@@ -43,10 +43,8 @@ from src.linger.agents.serendipity.tools import (
     SearchTrace,
     SerendipityDependencies,
 )
-from src.linger.orchestration.grounding import (
-    evidence_record_from_item,
-    librarian_service,
-)
+from src.linger.orchestration.book_evidence import evidence_record_from_item
+from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
     cache_connection_result,
@@ -59,6 +57,7 @@ from src.linger.orchestration.turn_context import (
     add_turn_evidence,
     confirmed_reading,
     public_source_urls,
+    reader_statements,
 )
 
 
@@ -172,6 +171,7 @@ async def _agent_explorer(
         task=task,
         librarian=librarian,
         memories=active_memories(),
+        prior_reader_statements=reader_statements(),
     )
     capabilities = [_web_capability()] if "web" in task.scope.allowed_sources else []
     result = await run_agent_traced(

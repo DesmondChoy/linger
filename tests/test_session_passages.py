@@ -12,7 +12,8 @@ from tests.test_librarian_route_e2e import (
     _last_tool_return,
     _no_memory,
     _provenance_pass_capturing,
-    _sufficient_strength,
+    _librarian_book_model,
+    librarian_agent,
     _plain_reply_model,
     _provenance_pass,
     chat_turn,
@@ -60,6 +61,7 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
     session_id = "session-passage-test"
 
     def setUp(self):
+        self.enterContext(librarian_agent.override(model=FunctionModel(_librarian_book_model)))
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.addCleanup(sessions.clear, self.session_id)
@@ -96,6 +98,9 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
         async def judge(*args):
             calls.append(args)
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in args[1]),
                 outcome="uncertain", confidence=0.3, reason_code="insufficient_context"
             )
 
@@ -140,7 +145,7 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNone(confirmed_reading())
                 self.assertEqual((QUOTE_ID,), passage_grant().scope.evidence_ids)
                 return ModelResponse(parts=[ToolCallPart("librarian_search", {
-                    "query": SECOND_LINE, "work_id": routed["work_id"],
+                    "work_id": routed["work_id"],
                     "book_version_id": routed["book_version_id"], "reading_boundary": None,
                 })])
             observed.append(searched)
@@ -148,12 +153,12 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
                 "reply": record["text"], "memory": _no_memory(),
                 "evidence_uses": [{"source_kind": "book_corpus", "evidence_id": record["evidence_id"],
-                    "source_location": record["location"], "exact_quote": record["text"]}],
+                    "source_location": record["location"], "exact_quote": record["text"],
+                    "supported_claims": [record["text"]]}],
             })])
 
         with (
             patch("src.linger.orchestration.boundary.judge_spoiler_boundary", side_effect=judge),
-            patch("src.linger.orchestration.grounding.judge_evidence_strength", side_effect=_sufficient_strength),
             muse_chat_agent.override(model=FunctionModel(muse)),
             provenance_agent.override(model=FunctionModel(_provenance_pass_capturing(reviews))),
         ):

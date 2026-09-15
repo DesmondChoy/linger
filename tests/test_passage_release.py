@@ -95,7 +95,13 @@ class PassageReleaseTests(unittest.IsolatedAsyncioTestCase):
             result(self.quoted_candidate(), self.route_tool(), self.search_tool()),
             result(self.quoted_candidate()),
         ]
-        provenance.run.side_effect = [result(review("revise")), result(review("pass"))]
+        provenance.run.side_effect = [
+            result(review("revise")),
+            result(review("pass", finding_resolutions=({
+                "finding_index": 0, "status": "resolved",
+                "explanation": 'The existing quotation is sufficient; the earlier unsupported-claim finding was mistaken.',
+            },))),
+        ]
 
         released = await self.release(muse, provenance)
 
@@ -120,7 +126,13 @@ class PassageReleaseTests(unittest.IsolatedAsyncioTestCase):
             return result(self.quoted_candidate(self.neighbor), self.search_tool(record=self.neighbor))
 
         muse.run.side_effect = draft_then_invalid_revision
-        provenance.run.side_effect = [result(review("revise")), result(review("pass"))]
+        provenance.run.side_effect = [
+            result(review("revise")),
+            result(review("pass", finding_resolutions=({
+                "finding_index": 0, "status": "resolved",
+                "explanation": 'The reviewer accepts the neighboring citation, whose permission must still be validated by the application.',
+            },))),
+        ]
 
         released = await self.release(muse, provenance)
 

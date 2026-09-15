@@ -22,8 +22,10 @@ from src.linger.orchestration.turn_context import (
     add_turn_evidence,
     confirmed_reading,
     reset_confirmed_reading,
+    reset_reader_message,
     reset_turn_evidence,
     set_confirmed_reading,
+    set_reader_message,
     set_turn_evidence,
     turn_evidence,
 )
@@ -289,7 +291,9 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
                     ReadingBoundary(chapter_number=chapter_number, chapter_state=chapter_state),
                 )
 
-                await grounding_evidence(request, librarian=librarian)
+                await grounding_evidence(
+                    request, librarian=librarian, strength_judge=self._judge("none", ()),
+                )
 
                 called_request = librarian.retrieve_for_judgement.call_args.args[0]
                 self.assertEqual(expected_ceiling, called_request.book_scopes[0].chapter_max)
@@ -302,7 +306,9 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=9, chapter_state="completed"))
 
-        await grounding_evidence(request, librarian=librarian)
+        await grounding_evidence(
+            request, librarian=librarian, strength_judge=self._judge("none", ()),
+        )
 
         called_request = librarian.retrieve_for_judgement.call_args.args[0]
         self.assertEqual(3, called_request.book_scopes[0].chapter_max)
@@ -313,7 +319,9 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=2, chapter_state="completed"))
 
-        await grounding_evidence(request, librarian=librarian)
+        await grounding_evidence(
+            request, librarian=librarian, strength_judge=self._judge("none", ()),
+        )
 
         called_request = librarian.retrieve_for_judgement.call_args.args[0]
         self.assertEqual(2, called_request.book_scopes[0].chapter_max)
@@ -377,7 +385,11 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve_for_judgement.side_effect = RuntimeError("boom")
         request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
 
-        response = await grounding_evidence(request, librarian=librarian)
+        judge = self._judge("none", ())
+        response = await grounding_evidence(
+            request, librarian=librarian, strength_judge=judge,
+        )
+        judge.assert_not_awaited()
 
         self.assertIsInstance(response, RetrievalFailure)
         self.assertEqual("retrieval_unavailable", response.error_code)
@@ -470,7 +482,13 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
 
 
 class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
-    async def test_forwards_arguments_and_returns_response_unchanged(self) -> None:
+    def setUp(self) -> None:
+        self.reader_token = set_reader_message("The reader's original question")
+
+    def tearDown(self) -> None:
+        reset_reader_message(self.reader_token)
+
+    async def test_binds_reader_question_and_returns_response_unchanged(self) -> None:
         from src.linger.agents.muse.tools import librarian_search
 
         sentinel_response = RetrievalResult(
@@ -487,12 +505,12 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            result = await librarian_search("my query", WORK_ID, VALID_VERSION, boundary, max_final_evidence=3)
+            result = await librarian_search(WORK_ID, VALID_VERSION, boundary, max_final_evidence=3)
 
         self.assertIs(sentinel_response, result)
         mocked.assert_awaited_once()
         (built_request,), _ = mocked.call_args
-        self.assertEqual("my query", built_request.query)
+        self.assertEqual("The reader's original question", built_request.query)
         self.assertEqual(WORK_ID, built_request.work_id)
         self.assertEqual(VALID_VERSION, built_request.book_version_id)
         self.assertEqual(boundary, built_request.reading_boundary)
@@ -513,7 +531,7 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            await librarian_search("q", WORK_ID, VALID_VERSION, None)
+            await librarian_search(WORK_ID, VALID_VERSION, None)
 
         (built_request,), _ = mocked.call_args
         self.assertTrue(built_request.request_id.startswith("libreq_"))
@@ -535,7 +553,7 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            await librarian_search("q", WORK_ID, VALID_VERSION, None, max_final_evidence=50)
+            await librarian_search(WORK_ID, VALID_VERSION, None, max_final_evidence=50)
 
         (built_request,), _ = mocked.call_args
         self.assertEqual(5, built_request.options.max_final_evidence)

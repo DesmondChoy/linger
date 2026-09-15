@@ -114,7 +114,11 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(_line, memories, evidence, _statements):
             received.append((memories, evidence))
-            return BoundaryInferenceDecision(outcome="uncertain", confidence=0.2,
+            return BoundaryInferenceDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
+                                                 "evidence_ids": (librarian.chapter_five.evidence_id,),
+                                                 "reason": "The prior Caterpillar event is grounded, but the current event remains ambiguous."}
+                                                 for memory in memories),
+                                             outcome="uncertain", confidence=0.2,
                                              reason_code="conflicting_context")
 
         with patch.object(librarian, "retrieve", side_effect=retrieve) as search:
@@ -132,6 +136,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         line = "An ambiguous current event"
         stored = memory("memory-anchor", "Alice and the Caterpillar")
         judge = AsyncMock(return_value=BoundaryInferenceDecision(
+            memory_assessments=(),
             outcome="uncertain", confidence=0.2, reason_code="conflicting_context",
         ))
 
@@ -160,7 +165,10 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(_line, _memories, evidence, _statements):
             received.extend(evidence)
-            return BoundaryInferenceDecision(outcome="uncertain", confidence=0.2,
+            return BoundaryInferenceDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                                                 "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                                                 for memory in _memories),
+                                             outcome="uncertain", confidence=0.2,
                                              reason_code="conflicting_context")
 
         def retrieve(request):
@@ -209,6 +217,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                     async def judge(current_line, selected, evidence, statements):
                         received.append((current_line, selected, evidence, statements))
                         return BoundaryInferenceDecision(
+                            memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                                "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                                for memory in selected),
                             outcome="uncertain", confidence=0.2,
                             reason_code="insufficient_context",
                         )
@@ -258,6 +269,10 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((stored,), memories)
             self.assertEqual({5, 8}, {record.chapter_number for record in evidence})
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (librarian.chapter_five.evidence_id,),
+                    "reason": "The controlled canonical passages ground the remembered book event."}
+                    for memory_id in (stored.memory_id,)),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,
@@ -298,6 +313,10 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (librarian.chapter_five.evidence_id,),
+                    "reason": "The controlled canonical passages ground the remembered book event."}
+                    for memory_id in (stored.memory_id,)),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,
@@ -332,6 +351,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _args[1]),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,
@@ -363,6 +385,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         async def judge(_line, memories, _evidence, _prior_reader_statements):
             self.assertEqual((), memories)
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in memories),
                 outcome="uncertain",
                 confidence=0.2,
                 reason_code="insufficient_context",
@@ -400,6 +425,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 memories,
             )
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "conflicting",
+                    "evidence_ids": memory.evidence_ids, "reason": "These memories give conflicting reading-position context."}
+                    for memory in memories),
                 outcome="uncertain",
                 confidence=0.45,
                 reason_code="conflicting_context",
@@ -424,6 +452,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _args[1]),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,
@@ -451,6 +482,9 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+                    "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+                    for memory in _args[1]),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,
@@ -486,6 +520,10 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*_args):
             return BoundaryInferenceDecision(
+                memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+                    "evidence_ids": (librarian.chapter_five.evidence_id,),
+                    "reason": "The controlled canonical passages ground the remembered book event."}
+                    for memory_id in ('memory-invented',)),
                 outcome="candidate",
                 work_id=WORK_ID,
                 book_version_id=VERSION_ID,

@@ -51,7 +51,8 @@ from tests.test_librarian_route_e2e import (
     _muse_routes_then_searches,
     _plain_reply_model,
     _provenance_pass,
-    _sufficient_strength,
+    _librarian_book_model,
+    librarian_agent,
 )
 
 WORK_ID = "pg11"
@@ -66,6 +67,10 @@ async def _confident_ceiling_judge(_line, memories, evidence, _statements):
     """Authorize exactly `CEILING`, citing only support at or below it."""
     within = [record for record in evidence if record.chapter_number <= CEILING]
     return BoundaryInferenceDecision(
+        memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
+            "evidence_ids": [record.evidence_id for record in within],
+            "reason": "The controlled canonical passages ground the remembered book event."}
+            for memory_id in [memory.memory_id for memory in memories]),
         outcome="candidate",
         work_id=WORK_ID,
         book_version_id=VERSION_ID,
@@ -79,6 +84,9 @@ async def _confident_ceiling_judge(_line, memories, evidence, _statements):
 
 async def _uncertain_judge(_line, _memories, _evidence, _statements):
     return BoundaryInferenceDecision(
+        memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+            "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
+            for memory in _memories),
         outcome="uncertain",
         confidence=0.4,
         reason_code="insufficient_context",
@@ -89,6 +97,7 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
     session_id = "boundary-observability-test"
 
     def setUp(self) -> None:
+        self.enterContext(librarian_agent.override(model=FunctionModel(_librarian_book_model)))
         self._directory = tempfile.TemporaryDirectory()
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
@@ -122,12 +131,6 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
             patch(
                 "src.linger.orchestration.boundary.judge_spoiler_boundary",
                 side_effect=judge,
-            ),
-            # Without this the bounded search fails closed on
-            # `evidence_judgement_unavailable` and never exercises the ceiling.
-            patch(
-                "src.linger.orchestration.grounding.judge_evidence_strength",
-                side_effect=_sufficient_strength,
             ),
         ):
             with muse_chat_agent.override(model=FunctionModel(muse_model)):

@@ -386,7 +386,7 @@ index.
 |---|---|---|
 | Strict typed input, no tools, no history | [`provenance/models.py`](../../src/linger/agents/provenance/models.py), [`agent.py`](../../src/linger/agents/provenance/agent.py) | `test_provenance_review.py::test_provenance_has_no_tools`, `::test_rejects_unknown_top_level_fields` |
 | Closed 8-code risk taxonomy, `applies_to` scoping | `models.py:20-44`, `RiskFinding.source_matches_decision` | `::test_every_risk_code_is_accepted`, `::test_covers_every_specification_block_condition` |
-| Findings validated against the exact input through quote containment and an RFC 6901 path | `ProvenanceInput.validate_review_locations` | `::test_text_span_must_match_the_declared_source`, `::test_structural_path_must_exist` |
+| Findings validated against the exact input through quote containment and an RFC 6901 path | `ProvenanceInput.validate_review` | `::test_text_span_must_match_the_declared_source`, `::test_structural_path_must_exist` |
 | Justification invariants (no unexplained non-pass; no findings on a pass) | `ProvenanceReview.require_decision_specific_justification` | `::test_each_blocked_decision_requires_its_own_finding` |
 | Decoupled response/capture decisions | same validator | `::test_decisions_are_independent`, `::test_critique_excludes_capture_findings` |
 | Pass / one revision / reject → safe decline | [`orchestration/reflection.py`](../../src/linger/orchestration/reflection.py) | `test_reflection.py::test_allows_one_reviewed_revision`, `::test_second_revision_request_returns_safe_decline`, `::test_reject_returns_safe_decline` |
@@ -687,7 +687,7 @@ A case passes only when the decision matches **and** `expected_codes ⊆ actual
 codes`. Subset, not equality: an extra correct-but-unlisted finding is
 defensible, a missing expected one is not.
 
-Also run `ProvenanceInput.validate_review_locations` on every result, exactly as
+Also run `ProvenanceInput.validate_review` on every result, exactly as
 production does. A finding whose offsets or quote do not resolve is
 `invalid_review` — that check is already the contract, so the pack should hold
 the model to it.
@@ -760,7 +760,7 @@ field" without stating the scalar rule, so the model sometimes emits
 `source_field="candidate.response"` *with* `path="/response"`, doubling the
 pointer. `_source_value` has already resolved the field to a string, so the
 extra segment raises "a finding path crosses a scalar value" and
-`validate_review_locations` rejects the entire review.
+`validate_review` rejects the entire review.
 
 Measured across all 12 cases: **10 findings used `path=""`, 2 used
 `path="/response"`.** In production this is not a mislabelled finding — it is

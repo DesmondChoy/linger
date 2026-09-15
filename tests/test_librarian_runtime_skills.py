@@ -16,6 +16,7 @@ from src.linger.agents.librarian.models import (
 )
 from src.linger.agents.librarian.skills import (
     BOUNDARY_INFERENCE,
+    BOOK_REQUEST,
     EVIDENCE_ASSESSMENT,
     SHARED_INSTRUCTIONS,
 )
@@ -59,12 +60,16 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
 
         async def model(messages, info):
             payload = _payload(messages)
-            is_boundary = "current_line" in payload
-            selected = BOUNDARY_INFERENCE if is_boundary else EVIDENCE_ASSESSMENT
-            unrelated = EVIDENCE_ASSESSMENT if is_boundary else BOUNDARY_INFERENCE
+            is_boundary = "full_work_candidates" in payload
+            is_plan = "current_line" in payload and not is_boundary
+            selected = BOUNDARY_INFERENCE if is_boundary else (
+                BOOK_REQUEST if is_plan else EVIDENCE_ASSESSMENT
+            )
             assert info.instructions.count(SHARED_INSTRUCTIONS) == 1
             assert info.instructions.count(selected.instructions) == 1
-            assert unrelated.instructions not in info.instructions
+            for unrelated in (BOUNDARY_INFERENCE, BOOK_REQUEST, EVIDENCE_ASSESSMENT):
+                if unrelated is not selected:
+                    assert unrelated.instructions not in info.instructions
             assert info.function_tools == []
             assert not info.allow_text_output
             assert "private-account" not in json.dumps(payload)
@@ -82,18 +87,44 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                 assert "assessment-only" not in json.dumps(payload)
                 assert len(info.output_tools) == 2
                 response = {
+                    "memory_assessments": [{
+                        "memory_id": memory["memory_id"], "status": "not_supported",
+                        "evidence_ids": [], "reason": "The fixture memory does not establish reading progress.",
+                    } for memory in payload["relevant_memories"]],
                     "outcome": "uncertain", "confidence": 0.1,
                     "reason_code": "insufficient_context",
                 }
                 tool = next(tool for tool in info.output_tools
                             if tool.name.endswith("BoundaryInferenceDecision"))
+            elif is_plan:
+                assert payload == {
+                    "current_line": "assessment-only original reader question",
+                    "prior_reader_statements": [{"statement_id": "s2", "text": "assessment-only prior context"}],
+                }
+                assert len(info.output_tools) == 1
+                response = {"parts": [{
+                    "context_spans": [], "purpose": "answer",
+                    "reader_spans": ["assessment-only original reader question"],
+                }]}
+                tool = info.output_tools[0]
             else:
-                assert set(payload) == {"query", "evidence"}
+                assert set(payload) == {"request", "evidence", "max_evidence_records"}
+                assert payload["request"] == {"parts": [{
+                    "context_spans": [], "purpose": "answer",
+                    "reader_spans": ["assessment-only original reader question"],
+                }]}
+                assert payload["max_evidence_records"] == 5
                 assert "boundary-only" not in json.dumps(payload)
+                assert "assessment-only prior context" not in json.dumps(payload)
+                assert "expanded search" not in json.dumps(payload)
                 assert len(info.output_tools) == 1
                 response = {
                     "evidence_strength": "sufficient", "strength_reason": "Direct support",
                     "relevant_evidence_ids": [payload["evidence"][0]["evidence_id"]],
+                    "support": [{
+                        "evidence_id": payload["evidence"][0]["evidence_id"],
+                        "part_index": 0, "necessary_support": "Direct support for the requested answer.",
+                    }],
                 }
                 tool = info.output_tools[0]
             observed.append(selected.skill_id)
@@ -118,27 +149,41 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                 agent=agent,
             ),
             judge_evidence_strength(
-                "assessment-only", (_evidence("assessment-only"),), agent=agent,
+                "expanded search", (_evidence("assessment-only"),), agent=agent,
+                reader_question="assessment-only original reader question",
+                prior_reader_statements=(ReaderStatement(statement_id="s2", text="assessment-only prior context"),),
             ),
         ), timeout=5)
         assert isinstance(boundary, BoundaryInferenceDecision)
         assert isinstance(assessment, EvidenceStrengthDecision)
-        assert set(observed) == {BOUNDARY_INFERENCE.skill_id, EVIDENCE_ASSESSMENT.skill_id}
+        assert set(observed) == {
+            BOUNDARY_INFERENCE.skill_id, BOOK_REQUEST.skill_id, EVIDENCE_ASSESSMENT.skill_id,
+        }
+        assert len(observed) == 3
+        assert observed.index(BOOK_REQUEST.skill_id) < observed.index(EVIDENCE_ASSESSMENT.skill_id)
 
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("task", ["boundary", "assessment"])
+@pytest.mark.parametrize("task", ["boundary", "book_request", "assessment"])
 @pytest.mark.parametrize("recover", [True, False])
 def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recover):
     calls = 0
+    task_calls = 0
 
     def model(messages, info):
-        nonlocal calls
+        nonlocal calls, task_calls
         calls += 1
-        valid = recover and calls == 2
-        if task == "boundary":
+        selected_task = (
+            "boundary" if BOUNDARY_INFERENCE.instructions in info.instructions else
+            "book_request" if BOOK_REQUEST.instructions in info.instructions else "assessment"
+        )
+        if selected_task == task:
+            task_calls += 1
+        valid = selected_task != task or (recover and task_calls == 2)
+        if selected_task == "boundary":
             response = {
+                "memory_assessments": [],
                 "outcome": "uncertain", "confidence": 0.1,
                 "reason_code": "insufficient_context",
             }
@@ -146,10 +191,20 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
                 response["chapter_number"] = 1
             tool = next(tool for tool in info.output_tools
                         if tool.name.endswith("BoundaryInferenceDecision"))
+        elif selected_task == "book_request":
+            response = {"parts": [{
+                    "context_spans": [], "purpose": "answer",
+                "reader_spans": ["query"] if valid else [],
+            }]}
+            tool = info.output_tools[0]
         else:
             response = {
                 "evidence_strength": "sufficient", "strength_reason": "Direct support",
                 "relevant_evidence_ids": ["evidence-test"] if valid else [],
+                "support": [{
+                    "evidence_id": "evidence-test", "part_index": 0,
+                    "necessary_support": "The requested answer appears in this passage.",
+                }] if valid else [],
             }
             tool = info.output_tools[0]
         return ModelResponse(parts=[ToolCallPart(tool.name, response)])
@@ -165,4 +220,5 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
     else:
         with pytest.raises(UnexpectedModelBehavior, match="Exceeded maximum"):
             asyncio.run(run())
-    assert calls == 2
+    assert task_calls == 2
+    assert calls == (3 if task == "assessment" or (task == "book_request" and recover) else 2)

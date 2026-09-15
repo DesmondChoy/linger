@@ -24,6 +24,7 @@ with patch.dict(
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from src.linger.agents.librarian.agent import librarian_agent
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.agents.serendipity.agent import serendipity_agent
@@ -38,6 +39,31 @@ from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.corpus.alice import BOOK
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+
+
+def _librarian_strength(messages, info: AgentInfo) -> ModelResponse:
+    payloads = [
+        json.loads(part.content)
+        for message in messages
+        for part in getattr(message, "parts", ())
+        if isinstance(getattr(part, "content", None), str)
+        and part.content.lstrip().startswith("{")
+    ]
+    payload = payloads[0]
+    if "current_line" in payload:
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+            "parts": [{"context_spans": [], "purpose": "answer", "reader_spans": [payload["current_line"]]}],
+        })])
+    records = payload["evidence"][:payload["max_evidence_records"]]
+    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+        "evidence_strength": "sufficient",
+        "strength_reason": "These canonical passages support the connection cue.",
+        "relevant_evidence_ids": [record["evidence_id"] for record in records],
+        "limitations": [],
+        "support": [{"evidence_id": record["evidence_id"], "part_index": 0,
+                     "necessary_support": "The requested canonical connection evidence."}
+                    for record in records],
+    })])
 
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
@@ -78,6 +104,7 @@ def _muse_calls_serendipity(captured: list):
                                 "source_kind": "book_corpus",
                                 "evidence_id": item.evidence_id,
                                 "source_location": item.location,
+                                "supported_claims": ["Here's a connection worth sitting with."],
                                 "exact_quote": None,
                             }
                             for item in exploration.evidence
@@ -116,7 +143,6 @@ def _serendipity_proposes(messages, info: AgentInfo) -> ModelResponse:
                 ToolCallPart(
                     "search_librarian",
                     {
-                        "query": "Alice changing size identity Caterpillar",
                         "max_results_per_source": 5,
                     },
                 )
@@ -180,6 +206,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
     session_id = "chat-connection-e2e"
 
     def setUp(self) -> None:
+        self.enterContext(librarian_agent.override(model=FunctionModel(_librarian_strength)))
         self._directory = tempfile.TemporaryDirectory()
         self.addCleanup(self._directory.cleanup)
         self.service = MemoryPolicyService(Path(self._directory.name))
@@ -239,7 +266,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 if isinstance(part, ToolReturnPart)
             }
             if "search_librarian" not in returns:
-                return ModelResponse(parts=[ToolCallPart("search_librarian", {"query": "Alice changing size identity Caterpillar"})])
+                return ModelResponse(parts=[ToolCallPart("search_librarian", {})])
             if "search_memories" not in returns:
                 return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "piano routine"})])
             if "web_search" not in returns:
@@ -262,7 +289,8 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(exploration.decision, ConnectionProposal)
             uses = []
             for item in exploration.evidence:
-                use = {"source_kind": item.source_kind, "evidence_id": item.evidence_id, "exact_quote": None}
+                use = {"source_kind": item.source_kind, "evidence_id": item.evidence_id, "exact_quote": None,
+                       "supported_claims": [f"Your earlier reflection may resonate with Alice's changes and [this essay]({url})."]}
                 if item.source_kind == "book_corpus":
                     use["source_location"] = item.location
                 uses.append(use)
@@ -300,7 +328,10 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual({"memory", "web"}, {
             item["source_kind"] for item in provenance_inputs[-1]["canonical_connection_evidence"]
         })
-        self.assertEqual(["sent"], [event.status for event in events if event.kind == "query"])
+        self.assertEqual(
+            [("web_search", "sent"), ("get_page", "sent")],
+            [(event.operation, event.status) for event in events if event.kind == "query"],
+        )
         self.assertNotIn(memory_text, response.model_dump_json())
         self.assertEqual(1, len(self.service.list_active(self.account)))
         self.assertIn(url, events[-1].released_evidence_ids)

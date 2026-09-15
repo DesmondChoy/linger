@@ -731,6 +731,7 @@ def _boundary_handoff_is_content_free(
             and parsed.passage_evidence_ids == tuple(routed["evidence_ids"])
         )
     allowed_output_fields = {
+        "memory_assessments",
         "outcome",
         "work_id",
         "book_version_id",

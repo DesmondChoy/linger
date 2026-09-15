@@ -25,15 +25,17 @@ EVIDENCE_ID = "pg11-v01b38ea4-ch02-ln0010-0011"
 
 def mixed_candidate() -> MuseCandidate:
     return MuseCandidate(
-        reply="A reply mixing book and session-line support.",
+        reply="Alice cries in the hall. You lost your job last spring.",
         evidence_uses=(
             BookEvidenceUse(
+                supported_claims=("Alice cries in the hall.",),
                 source_kind="book_corpus",
                 evidence_id=EVIDENCE_ID,
                 source_location="Chapter 2 — The Pool of Tears, source lines 10-11",
                 exact_quote=None,
             ),
             SessionLineUse(
+                supported_claims=("You lost your job last spring.",),
                 source_kind="session_line",
                 quote="I lost my job last spring",
             ),
@@ -53,9 +55,10 @@ class BookCorpusEvidenceUsesTests(unittest.TestCase):
 
     def test_session_line_only_candidate_yields_no_crash_and_no_entries(self) -> None:
         candidate = MuseCandidate(
-            reply="A reply supported only by the reader's own words.",
+            reply="You lost your job last spring.",
             evidence_uses=(
                 SessionLineUse(
+                    supported_claims=("You lost your job last spring.",),
                     source_kind="session_line",
                     quote="I lost my job last spring",
                 ),

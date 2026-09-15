@@ -30,7 +30,7 @@ from apps.backend.contracts import (
     MuseRevisionInput,
     MuseRevisionReview,
 )
-from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate
+from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
 from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
@@ -43,6 +43,7 @@ from src.linger.agents.provenance.models import (
     ProvenanceInput,
     ProvenancePolicy,
     ProvenanceReview,
+    PreviousResponseReview,
     RiskCode,
 )
 from src.linger.agents.provenance.prompt import (
@@ -68,7 +69,7 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
-from src.linger.orchestration.grounding import evidence_record_from_item
+from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.turn_context import turn_evidence, active_memories
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
@@ -563,7 +564,11 @@ def _validate_release(
     required_clarification: str | None = None,
     released_user_lines: tuple[str, ...] = (),
 ) -> None:
-    """Validate declared book and session-line citations after semantic approval."""
+    """Validate claim mappings and source declarations after semantic approval."""
+    try:
+        validate_supported_claims(candidate.reply, candidate.evidence_uses)
+    except ValueError as error:
+        raise ReleaseValidationError(str(error)) from error
     if required_clarification is not None and (
         candidate.evidence_uses
         or any(result["tool_name"] != "librarian_route" for result in tool_results)
@@ -612,7 +617,11 @@ def _validate_release(
             raise ReleaseValidationError("Candidate exact quotation is not supported")
 
 
-def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceContext:
+def _provenance_context(
+    review_context: Mapping[str, object],
+    *,
+    required_clarification: str | None = None,
+) -> ProvenanceContext:
     """Validate the trusted application context before it reaches Provenance."""
     if not review_context:
         return ProvenanceContext(
@@ -623,6 +632,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
                 allow_memory_capture=False,
             ),
             reading_context=None,
+            required_clarification=required_clarification,
         )
     unexpected = set(review_context) - {"policy_constraints", "reading_context", "passage_scope"}
     if unexpected:
@@ -633,6 +643,7 @@ def _provenance_context(review_context: Mapping[str, object]) -> ProvenanceConte
                 "policy": review_context["policy_constraints"],
                 "reading_context": review_context.get("reading_context"),
                 "passage_scope": review_context.get("passage_scope"),
+                "required_clarification": required_clarification,
             }
         )
     except Exception:
@@ -685,6 +696,9 @@ def _provenance_input(
     tool_results: list[dict[str, object]],
     capture_source_text: str,
     released_user_lines: tuple[str, ...],
+    previous_response_review: PreviousResponseReview | None = None,
+    *,
+    required_clarification: str | None = None,
 ) -> ProvenanceInput:
     """Build the sole typed envelope for one Provenance review."""
     # librarian_route only identifies a work and boundary; it carries no book
@@ -695,7 +709,9 @@ def _provenance_input(
     try:
         return ProvenanceInput.model_validate(
             {
-                "context": _provenance_context(review_context),
+                "context": _provenance_context(
+                    review_context, required_clarification=required_clarification,
+                ),
                 "canonical_book_evidence": tuple(turn_evidence().values()),
                 "canonical_connection_evidence": tuple(canonical_connection_evidence().values()),
                 "canonical_session_lines": _verified_session_lines(
@@ -708,6 +724,7 @@ def _provenance_input(
                     memory=candidate.memory,
                 ),
                 "current_line": CurrentLine(text=capture_source_text),
+                "previous_response_review": previous_response_review,
             }
         )
     except ReleaseValidationError:
@@ -723,6 +740,9 @@ async def _review(
     tool_results: list[dict[str, object]],
     capture_source_text: str,
     released_user_lines: tuple[str, ...],
+    previous_response_review: PreviousResponseReview | None = None,
+    *,
+    required_clarification: str | None = None,
 ) -> ProvenanceReview:
     review_input = _provenance_input(
         candidate,
@@ -730,6 +750,8 @@ async def _review(
         tool_results,
         capture_source_text,
         released_user_lines,
+        previous_response_review,
+        required_clarification=required_clarification,
     )
     payload = json.dumps(
         review_input.model_dump(mode="json"),
@@ -752,7 +774,7 @@ async def _review(
     )
     try:
         review = ProvenanceReview.model_validate(result.output)
-        review_input.validate_review_locations(review)
+        review_input.validate_review(review)
     except Exception:
         raise ReleaseValidationError("Provenance review output is invalid") from None
     return review
@@ -980,6 +1002,7 @@ async def _reflection_reply(
             draft_tool_results,
             capture_source_text,
             released_user_lines,
+            required_clarification=draft_clarification,
         )
     except ReleaseValidationError:
         return _record_release(
@@ -1197,6 +1220,15 @@ async def _reflection_reply(
             revised_tool_results,
             capture_source_text,
             released_user_lines,
+            previous_response_review=PreviousResponseReview(
+                candidate=CandidateUnderReview(
+                    response=candidate.reply,
+                    evidence_uses=candidate.evidence_uses,
+                    memory=candidate.memory,
+                ),
+                findings=review.response_findings,
+            ),
+            required_clarification=revised_clarification,
         )
     except ReleaseValidationError:
         return _record_release(

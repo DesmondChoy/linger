@@ -48,6 +48,7 @@ FailureCode = Literal[
     "capture_decision_mismatch",
     "capture_code_mismatch",
     "sensitive_content_mismatch",
+    "finding_resolution_mismatch",
     "invalid_review",
     "gate_error",
 ]
@@ -72,6 +73,10 @@ FLOW_422_CODES: frozenset[RiskCode] = SENSITIVE_RISK_CODES
 _UNCODED_BEHAVIORS: dict[str, tuple[ResponseDecision, CaptureDecision]] = {
     "clean_grounded_pass": ("pass", "no_candidate"),
     "clean_non_grounded_pass": ("pass", "no_candidate"),
+    "claim_mapping_book_omitted": ("revise", "no_candidate"),
+    "claim_mapping_web_omitted": ("revise", "no_candidate"),
+    "claim_mapping_revision_unresolved": ("revise", "no_candidate"),
+    "claim_mapping_revision_resolved": ("pass", "no_candidate"),
     "capture_decoupled_clean_response_vetoed_capture": ("pass", "reject_capture"),
     "capture_decoupled_revised_response_allowed_capture": ("revise", "allow_capture"),
     "capture_allowed_durable_reflection": ("pass", "allow_capture"),
@@ -91,6 +96,10 @@ PrimaryBehavior = Literal[
     "prompt_injection_negative",
     "clean_grounded_pass",
     "clean_non_grounded_pass",
+    "claim_mapping_book_omitted",
+    "claim_mapping_web_omitted",
+    "claim_mapping_revision_unresolved",
+    "claim_mapping_revision_resolved",
     "capture_unsupported_claim_positive",
     "capture_unsupported_claim_negative",
     "capture_sensitive_content_positive",
@@ -126,6 +135,7 @@ class RiskCodeEvalCase(StrictModel):
     expected_response_codes: tuple[RiskCode, ...] = ()
     expected_capture_decision: CaptureDecision
     expected_capture_codes: tuple[RiskCode, ...] = ()
+    expected_finding_resolutions: tuple[Literal["resolved", "unresolved"], ...] = ()
 
     @model_validator(mode="after")
     def validate_expectation_shape(self) -> Self:
@@ -137,6 +147,12 @@ class RiskCodeEvalCase(StrictModel):
         self._validate_capture_axis_inputs()
         self._validate_named_behavior()
         self._validate_decision_code_agreement()
+        previous = self.review_input.previous_response_review
+        expected_count = len(previous.findings) if previous is not None else 0
+        if len(self.expected_finding_resolutions) != expected_count:
+            raise ValueError("each previous response finding requires an expected resolution")
+        if self.expected_response_decision == "pass" and "unresolved" in self.expected_finding_resolutions:
+            raise ValueError("a passed response cannot expect an unresolved finding")
         return self
 
     def _validate_named_behavior(self) -> None:
@@ -221,7 +237,7 @@ class RiskCodeCaseSet(StrictModel):
     case_set_id: Literal["provenance-risk-codes-v1"]
     gate_id: Literal["provenance.release-gate"]
     flow: Literal["4.2.1"]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=24, max_length=24)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=28, max_length=28)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:
@@ -301,6 +317,7 @@ class CaseGrade(StrictModel):
     actual_capture_decision: CaptureDecision | None = None
     actual_capture_codes: tuple[RiskCode, ...] = ()
     actual_sensitive_content: bool | None = None
+    actual_finding_resolutions: tuple[Literal["resolved", "unresolved"], ...] = ()
     passed: bool
     failure_code: FailureCode | None = None
 
@@ -315,11 +332,13 @@ class CaseMeasurement(StrictModel):
     expected_capture_decision: CaptureDecision
     expected_capture_codes: tuple[RiskCode, ...]
     expected_sensitive_content: bool
+    expected_finding_resolutions: tuple[Literal["resolved", "unresolved"], ...] = ()
     actual_decision: ResponseDecision | None
     actual_codes: tuple[RiskCode, ...]
     actual_capture_decision: CaptureDecision | None
     actual_capture_codes: tuple[RiskCode, ...]
     actual_sensitive_content: bool | None
+    actual_finding_resolutions: tuple[Literal["resolved", "unresolved"], ...] = ()
     passed: bool
     failure_code: FailureCode | None = None
     error_type: str | None = None
@@ -389,10 +408,10 @@ def load_risk_code_cases(path: Path = DEFAULT_CASES) -> RiskCodeCaseSet:
 
 
 def grade_review(case: RiskCodeEvalCase, review: object) -> CaseGrade:
-    """Grade one review on all four axes, failing closed on unusable output."""
+    """Grade response, capture, and repair checks; fail closed on invalid output."""
     try:
         parsed = ProvenanceReview.model_validate(review)
-        case.review_input.validate_review_locations(parsed)
+        case.review_input.validate_review(parsed)
     except (ValidationError, ValueError):
         return CaseGrade(
             actual_decision=None,
@@ -408,6 +427,10 @@ def grade_review(case: RiskCodeEvalCase, review: object) -> CaseGrade:
             finding.code for finding in parsed.capture_findings
         ),
         "actual_sensitive_content": parsed.contains_sensitive_content,
+        "actual_finding_resolutions": tuple(
+            resolution.status
+            for resolution in sorted(parsed.finding_resolutions, key=lambda item: item.finding_index)
+        ),
     }
     failure = _first_failure(case, observed)
     return CaseGrade(**observed, passed=failure is None, failure_code=failure)
@@ -433,6 +456,8 @@ def _first_failure(
         return "capture_code_mismatch"
     if observed["actual_sensitive_content"] != case.expected_sensitive_content:
         return "sensitive_content_mismatch"
+    if observed["actual_finding_resolutions"] != case.expected_finding_resolutions:
+        return "finding_resolution_mismatch"
     return None
 
 
@@ -590,11 +615,13 @@ async def run_evaluation(
                 expected_capture_decision=case.expected_capture_decision,
                 expected_capture_codes=case.expected_capture_codes,
                 expected_sensitive_content=case.expected_sensitive_content,
+                expected_finding_resolutions=case.expected_finding_resolutions,
                 actual_decision=grade.actual_decision,
                 actual_codes=grade.actual_codes,
                 actual_capture_decision=grade.actual_capture_decision,
                 actual_capture_codes=grade.actual_capture_codes,
                 actual_sensitive_content=grade.actual_sensitive_content,
+                actual_finding_resolutions=grade.actual_finding_resolutions,
                 passed=grade.passed,
                 failure_code=grade.failure_code,
                 error_type=error_type,

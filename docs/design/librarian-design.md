@@ -34,19 +34,20 @@ evidence recall, 100% citation precision, and zero spoiler exposure.
 
 The Librarian subsystem contains one reusable production PydanticAI object,
 `librarian_agent`. Its explicit assignment in
-[`skills.py`](../../src/linger/agents/librarian/skills.py) contains two skills:
+[`skills.py`](../../src/linger/agents/librarian/skills.py) contains three skills:
 
 | Skill | Contract | Current consumer |
 |---|---|---|
 | [Boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | Production book routing and synthetic book replay call private inference when explicit progress is unavailable. |
-| [Evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `EvidenceStrengthDecision` | Scoped retrieval supplies canonical evidence for selection and answerability judgment. |
+| [Book request](../../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | Muse and Serendipity supply reader context without candidate passages to identify the requested book parts. |
+| [Evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | A frozen request plan and scoped canonical evidence support selection and answerability judgment. Application checks return `EvidenceStrengthDecision`. |
 
-Application code selects one skill before each model run. Both runs use the
+Application code selects one skill before each model run. All runs use the
 same Agent object with shared trust rules, task-specific instructions, and a
 per-run output schema. They receive no tools or retained conversation history.
 Original reader statements are explicit boundary-inference input data.
-Consolidating the object does not combine the private boundary decision and
-later evidence judgment into one model call.
+Sharing the object does not combine boundary inference, request planning, and
+evidence assessment into one model call.
 
 Work resolution, scoped search, fusion, deduplication, reranking, canonical
 resolution, and permission validation remain application operations. They are
@@ -512,8 +513,24 @@ inference example below omits earlier reader statements:
 }
 ```
 
-Only the private Librarian boundary agent sees the memory and candidate text.
-Its accepted output contains no passage text:
+In the same boundary invocation, Librarian returns `memory_assessments` before
+its chapter decision: one assessment for each supplied memory, with its exact
+ID, status, canonical evidence IDs and a short reason. It can ground a memory
+from the supplied passage text even when the stored memory has no evidence IDs.
+The model must account for earlier knowledge separately from locating the
+current reading report. A grounded memory cannot be omitted from a candidate's
+support; a conflicting assessment cannot authorize a candidate.
+
+`BoundaryMemoryValidation` provides structured coverage and consistency errors
+within the existing single retry. Application code repeats those checks before
+granting access. It never changes a line-only answer into a memory-supported
+one itself. An ambiguous current event can still produce `uncertain` despite
+grounded earlier knowledge. These assessments do not change session-supported
+exact-passage grants.
+
+Only the private Librarian boundary invocation sees the memory and candidate
+text. The application's accepted handoff contains no passage text or assessment
+rationales:
 
 ```json
 {
@@ -571,8 +588,9 @@ Boundary inference and evidence retrieval are separate calls:
 
 1. The inference search may inspect the complete immutable work, but its
    passages remain private and never enter the turn evidence ledger.
-2. Librarian declares `memory_supported` or `line_only` and selects only input
-   memory IDs plus content-free supporting evidence IDs and locations.
+2. Librarian assesses every supplied memory against canonical candidates, then
+   declares a consistent `memory_supported` or `line_only` basis and selects
+   only input memory and evidence IDs.
 3. Application code derives the ceiling from those trusted records and rejects
    invented memory or evidence IDs, a mismatched work or revision, an invalid
    basis, and inconsistent chapters.
@@ -623,11 +641,16 @@ completion of the chapter or permission for neighboring text.
 
 ### 4.4 Retrieval, fusion, and deduplication
 
-Direct bounded chapter selection is the control. The benchmark adds only
-disposable indexes:
+The benchmark used direct bounded chapter selection as its control. The
+selected hybrid retrieval path serves both Muse grounding and Serendipity book
+search through the same judged retrieval operation:
 
 ```text
-Validated request
+Application-supplied reader cue, earlier reader statements, and validated scope
+        ↓
+Librarian plans the book request without seeing candidate passages
+        ↓
+Join the frozen plan's exact reader spans into the bounded search query
         ↓
 Filter catalogue and indexes to eligible chapters
         ↓
@@ -641,17 +664,37 @@ Reranker orders candidates by query relevance
         ↓
 Resolve final passages to exact canonical chapter lines
         ↓
-Librarian judges the evidence set: sufficient, weak, or none
+Librarian assesses the same fixed plan against the permitted evidence set
 ```
 
-Direct grounding uses `retrieve_for_judgement`. If candidates survive fusion but
-all fall below the final reranker cutoff, it sends only the highest-ranked
-eligible candidate to the evidence-strength judge. This recovery preserves the
-semantic cutoff, scope, ranking, and original score. It does not grant evidence
-to Muse: the judge must select a supporting record before it enters the turn's
-evidence ledger. A rejection returns no evidence; a failed judge returns a typed
-failure. Ordinary `retrieve`, connection searches, and boundary inference keep
-their existing cutoffs.
+Muse `librarian_search` and Serendipity `search_librarian` accept no
+model-written book query. Application code supplies the original reader cue and
+earlier reader statements to `plan_book_request` before retrieval. It joins the
+plan's exact spans into a query limited to 2,000 characters. Long reader input
+is planned before this backend query is constructed. An over-budget derived
+query fails without widening scope or silently changing the plan.
+
+Both callers then use `retrieve_for_judgement`.
+Its private shortlist contains at most five candidates, preserving the strongest
+fused keyword/semantic candidate alongside reranker leaders. This lets the
+Librarian evidence-assessment skill judge promising passages even when the
+reranker demotes them or all scores fall below its cutoff. Scope filtering still
+happens before judgment. The caller's release limit is separate from this private
+budget and is supplied as `max_evidence_records`. The judge assesses its selected
+subset; an oversized or invalid selection fails closed instead of silently
+truncating the evidence behind its verdict.
+
+Both callers receive `sufficient`, `weak`, or `none`, with a reason and
+limitations. Only judge-selected canonical records return to the caller. A
+rejection returns no evidence. Retrieval or judge failure returns a typed
+failure with no evidence. Serendipity receives the strength, reason, and
+limitations in the book search result's `judgement` field. It separately
+evaluates whether the selected evidence supports a broader connection. Weak
+source evidence may support a limited comparison, but Serendipity declines when
+the evidence cannot support the proposed relationship. Provenance still
+reviews Muse's final response. Ordinary `retrieve` and boundary inference keep
+their existing cutoffs. This operation does not widen reading scope or lower
+global cutoffs.
 
 This handles a verified false negative in Douglass: the literacy passage in
 Chapter 6 ranks first for the Hugh Auld question but scores about 0.352 against
@@ -678,12 +721,48 @@ question. It may match the same words while missing the requested relationship
 or explanation. Conversely, `weak` evidence still includes its full evidence
 details so Muse can explain the limitation instead of losing context.
 
-The evidence-strength judge selects the smallest set that supports the
-requested book answer. For a quotation, it selects records containing the
-requested words and narrator description. It includes another record only when
-that record adds distinct support the answer needs. Personal reflection does
-not by itself require more book passages. These are model selection
-instructions; the deterministic checks still validate every selected record.
+Librarian identifies the requested book parts before private retrieval through
+`plan_book_request` and its book-request skill. Muse and Serendipity supply the original reader message and available
+earlier reader statements, so a progress clarification can resume the original
+question. Standalone calls use their caller's question. This invocation sees no
+candidate passages or expanded search query. Each part contains exact
+`context_spans`, `purpose`, and exact `reader_spans`, with no free-form rewritten
+question. Context retains the book, scene, or speaker needed to resolve a
+question's pronouns, including a locator from the preceding reading report.
+It is empty only for a self-contained question and creates no extra answer
+requirements. Retrieval joins this context before the requested wording.
+The skill selects
+the shortest exact fragments naming the requested book content and excludes
+personal experiences, other sources, and progress-only statements. Application
+code checks that those spans are nonempty and occur in the supplied reader text.
+
+`BookRequestSpanValidation` checks the plan before the Agent run completes.
+Invalid spans receive their field locations and repair guidance within the
+existing single output retry. A unique case-only match can supply an exact
+reader-span suggestion; it does not make the original span valid. The
+capability leaves other Librarian outputs unchanged. `plan_book_request` uses
+the same `book_request_span_errors` helper to reject any remaining invalid
+span before retrieval.
+
+`assess_book_evidence` reuses the plan that drove retrieval with the permitted
+canonical records. A `reference` grounds the named book moment for reflection or a
+comparison. An `answer` addresses an explicit book question, claim check, or
+quotation request, even when the answer is used in reflection. Its instructions
+require the smallest set supporting that purpose. Another record is warranted
+only when removing it would leave a requested part unsupported. A quotation can require several records; a personal
+reflection does not by itself require more book passages. The assessment must
+not add requested parts to justify available evidence.
+
+`BookEvidenceAssessment.support` maps every selected record to an existing
+`part_index` and explains its `necessary_support`. Deterministic checks require
+unique mappings, valid selected IDs, and coverage of every part for a
+`sufficient` verdict. Selection must also fit `max_evidence_records`. Application
+code returns the existing `EvidenceStrengthDecision` fields to either caller.
+The mapping's meaning remains a model judgment; structural validation does not
+prove that a passage answers the question. No request plan changes reading
+scope, source identities, or the caller's evidence authority. Exact passage
+grants use the same planner and assessor over their fixed records. They never
+trigger broader retrieval.
 
 The reranker does not order candidates by `sufficient`, `weak`, and `none`.
 Those labels describe the combined final result, after reranking and canonical
@@ -978,11 +1057,12 @@ The selected local stack is BM25S, FastEmbed
 cross-encoder `Xenova/ms-marco-MiniLM-L-6-v2`. Derived indexes are cached by
 immutable book revision and exact chapter ceiling. The first local model and
 index initialization is excluded from warm p95 and remains visible as a
-deployment warm-up cost. This selection applies to Librarian's exact-question
-grounding path. Serendipity's deliberately multi-chapter connection discovery
-keeps the bounded diversified direct-read control until connection retrieval
-has its own evaluation; it must not silently inherit a strategy optimized for a
-different objective.
+deployment warm-up cost. These measurements evaluated Librarian's
+exact-question grounding path. At that time, Serendipity used the bounded
+diversified direct-read control. Current Muse grounding and Serendipity book
+search share the judged hybrid operation described in Section 4.4. The
+historical grounding results do not measure broader connection quality, which
+Serendipity evaluates separately.
 
 ### 7.5 Live end-to-end validation
 

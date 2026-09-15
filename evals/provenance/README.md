@@ -28,7 +28,7 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 24 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 28 cases covering both decisions the gate returns.
 
 Twelve **release** cases check the five risk codes reachable in specification
 flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
@@ -38,6 +38,13 @@ four `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
 `prompt_injection`. Each code has a positive case and a paired near-miss
 negative that differs minimally, plus clean controls on both axes, so detection
 is measured separately from a gate that blocks indiscriminately.
+
+Four additional release cases check incomplete book and public-source claim
+mappings, a revision that leaves a mapping incomplete, and a revision that
+repairs the mapping without changing the prose. The revision cases grade the
+explicit finding-resolution statuses as well as the verdict and risk codes.
+Structural validation does not establish whether the model detects these
+semantic defects; the provider-backed evaluation measures that behavior.
 
 Every capture case sets `allow_memory_capture` and carries a real nomination.
 The release cases do not, which structurally forces `no_candidate` and is why

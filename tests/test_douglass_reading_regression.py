@@ -85,9 +85,9 @@ def test_recovery_cannot_open_the_answer_beyond_the_completed_chapters():
     result = librarian.retrieve_for_judgement(LibrarianRequest(query=QUESTION, book_scopes=[
         BookScope(work_id="pg23", book_version_id=VERSION, chapter_max=5),
     ]))
-    assert len(result.items) == 1
-    assert result.items[0].chapter <= 5
-    assert "desire and determination to learn" not in result.items[0].excerpt
+    assert 1 <= len(result.items) <= 5
+    assert all(item.chapter <= 5 for item in result.items)
+    assert all("desire and determination to learn" not in item.excerpt for item in result.items)
 
 
 @pytest.mark.parametrize("judgement", ["sufficient", "none", "failure"])
@@ -101,14 +101,15 @@ def test_low_scoring_match_reaches_judge_before_it_can_be_released(judgement):
 
     async def judge(query, records):
         seen.extend(records)
-        assert len(records) == 1
-        assert records[0].chapter_number == 6
-        assert "desire and determination to learn" in records[0].text
+        assert 1 < len(records) <= 5
+        assert all(record.chapter_number <= 7 for record in records)
+        supporting = next(record for record in records if "desire and determination to learn" in record.text)
+        assert supporting.chapter_number == 6
         if judgement == "failure":
             raise RuntimeError("Judge unavailable")
         return EvidenceStrengthDecision(
             evidence_strength=judgement, strength_reason="Independent answerability decision.",
-            relevant_evidence_ids=(records[0].evidence_id,) if judgement == "sufficient" else (),
+            relevant_evidence_ids=(supporting.evidence_id,) if judgement == "sufficient" else (),
         )
 
     token = set_confirmed_reading(ConfirmedReading(work_id="pg23", chapter_max=7))
@@ -117,11 +118,13 @@ def test_low_scoring_match_reaches_judge_before_it_can_be_released(judgement):
         request = build_request(QUESTION, "pg23", VERSION,
             ReadingBoundary(chapter_number=7, chapter_state="completed"))
         result = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=judge))
-        assert len(seen) == 1
+        assert 1 < len(seen) <= 5
         if judgement == "sufficient":
             assert result.outcome == "evidence_found"
+            assert len(result.evidence) == 1
             assert result.evidence[0].chapter_number == 6
-            assert set(turn_evidence()) == {seen[0].evidence_id}
+            assert "desire and determination to learn" in result.evidence[0].text
+            assert set(turn_evidence()) == {result.evidence[0].evidence_id}
         else:
             assert not turn_evidence()
             if judgement == "none":

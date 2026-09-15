@@ -8,7 +8,13 @@ from unittest.mock import AsyncMock, patch
 
 from pydantic import ValidationError
 
-from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.models import (
+    BookEvidenceAssessment,
+    BookRequestPart,
+    BookRequestPlan,
+    EvidenceStrengthDecision,
+    RequestedBookSupport,
+)
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.evidence_strength import judge_evidence_strength
 
@@ -46,43 +52,61 @@ class EvidenceStrengthOrchestrationTests(unittest.IsolatedAsyncioTestCase):
             text="“Who are _you?_” said the Caterpillar.",
         )
 
-    async def test_judge_receives_only_query_and_exact_evidence(self) -> None:
+    async def test_judge_receives_reader_query_before_plan_and_exact_evidence(self) -> None:
+        query = "Who questions Alice's identity?"
+        plan = BookRequestPlan(parts=(BookRequestPart(context_spans=(), purpose="answer", reader_spans=(query,)),))
         agent = AsyncMock()
-        agent.run.return_value = SimpleNamespace(
-            output=EvidenceStrengthDecision(
+        agent.run.side_effect = [SimpleNamespace(output=plan), SimpleNamespace(
+            output=BookEvidenceAssessment(
                 evidence_strength="sufficient",
                 strength_reason="The passage directly supports the query.",
                 relevant_evidence_ids=(self.evidence().evidence_id,),
+                support=(RequestedBookSupport(
+                    evidence_id=self.evidence().evidence_id, part_index=0,
+                    necessary_support="The passage names the character asking the question.",
+                ),),
             )
-        )
+        )]
         module = ModuleType("src.linger.agents.librarian.agent")
         module.librarian_agent = agent
 
         with patch.dict(sys.modules, {module.__name__: module}):
             decision = await judge_evidence_strength(
-                "Who questions Alice's identity?", (self.evidence(),)
+                query, (self.evidence(),)
             )
 
         self.assertEqual("sufficient", decision.evidence_strength)
-        payload = json.loads(agent.run.await_args.args[0])
-        self.assertEqual("Who questions Alice's identity?", payload["query"])
+        self.assertEqual(2, agent.run.await_count)
+        request_payload = json.loads(agent.run.await_args_list[0].args[0])
+        self.assertEqual({"current_line": query, "prior_reader_statements": []}, request_payload)
+        payload = json.loads(agent.run.await_args_list[1].args[0])
+        self.assertEqual({"request", "evidence", "max_evidence_records"}, set(payload))
+        self.assertEqual(plan.model_dump(mode="json"), payload["request"])
         self.assertEqual(self.evidence().evidence_id, payload["evidence"][0]["evidence_id"])
+        self.assertEqual(self.evidence().model_dump(mode="json"), payload["evidence"][0])
 
     async def test_judge_rejects_invented_evidence_ids(self) -> None:
         agent = AsyncMock()
-        agent.run.return_value = SimpleNamespace(
-            output=EvidenceStrengthDecision(
+        agent.run.side_effect = [SimpleNamespace(output=BookRequestPlan(parts=(
+            BookRequestPart(context_spans=(), purpose="answer", reader_spans=("query",)),
+        ))), SimpleNamespace(
+            output=BookEvidenceAssessment(
                 evidence_strength="sufficient",
                 strength_reason="Invented support.",
                 relevant_evidence_ids=("not-in-the-input",),
+                support=(RequestedBookSupport(
+                    evidence_id="not-in-the-input", part_index=0,
+                    necessary_support="Claimed support from an unavailable passage.",
+                ),),
             )
-        )
+        )]
         module = ModuleType("src.linger.agents.librarian.agent")
         module.librarian_agent = agent
 
         with patch.dict(sys.modules, {module.__name__: module}):
-            with self.assertRaises(ValueError):
+            with self.assertRaisesRegex(ValueError, "unknown evidence ID"):
                 await judge_evidence_strength("query", (self.evidence(),))
+        self.assertEqual(2, agent.run.await_count)
 
     def test_weak_requires_an_explicit_limitation(self) -> None:
         with self.assertRaises(ValidationError):

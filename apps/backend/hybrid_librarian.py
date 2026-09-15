@@ -32,6 +32,7 @@ OVERLAP_WORDS = 60
 KEYWORD_CANDIDATES = 10
 SEMANTIC_CANDIDATES = 10
 MAX_RERANKER_CANDIDATES = 15
+MAX_JUDGEMENT_CANDIDATES = 5
 RRF_K = 60
 OVERLAP_DEDUPE_THRESHOLD = 0.5
 
@@ -271,7 +272,7 @@ class HybridLibrarian(Librarian):
         return self._retrieve(request, recover_for_judgement=False)
 
     def retrieve_for_judgement(self, request: LibrarianRequest) -> EvidenceBundle:
-        """Keep one below-cutoff candidate private until answerability is judged."""
+        """Retain independent search leaders privately until answerability is judged."""
         return self._retrieve(request, recover_for_judgement=True)
 
     def _retrieve(self, request: LibrarianRequest, *, recover_for_judgement: bool) -> EvidenceBundle:
@@ -300,16 +301,21 @@ class HybridLibrarian(Librarian):
             ),
             key=lambda candidate: -candidate.score,
         )
-        final = _dedupe(
-            [
-                candidate
-                for candidate in scored
-                if candidate.score >= request.retrieval_score_threshold
-            ],
-            request.max_results,
-        )
-        if not final and recover_for_judgement:
-            final = scored[:1]
+        if recover_for_judgement:
+            fused_leader = next(
+                candidate for candidate in scored
+                if candidate.evidence_id == fused[0].evidence_id
+            )
+            final = _dedupe([fused_leader, *scored], MAX_JUDGEMENT_CANDIDATES)
+        else:
+            final = _dedupe(
+                [
+                    candidate
+                    for candidate in scored
+                    if candidate.score >= request.retrieval_score_threshold
+                ],
+                request.max_results,
+            )
 
         items = [
             EvidenceItem(

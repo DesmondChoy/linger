@@ -127,6 +127,7 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
     assert {assignment.skill_id for assignment in assignments} == {
         "muse.reflection",
         "librarian.boundary-inference",
+        "librarian.book-request",
         "librarian.evidence-assessment",
         "sculptor.memory-curation",
         "sculptor.memory-surfacing",

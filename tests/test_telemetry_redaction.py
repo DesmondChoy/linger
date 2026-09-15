@@ -10,7 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import logfire
 from logfire.testing import TestExporter
-from pydantic_ai import Agent
+from pydantic_ai import Agent, ModelRetry
+from pydantic_ai.exceptions import UnexpectedModelBehavior
 from pydantic_ai.messages import ModelResponse, TextPart
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
@@ -405,6 +406,43 @@ class AgentInstrumentationTests(TelemetryTestCase):
         self.assertNotIn(SECRET_EXCEPTION, payload)
         self.assertNotIn("RuntimeError", payload)
         self.assertIn("test_model_failed", payload)
+        self.assertIn('"failure.category": "unknown_error"', payload)
+
+    async def test_failed_evaluation_messages_stay_out_of_operational_spans(self) -> None:
+        agent = Agent(
+            FunctionModel(lambda _messages, _info: ModelResponse(parts=[TextPart(SECRET_QUOTE)])),
+            instructions=SECRET_SYSTEM,
+            retries=1,
+        )
+
+        @agent.output_validator
+        def request_repair(_ctx, _output):
+            raise ModelRetry(SECRET_EXCERPT)
+
+        recorder = SceneTranscriptRecorder()
+        with bind_evaluation_transcript_sink(recorder):
+            with self.assertRaises(UnexpectedModelBehavior):
+                await run_agent_traced(
+                    agent,
+                    SECRET_MESSAGE,
+                    span_name="test.agent",
+                    role="Muse",
+                    stage="test",
+                    input_contract="TestInput.v1",
+                    output_contract="TestOutput.v1",
+                    prompt_template_id="test.prompt",
+                    prompt_digest="0" * 64,
+                    failure_code="test_model_failed",
+                )
+
+        transcript = json.dumps(recorder.exchanges[0].model_messages)
+        payload = self.exported_payload()
+        for private in (SECRET_SYSTEM, SECRET_MESSAGE, SECRET_QUOTE, SECRET_EXCERPT):
+            self.assertIn(private, transcript)
+            self.assertNotIn(private, payload)
+        self.assertNotIn("UnexpectedModelBehavior", payload)
+        self.assertNotIn("exception.stacktrace", payload)
+        self.assertIn('"failure.category": "model_response_error"', payload)
 
     async def test_result_projection_failure_is_application_owned(self) -> None:
         agent = AsyncMock()
@@ -674,6 +712,11 @@ class ReflectionSpanTests(TelemetryTestCase):
                 ProvenanceReview(
                     findings=(),
                     response_decision="pass",
+                    finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'resolved',
+                        'explanation': 'The revised candidate removes the unsupported draft claim.',
+                    },),
                     emotional_boundary_decision="not_required",
                     capture_decision="no_candidate",
                 )

@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 from uuid import uuid4
 
 import logfire
 
 from apps.backend import sessions
 from apps.backend.config import get_settings
-from apps.backend.contracts import BookScope, EvidenceItem
-from apps.backend.contracts import LibrarianRequest as ShippedLibrarianRequest
+from apps.backend.contracts import BookScope
 from apps.backend.librarian import Librarian
 from apps.backend.hybrid_librarian import HybridLibrarian
 from apps.backend.telemetry import record_failure, set_span_attrs
+from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.orchestration.book_evidence import (
+    EvidenceJudgementError,
+    evidence_record_from_item,
+    judge_records,
+    retrieve_book_evidence,
+)
 from src.linger.contracts.librarian import (
     AccessScope,
     ClarificationRequest,
@@ -27,7 +34,7 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
-from src.linger.contracts.reading import ReadingBoundary, permits_scope
+from src.linger.contracts.reading import ReadingBoundary
 from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
@@ -39,6 +46,7 @@ from src.linger.orchestration.turn_context import (
     passage_grant,
     routing_context,
     reader_message,
+    reader_statements,
     session_id,
 )
 
@@ -53,22 +61,6 @@ class BookVersionOutOfScope(ValueError):
 
 def _clamp_max_final_evidence(value: int) -> int:
     return max(1, min(value, MAX_FINAL_EVIDENCE))
-
-
-def evidence_record_from_item(item: EvidenceItem) -> EvidenceRecord:
-    """Convert one shipped Librarian item to the canonical frozen record."""
-    return EvidenceRecord(
-        evidence_id=item.evidence_id,
-        work_id=item.work_id,
-        book_version_id=item.book_version_id,
-        chapter_id=item.chapter_id,
-        chapter_number=item.chapter,
-        part_id=item.part_id,
-        location=item.location,
-        source_sha256=item.source_sha256,
-        source_lines=item.source_lines,
-        text=item.excerpt,
-    )
 
 
 def build_request(
@@ -260,23 +252,28 @@ async def _grounding_evidence(
         )
         return result
 
-    shipped_request = ShippedLibrarianRequest(
-        query=request.query,
-        book_scopes=[
-            BookScope(
+    try:
+        judged = await retrieve_book_evidence(
+            reader_message() if reader_message() is not None else request.query,
+            book_scopes=(BookScope(
                 work_id=reading.work_id,
                 book_version_id=request.book_version_id,
                 chapter_max=ceiling,
                 part_id=reading.part_id, unit_ids=unit_ids,
-            )
-        ],
-        retrieval_score_threshold=request.options.retrieval_score_threshold,
-        max_results=request.options.max_final_evidence,
-        purpose="evidence_retrieval",
-    )
-
-    try:
-        bundle = librarian.retrieve_for_judgement(shipped_request)
+            ),),
+            retrieval_score_threshold=request.options.retrieval_score_threshold,
+            max_results=request.options.max_final_evidence,
+            librarian=librarian,
+            strength_judge=strength_judge,
+            prior_reader_statements=reader_statements(),
+        )
+    except EvidenceJudgementError:
+        return RetrievalFailure(
+            kind="failure",
+            request_id=request.request_id,
+            error_code="evidence_judgement_unavailable",
+            retryable=True,
+        )
     except Exception:
         failure = RetrievalFailure(
             kind="failure",
@@ -286,17 +283,8 @@ async def _grounding_evidence(
         )
         return failure
 
-    records = [
-        evidence_record_from_item(item)
-        for item in bundle.items
-        if (
-            item.work_id == reading.work_id
-            and item.book_version_id == request.book_version_id
-            and permits_scope(searched_scope, item)
-        )
-    ]
-    records = records[: request.options.max_final_evidence]
-    return await _finish_retrieval(request, tuple(records), searched_scope, strength_judge)
+    records = tuple(evidence_record_from_item(item) for item in judged.items)
+    return _judged_result(request, records, searched_scope, judged.judgement)
 
 
 async def _finish_retrieval(
@@ -305,38 +293,36 @@ async def _finish_retrieval(
     searched_scope: SearchedScope | PassageScope,
     strength_judge: StrengthJudge | None,
 ) -> LibrarianResponse:
-    """Judge and register only the eligible canonical records actually selected."""
-
-    if not records:
-        result = RetrievalResult(
-            kind="result",
-            request_id=request.request_id,
-            outcome="no_evidence",
-            evidence_strength="none",
-            strength_reason="No matching passages were found within the confirmed boundary.",
-            searched_scope=searched_scope,
-            evidence=(),
-            limitations=(),
-        )
-
-        return result
-
+    """Judge exact granted passages without broadening their retrieval scope."""
     try:
-        decision = await (strength_judge or judge_evidence_strength)(
-            request.query, tuple(records)
+        decision = await judge_records(
+            request.query,
+            records,
+            strength_judge=strength_judge or partial(
+                judge_evidence_strength,
+                max_evidence_records=request.options.max_final_evidence,
+                reader_question=reader_message(),
+                prior_reader_statements=reader_statements(),
+            ),
+            max_evidence_records=request.options.max_final_evidence,
         )
-        if not set(decision.relevant_evidence_ids).issubset(
-            record.evidence_id for record in records
-        ):
-            raise ValueError("evidence-strength judge selected an unavailable record")
-    except Exception:
+    except EvidenceJudgementError:
         return RetrievalFailure(
             kind="failure",
             request_id=request.request_id,
             error_code="evidence_judgement_unavailable",
             retryable=True,
         )
+    return _judged_result(request, records, searched_scope, decision)
 
+
+def _judged_result(
+    request: LibrarianRequest,
+    records: tuple[EvidenceRecord, ...],
+    searched_scope: SearchedScope | PassageScope,
+    decision: EvidenceStrengthDecision,
+) -> RetrievalResult:
+    """Register only the judge's selected records for direct grounding."""
     selected_ids = set(decision.relevant_evidence_ids)
     selected_records = tuple(
         record for record in records if record.evidence_id in selected_ids

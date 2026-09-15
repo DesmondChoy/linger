@@ -8,6 +8,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from apps.backend.contracts import BookScope, EvidenceItem
 from src.linger.agents.contracts import StrictModel
+from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 
 
@@ -43,6 +44,7 @@ class ConnectionScope(StrictModel):
 
     allowed_sources: tuple[SearchSourceKind, ...]
     book_scopes: tuple[BookScope, ...] = ()
+    # Exact application-known public pages may be opened directly; None requires search leads.
     web_source_urls: tuple[str, ...] | None = None
 
     @model_validator(mode="after")
@@ -90,6 +92,7 @@ class InternalSearchResult(StrictModel):
 
     outcome: Literal["evidence_found", "no_evidence", "retrieval_unavailable"]
     evidence: tuple[EvidenceItem, ...] = ()
+    judgement: EvidenceStrengthDecision | None
 
     @model_validator(mode="after")
     def outcome_matches_evidence(self) -> Self:
@@ -97,6 +100,16 @@ class InternalSearchResult(StrictModel):
             raise ValueError("evidence_found requires evidence")
         if self.outcome != "evidence_found" and self.evidence:
             raise ValueError(f"{self.outcome} cannot include evidence")
+        if self.outcome == "retrieval_unavailable":
+            if self.judgement is not None:
+                raise ValueError("retrieval failure cannot include a judgement")
+        else:
+            if self.judgement is None:
+                raise ValueError("completed book search requires a judgement")
+            if set(self.judgement.relevant_evidence_ids) != {
+                item.evidence_id for item in self.evidence
+            }:
+                raise ValueError("book evidence must match the judge's selection")
         return self
 
 

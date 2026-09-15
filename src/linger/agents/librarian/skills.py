@@ -1,7 +1,9 @@
 """Explicit assignment of Librarian's model tasks and their contracts."""
 
 from src.linger.agents.librarian.models import (
-    EvidenceStrengthDecision,
+    BookEvidenceAssessment,
+    BookRequestPlan,
+    LibrarianBookRequestInput,
     LibrarianBoundaryDecision,
     LibrarianBoundaryInferenceInput,
     LibrarianEvidenceStrengthInput,
@@ -21,25 +23,41 @@ BOUNDARY_INFERENCE = RuntimeSkill[
     instructions=load_instructions(PACKAGE, "skills/boundary-inference/SKILL.md"),
     input_type=LibrarianBoundaryInferenceInput,
     output_type=LibrarianBoundaryDecision,
+    capabilities=("src.linger.agents.librarian.agent.BoundaryMemoryValidation",),
     validators=(
+        "src.linger.agents.librarian.models.boundary_memory_assessment_errors",
         "LibrarianBoundaryDecision",
         "src.linger.orchestration.boundary.infer_spoiler_boundary",
     ),
 )
 
+BOOK_REQUEST = RuntimeSkill[LibrarianBookRequestInput, BookRequestPlan](
+    role="Librarian",
+    name="book-request",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(PACKAGE, "skills/book-request/SKILL.md"),
+    input_type=LibrarianBookRequestInput,
+    output_type=BookRequestPlan,
+    capabilities=("src.linger.agents.librarian.agent.BookRequestSpanValidation",),
+    validators=(
+        "src.linger.agents.librarian.models.book_request_span_errors",
+        "src.linger.orchestration.evidence_strength.plan_book_request",
+    ),
+)
+
 EVIDENCE_ASSESSMENT = RuntimeSkill[
-    LibrarianEvidenceStrengthInput, EvidenceStrengthDecision
+    LibrarianEvidenceStrengthInput, BookEvidenceAssessment
 ](
     role="Librarian",
     name="evidence-assessment",
     shared_instructions=SHARED_INSTRUCTIONS,
     instructions=load_instructions(PACKAGE, "skills/evidence-assessment/SKILL.md"),
     input_type=LibrarianEvidenceStrengthInput,
-    output_type=EvidenceStrengthDecision,
+    output_type=BookEvidenceAssessment,
     validators=(
-        "EvidenceStrengthDecision",
-        "src.linger.orchestration.evidence_strength.judge_evidence_strength",
+        "BookEvidenceAssessment",
+        "src.linger.orchestration.evidence_strength.assess_book_evidence",
     ),
 )
 
-SKILLS = (BOUNDARY_INFERENCE, EVIDENCE_ASSESSMENT)
+SKILLS = (BOUNDARY_INFERENCE, BOOK_REQUEST, EVIDENCE_ASSESSMENT)

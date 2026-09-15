@@ -184,6 +184,7 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         for reason in ("conflicting_context", "insufficient_context", "low_confidence"):
             with self.subTest(reason=reason):
                 result = await self.infer(AsyncMock(return_value=BoundaryInferenceDecision(
+                    memory_assessments=(),
                     outcome="uncertain", confidence=0.5, reason_code=reason,
                 )))
                 self.assertIsInstance(result, BoundaryUncertain)

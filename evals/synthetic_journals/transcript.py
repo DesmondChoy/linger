@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -16,6 +17,7 @@ from pydantic_ai.messages import (
 
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.evaluation_transcript import (
+    AgentFailureCategory,
     ConnectionEvaluationEvent,
     active_evaluation_correlation_id,
 )
@@ -58,11 +60,16 @@ class AgentExchange(StrictModel):
     input_prompt: str
     message_history: tuple[Any, ...]
     model_messages: tuple[Any, ...]
+    model_messages_include_history: bool = Field(
+        default=False,
+        description="Failed runs retain the full attempted conversation; tool_exchanges stays invocation-local.",
+    )
     output: Any | None
     tool_exchanges: tuple[ToolExchange, ...]
     usage: AgentUsage | None
     status: str
     failure_code: str | None
+    failure_category: AgentFailureCategory | None = None
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     span_id: str = Field(pattern=r"^[0-9a-f]{16}$")
 
@@ -146,13 +153,23 @@ class SceneTranscriptRecorder:
         result: Any | None,
         status: str,
         failure_code: str | None,
+        partial_messages: Sequence[Any] = (),
+        failure_category: AgentFailureCategory | None = None,
     ) -> None:
         if not isinstance(handle, _PendingExchange) or handle not in self._pending:
             raise ValueError("unknown evaluation transcript exchange")
         if handle.completed is not None:
             raise ValueError("evaluation transcript exchange completed twice")
 
-        messages = tuple(result.new_messages()) if result is not None else ()
+        messages = (
+            tuple(result.new_messages()) if result is not None else tuple(partial_messages)
+        )
+        previous_tool_call_ids = {
+            part.tool_call_id
+            for message in handle.message_history
+            for part in message.parts
+            if isinstance(part, ToolCallPart)
+        } if result is None else set()
         handle.completed = AgentExchange(
             sequence=handle.sequence,
             role=handle.role,
@@ -169,15 +186,20 @@ class SceneTranscriptRecorder:
             input_prompt=handle.input_prompt,
             message_history=_serialize_messages(handle.message_history),
             model_messages=_serialize_messages(messages),
+            model_messages_include_history=result is None and bool(messages),
             output=(
                 to_jsonable_python(result.output, serialize_unknown=True)
                 if result is not None
                 else None
             ),
-            tool_exchanges=_tool_exchanges(messages),
+            tool_exchanges=tuple(
+                call for call in _tool_exchanges(messages)
+                if call.tool_call_id not in previous_tool_call_ids
+            ),
             usage=_usage(result),
             status=status,
             failure_code=failure_code,
+            failure_category=failure_category,
             trace_id=handle.trace_id,
             span_id=handle.span_id,
         )

@@ -104,6 +104,10 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
             initial = payload["candidate"]["response"] == "Initial candidate"
             return output_response(info, {
                 "response_decision": "revise" if initial else "pass",
+                "finding_resolutions": [] if initial else [{
+                    "finding_index": 0, "status": "resolved",
+                    "explanation": "The reviewed candidate replaces the unsupported initial claim.",
+                }],
                 "capture_decision": "no_candidate",
                 "emotional_boundary_decision": "not_required",
                 "findings": [{
@@ -159,6 +163,7 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
                 "source_kind": "book_corpus",
                 "evidence_id": record.evidence_id,
                 "source_location": record.location,
+                "supported_claims": [record.text],
                 "exact_quote": "Unverified words" if attempts <= 3 else record.text,
             }]
             return output_response(info, payload)
@@ -198,6 +203,7 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
                 "source_kind": "book_corpus",
                 "evidence_id": record["evidence_id"],
                 "source_location": record["location"],
+                "supported_claims": [record["text"]],
                 "exact_quote": record["text"],
             }]
             return output_response(info, result)
