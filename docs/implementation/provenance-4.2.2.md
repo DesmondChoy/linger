@@ -25,7 +25,7 @@ sound. The material gap is measurement, not runtime design:
 | Gate | Built | Missing | Evaluation consequence |
 |---|---|---|---|
 | Capture | Review contract, independent capture veto, deterministic suppression and capture replay, **capture-axis eval pack (Stage 1)** | A live run of the new pack, and Ground truth for vetoed nominations | The combined Scenario provides one live positive capture measurement, but the dedicated veto pack has not run |
-| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay | Outcome grading beyond the proposal, curation-gate live-model cases, and fail-closed Scenario coverage | The combined Scenario reaches Provenance review and records loop statuses, but its evaluator still grades proposal outcomes |
+| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay, loop-outcome grading | Retrieval-specific expectations, curation-gate live-model cases, and fail-closed Scenario coverage | The combined Scenario grades the reviewed decision and application path, but does not yet measure every action outcome or fail-closed case |
 
 ## TODO
 
@@ -165,13 +165,14 @@ and deterministically verified, not yet measured against a model.
 - [x] **E12 — Point the curation replay at `run_curation_loop`.** The runner
       now calls `run_curation_loop` for each curation Scene. The 15 September
       replay reached Provenance curation review, recorded `allow` decisions,
-      and recorded `applied` or `no_change` loop statuses. The evaluator still
-      needs the outcome assertions described in E13.
-- [ ] **E13 — Extend `CurationExpectation` past the proposal.** Add the
-      verdict, applied outcome, and audit-verification result, plus expectation
-      members for `tombstone_for_retrieval` and `restore_to_retrieval`. Keep
-      applied state derived from the expected status so a Scene cannot claim a
-      rejected proposal and an applied event.
+      recorded `applied` or `no_change` loop statuses, and passed the outcome
+      assertions added in E13.
+- [x] **E13 — Extend `CurationExpectation` past the proposal.** The
+      expectation now carries the Provenance decision, loop status, application
+      creation, audit verification, and retrieval-view fields. Retrieval
+      tombstone and restore actions are representable and their targets are
+      checked. The adopted combined replay grades the reviewed decision and
+      application path; dedicated retrieval-effect cases remain part of E14/E15.
 - [ ] **E14 — Add a curation-gate risk-code eval pack.** Mirror E1–E4 for
       `review_curation`, with positive and paired near-miss cases for all six
       codes. Prioritise `unsafe_tombstone`, `incoherent_topic`, and
@@ -531,29 +532,30 @@ that changes what retrieval returns, and its deterministic guards
 (`tombstone_requires_duplicate_link`, `tombstone_canonical_not_retrievable`) are
 a backstop for a semantic judgment nothing currently measures.
 
-**13.3.2 The replay reaches the reviewed loop, but grading still stops at the proposal.**
+**13.3.2 The replay and grading now cover the reviewed loop.**
 
 The runner now calls `run_curation_loop` for each curation Scene. The 15
 September replay reached Provenance review and recorded `allow` decisions plus
-`applied` or `no_change` statuses. The substantive remaining gap is the
-evaluator: it still grades the proposal boundary rather than the reviewed write
-path the commit added:
+`applied` or `no_change` statuses. The evaluator now grades both the proposal
+and the reviewed write path the commit added:
 
 ```
-select → Sculptor proposes → [runner grades here]
+select → Sculptor proposes → [runner grades proposal and loop outcome]
          → Provenance reviews → policy validates → apply → verify → curated view
 ```
 
-The expectation vocabulary confirms the limitation. `ExpectedResponse` is
+The expectation vocabulary now covers the reviewed outcome as well as the
+proposal. `ExpectedResponse` is
 `ExpectedCurationProposal | ExpectedNoCurationProposal`, its `ExpectedAction`
-union covers only the three proposal-shaped actions, and `PrimaryBehavior`'s
-five values are all proposal-shaped. The four reviewed-loop stages remain
-unrepresentable to the grader, even though the replay now records the loop
-status.
+union covers the three existing proposal-shaped actions plus retrieval
+tombstone and restore actions. `PrimaryBehavior`'s five baseline values remain
+proposal-shaped, while `CurationOutcomeExpectation` grades the reviewed-loop
+status and application result.
 
-Notably the two retrieval actions, `tombstone_for_retrieval` and
-`restore_to_retrieval`, have **no expectation member at all** — they are not
-proposal-shaped in the old vocabulary and were never added.
+The two retrieval actions, `tombstone_for_retrieval` and
+`restore_to_retrieval`, now have typed expectation members. They still need
+dedicated adopted Scenes so their retrieval effects can be measured rather than
+only schema-checked.
 
 **13.3.3 The replacement scenario provides partial curation coverage.**
 
@@ -567,17 +569,16 @@ about the current flow, since it evaluates the old proposal-only boundary.
 
 **13.3.4 `CurationLoopResult` is only partially consumed.**
 
-The replay now records the loop's status, digest, and review decision in the raw
-evaluation artifact. The evaluator does not yet grade the application result,
-audit verification, retrieval effect, or before/after hashes. E13 is therefore
-still needed to turn the existing observability into outcome assertions.
+The replay now records and grades the loop's status, review decision, application
+creation, and audit verification. It also records the retrieval view, but the
+current adopted Ground truth does not yet declare expected retrieval IDs for
+tombstone or restore cases. Before/after hashes remain recorded evidence rather
+than independent expectation fields.
 
 ### 13.4 Recommended sequencing
 
-E12 is complete. E13 is now the first remaining prerequisite because a
-status-only grade cannot distinguish a correct `applied` result from one that
-applied the wrong action. E14 can proceed in parallel. E15 can follow once the
-outcome vocabulary is in place, and E16 is cleanup for the superseded artifact.
+E12 and E13 are complete. E14 can proceed in parallel with E9. E15 should use
+the outcome vocabulary from E13, and E16 is cleanup for the superseded artifact.
 
 One scoping note: E14 and E1–E4 are two packs against two different gates, and
 they should stay separate files. §5.1's argument for mirroring the emotional

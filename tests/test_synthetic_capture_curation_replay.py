@@ -305,7 +305,13 @@ def test_combined_replay_emits_one_ordered_native_evaluation() -> None:
         if isinstance(scene, CurationSceneObservation) and not scene.grade.hard_pass
     )
     assert "capture_nomination_mismatch" in failed_capture.hard_failures
-    assert failed_curation.grade.failures == ("expected_curation_proposal",)
+    assert failed_curation.grade.failures == (
+        "expected_curation_proposal",
+        "provenance_decision_mismatch",
+        "status_mismatch",
+        "application_created_mismatch",
+        "audit_verified_mismatch",
+    )
     assert failed_curation.response.kind == "no_curation_proposal"
     assert failed_curation.ground_truth_result == "differs_from_proposal"
     spans = exporter.exported_spans_as_dict()

@@ -26,6 +26,7 @@ from apps.backend.config import get_settings
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from evals.sculptor.harness import (
     CurationExpectation,
+    CurationOutcomeExpectation,
     GradeResult,
     grade_curation_expectation,
 )
@@ -478,6 +479,9 @@ async def replay_curation_scene(
                 service=service,
                 **loop_kwargs,
             )
+        retrieval_memory_ids = tuple(
+            item.memory_id for item in service.list_for_retrieval(account)
+        )
     response = loop.sculptor_response
     after = _source_hashes(batch)
     if after != before:
@@ -487,6 +491,23 @@ async def replay_curation_scene(
         expectation,
         tuple(memory.memory_id for memory in batch.memories),
         response,
+        outcome=CurationOutcomeExpectation(
+            provenance_decision=(
+                loop.provenance_review.decision
+                if loop.provenance_review is not None
+                else "not_reviewed"
+            ),
+            status=loop.status,
+            application_created=(
+                loop.application.created if loop.application is not None else False
+            ),
+            audit_verified=(
+                loop.application.verification.verified
+                if loop.application is not None
+                else False
+            ),
+            retrieval_memory_ids=retrieval_memory_ids,
+        ),
     )
     ground_truth_result = _ground_truth_result(
         matches=grade.hard_pass,
@@ -575,13 +596,29 @@ def curation_scene_input(
     ]
     if len(proposals) != 1 or proposals[0].curation is None:
         raise ValueError(f"Scene {scene.scene_id} lacks typed curation Ground truth")
+    curation = proposals[0].curation
+    expected_outcome = CurationOutcomeExpectation(
+        provenance_decision=(
+            "not_reviewed"
+            if curation.expected.kind == "no_curation_proposal"
+            else "allow"
+        ),
+        status=(
+            "no_change"
+            if curation.expected.kind == "no_curation_proposal"
+            else "applied"
+        ),
+        application_created=(curation.expected.kind != "no_curation_proposal"),
+        audit_verified=(curation.expected.kind != "no_curation_proposal"),
+    )
+    curation = curation.model_copy(update={"outcome": expected_outcome})
     return (
         scene.scene_id,
         AccountScopedMemories(
             account_scope=account_scope or backstory.backstory.evaluation_account_id,
             memories=tuple(memories),
         ),
-        proposals[0].curation,
+        curation,
     )
 
 
