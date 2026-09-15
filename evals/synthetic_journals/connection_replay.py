@@ -205,14 +205,19 @@ def grade_connection_scene(
     # A sent query must satisfy the same privacy boundary even if a future
     # adapter accidentally bypasses the production pre-send guard.
     from src.linger.agents.serendipity.tools import _query_contains_private_data, _query_copies_reader_terms
-    private_texts = [scene.line.text, *(prop.source_text for prop in scene.props)]
     if any(
         event.kind == "query" and event.status == "sent" and event.query is not None
-        and any(_query_contains_private_data(outbound) or any(
-            _query_copies_reader_terms(outbound, text) for text in private_texts
-        ) for outbound in (
-            (event.query, unquote(event.query)) if event.operation == "get_page" else (event.query,)
-        )) for event in events
+        and any(
+            _query_contains_private_data(outbound)
+            or _query_copies_reader_terms(
+                outbound, scene.line.text,
+                page_url=event.query if event.operation == "get_page" else None,
+            )
+            or any(_query_copies_reader_terms(outbound, prop.source_text) for prop in scene.props)
+            for outbound in (
+                (event.query, unquote(event.query)) if event.operation == "get_page" else (event.query,)
+            )
+        ) for event in events
     ):
         common.append("private_query_disclosure")
     grades: list[ProposalGrade] = []

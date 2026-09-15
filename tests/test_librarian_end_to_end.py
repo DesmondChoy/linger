@@ -56,7 +56,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
     async def test_completed_boundary_returns_judged_exact_evidence(self) -> None:
         judge = AsyncMock()
 
-        async def sufficient(_query, evidence):
+        async def sufficient(_query, evidence, *, max_evidence_records):
             return EvidenceStrengthDecision(
                 evidence_strength="sufficient",
                 strength_reason="The passage directly answers the question.",
@@ -82,7 +82,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("\n".join(source[start - 1 : end]), record.text)
 
     async def test_started_boundary_excludes_current_chapter_from_judge(self) -> None:
-        async def weak(_query, evidence):
+        async def weak(_query, evidence, *, max_evidence_records):
             return EvidenceStrengthDecision(
                 evidence_strength="weak",
                 strength_reason="Only earlier context is available.",

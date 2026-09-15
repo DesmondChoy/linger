@@ -87,7 +87,7 @@ class PassageGroundingTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsInstance(response, RetrievalResult)
         self.assertEqual((self.record,), response.evidence)
-        self.judge.assert_awaited_once_with(query, (self.record,))
+        self.judge.assert_awaited_once_with(query, (self.record,), max_evidence_records=5)
         self.librarian.retrieve.assert_not_called()
 
     async def test_changed_or_missing_canonical_record_fails_without_registration(self) -> None:
@@ -139,7 +139,9 @@ class PassageGroundingTests(unittest.IsolatedAsyncioTestCase):
         response = await self.search()
 
         self.assertEqual((self.record,), response.evidence)
-        self.judge.assert_awaited_once_with(self.request().query, grant.records)
+        self.judge.assert_awaited_once_with(
+            self.request().query, grant.records, max_evidence_records=5,
+        )
         self.assertEqual({self.record.evidence_id}, set(turn_context.turn_evidence()))
         self.librarian.retrieve.assert_not_called()
 

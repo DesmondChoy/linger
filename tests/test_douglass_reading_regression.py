@@ -99,7 +99,7 @@ def test_low_scoring_match_reaches_judge_before_it_can_be_released(judgement):
     assert normal.items == []
     seen = []
 
-    async def judge(query, records):
+    async def judge(query, records, *, max_evidence_records):
         seen.extend(records)
         assert 1 < len(records) <= 5
         assert all(record.chapter_number <= 7 for record in records)

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Protocol
 
 from pydantic_ai import Agent
 
@@ -22,9 +21,15 @@ from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.session import ReaderStatement
 
 
-StrengthJudge = Callable[
-    [str, tuple[EvidenceRecord, ...]], Awaitable[EvidenceStrengthDecision]
-]
+class StrengthJudge(Protocol):
+    async def __call__(
+        self,
+        query: str,
+        evidence: tuple[EvidenceRecord, ...],
+        /,
+        *,
+        max_evidence_records: int,
+    ) -> EvidenceStrengthDecision: ...
 
 
 async def plan_book_request(

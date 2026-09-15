@@ -217,6 +217,81 @@ class BookContextTests(unittest.TestCase):
         self.assertEqual("Animal Farm", follow_up.work_title)
         sessions.clear("context-test")
 
+    def test_unrelated_completion_does_not_authorize_an_earlier_chapter(self) -> None:
+        messages = (
+            "Chapter 8 sounds intriguing, but I've finished only the first five chapters.",
+            "I am looking forward to chapter 8 once I've finished my homework.",
+            "Chapter 8 looks interesting, and I've finished my notes.",
+            "Chapter 8 is the last chapter I've finished reading about.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                sessions.set_book_selection("context-test", sessions.BookSelection(
+                    book_id="pga0100011", book_title="Animal Farm", source="reader_stated",
+                ))
+                request = ChatRequest(session_id="context-test", message=message)
+                context = resolve_reading_context(request)
+                self.assertIsNone(context.chapter_max)
+                self.assertNotEqual("confirmed", context.status)
+                inspection, _, review_context = prepare_reflection_turn(
+                    request, allow_memory_capture=False, resolution=context,
+                )
+                self.assertIsNone(inspection.muse_turn["reading_context"])
+                self.assertFalse(inspection.muse_turn["policy"]["allow_retrieval"])
+                self.assertIsNone(review_context["policy_constraints"]["spoiler_ceiling"])
+
+    def test_trailing_reflection_does_not_replace_a_reader_stated_book(self) -> None:
+        messages = (
+            "I've finished chapter 5 and noticed a shift in the power dynamics.",
+            "I've finished chapter 5 but noticed a shift in the power dynamics.",
+            "I've finished chapter 5, noticing a shift in the power dynamics.",
+            "I've finished chapter 5, and noticed a shift in the power dynamics.",
+            "I've finished chapter 5 and now want to explore political dynamics "
+            "from the way Napoleon drove out Snowball with the dogs.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                sessions.set_book_selection("context-test", sessions.BookSelection(
+                    book_id="pga0100011", book_title="Animal Farm", source="reader_stated",
+                ))
+                context = resolve_reading_context(ChatRequest(
+                    session_id="context-test", message=message,
+                ))
+                self.assertEqual("confirmed", context.status)
+                self.assertEqual(5, context.chapter_max)
+                self.assertEqual("pga0100011", context.work_id)
+                selection = sessions.book_selection("context-test")
+                self.assertIsNotNone(selection)
+                self.assertEqual("reader_stated", selection.source)
+                follow_up = resolve_reading_context(ChatRequest(
+                    session_id="context-test", message="How does that comparison work?",
+                ))
+                self.assertEqual("pga0100011", follow_up.work_id)
+
+    def test_title_after_a_chapter_modifier_does_not_use_the_previous_book(self) -> None:
+        for chapter, modifier in (
+            (8, "this morning"),
+            (8, "(The Queen's Croquet-Ground)"),
+            (8, ", The Queen's Croquet-Ground"),
+            (6, ", Pig and Pepper,"),
+            (6, "(Pig and Pepper)"),
+            (3, ", A Caucus-Race and a Long Tale,"),
+        ):
+            for title, expected_work in (
+                ("Alice's Adventures in Wonderland", "pg11"),
+                ("Winter Wonderland", None),
+            ):
+                with self.subTest(modifier=modifier, title=title):
+                    sessions.set_book_selection("context-test", sessions.BookSelection(
+                        book_id="pga0100011", book_title="Animal Farm", source="reader_stated",
+                    ))
+                    context = resolve_reading_context(ChatRequest(
+                        session_id="context-test",
+                        message=f"I've finished chapter {chapter} {modifier} in {title}.",
+                    ))
+                    self.assertEqual(expected_work, context.work_id)
+                    self.assertEqual(chapter if expected_work else None, context.chapter_max)
+
     def test_declared_title_ignores_prose_after_the_declaration(self) -> None:
         # The title suffix must stop at the sentence end and at trailing
         # clauses; otherwise it swallows the rest of the message and the

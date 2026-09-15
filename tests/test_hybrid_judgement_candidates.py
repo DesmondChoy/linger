@@ -33,21 +33,23 @@ class DisagreeingReranker:
 
 
 @pytest.mark.parametrize("positive", [False, True])
-def test_fused_leader_reaches_judge_when_reranked_sixth_and_release_limit_is_one(positive):
+@pytest.mark.parametrize("selection_limit", [1, 2, 5])
+def test_fused_leader_reaches_judge_with_requested_selection_budget(positive, selection_limit):
     librarian = HybridLibrarian(
         embedding_model=ConstantEmbedding(), reranker=DisagreeingReranker(positive),
     )
     request = LibrarianRequest(
         query="Alice identity",
         book_scopes=[BookScope(work_id="pg11", book_version_id=BOOK_VERSION_ID, chapter_max=5)],
-        max_results=1,
+        max_results=selection_limit,
     )
     candidates = _dedupe(librarian._eligible_windows(request), 6)
     intended = candidates[0]
     judged = []
 
-    async def judge(query, records):
+    async def judge(query, records, *, max_evidence_records):
         judged.extend(records)
+        assert max_evidence_records == selection_limit
         assert len(records) == 5
         assert intended.evidence_id in {record.evidence_id for record in records}
         assert candidates[1].evidence_id in {record.evidence_id for record in records}
@@ -62,7 +64,8 @@ def test_fused_leader_reaches_judge_when_reranked_sixth_and_release_limit_is_one
     ):
         ordinary = librarian.retrieve(request)
         assert [item.evidence_id for item in ordinary.items] == (
-            [candidates[1].evidence_id] if positive else []
+            [candidate.evidence_id for candidate in candidates[1:1 + selection_limit]]
+            if positive else []
         )
         result = asyncio.run(retrieve_book_evidence(
             request.query, book_scopes=tuple(request.book_scopes),
@@ -86,7 +89,7 @@ def test_excess_selection_fails_instead_of_truncating_a_set_level_judgement():
     )
     candidates = _dedupe(librarian._eligible_windows(request), 6)
 
-    async def judge(query, records):
+    async def judge(query, records, *, max_evidence_records):
         return EvidenceStrengthDecision(
             evidence_strength="sufficient", strength_reason="Both passages are needed.",
             relevant_evidence_ids=tuple(record.evidence_id for record in records[:2]),

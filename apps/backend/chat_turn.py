@@ -104,15 +104,14 @@ TITLE_PREFIX_PATTERN = re.compile(
     re.IGNORECASE,
 )
 TITLE_SUFFIX_PATTERN = re.compile(r"^\s+(?:of|in|from)\s+(?P<title>.+)$", re.IGNORECASE)
-# A title need not sit immediately after the chapter. Readers also write
-# "chapter 8, the croquet ground, in <title>" and "chapter 8 while reading
-# <title>", so search the rest of the declaration for the phrase that
-# introduces it. "while reading" is matched ahead of a bare "in" so that
-# "Alice in Wonderland" is not truncated to "Wonderland".
 TITLE_SUFFIX_SEARCH_PATTERN = re.compile(
     r"\b(?:of|in|from|(?:while\s+)?reading)\s+(?P<title>.+)$",
     re.IGNORECASE,
 )
+TITLE_REFLECTION_CLAUSE_PATTERN = re.compile(
+    r"\b(?:and|but)\b|,\s*\w+ing\b", re.IGNORECASE,
+)
+TITLE_SCENE_LABEL_PATTERN = re.compile(r"\s*(?:,[^,]+,|\([^()]+\))\s*")
 # "In <title>, I've completed chapter 8" puts the title before the chapter.
 TITLE_LEAD_PATTERN = re.compile(
     r"^\s*(?:in|from)\s+(?P<title>[^,.!?]+)",
@@ -125,6 +124,12 @@ TITLE_END_PATTERN = re.compile(
 COMPLETION_PATTERN = re.compile(
     r"\b(?:i(?:'ve|’ve| have)\s+(?:now\s+)?(?:finished|completed|read\s+through|got\s+through)|"
     r"i\s+(?:now\s+)?(?:finished|completed)|i(?:'m| am)\s+(?:now\s+)?done\s+with)\b",
+    re.IGNORECASE,
+)
+COMPLETED_CHAPTER_SUBJECT_PATTERN = re.compile(
+    CHAPTER_PATTERN.pattern
+    + r"\s+(?:is|was)\s+(?:the\s+)?(?:last|latest|final|furthest|most\s+recent)"
+    r"\s+(?:chapter\s+)?(?:that\s+)?$",
     re.IGNORECASE,
 )
 IN_PROGRESS_PATTERN = re.compile(
@@ -148,12 +153,16 @@ def _declared_title(message: str, chapter_match: re.Match[str] | None) -> str | 
         if title_match is None:
             title_match = TITLE_PREFIX_PATTERN.search(before)
         if title_match is None:
-            # Only the sentence holding the chapter can name its book. Searching
-            # further reads an unrelated later clause as a declared title, and an
-            # unresolvable declared title clears the reader's confirmed book.
-            title_match = TITLE_SUFFIX_SEARCH_PATTERN.search(
-                re.split(r"[.!?]", after, maxsplit=1)[0]
-            )
+            suffix = re.split(r"[.!?]", after, maxsplit=1)[0]
+            candidate = TITLE_SUFFIX_SEARCH_PATTERN.search(suffix)
+            if candidate:
+                prefix = suffix[:candidate.start()]
+                # Conjunctions inside a delimited scene label belong to the
+                # label; otherwise a new reflection clause ends the declaration.
+                if TITLE_SCENE_LABEL_PATTERN.fullmatch(prefix) or not (
+                    TITLE_REFLECTION_CLAUSE_PATTERN.search(prefix)
+                ):
+                    title_match = candidate
         if title_match is None:
             title_match = TITLE_LEAD_PATTERN.match(before)
     else:
@@ -198,11 +207,12 @@ def _completed_location(message: str) -> str | None:
         rf"(?:reading\s+)?(?:(?:the|that|this)\s+)?(?:editor['’]s\s+)?(?:part|chapter|ch\.?|scene|it|{NAMED_LOCATION})\b",
         location, re.IGNORECASE,
     ):
-        # The reader may name the chapter before the verb, as in "Chapter 8 is
-        # the last chapter I've finished in <title>". Nothing follows the verb
-        # to anchor on, so fall back to the sentence holding the declaration,
-        # which keeps the chapter and the title together for the parsers below.
-        if CHAPTER_PATTERN.search(message[:completion.start()]):
+        # An earlier chapter grants progress only when it is the subject of
+        # this completion, as in "Chapter 8 is the last chapter I've finished".
+        if COMPLETED_CHAPTER_SUBJECT_PATTERN.search(message[:completion.start()]) and (
+            location.casefold() in {"", "so far"}
+            or re.match(r"(?:of|in|from)\s+\S", location, re.IGNORECASE)
+        ):
             return _declaration_sentence(message, completion)
         return None
     return location

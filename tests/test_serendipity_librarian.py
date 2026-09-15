@@ -73,7 +73,7 @@ def test_low_scoring_recovery_has_the_same_judgement_in_muse_and_serendipity(str
     assert librarian.retrieve(LibrarianRequest(query=QUESTION, book_scopes=[scope])).items == []
     judged = []
 
-    async def judge(query, records):
+    async def judge(query, records, *, max_evidence_records):
         assert query == QUESTION
         assert 1 < len(records) <= 5
         supporting = next(record for record in records if "desire and determination to learn" in record.text)
@@ -136,7 +136,7 @@ def test_recovery_never_expands_reading_or_named_unit_permission(scope, query):
     librarian = HybridLibrarian(embedding_model=ConstantEmbedding(), reranker=LowScoringPassageReranker())
     judged = []
 
-    async def judge(_query, records):
+    async def judge(_query, records, *, max_evidence_records):
         judged.extend(records)
         assert records
         assert all(permits_scope(scope, record) for record in records)
@@ -184,7 +184,7 @@ def test_scope_is_checked_before_judging_and_only_selected_items_enter_discovery
     ]
     judged = []
 
-    async def judge(_query, records):
+    async def judge(_query, records, *, max_evidence_records):
         judged.extend(records)
         assert {item.evidence_id for item in records} == {allowed.evidence_id, unselected.evidence_id}
         return EvidenceStrengthDecision(
@@ -210,7 +210,7 @@ def test_empty_scoped_retrieval_does_not_call_judge_or_create_evidence():
     librarian = Librarian()
     scope = BookScope(work_id="pg11", book_version_id=BOOK_VERSION_ID, chapter_max=5)
 
-    async def judge(_query, _records):
+    async def judge(_query, _records, *, max_evidence_records):
         raise AssertionError("An empty scoped search must not invoke the model.")
 
     deps = dependencies(librarian, scope, judge)
@@ -275,8 +275,8 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
         }
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, response)])
 
-    async def injected(query, records):
-        injected_calls.append((query, records))
+    async def injected(query, records, *, max_evidence_records):
+        injected_calls.append((query, records, max_evidence_records))
         return EvidenceStrengthDecision(
             evidence_strength="sufficient", strength_reason="Injected judgement.",
             relevant_evidence_ids=(selected_id,),
@@ -318,6 +318,7 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
             assert len(injected_calls) == 1
             assert injected_calls[0][0] == expected_query
             assert selected_id in {record.evidence_id for record in injected_calls[0][1]}
+            assert injected_calls[0][2] == 2
         else:
             assert not injected_calls
             assert len(model_inputs) == 2

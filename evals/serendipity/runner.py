@@ -115,12 +115,15 @@ class _FixtureLibrarian:
 
 
 async def _fixture_book_judgement(
-    _query: str, records: tuple[EvidenceRecord, ...]
+    _query: str, records: tuple[EvidenceRecord, ...], *, max_evidence_records: int,
 ) -> EvidenceStrengthDecision:
+    selected = records[:max_evidence_records]
+    limited = len(selected) < len(records)
     return EvidenceStrengthDecision(
-        evidence_strength="sufficient",
+        evidence_strength="weak" if limited else "sufficient",
         strength_reason="Fixture-supplied passages; live Librarian judgment is outside this component evaluation.",
-        relevant_evidence_ids=tuple(record.evidence_id for record in records),
+        relevant_evidence_ids=tuple(record.evidence_id for record in selected),
+        limitations=("The selection budget omits fixture-supplied passages.",) if limited else (),
     )
 
 

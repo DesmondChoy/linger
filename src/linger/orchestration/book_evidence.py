@@ -63,7 +63,9 @@ async def judge_records(
                 query, records, max_evidence_records=max_evidence_records,
             )
         else:
-            output = await strength_judge(query, records)
+            output = await strength_judge(
+                query, records, max_evidence_records=max_evidence_records,
+            )
         decision = EvidenceStrengthDecision.model_validate(output)
         if not set(decision.relevant_evidence_ids).issubset(
             record.evidence_id for record in records

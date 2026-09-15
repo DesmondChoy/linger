@@ -78,7 +78,7 @@ def test_named_grounding_reads_only_exact_letter_and_connection_keeps_permission
             opened.append(path)
         return original(path, *args, **kwargs)
 
-    async def strength(query, evidence):
+    async def strength(query, evidence, *, max_evidence_records):
         return EvidenceStrengthDecision(evidence_strength="sufficient", strength_reason="Matches the letter.",
             relevant_evidence_ids=tuple(item.evidence_id for item in evidence))
 

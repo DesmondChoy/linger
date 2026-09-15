@@ -242,7 +242,11 @@ Application-supplied URLs can be opened directly; model-discovered URLs require
 a lead from the current run. A nonempty URL allowlist still excludes all other
 pages, and an empty one excludes every page. Page requests are checked for
 private data and copied reader or memory wording in both raw and percent-decoded
-URLs before retrieval. The release validator checks each declared
+URLs before retrieval. For a page open, the exact requested HTTP or HTTPS URL
+is excluded from copied-wording comparisons against reader statements. Surrounding
+reader wording, all memory text, and private-data checks remain in scope. This
+exception does not grant page access or apply to web-search queries. Synthetic
+replay uses the same comparison. The release validator checks each declared
 use against that index, checks any quotation against both source and reply,
 and requires web URLs to appear as exact Markdown citations. Personal memories
 support attributed personal context, not public factual claims. Unsupported,

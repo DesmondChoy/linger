@@ -6,7 +6,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 from pydantic_ai import ModelRetry, RunContext
 from pydantic_ai.messages import ToolReturn
@@ -37,6 +37,7 @@ from src.linger.orchestration.progress_context import emit_progress
 MAX_RESULTS_PER_SOURCE = 5
 MAX_WEB_QUERY_CHARS = 500
 TOKEN = re.compile(r"[^\W_]+(?:[’'-][^\W_]+)*", re.UNICODE)
+PUBLIC_URL_TOKEN = re.compile(r"(?<![\w/:?&#=+.%~-])https?://[^\s<>\"`]+")
 # At or below this length, treat every word of the reader's text as private.
 SHORT_PRIVATE_TEXT_TOKENS = 8
 # Consecutive reader words that count as copied wording rather than shared topic.
@@ -52,7 +53,40 @@ def _phrases(tokens: tuple[str, ...], size: int) -> set[tuple[str, ...]]:
     return {tokens[index : index + size] for index in range(len(tokens) - size + 1)}
 
 
-def _query_copies_reader_terms(query: str, source: str) -> bool:
+def _without_exact_public_url(text: str, url: str) -> str:
+    """Exclude a complete reader-supplied locator, preserving surrounding text."""
+    try:
+        parsed = urlsplit(url)
+        if (
+            parsed.scheme not in {"http", "https"} or not parsed.hostname
+            or parsed.username or parsed.password
+        ):
+            return text
+    except ValueError:
+        return text
+
+    def omit_locator(match: re.Match[str]) -> str:
+        token = match.group()
+        locator = token
+        while locator:
+            if locator == url:
+                return " " + token[len(locator):]
+            # A final sentence mark or unmatched link bracket is outside the URL.
+            closing = {")": "(", "]": "[", "}": "{"}.get(locator[-1])
+            if locator[-1] in ".,;:!?'”’" or (
+                closing is not None and locator.count(locator[-1]) > locator.count(closing)
+            ):
+                locator = locator[:-1]
+            else:
+                break
+        return token
+
+    return PUBLIC_URL_TOKEN.sub(omit_locator, text)
+
+
+def _query_copies_reader_terms(
+    query: str, source: str, *, page_url: str | None = None,
+) -> bool:
     """Refuse a query that carries the reader's own wording to a public search.
 
     How private a single shared word is depends on how much the reader wrote.
@@ -63,7 +97,12 @@ def _query_copies_reader_terms(query: str, source: str) -> bool:
     word by word, and longer text is protected against runs of consecutive
     words, which is how copied phrasing actually escapes. A query shorter than
     that run must not reproduce the reader's wording in full either.
+
+    For a page open, only its exact locator in reader context is excluded;
+    surrounding wording remains private. Memory callers never exclude locators.
     """
+    if page_url is not None:
+        source = _without_exact_public_url(source, page_url)
     query_tokens = _normalised_tokens(query)
     source_tokens = _normalised_tokens(source)
     if not query_tokens or not source_tokens:
@@ -259,15 +298,14 @@ async def search_librarian(
     )
 
 
-def _private_web_input(text: str, deps: SerendipityDependencies) -> bool:
+def _private_web_input(
+    text: str, deps: SerendipityDependencies, *, page_url: str | None = None,
+) -> bool:
+    reader_texts = (deps.task.cue, *(statement.text for statement in deps.prior_reader_statements))
     return (
         _query_contains_private_data(text)
-        or _query_copies_reader_terms(text, deps.task.cue)
+        or any(_query_copies_reader_terms(text, source, page_url=page_url) for source in reader_texts)
         or any(_query_copies_reader_terms(text, record.text) for record in deps.memories)
-        or any(
-            _query_copies_reader_terms(text, statement.text)
-            for statement in deps.prior_reader_statements
-        )
     )
 
 
@@ -311,7 +349,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
             permitted_urls = ctx.deps.task.scope.web_source_urls
             if permitted_urls is not None and requested_url not in permitted_urls:
                 raise ModelRetry("The page is outside this request's permitted public sources.")
-            if any(_private_web_input(value, ctx.deps) for value in (
+            if any(_private_web_input(value, ctx.deps, page_url=requested_url) for value in (
                 requested_url, unquote(requested_url),
             )):
                 record_connection_event(ConnectionEvaluationEvent(

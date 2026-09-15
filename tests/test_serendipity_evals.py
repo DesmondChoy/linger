@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
@@ -21,7 +22,13 @@ from evals.serendipity.harness import (
     grade_serendipity_run,
     load_serendipity_eval_cases,
 )
-from evals.serendipity.runner import CaseExecutionErrorReport, _ordered_results, run_case
+from evals.serendipity.runner import (
+    CaseExecutionErrorReport,
+    _FixtureLibrarian,
+    _fixture_book_judgement,
+    _ordered_results,
+    run_case,
+)
 from evals.serendipity.objective_replay import (
     CrossSourceReplayCase,
     grade_cross_source_response,
@@ -40,6 +47,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
 )
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
+from src.linger.agents.serendipity.tools import SerendipityDependencies, search_librarian
 
 
 def _proposal(case) -> ConnectionProposal:
@@ -194,6 +202,36 @@ class SerendipityEvalContractTests(unittest.TestCase):
 
 
 class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_fixture_book_judge_honors_the_requested_selection_budget(self) -> None:
+        case = load_serendipity_eval_cases()[0]
+        self.assertEqual("serendipity-select-real-semantic-bridge-v3", case.case_id)
+        self.assertEqual(2, len(case.tool_evidence))
+
+        for limit in (1, 2, 5):
+            with self.subTest(limit=limit):
+                deps = SerendipityDependencies(
+                    task=case.input,
+                    librarian=_FixtureLibrarian(case.tool_evidence),
+                    strength_judge=_fixture_book_judgement,
+                )
+
+                result = await search_librarian(
+                    SimpleNamespace(deps=deps), max_results_per_source=limit,
+                )
+
+                self.assertEqual("evidence_found", result.outcome)
+                self.assertEqual(case.tool_evidence[:limit], result.evidence)
+                self.assertEqual(
+                    tuple(item.evidence_id for item in result.evidence),
+                    result.judgement.relevant_evidence_ids,
+                )
+                self.assertEqual(
+                    "weak" if limit == 1 else "sufficient",
+                    result.judgement.evidence_strength,
+                )
+                self.assertEqual(limit == 1, bool(result.judgement.limitations))
+                self.assertEqual("evidence_found", deps.searches[0].outcome)
+
     def test_suite_report_preserves_captured_case_execution_errors(self) -> None:
         case = load_serendipity_eval_cases()[0]
         failure = ReportCaseFailure(

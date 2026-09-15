@@ -353,7 +353,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
     def deps(
         self, active_task: ConnectionDiscoveryInput | None = None
     ) -> SerendipityDependencies:
-        async def judge(_query, records):
+        async def judge(_query, records, *, max_evidence_records):
             return EvidenceStrengthDecision(
                 evidence_strength="sufficient",
                 strength_reason="Deterministic book support for agent wiring tests.",

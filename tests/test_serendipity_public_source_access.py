@@ -163,3 +163,129 @@ def test_adopted_page_can_be_inspected_without_a_live_search_result():
 
     asyncio.run(exercise())
     assert not client.calls
+
+
+async def _open_page(ctx, client, url, *, search_first=False):
+    async with GuardedExaSearch(client=client).get_toolset() as toolset:
+        tools = await toolset.get_tools(ctx)
+        if search_first:
+            await toolset.call_tool(
+                "web_search", {"query": "comparative criticism ideas"}, ctx, tools["web_search"],
+            )
+        return await toolset.call_tool("get_page", {"url": url}, ctx, tools["get_page"])
+
+
+@pytest.mark.parametrize("explicit_grant", [False, True])
+@pytest.mark.parametrize(("url", "cue"), [
+    (URL, f"Please compare this book with {URL} and explain their differences."),
+    (URL, f"Please inspect {URL}."),
+    (URL, f"Please inspect [this essay]({URL})."),
+    (URL, f"Please inspect <{URL}>."),
+    (URL + "/literary%20imagery", f"Please inspect {URL}/literary%20imagery."),
+    (URL + "/Identity_(philosophy)", f"Please inspect [this essay]({URL}/Identity_(philosophy))."),
+])
+def test_reader_supplied_public_url_can_be_opened(explicit_grant, url, cue):
+    client = FakeExaClient(search_url=url, page_url=url)
+    ctx = context(urls=(url,) if explicit_grant else None, cue=cue)
+
+    asyncio.run(_open_page(ctx, client, url, search_first=not explicit_grant))
+
+    assert client.calls == (
+        [] if explicit_grant else [("search", "comparative criticism ideas")]
+    ) + [("get_contents", url)]
+    assert ctx.deps.opened_web_evidence[url] == ctx.deps.evidence[url]
+
+
+def test_exact_url_in_prior_reader_statement_can_be_opened():
+    client = FakeExaClient()
+    ctx = context(cue="Please compare that article with the book.")
+    ctx.deps.prior_reader_statements = (ReaderStatement(
+        statement_id="earlier-line", text=f"Please inspect {URL}.",
+    ),)
+
+    asyncio.run(_open_page(ctx, client, URL))
+
+    assert client.calls == [("get_contents", URL)]
+    assert URL in ctx.deps.evidence
+
+
+def test_reader_supplied_url_still_requires_an_application_grant_or_search_lead():
+    client = FakeExaClient()
+    ctx = context(urls=None, cue=f"Please inspect {URL}.")
+
+    with pytest.raises(ModelRetry, match="returned by web_search"):
+        asyncio.run(_open_page(ctx, client, URL))
+
+    assert not client.calls
+    assert not ctx.deps.evidence
+
+
+def test_reader_supplied_url_does_not_relax_web_search_privacy():
+    client = FakeExaClient()
+    ctx = context(cue=f"Please inspect {URL}.")
+
+    async def exercise():
+        async with GuardedExaSearch(client=client).get_toolset() as toolset:
+            tools = await toolset.get_tools(ctx)
+            with pytest.raises(ModelRetry):
+                await toolset.call_tool("web_search", {"query": URL}, ctx, tools["web_search"])
+
+    asyncio.run(exercise())
+    assert not client.calls
+
+
+@pytest.mark.parametrize("url", [
+    "https://example.org/profile?email=reader@example.com",
+    "https://example.org/profile?email=reader%40example.com",
+    "https://reader:password@example.org/literature",
+])
+def test_reader_supplied_url_still_rejects_private_data(url):
+    client = FakeExaClient(page_url=url)
+    ctx = context(urls=(url,), cue=f"Please inspect {url}.")
+
+    with pytest.raises(ModelRetry, match="privacy"):
+        asyncio.run(_open_page(ctx, client, url))
+
+    assert not client.calls
+    assert not ctx.deps.evidence
+
+
+@pytest.mark.parametrize("private_source", ["cue", "prior_statement", "memory", "memory_locator"])
+@pytest.mark.parametrize("path", ["my/private/divorce", "my%20private%20divorce"])
+def test_reader_supplied_url_keeps_checks_against_private_wording(private_source, path):
+    url = f"https://example.org/{path}"
+    client = FakeExaClient(page_url=url)
+    ctx = context(urls=(url,), cue=f"Please inspect {url}.")
+    private_text = "My private divorce."
+    if private_source == "cue":
+        ctx.deps.task = ctx.deps.task.model_copy(update={"cue": private_text + " " + ctx.deps.task.cue})
+    elif private_source == "prior_statement":
+        ctx.deps.prior_reader_statements = (ReaderStatement(
+            statement_id="earlier-line", text=private_text,
+        ),)
+    else:
+        ctx.deps.memories = (CuratedMemory(
+            memory_id="private-note", text=url if private_source == "memory_locator" else private_text,
+            kind="original",
+            source_memory_ids=("private-note",), created_at="2026-09-15T00:00:00Z",
+        ),)
+
+    with pytest.raises(ModelRetry, match="privacy"):
+        asyncio.run(_open_page(ctx, client, url))
+
+    assert not client.calls
+    assert not ctx.deps.evidence
+
+
+@pytest.mark.parametrize("suffix", ["/private", "?detail=private", "#private", ")private", "(private)"])
+@pytest.mark.parametrize("request_is_prefix", [False, True])
+def test_url_privacy_exception_requires_the_complete_exact_locator(suffix, request_is_prefix):
+    supplied, requested = (URL + suffix, URL) if request_is_prefix else (URL, URL + suffix)
+    client = FakeExaClient(page_url=requested)
+    ctx = context(urls=(requested,), cue=f"Please inspect {supplied}.")
+
+    with pytest.raises(ModelRetry, match="privacy"):
+        asyncio.run(_open_page(ctx, client, requested))
+
+    assert not client.calls
+    assert not ctx.deps.evidence
