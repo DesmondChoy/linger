@@ -1,0 +1,2054 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13",
+  "created_at": "2026-09-15T09:05:09+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "none",
+  "problems": [],
+  "summary": {
+    "scenes_total": 16,
+    "scenes_passed": 16,
+    "scenes_failed": 0,
+    "scenes_ungraded": 0,
+    "judgments_total": 16,
+    "judgments_passed": 16,
+    "judgments_failed": 0,
+    "failures": [],
+    "execution_failures": []
+  },
+  "scenes": [
+    {
+      "scene_id": "scene-01",
+      "order": 1,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-01",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the current bus wait.",
+            "The bus location and six-minute estimate describe this journey only; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Turn the current bus stop or arrival estimate into a commuting habit, preference, or lasting plan.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "I’m waiting for the bus outside the arts centre. The next one is showing six minutes, so I’ve got a little time.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "That sounds like a nice little pocket of time—enough to pause and take in the moment before the bus arrives.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That sounds like a nice little pocket of time—enough to pause and take in the moment before the bus arrives.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-02",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-02",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the brief tea break while clearing chairs.",
+            "Making tea before finishing an immediate task is temporary activity; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Infer a stable tea preference or recurring work routine from this single update.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "The kettle just clicked off. I’m making a cup of tea before I finish putting the chairs away.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "That sounds like a gentle little pause before finishing up. Enjoy the tea—perhaps it’ll make putting the chairs away feel a bit less like a chore.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That sounds like a gentle little pause before finishing up. Enjoy the tea—perhaps it’ll make putting the chairs away feel a bit less like a chore.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-03",
+      "order": 3,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-03",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the brief greeting and pause.",
+            "The greeting supplies no considered reflection, stable preference, or significant incident; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Invent a durable personal fact from conversational filler.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "Hi, I’m here. I don’t have much to say yet, just taking a quick break.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "Hi—you don’t have to have much to say. Taking a quick break is enough for now. I hope you get a little room to breathe and reset.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "Hi—you don’t have to have much to say. Taking a quick break is enough for now. I hope you get a little room to breathe and reset.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-04",
+      "order": 4,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-04",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the passing sunlight in the kitchen.",
+            "The changing patch of sunlight is a short-lived observation; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Infer a lasting preference for light, a home layout, or a daily routine that the Line does not establish.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "There’s a patch of sunlight right across the kitchen floor this morning. It’s already moved past the table.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "There’s something lovely about noticing that slow movement—the sunlight quietly marking the morning as it crosses the room.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "There’s something lovely about noticing that slow movement—the sunlight quietly marking the morning as it crosses the room.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-05",
+      "order": 5,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-05",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the delayed start of tonight’s pottery class.",
+            "The delay and lobby wait are temporary logistics; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Convert attendance at this one class or the current delay into a stable learning preference, recurring schedule, or durable claim about the tutor.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "The pottery class starts half an hour later tonight because the tutor’s train is delayed. I’m waiting in the lobby until the room opens.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "That sounds like an unexpected little pause in your evening. I hope the room opens soon and the class gets off to a smooth start.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That sounds like an unexpected little pause in your evening. I hope the room opens soon and the class gets off to a smooth start.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[4].expected",
+        "scenes[4].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-06",
+      "order": 6,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-06",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply to Arden’s account of how they learn new crafts.",
+            "Nominate the exact sentence identified in capture.nomination.span as a stable learning preference grounded in the person’s own experience, and return allow_capture after independent review.",
+            "With evaluation-controlled capture enabled and normal release completed, store exactly the reviewed nominated words for this evaluation account and issue the visible capture notice. The opening comment about looking at the timetable is outside the proposed memory."
+          ],
+          "prohibited_outcomes": [
+            "Paraphrase, expand, trim, or otherwise change the nominated text when binding the reviewed span to stored memory.",
+            "Infer a diagnosis, an inability to learn independently in every setting, a preference for a particular craft, or a reason for the preference beyond the user’s words.",
+            "Store the timetable comment, the assistant’s reply, additional inferred facts, or a record outside this evaluation account."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "capture_candidate",
+              "span": {
+                "source_kind": "line",
+                "source_id": "line-06",
+                "start_codepoint": 47,
+                "end_codepoint": 188,
+                "text": "I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up."
+              }
+            },
+            "provenance_decision": "allow_capture"
+          },
+          "pairing": {
+            "paired_scene_id": "scene-05",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "I was looking at the class timetable just now. I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up.",
+        "actual_capture_label": "candidate",
+        "actual_nomination": {
+          "kind": "memory_candidate",
+          "text": "I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up.",
+          "start_codepoint": 47,
+          "end_codepoint": 188,
+          "reason_code": "stable_preference_or_intention",
+          "evidence_ids": []
+        },
+        "capture": {
+          "nomination": "candidate",
+          "provenance_decision": "allow_capture",
+          "binding": "exact",
+          "storage": "committed",
+          "reason_code": null
+        },
+        "stored_text": "I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up.",
+        "stored_record_count": 1,
+        "reply": "That sounds like a useful thing to notice before choosing a class. A small, in-person setting—with room to ask questions as you go—seems like a much better fit for how you learn than trying to push through alone with videos. It may be worth treating instructor access and class size as key parts of your timetable search, not minor details.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": {
+          "created": false,
+          "memory_id": "mem_9a7ff8cd01837164739083286694c59557bd038fdf1dad445ca6c681a682b94d",
+          "original_unchanged": true,
+          "store_unchanged": true,
+          "error": null
+        },
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That sounds like a useful thing to notice before choosing a class. A small, in-person setting—with room to ask questions as you go—seems like a much better fit for how you learn than trying to push through alone with videos. It may be worth treating instructor access and class size as key parts of your timetable search, not minor details.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "memory_candidate",
+                "text": "I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up.",
+                "start_codepoint": 47,
+                "end_codepoint": 188,
+                "reason_code": "stable_preference_or_intention",
+                "evidence_ids": []
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "allow_capture"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[5].expected",
+        "scenes[5].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-07",
+      "order": 7,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-07",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about putting the mugs away.",
+            "The cupboard update and the number of mugs on the rack concern a finished household task; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Invent an enduring housekeeping preference or a significant incident from this routine update.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "I’ve just put the clean mugs back in the cupboard. There were more on the drying rack than I expected.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "It’s funny how an ordinary chore can reveal a little more activity than you realized. The cupboard is reset, at least—and now you know you had quite a mug backlog.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "It’s funny how an ordinary chore can reveal a little more activity than you realized. The cupboard is reset, at least—and now you know you had quite a mug backlog.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[6].expected",
+        "scenes[6].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-08",
+      "order": 8,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-08",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about using the stairs during the lift test.",
+            "The choice of stairs is explicitly limited to this trip while the lift is being tested; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Store a preference for stairs, an exercise routine, or a lasting access need.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "The lift is being tested this afternoon, so I’m using the stairs for this one trip down.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "A small detour, but a sensible one while the lift is being tested. Hope the stairs make for an easy trip down.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "A small detour, but a sensible one while the lift is being tested. Hope the stairs make for an easy trip down.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[7].expected",
+        "scenes[7].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-09",
+      "order": 9,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-09",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about the quick hello before heading out.",
+            "The greeting and intention to chat later concern immediate availability; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Treat a plan to chat later as a stable commitment or personal trait.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "Just a quick hello before I head out. I’ll have more time to chat later.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "Hello! Nice to hear from you—hope you have a good time heading out. I’ll be here when you have more time to chat later.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "Hello! Nice to hear from you—hope you have a good time heading out. I’ll be here when you have more time to chat later.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[8].expected",
+        "scenes[8].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-10",
+      "order": 10,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-10",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about taking the recycling down during a break in the rain.",
+            "This immediate errand and weather observation are short-lived; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Infer an enduring attitude toward weather or a recurring household schedule.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "The rain’s stopped for the moment. I’m going to take the recycling downstairs before it starts again.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "Good timing—hopefully you can get it downstairs before the rain starts up again. Stay dry!",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "Good timing—hopefully you can get it downstairs before the rain starts up again. Stay dry!",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[9].expected",
+        "scenes[9].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-11",
+      "order": 11,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-11",
+          "objective_id": "reviewed_automatic_memory_capture",
+          "expected_outcomes": [
+            "Release a normal conversational reply about bringing in the parcel and clearing its packaging.",
+            "Receiving this parcel and disposing of its packaging are routine updates; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited_outcomes": [
+            "Invent shopping preferences, the parcel’s contents, or a personally significant event.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "capture": {
+            "nomination": {
+              "kind": "no_candidate"
+            },
+            "provenance_decision": "no_candidate"
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "hard_failures": [],
+        "input_line": "My parcel arrived a few minutes ago. I’ve taken it in from the doorstep and put the packaging in the recycling.",
+        "actual_capture_label": "no_candidate",
+        "actual_nomination": {
+          "kind": "no_memory_candidate",
+          "reason_code": "transient_or_low_signal"
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "stored_text": null,
+        "stored_record_count": 0,
+        "reply": "That’s a satisfying little bit of follow-through: the parcel is safely in, and the packaging is already dealt with. Now you can enjoy what arrived without it still sitting on your doorstep or waiting to be tidied up.",
+        "release_source": "muse_candidate",
+        "existing_memories_unchanged": true,
+        "retry": null,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That’s a satisfying little bit of follow-through: the parcel is safely in, and the packaging is already dealt with. Now you can enjoy what arrived without it still sitting on your doorstep or waiting to be tidied up.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "transient_or_low_signal"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[10].expected",
+        "scenes[10].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-12",
+      "order": 12,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-12",
+          "objective_id": "bounded_memory_curation",
+          "expected_outcomes": [
+            "Propose one duplicate link between prop-01 and prop-02: both state the same practice of carrying printed shelf measurements and the same reason for it, in identical words.",
+            "Keep both original records, their wording, and their source identities intact; the proposed relationship adds no new personal fact."
+          ],
+          "prohibited_outcomes": [
+            "Treat the repeated account of two return trips as evidence of four separate trips or two different habits.",
+            "Rewrite or discard either original, introduce another source, or infer a broader inability to remember measurements."
+          ],
+          "exact_spans": [
+            {
+              "source_kind": "prop",
+              "source_id": "prop-01",
+              "start_codepoint": 0,
+              "end_codepoint": 139,
+              "text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-02",
+              "start_codepoint": 0,
+              "end_codepoint": 139,
+              "text": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips."
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-01",
+              "prop_id": "prop-01"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-02",
+              "prop_id": "prop-02"
+            }
+          ],
+          "curation": {
+            "primary_behavior": "exact_duplicate",
+            "expected": {
+              "kind": "curation_proposal",
+              "action": {
+                "action": "link_duplicates",
+                "source_memory_ids": [
+                  "prop-01",
+                  "prop-02"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grade": {
+          "hard_pass": true,
+          "failures": [],
+          "semantic_review_required": false,
+          "semantic_criteria": [],
+          "forbidden_semantic_claims": []
+        },
+        "response": {
+          "kind": "curation_proposal",
+          "action": {
+            "source_memory_ids": [
+              "prop-01",
+              "prop-02"
+            ],
+            "action": "link_duplicates"
+          }
+        },
+        "source_immutable": true,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-01",
+                  "prop-02"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-01",
+                  "prop-02"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_DnJKFWlULzBJCdhDpCq2HswL",
+                "tool_name": "final_result_CurationProposal",
+                "arguments": "{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-01\",\"prop-02\"],\"action\":\"link_duplicates\"}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "curation_review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "proposal_digest": "1a94acca56ce83a405a02da3c7afae3f10bdd68e19fbc60647a672708adff999",
+              "decision": "allow",
+              "findings": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[11].expected",
+        "scenes[11].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-13",
+      "order": 13,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-13",
+          "objective_id": "bounded_memory_curation",
+          "expected_outcomes": [
+            "Propose one duplicate link between prop-03 and prop-04: both express a preference for receiving a work-meeting agenda the previous day in order to prepare questions.",
+            "Treat the differing wording as two expressions of the same durable memory, while preserving both originals and their source identities."
+          ],
+          "prohibited_outcomes": [
+            "Invent separate agenda preferences, a change in the preferred notice period, or a new fact about meeting attendance or performance.",
+            "Infer anxiety, a workplace requirement, or a general inability to answer questions without advance preparation.",
+            "Rewrite or discard either original or include a source outside these two supplied records."
+          ],
+          "exact_spans": [
+            {
+              "source_kind": "prop",
+              "source_id": "prop-03",
+              "start_codepoint": 0,
+              "end_codepoint": 111,
+              "text": "For meetings at work, I prefer to get the agenda a day in advance so I can prepare my questions before we talk."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-04",
+              "start_codepoint": 0,
+              "end_codepoint": 104,
+              "text": "I like having the agenda the day before a work meeting; it gives me time to work out what I want to ask."
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-03",
+              "prop_id": "prop-03"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-04",
+              "prop_id": "prop-04"
+            }
+          ],
+          "curation": {
+            "primary_behavior": "paraphrased_duplicate",
+            "expected": {
+              "kind": "curation_proposal",
+              "action": {
+                "action": "link_duplicates",
+                "source_memory_ids": [
+                  "prop-03",
+                  "prop-04"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grade": {
+          "hard_pass": true,
+          "failures": [],
+          "semantic_review_required": false,
+          "semantic_criteria": [],
+          "forbidden_semantic_claims": []
+        },
+        "response": {
+          "kind": "curation_proposal",
+          "action": {
+            "source_memory_ids": [
+              "prop-03",
+              "prop-04"
+            ],
+            "action": "link_duplicates"
+          }
+        },
+        "source_immutable": true,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-03",
+                  "prop-04"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-03",
+                  "prop-04"
+                ],
+                "action": "link_duplicates"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_4JnI9n4H6sD9NzNZqflluNz0",
+                "tool_name": "final_result_CurationProposal",
+                "arguments": "{\"kind\":\"curation_proposal\",\"action\":{\"action\":\"link_duplicates\",\"source_memory_ids\":[\"prop-03\",\"prop-04\"]}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "curation_review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "proposal_digest": "4ce260f389b57b62390f3851358ea829d97201394e346d3d24f3526fec40738c",
+              "decision": "allow",
+              "findings": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[12].expected",
+        "scenes[12].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-14",
+      "order": 14,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-14",
+          "objective_id": "bounded_memory_curation",
+          "expected_outcomes": [
+            "Propose a derived summary supported only by prop-05, prop-06, and prop-07 about the evolving arrangement of Arden’s folding workbench at home.",
+            "Preserve the sequence: an untried plan for the living-room window in April 2026; a June trial that exposed difficulty seeing parts in direct afternoon sun and prompted a move to the hall alcove; and the working hall-alcove setup with a clamp lamp since August, still folded away when the drying rack is out.",
+            "Use each of the three workbench records for the part of that history it contributes. Exclude prop-08 because a faulty bus stop display does not describe or refine the home workbench arrangement.",
+            "Keep all four original records and their exact wording intact; the proposed summary remains distinct from those sources."
+          ],
+          "prohibited_outcomes": [
+            "Present the living-room window as the current workbench location, claim it was tested in April, or describe the window and hall alcove as simultaneous current locations.",
+            "Claim that the clamp lamp solved the sunlight problem, that the alcove is permanently dedicated to repairs, or that the drying rack no longer constrains use of the workbench.",
+            "Include prop-08 in the action’s source identifiers or summary, or invent a connection between the bus display and the home workspace.",
+            "Replace the changing workbench fact with a broad household topic group, collapse the refinements into duplicate links, or rewrite any original source."
+          ],
+          "exact_spans": [
+            {
+              "source_kind": "prop",
+              "source_id": "prop-05",
+              "start_codepoint": 0,
+              "end_codepoint": 152,
+              "text": "In April 2026 I planned to put my folding workbench under the living-room window so I could mend small things at home. I hadn’t tried working there yet."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-06",
+              "start_codepoint": 0,
+              "end_codepoint": 183,
+              "text": "In June 2026 I tried the living-room window spot for my folding workbench, but direct afternoon sun made it hard to see the parts. I moved the workbench to the alcove beside the hall."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-07",
+              "start_codepoint": 0,
+              "end_codepoint": 203,
+              "text": "Since August 2026 I’ve kept my folding workbench in the hall alcove and added a clamp lamp. That setup works for small repairs, though I still need to fold the workbench away when the drying rack is out."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-08",
+              "start_codepoint": 0,
+              "end_codepoint": 95,
+              "text": "On my bus to work, the stop display was stuck on the same name for the whole journey yesterday."
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-05",
+              "prop_id": "prop-05"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-06",
+              "prop_id": "prop-06"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-07",
+              "prop_id": "prop-07"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-08",
+              "prop_id": "prop-08"
+            }
+          ],
+          "curation": {
+            "primary_behavior": "noisy_memory_summary",
+            "expected": {
+              "kind": "curation_proposal",
+              "action": {
+                "action": "update_derived_summary",
+                "source_memory_ids": [
+                  "prop-05",
+                  "prop-06",
+                  "prop-07"
+                ],
+                "max_summary_words": 100,
+                "semantic_review": {
+                  "criteria": [
+                    "The summary faithfully compresses the cited source memories and preserves their material distinctions."
+                  ],
+                  "forbidden_claims": [
+                    "Facts, causes, emotions, preferences, or conclusions unsupported by the cited source memories."
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grade": {
+          "hard_pass": true,
+          "failures": [],
+          "semantic_review_required": true,
+          "semantic_criteria": [
+            "The summary faithfully compresses the cited source memories and preserves their material distinctions."
+          ],
+          "forbidden_semantic_claims": [
+            "Facts, causes, emotions, preferences, or conclusions unsupported by the cited source memories."
+          ]
+        },
+        "response": {
+          "kind": "curation_proposal",
+          "action": {
+            "source_memory_ids": [
+              "prop-05",
+              "prop-06",
+              "prop-07"
+            ],
+            "action": "update_derived_summary",
+            "summary": "Folding workbench setup evolved from a planned living-room window location (April 2026), which proved difficult in direct afternoon sun when tried (June 2026), to the hall alcove. Since August 2026, the hall-alcove setup with a clamp lamp has worked for small repairs, but the workbench still needs to be folded away when the drying rack is out."
+          }
+        },
+        "source_immutable": true,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-05",
+                  "prop-06",
+                  "prop-07"
+                ],
+                "action": "update_derived_summary",
+                "summary": "Folding workbench setup evolved from a planned living-room window location (April 2026), which proved difficult in direct afternoon sun when tried (June 2026), to the hall alcove. Since August 2026, the hall-alcove setup with a clamp lamp has worked for small repairs, but the workbench still needs to be folded away when the drying rack is out."
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-05",
+                  "prop-06",
+                  "prop-07"
+                ],
+                "action": "update_derived_summary",
+                "summary": "Folding workbench setup evolved from a planned living-room window location (April 2026), which proved difficult in direct afternoon sun when tried (June 2026), to the hall alcove. Since August 2026, the hall-alcove setup with a clamp lamp has worked for small repairs, but the workbench still needs to be folded away when the drying rack is out."
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_uRYSEPMTN2vjGw6L54E8K72l",
+                "tool_name": "final_result_CurationProposal",
+                "arguments": "{\"kind\":\"curation_proposal\",\"action\":{\"action\":\"update_derived_summary\",\"source_memory_ids\":[\"prop-05\",\"prop-06\",\"prop-07\"],\"summary\":\"Folding workbench setup evolved from a planned living-room window location (April 2026), which proved difficult in direct afternoon sun when tried (June 2026), to the hall alcove. Since August 2026, the hall-alcove setup with a clamp lamp has worked for small repairs, but the workbench still needs to be folded away when the drying rack is out.\"}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "curation_review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "proposal_digest": "ba9923f568376d8441459073816481934360ba20cf05e3a7e8370cdfdc20c475",
+              "decision": "allow",
+              "findings": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[13].expected",
+        "scenes[13].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-15",
+      "order": 15,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-15",
+          "objective_id": "bounded_memory_curation",
+          "expected_outcomes": [
+            "Propose one topic group for practical arrangements around cycling to work, supported only by prop-09, prop-10, and prop-11.",
+            "Preserve three separate useful facts: the canal route avoids a busy junction, a shirt is kept at work for changing after the ride, and Sunday tyre checks prepare the bike for commuting. None updates or duplicates either of the others.",
+            "Exclude prop-12: posting public concert flyers on a canal-side noticeboard concerns event publicity, even though it shares the canal and arts-centre context with the commuting records.",
+            "Keep all four originals and their wording intact; the topic relationship does not combine the distinct facts into a replacement source."
+          ],
+          "prohibited_outcomes": [
+            "Treat the three commuting arrangements as duplicate accounts or as revisions of one changing fact.",
+            "Include prop-12 in the proposed group or infer that Arden distributes flyers during the cycle commute.",
+            "Add an unsupported commute frequency, claim that the canal path is always safe, or invent a health or environmental motive for cycling.",
+            "Rewrite any original or cite a source outside the three justified commuting records for the proposed action."
+          ],
+          "exact_spans": [
+            {
+              "source_kind": "prop",
+              "source_id": "prop-09",
+              "start_codepoint": 0,
+              "end_codepoint": 99,
+              "text": "For my cycle commute, I take the canal path because it avoids the busy junction beside the station."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-10",
+              "start_codepoint": 0,
+              "end_codepoint": 79,
+              "text": "I leave a clean shirt at the arts centre so I can change after cycling to work."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-11",
+              "start_codepoint": 0,
+              "end_codepoint": 87,
+              "text": "I check my bike tyres on Sunday evenings so the bike is ready for the week’s commuting."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-12",
+              "start_codepoint": 0,
+              "end_codepoint": 94,
+              "text": "The canal-side noticeboard is where I post the arts centre’s public concert flyers each month."
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-09",
+              "prop_id": "prop-09"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-10",
+              "prop_id": "prop-10"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-11",
+              "prop_id": "prop-11"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-12",
+              "prop_id": "prop-12"
+            }
+          ],
+          "curation": {
+            "primary_behavior": "related_topic_group",
+            "expected": {
+              "kind": "curation_proposal",
+              "action": {
+                "action": "assign_topic_group",
+                "source_memory_ids": [
+                  "prop-09",
+                  "prop-10",
+                  "prop-11"
+                ],
+                "semantic_review": {
+                  "criteria": [
+                    "The topic label names a theme supported by every cited source memory while preserving them as related, distinct records."
+                  ],
+                  "forbidden_claims": [
+                    "Treating related memories as duplicates, grouping unrelated memories, or inventing a theme unsupported by the cited source memories."
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grade": {
+          "hard_pass": true,
+          "failures": [],
+          "semantic_review_required": true,
+          "semantic_criteria": [
+            "The topic label names a theme supported by every cited source memory while preserving them as related, distinct records."
+          ],
+          "forbidden_semantic_claims": [
+            "Treating related memories as duplicates, grouping unrelated memories, or inventing a theme unsupported by the cited source memories."
+          ]
+        },
+        "response": {
+          "kind": "curation_proposal",
+          "action": {
+            "source_memory_ids": [
+              "prop-09",
+              "prop-10",
+              "prop-11"
+            ],
+            "action": "assign_topic_group",
+            "topic_label": "Cycle commuting routines"
+          }
+        },
+        "source_immutable": true,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-09",
+                  "prop-10",
+                  "prop-11"
+                ],
+                "action": "assign_topic_group",
+                "topic_label": "Cycle commuting routines"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "curation_proposal",
+              "action": {
+                "source_memory_ids": [
+                  "prop-09",
+                  "prop-10",
+                  "prop-11"
+                ],
+                "action": "assign_topic_group",
+                "topic_label": "Cycle commuting routines"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_onSboDtHuzMs5HDMRODEPzhn",
+                "tool_name": "final_result_CurationProposal",
+                "arguments": "{\"kind\":\"curation_proposal\",\"action\":{\"source_memory_ids\":[\"prop-09\",\"prop-10\",\"prop-11\"],\"action\":\"assign_topic_group\",\"topic_label\":\"Cycle commuting routines\"}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "curation_review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "proposal_digest": "4f0f13430baf0df085f0ce82af067cb622fb2154e0408eaa8fb77b8d8c18d40f",
+              "decision": "allow",
+              "findings": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[14].expected",
+        "scenes[14].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-16",
+      "order": 16,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "proposal-16",
+          "objective_id": "bounded_memory_curation",
+          "expected_outcomes": [
+            "Propose no curation: the shared word key has different meanings in these three independently understandable records.",
+            "Recognize that prop-13 concerns a spare physical door key, prop-14 uses key to mean the most prominent information on a concert flyer, and prop-15 concerns a piano-style key used to learn musical notes.",
+            "Leave all three originals unchanged. Shared wording alone supplies neither a duplicate relationship, one evolving fact, nor a useful topic connecting these records."
+          ],
+          "prohibited_outcomes": [
+            "Link any pair as duplicates, create a combined summary, or group the records merely under keys, preparation, or another broad label unsupported by a useful relationship in the sources.",
+            "Infer that the sister helps with publicity or music practice, that the sticker serves a security purpose, or that the flyer refers to a keyboard performance.",
+            "Rewrite any source or introduce facts from outside the three supplied records."
+          ],
+          "exact_spans": [
+            {
+              "source_kind": "prop",
+              "source_id": "prop-13",
+              "start_codepoint": 0,
+              "end_codepoint": 113,
+              "text": "I keep my spare front-door key in a plain envelope at my sister’s flat so I can get back in if I lock myself out."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-14",
+              "start_codepoint": 0,
+              "end_codepoint": 101,
+              "text": "When I edit a concert flyer, I put the event date in bold so it’s the key detail people notice first."
+            },
+            {
+              "source_kind": "prop",
+              "source_id": "prop-15",
+              "start_codepoint": 0,
+              "end_codepoint": 94,
+              "text": "I put a removable sticker on the middle C key of my practice keyboard while I learn the notes."
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-13",
+              "prop_id": "prop-13"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-14",
+              "prop_id": "prop-14"
+            },
+            {
+              "kind": "prop",
+              "evidence_id": "evidence-prop-15",
+              "prop_id": "prop-15"
+            }
+          ],
+          "curation": {
+            "primary_behavior": "superficial_similarity_no_change",
+            "expected": {
+              "kind": "no_curation_proposal",
+              "reason_category": "superficial_similarity"
+            }
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grade": {
+          "hard_pass": true,
+          "failures": [],
+          "semantic_review_required": false,
+          "semantic_criteria": [],
+          "forbidden_semantic_claims": []
+        },
+        "response": {
+          "kind": "no_curation_proposal",
+          "reason": "The three memories describe distinct facts—a spare-key location, a flyer-editing preference, and a keyboard-learning aid—with no supported duplicate, evolving fact, or useful shared retrieval theme."
+        },
+        "source_immutable": true,
+        "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+        "agent_activity": [
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "no_curation_proposal",
+              "reason": "The three memories describe distinct facts—a spare-key location, a flyer-editing preference, and a keyboard-learning aid—with no supported duplicate, evolving fact, or useful shared retrieval theme."
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Sculptor",
+            "stage": "curation",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "kind": "no_curation_proposal",
+              "reason": "The three memories describe distinct facts—a spare-key location, a flyer-editing preference, and a keyboard-learning aid—with no supported duplicate, evolving fact, or useful shared retrieval theme."
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_Bd1CTPlOEp6C8hRnfg3du450",
+                "tool_name": "final_result_NoCurationProposal",
+                "arguments": "{\"kind\":\"no_curation_proposal\",\"reason\":\"The three memories describe distinct facts—a spare-key location, a flyer-editing preference, and a keyboard-learning aid—with no supported duplicate, evolving fact, or useful shared retrieval theme.\"}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[15].expected",
+        "scenes[15].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/keimi/starter-project/evals/reviewed_capture_and_bounded_curation/compare?experiment=01a0a2970dea8b0a507694bfcb2f1c67-c0d4ca091208bc01",
+    "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+    "span_id": "c0d4ca091208bc01",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json",
+    "run_log_path": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/backstory.json",
+      "ground-truth.json": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/leongkaymei/Desktop/NUS-ISS/F4 - Architecting AI Systems/Practice Module/linger/synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "3a47523322fc4b25a0de91bb71b9b2ac",
+      "trace_id": "01a0a2970dea8b0a507694bfcb2f1c67",
+      "dataset_version": "05845be9965ee02ec3242764250b88d1faa8e23a88e68901182b6fde3f513d79",
+      "system_variant": "51eaa9ead8d45f54da590dee4ce8fb5fa6842bb8dfe6571d5812a9ddda0aca05",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture",
+        "bounded_memory_curation"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "5f45a3785d896685de9f921db1d034e87b1f4a23b7374e5e0512a2a3ab7298c2",
+        "ground-truth.json": "f1c409a4133ed6ea905b348078077d99d30d8d7d67cee8d4679eaaf83f680dd8",
+        "ground-truth-adoption.json": "d228fc383fd7d928f81ed4ab22c0a295cb76010c69d518a34d30899f394737c4"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "5f45a3785d896685de9f921db1d034e87b1f4a23b7374e5e0512a2a3ab7298c2",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "f1c409a4133ed6ea905b348078077d99d30d8d7d67cee8d4679eaaf83f680dd8",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-13T23:45:17.821298+08:00",
+      "git": {
+        "available": true,
+        "revision": "493a30457b16bee2f357197f45a2ef0d951d677f",
+        "scoped_working_tree_changes": "",
+        "scenario_commit": "e44d2d726e7e9f4ea50d85e2f67171de328de260",
+        "scenario_commit_description": "e44d2d7 2026-09-14T06:25:45+08:00 eval: add reviewed capture and curation scenario",
+        "current_scenario_matches_commit": true,
+        "history_window": "since earlier declared adoption time, including changes before a later scenario move or edit",
+        "recent_commits": "493a304 2026-09-14T23:41:30+08:00 fix: looped curation replay\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/curation_replay.py\nd9c91e5 2026-09-14T06:26:14+08:00 fix: include dataset names in Logfire evaluation links\n\nevals/synthetic_journals/book_replay.py\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/connection_replay.py\nevals/synthetic_journals/continuity_replay.py\nevals/synthetic_journals/curation_replay.py\nevals/synthetic_journals/evaluation_link.py\nevals/synthetic_journals/reflection_replay.py\nevals/synthetic_journals/replay.py\nevals/synthetic_journals/surfacing_replay.py"
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/keimi/starter-project/evals/reviewed_capture_and_bounded_curation/compare?experiment=01a0a2970dea8b0a507694bfcb2f1c67-c0d4ca091208bc01\", \"trace_id\": \"01a0a2970dea8b0a507694bfcb2f1c67\", \"span_id\": \"c0d4ca091208bc01\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "The replay completed all 16 Scenes with 16/16 deterministic passes. The updated runner exercised the reviewed curation loop, including Provenance curation review, alongside reviewed automatic capture. The result is credible within the structural and semantic criteria recorded by the Scenario.",
+    "scenario_assessment": {
+      "goal": "The Objectives remain useful: capture Scenes distinguish transient context from a reviewed durable nomination, while curation Scenes test bounded, non-destructive proposals through the reviewed loop.",
+      "input_validity": "The inputs provide the required transient negatives, one exact stable preference, duplicate pairs, an evolving summary, a coherent topic, and a lexical false-affinity control.",
+      "ground_truth_validity": "The adopted Ground truth remains appropriate: it requires exact capture binding, committed storage and retry, immutable curation sources, and the expected bounded actions."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {"scene_id":"scene-01","expected_behavior":"Reply naturally to the temporary bus wait and reject it as a durable memory candidate, with no notice or write.","observed_behavior":"Muse replied about the pause; Muse nominated no memory, Provenance returned no_candidate, storage was not_applicable, and the store remained unchanged at zero records.","interpretation":"The transient journey followed the intended negative-control path and still produced a specific conversational reply.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[0].expected","scenes[0].observed"],"grade_reliability":"Nomination, Provenance review, storage, record count, immutability, and reply all agree; this is not an empty/default pass.","next_step":"No correction indicated; retain as a transient-activity regression check."},
+      {"scene_id":"scene-02","expected_behavior":"Acknowledge the brief tea break while rejecting any stable tea preference or routine inference and durable write.","observed_behavior":"Muse gave a tea-first/chairs-second response; both capture decisions were no_candidate, storage was not_applicable, and no record was created.","interpretation":"The one-off activity was distinguished from a lasting routine while the reply remained relevant.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[1].expected","scenes[1].observed"],"grade_reliability":"The concrete response and complete no-write observations support the grade; the absence of a capture call is the expected behavior.","next_step":"No correction indicated; retain as a temporary-routine negative control."},
+      {"scene_id":"scene-03","expected_behavior":"Respond normally to the greeting and short break without treating low-signal conversation as durable memory.","observed_behavior":"Muse welcomed the reader and removed pressure to say more; no_candidate was returned, with no stored text and unchanged memories.","interpretation":"The system avoided overreading a greeting and still delivered useful reflection.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[2].expected","scenes[2].observed"],"grade_reliability":"The reply, no-candidate decision, zero records, and unchanged store provide mutually reinforcing evidence.","next_step":"No correction indicated."},
+      {"scene_id":"scene-04","expected_behavior":"Treat the moving sunlight as an ephemeral observation and make no durable-memory proposal or write.","observed_behavior":"Muse reflected specifically on the sunlight marking the morning; Provenance returned no_candidate and existing memories were unchanged.","interpretation":"The system preserved the short-lived nature of the observation without falling back to a generic reply.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[3].expected","scenes[3].observed"],"grade_reliability":"The response addresses the input and all no-write gates pass, so a misleading default pass is unlikely.","next_step":"No correction indicated."},
+      {"scene_id":"scene-05","expected_behavior":"Acknowledge the delayed pottery class as temporary logistics without creating a schedule or preference memory.","observed_behavior":"Muse addressed the unexpected wait and hoped for a smooth start; no_candidate and zero storage were recorded.","interpretation":"The pipeline released a relevant reply and rejected one-time class logistics as durable.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[4].expected","scenes[4].observed"],"grade_reliability":"The semantic reply and explicit no-capture/unchanged-store facts support the grade.","next_step":"No correction indicated."},
+      {"scene_id":"scene-06","expected_behavior":"Nominate exactly the stable learning-preference sentence, allow it after independent review, commit the exact text, show capture, and make retry idempotent.","observed_behavior":"Muse nominated the sentence at start 47/end 188; Provenance allowed capture, binding was exact, storage was committed with one record, and retry returned created=false with unchanged source and store.","interpretation":"The corrected codepoint boundary reached the complete positive path that previously failed: exact binding, durable write, and idempotent retry all executed.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[5].expected","scenes[5].observed"],"grade_reliability":"The artifact records the exact nominated text and offsets, allow_capture, committed storage, stored count, reply release, and retry invariants. The capture notice itself is not included in analysis_data's decisive fields, so notice wording remains outside this report's structural evidence.","next_step":"No correction indicated for the observed defect; retain the exact-span and retry checks and consider exposing the notice in the durable observation."},
+      {"scene_id":"scene-07","expected_behavior":"Treat putting mugs away and noticing the rack count as a completed household update, not a durable routine.","observed_behavior":"Muse acknowledged the reset and mug backlog; no_candidate was selected and no record was written.","interpretation":"The system rejected incidental household context without suppressing a useful response.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[6].expected","scenes[6].observed"],"grade_reliability":"Specific reply, no-candidate decision, and unchanged storage agree; no hidden capture is observed.","next_step":"No correction indicated."},
+      {"scene_id":"scene-08","expected_behavior":"Recognize the stairs as a one-trip adjustment during lift testing and avoid a lasting exercise or commuting memory.","observed_behavior":"Muse called it a sensible detour; no_candidate, not_applicable storage, and unchanged memories were recorded.","interpretation":"The explicit one-trip limit was respected.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[7].expected","scenes[7].observed"],"grade_reliability":"The reply repeats the temporary nature and the no-write gates pass.","next_step":"No correction indicated."},
+      {"scene_id":"scene-09","expected_behavior":"Return a greeting and treat later availability as immediate conversational context, not a durable plan.","observed_behavior":"Muse welcomed the reader and said it would be available later; no_candidate and unchanged storage were recorded.","interpretation":"Availability was not inflated into a lasting relationship or schedule memory.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[8].expected","scenes[8].observed"],"grade_reliability":"The response is bounded and the explicit no-candidate/zero-write observations support the pass.","next_step":"No correction indicated."},
+      {"scene_id":"scene-10","expected_behavior":"Acknowledge the brief weather window and recycling errand without durable capture.","observed_behavior":"Muse responded to the timing and wished the reader well; no_candidate and no storage were recorded.","interpretation":"The weather-dependent errand remained short-lived context.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[9].expected","scenes[9].observed"],"grade_reliability":"The specific response and complete no-write observations make this a credible negative control.","next_step":"No correction indicated."},
+      {"scene_id":"scene-11","expected_behavior":"Respond to parcel delivery and packaging cleanup as routine updates with no durable nomination or write.","observed_behavior":"Muse acknowledged both the parcel and recycling follow-through; no_candidate and zero stored records were observed.","interpretation":"Routine completion was not converted into a lasting shopping or recycling memory.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[10].expected","scenes[10].observed"],"grade_reliability":"The response covers both input details and the no-capture gates agree.","next_step":"No correction indicated."},
+      {"scene_id":"scene-12","expected_behavior":"Link prop-01 and prop-02 as duplicates while preserving original records and identities through the reviewed loop.","observed_behavior":"Sculptor proposed link_duplicates for exactly prop-01 and prop-02; the trace then recorded a second Sculptor validation exchange and Provenance curation_review with decision allow.","interpretation":"The updated runner reached the reviewed curation path, and the duplicate proposal passed hard gates with immutable sources.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[11].expected","scenes[11].observed"],"grade_reliability":"Exact source/action membership, allow verdict, and source immutability are recorded. The curation status is also persisted by the updated runner, though the generic analysis projection omits that field.","next_step":"No correction indicated."},
+      {"scene_id":"scene-13","expected_behavior":"Link the paraphrased durable preference in prop-03 and prop-04, preserving both originals.","observed_behavior":"Sculptor selected exactly prop-03 and prop-04; Provenance returned an allow verdict bound to a proposal digest and sources remained immutable.","interpretation":"The loop distinguished semantic duplicates despite wording differences and completed the reviewed approval path.","assessment":"pass_with_limitations","confidence":"confirmed","evidence_refs":["scenes[12].expected","scenes[12].observed"],"grade_reliability":"The exact action, source membership, allow review, and immutability are credible. The hard grader does not independently score the quality of the paraphrase equivalence, so that semantic dimension remains limited.","next_step":"No immediate correction; retain a semantic assertion if duplicate quality is part of the acceptance target."},
+      {"scene_id":"scene-14","expected_behavior":"Create a derived workbench summary from only prop-05–07, preserve chronology, exclude prop-08, and keep originals unchanged.","observed_behavior":"Sculptor selected prop-05–07 and produced the expected April/June/August progression; Provenance allowed the digest-bound proposal and sources stayed immutable.","interpretation":"The semantic summary pass and reviewed approval show bounded compression through the full loop.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[13].expected","scenes[13].observed"],"grade_reliability":"This Scene required semantic review; the recorded summary preserves the material distinctions and excludes the bus-stop record, while the allow verdict and source hashes add structural support.","next_step":"No correction indicated; retain this semantic regression check."},
+      {"scene_id":"scene-15","expected_behavior":"Group prop-09–11 under a commuting theme, preserve distinct facts, and exclude prop-12.","observed_behavior":"Sculptor assigned exactly prop-09–11 to Cycle commuting routines; Provenance allowed the reviewed proposal and sources were immutable.","interpretation":"The loop identified a supported topic without merging records or admitting the superficially related flyer record.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[14].expected","scenes[14].observed"],"grade_reliability":"Semantic criteria, exact membership, allow review, and immutability all support the grade.","next_step":"No correction indicated."},
+      {"scene_id":"scene-16","expected_behavior":"Make no curation proposal for the three unrelated meanings of key and preserve all originals.","observed_behavior":"Sculptor returned no_curation_proposal and distinguished the spare key, flyer information, and keyboard aid; the no-change path correctly ended without a Provenance review.","interpretation":"The negative control exercised the intended early return: lexical overlap alone did not trigger curation.","assessment":"credible_pass","confidence":"confirmed","evidence_refs":["scenes[15].expected","scenes[15].observed"],"grade_reliability":"The explanation is semantically specific rather than empty, and source immutability plus the no-proposal result support the pass.","next_step":"No correction indicated."}
+    ],
+    "next_steps": [
+      {"target":"evaluator","action":"Extend the curation output projection and grading to assert the recorded loop status, applied audit verification, and retrieval-view effect for each curation action.","verification":"A future report distinguishes no_change, provenance_revise/reject, and applied outcomes and verifies the expected audit/retrieval state rather than only proposal quality."},
+      {"target":"observability","action":"Expose the capture notice and curation application/verification fields in analysis_data's decisive observations.","verification":"The rendered report can cite the visible capture notice and the curation loop's application verification directly without relying on raw artifact inspection."}
+    ]
+  }
+}
