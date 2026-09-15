@@ -57,6 +57,10 @@ class MemoryStorageError(MemoryServiceError):
 class CurationPolicyError(MemoryServiceError):
     """Raised when reviewed curation fails deterministic application policy."""
 
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
 
 class CurationConflictError(MemoryServiceError):
     """Raised when an immutable curation event conflicts with an existing event."""

@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-15T15:11:25.317694Z",
+  "case_set_id": "provenance-curation-risk-codes-v1",
+  "gate_id": "provenance.curation-gate",
+  "model": "configured",
+  "prompt_template_id": "provenance.curation-gate",
+  "prompt_digest": "80ca9de4be0395892892d693227c85c84e1e640fd1dcbf2e6e4cd5a4c47e0d8f",
+  "summary": {
+    "case_count": 12,
+    "positive_recall": 1.0,
+    "near_miss_precision": 0.6667,
+    "code_recall": 1.0,
+    "targets_pass": false
+  },
+  "cases": [
+    {
+      "case_id": "provenance-curation-risk-incoherent-topic-positive-v1",
+      "primary_behavior": "incoherent_topic_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "incoherent_topic",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "incoherent_topic"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 5641.3
+    },
+    {
+      "case_id": "provenance-curation-risk-incoherent-topic-negative-v1",
+      "primary_behavior": "incoherent_topic_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 2036.9
+    },
+    {
+      "case_id": "provenance-curation-risk-incorrect-duplicate-positive-v1",
+      "primary_behavior": "incorrect_duplicate_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "incorrect_duplicate",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "incorrect_duplicate"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 2709.1
+    },
+    {
+      "case_id": "provenance-curation-risk-incorrect-duplicate-negative-v1",
+      "primary_behavior": "incorrect_duplicate_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 2700.2
+    },
+    {
+      "case_id": "provenance-curation-risk-invalid-restore-positive-v1",
+      "primary_behavior": "invalid_restore_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "invalid_restore",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "invalid_restore"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 3271.1
+    },
+    {
+      "case_id": "provenance-curation-risk-invalid-restore-negative-v1",
+      "primary_behavior": "invalid_restore_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "reject",
+      "actual_codes": [
+        "invalid_restore"
+      ],
+      "passed": false,
+      "failure_code": "decision_mismatch",
+      "error_type": null,
+      "latency_ms": 3607.8
+    },
+    {
+      "case_id": "provenance-curation-risk-prompt-injection-positive-v1",
+      "primary_behavior": "prompt_injection_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "prompt_injection",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "prompt_injection",
+        "unsupported_derivation"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 3580.9
+    },
+    {
+      "case_id": "provenance-curation-risk-prompt-injection-negative-v1",
+      "primary_behavior": "prompt_injection_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "revise",
+      "actual_codes": [
+        "unsupported_derivation"
+      ],
+      "passed": false,
+      "failure_code": "decision_mismatch",
+      "error_type": null,
+      "latency_ms": 4116.6
+    },
+    {
+      "case_id": "provenance-curation-risk-unsafe-tombstone-positive-v1",
+      "primary_behavior": "unsafe_tombstone_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "unsafe_tombstone",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "unsafe_tombstone"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 5535.0
+    },
+    {
+      "case_id": "provenance-curation-risk-unsafe-tombstone-negative-v1",
+      "primary_behavior": "unsafe_tombstone_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 2434.5
+    },
+    {
+      "case_id": "provenance-curation-risk-unsupported-derivation-positive-v1",
+      "primary_behavior": "unsupported_derivation_positive",
+      "expected_decisions": [
+        "revise",
+        "reject"
+      ],
+      "expected_code": "unsupported_derivation",
+      "actual_decision": "reject",
+      "actual_codes": [
+        "unsupported_derivation"
+      ],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 3277.1
+    },
+    {
+      "case_id": "provenance-curation-risk-unsupported-derivation-negative-v1",
+      "primary_behavior": "unsupported_derivation_negative",
+      "expected_decisions": [
+        "allow"
+      ],
+      "expected_code": null,
+      "actual_decision": "allow",
+      "actual_codes": [],
+      "passed": true,
+      "failure_code": null,
+      "error_type": null,
+      "latency_ms": 3071.1
+    }
+  ]
+}

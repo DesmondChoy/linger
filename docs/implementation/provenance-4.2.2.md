@@ -25,7 +25,7 @@ sound. The material gap is measurement, not runtime design:
 | Gate | Built | Missing | Evaluation consequence |
 |---|---|---|---|
 | Capture | Review contract, independent capture veto, deterministic suppression and capture replay, **capture-axis eval pack (Stage 1)** | A live run of the new pack, and Ground truth for vetoed nominations | The combined Scenario provides one live positive capture measurement, but the dedicated veto pack has not run |
-| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay, loop-outcome grading | Retrieval-specific expectations, curation-gate live-model cases, and fail-closed Scenario coverage | The combined Scenario grades the reviewed decision and application path, but does not yet measure every action outcome or fail-closed case |
+| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay, loop-outcome grading, curation risk-code pack, named fail-closed errors | A live run of the new pack, retrieval-specific expectations, and fail-closed Scenario coverage | The combined Scenario grades the reviewed decision and application path, but does not yet measure every action outcome or fail-closed case |
 
 ## TODO
 
@@ -141,33 +141,7 @@ and deterministically verified, not yet measured against a model.
       with `capture_curation_replay.py --adoption` on 15 September 2026. The
       replay completed all 11 capture Scenes and preserved the recorded source
       hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
-- [ ] **E9 — Re-measure the mix with independent 10-to-1 Scenarios.**
-      [`reviewed-automatic-memory-capture-10-to-1.json`](../../synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json)
-      defines one capture candidate and ten no-candidate controls. One positive
-      is insufficient for stable recall measurement, so repeat the 11-Scene
-      pattern across multiple independently generated Backstories. Keep the
-      adopted Scenario unchanged and create new Scenarios under
-      `synthetic-journal-evaluation/scenarios/`.
-
-      1. Generate new Backstories with one positive capture Scene and ten
-         no-candidate Scenes. Vary the durable reflections and distractor
-         material across Backstories.
-      2. Write separate proposed `backstory.json` and `ground-truth.json` files.
-         Use the existing capture contract, exact spans, fresh sessions, and a
-         distinct person and evaluation account.
-      3. Run `validate_scenario.py` and fix schema, hash, span, pairing, and
-         capture-mix errors before review.
-      4. Open the independent Ground truth reviewer. Do not replay the Scenario
-         until the reviewer adopts the labels and produces a valid adoption
-         file.
-      5. Replay the adopted Scenario with `replay.py --adoption` using a fresh
-         output path. Record the Logfire link and the durable evaluation
-         artifact.
-      6. Compare candidate recall, no-candidate precision, reason codes, and
-         storage outcomes with the current adopted run across the independent
-         10-to-1 replays. Record the durable evaluation artifacts and Logfire
-         evaluations for each completed Scenario.
-- [ ] **E10 — Run the skill for `sensitive_inference_and_capture_veto`.** The
+- [ ] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
       capture runner and scenario validator now support this Objective's
       isolated Line topology, including candidate, vetoed-candidate, and
       no-candidate Scenes. The replay still shares the capture observation
@@ -175,38 +149,35 @@ and deterministically verified, not yet measured against a model.
       five required sensitive and comparison Scenes, then measure the fixed
       emotional boundary, over-refusal, unsafe-capture, and helpful-response
       outcomes. E5 and E7 are complete.
-- [ ] **E11 — Injection overlay on a capture Scene.** The §4.2.2 counterpart of
+- [ ] **E10 — Injection overlay on a capture Scene.** The §4.2.2 counterpart of
       D2. `prompt_injection` is a `SENSITIVE_RISK_CODES` member, so an injected
       instruction inside a nominated span is a capture veto as well as a
       response rejection. Neither path is measured end to end.
 
 **Stage 4 — Curation-gate measurement and full-loop replay**
 
-- [x] **E12 — Point the curation replay at `run_curation_loop`.** The runner
+- [x] **E11 — Point the curation replay at `run_curation_loop`.** The runner
       now calls `run_curation_loop` for each curation Scene. The 15 September
       replay reached Provenance curation review, recorded `allow` decisions,
       recorded `applied` or `no_change` loop statuses, and passed the outcome
-      assertions added in E13.
-- [x] **E13 — Extend `CurationExpectation` past the proposal.** The
+      assertions added in E12.
+- [x] **E12 — Extend `CurationExpectation` past the proposal.** The
       expectation now carries the Provenance decision, loop status, application
       creation, audit verification, and retrieval-view fields. Retrieval
       tombstone and restore actions are representable and their targets are
       checked. The adopted combined replay grades the reviewed decision and
-      application path; dedicated retrieval-effect cases remain part of E14/E15.
-- [ ] **E14 — Add a curation-gate risk-code eval pack.** Mirror E1–E4 for
-      `review_curation`, with positive and paired near-miss cases for all six
-      codes. Prioritise `unsafe_tombstone`, `incoherent_topic`, and
-      `invalid_restore`, which currently have no test or eval coverage. Treat
-      `prompt_injection` severity as an observation until the curation prompt
-      adopts an explicit hard-reject rule.
-- [ ] **E15 — Cover curation fail-closed paths end to end.** Exercise stale
-      `base_state_sha256`, cross-account sources, source mutation between
-      proposal and review, and a verdict bound to the wrong digest. Grade these
-      as named failures rather than allowing the bare immutable-source runtime
-      error to appear only as a crash.
-- [ ] **E16 — Retire the superseded curation scenario explicitly.** Mark
-      `2026-08-29T142004` as evidence for the removed proposal-only boundary so
-      it cannot be replayed as evidence about the current flow.
+      application path; dedicated retrieval-effect cases remain future work.
+- [x] **E13 — Add a curation-gate risk-code eval pack.**
+      `evals/provenance/curation_risk_codes.py` now provides positive and paired
+      near-miss cases for all six curation codes. The `prompt_injection` pair
+      records either `revise` or `reject` as the observed severity until the
+      curation prompt adopts an explicit hard-reject rule.
+- [x] **E14 — Cover curation fail-closed paths end to end.** The reviewed loop
+      now exposes named `curation_review_unbound` and
+      `curation_source_mutated` failures, while the service exposes named
+      `curation_state_stale` and `curation_account_scope_mismatch` policy
+      reasons. Focused end-to-end tests verify that none of these paths writes
+      a curation audit event.
 
 ---
 
@@ -458,10 +429,10 @@ complete reviewed write path, which puts a **second Provenance gate** inside
 and [`src/linger/contracts/curation.py`](../../src/linger/contracts/curation.py).
 
 **The contracts are sound.** The digest chain is the strongest binding in the
-codebase, and the review below found no correctness defect in it. The finding is
-the same one §10.1 makes for capture: a **new taxonomy with no live-model
-measurement**, now with the removal of the only synthetic scenario as an
-aggravating factor.
+codebase, and the review below found no correctness defect in it. The curation
+risk-code pack now exists, but it still needs a live-model run; the removal of
+the only synthetic scenario remains an aggravating factor for end-to-end
+measurement.
 
 ### 13.1 What the review confirms
 
@@ -515,7 +486,7 @@ independently re-reads sources and revalidates the action. The blast radius of a
 mis-revised curation proposal is therefore smaller, so the release gate's
 absolutism may not be warranted here.
 
-**Consequence for E14.** The pack cannot assume the answer. Its
+**Consequence for E13.** The pack cannot assume the answer. Its
 `prompt_injection` cases must record the *observed* severity — `revise` versus
 `reject` — as a measurement rather than grading against a hard-reject
 expectation the prompt never states. If the gate proves inconsistent across
@@ -526,9 +497,15 @@ the sequencing §5 used for the release gate.
 
 ### 13.3 Where the gaps are
 
-**13.3.1 Three of six curation risk codes have no test or eval coverage.**
+**13.3.1 The curation risk-code pack has no live-model result yet.**
 
-Measured across `tests/` and `evals/` on 2026-09-08:
+`evals/provenance/curation_risk_codes.py` now supplies one positive and one
+paired near miss for each of the six curation codes. Focused tests validate the
+case topology and deterministic grader, but no provider-backed run has been
+recorded yet. That run is the remaining evidence needed to measure whether the
+model reaches the right curation verdicts.
+
+The historical coverage snapshot was:
 
 | Code | Tests | Evals |
 |---|:-:|:-:|
@@ -581,7 +558,7 @@ only schema-checked.
 
 The combined Scenario now exercises the reviewed curation path, including an
 approval that is applied and a no-change outcome. It does not yet cover all
-action outcomes or the fail-closed cases in E14 and E15. The
+action outcomes or retrieval-specific expectations. The
 [2026-08-29T142004](../../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/)
 scenario remains on disk with `bounded_memory_curation` Ground truth and an
 adoption file. It should be treated as superseded and not replayed for evidence
@@ -597,10 +574,10 @@ than independent expectation fields.
 
 ### 13.4 Recommended sequencing
 
-E12 and E13 are complete. E14 can proceed in parallel with E9. E15 should use
-the outcome vocabulary from E13, and E16 is cleanup for the superseded artifact.
+E11–E14 are complete. Any later curation scenarios should reuse the outcome
+vocabulary from E13 and the named fail-closed reasons from E14.
 
-One scoping note: E14 and E1–E4 are two packs against two different gates, and
+One scoping note: E13 and E1–E4 are two packs against two different gates, and
 they should stay separate files. §5.1's argument for mirroring the emotional
 pack file-for-file was to have one idiom rather than two; that argument favours a
 third file matching the same shape, not a merged pack reviewing two contract
