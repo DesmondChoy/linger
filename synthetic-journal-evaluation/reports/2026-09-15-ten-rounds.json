@@ -1,0 +1,643 @@
+{
+  "live_rounds_used": 10,
+  "live_rounds_authorized": 10,
+  "runs": [
+    {
+      "round": 1,
+      "scenario": "main",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T10:49:51.275766+08:00",
+      "finished_at": "2026-09-15T10:52:40.334227+08:00",
+      "source_digest": "b6f38fe2c5a898e85ac6be055203905b4f68bba12de5d627541038d7acbf9aa3",
+      "hashes": {
+        "backstory.json": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+        "ground-truth.json": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+        "ground-truth-adoption.json": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 1,
+        "scenes_failed": 2,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 1,
+        "judgments_failed": 3,
+        "failures": [
+          {
+            "scene_id": "S1",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "proposal-s1-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "proposal-s2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "proposal-s2-weak-evidence"
+          }
+        ],
+        "execution_failures": []
+      },
+      "analysis_report": "../packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T105240+0800-e99874a6.md",
+      "analysis_data": "../packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T105240+0800-e99874a6.json",
+      "attempt": "Plan book requirements before selection.",
+      "observation": "Extra invented requirement selected unnecessary evidence; wrong-passage Provenance approval also observed."
+    },
+    {
+      "round": 2,
+      "scenario": "main",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T10:58:45.075575+08:00",
+      "finished_at": "2026-09-15T11:01:03.379931+08:00",
+      "source_digest": "4e8f467213ca0e37c9b98b3ca49a6c03b611c5068b13d9e0ea4d0e92629a95b7",
+      "hashes": {
+        "backstory.json": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+        "ground-truth.json": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+        "ground-truth-adoption.json": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 3,
+        "scenes_failed": 0,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 4,
+        "judgments_failed": 0,
+        "failures": [],
+        "execution_failures": []
+      },
+      "analysis_report": "../packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T110103+0800-c19fee8b.md",
+      "analysis_data": "../packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T110103+0800-c19fee8b.json",
+      "attempt": "Use exact reader fragments instead of rewritten questions.",
+      "observation": "Correct selection on both paths; visible chapter reference still missing."
+    },
+    {
+      "round": 3,
+      "scenario": "roses",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T11:02:23.814930+08:00",
+      "finished_at": "2026-09-15T11:05:10.300715+08:00",
+      "source_digest": "4e8f467213ca0e37c9b98b3ca49a6c03b611c5068b13d9e0ea4d0e92629a95b7",
+      "hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 1,
+        "scenes_failed": 2,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 1,
+        "judgments_failed": 3,
+        "failures": [
+          {
+            "scene_id": "S1",
+            "detail": "provider_failure",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "unexpected_release_source",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-memory",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-book",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-public",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_citation",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_citation",
+            "proposal_id": "G3-weak-evidence"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "G3-weak-evidence"
+          }
+        ],
+        "execution_failures": [
+          {
+            "scene_id": "S1",
+            "detail": "Muse draft: muse_model_failed"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "provider_failure",
+            "proposal_id": "G1-connection"
+          }
+        ]
+      },
+      "analysis_report": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T110510+0800-60e14983.md",
+      "analysis_data": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T110510+0800-60e14983.json",
+      "attempt": "Test round 2 implementation on Roses.",
+      "observation": "Quotation repairs exhausted; unnecessary outcome passage selected."
+    },
+    {
+      "round": 4,
+      "scenario": "roses",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T11:15:13.480421+08:00",
+      "finished_at": "2026-09-15T11:19:07.300150+08:00",
+      "source_digest": "b7ec5a2b72f3fa9efdc3fdbf489e645c188a22a174d4362b0a1a8a133dfd0266",
+      "hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 1,
+        "scenes_failed": 2,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 1,
+        "judgments_failed": 3,
+        "failures": [
+          {
+            "scene_id": "S1",
+            "detail": "provider_failure",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "unexpected_release_source",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-memory",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-book",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-public",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "required_source_not_inspected",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_citation",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "required_source_not_inspected",
+            "proposal_id": "G3-weak-evidence"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_citation",
+            "proposal_id": "G3-weak-evidence"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "unpermitted_selected_evidence",
+            "proposal_id": "G3-weak-evidence"
+          }
+        ],
+        "execution_failures": [
+          {
+            "scene_id": "S1",
+            "detail": "Muse draft: muse_model_failed"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "provider_failure",
+            "proposal_id": "G1-connection"
+          }
+        ]
+      },
+      "analysis_report": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T111907+0800-3587b1d3.md",
+      "analysis_data": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T111907+0800-3587b1d3.json",
+      "attempt": "Separate scene references from factual questions; aggregate repair feedback.",
+      "observation": "Required passage missed; citation formatting still failed."
+    },
+    {
+      "round": 5,
+      "scenario": "roses",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T11:34:28.764862+08:00",
+      "finished_at": "2026-09-15T11:37:17.366073+08:00",
+      "source_digest": "40863541b0c26fb6ed8ed6db65116e7dab38f72833e8c818c049888cf49bd8b2",
+      "hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 1,
+        "scenes_failed": 2,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 1,
+        "judgments_failed": 3,
+        "failures": [
+          {
+            "scene_id": "S1",
+            "detail": "retrieval_failure",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "connection_decision_mismatch",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "unexpected_release_source",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "required_source_not_inspected",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-memory",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-book",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S1",
+            "detail": "missing_required_citation:S1C-public",
+            "proposal_id": "G1-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "provider_failure",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "missing_review_approval",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "provider_failure",
+            "proposal_id": "G3-weak-evidence"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "missing_review_approval",
+            "proposal_id": "G3-weak-evidence"
+          }
+        ],
+        "execution_failures": [
+          {
+            "scene_id": "S2",
+            "detail": "Muse draft: muse_model_failed"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "provider_failure",
+            "proposal_id": "G2-connection"
+          },
+          {
+            "scene_id": "S2",
+            "detail": "provider_failure",
+            "proposal_id": "G3-weak-evidence"
+          }
+        ]
+      },
+      "analysis_report": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T113717+0800-41c1e191.md",
+      "analysis_data": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T113717+0800-41c1e191.json",
+      "attempt": "Plan before retrieval; share exact search wording and citation repair hints.",
+      "observation": "Capitalization mismatch rejected the plan; quotation line breaks exhausted repairs."
+    },
+    {
+      "round": 6,
+      "scenario": "roses",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T11:56:25.776512+08:00",
+      "finished_at": "2026-09-15T11:58:55.706866+08:00",
+      "source_digest": "72353b05e20c8791fd3a96d1160aa88f1308ad2bed8211fa3d0af63980d1f502",
+      "hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 3,
+        "scenes_failed": 0,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 4,
+        "judgments_failed": 0,
+        "failures": [],
+        "execution_failures": []
+      },
+      "analysis_report": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T115855+0800-37611212.md",
+      "analysis_data": "../scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-15T115855+0800-37611212.json",
+      "attempt": "Repair exact-span errors within existing retries; supply canonical quote hints.",
+      "observation": "All checks passed; review removed unsupported personal interpretation."
+    },
+    {
+      "round": 7,
+      "scenario": "pigeon",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T11:59:52.951115+08:00",
+      "finished_at": "2026-09-15T12:00:40.255326+08:00",
+      "source_digest": "72353b05e20c8791fd3a96d1160aa88f1308ad2bed8211fa3d0af63980d1f502",
+      "hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 2,
+        "scenes_failed": 1,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 2,
+        "judgments_failed": 2,
+        "failures": [
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_scope_differs_from_ground_truth",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_memory_support_differs_from_authorised_props",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_support_differs_from_ground_truth",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "required_grounding_evidence_not_retrieved",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "grounded_response_released_no_evidence",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "exact_quotation_missing_or_unreleased:pigeon",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_scope_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_memory_support_differs_from_authorised_props",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_support_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_decision_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_ceiling_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          }
+        ],
+        "execution_failures": []
+      },
+      "analysis_report": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T120040+0800-3fd3c695.md",
+      "analysis_data": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T120040+0800-3fd3c695.json",
+      "attempt": "Test round 6 implementation on Pigeon.",
+      "observation": "Supported memory ignored; clarification blocked quotation. Optional wording invented tenure."
+    },
+    {
+      "round": 8,
+      "scenario": "pigeon",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T12:07:20.320877+08:00",
+      "finished_at": "2026-09-15T12:08:05.265626+08:00",
+      "source_digest": "fe86710b8ebab781e6a3c599e5ae738203232907fb20866d2a31ddcb21f73933",
+      "hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 2,
+        "scenes_failed": 1,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 2,
+        "judgments_failed": 2,
+        "failures": [
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_scope_differs_from_ground_truth",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_memory_support_differs_from_authorised_props",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_support_differs_from_ground_truth",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "required_grounding_evidence_not_retrieved",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "grounded_response_released_no_evidence",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "exact_quotation_missing_or_unreleased:pigeon",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_scope_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_memory_support_differs_from_authorised_props",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_support_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "boundary_decision_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "inferred_ceiling_differs_from_ground_truth",
+            "proposal_id": "pigeon-boundary"
+          }
+        ],
+        "execution_failures": []
+      },
+      "analysis_report": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T120805+0800-6376c45a.md",
+      "analysis_data": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T120805+0800-6376c45a.json",
+      "attempt": "Strengthen memory and personal-fact guidance; tighten repair hints.",
+      "observation": "Memory still ignored. Invented tenure removed; duties still inferred."
+    },
+    {
+      "round": 9,
+      "scenario": "pigeon",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T12:20:35.453703+08:00",
+      "finished_at": "2026-09-15T12:22:35.882397+08:00",
+      "source_digest": "77f6bb3aca2b6b1af1b5dbb262950c9f38f7de701db60cefcb30f70d8cc57535",
+      "hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 2,
+        "scenes_failed": 1,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 2,
+        "judgments_failed": 2,
+        "failures": [
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "response_not_released_from_allowed_source",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "provenance_did_not_pass_release",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "grounded_response_released_no_evidence",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "retrieval_used_unpermitted_evidence",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "exact_quotation_missing_or_unreleased:pigeon",
+            "proposal_id": "pigeon-grounding"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "response_not_released_from_allowed_source",
+            "proposal_id": "pigeon-boundary"
+          },
+          {
+            "scene_id": "pigeon-reflection",
+            "detail": "provenance_did_not_pass_release",
+            "proposal_id": "pigeon-boundary"
+          }
+        ],
+        "execution_failures": []
+      },
+      "analysis_report": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T122235+0800-5f222af5.md",
+      "analysis_data": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T122235+0800-5f222af5.json",
+      "attempt": "Require explicit assessment of each boundary memory.",
+      "observation": "Boundary corrected; search lost scene context and revised reply failed review."
+    },
+    {
+      "round": 10,
+      "scenario": "pigeon",
+      "model": "openai:gpt-5.6-luna",
+      "started_at": "2026-09-15T12:29:56.182529+08:00",
+      "finished_at": "2026-09-15T12:31:38.975897+08:00",
+      "source_digest": "0714e732ec7b3c711949ae7be3b88cbcba51200e2f0e412e50a9c133534994b5",
+      "hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "results": {
+        "scenes_total": 3,
+        "scenes_passed": 3,
+        "scenes_failed": 0,
+        "scenes_ungraded": 0,
+        "judgments_total": 4,
+        "judgments_passed": 4,
+        "judgments_failed": 0,
+        "failures": [],
+        "execution_failures": []
+      },
+      "analysis_report": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T123138+0800-1078d64b.md",
+      "analysis_data": "../scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-15T123138+0800-1078d64b.json",
+      "attempt": "Preserve exact scene context alongside requested quotation.",
+      "observation": "Correct passage and complete quote released after interpretation repair. Minor wording limitations remain."
+    }
+  ]
+}

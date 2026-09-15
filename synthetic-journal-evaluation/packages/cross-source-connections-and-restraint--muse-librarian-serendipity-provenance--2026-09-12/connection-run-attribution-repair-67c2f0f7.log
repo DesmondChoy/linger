@@ -1,0 +1,11 @@
+Currently retrying 1 failed export(s) (43564 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999989986419678)
+2026-09-14 23:28:58 INFO linger.backend Agent run completed elapsed=129.02s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+Currently retrying 1 failed export(s) (13531 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999989986419678)
+2026-09-14 23:31:05 INFO linger.backend Agent run completed elapsed=126.84s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+Currently retrying 1 failed export(s) (87630 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999989032745361)
+2026-09-14 23:31:48 INFO linger.backend Agent run completed elapsed=42.96s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0a08732756b48084659487e978219-06e91f42fe4221a4", "trace_id": "01a0a08732756b48084659487e978219", "span_id": "06e91f42fe4221a4", "flushed": false}
+CONNECTION_REPLAY_OUTPUT=/tmp/linger-complete-fix-replay-tC6bOS/connection-run.json

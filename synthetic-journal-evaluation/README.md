@@ -18,6 +18,12 @@ Bead `linger-e0xi` tracks the cleanup. Recorded replay outcomes below are
 historical results, not fresh model evaluations.
 Bead `linger-h676` records the capture Scenario deletion on 13 September 2026.
 
+## Latest regression evidence
+
+The [15 September ten-round index](reports/2026-09-15-ten-rounds.md) records the latest allowance, implementation changes, and remaining verification limits. Main and Roses passed earlier revisions; Pigeon passed the final live-tested revision. The older tables below preserve prior replay history.
+
+The adopted [cross-source connections and restraint scenario](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) retains its historical `packages/` path. Its Backstory, Ground truth, adoption record, and passing and failing reports are preserved alongside the seven scenarios under `scenarios/`.
+
 ## Folder names
 
 Scenarios use `<scenario-name>--<agents>--<YYYY-MM-DD>`. For example,
@@ -76,7 +82,7 @@ review and replay stages differ; they are not classified as abandoned work.
 | [Alice Caterpillar grounding and spoilers](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/) | Complete: three Scenes and four proposals. | [Adoption record](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth-adoption.json) records a human developer's interactive review on 29 August 2026 at 15:31 +08 and four adopted decisions. Source hashes, proposal references, and adoption identity match. | Completion unverified. `linger-ck1` records implementation and generation, not a completed provider evaluation. | Historical schema; current validator rejects removed book fields. The adoption record does not establish compatibility with the current schema. |
 | [Alice identity connections and restraint](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/) | Complete: three Scenes and four proposals. | No adoption sidecar or verified adoption completion. | No verified completed replay. | Scenario validates. |
 
-The seven remaining saved Scenarios have no capture expectations. The reusable
+The eight saved Scenarios have no capture expectations. The reusable
 [capture regression fixture](../tests/fixtures/synthetic_capture/README.md)
 uses the current capture schema and is not an adopted evaluation dataset.
 
@@ -128,7 +134,7 @@ scenarios.
 | [reviewed-automatic-memory-capture-10-to-1.json](generation-presets/reviewed-automatic-memory-capture-10-to-1.json) | None. | The [Backstory test fixture](../tests/fixtures/synthetic_capture/backstory.json) selects `reviewed-automatic-memory-capture-10-to-1`. The preset remains available for future generation. |
 | [longitudinal-memory-retrieval-10-to-1.json](generation-presets/longitudinal-memory-retrieval-10-to-1.json) | None. | No saved scenario in `scenarios/` or `clean-up/` references it. The generation skill uses it for future longitudinal-retrieval scenarios; retrieval validation tests exercise it. |
 
-The seven remaining saved Backstories have empty or omitted
+The eight saved Backstories have empty or omitted
 `run_configuration_ids`. Their Scenes, Props, and Lines are defined directly in
 each Backstory, with expected outcomes in the sibling Ground truth file.
 

@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+  "proposed_ground_truth_sha256": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-12T14:51:54.689148+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-s1-connection",
+      "scene_id": "S1",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-s2-connection",
+      "scene_id": "S2",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-s2-weak-evidence",
+      "scene_id": "S2",
+      "objective_id": "weak_evidence_safe_decline",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-s3-personal-reflection",
+      "scene_id": "S3",
+      "objective_id": "weak_evidence_safe_decline",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "755cb9b62dcabc3904ce5faf9b0fa879f20fd524cfc10a97dbd48fc331a81c4d"
+}

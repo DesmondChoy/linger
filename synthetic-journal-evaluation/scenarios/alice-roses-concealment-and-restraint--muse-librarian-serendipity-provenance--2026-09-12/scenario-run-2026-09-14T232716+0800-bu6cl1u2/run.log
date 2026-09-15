@@ -1,0 +1,12 @@
+CONNECTION_REPLAY_OUTPUT=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-14T232716+0800-bu6cl1u2/evaluation.json
+
+2026-09-14 23:30:15 INFO linger.backend Agent run completed elapsed=176.67s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+Currently retrying 1 failed export(s) (38527 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999981880187988)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999988079071045)
+Currently retrying 1 failed export(s) (40615 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999979972839355)
+2026-09-14 23:32:34 INFO linger.backend Agent run completed elapsed=138.62s release_source=muse_candidate provenance_path=revise,pass findings=unsupported_claim revisions=1 failure_stage=none
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999983310699463)
+2026-09-14 23:33:03 INFO linger.backend Agent run completed elapsed=28.77s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0a087a4002f60fe96aedc313f413f-d7dd4a2eed211f12", "trace_id": "01a0a087a4002f60fe96aedc313f413f", "span_id": "d7dd4a2eed211f12", "flushed": false}

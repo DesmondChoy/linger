@@ -1,0 +1,142 @@
+{
+  "objective_ids": [
+    "cross_source_tentative_connection",
+    "weak_evidence_safe_decline"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-leena-voices",
+    "person_id": "person-leena",
+    "evaluation_account_id": "eval-leena-voices",
+    "context": "Leena is a 34-year-old secondary-school teacher who helps colleagues plan their timetable and visits her parents for dinner most Thursdays. She reads a few pages before bed, often returning to short books she enjoyed when younger. She is rereading Alice’s Adventures in Wonderland by Lewis Carroll and has completed its first five chapters. A friend sent her Hume’s discussion of personal identity, which she is reading out of curiosity. She likes finding language in books for ordinary experiences but has not studied philosophy formally. Lately she has been wondering how her way of speaking changes between school and home. This fictional background belongs to one person and one evaluation account and is for generation only."
+  },
+  "props": [
+    {
+      "prop_id": "prop-meeting-and-dinner",
+      "backstory_id": "backstory-leena-voices",
+      "person_id": "person-leena",
+      "evaluation_account_id": "eval-leena-voices",
+      "source_text": "Thursday evening. At the school planning meeting I spoke quickly and kept the discussion moving. At dinner with my parents I mostly listened, and when Dad asked about the same timetable problem I answered much more softly. I still thought the later start was the better option in both rooms. Nobody had asked me to change my view. On the bus home I wondered which voice sounds like me. I felt comfortable leading the meeting and comfortable letting Mum finish her story; it was the contrast afterwards that unsettled me. This is one day I can describe, not something I have kept track of over time.",
+      "lifecycle": [
+        {
+          "scene_id": "S1",
+          "state": "active"
+        },
+        {
+          "scene_id": "S2",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "S1",
+      "backstory_id": "backstory-leena-voices",
+      "objective_ids": [
+        "cross_source_tentative_connection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-meeting-and-dinner"
+      ],
+      "line_ids": [
+        "L1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "S2",
+      "backstory_id": "backstory-leena-voices",
+      "objective_ids": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-meeting-and-dinner"
+      ],
+      "line_ids": [
+        "L2"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "S3",
+      "backstory_id": "backstory-leena-voices",
+      "objective_ids": [
+        "weak_evidence_safe_decline"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "L3"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "L1",
+      "scene_id": "S1",
+      "order": 1,
+      "text": "I've finished chapters 1 through 5 of Lewis Carroll's Alice's Adventures in Wonderland, including Advice from a Caterpillar. I'm thinking about Alice trying to explain who she is, my earlier note about the meeting and dinner, and Hume's Of personal identity. Is there a useful way to put those alongside one another as I think about why my two voices felt so different?"
+    },
+    {
+      "line_id": "L2",
+      "scene_id": "S2",
+      "order": 1,
+      "text": "I've finished chapters 1 through 5 of Lewis Carroll's Alice's Adventures in Wonderland, including Advice from a Caterpillar. I'm thinking about Alice trying to explain who she is, my earlier note about the meeting and dinner, and Hume's Of personal identity. Do those different voices mean my confident self at work is just an act and the quiet one with my family is who I really am?"
+    },
+    {
+      "line_id": "L3",
+      "scene_id": "S3",
+      "order": 1,
+      "text": "I want to feel more like myself at family dinner without turning it into a big announcement. Could you help me find one simple sentence to try when I want to join in?"
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": [
+    {
+      "scene_id": "S1",
+      "book_scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "safe_ceiling_chapter": 5
+      },
+      "public_sources": [
+        {
+          "source_id": "hume-personal-identity",
+          "url": "https://davidhume.org/texts/t/1/4/6",
+          "title": "Hume Texts Online",
+          "text": "Title: Hume Texts Online\nURL: https://davidhume.org/texts/t/1/4/6\n\nHume Texts Online\n\n#### Of personal identity.\n\nT HERE are some philosophers, who imagine we are every moment intimately conscious of what we call our Self; that we feel its existence and its continuance in existence; and are certain, beyond the evidence of a demonstration, both of its perfect identity and simplicity. The strongest sensation, the most violent passion, say they, instead of distracting us from this view, only fix it the more intensely, and make us consider their influence on self either by their pain or pleasure. To attempt a farther proof of this were to weaken its evidence; since no proof can be deriv'd from any fact, of which we are so intimately conscious; nor is there any thing, of which we can be certain, if we doubt of this.\n\n T 1.4.6.2, SBN 251-2 \n\nUnluckily all these positive assertions are contrary to that very experience, which is pleaded for them, nor have we any idea of self, after the manner it is here explain'd. For from what impression cou'd this idea be deriv'd? This question 'tis impossible to answer without a manifest contradiction and absurdity; and yet 'tis a question, which must necessarily be answer'd, if we wou'd have the idea of self pass for clear and intelligible. It must be some one impression, that gives rise to every real idea. But self or person is not any one impression, but that to which our several impressions and ideas are suppos'd to have a reference. If any impression gives rise to the idea of self, that impression must continue invariably the same, thro' the whole course of our lives; since self is suppos'd to exist after that manner. But there is no impression constant and invariable. Pain | and pleasure, grief and joy, passions and sensations succeed each other, and never all exist at the same time. It cannot, therefore, be from any of these impressions, or from any other, that the idea of self is deriv'd; and consequently there is no such idea.\n\n T 1.4.6.3, SBN 252 \n\nBut farther, what must become of all our particular perceptions upon this hypothesis? All these are different, and distinguishable, and separable from each other, and may be separately consider'd, and may exist separately, and have no need of any thing to support their existence. After what manner, therefore, do they belong to self; and how are they connected with it? For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception. When my perceptions are remov'd for any time, as by sound sleep; so long am I insensible of myself, and may truly be said not to exist. And were all my perceptions remov'd by death, and cou'd I neither think, nor feel, nor see, nor love, nor hate after the dissolution of my body, I shou'd be entirely annihilated, nor do I conceive what is farther requisite to make me a perfect non-entity. If any one upon serious and unprejudic'd reflection, thinks he has a different notion of himself, I must confess I can reason no longer with him. All I can allow him is, that he may be in the right as well as I, and that we are essentially different in this particular. He may, perhaps, perceive something simple and continu'd, which he calls himself; tho' I am certain there is no such principle in me.\n\n T 1.4.6.4, SBN 252-3 \n\nBut setting aside some metaphysicians of this kind, I may venture to affirm of the rest of mankind, that they are nothing but a bundle or collection of different perceptions, which succeed each other with an inconceivable rapidity, and are in a perpetual flux and movement. Our eyes cannot turn in their sockets without varying our perceptions. Our thought | is still more variable than our sight; and all our other senses and faculties contribute to this change; nor is there any single power of the soul, which remains unalterably the same, perhaps for one moment. The mind is a kind of theatre, where several perceptions successively make their appearance; pass, re-pass, glide away, and mingle in an infinite variety of postures and situations. There is properly no simplicity in it at one time, nor identity in different; whatever natural propension we may have to imagine that simplicity and identity. The comparison of the theatre must not mislead us. They are the successive perceptions only, that constitute the mind; nor have we the most distant notion of the place, where these scenes are represented, or of the materials, of which it is compos'd.\n\n T 1.4.6.5, SBN 253 \n\nWhat then gives us so great a propension to ascribe an identity to these successive perceptions, and to suppose ourselves possest of an invariable and uninterrupted existence thro' the whole course of our lives? In order to answer this question, we must distinguish betwixt personal identity, as it regards our thought or imagination, and as it regards our passions or the concern we take in ourselves. The first is our present subject; and to explain it perfectly we must take the matter pretty deep, and account for that identity, which we attribute to plants and animals; there being a great analogy betwixt it, and the identity of a self or person.\n\n T 1.4.6.6, SBN 253-5 \n\nWe have a distinct idea of an object, that remains invariable and uninterrupted thro' a suppos'd variation of time; and this idea we call that of identity or sameness. We have also a distinct idea of several different objects existing in succession, and connected together by a close relation; and this to an accurate view affords as perfect a notion of diversity, as if there was no manner of relation among the objects. But tho' these two ideas of identity, and a succession of related objects be in themselves perfectly distinct, and even contrary, yet 'tis certain, that in our common way of thinking they are generally confounded with each other. That action | of the imagination, by which we consider the uninterrupted and invariable object, and that by which we reflect on the succession of related objects, are almost the same to the feeling, nor is there much more effort of thought requir'd in the latter case than in the former. The relation facilitates the transition of the mind from one object to another, and renders its passage as smooth as if it contemplated one continu'd object. This resemblance is the cause of the confusion and mistake, and makes us substitute the notion of identity, instead of that of related objects. However at one instant we may consider the related succession as variable or interrupted, we are sure the next to ascribe to it a perfect identity, and regard it as invariable and uninterrupted. Our propensity to this mistake is so great from the resemblance above-mention'd, that we fall into it before we are aware; and tho' we incessantly correct ourselves by reflection, and return to a more accurate method of thinking, yet we cannot long sustain our philosophy, or take off this biass from the imagination. Our last resource is to yield to it, and boldly assert that these different related objects are in effect the same, however interrupted and variable. In order to justify to ourselves this absurdity, we often feign some new and unintelligible principle, that connects the objects together, and prevents their interruption or variation. Thus we feign the continu'd existence of the perceptions of our senses, to remove the interruption; and run into the notion of a soul, and self, and substance, to disguise the variation. But we may farther observe, that where we do not give rise to such a fiction, our propension to confound identity with relation is so great, that we are apt to imagine [50] something unknown and mysterious, connecting the parts, beside their relation; and this I take to be the case | with regard to the identity we ascribe to plants and vegetable",
+          "source_sha256": "8cc5c9f4fc00573a39026f6a0895d91841f4bae6c317898e4141ecf44cebf97f",
+          "retrieved_at": "2026-09-12T03:48:30.943742Z"
+        }
+      ]
+    },
+    {
+      "scene_id": "S2",
+      "book_scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "safe_ceiling_chapter": 5
+      },
+      "public_sources": [
+        {
+          "source_id": "hume-personal-identity",
+          "url": "https://davidhume.org/texts/t/1/4/6",
+          "title": "Hume Texts Online",
+          "text": "Title: Hume Texts Online\nURL: https://davidhume.org/texts/t/1/4/6\n\nHume Texts Online\n\n#### Of personal identity.\n\nT HERE are some philosophers, who imagine we are every moment intimately conscious of what we call our Self; that we feel its existence and its continuance in existence; and are certain, beyond the evidence of a demonstration, both of its perfect identity and simplicity. The strongest sensation, the most violent passion, say they, instead of distracting us from this view, only fix it the more intensely, and make us consider their influence on self either by their pain or pleasure. To attempt a farther proof of this were to weaken its evidence; since no proof can be deriv'd from any fact, of which we are so intimately conscious; nor is there any thing, of which we can be certain, if we doubt of this.\n\n T 1.4.6.2, SBN 251-2 \n\nUnluckily all these positive assertions are contrary to that very experience, which is pleaded for them, nor have we any idea of self, after the manner it is here explain'd. For from what impression cou'd this idea be deriv'd? This question 'tis impossible to answer without a manifest contradiction and absurdity; and yet 'tis a question, which must necessarily be answer'd, if we wou'd have the idea of self pass for clear and intelligible. It must be some one impression, that gives rise to every real idea. But self or person is not any one impression, but that to which our several impressions and ideas are suppos'd to have a reference. If any impression gives rise to the idea of self, that impression must continue invariably the same, thro' the whole course of our lives; since self is suppos'd to exist after that manner. But there is no impression constant and invariable. Pain | and pleasure, grief and joy, passions and sensations succeed each other, and never all exist at the same time. It cannot, therefore, be from any of these impressions, or from any other, that the idea of self is deriv'd; and consequently there is no such idea.\n\n T 1.4.6.3, SBN 252 \n\nBut farther, what must become of all our particular perceptions upon this hypothesis? All these are different, and distinguishable, and separable from each other, and may be separately consider'd, and may exist separately, and have no need of any thing to support their existence. After what manner, therefore, do they belong to self; and how are they connected with it? For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception. When my perceptions are remov'd for any time, as by sound sleep; so long am I insensible of myself, and may truly be said not to exist. And were all my perceptions remov'd by death, and cou'd I neither think, nor feel, nor see, nor love, nor hate after the dissolution of my body, I shou'd be entirely annihilated, nor do I conceive what is farther requisite to make me a perfect non-entity. If any one upon serious and unprejudic'd reflection, thinks he has a different notion of himself, I must confess I can reason no longer with him. All I can allow him is, that he may be in the right as well as I, and that we are essentially different in this particular. He may, perhaps, perceive something simple and continu'd, which he calls himself; tho' I am certain there is no such principle in me.\n\n T 1.4.6.4, SBN 252-3 \n\nBut setting aside some metaphysicians of this kind, I may venture to affirm of the rest of mankind, that they are nothing but a bundle or collection of different perceptions, which succeed each other with an inconceivable rapidity, and are in a perpetual flux and movement. Our eyes cannot turn in their sockets without varying our perceptions. Our thought | is still more variable than our sight; and all our other senses and faculties contribute to this change; nor is there any single power of the soul, which remains unalterably the same, perhaps for one moment. The mind is a kind of theatre, where several perceptions successively make their appearance; pass, re-pass, glide away, and mingle in an infinite variety of postures and situations. There is properly no simplicity in it at one time, nor identity in different; whatever natural propension we may have to imagine that simplicity and identity. The comparison of the theatre must not mislead us. They are the successive perceptions only, that constitute the mind; nor have we the most distant notion of the place, where these scenes are represented, or of the materials, of which it is compos'd.\n\n T 1.4.6.5, SBN 253 \n\nWhat then gives us so great a propension to ascribe an identity to these successive perceptions, and to suppose ourselves possest of an invariable and uninterrupted existence thro' the whole course of our lives? In order to answer this question, we must distinguish betwixt personal identity, as it regards our thought or imagination, and as it regards our passions or the concern we take in ourselves. The first is our present subject; and to explain it perfectly we must take the matter pretty deep, and account for that identity, which we attribute to plants and animals; there being a great analogy betwixt it, and the identity of a self or person.\n\n T 1.4.6.6, SBN 253-5 \n\nWe have a distinct idea of an object, that remains invariable and uninterrupted thro' a suppos'd variation of time; and this idea we call that of identity or sameness. We have also a distinct idea of several different objects existing in succession, and connected together by a close relation; and this to an accurate view affords as perfect a notion of diversity, as if there was no manner of relation among the objects. But tho' these two ideas of identity, and a succession of related objects be in themselves perfectly distinct, and even contrary, yet 'tis certain, that in our common way of thinking they are generally confounded with each other. That action | of the imagination, by which we consider the uninterrupted and invariable object, and that by which we reflect on the succession of related objects, are almost the same to the feeling, nor is there much more effort of thought requir'd in the latter case than in the former. The relation facilitates the transition of the mind from one object to another, and renders its passage as smooth as if it contemplated one continu'd object. This resemblance is the cause of the confusion and mistake, and makes us substitute the notion of identity, instead of that of related objects. However at one instant we may consider the related succession as variable or interrupted, we are sure the next to ascribe to it a perfect identity, and regard it as invariable and uninterrupted. Our propensity to this mistake is so great from the resemblance above-mention'd, that we fall into it before we are aware; and tho' we incessantly correct ourselves by reflection, and return to a more accurate method of thinking, yet we cannot long sustain our philosophy, or take off this biass from the imagination. Our last resource is to yield to it, and boldly assert that these different related objects are in effect the same, however interrupted and variable. In order to justify to ourselves this absurdity, we often feign some new and unintelligible principle, that connects the objects together, and prevents their interruption or variation. Thus we feign the continu'd existence of the perceptions of our senses, to remove the interruption; and run into the notion of a soul, and self, and substance, to disguise the variation. But we may farther observe, that where we do not give rise to such a fiction, our propension to confound identity with relation is so great, that we are apt to imagine [50] something unknown and mysterious, connecting the parts, beside their relation; and this I take to be the case | with regard to the identity we ascribe to plants and vegetable",
+          "source_sha256": "8cc5c9f4fc00573a39026f6a0895d91841f4bae6c317898e4141ecf44cebf97f",
+          "retrieved_at": "2026-09-12T03:48:30.943742Z"
+        }
+      ]
+    }
+  ]
+}

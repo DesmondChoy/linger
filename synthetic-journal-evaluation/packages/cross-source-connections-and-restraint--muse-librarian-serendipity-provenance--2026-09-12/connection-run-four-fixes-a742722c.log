@@ -1,0 +1,5 @@
+2026-09-14 19:41:55 INFO linger.backend Agent run completed elapsed=106.70s release_source=muse_candidate provenance_path=revise,pass findings=unsupported_claim revisions=1 failure_stage=none
+2026-09-14 19:43:14 INFO linger.backend Agent run completed elapsed=78.40s release_source=muse_candidate provenance_path=revise,pass findings=unsupported_claim revisions=1 failure_stage=none
+2026-09-14 19:43:21 INFO linger.backend Agent run completed elapsed=6.54s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a09fb7aa83658315f0bc346e55118c-33690b901b42418d", "trace_id": "01a09fb7aa83658315f0bc346e55118c", "span_id": "33690b901b42418d", "flushed": true}
+CONNECTION_REPLAY_OUTPUT=/tmp/linger-four-fixes-replay-EvCkX3/connection-run.json
