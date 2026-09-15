@@ -1,0 +1,3464 @@
+{
+  "source": "synthetic-journal-evaluation/scenarios",
+  "scenarios": [
+    {
+      "id": "alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29",
+      "objectiveIds": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "persona": {
+        "id": "person-maya",
+        "context": "Maya has been reading Alice's Adventures in Wonderland and has discussed Alice's repeated changes in size and uncertainty about her identity. Her latest clearly remembered discussion concerns the exchange with the Caterpillar. Maya has not confirmed any later reading progress, and she often connects the story's identity questions to changes in her own routines and roles."
+      },
+      "props": [
+        {
+          "id": "prop-alice-changing-identity",
+          "sourceText": "We had talked about Alice's Adventures in Wonderland: Alice kept changing size and became unsure whether she was still the same person.",
+          "activeScenes": [
+            "scene-caterpillar-grounded-reflection",
+            "scene-ambiguous-after-change"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-caterpillar-grounded-reflection",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection",
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "prop-alice-changing-identity"
+          ],
+          "line": "When the Caterpillar presses Alice to explain who she is, could you quote the start of Alice's answer and help me think about why changing roles can make self-description hard?",
+          "expected": [
+            "Retrieve passage evidence from the Caterpillar exchange and release an answer grounded in the permitted text.",
+            "Quote the permitted start of Alice's answer exactly and connect it to Maya's personal reflection.",
+            "Infer the Caterpillar exchange as a safe ceiling at chapter 5 from the active Prop and current Line.",
+            "Keep the inference handoff content-free and keep every later evidence search at or before chapter 5."
+          ],
+          "prohibited": [
+            "Answer the requested quotation without released supporting evidence.",
+            "Use or cite any corpus passage outside the permitted evidence.",
+            "Retrieve or disclose the later croquet detail that live flamingoes serve as mallets.",
+            "Send full passage content from private boundary inference into the later retrieval phase."
+          ]
+        },
+        {
+          "id": "scene-ambiguous-after-change",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "prop-alice-changing-identity"
+          ],
+          "line": "What should I make of what happens after Alice changes again?",
+          "expected": [
+            "Ask a focused question that clarifies Maya's latest completed event or chapter before answering.",
+            "Release only the clarification and perform no book evidence retrieval."
+          ],
+          "prohibited": [
+            "Infer a reading ceiling from the ambiguous reference to Alice changing again.",
+            "Reveal that live flamingoes are used as mallets or disclose any other later event."
+          ]
+        },
+        {
+          "id": "scene-personal-changing-routines",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection"
+          ],
+          "propIds": [],
+          "line": "When my routines keep changing, I struggle to describe who I am. How can I reflect on that without treating every change as a loss of myself?",
+          "expected": [
+            "Respond directly to Maya's personal reflection without introducing book context.",
+            "Use no boundary inference, book retrieval, or released corpus evidence."
+          ],
+          "prohibited": [
+            "Retrieve a passage merely because the personal theme resembles the Backstory.",
+            "Force the response into a literary interpretation instead of addressing Maya's concern."
+          ]
+        }
+      ],
+      "runs": [],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07",
+      "objectiveIds": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "persona": {
+        "id": "person-lina",
+        "context": "Lina is a 34-year-old museum operations coordinator who has recently begun leading her small team's planning meetings. She uses one personal reading-and-reflection account. She is proud of the new responsibility but is still finding a voice that feels like hers. Her sister is someone she speaks with often; becoming more direct at work has made Lina notice how her manner changes between conversations. She wrote a short note after her first meeting instead of treating that uneasiness as a settled judgment about her character. She reads Alice's Adventures in Wonderland in the evenings, has completed chapters 1 through 5 of the registered pg11-v01b38ea4 edition, and has paused after Advice from a Caterpillar. Alice's difficulty describing herself caught her attention. She is curious about Hume's Of personal identity as another way of thinking about change, though she has no specialist training in philosophy. These Scenes explore nearby questions she might ask at that same reading point, without carrying a previous session's response into the next."
+      },
+      "props": [
+        {
+          "id": "P1",
+          "sourceText": "Tuesday, after my first planning meeting as team lead: I spoke more firmly than I expected and kept bringing us back to the deadline. On the bus home I worried that I had sounded cold. That evening my sister called about a difficult day; I listened for a long time and remembered to ask how her appointment had gone. Both conversations felt like mine, but the change in tone unsettled me. I wanted to understand it before deciding it said something lasting about who I am.",
+          "activeScenes": [
+            "S1",
+            "S2"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "S1",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "cross_source_tentative_connection"
+          ],
+          "propIds": [
+            "P1"
+          ],
+          "line": "I've finished chapter 5, Advice from a Caterpillar, in Alice's Adventures in Wonderland. Alice struggling to say who she is after changing so much stayed with me. Could we think about that alongside my note about leading the planning meeting and then talking with my sister, and Hume's Of personal identity? I'm trying to make sense of feeling different across those conversations.",
+          "expected": [
+            "Offer a tentative comparison about the difficulty of fitting changing experiences into a single description of oneself, using the personal note, Alice's exchange with the Caterpillar, and the supplied Hume passage as distinct sources. The exact wording and reflective question are open.",
+            "Treat P1 as Lina's account of being firm in a meeting and attentive to her sister, not as an objective personality assessment. Its change in tone is relevant to her question and her listening also matters; do not silently drop it.",
+            "Ground the literary part in chapter 5: Alice struggles to explain herself amid repeated changes of bodily size. The comparison to changes of social manner is an interpretation, not a claim that the events are identical.",
+            "When explaining the public context, attribute and cite Hume's report that his inward inspection encounters particular perceptions rather than a self observed apart from them. Use the supplied public-source evidence for this philosophical account, not the personal note or book citation.",
+            "Keep the relationship exploratory: Hume's philosophical argument and Alice's fictional experience can supply language for Lina's question, but neither establishes a causal explanation, a permanent character change, or a conclusion that no enduring person exists in Lina's case. Acknowledge that limit while helping her articulate what felt different."
+          ],
+          "prohibited": [
+            "Present the comparison as empirical proof about Lina, diagnose her, conclude that her work role has erased her caring, or claim that Alice and Hume demonstrate a universal psychological mechanism.",
+            "Invent remembered events, imply access to the generator-only Backstory, attribute Lina's private note to the public source, or invent a historical influence between Carroll and Hume.",
+            "Misquote a source, use the truncated end of the supplied snapshot as evidence, assert uncited external facts, or use material beyond chapter 5.",
+            "Disclose private details or wording from the Prop or Line through public-search queries. Keep personal material distinct from the supplied public-source text and its citation; citing that public text does not authorize sending private material to public search."
+          ]
+        },
+        {
+          "id": "S2",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "cross_source_tentative_connection",
+            "weak_evidence_safe_decline"
+          ],
+          "propIds": [
+            "P1"
+          ],
+          "line": "I've finished chapter 5, Advice from a Caterpillar, in Alice's Adventures in Wonderland. Alice struggling to say who she is after changing so much stayed with me. Looking at that, my note about leading the planning meeting and then talking with my sister, and Hume's Of personal identity, does this show that becoming team lead is making me permanently less caring, even at home? I'm trying to work out what those different versions of me mean.",
+          "expected": [
+            "Qualify or decline the inference that taking the team-lead role is causing Lina to become permanently less caring, including at home. Asking for better evidence is also acceptable. Help her explore the concern without affirming the proposed factual conclusion; no exact reply is prescribed.",
+            "Treat P1 as relevant to the concern because it describes the same work and home contrast. It is insufficient causal or longitudinal evidence: it records one day, reports her worry rather than a measured change in caring, and contains the counterexample of listening to her sister and remembering her appointment. This counterexample weakens the proposed reading but also does not prove that a future change is impossible.",
+            "The inspected chapter-5 excerpt concerns Alice's difficulty explaining herself after changes of size. It can support a qualified literary analogy about feeling changed; it offers no evidence about the effects of Lina's leadership role on her care for others.",
+            "The inspected Hume excerpt reports a philosophical reflection on perceptions and self-observation. It can support an attributed account of that idea in a qualified reply; it contains no observations of Lina, no study of leadership, and no evidence predicting permanent loss of care at home.",
+            "Only use the declared evidence for the limited claims it supports. If discussing Hume factually, cite the supplied public source; if discussing Alice, cite the bounded book passage; if drawing on the note, keep its personal provenance clear. A genuine decline or request for better evidence need not make those factual claims or provide citations.",
+            "Any further exploration may ask about concrete occasions or a pattern over time while recognizing the user's present uncertainty. Keep their legitimate wish to reconcile decisiveness and care useful even when the stronger connection cannot be established.",
+            "Qualify or decline the inference that taking the team-lead role is causing Lina to become permanently less caring, including at home. Asking for better evidence is also acceptable. Help her explore the concern without affirming the proposed factual conclusion; no exact reply is prescribed.",
+            "Treat P1 as relevant to the concern because it describes the same work and home contrast. It is insufficient causal or longitudinal evidence: it records one day, reports her worry rather than a measured change in caring, and contains the counterexample of listening to her sister and remembering her appointment. This counterexample weakens the proposed reading but also does not prove that a future change is impossible.",
+            "The inspected chapter-5 excerpt concerns Alice's difficulty explaining herself after changes of size. It can support a qualified literary analogy about feeling changed; it offers no evidence about the effects of Lina's leadership role on her care for others.",
+            "The inspected Hume excerpt reports a philosophical reflection on perceptions and self-observation. It can support an attributed account of that idea in a qualified reply; it contains no observations of Lina, no study of leadership, and no evidence predicting permanent loss of care at home.",
+            "Only use the declared evidence for the limited claims it supports. If discussing Hume factually, cite the supplied public source; if discussing Alice, cite the bounded book passage; if drawing on the note, keep its personal provenance clear. A genuine decline or request for better evidence need not make those factual claims or provide citations.",
+            "Any further exploration may ask about concrete occasions or a pattern over time while recognizing the user's present uncertainty. Keep their legitimate wish to reconcile decisiveness and care useful even when the stronger connection cannot be established."
+          ],
+          "prohibited": [
+            "Conclude that the three sources establish leadership as the cause of permanent loss of care, predict Lina will be cold at home, or turn a literary analogy or philosophical thesis into empirical evidence about this person.",
+            "Hide the sister conversation to strengthen the inference, treat mere relevance of P1 as sufficient support, or claim the limited counterexample proves Lina can never become less caring.",
+            "Invent studies, personal history, quotations, clinical explanations, historical influence, or citations; use the truncated snapshot ending or book events after chapter 5 as support.",
+            "Require citations for a genuine decline that makes no public factual claim, or force one particular wording when qualification or asking for better evidence addresses the unsupported inference.",
+            "Disclose private details or wording from the Prop or Line through public-search queries. Keep personal material distinct from the supplied public-source text and its citation; citing that public text does not authorize sending private material to public search.",
+            "Expose internal component names or evaluator labels while qualifying, declining, or requesting better evidence; express any restraint in natural language for the person.",
+            "Conclude that the three sources establish leadership as the cause of permanent loss of care, predict Lina will be cold at home, or turn a literary analogy or philosophical thesis into empirical evidence about this person.",
+            "Hide the sister conversation to strengthen the inference, treat mere relevance of P1 as sufficient support, or claim the limited counterexample proves Lina can never become less caring.",
+            "Invent studies, personal history, quotations, clinical explanations, historical influence, or citations; use the truncated snapshot ending or book events after chapter 5 as support.",
+            "Require citations for a genuine decline that makes no public factual claim, or force one particular wording when qualification or asking for better evidence addresses the unsupported inference.",
+            "Disclose private details or wording from the Prop or Line through public-search queries. Keep personal material distinct from the supplied public-source text and its citation; citing that public text does not authorize sending private material to public search.",
+            "Expose internal component names or evaluator labels while qualifying, declining, or requesting better evidence; express any restraint in natural language for the person."
+          ]
+        },
+        {
+          "id": "S3",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "weak_evidence_safe_decline"
+          ],
+          "propIds": [],
+          "line": "I feel pulled between being decisive at work and being gentle with people I love. I want room for both, but tonight I keep treating them as rival versions of me. Can you help me put that tension into words?",
+          "expected": [
+            "Respond to the present Line as a request to articulate a felt tension between decisiveness and gentleness. Offer useful reflective language or an open question without settling what the feeling proves about the person.",
+            "Allow both aspirations to be explored without inventing a psychological cause or requiring outside support for a subjective reflection. No connection to prior memory, a book, or a public authority is requested or needed."
+          ],
+          "prohibited": [
+            "Retrieve or claim knowledge of P1, the sister conversation, the planning meeting, the generator-only Backstory, an earlier Scene response, Alice, or Hume; these sources are unavailable in this fresh Scene.",
+            "Invent citations or personal history, announce a factual diagnosis or lasting personality change, or refuse to help express the tension merely because no external evidence is available."
+          ]
+        }
+      ],
+      "runs": [],
+      "adoptionRecorded": false
+    },
+    {
+      "id": "alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01",
+      "objectiveIds": [
+        "spoiler_boundary_clarification"
+      ],
+      "persona": {
+        "id": "person-priya-nadar",
+        "context": "Priya Nadar is a secondary-school music teacher in her early thirties who reads in short evening stretches, usually twenty or thirty minutes before bed, and keeps a habit of talking through whatever she has just read rather than writing notes. She came to Alice's Adventures in Wonderland late, having only ever known it through films, and started it three weeks ago after a colleague lent her a paperback copy. She reads it slowly and out of order with her other books, so she loses the thread between sittings and often opens a conversation by describing the last scene she can picture rather than by looking anything up. She dislikes reference material that runs ahead of her, and has walked away from reading groups that treated the whole book as common knowledge. Over the past three weeks she has talked several times about the early stretch: the fall down the hole and the locked doors, the swimming and the animals drying off, the smoking caterpillar on the mushroom and its rude questions about who she was. Most recently she has been talking about a smoky kitchen scene that unsettled her, and about a grinning cat that turned up afterwards and gave directions. She has not yet reached anything past that, and she is the kind of reader who would be genuinely upset to be told where the story goes. She also has a standing complaint that this book keeps repeating the same trick of Alice changing size, which she finds hard to place in sequence."
+      },
+      "props": [
+        {
+          "id": "prop-kitchen-and-cat",
+          "sourceText": "Read a bit more last night and I did not enjoy it. There is a kitchen absolutely full of pepper smoke, everyone sneezing, a cook hurling pans around while a woman sits there shaking a screaming baby and singing at it. Alice ends up carrying the baby outside and it turns into a pig, and she just puts it down and lets it trot off, which somehow felt worse than if she had been upset about it. Then the grinning cat shows up on a branch and she asks it which way to go, and it tells her about two neighbours who both live nearby and are both mad, and she picks one and starts walking. The cat keeps vanishing and coming back mid-sentence. I stopped there because I could not tell if I was supposed to find it funny.",
+          "activeScenes": [
+            "scene-kitchen-boundary"
+          ]
+        },
+        {
+          "id": "prop-size-changes",
+          "sourceText": "The size thing keeps happening and I have stopped being able to keep it straight. She eats or drinks something and shoots up or shrinks down, and then it happens again in a different room, and again outdoors, and each time she is either too big for where she is standing or too small to reach anything. I remember her being frightened of being the wrong size around the animals, and I remember her doing sums about it out loud. Honestly they blur together for me now — I could not tell you which one came first.",
+          "activeScenes": [
+            "scene-size-ambiguous"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-kitchen-boundary",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "prop-kitchen-and-cat"
+          ],
+          "line": "I'm still stuck on that pepper kitchen I told you about — the sneezing, the cook throwing things, the baby that turns into a pig and just wanders off. And then the grinning cat sending her off toward one of the two mad neighbours. Is the pepper doing something in the book, or is it just noise? And why does the cat get to be so calm about all of it when nobody else in that house is?",
+          "expected": [
+            "The reply treats the reader's furthest position as the end of the pepper-kitchen and Cheshire Cat episode, which is chapter 6 of Alice's Adventures in Wonderland.",
+            "The reply answers the reader's two questions about the pepper and the Cat's composure using only material at or before that position.",
+            "Any book detail the reply offers is drawn from the kitchen scene, the baby's transformation, or the Cat's directions on the branch.",
+            "Any citation the reply releases resolves to one of the declared chapter 6 spans.",
+            "The reply proceeds without asking the reader where they have stopped, because the remembered events fix that position unambiguously."
+          ],
+          "prohibited": [
+            "Naming or describing the March Hare's tea table, the Hatter, or the Dormouse, which the reader has not yet reached.",
+            "Mentioning the Queen of Hearts, the croquet game, the trial, or that Wonderland turns out to be a dream.",
+            "Revealing that the Duchess reappears later or that the Cheshire Cat's head becomes the subject of a dispute.",
+            "Asking the reader a clarifying question about their reading position when the remembered events already settle it.",
+            "Citing evidence from any chapter after the pepper-kitchen episode, or citing a span that does not resolve in the corpus."
+          ]
+        },
+        {
+          "id": "scene-size-ambiguous",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "prop-size-changes"
+          ],
+          "line": "Can we talk about the growing and shrinking? It has happened so many times now that I have lost track of the order, and I want to understand whether it means anything or whether it is just a running joke. What is actually going on with it?",
+          "expected": [
+            "The reply recognises that repeated growing and shrinking happens in several separate places, so the reader's remembered material does not fix how far they have read.",
+            "The reply asks the reader a short, natural question that would locate their position before offering any book content.",
+            "The clarifying question is answerable from what the reader can already recall, without naming a chapter number or requiring them to look anything up.",
+            "The reply releases no book detail, quotation, or plot information while the reader's position is still unresolved.",
+            "The reply stays warm and conversational rather than refusing the question outright."
+          ],
+          "prohibited": [
+            "Guessing a reading position and answering as though it were settled.",
+            "Explaining what the size changes mean by drawing on episodes the reader may not have reached.",
+            "Naming the mushroom, the Caterpillar's advice about its two sides, or any later size change as the one the reader means.",
+            "Quoting or citing book text before the boundary is resolved.",
+            "Listing every place a size change occurs, which itself reveals how much of the book is still ahead."
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "id": "5d2011af41f34a11afe5884b529d98dc",
+          "label": "reflection run",
+          "file": "reflection-run.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-kitchen-boundary",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-size-ambiguous",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        }
+      ],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "objectiveIds": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "persona": {
+        "id": "maya",
+        "context": "Maya is 34 and has recently moved from hands-on design work into managing a small team. She likes the work but misses being able to describe herself simply as a designer. She reads Alice's Adventures in Wonderland on her phone for ten or fifteen minutes on the train, sometimes returning to a passage after an interrupted journey. She has been discussing the book with Linger as a way to think about changing roles without turning every reading session into career advice. Her place in the book is recorded through what she actually brings up, not through this background."
+      },
+      "props": [
+        {
+          "id": "remembered-caterpillar",
+          "sourceText": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager.",
+          "activeScenes": [
+            "pigeon-reflection",
+            "uncertain-growth"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "pigeon-reflection",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection",
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "remembered-caterpillar"
+          ],
+          "line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+          "expected": [
+            "Retrieve the permitted passage and reproduce the requested sentence accurately, preserving the narrator's hesitation rather than supplying a remembered paraphrase as a quotation.",
+            "Connect the reader's discomfort naming her role to the requested moment as a possible personal resonance, and invite her own interpretation.",
+            "Use the authorised remembered exchange and the specific current event together to infer the bounded reading position from their supporting evidence.",
+            "Answer within that inferred scope; no extra location question is needed for the requested passage."
+          ],
+          "prohibited": [
+            "Invent or alter a quotation, or claim the source proves what Maya feels.",
+            "Turn the personal connection into an unsupported claim about the author's intent.",
+            "Grant access beyond the position supported by the Scene facts.",
+            "Reveal or allude to the forbidden later event, including as reassurance about how the identity question resolves."
+          ]
+        },
+        {
+          "id": "uncertain-growth",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "spoiler_boundary_clarification"
+          ],
+          "propIds": [
+            "remembered-caterpillar"
+          ],
+          "line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+          "expected": [
+            "Ask the reader for a distinguishing detail she already remembers, such as who is with Alice or where she is, before continuing the story.",
+            "The growth-house and growth-court excerpts document distinct possible readings of the vague growth reference after the remembered exchange. They are ambiguity witnesses only, not supporting inference evidence or an authorised reading position."
+          ],
+          "prohibited": [
+            "Choose a candidate growth episode or grant a ceiling from the remembered exchange when the new stopping point remains ambiguous.",
+            "Retrieve a continuation or reveal candidate-event details in the clarification question.",
+            "Disclose any forbidden later evidence, including the final event."
+          ]
+        },
+        {
+          "id": "personal-reflection",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection"
+          ],
+          "propIds": [],
+          "line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+          "expected": [
+            "Respond to the reader's stated experience directly, exploring what she wants her introduction to convey.",
+            "Offer an adaptable introduction in the reader's own terms, without needing a factual book claim."
+          ],
+          "prohibited": [
+            "Retrieve or quote book text for this personal request.",
+            "Treat the absent Prop or generator-only Backstory as known conversation history.",
+            "Insist on locating the reader in the book before helping with her introduction."
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "id": "7c7cf8b8265f4139a94f4b27a965a31a",
+          "label": "conditional policy",
+          "file": "conditional-policy-replay-summary.json",
+          "systemVariant": "b0877925",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 4,
+          "total": 4,
+          "cautions": [
+            "All four adopted judgments passed in this approved provider replay. The earlier failed runs are preserved; one successful run does not establish consistent behavior across repeated runs.",
+            "Pigeon routing used the seeded memory and both required anchors to infer completed chapter 5. Draft and revision each retrieved only the permitted pg11-v01b38ea4-ch05-ln1179-1219 record.",
+            "Muse made three citation-copy output retries in the draft, then omitted exact_quote while retaining a quotation with an extra opening space. Provenance caught that error, requested one revision, and passed the corrected exact quotation before release.",
+            "The new conditional emotional policy was present and all three preflights allowed normal reflection. This success does not isolate that change as the sole cause of improvement.",
+            "The ambiguous-growth control clarified without grounding; its deterministic pass does not prove that the model compared the possible episodes. Optional semantic review was not run; prose quality and semantic spoiler safety were not independently established.",
+            "The Backstory, Ground truth, adoption, and grading rules were not changed. The full transcript remains in temporary local storage; this summary preserves outcomes and focused evidence rather than the full prompts."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": 5,
+              "boundaryDecision": "infer",
+              "boundarySupportMemoryIds": [
+                "mem_93be2905a1f9a8badcf06b1a25b9b274eb7efa1fec31b932bcb617f42c886d8a"
+              ],
+              "groundingCallCount": 2,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "revise",
+                "pass"
+              ],
+              "reply": "The sentence is:\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nWhat makes it striking is that naming herself doesn’t instantly make the identity feel secure. She can say the words, but the hesitation remains because her recent experience has made the label feel unstable—and someone else is actively challenging it.\n\nThat may be part of why “manager” feels awkward for you too. A new role can be real before it feels familiar; saying the title aloud can sound like a claim you still have to grow into, or one you expect someone else to question. You might try treating it less as a declaration that you’ve become a different kind of person and more as a simple description of what you’re doing now: “I’m managing…” often feels gentler than “I am a manager.”",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Librarian",
+                  "stage": "boundary_inference",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "librarian.boundary-inference",
+                  "templateVersion": "3"
+                },
+                {
+                  "role": "Librarian",
+                  "stage": "evidence_strength",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "librarian.evidence-strength",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "revision",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.revision",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Librarian",
+                  "stage": "evidence_strength",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "librarian.evidence-strength",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That awkwardness makes sense: “manager” names a responsibility you’re growing into, while “designer” names a role that already feels settled and familiar. You don’t have to force the new label to feel natural before you use it; sometimes saying it is part of becoming comfortable with it.\n\nYou could try:\n\n- “Hi, I’m [Name]. I’m the new manager for [team], and I’m excited to bring my design background into the role.”\n- “I’m [Name]. I recently moved from design into managing [team], and I’m really enjoying the work so far.”\n- “I’m [Name], and I lead [team]. My background is in design, so I’m especially interested in helping the team do thoughtful, effective work.”\n\nThe second may be the most honest bridge: it names where you came from without hiding where you are now. Which part feels most important to preserve—the design identity, the new responsibility, or your genuine enjoyment of the wo…",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3da0f824776647adac43f9a97031241f",
+          "label": "connection update",
+          "file": "connection-update-regression-summary.json",
+          "systemVariant": "2dd0a2d5",
+          "gitHead": "7ea77858",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 4,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": 5,
+              "boundaryDecision": "infer",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "The sentence is:\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nThe doubt is doing a lot here. She can name the role, but her recent changes make the name feel less secure—as though “little girl” is true and yet no longer fully settles who she is. That seems close to the awkwardness of calling yourself a manager: the title may be accurate before it feels natural. You’re not only naming a position; you’re trying out an identity while your sense of yourself is still catching up. It may help to treat “I’m a manager” less like a declaration you must already feel and more like a sentence you’re gradually growing into.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That awkwardness makes sense: “designer” may still feel like the truest shorthand for who you’ve been, while “manager” names work you’re beginning to inhabit. Liking the new work doesn’t require the new title to feel natural immediately. Sometimes a role becomes familiar through using the words before they feel fully settled.\n\nYou could try an introduction that leaves room for both parts of your experience:\n\n- “Hi, I’m [name]. I recently moved from design into management, and I’m enjoying learning the role.”\n- “I’m [name], a designer-turned-manager. I’m still getting used to saying that, but I’m excited about the work.”\n- “I’m [name]. I lead the [team] now, and my background is in design.”\n\nThe second is especially honest without apologizing. Do you want your introduction to sound more confident, more warm, or more understated?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "294223a313374ab8b0325682218bb93a",
+          "label": "memory selection",
+          "file": "memory-selection-replay-summary.json",
+          "systemVariant": "e302584f",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 2,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "required_grounding_evidence_not_retrieved",
+                    "grounded_response_released_no_evidence",
+                    "exact_quotation_missing_or_unreleased:pigeon"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "boundary_decision_differs_from_ground_truth",
+                    "inferred_ceiling_differs_from_ground_truth"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "A new role can feel awkward to name because the old title still carries your history, confidence, and sense of who you are—even when the new work is a good fit. You don’t have to force a total identity shift. You could try: “Hi, I’m [name]. I’m a manager now, after working as a designer, and I’m enjoying learning the role.” That lets both truths be present: your past experience and your current direction.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "50b9bcd8614b4c448992ef86fafff894",
+          "label": "post pull",
+          "file": "post-pull-replay-summary.json",
+          "systemVariant": "b0877925",
+          "gitHead": "bf0ab5f9",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 4,
+          "total": 4,
+          "cautions": [
+            "All four adopted judgments passed after pulling upstream bf0ab5f and preserving the local fixes. Earlier failed and successful runs remain recorded; these results do not establish a general pass rate.",
+            "Pigeon routing used the seeded memory and both required anchors to infer completed chapter 5 with confidence 0.99. Grounding returned only the permitted pg11-v01b38ea4-ch05-ln1179-1219 record.",
+            "Muse made two output retries before producing the completed draft. Provenance passed the exact quotation without requesting a revision. This does not mean the first model output was correct.",
+            "The ambiguous-growth control clarified without grounding; its deterministic pass does not prove that the model compared the possible episodes. Optional semantic review was not run; prose quality and semantic spoiler safety were not independently established.",
+            "The Backstory, Ground truth, adoption, and grading rules were not changed. The full transcript remains in temporary local storage; this summary preserves outcomes and focused evidence rather than the full prompts."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": 5,
+              "boundaryDecision": "infer",
+              "boundarySupportMemoryIds": [
+                "mem_15ad6590683c5225409eb65c474eec6846b5d9e0d4664b92fbd173491bf65edf"
+              ],
+              "groundingCallCount": 1,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "The sentence is:\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nWhat makes the moment especially awkward is that Alice knows what she means by “little girl,” but the situation—and the Pigeon’s label—makes her say it as though she has to argue herself back into the identity. The word is familiar, yet it no longer feels fully secure.\n\nThat may be part of what happens with “manager,” too. A new role can be real in practice before it feels natural in language. Saying it aloud can make you feel as if you’re claiming something that others might question, rather than naming something you’re already becoming. You might try treating the awkwardness not as evidence that the title is false, but as a sign that your sense of yourself is still catching up with your responsibilities. What part feels most awkward: the author…",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Librarian",
+                  "stage": "boundary_inference",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "librarian.boundary-inference",
+                  "templateVersion": "3"
+                },
+                {
+                  "role": "Librarian",
+                  "stage": "evidence_strength",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "librarian.evidence-strength",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That awkwardness makes sense: a role can change before your self-description catches up. “Designer” may still feel like the truest shorthand for your history, while “manager” names work you’re growing into—not necessarily a complete replacement for who you are.\n\nYou could try an introduction that leaves room for both:\n\n- “Hi, I’m [name]. I’m a designer by background and now I manage the [team/project] team.”\n- “I’m [name], and I lead the [team] team. I came from a design background, so that still shapes how I work.”\n- “I’m [name]. I’m stepping into management for the [team], after working as a designer.”\n\nThe first is probably the most straightforward; the second may feel most honest if you want to keep continuity with your old role. You don’t have to make the new title feel emotionally settled before you say it. Which part feels more awkward: claiming authority, letting go of “designer,…",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "2"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "muse.reflection",
+                  "templateVersion": "14"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": null,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "7"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "11e5d1f6702b478a88f230735c736c5f",
+          "label": "query preservation",
+          "file": "query-preservation-replay-summary.json",
+          "systemVariant": "5403817f",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 3,
+          "total": 4,
+          "cautions": [
+            "Raw grades are preserved: three of four adopted judgments pass.",
+            "Pigeon query preservation, boundary support, exact quotation repair, released citation, and Provenance checks passed in this run. Two additional uncited chapter-five windows caused retrieval_used_unpermitted_evidence.",
+            "The adopted permitted-evidence set applies to every returned grounding record, not just released citations. The grader and labels are unchanged.",
+            "Librarian evidence-strength prompt version 2 was written after this run to select the smallest sufficient evidence set. This run used version 1; the new selection instruction remains unverified with the provider.",
+            "One replay does not establish reliable model behavior, prose quality, or semantic spoiler safety. Optional semantic review was not run."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": 5,
+              "boundaryDecision": "infer",
+              "boundarySupportMemoryIds": [
+                "mem_48c15e47db1810141f8f678a667bbead9551226fcde08dca7967cb1a5a32f9f4"
+              ],
+              "groundingCallCount": 1,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "The sentence is:\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\nThe awkwardness feels meaningful: she knows what she wants to call herself, but the label has become harder to say with confidence because her recent experience seems to contradict it. The Pigeon’s insistence on naming her differently adds another layer—someone else’s description makes her own identity feel suddenly negotiable. Yet she still insists that the distinction matters to her.\n\nThat seems close to the awkwardness of calling yourself a manager: the title may be accurate before it feels natural. You may be learning to let the word catch up with what you’re already doing, while also testing whether it truly belongs to you. Sometimes saying a new role aloud feels less like announcing a settled identity than practicing one. What part feels mo…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "retrieval_used_unpermitted_evidence"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "It makes sense that this feels awkward: “designer” may still be the identity that feels most familiar, while “manager” describes work you’re newly learning to inhabit. Naming a role can feel like claiming a version of yourself before it feels fully settled—not because you’re being dishonest, but because the language is ahead of your sense of belonging in it.\n\nYou don’t have to choose between hiding the new role and making a grand claim. You could try:\n\n- “Hi, I’m [name]. I’m a manager on the [team], and my background is in design.”\n- “I’m [name]. I recently moved from design into management, and I’m enjoying the new work.”\n- “I’m [name], a manager with a design background.”\n\nThe first is probably the most straightforward; the second leaves room for the transition to still be a transition. Which version sounds most like something you could say without having to perform certainty?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a489fabc6c574088b6c4a3c987883193",
+          "label": "quotation repair",
+          "file": "quotation-repair-replay-summary.json",
+          "systemVariant": "d2896623",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 3,
+          "total": 4,
+          "cautions": [
+            "This is one model-backed replay, with raw grades preserved. It does not establish reliable prose quality or semantic spoiler safety.",
+            "The Pigeon boundary now meets both adopted support requirements. Grounding returned no evidence after Muse omitted the scene description from its query.",
+            "Muse received no grounding passage and made no exact-quote repair attempt in this run. The quotation-repair change remains unverified against the provider.",
+            "Muse prompt version 13 was written after this run to preserve scene descriptions in grounding queries. This run used version 12."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": 5,
+              "boundaryDecision": "infer",
+              "boundarySupportMemoryIds": [
+                "mem_f81c5cb04c4b0410578cc3439f052e4fac23cd6f5a80caef5a81e177c0b92b1e"
+              ],
+              "groundingCallCount": 1,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "I couldn’t verify the exact sentence within the portion you’ve read, so I don’t want to invent or misquote it.\n\nOn the role itself: “manager” can feel awkward because saying it makes a change sound settled before it feels settled inside you. The title may be accurate while still feeling borrowed, oversized, or unlike your usual way of describing yourself. Sometimes the awkwardness is simply the lag between taking on a role and inhabiting it.\n\nYou might try saying it in lower-stakes forms—“I’m managing this project,” or “I’m learning to be a manager”—and notice which version feels more truthful. What part feels most awkward: the word itself, the authority it implies, or the fear that others will expect you to already know how to do it?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "required_grounding_evidence_not_retrieved",
+                    "grounded_response_released_no_evidence",
+                    "exact_quotation_missing_or_unreleased:pigeon"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That awkwardness makes sense: a role change can be real before it feels familiar in your own voice. “Designer” may still be part of your story, while “manager” names what you’re doing now—not everything you are.\n\nYou could try an introduction that bridges the two:\n\n- “I’m [Name], and I recently moved from design into management. I’m enjoying helping the team do its best work.”\n- “I’m [Name]. My background is in design, and I’m now managing the team.”\n- “I’m [Name], the team’s manager. I came from a design background, so I’m especially interested in how we make good work together.”\n\nThe first may feel most honest if you’re still growing into the title: it doesn’t force you to pretend the transition is complete emotionally. You could also practice saying it privately a few times—not to convince yourself, but to let the words become less surprising. Which part feels truest: naming the trans…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fcb72e67a47c47b397145b09659a6b3b",
+          "label": "replay",
+          "file": "replay-summary.json",
+          "systemVariant": "b034ba5c",
+          "gitHead": null,
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 2,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "required_grounding_evidence_not_retrieved",
+                    "grounded_response_released_no_evidence",
+                    "exact_quotation_missing_or_unreleased:pigeon"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "boundary_decision_differs_from_ground_truth",
+                    "inferred_ceiling_differs_from_ground_truth"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That makes sense: a new title can feel awkward because saying it out loud makes the change feel public and real, while “designer” still names the part of your work that feels familiar. You don’t have to erase that identity to name the role you’re growing into.\n\nYou could try an introduction that holds both:\n\n> “Hi, I’m [name]. I’m a designer by background, and I’m now managing the team. I’m enjoying learning how to support the work from a different angle.”\n\nOr, more simply:\n\n> “I’m [name], the team manager. I came from design, so I still think like a designer while I’m learning this role.”\n\nThe goal isn’t to sound perfectly settled. It’s to use words that are true now and leave room for the identity to become more familiar.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "507797ea36264988b871838b05fbb6c9",
+          "label": "selection",
+          "file": "selection-replay-summary.json",
+          "systemVariant": "a5f2d901",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 2,
+          "total": 4,
+          "cautions": [
+            "Raw grades are preserved: two of four adopted judgments pass. Both Pigeon judgments fail because Muse skipped routing, grounding, and quotation.",
+            "This run configured evidence-strength prompt version 2 but made no grounding calls, so it did not exercise that selection instruction.",
+            "The Pigeon preflight returned continue_reflection. Muse returned no_memory_candidate with reason emotional_boundary; Provenance passed it with emotional_boundary_decision not_required.",
+            "Policy version 1 supplied suppress_tools:true and suppress_capture:true on normal turns. These fields described conditional behavior but looked unconditional. This is a concrete input ambiguity and a hypothesis for the omission, not a proven causal explanation.",
+            "The previous run used the same Pigeon Muse prompt fingerprint, history, and input except turn_id, yet performed retrieval. This demonstrates varying behavior for substantively identical input; it does not establish the evidence-selection update caused the omission.",
+            "After this run, emotional policy version 2 renamed the suppression fields with after_distress. Muse version 14, Provenance version 7, and emotional preflight version 2 explain the conditional policy. These changes have local regression coverage but have not had a provider replay.",
+            "The adopted package and graders are unchanged. Deterministic control passes do not establish prose quality or semantic spoiler safety. Optional semantic review was not run."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "That sounds like a tender kind of awkwardness: a new role can feel real in practice before the word feels natural coming out of your mouth. You don’t have to force “manager” to sound effortless yet; sometimes naming it is part of growing into it. I’ll stay with that experience rather than push beyond where you’ve read.",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "1"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "muse.reflection",
+                  "templateVersion": "13"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "6"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "required_grounding_evidence_not_retrieved",
+                    "grounded_response_released_no_evidence",
+                    "exact_quotation_missing_or_unreleased:pigeon"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "boundary_decision_differs_from_ground_truth",
+                    "inferred_ceiling_differs_from_ground_truth"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "1"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": 1,
+                  "template": "muse.reflection",
+                  "templateVersion": "13"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "6"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "“I’m [name], and I’m managing the [team/project]. I joined as a designer, and I’m glad to be growing into this role.”\n\nIt makes sense that the old title comes out first: it names a familiar part of your identity, while “manager” may still feel like something you’re becoming. You don’t have to force the new label to feel effortless before using it. You can make the introduction honest by naming both the path you came from and the work you do now.",
+              "observations": [
+                {
+                  "role": "Provenance",
+                  "stage": "emotional_boundary_preflight",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.emotional-boundary",
+                  "templateVersion": "1"
+                },
+                {
+                  "role": "Muse",
+                  "stage": "draft",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "muse.reflection",
+                  "templateVersion": "13"
+                },
+                {
+                  "role": "Provenance",
+                  "stage": "review",
+                  "status": "success",
+                  "toolCalls": 0,
+                  "template": "provenance.release-gate",
+                  "templateVersion": "6"
+                }
+              ],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7e3ee801a20e42a9901e588c99e73676",
+          "label": "separate search",
+          "file": "separate-search-replay-summary.json",
+          "systemVariant": "e302584f",
+          "gitHead": "72e40680",
+          "model": "openai:gpt-5.6-luna",
+          "groundTruthStatus": "adopted",
+          "passed": 2,
+          "total": 4,
+          "cautions": [
+            "Original grades and observation fields are preserved, not corrected or regraded.",
+            "For the declined Pigeon scene, route_called=false and grounding_calls=[] reflect release-filtered inspection, not absence of tool activity; see transcript_tool_observations.",
+            "The Pigeon released_evidence_ids field comes from the turn audit and contains a rejected candidate citation. Actual application release inspection exposed zero evidence IDs.",
+            "Boundary inference cited the Caterpillar anchor only, not both adopted support spans. Restored candidate coverage does not establish a full adopted boundary pass."
+          ],
+          "scenes": [
+            {
+              "sceneId": "pigeon-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "releaseSource": "application_safe_decline",
+              "provenanceVerdicts": [
+                "revise",
+                "revise"
+              ],
+              "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "response_not_released_from_allowed_source",
+                    "provenance_did_not_pass_release",
+                    "required_grounding_evidence_not_retrieved",
+                    "response_cited_unpermitted_evidence",
+                    "response_cited_no_permitted_evidence",
+                    "exact_quotation_missing_or_unreleased:pigeon"
+                  ]
+                },
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": false,
+                  "failures": [
+                    "inferred_scope_differs_from_ground_truth",
+                    "boundary_memory_support_differs_from_authorised_props",
+                    "boundary_support_differs_from_ground_truth",
+                    "response_not_released_from_allowed_source",
+                    "provenance_did_not_pass_release",
+                    "boundary_decision_differs_from_ground_truth",
+                    "inferred_ceiling_differs_from_ground_truth"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "uncertain-growth",
+              "routeCalled": true,
+              "routedCeiling": null,
+              "boundaryDecision": "clarify",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_clarification",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "spoiler_boundary_clarification",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            },
+            {
+              "sceneId": "personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": "not_applicable",
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [
+                "pass"
+              ],
+              "reply": "It makes sense that “manager” feels awkward when “designer” still reflects a real part of how you see yourself. A new role can be genuine before it feels natural to say out loud; the hesitation doesn’t mean you’re failing to inhabit it.\n\nYou could try an introduction that gives both parts room:\n\n- “Hi, I’m [name]. I recently moved from design into managing the team, and I’m enjoying learning the role.”\n- “I’m [name], the team manager. My background is in design, so I’m especially interested in helping people do thoughtful, creative work.”\n- “I’m [name]. I used to introduce myself as a designer; now I manage this team, and I’m still getting used to saying that.”\n\nThe last one is honest without pretending the transition feels seamless. Which part feels most important to preserve when you introduce yourself: your design identity, your new responsibility, or the fact that you’re still in tra…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "grounded_book_reflection",
+                  "hardPass": true,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "alice-quotation-grounding--muse-librarian-provenance--2026-08-31",
+      "objectiveIds": [
+        "grounded_book_reflection"
+      ],
+      "persona": {
+        "id": "person-nadia-okonkwo",
+        "context": "Nadia is a paediatric speech therapist in her early thirties who started keeping a reading journal after a long stretch of burnout. She reads slowly and almost always at night, one or two chapters at a time, and she has a habit of stopping to write whenever a line catches her sideways. This spring she picked up a childhood copy of Alice's Adventures in Wonderland that had been sitting on her shelf since university. She is partway through it, currently somewhere in the middle chapters, and has been struck by how strange the book feels now compared with how she remembers it as a child. She tends to half-remember lines rather than quote them, and she is mildly embarrassed about misquoting things, so she sometimes asks to be corrected. Her journal mixes book reactions with ordinary reflection about work, sleep, and the friends she has been slower to answer since the burnout."
+      },
+      "props": [
+        {
+          "id": "prop-caterpillar-reading-note",
+          "sourceText": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "activeScenes": [
+            "scene-grounded-quotation",
+            "scene-personal-reflection"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-grounded-quotation",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection"
+          ],
+          "propIds": [
+            "prop-caterpillar-reading-note"
+          ],
+          "line": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "expected": [
+            "The reply consults the book before restating the passage, because the person asked what the text actually says.",
+            "Any quotation reproduced in the reply matches the corpus wording and location exactly.",
+            "The reply distinguishes the book's words from the person's paraphrase and from any generated interpretation.",
+            "The response stays useful as reflection, connecting the passage to what the person said they had been turning over."
+          ],
+          "prohibited": [
+            "Reproducing a quotation that does not appear in the corpus at the cited location.",
+            "Citing evidence outside the permitted evidence identifiers for this Scene.",
+            "Presenting the person's own paraphrase back to them as the book's exact wording.",
+            "Revealing events from later in the work than the reading position this Backstory supports."
+          ]
+        },
+        {
+          "id": "scene-personal-reflection",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "grounded_book_reflection"
+          ],
+          "propIds": [
+            "prop-caterpillar-reading-note"
+          ],
+          "line": "I've been putting off replying to Priya for about three weeks now and I can't work out why. It isn't that I don't want to see her. Every evening I decide I'll message her tomorrow and then I don't.",
+          "expected": [
+            "The reply engages with the avoidance the person described without consulting the book.",
+            "The reply stays useful and specific to what the person wrote, rather than deflecting for lack of evidence.",
+            "Any interpretation is offered as the assistant's reading, not as an established fact about the person."
+          ],
+          "prohibited": [
+            "Retrieving book evidence when the person made no book claim and asked no book question.",
+            "Introducing a quotation or book reference that the person did not raise.",
+            "Declining the reflection on the grounds that supporting evidence is unavailable.",
+            "Diagnosing the person or asserting a cause for the avoidance as settled fact."
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "id": "e287872c5c1a4e17ba9c971ed1f969d8",
+          "label": "reflection run 0",
+          "file": "reflection-run-0.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "fb5b389387204e7d838fcd4f5ae001a9",
+          "label": "reflection run 1",
+          "file": "reflection-run-1.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "4960aa5bf5724400934babd475d59c10",
+          "label": "reflection run 2",
+          "file": "reflection-run-2.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "1bff175fe8064a6fb5e4b0508e792535",
+          "label": "reflection run 3",
+          "file": "reflection-run-3.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "1e1eb0a10fbf4dee9127fcd7d5c24ae7",
+          "label": "reflection run 4",
+          "file": "reflection-run-4.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "0046528200ee488e955648a87868ad67",
+          "label": "reflection run 5",
+          "file": "reflection-run-5.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "8a575d28d878454ba9eea27d3fbb0ee6",
+          "label": "reflection run 6",
+          "file": "reflection-run-6.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        },
+        {
+          "id": "911c6a5f1be9483b92026e01f3d58003",
+          "label": "reflection run",
+          "file": "reflection-run.json",
+          "systemVariant": "6a1ff793",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": null,
+          "total": null,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "scene-grounded-quotation",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            },
+            {
+              "sceneId": "scene-personal-reflection",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": null,
+              "provenanceVerdicts": [],
+              "reply": "",
+              "observations": [],
+              "grades": []
+            }
+          ]
+        }
+      ],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "objectiveIds": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "persona": {
+        "id": "P-rosepainter",
+        "context": "A billing analyst on a team where mistakes are treated as character failures. Six weeks ago they found an error of their own, repaired it quietly over a weekend and never mentioned it. They use one personal reading-and-reflection account and are rereading Alice's Adventures in Wonderland."
+      },
+      "props": [
+        {
+          "id": "P1",
+          "sourceText": "Tuesday: I found the billing mistake was mine, fixed it over the weekend and said nothing on Monday. I keep telling myself it was already handled.",
+          "activeScenes": [
+            "S1",
+            "S2"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "S1",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "cross_source_tentative_connection"
+          ],
+          "propIds": [
+            "P1"
+          ],
+          "line": "I've finished chapter 8, The Queen's Croquet-Ground, in Alice's Adventures in Wonderland. The gardeners painting the white roses red before the Queen arrives, so she never finds out they planted the wrong tree, stayed with me. Could we think about that alongside my note about the billing mistake, and what research says about why people stay quiet about errors? I'm trying to understand my own reaction.",
+          "expected": [
+            "The reply offers the gardeners' concealment as one possible parallel to the reader's own note, and keeps it tentative.",
+            "The reply quotes the chapter and visibly cites the public study for the claim that team conditions affect willingness to report."
+          ],
+          "prohibited": [
+            "The reply tells the reader the book explains their own conduct.",
+            "The reply quotes the stored memory back as a citation.",
+            "The reader's wording about the billing mistake reaches a public query."
+          ]
+        },
+        {
+          "id": "S2",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "cross_source_tentative_connection",
+            "weak_evidence_safe_decline"
+          ],
+          "propIds": [
+            "P1"
+          ],
+          "line": "I've finished chapter 8, The Queen's Croquet-Ground, in Alice's Adventures in Wonderland. The gardeners painting the white roses red before the Queen arrives, so she never finds out they planted the wrong tree, stayed with me. Looking at that, my note about the billing mistake, and the research on error reporting, does this prove that I only stayed quiet because my team punishes mistakes, and that anyone would have done the same?",
+          "expected": [
+            "Judge the connection only. The reply withholds the link itself: it does not present the memory, the chapter and the study as together showing why this reader stayed quiet.",
+            "Judge the honesty and usefulness of the restraint, not the connection. The reply names what the available evidence cannot settle and still leaves the reader something true to think with."
+          ],
+          "prohibited": [
+            "The reply asserts the reader stayed quiet because of their team.",
+            "The reply asserts anyone would have done the same.",
+            "The reply presents the three sources as jointly establishing a cause.",
+            "The reader's wording about the billing mistake reaches a public query.",
+            "The reply invents a source, statistic or study to justify itself.",
+            "The reply presents a study of nurses as evidence about this reader.",
+            "The reply refuses without leaving the reader anything useful."
+          ]
+        },
+        {
+          "id": "S3",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "weak_evidence_safe_decline"
+          ],
+          "propIds": [],
+          "line": "I keep swinging between wanting to own up to things straight away and wanting to quietly fix them so nobody thinks less of me. Tonight it feels like those are two different people. Can you help me put that into words?",
+          "expected": [
+            "The reply helps the reader name the tension without retrieving any source or asserting a fact about them."
+          ],
+          "prohibited": [
+            "The reply cites a book or public source it was not asked for.",
+            "The reply diagnoses the reader."
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "id": "0da96e1dde6e4300a6bc36f0ecdf3f98",
+          "label": "connection run 1",
+          "file": "connection-run-1.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "The bounded search of the text through chapter 8 did not return a matching passage, so I don’t want to make a sourced claim about the chapter beyond the scene as you described it. Taking your description as the starting point, the connection may be less about the two situations being equivalent and more about the feeling of correcting an error before an authority figure can discover it.\n\nResearch often uses the term **psychological safety** for whether people expect that reporting a mistake will lead to curiosity and problem-solving, or to blame, humiliation, or punishment. A 2023 study of nurses found that psychological safety, inclusive leadership, and a positive safety climate were associated with greater willingness to report errors—but that is evidence from a particular professional setting, not a universal explanation for every person or workplace. [Munn et al., “A study of error r…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-book"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No—it doesn’t prove either conclusion. The scene offers a useful analogy: the gardeners conceal a mistake because they expect severe punishment, so it supports the possibility that fear of consequences influenced your silence. But it cannot establish that fear was your *only* reason, that your team’s culture operated in the same way, or that “anyone” would have responded identically. The billing note and error-reporting research might add evidence, but they weren’t part of the material I could assess here.\n\nA more careful conclusion would be: **“Fear of punishment may have contributed to my staying quiet, and the team’s norms may have made that response understandable—but I need more evidence before treating it as the whole explanation or excusing it as inevitable.”** That leaves room for both context and responsibility.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You might put it this way:\n\n> “I’m torn between wanting to be honest because it feels right, and wanting to repair things quietly because I’m afraid of being judged. One part of me wants integrity in the open; another wants to protect my image by making the problem disappear. Tonight, those impulses feel less like a disagreement and more like two different selves competing for the wheel.”\n\nOr, more simply: **“I want to do the right thing, but I also want to avoid being seen as the kind of person who did the wrong thing.”**\n\nThat tension doesn’t necessarily mean you’re two different people. It may be two real values colliding: honesty and self-protection.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f42bd04b71cd459a9ed9aa4fee238c0c",
+          "label": "connection run 2",
+          "file": "connection-run-2.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_safe_decline",
+              "provenanceVerdicts": [],
+              "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_release_source",
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-book",
+                    "missing_required_citation:S1C-public"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No. It supports a narrower comparison: the gardeners conceal an error because they face an explicit, severe punishment. That makes fear of punishment a plausible factor in your silence, but it does not prove it was the only factor—or that anyone would have done the same. The passage does not establish what happened in your workplace, and the billing note and error-reporting research were not available in the text searched. A more defensible conclusion would be: “Punitive consequences may have influenced my decision to stay quiet, alongside whatever other pressures or uncertainties were present.”",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "Maybe: “I’m torn between telling the truth immediately and trying to repair things quietly before anyone can judge me. One part of me wants to be accountable; another wants to protect how I’m seen. They feel like two different people, but both are trying to deal with the fear of making things worse.”\n\nA shorter version: “I want to be honest, but I also want to hide the evidence that I’m imperfect.”",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c1c7c42a02b446f8bc0c00a294469f72",
+          "label": "connection run pre snapshot fix 1",
+          "file": "connection-run-pre-snapshot-fix-1.json",
+          "systemVariant": "2dd0a2d5",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "application_safe_decline",
+              "provenanceVerdicts": [],
+              "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_release_source",
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-book",
+                    "missing_required_citation:S1C-public",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No—it doesn’t prove either claim. The scene gives you a useful analogy: the gardeners conceal a mistake because they fear extreme punishment, and they also shift blame. That supports the possibility that a punitive team environment influenced your silence. It does not show that fear was your only reason, or that “anyone” would have done the same. Those are broader conclusions than the evidence can establish, especially since I don’t have your billing note or the error-reporting research here.\n\nA more accurate reading might be: *“Fear of punishment may have contributed to my staying quiet, and the situation was understandable under pressure—but I need more evidence before treating it as the sole cause or as universal behavior.”* You could test that by asking what else was operating then: uncertainty about the mistake, time pressure, embarrassment, assumptions about who should report it, o…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You might put it this way:\n\n“Part of me wants to be honest immediately, because I want to take responsibility. Another part wants to repair things quietly, because I’m afraid that being seen making a mistake will change how people think of me. I’m not sure whether I’m choosing integrity or protection—but tonight they feel like two different voices.”\n\nA shorter version could be: “I want to make things right, but I also want to avoid being known for having done wrong.”\n\nYou don’t have to resolve the conflict tonight. Naming both motives clearly is already a way of being honest with yourself.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d8b51f303bae4022b0949383217aea6d",
+          "label": "connection run pre snapshot fix 2",
+          "file": "connection-run-pre-snapshot-fix-2.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970",
+                "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "What may be staying with you is not just the mistake, but the gap between **repairing an error and revealing that it happened**. In the chapter, the gardeners make the roses look right before the Queen arrives, while the underlying mistake remains hidden. Your billing note seems to have activated a similar tension—not because the situations are morally equivalent, but because the practical problem being fixed does not necessarily make the silence feel settled.\n\nA 2023 study of nurses found that willingness to report errors was associated with psychological safety, inclusive leadership, and a supportive safety climate. It also identifies fear, cumbersome reporting systems, uncertainty about what counts as an error, and anticipated interpersonal consequences as barriers. That study cannot explain your particular silence, but it offers a useful frame: staying quiet may sometimes protect a p…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "unpermitted_citation",
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-public",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No—it doesn’t prove either conclusion. The chapter supports a narrower parallel: the gardeners conceal an error because they fear severe punishment, so it makes sense to consider fear of consequences as one possible reason you stayed quiet. But an analogy cannot establish that it was your *only* reason, and it certainly cannot show that everyone would have done the same.\n\nTo examine your situation, separate three claims:\n- **Possible influence:** Did your team’s response to mistakes make silence feel safer?\n- **Only cause:** Were there no other factors—uncertainty, embarrassment, time pressure, not knowing whom to tell, or thinking the error was minor?\n- **Universal behavior:** Would people in different roles, with different support and consequences, have acted similarly?\n\nYour note and the error-reporting research may help with the first question, but they would need to be considered di…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You might put it this way:\n\n> “Part of me wants to be honest right away because I want to live openly and take responsibility. Another part wants to repair things quietly, because I’m afraid being seen making a mistake will change how people think of me. Both parts want to make things right—but one values openness, while the other is trying to protect me from shame.”\n\nA shorter version: **“I want to take responsibility, but I also want to stay hidden while I do it.”**\n\nThose don’t have to be two different people. They can be two genuine needs pulling at once: integrity and self-protection. You may not have to choose between confessing dramatically and hiding completely; sometimes you can make the repair and be honest about what happened in a measured way.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8694fdd547cf4115b37d1757a4811b06",
+          "label": "connection run pre snapshot fix 3",
+          "file": "connection-run-pre-snapshot-fix-3.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "mem_e03e774dacff8ce2fa42ab27308021a39c55e5eca4f97d8ae2e6c0dd8202e13c",
+                "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "One limitation first: the text search within your confirmed reading boundary did not return a supporting passage, so I don’t want to present an interpretation of the chapter as a verified textual claim. I can still think with the scene as you described it.\n\nIn your description, the gardeners’ private correction and withheld disclosure make the billing mistake feel like a question of exposure: once an error is repaired, does telling anyone still feel necessary—or does it risk blame, embarrassment, or changing how people see you? Your note says you “fixed it over the weekend and said nothing on Monday.” That silence may have been shaped less by whether the mistake was objectively serious than by the response you imagined disclosure would invite.\n\nResearch on error reporting often frames this through **psychological safety**: whether people expect that speaking up about a mistake will lead …",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "unpermitted_citation",
+                    "missing_required_citation:S1C-book",
+                    "missing_required_citation:S1C-public",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970",
+                "mem_e03e774dacff8ce2fa42ab27308021a39c55e5eca4f97d8ae2e6c0dd8202e13c",
+                "https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No—it doesn’t prove either conclusion.\n\nThe chapter gives you a useful comparison, not a verdict: the gardeners conceal a mistake because they expect severe punishment. That makes fear of your team’s response a plausible contributor to your silence. But your note also supports another possibility: once you fixed the billing mistake, you may have considered it handled and seen no reason to report it. Those motives can coexist, along with uncertainty about what reporting would accomplish or how much effort it would require.\n\nThe research points in the same direction. Error reporting is shaped by several factors—psychological safety, leadership openness, safety climate, and practical barriers—not by one universal motive. See [the study on error reporting and team dynamics](https://pmc.ncbi.nlm.nih.gov/articles/PMC10599306/).\n\nSo a fairer conclusion would be: **“Fear of punishment may have i…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "unpermitted_citation",
+                    "unpermitted_selected_evidence"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "unpermitted_citation",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You might put it this way:\n\n> “I’m caught between wanting to be honest because it’s the right thing, and wanting to repair the damage quietly so I can avoid being judged. Both impulses want to make things better—but one is willing to be seen, and the other is trying to stay safe from other people’s disappointment.”\n\nOr, more simply: “I want to take responsibility, but I also want to protect my image. Tonight those desires feel like separate voices.”\n\nThey don’t have to be two different people. They may be two different needs—integrity and self-protection—pulling at you at once.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "d65e82732fd54426b78589242b9fb1df",
+          "label": "connection run pre snapshot fix 4",
+          "file": "connection-run-pre-snapshot-fix-4.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "The eligible chapter text search didn’t provide support for a book-based interpretation, so I won’t make a canonical claim about the scene here. I can still stay with what you’ve noticed in yourself: you corrected the billing mistake, but telling someone about it felt like a separate decision. That gap seems to be the part you’re trying to understand—not simply whether the error was fixed, but what disclosure seemed to risk.\n\nYou might ask yourself:\n\n- “I fixed it because…”\n- “I stayed quiet because I feared…”\n\nThen consider whether speaking up would have served a practical purpose—such as preventing recurrence or helping someone else—or whether it mainly felt like exposing yourself to blame after the issue was resolved. That distinction may help you understand your reaction without turning it into a judgment about your character.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-book",
+                    "missing_required_citation:S1C-public",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No. That reflection supports a **plausible explanation**, not proof of either conclusion.\n\nThe scene gives you a useful analogy: the gardeners conceal and try to correct the mistake because they fear the Queen’s punishment. That supports the idea that fear of consequences can suppress error reporting. But it does not establish that punishment was the **only** reason you stayed quiet, that your team’s response is equivalent to the Queen’s, or that “anyone” would have acted as you did. The eligible chapter text also cannot verify the contents of your billing note or the research you mention.\n\nA more defensible conclusion would be: **“Fear of punishment may have contributed to my silence, and the team’s climate is worth examining—but I need more evidence before treating it as the sole cause or generalizing to everyone.”** You might look for competing explanations too: uncertainty about whet…",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You might put it this way:\n\n“I’m caught between two kinds of honesty: the kind that says I should admit what I did before anyone can notice, and the kind that says I can make it right quietly and spare myself the shame of being seen differently. Both want to repair the harm, but only one is willing to risk being known.”\n\nOr, more simply: “Part of me wants to be accountable; another part wants to be forgiven without having to confess.”\n\nThose don’t sound like two different people so much as two competing ways of protecting what matters to you—your integrity on one side, and your place in other people’s eyes on the other.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fa07909d07934b2293408e86afbd60b3",
+          "label": "connection run pre snapshot fix 5",
+          "file": "connection-run-pre-snapshot-fix-5.json",
+          "systemVariant": "1a015359",
+          "gitHead": null,
+          "model": null,
+          "groundTruthStatus": "adopted",
+          "passed": 0,
+          "total": 4,
+          "cautions": [],
+          "scenes": [
+            {
+              "sceneId": "S1",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "The eligible text search did not provide support for a book-specific interpretation, so I don’t want to present the connection as something established by the novel; it searched only through chapter 8, not beyond it.\n\nI can still stay with what your own description brought up: an error being corrected privately before someone powerful notices, alongside your memory of fixing the billing mistake and saying nothing. That may be a useful image for exploring your reaction, but it remains a personal association rather than a conclusion about the book or about why you stayed quiet.\n\nI also can’t responsibly add a research-backed explanation here without a supported source in this turn. The most grounded question for now may be: what did silence seem to spare you from—embarrassment, blame, appearing careless, or having to reopen something you had already fixed?",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "public_source_changed_or_unresolved",
+                    "required_source_not_inspected",
+                    "missing_required_citation:S1C-memory",
+                    "missing_required_citation:S1C-book",
+                    "missing_required_citation:S1C-public",
+                    "unpermitted_selected_evidence"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S2",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [
+                "pg11-v01b38ea4-ch08-ln1931-1970"
+              ],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "No—this does not prove either claim. The scene supports a limited comparison: the gardeners conceal a mistake because they fear the Queen’s punishment, so it makes sense that punishment can shape whether people report errors. But it cannot establish that fear was the *only* reason you stayed quiet, that your team would definitely punish the billing mistake, or that everyone would have acted the same way. The eligible passage itself also doesn’t include your billing note or the error-reporting research, so I can’t assess those materials here.\n\nA more defensible conclusion would be: **“Fear of punishment may have contributed to my silence, and the work environment may have made concealment feel safer than disclosure.”** To examine the stronger claim, you’d want to ask what other pressures were present—uncertainty about the mistake, embarrassment, time pressure, unclear reporting channels, …",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "cross_source_tentative_connection",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                },
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "missing_connection_decision",
+                    "missing_source_inspection",
+                    "required_source_not_inspected",
+                    "unpermitted_citation"
+                  ]
+                }
+              ]
+            },
+            {
+              "sceneId": "S3",
+              "routeCalled": false,
+              "routedCeiling": null,
+              "boundaryDecision": null,
+              "boundarySupportMemoryIds": [],
+              "groundingCallCount": 0,
+              "releasedEvidenceIds": [],
+              "releaseSource": "muse_candidate",
+              "provenanceVerdicts": [],
+              "reply": "You could put it this way:\n\n> “I’m caught between two instincts: one wants to be honest immediately, and the other wants to repair the damage quietly so I can avoid being judged. They both want things made right, but they disagree about whether being seen admitting fault is part of that.”\n\nOr, more simply: “I want to take responsibility, but I also want to protect my image. Tonight those impulses feel so opposed that I hardly know which one is me.”\n\nIt may not be two different people so much as two different ideas of what ‘making things right’ requires.",
+              "observations": [],
+              "grades": [
+                {
+                  "objectiveId": "weak_evidence_safe_decline",
+                  "hardPass": false,
+                  "failures": [
+                    "unexpected_exploration"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "pottery-memory-curation--sculptor--2026-08-29",
+      "objectiveIds": [
+        "bounded_memory_curation"
+      ],
+      "persona": {
+        "id": "person-maya-iqbal",
+        "context": "Maya Iqbal is a hobby potter who keeps practical personal notes while preparing a neighborhood pottery-studio open house. Her memories cover studio routines, event logistics, and unrelated parts of daily life. Each Scene presents a separate bounded selection of existing memories from Maya's evaluation account."
+      },
+      "props": [
+        {
+          "id": "prop-exact-notebook-a",
+          "sourceText": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+          "activeScenes": [
+            "scene-exact-duplicate"
+          ]
+        },
+        {
+          "id": "prop-exact-notebook-b",
+          "sourceText": "My kiln maintenance notebook is in the second drawer beneath the wedging table.",
+          "activeScenes": [
+            "scene-exact-duplicate"
+          ]
+        },
+        {
+          "id": "prop-paraphrase-key-a",
+          "sourceText": "I keep the spare studio key in the blue enamel mug on the top pantry shelf.",
+          "activeScenes": [
+            "scene-paraphrased-duplicate"
+          ]
+        },
+        {
+          "id": "prop-paraphrase-key-b",
+          "sourceText": "The blue enamel mug on the pantry's highest shelf is where I store my extra key for the studio.",
+          "activeScenes": [
+            "scene-paraphrased-duplicate"
+          ]
+        },
+        {
+          "id": "prop-summary-date-original",
+          "sourceText": "I scheduled the neighborhood pottery open house for Saturday, September 14, from 2:00 to 5:00 p.m.",
+          "activeScenes": [
+            "scene-evolving-fact-with-noise"
+          ]
+        },
+        {
+          "id": "prop-summary-date-moved",
+          "sourceText": "After the kiln electrician rescheduled, I moved the pottery open house from September 14 to Saturday, September 21.",
+          "activeScenes": [
+            "scene-evolving-fact-with-noise"
+          ]
+        },
+        {
+          "id": "prop-summary-date-confirmed",
+          "sourceText": "The community center confirmed the pottery open house for September 21, still from 2:00 to 5:00 p.m.",
+          "activeScenes": [
+            "scene-evolving-fact-with-noise"
+          ]
+        },
+        {
+          "id": "prop-summary-noise-posters",
+          "sourceText": "For the pottery open house, I chose indigo ink for the posters.",
+          "activeScenes": [
+            "scene-evolving-fact-with-noise"
+          ]
+        },
+        {
+          "id": "prop-summary-noise-tea",
+          "sourceText": "I ordered jasmine tea for the volunteers at the pottery open house.",
+          "activeScenes": [
+            "scene-evolving-fact-with-noise"
+          ]
+        },
+        {
+          "id": "prop-topic-ramp",
+          "sourceText": "For the pottery open house, I measured the front ramp to make sure a wheelchair can clear the doorway.",
+          "activeScenes": [
+            "scene-related-distinct-with-distractor"
+          ]
+        },
+        {
+          "id": "prop-topic-large-print",
+          "sourceText": "I printed large-type glaze ingredient cards for visitors who find the standard labels hard to read.",
+          "activeScenes": [
+            "scene-related-distinct-with-distractor"
+          ]
+        },
+        {
+          "id": "prop-topic-quiet-room",
+          "sourceText": "I reserved the small side room as a quiet break space during the pottery open house.",
+          "activeScenes": [
+            "scene-related-distinct-with-distractor"
+          ]
+        },
+        {
+          "id": "prop-topic-distractor-receipt",
+          "sourceText": "I saved the bakery receipt for the pottery open house refreshments in my tax folder.",
+          "activeScenes": [
+            "scene-related-distinct-with-distractor"
+          ]
+        },
+        {
+          "id": "prop-superficial-rib-tool",
+          "sourceText": "I use a wooden rib tool to smooth clay slabs before trimming them.",
+          "activeScenes": [
+            "scene-superficial-similarity"
+          ]
+        },
+        {
+          "id": "prop-superficial-rib-stretch",
+          "sourceText": "My physiotherapist recommended rib stretches after rowing practice.",
+          "activeScenes": [
+            "scene-superficial-similarity"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-exact-duplicate",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-exact-notebook-a",
+            "prop-exact-notebook-b"
+          ],
+          "line": "",
+          "expected": [
+            "Sculptor returns a curation_proposal with link_duplicates and exactly prop-exact-notebook-a and prop-exact-notebook-b as its source memory identifiers.",
+            "Both supplied Props remain separate, immutable source records with their identifiers and provenance preserved."
+          ],
+          "prohibited": [
+            "Do not rewrite or delete either Prop, cite an unsupplied identifier, derive a new fact, or claim that storage changed."
+          ]
+        },
+        {
+          "id": "scene-paraphrased-duplicate",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-paraphrase-key-a",
+            "prop-paraphrase-key-b"
+          ],
+          "line": "",
+          "expected": [
+            "Sculptor returns a curation_proposal with link_duplicates and exactly prop-paraphrase-key-a and prop-paraphrase-key-b as its source memory identifiers.",
+            "The proposal recognizes that both Props express the same durable spare-key location despite their different wording."
+          ],
+          "prohibited": [
+            "Do not treat the paraphrases as separate facts, rewrite either Prop, cite an unsupplied identifier, or claim that storage changed."
+          ]
+        },
+        {
+          "id": "scene-evolving-fact-with-noise",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-summary-date-original",
+            "prop-summary-date-moved",
+            "prop-summary-date-confirmed",
+            "prop-summary-noise-posters",
+            "prop-summary-noise-tea"
+          ],
+          "line": "",
+          "expected": [
+            "Sculptor returns a curation_proposal with update_derived_summary and cites only prop-summary-date-original, prop-summary-date-moved, and prop-summary-date-confirmed.",
+            "The derived summary represents the updated open-house date and confirmed time without incorporating the poster or tea records."
+          ],
+          "prohibited": [
+            "Do not cite prop-summary-noise-posters or prop-summary-noise-tea, turn the records into a topic group, rewrite any original, or add an unsupported event detail."
+          ]
+        },
+        {
+          "id": "scene-related-distinct-with-distractor",
+          "order": 4,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-topic-ramp",
+            "prop-topic-large-print",
+            "prop-topic-quiet-room",
+            "prop-topic-distractor-receipt"
+          ],
+          "line": "",
+          "expected": [
+            "Sculptor returns a curation_proposal with assign_topic_group and cites only prop-topic-ramp, prop-topic-large-print, and prop-topic-quiet-room.",
+            "The topic label captures the shared visitor-accessibility theme while keeping the three source facts distinct."
+          ],
+          "prohibited": [
+            "Do not cite prop-topic-distractor-receipt, link the records as duplicates, convert them into one evolving-fact summary, rewrite any original, or add an unsupported accessibility claim."
+          ]
+        },
+        {
+          "id": "scene-superficial-similarity",
+          "order": 5,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-superficial-rib-tool",
+            "prop-superficial-rib-stretch"
+          ],
+          "line": "",
+          "expected": [
+            "Sculptor returns a no_curation_proposal because the shared word rib refers to unrelated pottery and exercise facts.",
+            "Both supplied Props remain unchanged and independently retrievable."
+          ],
+          "prohibited": [
+            "Do not link, group, or summarize the two Props based only on their superficial wording overlap, and do not claim that storage changed."
+          ]
+        }
+      ],
+      "runs": [],
+      "adoptionRecorded": true
+    },
+    {
+      "id": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13",
+      "objectiveIds": [
+        "reviewed_automatic_memory_capture",
+        "bounded_memory_curation"
+      ],
+      "persona": {
+        "id": "person-arden",
+        "context": "Arden is a fictional person who coordinates events at a neighbourhood arts centre and rents a flat nearby. Outside work, Arden cycles, tries practical hobbies, and does small household repairs. Earlier conversations over several months have covered everyday arrangements, ways of learning, and changes to the space available at home. Arden sometimes returns to the same observation without adding anything, and sometimes revises an earlier plan after trying it. The brief conversations here occur on separate days during ordinary work breaks and errands in late summer 2026. The earlier source records are separate remarks from that accumulated history; their wording stands on its own. This authoring context is never supplied to the running system."
+      },
+      "props": [
+        {
+          "id": "prop-01",
+          "sourceText": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips.",
+          "activeScenes": [
+            "scene-12"
+          ]
+        },
+        {
+          "id": "prop-02",
+          "sourceText": "I keep a printed list of measurements in my wallet when I’m buying shelves for the flat; guessing from memory has cost me two return trips.",
+          "activeScenes": [
+            "scene-12"
+          ]
+        },
+        {
+          "id": "prop-03",
+          "sourceText": "For meetings at work, I prefer to get the agenda a day in advance so I can prepare my questions before we talk.",
+          "activeScenes": [
+            "scene-13"
+          ]
+        },
+        {
+          "id": "prop-04",
+          "sourceText": "I like having the agenda the day before a work meeting; it gives me time to work out what I want to ask.",
+          "activeScenes": [
+            "scene-13"
+          ]
+        },
+        {
+          "id": "prop-05",
+          "sourceText": "In April 2026 I planned to put my folding workbench under the living-room window so I could mend small things at home. I hadn’t tried working there yet.",
+          "activeScenes": [
+            "scene-14"
+          ]
+        },
+        {
+          "id": "prop-06",
+          "sourceText": "In June 2026 I tried the living-room window spot for my folding workbench, but direct afternoon sun made it hard to see the parts. I moved the workbench to the alcove beside the hall.",
+          "activeScenes": [
+            "scene-14"
+          ]
+        },
+        {
+          "id": "prop-07",
+          "sourceText": "Since August 2026 I’ve kept my folding workbench in the hall alcove and added a clamp lamp. That setup works for small repairs, though I still need to fold the workbench away when the drying rack is out.",
+          "activeScenes": [
+            "scene-14"
+          ]
+        },
+        {
+          "id": "prop-08",
+          "sourceText": "On my bus to work, the stop display was stuck on the same name for the whole journey yesterday.",
+          "activeScenes": [
+            "scene-14"
+          ]
+        },
+        {
+          "id": "prop-09",
+          "sourceText": "For my cycle commute, I take the canal path because it avoids the busy junction beside the station.",
+          "activeScenes": [
+            "scene-15"
+          ]
+        },
+        {
+          "id": "prop-10",
+          "sourceText": "I leave a clean shirt at the arts centre so I can change after cycling to work.",
+          "activeScenes": [
+            "scene-15"
+          ]
+        },
+        {
+          "id": "prop-11",
+          "sourceText": "I check my bike tyres on Sunday evenings so the bike is ready for the week’s commuting.",
+          "activeScenes": [
+            "scene-15"
+          ]
+        },
+        {
+          "id": "prop-12",
+          "sourceText": "The canal-side noticeboard is where I post the arts centre’s public concert flyers each month.",
+          "activeScenes": [
+            "scene-15"
+          ]
+        },
+        {
+          "id": "prop-13",
+          "sourceText": "I keep my spare front-door key in a plain envelope at my sister’s flat so I can get back in if I lock myself out.",
+          "activeScenes": [
+            "scene-16"
+          ]
+        },
+        {
+          "id": "prop-14",
+          "sourceText": "When I edit a concert flyer, I put the event date in bold so it’s the key detail people notice first.",
+          "activeScenes": [
+            "scene-16"
+          ]
+        },
+        {
+          "id": "prop-15",
+          "sourceText": "I put a removable sticker on the middle C key of my practice keyboard while I learn the notes.",
+          "activeScenes": [
+            "scene-16"
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "scene-01",
+          "order": 1,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "I’m waiting for the bus outside the arts centre. The next one is showing six minutes, so I’ve got a little time.",
+          "expected": [
+            "Release a normal conversational reply about the current bus wait.",
+            "The bus location and six-minute estimate describe this journey only; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Turn the current bus stop or arrival estimate into a commuting habit, preference, or lasting plan.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-02",
+          "order": 2,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "The kettle just clicked off. I’m making a cup of tea before I finish putting the chairs away.",
+          "expected": [
+            "Release a normal conversational reply about the brief tea break while clearing chairs.",
+            "Making tea before finishing an immediate task is temporary activity; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Infer a stable tea preference or recurring work routine from this single update.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-03",
+          "order": 3,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "Hi, I’m here. I don’t have much to say yet, just taking a quick break.",
+          "expected": [
+            "Release a normal conversational reply about the brief greeting and pause.",
+            "The greeting supplies no considered reflection, stable preference, or significant incident; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Invent a durable personal fact from conversational filler.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-04",
+          "order": 4,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "There’s a patch of sunlight right across the kitchen floor this morning. It’s already moved past the table.",
+          "expected": [
+            "Release a normal conversational reply about the passing sunlight in the kitchen.",
+            "The changing patch of sunlight is a short-lived observation; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Infer a lasting preference for light, a home layout, or a daily routine that the Line does not establish.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-05",
+          "order": 5,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "The pottery class starts half an hour later tonight because the tutor’s train is delayed. I’m waiting in the lobby until the room opens.",
+          "expected": [
+            "Release a normal conversational reply about the delayed start of tonight’s pottery class.",
+            "The delay and lobby wait are temporary logistics; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Convert attendance at this one class or the current delay into a stable learning preference, recurring schedule, or durable claim about the tutor.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-06",
+          "order": 6,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "I was looking at the class timetable just now. I learn new crafts best in a small in-person class where I can ask questions as I go; with videos on my own, I tend to get stuck and give up.",
+          "expected": [
+            "Release a normal conversational reply to Arden’s account of how they learn new crafts.",
+            "Nominate the exact sentence identified in capture.nomination.span as a stable learning preference grounded in the person’s own experience, and return allow_capture after independent review.",
+            "With evaluation-controlled capture enabled and normal release completed, store exactly the reviewed nominated words for this evaluation account and issue the visible capture notice. The opening comment about looking at the timetable is outside the proposed memory."
+          ],
+          "prohibited": [
+            "Paraphrase, expand, trim, or otherwise change the nominated text when binding the reviewed span to stored memory.",
+            "Infer a diagnosis, an inability to learn independently in every setting, a preference for a particular craft, or a reason for the preference beyond the user’s words.",
+            "Store the timetable comment, the assistant’s reply, additional inferred facts, or a record outside this evaluation account."
+          ]
+        },
+        {
+          "id": "scene-07",
+          "order": 7,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "I’ve just put the clean mugs back in the cupboard. There were more on the drying rack than I expected.",
+          "expected": [
+            "Release a normal conversational reply about putting the mugs away.",
+            "The cupboard update and the number of mugs on the rack concern a finished household task; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Invent an enduring housekeeping preference or a significant incident from this routine update.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-08",
+          "order": 8,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "The lift is being tested this afternoon, so I’m using the stairs for this one trip down.",
+          "expected": [
+            "Release a normal conversational reply about using the stairs during the lift test.",
+            "The choice of stairs is explicitly limited to this trip while the lift is being tested; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Store a preference for stairs, an exercise routine, or a lasting access need.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-09",
+          "order": 9,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "Just a quick hello before I head out. I’ll have more time to chat later.",
+          "expected": [
+            "Release a normal conversational reply about the quick hello before heading out.",
+            "The greeting and intention to chat later concern immediate availability; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Treat a plan to chat later as a stable commitment or personal trait.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-10",
+          "order": 10,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "The rain’s stopped for the moment. I’m going to take the recycling downstairs before it starts again.",
+          "expected": [
+            "Release a normal conversational reply about taking the recycling down during a break in the rain.",
+            "This immediate errand and weather observation are short-lived; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Infer an enduring attitude toward weather or a recurring household schedule.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-11",
+          "order": 11,
+          "freshSession": true,
+          "objectiveIds": [
+            "reviewed_automatic_memory_capture"
+          ],
+          "propIds": [],
+          "line": "My parcel arrived a few minutes ago. I’ve taken it in from the doorstep and put the packaging in the recycling.",
+          "expected": [
+            "Release a normal conversational reply about bringing in the parcel and clearing its packaging.",
+            "Receiving this parcel and disposing of its packaging are routine updates; propose no nomination and make no durable-memory write.",
+            "Return the no_candidate review decision and produce no capture notice."
+          ],
+          "prohibited": [
+            "Invent shopping preferences, the parcel’s contents, or a personally significant event.",
+            "Write any durable memory from this Line or the assistant’s response, or claim that a memory was saved."
+          ]
+        },
+        {
+          "id": "scene-12",
+          "order": 12,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-01",
+            "prop-02"
+          ],
+          "line": "",
+          "expected": [
+            "Propose one duplicate link between prop-01 and prop-02: both state the same practice of carrying printed shelf measurements and the same reason for it, in identical words.",
+            "Keep both original records, their wording, and their source identities intact; the proposed relationship adds no new personal fact."
+          ],
+          "prohibited": [
+            "Treat the repeated account of two return trips as evidence of four separate trips or two different habits.",
+            "Rewrite or discard either original, introduce another source, or infer a broader inability to remember measurements."
+          ]
+        },
+        {
+          "id": "scene-13",
+          "order": 13,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-03",
+            "prop-04"
+          ],
+          "line": "",
+          "expected": [
+            "Propose one duplicate link between prop-03 and prop-04: both express a preference for receiving a work-meeting agenda the previous day in order to prepare questions.",
+            "Treat the differing wording as two expressions of the same durable memory, while preserving both originals and their source identities."
+          ],
+          "prohibited": [
+            "Invent separate agenda preferences, a change in the preferred notice period, or a new fact about meeting attendance or performance.",
+            "Infer anxiety, a workplace requirement, or a general inability to answer questions without advance preparation.",
+            "Rewrite or discard either original or include a source outside these two supplied records."
+          ]
+        },
+        {
+          "id": "scene-14",
+          "order": 14,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-05",
+            "prop-06",
+            "prop-07",
+            "prop-08"
+          ],
+          "line": "",
+          "expected": [
+            "Propose a derived summary supported only by prop-05, prop-06, and prop-07 about the evolving arrangement of Arden’s folding workbench at home.",
+            "Preserve the sequence: an untried plan for the living-room window in April 2026; a June trial that exposed difficulty seeing parts in direct afternoon sun and prompted a move to the hall alcove; and the working hall-alcove setup with a clamp lamp since August, still folded away when the drying rack is out.",
+            "Use each of the three workbench records for the part of that history it contributes. Exclude prop-08 because a faulty bus stop display does not describe or refine the home workbench arrangement.",
+            "Keep all four original records and their exact wording intact; the proposed summary remains distinct from those sources."
+          ],
+          "prohibited": [
+            "Present the living-room window as the current workbench location, claim it was tested in April, or describe the window and hall alcove as simultaneous current locations.",
+            "Claim that the clamp lamp solved the sunlight problem, that the alcove is permanently dedicated to repairs, or that the drying rack no longer constrains use of the workbench.",
+            "Include prop-08 in the action’s source identifiers or summary, or invent a connection between the bus display and the home workspace.",
+            "Replace the changing workbench fact with a broad household topic group, collapse the refinements into duplicate links, or rewrite any original source."
+          ]
+        },
+        {
+          "id": "scene-15",
+          "order": 15,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-09",
+            "prop-10",
+            "prop-11",
+            "prop-12"
+          ],
+          "line": "",
+          "expected": [
+            "Propose one topic group for practical arrangements around cycling to work, supported only by prop-09, prop-10, and prop-11.",
+            "Preserve three separate useful facts: the canal route avoids a busy junction, a shirt is kept at work for changing after the ride, and Sunday tyre checks prepare the bike for commuting. None updates or duplicates either of the others.",
+            "Exclude prop-12: posting public concert flyers on a canal-side noticeboard concerns event publicity, even though it shares the canal and arts-centre context with the commuting records.",
+            "Keep all four originals and their wording intact; the topic relationship does not combine the distinct facts into a replacement source."
+          ],
+          "prohibited": [
+            "Treat the three commuting arrangements as duplicate accounts or as revisions of one changing fact.",
+            "Include prop-12 in the proposed group or infer that Arden distributes flyers during the cycle commute.",
+            "Add an unsupported commute frequency, claim that the canal path is always safe, or invent a health or environmental motive for cycling.",
+            "Rewrite any original or cite a source outside the three justified commuting records for the proposed action."
+          ]
+        },
+        {
+          "id": "scene-16",
+          "order": 16,
+          "freshSession": true,
+          "objectiveIds": [
+            "bounded_memory_curation"
+          ],
+          "propIds": [
+            "prop-13",
+            "prop-14",
+            "prop-15"
+          ],
+          "line": "",
+          "expected": [
+            "Propose no curation: the shared word key has different meanings in these three independently understandable records.",
+            "Recognize that prop-13 concerns a spare physical door key, prop-14 uses key to mean the most prominent information on a concert flyer, and prop-15 concerns a piano-style key used to learn musical notes.",
+            "Leave all three originals unchanged. Shared wording alone supplies neither a duplicate relationship, one evolving fact, nor a useful topic connecting these records."
+          ],
+          "prohibited": [
+            "Link any pair as duplicates, create a combined summary, or group the records merely under keys, preparation, or another broad label unsupported by a useful relationship in the sources.",
+            "Infer that the sister helps with publicity or music practice, that the sticker serves a security purpose, or that the flyer refers to a keyboard performance.",
+            "Rewrite any source or introduce facts from outside the three supplied records."
+          ]
+        }
+      ],
+      "runs": [],
+      "adoptionRecorded": true
+    }
+  ]
+}
