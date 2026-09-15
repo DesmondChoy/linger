@@ -154,7 +154,15 @@ export function Architecture({ timeline, progress, pendingMessage }: Props) {
           </section>
         )}
 
-        {turn && <Inspector timeline={[turn]} />}
+        {/* Every turn stays listed; the mapped one is opened and marked. */}
+        <Inspector
+          timeline={timeline}
+          selectedTurnId={turn?.inspection.muse_turn.turn_id}
+          onSelectTurn={(turnId) => {
+            const position = timeline.findIndex((item) => item.inspection.muse_turn.turn_id === turnId)
+            if (position >= 0) { setSelectedTurn(position); setSelection(null) }
+          }}
+        />
       </div>
     </div>
   )

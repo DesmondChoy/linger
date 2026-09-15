@@ -850,3 +850,9 @@ textarea::placeholder {
 .standing-contract { display: grid; grid-template-columns: 5.5rem 1fr; gap: 0.2rem 0.7rem; margin: 0.4rem 0 0; font-size: 0.78rem; }
 .standing-contract dt { color: var(--muted); font-weight: 600; }
 .standing-contract dd { margin: 0; color: var(--muted); line-height: 1.5; }
+
+/* The turn the map is currently drawing, so a long session stays navigable. */
+.process-event.is-mapped > .event-card {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}

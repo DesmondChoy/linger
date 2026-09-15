@@ -121,6 +121,21 @@ describe('Architecture panel', () => {
     expect(html).not.toContain('role="tab"')
   })
 
+  it('keeps every turn listed while the map draws one of them', () => {
+    const first = turn()
+    const second = turn()
+    second.inspection.muse_turn.turn_id = 'turn-2'
+    second.inspection.muse_turn.user_message = 'A second thing I noticed.'
+    const html = renderToStaticMarkup(
+      <Architecture timeline={[first, second]} progress={[]} pendingMessage={null} />,
+    )
+
+    expect(html).toContain('I finished chapter four last night.')
+    expect(html).toContain('A second thing I noticed.')
+    // The mapped turn is the one opened and marked.
+    expect(html).toContain('is-mapped')
+  })
+
   it('renders every component a completed turn reached', () => {
     const html = renderToStaticMarkup(
       <Architecture timeline={[turn()]} progress={[]} pendingMessage={null} />,
