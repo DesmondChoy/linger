@@ -39,6 +39,7 @@ from src.linger.agents.serendipity.tools import (
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
+from src.linger.orchestration.book_evidence import JudgedBookEvidence
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     connection_inspections,
@@ -1239,10 +1240,6 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class SerendipityBudgetTests(unittest.IsolatedAsyncioTestCase):
     """The tool budget must cover the citation flow the agent is required to use."""
 
@@ -1252,54 +1249,77 @@ class SerendipityBudgetTests(unittest.IsolatedAsyncioTestCase):
         # one web search and an open per result aborts the run mid-flight, which
         # reaches the reader as an unexplained safe decline.
         calls: list[str] = []
+        urls = [f"https://example.org/{index}" for index in range(WEB_SEARCH_RESULTS)]
 
-        class OneHitExaClient:
+        class FakeExaClient:
             async def search(self, *_args, **_kwargs):
                 calls.append("web_search")
                 return SimpleNamespace(
                     results=[
-                        SimpleNamespace(url=f"https://example.org/{index}", title="t", text="body")
-                        for index in range(WEB_SEARCH_RESULTS)
+                        SimpleNamespace(
+                            url=url, title="Identity", published_date=None,
+                            author=None, highlights=["A public search lead."],
+                        )
+                        for url in urls
                     ],
                     output=None,
                 )
+
+            async def get_contents(self, url, **_kwargs):
+                calls.append(url)
+                return SimpleNamespace(results=[SimpleNamespace(
+                    url=url, title="Identity", published_date=None,
+                    author=None, text="A complete public page about identity.",
+                )])
 
         def respond(messages, _info: AgentInfo) -> ModelResponse:
             issued = len([part for message in messages
                           for part in getattr(message, "parts", [])
                           if isinstance(part, ToolCallPart)])
             if issued == 0:
-                return ModelResponse(parts=[ToolCallPart("search_librarian", {"query": "identity"})])
+                return ModelResponse(parts=[ToolCallPart("search_librarian", {})])
             if issued == 1:
                 return ModelResponse(parts=[ToolCallPart("web_search", {"query": "identity philosophy"})])
             if issued <= WEB_SEARCH_RESULTS + 1:
-                calls.append("get_page")
                 return ModelResponse(parts=[ToolCallPart(
                     "get_page", {"url": f"https://example.org/{issued - 2}"})])
-            return ModelResponse(parts=[ToolCallPart("final_result_ConnectionDecline", {
-                "status": "decline", "reason": "insufficient_evidence",
-                "safe_next_step": "Ask the reader for a sharper cue.", "shortlist": [],
-            })])
+            return ModelResponse(parts=[ToolCallPart(
+                "final_result_ConnectionDecline",
+                ConnectionDecline(
+                    reason="insufficient_evidence",
+                    safe_next_step="Ask the reader for a sharper cue.",
+                ).model_dump(mode="json"),
+            )])
 
         active_task = task(allowed_sources=("book_corpus", "web"))
         agent = build_serendipity_agent(FunctionModel(respond))
         settings = Settings(_env_file=None, linger_model="google:gemini-2.5-flash",
                             google_api_key="test-key")
+        book_retrieval = AsyncMock(return_value=JudgedBookEvidence(
+            items=(),
+            judgement=EvidenceStrengthDecision(
+                evidence_strength="none", strength_reason="Offline budget fixture.",
+            ),
+        ))
         with patch("src.linger.orchestration.connection.serendipity_agent", agent), \
              patch("src.linger.orchestration.connection._web_capability",
-                   return_value=GuardedExaSearch(client=OneHitExaClient())), \
+                   return_value=GuardedExaSearch(client=FakeExaClient())), \
+             patch("src.linger.agents.serendipity.tools.retrieve_book_evidence", book_retrieval), \
              patch("apps.backend.telemetry.get_settings", return_value=settings):
             try:
-                await _agent_explorer(active_task, librarian=Librarian())
+                result = await _agent_explorer(active_task, librarian=Librarian())
             except UsageLimitExceeded as exceeded:
                 self.fail(
                     "the mandated web citation flow exhausted the tool budget "
                     f"({SERENDIPITY_TOOL_CALL_LIMIT} calls): {exceeded}"
                 )
-            except Exception:
-                # Any other failure is about fixtures, not the budget under test.
-                pass
 
+        self.assertIsInstance(result.response, ConnectionDecline)
+        book_retrieval.assert_awaited_once()
+        self.assertEqual(active_task.cue, book_retrieval.await_args.args[0])
+        self.assertEqual(["web_search", *urls], calls)
+        self.assertEqual(urls, [item.evidence_id for item in result.opened_web_evidence])
+        self.assertEqual("no_evidence", result.searches[0].outcome)
         self.assertGreaterEqual(
             SERENDIPITY_TOOL_CALL_LIMIT, 1 + 1 + WEB_SEARCH_RESULTS,
             "budget must cover a book search, a web search and an open per result",
@@ -1308,3 +1328,7 @@ class SerendipityBudgetTests(unittest.IsolatedAsyncioTestCase):
             SERENDIPITY_REQUEST_LIMIT, SERENDIPITY_TOOL_CALL_LIMIT,
             "each tool result costs a further model request",
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
