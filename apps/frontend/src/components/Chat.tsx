@@ -12,7 +12,6 @@ import { Architecture } from './architecture/Architecture'
 import { SavedEvaluation } from './architecture/SavedEvaluation'
 import { Composer, type ComposerHandle } from './Composer'
 import { InputTray } from './InputTray'
-import { Inspector } from './Inspector'
 import { MessageList } from './MessageList'
 import { Reader } from './Reader'
 import { playableScenarios } from '@linger/architecture-map'
@@ -26,7 +25,6 @@ export function Chat() {
   const [timeline, setTimeline] = useState<TurnRecord[]>([])
   const [surface, setSurface] = useState<Surface>('live')
   const [libraryOpen, setLibraryOpen] = useState(false)
-  const [detailOpen, setDetailOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [progress, setProgress] = useState<ProgressEvent[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -146,19 +144,9 @@ export function Chat() {
       </section>
 
       <section className="analysis" aria-label="How this works">
-        {surface === 'live' ? (
-          <>
-            <div className="analysis-tabs" role="tablist" aria-label="Detail level">
-              <button type="button" role="tab" aria-selected={!detailOpen} onClick={() => setDetailOpen(false)}>The map</button>
-              <button type="button" role="tab" aria-selected={detailOpen} onClick={() => setDetailOpen(true)}>Full record</button>
-            </div>
-            {detailOpen
-              ? <Inspector timeline={timeline} />
-              : <Architecture timeline={timeline} progress={progress} pendingMessage={pendingMessage} />}
-          </>
-        ) : (
-          <SavedEvaluation onClose={() => setSurface('live')} />
-        )}
+        {surface === 'live'
+          ? <Architecture timeline={timeline} progress={progress} pendingMessage={pendingMessage} />
+          : <SavedEvaluation onClose={() => setSurface('live')} />}
       </section>
 
       {libraryOpen && (

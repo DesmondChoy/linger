@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Graph, Icon, Inspector } from '@linger/architecture-map'
-import type { InspectorSelection } from '@linger/architecture-map'
+import { Graph, Icon } from '@linger/architecture-map'
+import type { ComponentId } from '@linger/architecture-map'
 import type { ProgressEvent, TurnRecord } from '../../types'
 import { formatMachineLabel } from '../formatMachineLabel'
+import { Inspector } from '../Inspector'
 import { buildLiveTurn } from './liveScene'
+import { detailFor, type ComponentDetail } from './turnDetail'
 
 type Props = {
   timeline: TurnRecord[]
@@ -12,12 +14,53 @@ type Props = {
   pendingMessage: string | null
 }
 
-function LiveTurnView({ timeline, progress, pendingMessage }: Props) {
-  const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
-  const [selection, setSelection] = useState<InspectorSelection | null>(null)
+type Selection = { kind: 'node'; id: ComponentId } | { kind: 'edge'; id: string }
 
-  // A running turn always wins the view; otherwise show the chosen completed
-  // turn, defaulting to the most recent one.
+function DetailPanel({ detail, onClear }: { detail: ComponentDetail; onClear: () => void }) {
+  return (
+    <section className="component-detail" aria-live="polite">
+      <div className="detail-top">
+        <div>
+          <p className="eyebrow">{detail.role}</p>
+          <h3>{detail.title}</h3>
+        </div>
+        <button type="button" className="quiet-button" onClick={onClear}>Close</button>
+      </div>
+      <p className="detail-did">{detail.did}</p>
+
+      {detail.records.map((record) => (
+        <div className="detail-record" key={record.label}>
+          <p className="detail-record-label">{record.label}</p>
+          <pre>{typeof record.value === 'string' ? record.value : JSON.stringify(record.value, null, 2)}</pre>
+        </div>
+      ))}
+      {detail.records.length === 0 && (
+        <p className="muted">This turn recorded no data for this handoff.</p>
+      )}
+
+      <details className="raw-detail">
+        <summary>What this component is, in general</summary>
+        <dl className="standing-contract">
+          {detail.receives.length > 0 && <><dt>Receives</dt><dd>{detail.receives.join(' · ')}</dd></>}
+          {detail.returns.length > 0 && <><dt>Returns</dt><dd>{detail.returns.join(' · ')}</dd></>}
+          <dt>Authority</dt><dd>{detail.authority}</dd>
+        </dl>
+      </details>
+    </section>
+  )
+}
+
+/**
+ * The collaboration map and the turn's record, on one surface.
+ *
+ * The map stays put while the record scrolls beneath it, and selecting a
+ * component replaces the record's head with that component's data for THIS
+ * turn — the contract it actually carried, not a description of its role.
+ */
+export function Architecture({ timeline, progress, pendingMessage }: Props) {
+  const [selectedTurn, setSelectedTurn] = useState<number | null>(null)
+  const [selection, setSelection] = useState<Selection | null>(null)
+
   const live = pendingMessage !== null
   const index = live ? null : Math.min(selectedTurn ?? timeline.length - 1, timeline.length - 1)
   const turn = index === null || index < 0 ? undefined : timeline[index]
@@ -28,80 +71,91 @@ function LiveTurnView({ timeline, progress, pendingMessage }: Props) {
     turn,
   }), [live, progress, pendingMessage, turn])
 
+  const detail = useMemo(
+    () => (selection && turn ? detailFor(selection, scene, turn) : null),
+    [selection, scene, turn],
+  )
+
   if (!live && !turn) {
-    return <div className="live-empty">
-      <Icon name="serendipity" size={40} />
-      <h3>No turn to map yet</h3>
-      <p>
-        Send a message. The map then rebuilds that turn from the server's content-free progress
-        stream, showing which agents ran, which sources they were allowed to reach, and where the
-        reply was released.
-      </p>
-      <p className="subtle">Or open a saved evaluation from the tray to read a run that already happened.</p>
-    </div>
+    return (
+      <div className="architecture-map architecture-panel">
+        <div className="live-empty">
+          <Icon name="serendipity" size={40} />
+          <h3>No turn to map yet</h3>
+          <p>
+            Send a message. The map then rebuilds that turn from the server's content-free progress
+            stream, showing which agents ran, which sources they were allowed to reach, and where the
+            reply was released.
+          </p>
+          <p className="subtle">Or open a saved evaluation from the tray to read a run that already happened.</p>
+        </div>
+      </div>
+    )
   }
 
-  return <>
-    <div className="live-bar">
-      <span className={`live-status ${running ? 'is-running' : 'is-settled'}`}>
-        <span className="live-dot" />
-        {running ? 'Turn in progress' : 'Observed run'}
-      </span>
-      {!live && timeline.length > 1 && <label className="turn-picker">
-        Turn
-        <select
-          value={index ?? 0}
-          onChange={(event) => setSelectedTurn(Number(event.target.value))}
-        >
-          {timeline.map((item, position) => (
-            <option key={item.inspection.muse_turn.turn_id} value={position}>
-              {String(position + 1).padStart(2, '0')} · {item.inspection.muse_turn.user_message.slice(0, 44)}
-            </option>
-          ))}
-        </select>
-      </label>}
+  return (
+    <div className="architecture-map architecture-panel">
+      <div className="map-sticky">
+        <div className="live-bar">
+          <span className={`live-status ${running ? 'is-running' : 'is-settled'}`}>
+            <span className="live-dot" />
+            {running ? 'Turn in progress' : 'Observed run'}
+          </span>
+          {!live && timeline.length > 1 && (
+            <label className="turn-picker">
+              Turn
+              <select
+                value={index ?? 0}
+                onChange={(event) => { setSelectedTurn(Number(event.target.value)); setSelection(null) }}
+              >
+                {timeline.map((item, position) => (
+                  <option key={item.inspection.muse_turn.turn_id} value={position}>
+                    {String(position + 1).padStart(2, '0')} · {item.inspection.muse_turn.user_message.slice(0, 44)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
+
+        <div className="scene-caption"><p>{scene.summary}</p></div>
+        <div className="map-stage">
+          <Graph
+            key={scene.id}
+            scene={scene}
+            step={active}
+            onSelect={(value) => {
+              if (value.kind === 'node' || value.kind === 'edge') setSelection(value as Selection)
+            }}
+            description={running ? 'this turn as it runs' : 'observed route for this turn'}
+          />
+        </div>
+      </div>
+
+      <div className="analysis-detail">
+        {detail ? (
+          <DetailPanel detail={detail} onClear={() => setSelection(null)} />
+        ) : (
+          <section className="live-activity" aria-label="Components this turn used">
+            <h4>What ran, in order</h4>
+            <ul>
+              {activity.map((item) => (
+                <li key={item.id} className={item.status}>
+                  <b>{item.id.replaceAll('_', ' ')}</b>
+                  <span className={`trace-status ${item.status}`}>{formatMachineLabel(item.status)}</span>
+                  <small>{item.stages.map((stage) => formatMachineLabel(stage.stage)).join(' · ')}</small>
+                </li>
+              ))}
+              {activity.length === 0 && <li className="running"><b>waiting</b><small>No stage has been reported yet.</small></li>}
+            </ul>
+            <p className="muted">
+              Click any component or connection above to see the contract it carried on this turn.
+            </p>
+          </section>
+        )}
+
+        {turn && <Inspector timeline={[turn]} />}
+      </div>
     </div>
-
-    <div className="scene-caption" aria-live="polite"><p>{scene.summary}</p></div>
-    <div className="map-stage">
-      <Graph
-        key={scene.id}
-        scene={scene}
-        step={active}
-        onSelect={setSelection}
-        description={running ? 'this turn as it runs' : 'observed route for this turn'}
-      />
-    </div>
-
-    <section className="live-activity" aria-label="Components this turn used">
-      <h4>What ran, in order</h4>
-      <ul>
-        {activity.map((item) => (
-          <li key={item.id} className={item.status}>
-            <b>{item.id.replaceAll('_', ' ')}</b>
-            <span className={`trace-status ${item.status}`}>{formatMachineLabel(item.status)}</span>
-            <small>{item.stages.map((stage) => formatMachineLabel(stage.stage)).join(' · ')}</small>
-          </li>
-        ))}
-        {activity.length === 0 && <li className="running"><b>waiting</b><small>No stage has been reported yet.</small></li>}
-      </ul>
-      <p className="muted">
-        Click any component or connection for its role, its bounded handoff, and who holds authority.
-      </p>
-    </section>
-
-    <Inspector selection={selection} scene={scene} onClose={() => setSelection(null)} />
-  </>
-}
-
-/**
- * The collaboration map beside the chat, rebuilt from the turn that just ran.
- *
- * Curated scenario browsing lives in the standalone evaluation explorer; this
- * surface only ever shows something that actually happened.
- */
-export function Architecture(props: Props) {
-  return <div className="architecture-map architecture-panel">
-    <LiveTurnView {...props} />
-  </div>
+  )
 }
