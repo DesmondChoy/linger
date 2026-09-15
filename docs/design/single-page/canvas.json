@@ -1,0 +1,132 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Annotated map"
+    },
+    {
+      "id": "page-2",
+      "name": "Explorations"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "F · Try a line",
+      "page": "page-1"
+    },
+    {
+      "file": "Scenario.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "F · Saved evaluation",
+      "page": "page-1"
+    },
+    {
+      "file": "TraceRail.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A · Trace rail",
+      "page": "page-2"
+    },
+    {
+      "file": "DirectionB.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "B · Stage",
+      "page": "page-2"
+    },
+    {
+      "file": "DirectionC.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "C · Inline trace",
+      "page": "page-2"
+    },
+    {
+      "file": "DirectionD.dc.html",
+      "x": 0,
+      "y": 1200,
+      "w": 1440,
+      "h": 900,
+      "title": "D · Console",
+      "page": "page-2"
+    },
+    {
+      "file": "DirectionE.dc.html",
+      "x": 1560,
+      "y": 1200,
+      "w": 1440,
+      "h": 900,
+      "title": "E · Sequence lanes",
+      "page": "page-2"
+    },
+    {
+      "file": "DirectionG.dc.html",
+      "x": 3120,
+      "y": 1200,
+      "w": 1440,
+      "h": 900,
+      "title": "G · Duration lanes",
+      "page": "page-2"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -470,
+      "w": 760,
+      "page": "page-1",
+      "text": "F · Annotated map — chosen\n\nOne page: chat left, the map right with the log pushed into it. Node footers carry status and verdict, connectors carry what crossed them, and a selected connector opens its contract pinned on the canvas.\n\nThe two artboards are the two things a professor can do, and they make different claims: one is live and unjudged, the other is archived and judged."
+    },
+    {
+      "id": "note-try",
+      "x": 820,
+      "y": -470,
+      "w": 620,
+      "page": "page-1",
+      "text": "Tier 1 · Try a line\n\nPick a book, then a chip labelled by the BEHAVIOUR it provokes, not by its text — a professor is choosing something to watch the map do.\n\nThe chip FILLS the composer as real, editable text with the caret at the end. It does not send.\n\nNothing is seeded here, but automatic capture is live: the session grows its own memories, so the capture branch appears in the map once a turn commits one and the save notice lands in the thread. Turn one is a bare spine; the memory tier shows up later.\n\nLive and unjudged — run it twice and the wording differs."
+    },
+    {
+      "id": "note-scene",
+      "x": 1560,
+      "y": -470,
+      "w": 620,
+      "page": "page-1",
+      "text": "Tier 2 · Saved evaluation\n\nA live run, not a recording: the harness calls the same run_chat_turn boundary the app uses, with real provider calls. \"Replay\" means re-running a FIXED SCENE, not replaying a saved answer.\n\nThe persona and the seeded memory are now shown in full, because the memory is the hinge of the scene rather than background colour. How far Maya has read is deliberately NOT given — the backstory says her place is recorded through what she brings up — so the system has to infer a chapter ceiling from that memory plus her message. That inference is what is being tested.\n\nThe 4/4 builds ran the chain: read the memory → settle on chapter 5 → open the book → quote the line. This 2/4 build never consulted the memory, so the whole chain is drawn as a ghost and the failure is legible in one glance.\n\nThe nine runs are SEVEN DIFFERENT BUILDS (distinct system_variant, same model), each named for the change it tested — a record of the system being fixed, not one build being flaky. No timestamps exist, so the strip is grouped by score and says so."
+    },
+    {
+      "id": "note-vocab",
+      "x": 820,
+      "y": 960,
+      "w": 620,
+      "page": "page-1",
+      "text": "Wording taken from the repo\n\nThe records already refuse \"expected result\": ground_truth_status \"adopted\", judgments_passed / judgments_total, and interpretation_cautions like\n\n  \"one successful run does not establish\n   consistent behavior across repeated runs\"\n\nFailure codes are shown verbatim too — required_grounding_evidence_not_retrieved, exact_quotation_missing_or_unreleased — because they are the project's own vocabulary, not a restatement of it."
+    },
+    {
+      "id": "note-explorations",
+      "x": 0,
+      "y": -260,
+      "w": 760,
+      "page": "page-2",
+      "text": "Not chosen — kept for reference\n\nA–E and G, as first drawn. A (trace rail) is kept per your note; F was promoted to the Annotated map page and evolved there, so its original sketch is gone rather than duplicated."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

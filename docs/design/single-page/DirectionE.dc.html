@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11.2px; text-transform: uppercase; letter-spacing: .03em; }
+    .lane { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed #c3ced3; }
+    .row { position: relative; height: 54px; }
+    .line { position: absolute; top: 31px; height: 0; border-top: 1.5px solid #53637b; }
+    .head { position: absolute; top: 27px; width: 0; height: 0; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+    .lbl { position: absolute; top: 9px; padding: 0 6px; background: #f2f6f8; color: #26354a; font-size: 11.4px; white-space: nowrap; }
+    .tm { position: absolute; left: 0; top: 24px; width: 40px; text-align: right; color: #9aa7ad; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .cap { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 92px; text-align: center; }
+    .cn { color: #172331; font-size: 11.6px; font-weight: 620; letter-spacing: -.2px; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 22px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: center; gap: 11.5px">
+      <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+      <div>
+        <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+        <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7.2px">
+      <button style="display: inline-flex; align-items: center; gap: 7px; padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg>
+        Library
+      </button>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <!-- Conversation -->
+    <section style="display: flex; flex: 0 0 580px; width: 580px; flex-direction: column; padding: 0 20px 20px; background: #ffffff; border-right: 1px solid #d2dde1">
+      <div style="display: flex; flex: 1; flex-direction: column; gap: 11px; padding: 20px 0; overflow: hidden">
+        <div style="max-width: 84%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14px">I finished the chapter where Alice meets the Caterpillar.</div>
+        <div style="max-width: 84%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14px">It lands differently when you&rsquo;ve just been asked to explain yourself, doesn&rsquo;t it.</div>
+        <div style="max-width: 84%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14px">I&rsquo;ve been introducing myself with my old job title for six months.</div>
+        <div style="max-width: 84%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14px">That&rsquo;s a long time to keep handing someone a description you&rsquo;ve outgrown. The Caterpillar keeps pressing because Alice&rsquo;s answer keeps shifting &mdash; the book treats that instability as the honest part.</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 8px; padding: 8px; border: 1px solid #d2dde1; border-radius: 14.4px">
+        <span style="flex: 1; padding: 6.7px; color: #9aa7ad; font-size: 14px">Say what stayed with you&hellip;</span>
+        <button style="padding: 9.3px 14.4px; border: 1px solid #4d5796; border-radius: 8.8px; background: #4d5796; color: #fff; font: inherit; font-size: 13px">Send</button>
+      </div>
+    </section>
+
+    <!-- The diagram IS the log -->
+    <aside style="display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 16px 20px; background: #ffffff">
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+        <div>
+          <p class="ey">Turn 02</p>
+          <h2 style="margin: 2px 0 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; font-size: 17.5px; letter-spacing: -.01em">Every handoff, in order</h2>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4.5px 9px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 11.8px; color: #64747c">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #4d5796"></span>Released &middot; 6.4s
+        </span>
+      </div>
+
+      <div style="margin-top: 12px; padding: 14px 16px 16px; border: 1px solid #d1dce4; border-radius: 14px; background: #f2f6f8">
+
+        <!-- lane captions -->
+        <div style="display: flex; gap: 0; padding-left: 44px">
+          <div class="cap" style="width: 129px"><span style="color: #33435a"><svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-8 5V8a3 3 0 0 1 2-3Z"/><path d="M10 11h12M10 16h8"/></svg></span><span class="cn">You</span></div>
+          <div class="cap" style="width: 129px"><span style="color: #655ba4"><svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8l10-4Z"/><path d="M12 16h8M16 12v8"/></svg></span><span class="cn">Preflight</span></div>
+          <div class="cap" style="width: 129px"><span style="color: #4673d8"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m6 25 3-9L24 3c3-2 6 1 4 4L15 23l-9 2Z"/><path d="m9 16 6 7M7 25l-3 3M17 10l5 5"/></svg></span><span class="cn">Muse</span></div>
+          <div class="cap" style="width: 129px"><span style="color: #078c9a"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg></span><span class="cn">Librarian</span></div>
+          <div class="cap" style="width: 129px"><span style="color: #655ba4"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-5 11-11 14C10 26 5 22 5 15V7l11-4Z"/><path d="M12 12h8M12 17h8"/></svg></span><span class="cn">Provenance</span></div>
+          <div class="cap" style="width: 129px"><span style="color: #26354a"><svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M11 11h10M11 16h6M11 21h10"/></svg></span><span class="cn">Release</span></div>
+        </div>
+
+        <!-- message rows: each arrow is one log line -->
+        <div style="position: relative; margin-top: 10px">
+          <div class="lane" style="left: 109px"></div>
+          <div class="lane" style="left: 238px"></div>
+          <div class="lane" style="left: 367px"></div>
+          <div class="lane" style="left: 496px"></div>
+          <div class="lane" style="left: 625px"></div>
+          <div class="lane" style="left: 754px"></div>
+
+          <div class="row">
+            <span class="tm">0.0s</span>
+            <span class="line" style="left: 109px; width: 129px"></span>
+            <span class="head" style="left: 232px; border-left: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 128px">Current Line</span>
+          </div>
+
+          <div class="row">
+            <span class="tm">0.4s</span>
+            <span class="line" style="left: 238px; width: 129px"></span>
+            <span class="head" style="left: 361px; border-left: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 243px">continue &middot; bounded MuseDraftInput</span>
+          </div>
+
+          <div class="row">
+            <span class="tm">2.5s</span>
+            <span class="line" style="left: 367px; width: 129px"></span>
+            <span class="head" style="left: 490px; border-left: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 372px">query &middot; ch. 5 ceiling</span>
+          </div>
+
+          <!-- selected: the arrow carries its own payload, opened in place -->
+          <div class="row" style="height: 128px">
+            <span class="tm" style="color: #4d5796">3.7s</span>
+            <span class="line" style="left: 367px; width: 129px; border-top: 2px solid #4d5796"></span>
+            <span class="head" style="left: 367px; border-right: 6px solid #4d5796"></span>
+            <span class="lbl" style="left: 372px; color: #4d5796; font-weight: 600">3 evidence records</span>
+            <div style="position: absolute; top: 46px; left: 238px; width: 430px; padding: 11px 13px; border: 1px solid #4d5796; border-radius: 10px; background: #ffffff; box-shadow: 0 4px 14px #25365014">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+                <b style="font-size: 12.4px; font-weight: 600">Librarian &rarr; Muse</b>
+                <span class="st" style="color: #4d5796">complete &middot; 1.2s</span>
+              </div>
+              <div style="display: grid; gap: 3px; margin-top: 7px; color: #415168; font-size: 11.8px; line-height: 1.45">
+                <span>&bull; Exact text, version and evidence IDs</span>
+                <span>&bull; Typed reading boundary &mdash; chapter 5, main part</span>
+                <span>&bull; Cannot widen account scope or the permitted ceiling</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="tm">3.9s</span>
+            <span class="line" style="left: 367px; width: 258px"></span>
+            <span class="head" style="left: 619px; border-left: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 400px">candidate + evidence declarations</span>
+          </div>
+
+          <div class="row">
+            <span class="tm">6.0s</span>
+            <span class="line" style="left: 625px; width: 129px"></span>
+            <span class="head" style="left: 748px; border-left: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 630px">revise &rarr; pass &middot; 1 finding</span>
+          </div>
+
+          <div class="row">
+            <span class="tm">6.4s</span>
+            <span class="line" style="left: 109px; width: 645px"></span>
+            <span class="head" style="left: 109px; border-right: 6px solid #53637b"></span>
+            <span class="lbl" style="left: 330px">released reply</span>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin: 12px 0 0; color: #9aa7ad; font-size: 11.4px; line-height: 1.5; font-variant-numeric: tabular-nums">trace 4f2ae9c1&hellip; &middot; stage metadata only &mdash; prompts, drafts and evidence never enter this stream</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

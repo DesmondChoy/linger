@@ -1,0 +1,12 @@
+{
+  "name": "@linger/architecture-map",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Linger collaboration map: component registry, graph rendering, and the curated scenario explorer.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": {
+    "react": "^19.2.8"
+  }
+}

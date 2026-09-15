@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11.8px; text-transform: uppercase; letter-spacing: .03em; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <!-- Header -->
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 22px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: center; gap: 11.5px">
+      <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+      <div>
+        <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+        <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7.2px">
+      <button style="display: inline-flex; align-items: center; gap: 7px; padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg>
+        Library
+      </button>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <!-- Conversation -->
+    <section style="display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 0 21.6px 21.6px; background: #ffffff">
+      <div style="display: flex; flex: 1; flex-direction: column; gap: 12.8px; width: 100%; max-width: 736px; margin: 0 auto; padding: 24px 0; overflow: hidden">
+
+        <div style="max-width: 80%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I finished the chapter where Alice meets the Caterpillar. That &ldquo;Who are you?&rdquo; question got under my skin more than I expected.</div>
+
+        <div style="max-width: 80%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14.5px">It lands differently when you&rsquo;ve just been asked to explain yourself, doesn&rsquo;t it. Alice answers that she hardly knows &mdash; she&rsquo;s been changed so many times since morning. What was it about the question that caught you?</div>
+
+        <div style="max-width: 80%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I think because I&rsquo;ve been introducing myself with my old job title for six months now.</div>
+
+        <div style="max-width: 80%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14.5px">That&rsquo;s a long time to keep handing someone a description you&rsquo;ve outgrown. The Caterpillar keeps pressing because Alice&rsquo;s answer keeps shifting &mdash; the book treats that instability as the honest part, not the failure.</div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; align-self: flex-start; max-width: 80%; margin-top: 2px; padding: 8.8px 11.2px; border: 1px solid #d2dde1; border-radius: 11.2px; background: #ffffff">
+          <span style="color: #64747c; font-size: 12.6px">Saved to your memories.</span>
+          <span class="st" style="color: #4d5796">exact span</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: flex-end; gap: 8px; width: 100%; max-width: 736px; margin: 0 auto; padding: 8px; border: 1px solid #d2dde1; border-radius: 14.4px; background: #ffffff">
+        <span style="flex: 1; padding: 6.7px; color: #9aa7ad; font-size: 14.5px">Say what stayed with you&hellip;</span>
+        <button style="padding: 9.3px 14.4px; border: 1px solid #4d5796; border-radius: 8.8px; background: #4d5796; color: #fff; font: inherit; font-size: 13px">Send</button>
+      </div>
+    </section>
+
+    <!-- Trace rail -->
+    <aside style="display: flex; flex-direction: column; flex: 0 0 416px; width: 416px; min-height: 0; padding: 18px 20px; background: #ffffff; border-left: 1px solid #d2dde1">
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+        <div>
+          <p class="ey">Turn 02</p>
+          <h2 style="margin: 2px 0 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; font-size: 17.5px; letter-spacing: -.01em">What just happened</h2>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4.5px 9px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 11.8px; color: #64747c">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #4d5796"></span>Released &middot; 6.4s
+        </span>
+      </div>
+
+      <p style="margin: 10px 0 0; color: #64747c; font-size: 12.4px; line-height: 1.55">Muse asked Librarian for the passage, Provenance checked the draft against it, and the application released the reply.</p>
+
+      <!-- Vertical trace -->
+      <div style="display: grid; gap: 0; margin-top: 16px">
+
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px">
+          <div style="display: grid; justify-items: center; gap: 4px">
+            <span style="width: 9px; height: 9px; border-radius: 50%; background: #655ba4"></span>
+            <span style="width: 1px; flex: 1; min-height: 26px; background: #d2dde1"></span>
+          </div>
+          <div style="padding-bottom: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <b style="font-size: 13.4px; font-weight: 600">Provenance</b>
+              <span style="color: #64747c; font-size: 11.8px; font-variant-numeric: tabular-nums">0.4s</span>
+            </div>
+            <div style="color: #64747c; font-size: 12.2px">Emotional boundary preflight &middot; <span class="st" style="color: #4d5796">continue</span></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px">
+          <div style="display: grid; justify-items: center; gap: 4px">
+            <span style="width: 9px; height: 9px; border-radius: 50%; background: #4673d8"></span>
+            <span style="width: 1px; flex: 1; min-height: 26px; background: #d2dde1"></span>
+          </div>
+          <div style="padding-bottom: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <b style="font-size: 13.4px; font-weight: 600">Muse</b>
+              <span style="color: #64747c; font-size: 11.8px; font-variant-numeric: tabular-nums">2.1s</span>
+            </div>
+            <div style="color: #64747c; font-size: 12.2px">Candidate generation</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px">
+          <div style="display: grid; justify-items: center; gap: 4px">
+            <span style="width: 9px; height: 9px; border-radius: 50%; background: #078c9a"></span>
+            <span style="width: 1px; flex: 1; min-height: 40px; background: #d2dde1"></span>
+          </div>
+          <div style="padding-bottom: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <b style="font-size: 13.4px; font-weight: 600">Librarian</b>
+              <span style="color: #64747c; font-size: 11.8px; font-variant-numeric: tabular-nums">1.2s</span>
+            </div>
+            <div style="color: #64747c; font-size: 12.2px">Evidence review</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 8px; border: 1px solid #d2dde1; border-radius: 6px; background: #e9eff1; font-size: 11.6px; color: #415168">
+              <svg width="13" height="13" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="22" height="26" rx="3"/><path d="M10 3v26M15 10h7M15 15h7"/></svg>
+              Book corpus &middot; ch. 5 ceiling
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px">
+          <div style="display: grid; justify-items: center; gap: 4px">
+            <span style="width: 9px; height: 9px; border-radius: 50%; background: #655ba4"></span>
+            <span style="width: 1px; flex: 1; min-height: 26px; background: #d2dde1"></span>
+          </div>
+          <div style="padding-bottom: 12px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <b style="font-size: 13.4px; font-weight: 600">Provenance</b>
+              <span style="color: #64747c; font-size: 11.8px; font-variant-numeric: tabular-nums">2.3s</span>
+            </div>
+            <div style="color: #64747c; font-size: 12.2px">Release review &middot; <span class="st" style="color: #4d5796">pass</span></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 26px 1fr; gap: 10px">
+          <div style="display: grid; justify-items: center">
+            <span style="width: 9px; height: 9px; border-radius: 50%; border: 2px solid #4d5796; background: #fff"></span>
+          </div>
+          <div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <b style="font-size: 13.4px; font-weight: 600">Release checks</b>
+              <span style="color: #64747c; font-size: 11.8px; font-variant-numeric: tabular-nums">0.4s</span>
+            </div>
+            <div style="color: #64747c; font-size: 12.2px">Deterministic validation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Release decision -->
+      <div style="margin-top: 18px; padding: 12px 13px; border: 1px solid #d2dde1; border-radius: 11.2px; background: #ffffff">
+        <p class="ey">Release decision</p>
+        <p style="margin: 5px 0 0; font-size: 13px; line-height: 1.5">Provenance approved the Muse candidate. One finding was corrected before release.</p>
+        <div style="display: grid; grid-template-columns: minmax(0,11rem) 1fr; gap: 9.6px; align-items: baseline; margin-top: 9px; padding: 7.2px 9.6px; border-left: 3px solid #d2dde1; border-radius: 0 6.4px 6.4px 0; background: #e9eff1">
+          <span class="st" style="color: #64747c">unresolved evidence</span>
+          <span style="color: #64747c; font-size: 12.2px">Cited a passage the turn had not retrieved.</span>
+        </div>
+      </div>
+
+      <!-- Contracts -->
+      <div style="display: grid; gap: 1px; margin-top: 14px; border: 1px solid #d2dde1; border-radius: 10.4px; overflow: hidden; background: #d2dde1">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 9.6px 12px; background: #ffffff; color: #415168; font-size: 12.4px">MuseTurn contract<svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="#9aa7ad" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m12 7 9 9-9 9"/></svg></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 9.6px 12px; background: #ffffff; color: #415168; font-size: 12.4px">Context resolution<svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="#9aa7ad" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m12 7 9 9-9 9"/></svg></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 9.6px 12px; background: #ffffff; color: #415168; font-size: 12.4px">Librarian grounding calls<svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="#9aa7ad" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m12 7 9 9-9 9"/></svg></div>
+      </div>
+
+      <p style="margin: 12px 0 0; color: #9aa7ad; font-size: 11.4px; line-height: 1.5; font-variant-numeric: tabular-nums">trace 4f2ae9c1&hellip; &middot; stage metadata only</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

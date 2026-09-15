@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+    .node { display: flex; flex-direction: column; align-items: center; width: 112px; padding: 10px 5px 0; background: #fff; border: 1px solid #ccd5e1; border-radius: 9px; box-shadow: 0 2px 3px #2536500c, 0 5px 9px #25365009; text-align: center; overflow: hidden; }
+    .ghost { background: #eef1f5; border: 1px dashed #b9c6d4; box-shadow: none; }
+    .nn { color: #172331; font-size: 12.4px; font-weight: 620; letter-spacing: -.3px; line-height: 1.12; }
+    .nr { margin-top: 2px; color: #415168; font-size: 9.4px; line-height: 1.2; }
+    .foot { display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 100%; margin-top: 8px; padding: 4px 7px; border-top: 1px solid #e3e9f1; background: #f8fafd; font-size: 9.8px; }
+    .miss { display: flex; align-items: center; justify-content: center; width: 100%; padding: 4px 6px; background: #faeeed; border-top: 1px solid #ecd4d1; color: #8f3931; font-size: 9.4px; }
+    .conn { position: relative; flex: 0 0 28px; height: 1.5px; background: #53637b; }
+    .dash { background: none; border-top: 1.5px dashed #b9c6d4; height: 0; }
+    .elbl { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); padding: 1px 6px; border: .5px solid #e3e9f1; border-radius: 6px; background: #f8fafd; color: #415168; font-size: 10px; white-space: nowrap; }
+    .run { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; border: 1px solid #d2dde1; border-radius: 8px; background: #fff; }
+    .runl { color: #415168; font-size: 10px; white-space: nowrap; }
+    .jrow { display: grid; grid-template-columns: 52px 1fr; gap: 9px; align-items: baseline; padding: 6px 0; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 22px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: center; gap: 11.5px">
+      <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+      <div>
+        <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+        <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7.2px">
+      <button style="display: inline-flex; align-items: center; gap: 7px; padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg>
+        Library
+      </button>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <section style="display: flex; flex: 0 0 520px; width: 520px; flex-direction: column; padding: 0 18px 16px; background: #ffffff; border-right: 1px solid #d2dde1">
+
+      <!-- plain words, before any jargon -->
+      <div style="margin-top: 16px; padding: 12px 13px; border: 1px solid #cfc9e4; border-radius: 11px; background: #f6f4fb">
+        <p class="ey" style="color: #4a3f77; margin: 0">You are reading a saved evaluation</p>
+        <p style="margin: 6px 0 0; color: #3b3163; font-size: 12.6px; line-height: 1.55">Not a live conversation. A <b style="font-weight: 600">made-up reader</b> sent one fixed message. It was answered by <b style="font-weight: 600">one particular build</b> of Linger. Afterwards, a person compared the answer to what they had decided a good answer must do.</p>
+        <p style="margin: 7px 0 0; color: #6a5f94; font-size: 11.4px; line-height: 1.5">Nothing runs when you open this. It is read from the repository.</p>
+      </div>
+
+      <!-- the persona, and the one thing seeded into her account -->
+      <div style="margin-top: 10px; padding: 10px 12px; border: 1px solid #d2dde1; border-radius: 11px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+          <b style="font-size: 12.4px; font-weight: 600">Maya</b>
+          <span style="color: #9aa7ad; font-size: 10.6px">invented persona</span>
+        </div>
+        <p style="margin: 5px 0 0; color: #64747c; font-size: 11.4px; line-height: 1.5">34, recently moved from design work into managing a small team. Misses being able to call herself a designer. Reads <i>Alice</i> on her phone on the train.</p>
+
+        <div style="margin-top: 8px; padding: 8px 10px; border-left: 3px solid #7661ad; border-radius: 0 7px 7px 0; background: #f6f4fb">
+          <div style="display: flex; align-items: center; gap: 6px; color: #4a3f77; font-size: 10.4px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase">
+            <svg width="12" height="12" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v17c0 2 5 5 11 5s11-3 11-5V7M5 15c0 2 5 4 11 4s11-2 11-4"/></svg>
+            Placed in her account before the run
+          </div>
+          <p style="margin: 5px 0 0; color: #3b3163; font-size: 11.4px; line-height: 1.5">&ldquo;Maya previously talked about Alice meeting the Caterpillar&hellip; she knew who she was that morning but has changed several times since. Maya connected that to feeling awkward introducing herself as a manager.&rdquo;</p>
+        </div>
+
+        <p style="margin: 8px 0 0; color: #8f3931; font-size: 11.2px; line-height: 1.5"><b style="font-weight: 600">How far she has read is not given.</b> It has to be worked out from that memory and what she says &mdash; and working it out is exactly what this scene tests.</p>
+      </div>
+
+      <div style="display: flex; flex: 1; flex-direction: column; gap: 9px; padding: 12px 0 10px; overflow: hidden">
+        <div style="max-width: 94%; align-self: flex-end; padding: 10px 14px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.5; font-size: 12.6px">&hellip;the Pigeon calls her a serpent and she tries to say she&rsquo;s a little girl. Could you <b style="font-weight: 600">quote the sentence</b> where she calls herself a little girl? Please stay with what I&rsquo;ve read.</div>
+        <div style="max-width: 94%; align-self: flex-start; padding: 10px 14px; border: 1px solid #ecd4d1; border-radius: 16px; border-bottom-left-radius: 4px; background: #faeeed; line-height: 1.5; font-size: 12.6px; color: #6d3a34">This build replied about the moment and why naming a role feels awkward &mdash; but gave <b style="font-weight: 600">no quotation and cited nothing</b>. The reader asked for a quote and did not get one.</div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px dashed #d2dde1; border-radius: 14.4px; background: #f8fafd">
+        <span style="flex: 1; color: #9aa7ad; font-size: 12.2px">Saved record &mdash; you cannot type into it.</span>
+        <button style="padding: 7px 12px; border: 1px solid #d2dde1; border-radius: 8px; background: #fff; color: #64747c; font: inherit; font-size: 12.2px">Back to chat</button>
+      </div>
+    </section>
+
+    <aside style="display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 15px 20px; background: #ffffff">
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+        <div>
+          <p class="ey">Alice &middot; the Pigeon scene</p>
+          <h2 style="margin: 2px 0 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; font-size: 17px; letter-spacing: -.01em">This build passed 2 of the 4 checks</h2>
+        </div>
+        <span style="color: #9aa7ad; font-size: 10.8px; text-align: right; line-height: 1.45">build a5f2d901 &middot; gpt-5.6-luna<br>muse.reflection v13</span>
+      </div>
+
+      <!-- the set, and how to read it -->
+      <div style="margin-top: 10px; padding: 10px 12px; border: 1px solid #d2dde1; border-radius: 11px; background: #f8fafd">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <b style="font-size: 12px; font-weight: 600">The same scene was answered by nine different builds</b>
+          <span style="color: #9aa7ad; font-size: 10.6px">grouped by score, not a timeline</span>
+        </div>
+
+        <div style="display: flex; align-items: stretch; gap: 10px; margin-top: 9px">
+          <div style="display: flex; gap: 5px; padding-right: 10px; border-right: 1px dashed #d2dde1">
+            <span class="run" style="border-color: #8f3931; box-shadow: 0 0 0 2px #faeeed"><b style="font-size: 11.6px; color: #8f3931">2/4</b><span class="runl" style="color: #8f3931">selection</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #8f3931">2/4</b><span class="runl">baseline</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #8f3931">2/4</b><span class="runl">memory sel.</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #8f3931">2/4</b><span class="runl">sep. search</span></span>
+          </div>
+          <div style="display: flex; gap: 5px; padding-right: 10px; border-right: 1px dashed #d2dde1">
+            <span class="run"><b style="font-size: 11.6px; color: #8a6d29">3/4</b><span class="runl">quote repair</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #8a6d29">3/4</b><span class="runl">query pres.</span></span>
+          </div>
+          <div style="display: flex; gap: 5px">
+            <span class="run"><b style="font-size: 11.6px; color: #3f6b46">4/4</b><span class="runl">cond. policy</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #3f6b46">4/4</b><span class="runl">post-pull</span></span>
+            <span class="run"><b style="font-size: 11.6px; color: #3f6b46">4/4</b><span class="runl">conn. update</span></span>
+          </div>
+        </div>
+
+        <p style="margin: 8px 0 0; color: #64747c; font-size: 11.2px; line-height: 1.5">Each is named for the change it was testing, so this is a record of the system being fixed &mdash; not the same build being unreliable. Two of them share a build and both scored 4/4, which is the only consistency claim here.</p>
+      </div>
+
+      <!-- the map -->
+      <div style="margin-top: 10px; padding: 11px 14px 13px; border: 1px solid #d1dce4; border-radius: 14px; background: #f2f6f8">
+        <div style="color: #8f3931; font-size: 11.8px; font-weight: 620; letter-spacing: -.2px">The chain that never started &mdash; the memory was there and was never consulted</div>
+
+        <div style="display: flex; align-items: flex-start; gap: 0; margin-top: 7px; padding-left: 70px">
+          <div class="node ghost">
+            <span style="color: #97a4b4"><svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v17c0 2 5 5 11 5s11-3 11-5V7M5 15c0 2 5 4 11 4s11-2 11-4"/></svg></span>
+            <span class="nn" style="margin-top: 5px; color: #7b8896">Her memory</span><span class="nr" style="color: #97a4b4">Seeded, 1 record</span>
+            <span class="miss">never consulted</span>
+          </div>
+          <div class="conn dash"></div>
+          <div class="node ghost">
+            <span style="color: #97a4b4"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg></span>
+            <span class="nn" style="margin-top: 5px; color: #7b8896">Librarian</span><span class="nr" style="color: #97a4b4">Works out how far she read</span>
+            <span class="miss">no chapter ceiling</span>
+          </div>
+          <div class="conn dash"></div>
+          <div class="node ghost">
+            <span style="color: #97a4b4"><svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="22" height="26" rx="3"/><path d="M10 3v26M15 10h7M15 15h7"/></svg></span>
+            <span class="nn" style="margin-top: 5px; color: #7b8896">Book corpus</span><span class="nr" style="color: #97a4b4">The book itself</span>
+            <span class="miss">nothing quoted</span>
+          </div>
+        </div>
+
+        <p style="margin: 8px 0 0; color: #64747c; font-size: 11px; line-height: 1.5">The 4/4 builds ran this chain: they read the memory, settled on <b style="font-weight: 600">chapter 5</b>, opened the book there and quoted the line. This build skipped straight past it.</p>
+
+        <div style="color: #1f2937; font-size: 11.8px; font-weight: 620; letter-spacing: -.2px; margin-top: 13px">What did happen</div>
+
+        <div style="display: flex; align-items: flex-start; gap: 0; margin-top: 7px">
+          <div class="node">
+            <span style="color: #33435a"><svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-8 5V8a3 3 0 0 1 2-3Z"/><path d="M10 11h12M10 16h8"/></svg></span>
+            <span class="nn" style="margin-top: 5px">The message</span><span class="nr">Fixed for this scene</span>
+            <span class="foot"><span style="color: #415168">Maya</span></span>
+          </div>
+          <div class="conn"></div>
+          <div class="node" style="border-top: 4px solid #655ba4">
+            <span style="color: #655ba4"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8l10-4Z"/><path d="M12 16h8M16 12v8"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Preflight</span><span class="nr">Safety check first</span>
+            <span class="foot"><span style="color: #415168">no tools</span><span class="st" style="color: #4d5796">go on</span></span>
+          </div>
+          <div class="conn"></div>
+          <div class="node" style="border-top: 4px solid #4673d8">
+            <span style="color: #4673d8"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m6 25 3-9L24 3c3-2 6 1 4 4L15 23l-9 2Z"/><path d="m9 16 6 7M7 25l-3 3M17 10l5 5"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Muse</span><span class="nr">Writes the reply</span>
+            <span class="foot"><span style="color: #415168">0 look-ups</span></span>
+            <span class="miss">no quote given</span>
+          </div>
+          <div class="conn"></div>
+          <div class="node" style="border-top: 4px solid #655ba4">
+            <span style="color: #655ba4"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-5 11-11 14C10 26 5 22 5 15V7l11-4Z"/><path d="M12 12h8M12 17h8"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Provenance</span><span class="nr">Checks the draft</span>
+            <span class="foot"><span style="color: #415168">1 pass</span><span class="st" style="color: #4d5796">allowed</span></span>
+          </div>
+          <div class="conn"></div>
+          <div class="node">
+            <span style="color: #26354a"><svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M11 11h10M11 16h6M11 21h10"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Release</span><span class="nr">Final gate</span>
+            <span class="foot"><span style="color: #415168">0 sources</span><span class="st" style="color: #64747c">sent</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- the four checks, in plain language -->
+      <div style="margin-top: 10px; padding: 9px 13px 2px; border: 1px solid #d2dde1; border-radius: 11px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <p class="ey" style="margin: 0">The four checks</p>
+          <span style="color: #9aa7ad; font-size: 10.6px">written and approved by a person</span>
+        </div>
+        <div class="jrow" style="border-top: 1px solid #edf0f5; margin-top: 4px">
+          <span class="st" style="color: #8f3931">missed</span>
+          <span style="color: #415168; font-size: 11.4px; line-height: 1.4">Had to open the book and answer from the real passage. It did neither.</span>
+        </div>
+        <div class="jrow" style="border-top: 1px solid #edf0f5">
+          <span class="st" style="color: #8f3931">missed</span>
+          <span style="color: #415168; font-size: 11.4px; line-height: 1.4">Had to quote the sentence exactly. No quotation appeared.</span>
+        </div>
+        <div class="jrow" style="border-top: 1px solid #edf0f5">
+          <span class="st" style="color: #3f6b46">held</span>
+          <span style="color: #415168; font-size: 11.4px; line-height: 1.4">Must not use any passage it was not allowed to see.</span>
+        </div>
+        <div class="jrow" style="border-top: 1px solid #edf0f5">
+          <span class="st" style="color: #3f6b46">held</span>
+          <span style="color: #415168; font-size: 11.4px; line-height: 1.4">Must not spoil anything past chapter 5.</span>
+        </div>
+      </div>
+
+      <p style="margin: 8px 0 0; color: #64747c; font-size: 11px; line-height: 1.5"><b style="font-weight: 600">How to read a miss:</b> it means this build did not do what the key asked. The key is a human judgement, so a miss can also mean the key itself needs revisiting &mdash; that is why later builds were changed and re-run rather than the result being filed as a verdict.</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

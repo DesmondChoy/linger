@@ -1,17 +1,17 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
 
 const app = fileURLToPath(new URL('.', import.meta.url))
 const architectureMap = fileURLToPath(new URL('../../packages/architecture-map', import.meta.url))
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: './',
   resolve: {
-    // The shared collaboration map is source-only and has no node_modules of
-    // its own, so React resolves from this app. Subpaths are listed before the
-    // bare name because Vite matches string aliases by prefix.
+    // The shared map has no node_modules of its own, so React has to resolve
+    // from this app. Subpaths are listed before the bare name because Vite
+    // matches string aliases by prefix.
     alias: {
       '@linger/architecture-map/src': `${architectureMap}/src`,
       '@linger/architecture-map': `${architectureMap}/src/index.ts`,
@@ -22,12 +22,10 @@ export default defineConfig({
       react: `${app}node_modules/react`,
     },
   },
-  server: {
-    // Proxy API calls to the FastAPI backend so the browser sees a single
-    // origin in development and CORS never comes into play.
-    proxy: {
-      '/api': 'http://127.0.0.1:8000',
-    },
-    fs: { allow: [app, architectureMap] },
+  // The shared map lives outside this app's root, so the dev server has to be
+  // allowed to read it and Vitest has to be told where its tests are.
+  server: { fs: { allow: [app, architectureMap] } },
+  test: {
+    include: ['src/**/*.test.{ts,tsx}', '../../packages/architecture-map/src/**/*.test.{ts,tsx}'],
   },
 })
