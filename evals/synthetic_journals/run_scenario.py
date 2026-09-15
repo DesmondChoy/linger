@@ -46,7 +46,7 @@ def create_menu(repository_root: Path, output: Path | None = None) -> tuple[Path
 
 
 def read_selection(menu_path: Path, number: int, repository_root: Path) -> tuple[Path, dict[str, Any]]:
-    menu = json.loads(menu_path.read_text())
+    menu = json.loads(menu_path.read_text(encoding="utf-8"))
     if menu.get("schema_version") != 2 or menu.get("repository_root") != str(repository_root.resolve()):
         raise ValueError("The menu belongs to another checkout or version; refresh it.")
     return selected_scenario(menu, number, repository_root)
@@ -148,7 +148,7 @@ def run_selected(
         problems.append("Replay was interrupted; no automatic retry was attempted.")
     try:
         if artifact_path.is_file():
-            parsed = json.loads(artifact_path.read_text())
+            parsed = json.loads(artifact_path.read_text(encoding="utf-8"))
             if not isinstance(parsed, dict):
                 raise ValueError("Replay artifact is not a JSON object.")
             artifact = parsed

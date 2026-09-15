@@ -388,7 +388,7 @@ def test_repeated_text_does_not_match_another_paragraph() -> None:
     first = _excerpt(
         f"{VERSION}-ch08", "08-the-queens-croquet-ground.md", "first", FORBIDDEN
     )
-    markdown = (CHAPTERS / "08-the-queens-croquet-ground.md").read_text()
+    markdown = (CHAPTERS / "08-the-queens-croquet-ground.md").read_text(encoding="utf-8")
     start = markdown.index(FORBIDDEN, first["end_codepoint"])
     second = first | {
         "evidence_id": "second",
@@ -410,7 +410,7 @@ def test_repeated_text_does_not_match_another_paragraph() -> None:
 def test_compiler_rejects_changed_immutable_source(tmp_path: Path) -> None:
     shutil.copytree(ROOT / "data", tmp_path / "data")
     source = tmp_path / "data/gutenberg/alice-in-wonderland.txt"
-    source.write_text(source.read_text() + "changed", encoding="utf-8")
+    source.write_text(source.read_text(encoding="utf-8") + "changed", encoding="utf-8")
     content, truth = _documents()
     with pytest.raises(BookContractError, match="source|SHA|integrity"):
         compile_book_replay_plan(

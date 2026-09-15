@@ -48,14 +48,16 @@ def scenario_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path
     scenario = _copy_scenario(repository)
     (repository / ".env").write_text(
         "LINGER_MODEL=openai:configured-model\n"
-        + "".join(f"{key}={value}\n" for key, value in FAKE_KEYS.items())
+        + "".join(f"{key}={value}\n" for key, value in FAKE_KEYS.items()),
+        encoding="utf-8"
     )
     catalog = repository / "synthetic-journal-evaluation"
     (catalog / "evaluation-objectives.yaml").write_text(
         "evaluation_objectives:\n"
         "  - id: bounded_memory_curation\n"
         "    menu:\n"
-        "      title: Preserve supplied memory sources\n"
+        "      title: Preserve supplied memory sources\n",
+        encoding="utf-8"
     )
     return repository, scenario
 
@@ -83,7 +85,7 @@ def test_supported_legacy_reflection_scenario_is_not_rejected_by_connection_comp
     (scenario / "ground-truth.json").write_bytes(truth_bytes)
     _, proposed = validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
     adoption = build_ground_truth_adoption(proposed, truth_bytes, reviewer_id="isolated-test-reviewer")
-    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json())
+    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json(), encoding="utf-8")
 
     inspected = scenario_catalog.inspect_scenario(scenario, repository, "openai:confirmed-model")
     assert inspected["runner"] == "evals.synthetic_journals.connection_replay"
@@ -93,7 +95,7 @@ def test_supported_legacy_reflection_scenario_is_not_rejected_by_connection_comp
 def _artifact(*, failed: bool = False, scenario_name: str = POTTERY) -> dict:
     scene_ids = [
         scene["scene_id"] for scene in json.loads(
-            (scenario_catalog.scenario_root(ROOT) / scenario_name / "backstory.json").read_text()
+            (scenario_catalog.scenario_root(ROOT) / scenario_name / "backstory.json").read_text(encoding="utf-8")
         )["scenes"]
     ]
     return {
@@ -129,7 +131,7 @@ def _stub_replay(
     def replay(command, **kwargs):
         calls.append((command, kwargs))
         if artifact is not None:
-            Path(command[command.index("--output") + 1]).write_text(json.dumps(artifact))
+            Path(command[command.index("--output") + 1]).write_text(json.dumps(artifact), encoding="utf-8")
         return SimpleNamespace(returncode=returncode, stdout="", stderr=stderr if stderr is not None else _marker())
 
     # Replace only this module's provider process interface; report generation
@@ -155,7 +157,7 @@ def test_guided_combined_run_preserves_original_files_and_reports_both_objective
     (scenario / "ground-truth.json").write_bytes(truth_bytes)
     _, proposed = validate_scenario_files(scenario / "backstory.json", scenario / "ground-truth.json")
     adoption = build_ground_truth_adoption(proposed, truth_bytes, reviewer_id="isolated-test-reviewer")
-    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json())
+    (scenario / "ground-truth-adoption.json").write_text(adoption.model_dump_json(), encoding="utf-8")
     original_hashes = scenario_catalog.scenario_hashes(scenario)
     menu_path, menu = run_scenario.create_menu(repository, repository / "menu.json")
     entry = next(item for item in menu["entries"] if item["scenario"] == scenario.name)
@@ -195,7 +197,7 @@ def test_guided_combined_run_preserves_original_files_and_reports_both_objective
     assert scenario_catalog.scenario_hashes(scenario) == original_hashes
     assert result["results"]["scenes_total"] == 16
     assert result["results"]["judgments_failed"] == (0 if failed_index is None else 1)
-    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert analysis["evidence"]["run_identity"]["objective_ids"] == backstory["objective_ids"]
     assert [scene["scene_id"] for scene in analysis["scenes"]] == [
         scene["scene_id"] for scene in backstory["scenes"]
@@ -214,7 +216,7 @@ def test_provider_failure_inside_zero_exit_artifact_is_execution_error(scenario_
 
     assert result["status"] == "failed"
     assert result["results"]["execution_failures"]
-    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert analysis["category"] == "execution"
     assert analysis["summary"]["execution_failures"]
 
@@ -224,14 +226,15 @@ def test_menu_discovers_scenarios_and_extracts_description_without_generation(sc
     fallback = _copy_scenario(repository, "zebra-notes--test")
     unfinished = scenario_catalog.scenario_root(repository) / "unfinished"
     unfinished.mkdir()
-    (scenario_catalog.scenario_root(repository) / "README.md").write_text("A file, not a scenario.")
+    (scenario_catalog.scenario_root(repository) / "README.md").write_text("A file, not a scenario.", encoding="utf-8")
     (scenario_catalog.scenario_root(repository) / "linked-scenario").symlink_to(scenario, target_is_directory=True)
     (repository / "synthetic-journal-evaluation" / "scenario_descriptions.md").write_text(
         "# Scenarios\n\n## Pottery from the source document\n\n"
         "Objective: Prove source preservation\n"
         "  across duplicate notes and unrelated topics.\n\n"
         f"[Backstory](scenarios/{scenario.name}/backstory.json)\n"
-        "This following paragraph is not part of the objective.\n"
+        "This following paragraph is not part of the objective.\n",
+        encoding="utf-8"
     )
 
     entries = scenario_catalog.discover(repository)
@@ -269,7 +272,7 @@ def test_pre_rename_menu_requests_refresh_before_selection(scenario_repo) -> Non
     menu["schema_version"] = 1
     for entry in menu["entries"]:
         entry["package"] = entry.pop("scenario")
-    path.write_text(json.dumps(menu))
+    path.write_text(json.dumps(menu), encoding="utf-8")
 
     with pytest.raises(ValueError, match="refresh"):
         run_scenario.read_selection(path, 1, repository)
@@ -279,7 +282,7 @@ def test_changed_scenario_hashes_block_invocation_and_save_diagnosis(scenario_re
     repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     truth = scenario / "ground-truth.json"
-    truth.write_text(truth.read_text() + "\n")
+    truth.write_text(truth.read_text(encoding="utf-8") + "\n", encoding="utf-8")
     calls = _stub_replay(monkeypatch, artifact=_artifact())
 
     result = run_scenario.run_selected(menu_path, number, "openai:selected-model", repository_root=repository)
@@ -288,8 +291,8 @@ def test_changed_scenario_hashes_block_invocation_and_save_diagnosis(scenario_re
     assert calls == []
     report = Path(result["analysis_report"])
     assert report.parent == scenario
-    assert "Scenario files changed after the displayed menu" in report.read_text()
-    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    assert "Scenario files changed after the displayed menu" in report.read_text(encoding="utf-8")
+    analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert analysis["execution_status"] == "not_started"
     assert all(scene["status"] == "not_run" for scene in analysis["scenes"])
     assert not list(scenario.glob("scenario-run-*"))
@@ -338,7 +341,7 @@ def test_missing_selected_provider_key_blocks_and_report_contains_no_credentials
     repository, scenario = scenario_repo
     menu_path, number = _menu(repository)
     env_file = repository / ".env"
-    env_file.write_text(env_file.read_text().replace(f"ANTHROPIC_API_KEY={FAKE_KEYS['ANTHROPIC_API_KEY']}\n", ""))
+    env_file.write_text(env_file.read_text(encoding="utf-8").replace(f"ANTHROPIC_API_KEY={FAKE_KEYS['ANTHROPIC_API_KEY']}\n", ""), encoding="utf-8")
     calls = _stub_replay(monkeypatch, artifact=_artifact())
 
     result = run_scenario.run_selected(menu_path, number, "anthropic:selected-model", repository_root=repository)
@@ -347,9 +350,9 @@ def test_missing_selected_provider_key_blocks_and_report_contains_no_credentials
     assert calls == []
     report = Path(result["analysis_report"])
     assert report.parent == scenario
-    text = report.read_text()
+    text = report.read_text(encoding="utf-8")
     assert "Missing ANTHROPIC_API_KEY" in text
-    rendered = json.dumps(result) + text + Path(result["analysis_data"]).read_text() + capsys.readouterr().out
+    rendered = json.dumps(result) + text + Path(result["analysis_data"]).read_text(encoding="utf-8") + capsys.readouterr().out
     assert all(secret not in rendered for secret in FAKE_KEYS.values())
 
 
@@ -367,7 +370,7 @@ def test_failed_grades_fail_wrapper_even_when_runner_exits_zero(scenario_repo, m
     assert result["logfire_url"] == LOGFIRE_URL
     report = Path(result["analysis_report"])
     assert report.parent == scenario
-    analysis = json.loads(Path(result["analysis_data"]).read_text())
+    analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert analysis["category"] == "behavioral"
     assert analysis["execution_status"] == "completed"
     failed_scene = next(scene for scene in analysis["scenes"] if scene["status"] == "failed")
@@ -388,8 +391,8 @@ def test_failed_runner_keeps_exact_stderr_evaluation_link(scenario_repo, monkeyp
     assert result["returncode"] == 7
     assert result["logfire_url"] == LOGFIRE_URL
     assert result["telemetry"]["trace_id"] == "a" * 32
-    assert LOGFIRE_URL in Path(result["analysis_report"]).read_text()
-    assert "provider failure" in Path(result["run_log"]).read_text()
+    assert LOGFIRE_URL in Path(result["analysis_report"]).read_text(encoding="utf-8")
+    assert "provider failure" in Path(result["run_log"]).read_text(encoding="utf-8")
     assert not Path(result["artifact"]).exists()
 
 
@@ -400,7 +403,7 @@ def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatc
 
     def timeout(command, **kwargs):
         if saved_artifact:
-            Path(command[command.index("--output") + 1]).write_text(json.dumps(_artifact()))
+            Path(command[command.index("--output") + 1]).write_text(json.dumps(_artifact()), encoding="utf-8")
         raise subprocess.TimeoutExpired(
             command, kwargs["timeout"],
             output=f"provider stalled: {FAKE_KEYS['OPENAI_API_KEY']}".encode(),
@@ -411,19 +414,19 @@ def test_timeout_saves_partial_redacted_log_and_report(scenario_repo, monkeypatc
     result = run_scenario.run_selected(menu_path, number, "openai:selected-model", repository_root=repository, timeout_seconds=0.25)
     if saved_artifact:
         assert result["results"]["judgments_passed"] == 5
-        analysis = json.loads(Path(result["analysis_data"]).read_text())
+        analysis = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
         assert analysis["summary"]["judgments_passed"] == 5
 
     assert result["status"] == "failed"
     assert result["execution_status"] == "timed_out"
     assert any("0.25-second execution limit" in problem for problem in result["problems"])
     assert Path(result["analysis_report"]).parent == scenario
-    log = Path(result["run_log"]).read_text()
+    log = Path(result["run_log"]).read_text(encoding="utf-8")
     assert "partial provider response" in log
     assert "[REDACTED]" in log
     assert FAKE_KEYS["OPENAI_API_KEY"] not in log
     assert result["logfire_url"] is None
-    assert json.loads(Path(result["summary_file"]).read_text())["status"] == "failed"
+    assert json.loads(Path(result["summary_file"]).read_text(encoding="utf-8"))["status"] == "failed"
 
 
 def test_repeated_runs_preserve_previous_output_and_use_unique_directories(scenario_repo, monkeypatch) -> None:
@@ -471,10 +474,10 @@ def test_passing_run_also_saves_analysis_of_every_scenario_scene(scenario_repo, 
     assert result["status"] == "passed"
     assert result["execution_status"] == "completed"
     assert Path(result["analysis_report"]).is_file()
-    data = json.loads(Path(result["analysis_data"]).read_text())
+    data = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert data["review"] is None
     assert data["summary"]["judgments_passed"] == 5
-    expected_scene_ids = [scene["scene_id"] for scene in json.loads((scenario / "backstory.json").read_text())["scenes"]]
+    expected_scene_ids = [scene["scene_id"] for scene in json.loads((scenario / "backstory.json").read_text(encoding="utf-8"))["scenes"]]
     assert [scene["scene_id"] for scene in data["scenes"]] == expected_scene_ids
     assert all(scene["status"] == "passed" for scene in data["scenes"])
 
@@ -500,9 +503,9 @@ def test_incomplete_results_preserve_evidence_without_claiming_success(scenario_
     assert result["execution_status"] == "completed"
     assert result["problems"]
     assert "results" not in result
-    assert json.loads(Path(result["artifact"]).read_text()) == artifact
-    assert json.loads(Path(result["summary_file"]).read_text())["status"] == "failed"
-    data = json.loads(Path(result["analysis_data"]).read_text())
+    assert json.loads(Path(result["artifact"]).read_text(encoding="utf-8")) == artifact
+    assert json.loads(Path(result["summary_file"]).read_text(encoding="utf-8"))["status"] == "failed"
+    data = json.loads(Path(result["analysis_data"]).read_text(encoding="utf-8"))
     assert any(scene["status"] == "incomplete" for scene in data["scenes"])
     assert data["summary"]["judgments_passed"] == 4
     assert Path(result["analysis_report"]).is_file()

@@ -591,7 +591,7 @@ def test_replay_rejects_unexpected_writes_and_changes_to_earlier_memories() -> N
             )).record
         elif calls == 2:
             path = service.root / stored.account_key / f"{stored.idempotency_key}.md"
-            path.write_text(path.read_text().replace(stored.text, "An altered memory."))
+            path.write_text(path.read_text(encoding="utf-8").replace(stored.text, "An altered memory."), encoding="utf-8")
         return _no_capture_response()
 
     result = asyncio.run(

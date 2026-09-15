@@ -68,7 +68,7 @@ def _copy_scenario(source: Path, destination: Path) -> None:
     destination.mkdir()
     for name in ("backstory.json", "ground-truth.json"):
         shutil.copyfile(source / name, destination / name)
-    (destination / "pre-generation-report.md").write_text("Fixture report")
+    (destination / "pre-generation-report.md").write_text("Fixture report", encoding="utf-8")
 
 
 def _write_book_scenario(destination: Path) -> None:
@@ -426,14 +426,14 @@ def test_capture_review_preserves_nomination_and_independent_decision(
     scenario = tmp_path / "capture"
     _copy_scenario(CAPTURE_SCENARIO, scenario)
     ground_truth_path = scenario / "ground-truth.json"
-    ground_truth = json.loads(ground_truth_path.read_text())
+    ground_truth = json.loads(ground_truth_path.read_text(encoding="utf-8"))
     proposal = next(
         item for item in ground_truth["proposals"]
         if item["capture"]["nomination"]["kind"] == "capture_candidate"
     )
     proposal["capture"]["provenance_decision"] = decision
     proposal["capture"]["reason_code"] = reason_code
-    ground_truth_path.write_text(json.dumps(ground_truth))
+    ground_truth_path.write_text(json.dumps(ground_truth), encoding="utf-8")
 
     payload = _state(scenario, built_ui).payload
     row = next(
@@ -456,7 +456,7 @@ def test_surfacing_review_shows_time_history_sources_and_semantic_rubric(
     _, truth, payload = surfacing_documents()
     (scenario / "backstory.json").write_bytes(payload)
     (scenario / "ground-truth.json").write_bytes(json_bytes(truth))
-    (scenario / "pre-generation-report.md").write_text("Fixture report")
+    (scenario / "pre-generation-report.md").write_text("Fixture report", encoding="utf-8")
     review = _state(scenario, built_ui).payload
     assert review["replay"]["supported"] is False
     assert review["replay"]["module"] is None
@@ -899,7 +899,7 @@ def test_explicit_human_adoption_round_trips_and_rejects_changed_source(
         review_method="explicit_human_instruction",
     )})
     path = scenario / "ground-truth-adoption.json"
-    path.write_text(adoption.model_dump_json())
+    path.write_text(adoption.model_dump_json(), encoding="utf-8")
     _, _, loaded = validate_ground_truth_adoption_files(backstory, ground_truth, path)
     assert loaded.reviewer.review_method == "explicit_human_instruction"
     assert len(loaded.decisions) == len(proposed.proposals)

@@ -59,7 +59,7 @@ def test_catalog_does_not_open_bodies_and_read_preserves_exact_source(book):
     unit = next(unit for unit in units if unit.kind == "chapter")
     record, markdown = read_unit(reg, unit)
     canonical_metadata, canonical_body = parse_chapter_markdown(
-        (reg.root / unit.path).read_text(), unit_kind=book.unit_kind,
+        (reg.root / unit.path).read_text(encoding="utf-8"), unit_kind=book.unit_kind,
     )
     assert markdown == canonical_body
     assert record.body_sha256 == canonical_metadata.body_sha256
@@ -74,7 +74,7 @@ def test_tampered_canonical_body_is_rejected(tmp_path):
     reg = replace(reg, root=tmp_path / "corpus")
     unit = load_units(reg)[3]
     target = reg.root / unit.path
-    target.write_text(target.read_text().replace("I was born", "I was raised", 1))
+    target.write_text(target.read_text(encoding="utf-8").replace("I was born", "I was raised", 1), encoding="utf-8")
     with pytest.raises(CorpusBuildError, match="checksum"):
         read_unit(reg, unit)
 
@@ -89,8 +89,8 @@ def test_escaping_catalog_path_is_rejected(tmp_path):
     import json
 
     reg = registration(douglass.BOOK)
-    catalog = json.loads((reg.root / "catalog.json").read_text())
+    catalog = json.loads((reg.root / "catalog.json").read_text(encoding="utf-8"))
     catalog["sections"][3]["path"] = "../outside.md"
-    (tmp_path / "catalog.json").write_text(json.dumps(catalog))
+    (tmp_path / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
     with pytest.raises(CorpusBuildError, match="path"):
         load_units(replace(reg, root=tmp_path))

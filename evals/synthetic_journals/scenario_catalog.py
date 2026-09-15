@@ -50,7 +50,7 @@ def local_logfire_credentials(repository_root: Path) -> dict[str, Any]:
     if not path.is_absolute():
         path = repository_root / path
     try:
-        value = json.loads((path / "logfire_credentials.json").read_text())
+        value = json.loads((path / "logfire_credentials.json").read_text(encoding="utf-8"))
         return value if isinstance(value, dict) else {}
     except (OSError, ValueError):
         return {}
@@ -96,7 +96,7 @@ def descriptions(repository_root: Path) -> dict[Path, tuple[str, str]]:
     if not source.is_file():
         return {}
     result = {}
-    for section in re.split(r"(?m)^## ", source.read_text())[1:]:
+    for section in re.split(r"(?m)^## ", source.read_text(encoding="utf-8"))[1:]:
         title, _, body = section.partition("\n")
         link = re.search(r"\[Backstory\]\(([^)]+)\)", body)
         objective = re.search(r"(?ms)^Objective:\s*(.*?)(?=\n\s*\n|\Z)", body)
@@ -109,7 +109,7 @@ def descriptions(repository_root: Path) -> dict[Path, tuple[str, str]]:
 def objective_titles(repository_root: Path) -> dict[str, str]:
     source = repository_root / "synthetic-journal-evaluation" / "evaluation-objectives.yaml"
     try:
-        document = yaml.safe_load(source.read_text())
+        document = yaml.safe_load(source.read_text(encoding="utf-8"))
         return {entry["id"]: entry["menu"]["title"] for entry in document["evaluation_objectives"]}
     except (OSError, ValueError, KeyError, TypeError, yaml.YAMLError):
         return {}
@@ -119,7 +119,7 @@ def inspect_scenario(scenario: Path, repository_root: Path, model: str | None = 
     issues: list[dict[str, str]] = []
     raw: dict[str, Any] = {}
     try:
-        loaded = json.loads((scenario / "backstory.json").read_text())
+        loaded = json.loads((scenario / "backstory.json").read_text(encoding="utf-8"))
         if isinstance(loaded, dict):
             raw = loaded
     except (OSError, ValueError):

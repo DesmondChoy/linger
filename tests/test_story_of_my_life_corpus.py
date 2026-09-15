@@ -120,25 +120,25 @@ def test_initialization_determinism_and_overwrite_refusal(tmp_path: Path) -> Non
 def test_catalog_rebuild_preserves_curated_metadata_and_bodies(tmp_path: Path) -> None:
     initialise_corpus(story.BOOK, output=tmp_path)
     path = tmp_path / 'sections/001-dedication.md'
-    metadata, body = parse_chapter_markdown(path.read_text(), unit_kind='section')
+    metadata, body = parse_chapter_markdown(path.read_text(encoding="utf-8"), unit_kind='section')
     record = metadata.model_dump(mode='json')
     record['routing_description'] = 'The dedication to Alexander Graham Bell.'
-    path.write_text('---\n' + json.dumps(record, indent=2) + '\n---\n\n' + body)
+    path.write_text('---\n' + json.dumps(record, indent=2) + '\n---\n\n' + body, encoding="utf-8")
     originals = {p: p.read_bytes() for p in (tmp_path / 'sections').glob('*.md')}
     assert 'catalog.json is missing or stale' in check_corpus(story.BOOK, output=tmp_path)
     (tmp_path / 'catalog.json').unlink()
     build_catalog(story.BOOK, output=tmp_path)
     assert check_corpus(story.BOOK, output=tmp_path) == ()
     assert all(p.read_bytes() == original for p, original in originals.items())
-    assert json.loads((tmp_path / 'catalog.json').read_text())['sections'][0]['routing_description'] == record['routing_description']
+    assert json.loads((tmp_path / 'catalog.json').read_text(encoding="utf-8"))['sections'][0]['routing_description'] == record['routing_description']
 
 
 def test_tampered_missing_and_unexpected_artifacts_block_catalog_writes(tmp_path: Path) -> None:
     initialise_corpus(story.BOOK, output=tmp_path)
     path = tmp_path / 'sections/001-dedication.md'
-    path.write_text(path.read_text().replace('Who has taught', 'Who taught'))
+    path.write_text(path.read_text(encoding="utf-8").replace('Who has taught', 'Who taught'), encoding="utf-8")
     (tmp_path / 'sections/002-editors-preface.md').unlink()
-    (tmp_path / 'notes.txt').write_text('unexpected')
+    (tmp_path / 'notes.txt').write_text('unexpected', encoding="utf-8")
     previous = (tmp_path / 'catalog.json').read_bytes()
     errors = check_corpus(story.BOOK, output=tmp_path)
     assert any('body differs from source' in e for e in errors)
@@ -156,9 +156,9 @@ def test_tampered_missing_and_unexpected_artifacts_block_catalog_writes(tmp_path
     ('  HELEN KELLER.\n', '\n'),
 ])
 def test_structural_drift_rejected_even_with_updated_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, old: str, new: str) -> None:
-    text = story.DEFAULT_SOURCE.read_text().replace(old, new, 1)
+    text = story.DEFAULT_SOURCE.read_text(encoding="utf-8").replace(old, new, 1)
     source = tmp_path / 'changed.txt'
-    source.write_text(text)
+    source.write_text(text, encoding="utf-8")
     monkeypatch.setattr(story, 'SOURCE_SHA256', sha256(source.read_bytes()))
     with pytest.raises(CorpusBuildError, match='changed'):
         story.parse_sections(source)
