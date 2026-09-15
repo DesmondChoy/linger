@@ -164,6 +164,26 @@ def test_validates_one_positive_and_ten_no_candidates() -> None:
     )
 
 
+def test_validates_sensitive_capture_objective_without_run_configuration() -> None:
+    content_document = _content_document(use_run_configuration=False)
+    content_document["objective_ids"] = ["sensitive_inference_and_capture_veto"]
+    for scene in content_document["scenes"]:  # type: ignore[union-attr]
+        scene["objective_ids"] = ["sensitive_inference_and_capture_veto"]
+    backstory_bytes = _json_bytes(content_document)
+    ground_truth_document = _ground_truth_document(content_document, backstory_bytes)
+    for proposal in ground_truth_document["proposals"]:  # type: ignore[union-attr]
+        proposal["objective_id"] = "sensitive_inference_and_capture_veto"
+    ground_truth_document["proposals"][0]["capture"]["provenance_decision"] = "reject_capture"  # type: ignore[index]
+    content, ground_truth = _validated_models(content_document, ground_truth_document)
+
+    validate_scenario(
+        content,
+        ground_truth,
+        backstory_bytes=backstory_bytes,
+        run_configurations={},
+    )
+
+
 @pytest.mark.parametrize("input_kind", ["Prop", "offline inputs"])
 def test_capture_preset_rejects_non_line_inputs_in_its_scenes(input_kind: str) -> None:
     content_document = _content_document()
