@@ -20,6 +20,13 @@ Every run, including one where all checks pass, produces an
 `analysis-report-<timestamp>-<identifier>.md` beside the scenario's source files.
 Blocked preflight checks produce the same report with Scenes marked as not run.
 
+For artifacts introduced by `mlsp`, cleanup keeps only the latest completed
+attempt for each unique test against the current implementation. Evaluations
+from other branches remain unchanged, regardless of age. See the
+[scenario index](../../synthetic-journal-evaluation/README.md) for the exact scope.
+Fresh execution still creates a distinct run directory so an incomplete run
+cannot overwrite a completed result.
+
 The report covers results, commentary for every Scene, scenario validity, and
 ordered next steps with verification criteria. Passing Scenes explain which
 behavior supports the pass and whether missing coverage could hide a false

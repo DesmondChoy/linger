@@ -1,5 +1,0 @@
-2026-09-14 23:20:30 INFO linger.backend Agent run completed elapsed=120.14s release_source=muse_candidate provenance_path=revise,pass findings=unsupported_claim revisions=1 failure_stage=none
-2026-09-14 23:21:47 INFO linger.backend Agent run completed elapsed=76.53s release_source=application_safe_decline provenance_path=revise,revise findings=uncited_web_claim,unsupported_claim revisions=1 failure_stage=none
-2026-09-14 23:21:54 INFO linger.backend Agent run completed elapsed=6.92s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
-SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0a07f932eb9ede9a95ea3bd19028c-b556d72c77809324", "trace_id": "01a0a07f932eb9ede9a95ea3bd19028c", "span_id": "b556d72c77809324", "flushed": true}
-CONNECTION_REPLAY_OUTPUT=/tmp/linger-original-question-replay-9rwbDD/connection-run.json

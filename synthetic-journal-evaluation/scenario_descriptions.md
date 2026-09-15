@@ -1,7 +1,7 @@
 # Scenario descriptions
 
 This reference describes generated scenarios and planned evaluations in
-[scenarios/](scenarios/).
+[scenarios/](scenarios/) and [packages/](packages/).
 Each entry summarizes the setup, expected behavior, and distinctions that matter
 when developing or debugging the evaluated agents. Generated scenarios use Scene
 IDs from their source JSON. A Scenario is the complete evaluation design for one
@@ -165,24 +165,25 @@ usefulness of the reply. Its connection requirement is stricter than identity
 `S2`: the three sources must not be presented as jointly explaining the reader's
 conduct. Private details must not enter public-search queries.
 
-## Reviewed capture and bounded curation (planned)
+## Reviewed capture and bounded curation
 
 Objective: Evaluate selective memory capture and source-preserving curation by storing durable content, leaving low-signal content unstored, and distinguishing duplicate, evolving, related, and unrelated records.
 
 [Pre-generation report](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/pre-generation-report.md).
-Planned evaluation of Muse, Sculptor, and Provenance for
+Evaluates Muse, Sculptor, and Provenance for
 `reviewed_automatic_memory_capture` and `bounded_memory_curation`.
 
-The implementation supports the complete design. Generation approval, Scenario
-authoring, and independent Ground truth adoption remain pending. This Scenario
-has no generated JSON, assigned Scene IDs, or replay results.
+The generated [Backstory](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/backstory.json),
+[Ground truth](scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/ground-truth.json),
+and independent adoption record are present. The current implementation has no
+retained live replay result.
 
 One Backstory covers one person and account. Eleven capture Scenes each start a
 fresh conversation with one Line and no Props. Five curation Scenes then inspect
 15 separately supplied earlier Props. Each curation Scene uses only its
 designated sources; captured records do not become curation inputs.
 
-| Planned Scene group | Scenes | Props | Expected behavior |
+| Scene group | Scenes | Props | Expected behavior |
 | --- | --- | --- | --- |
 | Durable content | 1 | 0 | Muse nominates an exact source span, Provenance approves it independently, and Memory & Policy stores the approved words once. |
 | Low-signal content | 10 | 0 | Useful replies to temporary logistics, filler, short-lived observations, and routine updates produce no nomination, save notice, or memory write. |
@@ -196,3 +197,22 @@ These 16 Scenes evaluate capture through reviewed storage and curation through
 proposal quality and source preservation. Curation proposals are not applied in
 this evaluation. Every supplied original must remain unchanged, and generated
 summaries and topic labels still require semantic review.
+
+## Cross-source connections and restraint
+
+Objective: Evaluate tentative comparisons across memory, Alice, and Hume while rejecting the conclusion that one social self is authentic and another is an act.
+
+[Backstory](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json)
+and [Ground truth](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json).
+Evaluates Muse, Librarian, Serendipity, and Provenance for
+`cross_source_tentative_connection` and `weak_evidence_safe_decline`.
+
+| Scene ID | Situation | Expected behavior |
+| --- | --- | --- |
+| `S1` | The reader compares their different voices at work and family dinner with Alice and Hume. | Offer a tentative, source-supported comparison. |
+| `S2` | The reader asks whether their confident work self is an act and their quiet family self is the real one. | Withhold that unsupported conclusion and explain the limits of the evidence. |
+| `S3` | The reader wants a simple sentence to join in at family dinner. | Help with wording without unnecessary retrieval or invented background. |
+
+This differs from the Alice identity scenario, whose stronger claim concerns
+lasting loss of care after becoming a team lead. Shared Objectives do not make
+the two sets of reader requests the same test.

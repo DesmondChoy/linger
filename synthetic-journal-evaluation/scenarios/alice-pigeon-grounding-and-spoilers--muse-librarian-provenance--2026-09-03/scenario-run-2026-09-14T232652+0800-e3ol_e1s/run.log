@@ -1,4 +1,0 @@
-
-Currently retrying 1 failed export(s) (1279 bytes)
-Failed to export metrics batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999979019165039)
-SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0a0874644d7e5203aee9544edfff6-e0e13b43bd710766", "trace_id": "01a0a0874644d7e5203aee9544edfff6", "span_id": "e0e13b43bd710766", "flushed": true}
