@@ -1,7 +1,6 @@
 # Scenario descriptions
 
-This reference describes generated scenarios and planned evaluations in
-[scenarios/](scenarios/) and [packages/](packages/).
+This reference describes generated scenarios in [scenarios/](scenarios/).
 Each entry summarizes the setup, expected behavior, and distinctions that matter
 when developing or debugging the evaluated agents. Generated scenarios use Scene
 IDs from their source JSON. A Scenario is the complete evaluation design for one
@@ -12,7 +11,7 @@ supplied memory record. The
 defines all seven terms.
 
 Generated-scenario expectations come from `ground-truth.json`; they are not
-replay results. Planned entries summarize their linked pre-generation reports.
+replay results.
 [The scenario index](README.md) records adoption, replay evidence, and schema
 compatibility for generated scenarios. Some historical scenarios require
 migration before replay under the current schema. The
@@ -202,8 +201,8 @@ summaries and topic labels still require semantic review.
 
 Objective: Evaluate tentative comparisons across memory, Alice, and Hume while rejecting the conclusion that one social self is authentic and another is an act.
 
-[Backstory](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json)
-and [Ground truth](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json).
+[Backstory](scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json)
+and [Ground truth](scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json).
 Evaluates Muse, Librarian, Serendipity, and Provenance for
 `cross_source_tentative_connection` and `weak_evidence_safe_decline`.
 

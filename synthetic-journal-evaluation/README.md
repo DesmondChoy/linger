@@ -33,7 +33,7 @@ The nine saved scenarios below keep their original input and adoption bytes. Sim
 
 | Scenario | Schema | Independent adoption | Current live result |
 | --- | --- | --- | --- |
-| [Cross-source connections and restraint](packages/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Valid | Recorded | Not run |
+| [Cross-source connections and restraint](scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/) | Valid | Recorded | Not run |
 | [Alice Caterpillar grounding and spoilers](scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/) | Historical; incompatible with current schema | Recorded | Not run |
 | [Alice identity connections and restraint](scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/) | Valid | Missing | Not run |
 | [Alice kitchen spoiler boundary](scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/) | Historical; incompatible with current schema | Recorded | Not run |
@@ -45,11 +45,7 @@ The nine saved scenarios below keep their original input and adoption bytes. Sim
 
 The historical Caterpillar, quotation, and kitchen scenarios require explicit schema migration and fresh adoption of changed Ground truth before a graded replay. Cleanup did not migrate them. The identity-connection scenario validates but has no adoption record.
 
-The Main cross-source scenario retains its existing `packages/` path. The other saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
-
-## Deferred material
-
-[Everyday memory curation](clean-up/everyday-memory-curation--sculptor--2026-08-24/) remains a valid five-Scene definition without an adoption record. [Memory–book–web connections](clean-up/memory-book-web-connections--muse-librarian-serendipity-provenance--2026-09-01/) remains a pre-generation plan without generated inputs. Both remain deferred.
+Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
 
 ## Definitions and tooling
 
