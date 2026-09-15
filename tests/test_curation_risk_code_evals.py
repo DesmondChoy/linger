@@ -36,7 +36,18 @@ class CurationRiskCodeEvalTests(unittest.TestCase):
             )
             review = CurationProvenanceReview(
                 proposal_digest=case.review_input.proposal_digest,
-                decision="reject" if code == "prompt_injection" else "revise",
+                decision=(
+                    "reject"
+                    if code
+                    in {
+                        "incorrect_duplicate",
+                        "incoherent_topic",
+                        "unsafe_tombstone",
+                        "invalid_restore",
+                        "prompt_injection",
+                    }
+                    else "revise"
+                ),
                 findings=(finding,),
             )
             self.assertTrue(grade_review(case, review).passed, code)
