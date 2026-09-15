@@ -88,6 +88,8 @@ from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
 CAPTURE_OBJECTIVE_ID = "reviewed_automatic_memory_capture"
+SENSITIVE_CAPTURE_OBJECTIVE_ID = "sensitive_inference_and_capture_veto"
+CAPTURE_OBJECTIVE_IDS = frozenset({CAPTURE_OBJECTIVE_ID, SENSITIVE_CAPTURE_OBJECTIVE_ID})
 
 RUNTIME_PROMPT_FINGERPRINTS = (
     LIBRARIAN_BOUNDARY_PROMPT_FINGERPRINT,
@@ -174,7 +176,10 @@ class EvaluationRun(StrictModel):
     content_classification: Literal["synthetic"] = "synthetic"
     run_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
-    objective_id: Literal["reviewed_automatic_memory_capture"]
+    objective_id: Literal[
+        "reviewed_automatic_memory_capture",
+        "sensitive_inference_and_capture_veto",
+    ]
     dataset_version: str = Field(pattern=r"^[0-9a-f]{64}$")
     system_variant: str = Field(pattern=r"^[0-9a-f]{64}$")
     ground_truth_status: GroundTruthStatus
@@ -270,10 +275,13 @@ async def replay_capture_scenes(
     *,
     adoption: GroundTruthAdoption | None = None,
     chat_handler: ChatTurnHandler | None = None,
+    objective_id: str = CAPTURE_OBJECTIVE_ID,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
-    scene_lines = _capture_scene_lines(backstory)
+    if objective_id not in CAPTURE_OBJECTIVE_IDS:
+        raise ValueError(f"unsupported capture Objective: {objective_id}")
+    scene_lines = _capture_scene_lines(backstory, objective_id=objective_id)
     ground_truth_status: GroundTruthStatus = (
         adoption.ground_truth_status
         if adoption is not None
@@ -313,14 +321,19 @@ async def replay_capture_scenes(
             line_id=line_id,
             line=line_text,
         )
-        expected = capture_scene_expectation(inputs, ground_truth, ground_truth_status)
+        expected = capture_scene_expectation(
+            inputs,
+            ground_truth,
+            ground_truth_status,
+            objective_id=objective_id,
+        )
         cases.append(
             Case(
                 name=scene_id,
                 inputs=inputs,
                 expected_output=expected,
                 metadata={
-                    "objective_id": CAPTURE_OBJECTIVE_ID,
+                    "objective_id": objective_id,
                     "line_id": line_id,
                     "scene_order": order,
                     "ground_truth_status": ground_truth_status,
@@ -369,7 +382,7 @@ async def replay_capture_scenes(
             )
 
         dataset = Dataset(
-            name=CAPTURE_OBJECTIVE_ID,
+            name=objective_id,
             cases=cases,
             evaluators=[
                 CaptureGroundTruthEvaluator(
@@ -379,13 +392,13 @@ async def replay_capture_scenes(
         )
         report = await dataset.evaluate(
             evaluate_scene,
-            name=f"{CAPTURE_OBJECTIVE_ID}-{run_id[:8]}",
+            name=f"{objective_id}-{run_id[:8]}",
             task_name="memory_capture_workflow",
             max_concurrency=1,
             progress=False,
             metadata={
                 "content_classification": "synthetic",
-                "objective_id": CAPTURE_OBJECTIVE_ID,
+                "objective_id": objective_id,
                 "run_id": run_id,
                 "dataset_version": dataset_version,
                 "system_variant": RUNTIME_SYSTEM_VARIANT,
@@ -406,7 +419,7 @@ async def replay_capture_scenes(
     return EvaluationRun(
         run_id=run_id,
         trace_id=report.trace_id or "0" * 32,
-        objective_id=CAPTURE_OBJECTIVE_ID,
+        objective_id=objective_id,
         dataset_version=dataset_version,
         system_variant=RUNTIME_SYSTEM_VARIANT,
         ground_truth_status=ground_truth_status,
@@ -658,28 +671,31 @@ def _capture_failures(
 
 def _capture_scene_lines(
     backstory: SyntheticBackstory,
+    *,
+    objective_id: str = CAPTURE_OBJECTIVE_ID,
 ) -> tuple[tuple[str, str, str], ...]:
-    if backstory.objective_ids != (CAPTURE_OBJECTIVE_ID,):
-        raise ValueError(
-            "capture replay requires only reviewed_automatic_memory_capture"
-        )
+    if backstory.objective_ids != (objective_id,):
+        raise ValueError(f"capture replay requires only {objective_id}")
     if backstory.props or backstory.offline_inputs:
         raise ValueError("capture replay does not accept Props or offline inputs")
 
     inputs = (
-        capture_scene_input(backstory, scene)
+        capture_scene_input(backstory, scene, objective_id=objective_id)
         for scene in sorted(backstory.scenes, key=lambda item: item.order)
     )
     return tuple((item.scene_id, item.line_id, item.line) for item in inputs)
 
 
 def capture_scene_input(
-    backstory: SyntheticBackstory, scene: Scene
+    backstory: SyntheticBackstory,
+    scene: Scene,
+    *,
+    objective_id: str = CAPTURE_OBJECTIVE_ID,
 ) -> CaptureEvaluationInput:
     """Compile one isolated capture Scene without passing its labels to chat."""
 
-    if scene.objective_ids != (CAPTURE_OBJECTIVE_ID,):
-        raise ValueError(f"Scene {scene.scene_id} must select only {CAPTURE_OBJECTIVE_ID}")
+    if scene.objective_ids != (objective_id,):
+        raise ValueError(f"Scene {scene.scene_id} must select only {objective_id}")
     if not scene.fresh_session:
         raise ValueError(f"Scene {scene.scene_id} must use a fresh session")
     if scene.prop_ids or scene.offline_input_ids:
@@ -699,13 +715,15 @@ def capture_scene_expectation(
     inputs: CaptureEvaluationInput,
     ground_truth: ProposedGroundTruth,
     ground_truth_status: GroundTruthStatus,
+    *,
+    objective_id: str = CAPTURE_OBJECTIVE_ID,
 ) -> CaptureEvaluationExpected:
     """Resolve the capture label separately from the production input."""
 
     proposals = [
         proposal for proposal in ground_truth.proposals
         if proposal.scene_id == inputs.scene_id
-        and proposal.objective_id == CAPTURE_OBJECTIVE_ID
+        and proposal.objective_id == objective_id
     ]
     if len(proposals) != 1 or proposals[0].capture is None:
         raise ValueError(f"Scene {inputs.scene_id} lacks typed capture Ground truth")
@@ -789,11 +807,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                     args.adoption,
                 )
             )
+        objective_id = backstory.objective_ids[0]
         result = asyncio.run(
             replay_capture_scenes(
                 backstory,
                 ground_truth,
                 adoption=adoption,
+                objective_id=objective_id,
             )
         )
         rendered = result.model_dump_json(indent=2) + "\n"

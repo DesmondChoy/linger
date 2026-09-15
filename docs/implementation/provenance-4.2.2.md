@@ -141,15 +141,17 @@ and deterministically verified, not yet measured against a model.
       with `capture_curation_replay.py --adoption` on 15 September 2026. The
       replay completed all 11 capture Scenes and preserved the recorded source
       hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
-- [x] **E9 — Re-measure the mix with an independent balanced Scenario.**
-      `capture_balanced` is 5 candidate to 6 no-candidate, and the run configuration
-      says one positive is insufficient for stable recall measurement. Keep the
-      adopted Scenario unchanged and create a new Scenario under
+- [ ] **E9 — Re-measure the mix with independent 10-to-1 Scenarios.**
+      [`reviewed-automatic-memory-capture-10-to-1.json`](../../synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json)
+      defines one capture candidate and ten no-candidate controls. One positive
+      is insufficient for stable recall measurement, so repeat the 11-Scene
+      pattern across multiple independently generated Backstories. Keep the
+      adopted Scenario unchanged and create new Scenarios under
       `synthetic-journal-evaluation/scenarios/`.
 
-      1. Generate a new Backstory with at least five positive capture Scenes and
-         five no-candidate Scenes. Vary the durable reflections and the
-         distractor material so the positives are not copies of Scene 06.
+      1. Generate new Backstories with one positive capture Scene and ten
+         no-candidate Scenes. Vary the durable reflections and distractor
+         material across Backstories.
       2. Write separate proposed `backstory.json` and `ground-truth.json` files.
          Use the existing capture contract, exact spans, fresh sessions, and a
          distinct person and evaluation account.
@@ -162,19 +164,17 @@ and deterministically verified, not yet measured against a model.
          output path. Record the Logfire link and the durable evaluation
          artifact.
       6. Compare candidate recall, no-candidate precision, reason codes, and
-         storage outcomes with the current adopted run. The balanced replay
-         completed all 11 Scenes: 3 of 5 positive Scenes passed the exact-span
-         hard gates (60% candidate recall), and all 6 of 6 no-candidate controls
-         passed (100% control precision). Scenes 01 and 07 exposed supported
-         positive-path failures because the model nominated narrower spans than
-         Ground truth. See the durable [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-automatic-memory-capture-balanced--muse-provenance--2026-09-15/scenario-run-2026-09-15T0240+0800-e9balanced/evaluation.json) and the [Logfire evaluation](https://logfire-us.pydantic.dev/keimi/starter-project/evals/reviewed_automatic_memory_capture/compare?experiment=01a0a2ee0f1a2e68895b6889daa1a868-0b650a9018a86328).
-- [ ] **E10 — Run the skill for `sensitive_inference_and_capture_veto`.** This
-      catalog Objective has **no runner and no validator support at all** — it
-      appears in no `OBJECTIVE_ID` constant anywhere in `evals/`. It is the
-      Objective that exercises the veto, the preflight boundary, and the
-      over-refusal comparison, and it `combines_well_with`
-      `reviewed_automatic_memory_capture`. E5 and E7 are complete; this remains
-      an independent missing Objective implementation.
+         storage outcomes with the current adopted run across the independent
+         10-to-1 replays. Record the durable evaluation artifacts and Logfire
+         evaluations for each completed Scenario.
+- [ ] **E10 — Run the skill for `sensitive_inference_and_capture_veto`.** The
+      capture runner and scenario validator now support this Objective's
+      isolated Line topology, including candidate, vetoed-candidate, and
+      no-candidate Scenes. The replay still shares the capture observation
+      contract; the remaining work is to author and independently adopt the
+      five required sensitive and comparison Scenes, then measure the fixed
+      emotional boundary, over-refusal, unsafe-capture, and helpful-response
+      outcomes. E5 and E7 are complete.
 - [ ] **E11 — Injection overlay on a capture Scene.** The §4.2.2 counterpart of
       D2. `prompt_injection` is a `SENSITIVE_RISK_CODES` member, so an injected
       instruction inside a nominated span is a capture veto as well as a

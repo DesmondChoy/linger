@@ -45,6 +45,7 @@ DEFAULT_RUN_CONFIGURATION_DIRECTORY = (
     REPOSITORY_ROOT / "synthetic-journal-evaluation" / "generation-presets"
 )
 BOUNDED_CURATION_OBJECTIVE_ID = "bounded_memory_curation"
+SENSITIVE_CAPTURE_OBJECTIVE_ID = "sensitive_inference_and_capture_veto"
 GROUNDED_BOOK_REFLECTION_OBJECTIVE_ID = "grounded_book_reflection"
 SPOILER_BOUNDARY_OBJECTIVE_ID = "spoiler_boundary_clarification"
 
@@ -250,6 +251,7 @@ def validate_scenario(
     failures.extend(
         _validate_bounded_curation(backstory, ground_truth, props)
     )
+    failures.extend(_validate_sensitive_capture_objective(backstory, ground_truth))
     if SURFACING_OBJECTIVE_ID in backstory.objective_ids:
         try:
             compile_surfacing_scenes(backstory, ground_truth)
@@ -389,6 +391,69 @@ def _validate_bounded_curation(
             "bounded curation scenario must contain exactly one Scene for each "
             "accepted Sculptor behavior"
         )
+    return failures
+
+
+def _validate_sensitive_capture_objective(
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+) -> list[str]:
+    """Require the minimum Line topology for the sensitive capture Objective."""
+    if SENSITIVE_CAPTURE_OBJECTIVE_ID not in backstory.objective_ids:
+        return []
+    failures: list[str] = []
+    if backstory.run_configuration_ids:
+        failures.append(
+            "sensitive capture Objective does not accept run configurations"
+        )
+    scenes = [
+        scene
+        for scene in backstory.scenes
+        if SENSITIVE_CAPTURE_OBJECTIVE_ID in scene.objective_ids
+    ]
+    if len(scenes) < 5:
+        failures.append(
+            "sensitive capture Objective requires at least five Scenes"
+        )
+    proposals = {
+        proposal.scene_id: proposal
+        for proposal in ground_truth.proposals
+        if proposal.objective_id == SENSITIVE_CAPTURE_OBJECTIVE_ID
+    }
+    candidate_count = 0
+    veto_count = 0
+    no_candidate_count = 0
+    for scene in scenes:
+        if scene.objective_ids != (SENSITIVE_CAPTURE_OBJECTIVE_ID,):
+            failures.append(
+                f"sensitive capture Scene {scene.scene_id} must select only "
+                f"{SENSITIVE_CAPTURE_OBJECTIVE_ID}"
+            )
+        if not scene.fresh_session or len(scene.line_ids) != 1:
+            failures.append(
+                f"sensitive capture Scene {scene.scene_id} requires one fresh-session Line"
+            )
+        if scene.prop_ids or scene.offline_input_ids:
+            failures.append(
+                f"sensitive capture Scene {scene.scene_id} cannot use Props or offline inputs"
+            )
+        proposal = proposals.get(scene.scene_id)
+        if proposal is None or proposal.capture is None:
+            failures.append(
+                f"sensitive capture Scene {scene.scene_id} lacks capture Ground truth"
+            )
+            continue
+        if isinstance(proposal.capture.nomination, CaptureCandidate):
+            candidate_count += 1
+            veto_count += proposal.capture.provenance_decision == "reject_capture"
+        elif isinstance(proposal.capture.nomination, NoCandidate):
+            no_candidate_count += 1
+    if candidate_count == 0:
+        failures.append("sensitive capture Objective requires a candidate Scene")
+    if veto_count == 0:
+        failures.append("sensitive capture Objective requires a vetoed candidate")
+    if no_candidate_count == 0:
+        failures.append("sensitive capture Objective requires a no-candidate Scene")
     return failures
 
 

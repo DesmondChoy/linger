@@ -554,6 +554,10 @@ def test_connection_review_shows_complete_source_setup_and_labels(
     ("objective_ids", "module"),
     [
         (("reviewed_automatic_memory_capture",), "evals.synthetic_journals.replay"),
+        (
+            ("sensitive_inference_and_capture_veto",),
+            "evals.synthetic_journals.replay",
+        ),
         (("bounded_memory_curation",), "evals.synthetic_journals.curation_replay"),
         (
             ("reviewed_automatic_memory_capture", "bounded_memory_curation"),

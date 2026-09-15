@@ -277,7 +277,9 @@ It does not implement conversational capture-triggered curation or surfacing.
 
 ## Capture replay
 
-Replay a validated capture-only scenario through the production Muse path:
+Replay a validated capture-only scenario for either
+`reviewed_automatic_memory_capture` or
+`sensitive_inference_and_capture_veto` through the production Muse path:
 
 ```bash
 uv run python -m evals.synthetic_journals.replay \
@@ -305,6 +307,11 @@ output, compact actual output, and an authority-specific label. Without
 `proposal_comparison`. With a valid adoption, it emits
 `adopted_hard_gate_grade` and uses the adopted Ground truth identity as the
 dataset version.
+
+Sensitive-veto Scenarios use the same runner with a distinct Objective ID and
+must contain at least five isolated Line Scenes, including a vetoed candidate
+and a no-candidate control. The runner records the fixed emotional-boundary
+release and suppressed capture when the production preflight applies them.
 Content-bearing Pydantic AI spans provide Logfire's LLM panels with ordered
 messages, model responses, tool calls, tokens, and cost. The surrounding
 application spans retain fixed agent and hand-off metadata. Normal
