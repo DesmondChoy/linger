@@ -24,28 +24,26 @@ sound. The material gap is measurement, not runtime design:
 
 | Gate | Built | Missing | Evaluation consequence |
 |---|---|---|---|
-| Capture | Review contract, independent capture veto, deterministic suppression and capture replay, **capture-axis eval pack (Stage 1)** | A live run of the new pack, and Ground truth for vetoed nominations | The pack can now measure `capture_decision`; no live measurement has been taken yet |
-| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification | Full-loop replay grading and curation-gate live-model cases | The current synthetic runner stops after Sculptor's proposal and does not measure the shipped Provenance gate |
+| Capture | Review contract, independent capture veto, deterministic suppression and capture replay, **capture-axis eval pack (Stage 1)** | A live run of the new pack, and Ground truth for vetoed nominations | The combined Scenario provides one live positive capture measurement, but the dedicated veto pack has not run |
+| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay | Outcome grading beyond the proposal, curation-gate live-model cases, and fail-closed Scenario coverage | The combined Scenario reaches Provenance review and records loop statuses, but its evaluator still grades proposal outcomes |
 
 ## TODO
 
 The capture runtime is **more complete than §4.2.1's was**: its review
 contract, binding module, policy service, replay runner, and scenario models all
-exist and validate. The curation runtime and contracts are also complete, but
-its synthetic runner still targets the superseded proposal-only boundary. The
-gap is therefore **evaluation coverage and runner alignment, not plumbing**.
+exist and validate. The curation runtime and contracts are also complete, and
+the synthetic runner now reaches the reviewed curation loop. The remaining gap
+is **evaluation coverage and outcome grading, not runtime plumbing**.
 Two facts frame the capture work below:
 
 - **Stage 0 did not measure `capture_decision`.** Its
   12 cases all set `allow_memory_capture: false` and carry `memory: None`, so
   the pack that proved the five 4.2.1 codes never touched the capture axis.
   That pack provides no live capture evidence for `sensitive_content`.
-- **No saved capture Scenario remains.** On 13 September 2026, the developer
-  requested deletion of the original 2026-08-23 Everyday memory capture
-  Scenario and its 2026-09-13 migration-only successor, including their Ground
-  truth, adoption, and reports. Regeneration is planned for a separate
-  conversation. The capture runner, regression fixture, and generation preset
-  remain available.
+- **The saved combined Scenario is the current capture evidence.** It was
+  independently adopted and replayed on 15 September 2026. It contains one
+  candidate and ten no-candidate capture Scenes, so it proves the positive path
+  but does not provide a stable recall estimate.
 
 Ordering mirrors §4.2.1's: measure each gate in isolation first (**Stages 1 and
 4**), then replay complete scenarios. A new capture Scenario needs authoring,
@@ -138,12 +136,11 @@ and deterministically verified, not yet measured against a model.
 
 **Stage 3 — Author, adopt, and replay a capture scenario**
 
-- [ ] **E8 — Generate, adopt, and replay a new capture Scenario.** Plan and
-      generate it in the separate conversation requested by the developer.
-      Validate the current schema and obtain fresh independent human adoption
-      before running `replay.py --adoption` with replay authorization. The
-      deleted Scenario's historical approval cannot authorize new files. No
-      replacement was generated during the deletion work.
+- [x] **E8 — Generate, adopt, and replay a new capture Scenario.** The combined
+      Scenario was generated, validated, independently adopted, and replayed
+      with `capture_curation_replay.py --adoption` on 15 September 2026. The
+      replay completed all 11 capture Scenes and preserved the recorded source
+      hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
 - [ ] **E9 — Re-measure the 10-to-1 mix.** `capture_mix` is 1 candidate to 10
       no-candidate, and the run configuration itself says one positive "is
       insufficient for stable recall measurement". The single positive Scene
@@ -156,7 +153,8 @@ and deterministically verified, not yet measured against a model.
       appears in no `OBJECTIVE_ID` constant anywhere in `evals/`. It is the
       Objective that exercises the veto, the preflight boundary, and the
       over-refusal comparison, and it `combines_well_with`
-      `reviewed_automatic_memory_capture`. Blocked on E5 and E7.
+      `reviewed_automatic_memory_capture`. E5 and E7 are complete; this remains
+      an independent missing Objective implementation.
 - [ ] **E11 — Injection overlay on a capture Scene.** The §4.2.2 counterpart of
       D2. `prompt_injection` is a `SENSITIVE_RISK_CODES` member, so an injected
       instruction inside a nominated span is a capture veto as well as a
@@ -164,12 +162,11 @@ and deterministically verified, not yet measured against a model.
 
 **Stage 4 — Curation-gate measurement and full-loop replay**
 
-- [ ] **E12 — Point the curation replay at `run_curation_loop`.** Swap the
-      handler in
-      [`curation_replay.py:279`](../../evals/synthetic_journals/curation_replay.py#L279)
-      and grade `CurationLoopResult.status` across all four values. Do this
-      before generating the replacement scenario, or the scenario will encode the
-      old proposal-only boundary again.
+- [x] **E12 — Point the curation replay at `run_curation_loop`.** The runner
+      now calls `run_curation_loop` for each curation Scene. The 15 September
+      replay reached Provenance curation review, recorded `allow` decisions,
+      and recorded `applied` or `no_change` loop statuses. The evaluator still
+      needs the outcome assertions described in E13.
 - [ ] **E13 — Extend `CurationExpectation` past the proposal.** Add the
       verdict, applied outcome, and audit-verification result, plus expectation
       members for `tombstone_for_retrieval` and `restore_to_retrieval`. Keep
@@ -534,55 +531,53 @@ that changes what retrieval returns, and its deterministic guards
 (`tombstone_requires_duplicate_link`, `tombstone_canonical_not_retrievable`) are
 a backstop for a semantic judgment nothing currently measures.
 
-**13.3.2 The synthetic evaluation still grades the pre-f4db8d0 flow.**
+**13.3.2 The replay reaches the reviewed loop, but grading still stops at the proposal.**
 
-This is the substantive gap. `curation_replay.py` imports **`propose_curation`,
-not `run_curation_loop`** (line 40) and calls it directly as its handler (line
-279). The runner therefore still stops where the old design stopped:
+The runner now calls `run_curation_loop` for each curation Scene. The 15
+September replay reached Provenance review and recorded `allow` decisions plus
+`applied` or `no_change` statuses. The substantive remaining gap is the
+evaluator: it still grades the proposal boundary rather than the reviewed write
+path the commit added:
 
 ```
 select → Sculptor proposes → [runner grades here]
          → Provenance reviews → policy validates → apply → verify → curated view
 ```
 
-The expectation vocabulary confirms it. `ExpectedResponse` is
+The expectation vocabulary confirms the limitation. `ExpectedResponse` is
 `ExpectedCurationProposal | ExpectedNoCurationProposal`, its `ExpectedAction`
-union covers only the three proposal-shaped actions, and neither the harness nor
-the replay module contains the words `allow`, `reject`, `revise`, `applied`,
-`audit`, or `tombstone` anywhere. `PrimaryBehavior`'s five values are all
-proposal-shaped. The four new stages are unrepresentable, so the runner grades
-Sculptor's judgment rather than the reviewed write path the commit added.
+union covers only the three proposal-shaped actions, and `PrimaryBehavior`'s
+five values are all proposal-shaped. The four reviewed-loop stages remain
+unrepresentable to the grader, even though the replay now records the loop
+status.
 
 Notably the two retrieval actions, `tombstone_for_retrieval` and
 `restore_to_retrieval`, have **no expectation member at all** — they are not
 proposal-shaped in the old vocabulary and were never added.
 
-**13.3.3 The removed scenario leaves no curation coverage in place.**
+**13.3.3 The replacement scenario provides partial curation coverage.**
 
-The proposal-only scenario was removed as part of the change, correctly, since it
-graded a flow that no longer exists. But the replacement is described as
-"generated separately", so between now and then §4.2.2 curation has **zero**
-synthetic coverage. The
+The combined Scenario now exercises the reviewed curation path, including an
+approval that is applied and a no-change outcome. It does not yet cover all
+action outcomes or the fail-closed cases in E14 and E15. The
 [2026-08-29T142004](../../synthetic-journal-evaluation/scenarios/pottery-memory-curation--sculptor--2026-08-29/)
 scenario remains on disk with `bounded_memory_curation` Ground truth and an
-adoption file; it should be treated as superseded and not replayed for evidence
-about the current flow, since a pass from it would be a pass against the old
-boundary.
+adoption file. It should be treated as superseded and not replayed for evidence
+about the current flow, since it evaluates the old proposal-only boundary.
 
-**13.3.4 `CurationLoopResult` is richer than anything that reads it.**
+**13.3.4 `CurationLoopResult` is only partially consumed.**
 
-The loop already returns `status` across four values, the digest, the verdict,
-the application result, and before/after hashes. That is very nearly a complete
-answer key. Nothing in `evals/` consumes it. This is the same shape as E6 and
-B1: the observability exists and simply never reaches a grader.
+The replay now records the loop's status, digest, and review decision in the raw
+evaluation artifact. The evaluator does not yet grade the application result,
+audit verification, retrieval effect, or before/after hashes. E13 is therefore
+still needed to turn the existing observability into outcome assertions.
 
 ### 13.4 Recommended sequencing
 
-E12 first and before the replacement scenario is generated — the runner defines
-what the scenario can express, so generating against the current runner would bake
-in the old boundary. E13 alongside it, since a status-only grade cannot
-distinguish a correct `applied` from one that applied the wrong action. E14 runs
-independently of both and can proceed in parallel. E15 and E16 are cleanup.
+E12 is complete. E13 is now the first remaining prerequisite because a
+status-only grade cannot distinguish a correct `applied` result from one that
+applied the wrong action. E14 can proceed in parallel. E15 can follow once the
+outcome vocabulary is in place, and E16 is cleanup for the superseded artifact.
 
 One scoping note: E14 and E1–E4 are two packs against two different gates, and
 they should stay separate files. §5.1's argument for mirroring the emotional
