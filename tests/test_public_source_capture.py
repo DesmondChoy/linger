@@ -124,4 +124,4 @@ def test_cli_refuses_existing_output_before_capture(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as result:
         main()
     assert result.value.code == 2
-    assert output.read_text() == "existing snapshot"
+    assert output.read_text(encoding="utf-8") == "existing snapshot"

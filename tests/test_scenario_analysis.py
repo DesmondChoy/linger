@@ -16,14 +16,14 @@ def _scenario(root: Path) -> Path:
     scenario.mkdir()
     (scenario / "backstory.json").write_text(json.dumps({"scenes": [
         {"scene_id": "second", "order": 2}, {"scene_id": "first", "order": 1},
-    ]}))
+    ]}), encoding="utf-8")
     (scenario / "ground-truth.json").write_text(json.dumps({"proposals": [
         {"scene_id": scene_id, "proposal_id": f"p-{scene_id}", "objective_id": "grounded_book_reflection",
          "expected_outcomes": [f"Quote the passage for {scene_id}."],
          "prohibited_outcomes": ["Invent a passage."],
          "book_expectation": {"kind": "grounded_book_reflection", "retrieval": "required"}}
         for scene_id in ("first", "second")
-    ]}))
+    ]}), encoding="utf-8")
     return scenario
 
 
@@ -70,22 +70,22 @@ def _review(data: dict) -> dict:
 
 
 def _save_review(path: Path, review: dict | None = None) -> dict:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     data["review"] = review if review is not None else _review(data)
-    path.write_text(json.dumps(data, indent=2))
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return data
 
 
 def test_all_pass_attempt_saves_pending_report_for_every_scene_in_scenario_order(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("second"), _scene("first")]})
-    data = json.loads(path.with_suffix(".json").read_text())
+    data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
     assert data["review"] is None
     assert [scene["scene_id"] for scene in data["scenes"]] == ["first", "second"]
     assert [scene["status"] for scene in data["scenes"]] == ["passed", "passed"]
     assert data["summary"]["judgments_passed"] == 2
     assert data["scenes"][0]["expected"][0]["book_expectation"]["retrieval"] == "required"
     assert data["scenes"][0]["observed"]["reply"] == "Observed reply for first."
-    report = path.read_text()
+    report = path.read_text(encoding="utf-8")
     assert "Analysis pending" in report
     assert "### first" in report and "### second" in report
     assert "Remote trace visibility: unverified" in report
@@ -96,10 +96,10 @@ def test_all_pass_attempt_saves_pending_report_for_every_scene_in_scenario_order
 def test_final_report_contains_pass_commentary_and_renders_deterministically(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
     data_path = path.with_suffix(".json")
-    before = json.loads(data_path.read_text())
+    before = json.loads(data_path.read_text(encoding="utf-8"))
     reviewed = _save_review(data_path)
     reviewed["review"]["scenes"].reverse()
-    data_path.write_text(json.dumps(reviewed))
+    data_path.write_text(json.dumps(reviewed), encoding="utf-8")
     assert render_analysis_report(data_path) == path
     first_render = path.read_bytes()
     render_analysis_report(data_path)
@@ -117,14 +117,14 @@ def test_final_report_contains_pass_commentary_and_renders_deterministically(tmp
         "## Outcome", "## Scene results", "## Scene analysis", "## Next steps", "## Evidence",
     ]
     assert "scenes[0].expected" not in report
-    after = json.loads(data_path.read_text())
+    after = json.loads(data_path.read_text(encoding="utf-8"))
     assert {k: v for k, v in after.items() if k != "review"} == {k: v for k, v in before.items() if k != "review"}
 
 
 def test_mixed_results_preserve_failed_grades_when_review_explains_unexercised_behavior(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second", failed=True)]})
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     review = _review(data)
     review["scenes"][1].update({
         "assessment": "not_exercised", "interpretation": "An upstream book clarification prevented quotation retrieval.",
@@ -133,19 +133,19 @@ def test_mixed_results_preserve_failed_grades_when_review_explains_unexercised_b
     review["next_steps"] = [{"target": "scenario", "action": "Clarify the work identity in the input.", "verification": "Validate the revised scenario and obtain fresh adoption."}]
     _save_review(data_path, review)
     render_analysis_report(data_path)
-    report = path.read_text()
+    report = path.read_text(encoding="utf-8")
     assert "1 passed, 1 failed" in report
     assert "upstream book clarification" in report
     assert "not exercised" in report
     assert "fresh adoption" in report
-    assert json.loads(data_path.read_text())["scenes"][1]["status"] == "failed"
+    assert json.loads(data_path.read_text(encoding="utf-8"))["scenes"][1]["status"] == "failed"
 
 
 @pytest.mark.parametrize("kind", ["missing", "duplicate", "unknown"])
 def test_review_requires_exact_scene_coverage(tmp_path, kind):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     review = _review(data)
     if kind == "missing":
         review["scenes"].pop()
@@ -164,7 +164,7 @@ def test_review_requires_exact_scene_coverage(tmp_path, kind):
 def test_review_cannot_relabel_recorded_grade(tmp_path, failed, assessment):
     path = _write(tmp_path, artifact={"scenes": [_scene("first", failed=failed), _scene("second")]})
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     review = _review(data)
     review["scenes"][0]["assessment"] = assessment
     _save_review(data_path, review)
@@ -175,7 +175,7 @@ def test_review_cannot_relabel_recorded_grade(tmp_path, failed, assessment):
 def test_review_requires_evidence_grade_reliability_and_no_extra_fields(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     for field, value in (("evidence_refs", []), ("grade_reliability", ""), ("status", "failed")):
         review = _review(data)
         review["scenes"][0][field] = value
@@ -187,22 +187,22 @@ def test_review_requires_evidence_grade_reliability_and_no_extra_fields(tmp_path
 def test_blocked_attempt_has_every_scene_not_run_and_requires_commentary(tmp_path):
     path = _write(tmp_path, execution_status="not_started")
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     assert [scene["status"] for scene in data["scenes"]] == ["not_run", "not_run"]
     assert data["summary"]["scenes_total"] == 0
     _save_review(data_path)
     render_analysis_report(data_path)
-    assert "not started" in path.read_text()
-    assert "not run" in path.read_text()
+    assert "not started" in path.read_text(encoding="utf-8")
+    assert "not run" in path.read_text(encoding="utf-8")
 
 
 def test_partial_observation_does_not_claim_missing_scene_never_ran(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first")]}, execution_status="interrupted")
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     assert [scene["status"] for scene in data["scenes"]] == ["passed", "incomplete"]
     assert data["summary"]["scenes_total"] == 1
-    assert "Incomplete observations do not establish which paths ran" in path.read_text()
+    assert "Incomplete observations do not establish which paths ran" in path.read_text(encoding="utf-8")
     review = _review(data)
     review["scenes"][1]["assessment"] = "credible_pass"
     _save_review(data_path, review)
@@ -216,19 +216,19 @@ def test_ungraded_scene_retains_observation_without_invented_judgment(tmp_path):
     }]}
     path = _write(tmp_path, artifact=artifact)
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     assert data["scenes"][1]["status"] == "ungraded"
     assert data["summary"]["judgments_total"] == 1
     _save_review(data_path)
     render_analysis_report(data_path)
-    assert "1 ungraded" in path.read_text()
+    assert "1 ungraded" in path.read_text(encoding="utf-8")
 
 
 def test_execution_failure_remains_separate_from_passing_scene_results(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]}, execution_status="failed")
     _save_review(path.with_suffix(".json"))
     render_analysis_report(path.with_suffix(".json"))
-    report = path.read_text()
+    report = path.read_text(encoding="utf-8")
     assert "Execution: **failed**" in report
     assert "2 passed, 0 failed" in report
 
@@ -236,7 +236,7 @@ def test_execution_failure_remains_separate_from_passing_scene_results(tmp_path)
 def test_raw_evidence_stays_in_json_and_report_creation_is_unique(tmp_path):
     scenario = _scenario(tmp_path)
     log_path = scenario / "run.log"
-    log_path.write_text("RAW_TRACEBACK_LINE\nOPENAI_API_KEY=sk-private1234567890abcdefghij\n")
+    log_path.write_text("RAW_TRACEBACK_LINE\nOPENAI_API_KEY=sk-private1234567890abcdefghij\n", encoding="utf-8")
     authority_before = {p.name: p.read_bytes() for p in scenario.glob("*.json")}
     arguments = dict(
         repository_root=tmp_path, model="openai:test", category="provider", problems=["Provider failed."],
@@ -248,9 +248,9 @@ def test_raw_evidence_stays_in_json_and_report_creation_is_unique(tmp_path):
     second = write_analysis_report(scenario, **arguments)
     assert first != second
     assert first.with_suffix(".json").exists()
-    raw = first.with_suffix(".json").read_text()
+    raw = first.with_suffix(".json").read_text(encoding="utf-8")
     facts = json.loads(raw)
-    report = first.read_text()
+    report = first.read_text(encoding="utf-8")
     assert "RAW_TRACEBACK_LINE" in raw and "RAW_TRACEBACK_LINE" not in report
     assert "[REDACTED]" in raw and "sk-private" not in raw
     for digest in facts["evidence"]["diagnostics"]["source_hashes"].values():
@@ -265,7 +265,7 @@ def test_raw_evidence_stays_in_json_and_report_creation_is_unique(tmp_path):
 def test_review_can_identify_a_possible_false_positive_without_changing_pass(tmp_path):
     path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
     data_path = path.with_suffix(".json")
-    data = json.loads(data_path.read_text())
+    data = json.loads(data_path.read_text(encoding="utf-8"))
     review = _review(data)
     review["scenes"][0].update({
         "assessment": "potential_false_positive", "confidence": "likely",
@@ -273,18 +273,18 @@ def test_review_can_identify_a_possible_false_positive_without_changing_pass(tmp
     })
     _save_review(data_path, review)
     render_analysis_report(data_path)
-    assert "potential false positive" in path.read_text()
-    assert "2 passed, 0 failed" in path.read_text()
+    assert "potential false positive" in path.read_text(encoding="utf-8")
+    assert "2 passed, 0 failed" in path.read_text(encoding="utf-8")
 
 
 def test_partial_grade_and_malformed_scenario_fields_still_produce_reviewable_facts(tmp_path):
     scenario = _scenario(tmp_path)
-    (scenario / "ground-truth.json").write_text('{"proposals":null}')
+    (scenario / "ground-truth.json").write_text('{"proposals":null}', encoding="utf-8")
     path = write_analysis_report(
         scenario, repository_root=tmp_path, model="openai:test", category="execution", problems=[],
         artifact={"scenes": [{"scene_id": "first", "grades": None}]}, execution_status="failed",
     )
-    data = json.loads(path.with_suffix(".json").read_text())
+    data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
     assert [scene["status"] for scene in data["scenes"]] == ["incomplete", "incomplete"]
     assert data["summary"]["judgments_total"] == 0
     assert data["evidence"]["artifact_problems"]
@@ -294,7 +294,7 @@ def test_structured_secrets_are_redacted_without_losing_authorization_basis(tmp_
     scene = _scene("first")
     scene["response"] = {"api_key": "private-unformatted-value", "authorization_basis": "memory_supported"}
     path = _write(tmp_path, artifact={"scenes": [scene, _scene("second")]})
-    data = json.loads(path.with_suffix(".json").read_text())
+    data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
     response = data["scenes"][0]["observed"]["response"]
     assert response["api_key"] == "[REDACTED]"
     assert response["authorization_basis"] == "memory_supported"
@@ -303,13 +303,13 @@ def test_structured_secrets_are_redacted_without_losing_authorization_basis(tmp_
 def test_book_scene_scope_remains_available_for_ground_truth_validity_review(tmp_path):
     scenario = _scenario(tmp_path)
     truth_path = scenario / "ground-truth.json"
-    truth = json.loads(truth_path.read_text())
+    truth = json.loads(truth_path.read_text(encoding="utf-8"))
     facts = {"scene_id": "first", "scope": {"kind": "librarian_inferred", "supporting_evidence_ids": ["identity", "quote"]}}
     truth["book_scene_facts"] = [facts]
-    truth_path.write_text(json.dumps(truth))
+    truth_path.write_text(json.dumps(truth), encoding="utf-8")
     path = write_analysis_report(
         scenario, repository_root=tmp_path, model="openai:test", category="none", problems=[],
         artifact={"scenes": [_scene("first"), _scene("second")]}, execution_status="completed",
     )
-    data = json.loads(path.with_suffix(".json").read_text())
+    data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
     assert {"book_scene_facts": facts} in data["scenes"][0]["expected"]

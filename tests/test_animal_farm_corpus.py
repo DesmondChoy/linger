@@ -76,17 +76,17 @@ def test_initialization_and_catalog_preserve_curated_metadata(tmp_path):
     with pytest.raises(CorpusBuildError, match="refusing to overwrite"):
         initialise_corpus(book.BOOK, output=first)
     chapter = first / "chapters/01-chapter-i.md"
-    metadata, body = parse_chapter_markdown(chapter.read_text())
+    metadata, body = parse_chapter_markdown(chapter.read_text(encoding="utf-8"))
     revised = metadata.model_dump(mode="json")
     revised["routing_description"] = "Old Major teaches Beasts of England."
-    chapter.write_text("---\n" + json.dumps(revised, indent=2) + "\n---\n\n" + body)
+    chapter.write_text("---\n" + json.dumps(revised, indent=2) + "\n---\n\n" + body, encoding="utf-8")
     preserved = {p: p.read_bytes() for p in (first / "chapters").iterdir()}
     assert "catalog.json is missing or stale" in check_corpus(book.BOOK, output=first)
     (first / "catalog.json").unlink()
     build_catalog(book.BOOK, output=first)
     assert check_corpus(book.BOOK, output=first) == ()
     assert all(p.read_bytes() == value for p, value in preserved.items())
-    catalog = json.loads((first / "catalog.json").read_text())
+    catalog = json.loads((first / "catalog.json").read_text(encoding="utf-8"))
     assert catalog["chapter_count"] == 10
     assert [c["chapter_number"] for c in catalog["chapters"]] == list(range(1, 11))
     assert catalog["chapters"][0]["routing_description"] == revised["routing_description"]
@@ -113,13 +113,13 @@ def test_invalid_corpus_blocks_catalog_writes(tmp_path, damage):
     chapter = tmp_path / "chapters/01-chapter-i.md"
     catalog = (tmp_path / "catalog.json").read_bytes()
     if damage == "body":
-        chapter.write_text(chapter.read_text().replace("Mr. Jones, of", "Mr. Jones from", 1))
+        chapter.write_text(chapter.read_text(encoding="utf-8").replace("Mr. Jones, of", "Mr. Jones from", 1), encoding="utf-8")
     elif damage == "id":
-        chapter.write_text(chapter.read_text().replace("vc7ff4da7-ch01", "vc7ff4da7-ch99", 1))
+        chapter.write_text(chapter.read_text(encoding="utf-8").replace("vc7ff4da7-ch01", "vc7ff4da7-ch99", 1), encoding="utf-8")
     elif damage == "missing":
         chapter.unlink()
     else:
-        (tmp_path / "chapters/extra.md").write_text("unexpected")
+        (tmp_path / "chapters/extra.md").write_text("unexpected", encoding="utf-8")
     assert check_corpus(book.BOOK, output=tmp_path)
     with pytest.raises(CorpusBuildError, match="cannot build catalog"):
         build_catalog(book.BOOK, output=tmp_path)

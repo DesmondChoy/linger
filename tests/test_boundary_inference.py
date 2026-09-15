@@ -190,7 +190,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
             "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/"
             "backstory.json"
         )
-        backstory = json.loads(scenario.read_text())
+        backstory = json.loads(scenario.read_text(encoding="utf-8"))
         prop = backstory["props"][0]
         with tempfile.TemporaryDirectory() as root:
             service = MemoryPolicyService(Path(root))

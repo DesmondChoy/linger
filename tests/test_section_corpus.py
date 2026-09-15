@@ -44,7 +44,7 @@ def test_section_schema_round_trip_and_curated_catalog(section_book: BookCorpus)
     initialise_corpus(book)
     root = book.default_output
     path = root / 'sections/01-preface.md'
-    metadata, body = parse_chapter_markdown(path.read_text(), unit_kind="section")
+    metadata, body = parse_chapter_markdown(path.read_text(encoding="utf-8"), unit_kind="section")
     fields = metadata.model_dump(mode='json')
     assert fields['schema_version'] == 2
     assert fields['section_id'] == f'{book.book_version_id}-sec01'
@@ -54,12 +54,12 @@ def test_section_schema_round_trip_and_curated_catalog(section_book: BookCorpus)
     assert check_corpus(book) == ()
 
     fields['routing_description'] = 'Reviewed preface routing.'
-    path.write_text('---\n' + json.dumps(fields) + '\n---\n\n' + body)
+    path.write_text('---\n' + json.dumps(fields) + '\n---\n\n' + body, encoding="utf-8")
     before = {p.name: p.read_bytes() for p in (root / 'sections').glob('*.md')}
     assert check_corpus(book) == ('catalog.json is missing or stale',)
     build_catalog(book)
     assert before == {p.name: p.read_bytes() for p in (root / 'sections').glob('*.md')}
-    catalog = json.loads((root / 'catalog.json').read_text())
+    catalog = json.loads((root / 'catalog.json').read_text(encoding="utf-8"))
     assert catalog['section_count'] == 2
     assert catalog['schema_version'] == 2
     assert 'chapters' not in catalog and 'chapter_count' not in catalog
@@ -77,13 +77,13 @@ def test_section_validation_fails_closed(section_book: BookCorpus, mutation: str
     initialise_corpus(book)
     path = book.default_output / 'sections/01-preface.md'
     original_catalog = (book.default_output / 'catalog.json').read_bytes()
-    original = path.read_text()
+    original = path.read_text(encoding="utf-8")
     if mutation == 'chapter_keys':
-        path.write_text(original.replace('section_id', 'chapter_id'))
+        path.write_text(original.replace('section_id', 'chapter_id'), encoding="utf-8")
     elif mutation == 'schema':
-        path.write_text(original.replace('"schema_version": 2', '"schema_version": 1'))
+        path.write_text(original.replace('"schema_version": 2', '"schema_version": 1'), encoding="utf-8")
     elif mutation == 'body':
-        path.write_text(original.replace('\nA preface.\n', '\nChanged.\n'))
+        path.write_text(original.replace('\nA preface.\n', '\nChanged.\n'), encoding="utf-8")
     elif mutation == 'missing':
         path.unlink()
     else:

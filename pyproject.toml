@@ -40,6 +40,9 @@ include = ["src", "src.linger*", "apps.backend*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+markers = [
+    "embeddings: uses the real fastembed embedding and reranker models",
+]
 
 [tool.logfire]
 # Modules that create spans are importable without the FastAPI entry point that

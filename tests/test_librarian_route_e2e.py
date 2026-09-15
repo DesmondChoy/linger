@@ -27,6 +27,7 @@ with patch.dict(
 
     get_settings()
 
+import pytest
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_core import to_jsonable_python
@@ -574,6 +575,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual("complete", librarian_trace["status"])
 
+    @pytest.mark.embeddings
     async def test_provenance_sees_the_routed_authority_not_stale_pre_muse_context(
         self,
     ) -> None:
@@ -607,6 +609,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(5, context["policy"]["spoiler_ceiling"])
         self.assertTrue(context["policy"]["allow_retrieval"])
 
+    @pytest.mark.embeddings
     async def test_same_turn_search_clamps_to_the_routed_ceiling(self) -> None:
         captured: list = []
         request = ChatRequest(session_id=self.session_id, message=BOOK_REQUEST_MESSAGE)

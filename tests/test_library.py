@@ -74,7 +74,7 @@ class LibraryEndpointTests(unittest.TestCase):
         shelves = {book["work_id"]: book for book in self.client.get("/api/library").json()}
         for book in BOOKS:
             with self.subTest(book=book.title):
-                catalog = json.loads((book.default_output / "catalog.json").read_text())
+                catalog = json.loads((book.default_output / "catalog.json").read_text(encoding="utf-8"))
                 entries = catalog.get("chapters", catalog.get("sections"))
                 source = book.parse_source(book.default_source)
                 expected = {
@@ -91,7 +91,7 @@ class LibraryEndpointTests(unittest.TestCase):
         shelf = next(book for book in self.client.get("/api/library").json() if book["work_id"] == KELLER.work_id)
         letter = next(unit for unit in shelf["units"] if unit["kind"] == "letter")
         supplementary = next(unit for unit in shelf["units"] if unit["part_id"] == "part-iii" and unit["chapter_number"] == 1)
-        catalog = json.loads((KELLER.default_output / "catalog.json").read_text())
+        catalog = json.loads((KELLER.default_output / "catalog.json").read_text(encoding="utf-8"))
         source = KELLER.parse_source(KELLER.default_source)
         expected = {entry["section_id"]: parsed.body for entry, parsed in zip(catalog["sections"], source, strict=True)}
         for unit in (letter, supplementary):
@@ -112,7 +112,7 @@ class LibraryEndpointTests(unittest.TestCase):
 
     def test_corrupt_catalog_or_body_cannot_serve_another_location(self) -> None:
         registration = registry.CORPORA[ALICE.work_id]
-        original_catalog = (registration.root / "catalog.json").read_text()
+        original_catalog = (registration.root / "catalog.json").read_text(encoding="utf-8")
         for corruption in ("identity", "path", "body"):
             with self.subTest(corruption=corruption), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -120,15 +120,15 @@ class LibraryEndpointTests(unittest.TestCase):
                 chapter = catalog["chapters"][0]
                 chapter_path = root / chapter["path"]
                 chapter_path.parent.mkdir()
-                body = (registration.root / chapter["path"]).read_text()
+                body = (registration.root / chapter["path"]).read_text(encoding="utf-8")
                 if corruption == "identity":
                     catalog["book_version_id"] = PINOCCHIO.book_version_id
                 elif corruption == "path":
                     chapter["path"] = "../outside.md"
                 else:
                     body += "Unreviewed chapter addition.\n"
-                chapter_path.write_text(body)
-                (root / "catalog.json").write_text(json.dumps(catalog))
+                chapter_path.write_text(body, encoding="utf-8")
+                (root / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
                 with patch.dict(registry.CORPORA, {ALICE.work_id: replace(registration, root=root)}):
                     response = self.client.get(f"/api/library/{ALICE.work_id}/{ALICE.book_version_id}/units/{chapter['chapter_id']}")
                 self.assertEqual(503, response.status_code)
@@ -140,7 +140,7 @@ class LibraryEndpointTests(unittest.TestCase):
         sessions.set_book_selection(session_id, sessions.BookSelection(book_id=ALICE.work_id))
         sessions.set_reading_candidate(session_id, sessions.ReadingCandidate(book_id=ALICE.work_id, chapter=2))
         before = sessions.snapshot_reading_state(session_id)
-        catalog = json.loads((PINOCCHIO.default_output / "catalog.json").read_text())
+        catalog = json.loads((PINOCCHIO.default_output / "catalog.json").read_text(encoding="utf-8"))
         unit_id = catalog["chapters"][-1]["chapter_id"]
         response = self.client.get(f"/api/library/{PINOCCHIO.work_id}/{PINOCCHIO.book_version_id}/units/{unit_id}", params={"session_id": session_id})
         self.assertEqual(200, response.status_code)

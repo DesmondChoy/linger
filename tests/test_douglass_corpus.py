@@ -56,7 +56,7 @@ def test_immutable_complete_source_and_all_natural_units() -> None:
 
 
 def test_exact_body_fidelity_and_complete_source_coverage() -> None:
-    lines = douglass.DEFAULT_SOURCE.read_text().splitlines()
+    lines = douglass.DEFAULT_SOURCE.read_text(encoding="utf-8").splitlines()
     covered: set[int] = set()
     last_end = 0
     for section in douglass.parse_sections():
@@ -122,25 +122,25 @@ def test_deterministic_initialization_and_overwrite_refusal(tmp_path: Path) -> N
 def test_catalog_regeneration_preserves_curated_sections(tmp_path: Path) -> None:
     initialise_corpus(douglass.BOOK, output=tmp_path)
     path = tmp_path / 'sections/16-a-parody.md'
-    metadata, body = parse_chapter_markdown(path.read_text(), unit_kind='section')
+    metadata, body = parse_chapter_markdown(path.read_text(encoding="utf-8"), unit_kind='section')
     record = metadata.model_dump(mode='json')
     record['routing_description'] = 'The parody and Douglass’s closing pledge.'
-    path.write_text('---\n' + json.dumps(record, ensure_ascii=False, indent=2) + '\n---\n\n' + body)
+    path.write_text('---\n' + json.dumps(record, ensure_ascii=False, indent=2) + '\n---\n\n' + body, encoding="utf-8")
     originals = {p: p.read_bytes() for p in (tmp_path / 'sections').glob('*.md')}
     assert 'catalog.json is missing or stale' in check_corpus(douglass.BOOK, output=tmp_path)
     (tmp_path / 'catalog.json').unlink()
     build_catalog(douglass.BOOK, output=tmp_path)
     assert check_corpus(douglass.BOOK, output=tmp_path) == ()
     assert all(p.read_bytes() == content for p, content in originals.items())
-    assert json.loads((tmp_path / 'catalog.json').read_text())['sections'][-1]['routing_description'] == record['routing_description']
+    assert json.loads((tmp_path / 'catalog.json').read_text(encoding="utf-8"))['sections'][-1]['routing_description'] == record['routing_description']
 
 
 def test_invalid_sections_block_catalog_writes(tmp_path: Path) -> None:
     initialise_corpus(douglass.BOOK, output=tmp_path)
     path = tmp_path / 'sections/01-preface.md'
-    path.write_text(path.read_text().replace('In the month of August', 'In August'))
+    path.write_text(path.read_text(encoding="utf-8").replace('In the month of August', 'In August'), encoding="utf-8")
     (tmp_path / 'sections/02-letter-from-wendell-phillips.md').unlink()
-    (tmp_path / 'notes.txt').write_text('unexpected')
+    (tmp_path / 'notes.txt').write_text('unexpected', encoding="utf-8")
     original = (tmp_path / 'catalog.json').read_bytes()
     errors = check_corpus(douglass.BOOK, output=tmp_path)
     assert any('body differs from source' in e for e in errors)
@@ -158,7 +158,7 @@ def test_invalid_sections_block_catalog_writes(tmp_path: Path) -> None:
 def test_structural_metadata_tampering_is_rejected(tmp_path: Path, old: str, new: str) -> None:
     initialise_corpus(douglass.BOOK, output=tmp_path)
     path = tmp_path / 'sections/01-preface.md'
-    path.write_text(path.read_text().replace(old, new, 1))
+    path.write_text(path.read_text(encoding="utf-8").replace(old, new, 1), encoding="utf-8")
     assert check_corpus(douglass.BOOK, output=tmp_path)
     with pytest.raises(CorpusBuildError, match='cannot build catalog'):
         build_catalog(douglass.BOOK, output=tmp_path)
@@ -173,10 +173,10 @@ def test_structural_metadata_tampering_is_rejected(tmp_path: Path, old: str, new
     ('\n\n\n\n\n CHAPTER I', '\nextra\n\n\n\n CHAPTER I'),
 ])
 def test_structural_drift_fails_even_with_updated_hash(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, old: str, new: str) -> None:
-    original = douglass.DEFAULT_SOURCE.read_text()
+    original = douglass.DEFAULT_SOURCE.read_text(encoding="utf-8")
     assert old in original
     source = tmp_path / 'changed.txt'
-    source.write_text(original.replace(old, new, 1))
+    source.write_text(original.replace(old, new, 1), encoding="utf-8")
     monkeypatch.setattr(douglass, 'SOURCE_SHA256', sha256(source.read_bytes()))
     with pytest.raises(CorpusBuildError, match='changed'):
         douglass.parse_sections(source)

@@ -78,15 +78,15 @@ def test_determinism_overwrite_and_catalog_curation(tmp_path):
     with pytest.raises(CorpusBuildError, match='refusing to overwrite'):
         initialise_corpus(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, first)
     chapter = first / 'chapters/01-chapter-01.md'
-    text = chapter.read_text()
+    text = chapter.read_text(encoding="utf-8")
     meta, _ = parse_chapter_markdown(text)
-    chapter.write_text(text.replace(meta.routing_description, 'A carpenter discovers a talking log.'))
+    chapter.write_text(text.replace(meta.routing_description, 'A carpenter discovers a talking log.'), encoding="utf-8")
     assert 'catalog.json is missing or stale' in check_corpus(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, first)
     before = chapter.read_bytes()
     build_catalog(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, first)
     assert chapter.read_bytes() == before
     assert check_corpus(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, first) == ()
-    catalog = json.loads((first / 'catalog.json').read_text())
+    catalog = json.loads((first / 'catalog.json').read_text(encoding="utf-8"))
     assert catalog['chapter_count'] == 36
     assert [c['chapter_number'] for c in catalog['chapters']] == list(range(1, 37))
     assert catalog['chapters'][0]['routing_description'] == 'A carpenter discovers a talking log.'
@@ -102,7 +102,7 @@ def test_determinism_overwrite_and_catalog_curation(tmp_path):
 ])
 def test_raw_and_independent_structural_drift(tmp_path, monkeypatch, old, new, error):
     path = tmp_path / 'changed.txt'
-    path.write_text(pinocchio.DEFAULT_SOURCE.read_text().replace(old, new, 1))
+    path.write_text(pinocchio.DEFAULT_SOURCE.read_text(encoding="utf-8").replace(old, new, 1), encoding="utf-8")
     with pytest.raises(CorpusBuildError, match='SHA-256'):
         pinocchio.parse_chapters(path)
     monkeypatch.setattr(pinocchio, 'SOURCE_SHA256', hashlib.sha256(path.read_bytes()).hexdigest())
@@ -113,10 +113,10 @@ def test_raw_and_independent_structural_drift(tmp_path, monkeypatch, old, new, e
 def test_tampered_missing_unexpected_and_stale_artifacts(tmp_path):
     initialise_corpus(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, tmp_path)
     one = tmp_path / 'chapters/01-chapter-01.md'
-    one.write_text(one.read_text().replace('Centuries ago', 'Years ago'))
+    one.write_text(one.read_text(encoding="utf-8").replace('Centuries ago', 'Years ago'), encoding="utf-8")
     (tmp_path / 'chapters/02-chapter-02.md').unlink()
-    (tmp_path / 'extra.txt').write_text('extra')
-    (tmp_path / 'catalog.json').write_text('{}')
+    (tmp_path / 'extra.txt').write_text('extra', encoding="utf-8")
+    (tmp_path / 'catalog.json').write_text('{}', encoding="utf-8")
     errors = check_corpus(pinocchio.BOOK, pinocchio.DEFAULT_SOURCE, tmp_path)
     assert any('body differs' in e for e in errors)
     assert any('missing chapter' in e for e in errors)

@@ -120,19 +120,20 @@ def _scenario(root: Path) -> Path:
         "prohibited_outcomes": ["Reveal the later chapter."],
         "book_expectation": {"kind": "grounded_book_reflection", "required_evidence_ids": ["e1"]},
     }]})
-    (scenario / "backstory.json").write_text(backstory)
-    (scenario / "ground-truth.json").write_text(ground_truth)
+    (scenario / "backstory.json").write_text(backstory, encoding="utf-8")
+    (scenario / "ground-truth.json").write_text(ground_truth, encoding="utf-8")
     (scenario / "ground-truth-adoption.json").write_text(json.dumps({
         "backstory_sha256": hashlib.sha256(backstory.encode()).hexdigest(),
         "proposed_ground_truth_sha256": hashlib.sha256(ground_truth.encode()).hexdigest(),
         "reviewed_at": "2026-09-01T12:00:00+08:00",
         "reviewer": {"reviewer_id": "private-reviewer-name"},
-    }))
+    }), encoding="utf-8")
     return scenario
 
 
 def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
     _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "core.autocrlf", "false")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
     scenario = _scenario(tmp_path)
@@ -141,11 +142,11 @@ def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
     scenario_revision = _git(tmp_path, "rev-parse", "HEAD")
     runtime = tmp_path / "src" / "linger" / "agents" / "muse.py"
     runtime.parent.mkdir(parents=True)
-    runtime.write_text("changed_contract = True\n")
+    runtime.write_text("changed_contract = True\n", encoding="utf-8")
     _git(tmp_path, "add", "src")
     _git(tmp_path, "commit", "-qm", "Change grounded response contract")
     current_revision = _git(tmp_path, "rev-parse", "HEAD")
-    runtime.write_text("changed_contract = False\n")
+    runtime.write_text("changed_contract = False\n", encoding="utf-8")
     evidence = collect_diagnostic_evidence(scenario, tmp_path)
     assert evidence["git"]["scenario_commit"] == scenario_revision
     assert evidence["git"]["revision"] == current_revision
@@ -159,12 +160,13 @@ def test_evidence_records_verified_baseline_and_scoped_changes(tmp_path):
 
 def test_dirty_scenario_is_not_described_as_a_committed_generation(tmp_path):
     _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "core.autocrlf", "false")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
     scenario = _scenario(tmp_path)
     _git(tmp_path, "add", "synthetic-journal-evaluation")
     _git(tmp_path, "commit", "-qm", "Scenario baseline")
-    with (scenario / "ground-truth.json").open("a") as stream:
+    with (scenario / "ground-truth.json").open("a", encoding="utf-8") as stream:
         stream.write("\n")
     evidence = collect_diagnostic_evidence(scenario, tmp_path)
     assert evidence["adoption_hash_matches"]["ground-truth.json"]["matches"] is False
@@ -174,6 +176,7 @@ def test_dirty_scenario_is_not_described_as_a_committed_generation(tmp_path):
 @pytest.mark.parametrize("adopted", [False, True])
 def test_directory_rename_preserves_scenario_content_baseline_and_runtime_drift(tmp_path, adopted):
     _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "core.autocrlf", "false")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
     scenario = _scenario(tmp_path)
@@ -186,7 +189,7 @@ def test_directory_rename_preserves_scenario_content_baseline_and_runtime_drift(
     content_revision = _git(tmp_path, "rev-parse", "HEAD")
     runtime = tmp_path / "src" / "linger" / "agents" / "muse.py"
     runtime.parent.mkdir(parents=True)
-    runtime.write_text("changed_contract = True\n")
+    runtime.write_text("changed_contract = True\n", encoding="utf-8")
     _git(tmp_path, "add", "src")
     _git(tmp_path, "commit", "-qm", "Change runtime before directory rename")
     old_directory.rename(scenario.parent)
@@ -203,7 +206,7 @@ def test_directory_rename_preserves_scenario_content_baseline_and_runtime_drift(
     )
     assert "Change runtime before directory rename" in evidence["git"]["recent_commits"]
 
-    with (scenario / "ground-truth.json").open("a") as stream:
+    with (scenario / "ground-truth.json").open("a", encoding="utf-8") as stream:
         stream.write("\n")
     dirty_evidence = collect_diagnostic_evidence(scenario, tmp_path)
     assert dirty_evidence["git"]["scenario_commit"] == content_revision
@@ -222,9 +225,10 @@ def test_directory_rename_preserves_scenario_content_baseline_and_runtime_drift(
 
 def test_untracked_scenario_does_not_invent_generation_revision(tmp_path):
     _git(tmp_path, "init", "-q")
+    _git(tmp_path, "config", "core.autocrlf", "false")
     _git(tmp_path, "config", "user.name", "Test")
     _git(tmp_path, "config", "user.email", "test@example.invalid")
-    (tmp_path / "README.md").write_text("Example\n")
+    (tmp_path / "README.md").write_text("Example\n", encoding="utf-8")
     _git(tmp_path, "add", "README.md")
     _git(tmp_path, "commit", "-qm", "Repository baseline")
     scenario = _scenario(tmp_path)
@@ -241,7 +245,8 @@ def test_log_evidence_is_bounded_redacted_and_works_without_git(tmp_path):
         + "Verbose traceback data\n" * 20
         + "OPENAI_API_KEY=sk-private1234567890abcdefghijklmnopqrstuvwxyz\n"
         + "Authorization: Bearer privatebearer456\n"
-        + "ProviderError: model was unavailable\n"
+        + "ProviderError: model was unavailable\n",
+        encoding="utf-8"
     )
     evidence = collect_diagnostic_evidence(scenario, tmp_path, run_log)
     tail = evidence["run_log_tail"]

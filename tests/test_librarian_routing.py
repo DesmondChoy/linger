@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import logfire
+import pytest
 from logfire.testing import TestExporter
 
 from apps.backend import sessions
@@ -143,7 +144,7 @@ class CatalogCueIdentityTests(unittest.TestCase):
             "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/"
             "backstory.json"
         )
-        document = json.loads(scenario.read_text())
+        document = json.loads(scenario.read_text(encoding="utf-8"))
         line = next(item["text"] for item in document["lines"] if item["scene_id"] == "pigeon-reflection")
         result = Librarian().route_work(line, self.allowed)
         self.assertIsInstance(result, RoutingDecision)
@@ -441,6 +442,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("pg11", result.work_id)
         self.assertEqual("session_selection", result.selection_basis)
 
+    @pytest.mark.embeddings
     async def test_unrelated_turn_after_selection_reaches_inference_and_is_declined(self) -> None:
         async def declining_judge(_line, _memories, _evidence, _statements):
             return BoundaryInferenceDecision(
