@@ -4,6 +4,9 @@ import { formatSeconds, toAgentSteps, toAgentTotals } from './progressSummary'
 
 type Props = {
   timeline: TurnRecord[]
+  /** Which turn the map is showing, so the two stay in step. */
+  selectedTurnId?: string
+  onSelectTurn?: (turnId: string) => void
 }
 
 function AgentTiming({ turn }: { turn: TurnRecord }) {
@@ -208,7 +211,7 @@ function ConnectionDeclineDecision({ turn }: { turn: ChatResult }) {
   )
 }
 
-export function Inspector({ timeline }: Props) {
+export function Inspector({ timeline, selectedTurnId, onSelectTurn }: Props) {
   return (
     <section className="inspector" aria-label="Agent activity inspector">
       <div className="inspector-heading">
@@ -235,10 +238,15 @@ export function Inspector({ timeline }: Props) {
         ) : (
           <ol>
             {timeline.map((turn, index) => (
-              <li key={turn.inspection.muse_turn.turn_id} className={`process-event ${turn.inspection.release?.release_source === 'application_safe_decline' ? 'declined' : 'complete'}`}>
+              <li key={turn.inspection.muse_turn.turn_id} className={`process-event ${turn.inspection.release?.release_source === 'application_safe_decline' ? 'declined' : 'complete'} ${turn.inspection.muse_turn.turn_id === selectedTurnId ? 'is-mapped' : ''}`}>
                 <span className="event-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                <details className="event-card" open={index === timeline.length - 1}>
-                  <summary>
+                <details
+                  className="event-card"
+                  open={selectedTurnId
+                    ? turn.inspection.muse_turn.turn_id === selectedTurnId
+                    : index === timeline.length - 1}
+                >
+                  <summary onClick={() => onSelectTurn?.(turn.inspection.muse_turn.turn_id)}>
                     <span className="event-summary">
                       <span className="eyebrow">Reader message {String(index + 1).padStart(2, '0')}</span>
                       <strong>{turn.inspection.muse_turn.user_message}</strong>

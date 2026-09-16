@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+    .node { display: flex; flex-direction: column; align-items: center; width: 112px; padding: 11px 5px 0; background: #fff; border: 1px solid #ccd5e1; border-radius: 9px; box-shadow: 0 2px 3px #2536500c, 0 5px 9px #25365009; text-align: center; overflow: hidden; }
+    .nn { color: #172331; font-size: 13px; font-weight: 620; letter-spacing: -.3px; line-height: 1.12; }
+    .nr { margin-top: 2px; color: #415168; font-size: 9.8px; line-height: 1.2; }
+    .foot { display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 100%; margin-top: 9px; padding: 5px 7px; border-top: 1px solid #e3e9f1; background: #f8fafd; font-size: 10px; }
+    .conn { position: relative; flex: 0 0 30px; height: 1.5px; background: #53637b; }
+    .elbl { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); padding: 1px 6px; border: .5px solid #e3e9f1; border-radius: 6px; background: #f8fafd; color: #415168; font-size: 10.4px; white-space: nowrap; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid #d2dde1; border-radius: 999px; background: #ffffff; color: #415168; font-size: 11.8px; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 22px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: center; gap: 11.5px">
+      <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+      <div>
+        <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+        <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7.2px">
+      <button style="display: inline-flex; align-items: center; gap: 7px; padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg>
+        Library
+      </button>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <!-- Conversation + input tray -->
+    <section style="display: flex; flex: 0 0 520px; width: 520px; flex-direction: column; padding: 0 18px 16px; background: #ffffff; border-right: 1px solid #d2dde1">
+
+      <div style="display: flex; flex: 1; flex-direction: column; gap: 10px; padding: 16px 0; overflow: hidden">
+        <div style="max-width: 86%; align-self: flex-end; padding: 11px 15px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 13.6px">I finished the chapter where Alice meets the Caterpillar.</div>
+        <div style="max-width: 86%; align-self: flex-start; padding: 11px 15px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 13.6px">It lands differently when you&rsquo;ve just been asked to explain yourself, doesn&rsquo;t it. What was it about the question that caught you?</div>
+        <div style="max-width: 86%; align-self: flex-end; padding: 11px 15px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 13.6px">I&rsquo;ve been introducing myself with my old job title for six months.</div>
+        <div style="max-width: 86%; align-self: flex-start; padding: 11px 15px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 13.6px">That&rsquo;s a long time to keep handing someone a description you&rsquo;ve outgrown. The Caterpillar keeps pressing because Alice&rsquo;s answer keeps shifting.</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; align-self: flex-start; max-width: 86%; padding: 7px 11px; border: 1px solid #d2dde1; border-radius: 10px; background: #ffffff">
+          <span style="display: inline-flex; align-items: center; gap: 7px; color: #64747c; font-size: 12px">
+            <svg width="13" height="13" viewBox="0 0 32 32" fill="none" stroke="#7661ad" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v17c0 2 5 5 11 5s11-3 11-5V7M5 15c0 2 5 4 11 4s11-2 11-4"/></svg>
+            Saved to your memories.
+          </span>
+          <span class="st" style="color: #7661ad">2nd this session</span>
+        </div>
+      </div>
+
+      <!-- Tier 1: lines you can edit -->
+      <div style="border: 1px solid #d2dde1; border-radius: 12px; background: #ffffff; overflow: hidden">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px 8px">
+          <p class="ey" style="margin: 0">Try a line</p>
+          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 10px; border: 1px solid #d2dde1; border-radius: 7px; color: #415168; font-size: 11.8px">
+            Alice in Wonderland
+            <svg width="13" height="13" viewBox="0 0 32 32" fill="none" stroke="#64747c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 13 7 7 7-7"/></svg>
+          </span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 11px">
+          <span class="chip" style="border-color: #9ca8d6; background: #eceefa; color: #3f497f"><span style="width: 5px; height: 5px; border-radius: 50%; background: #4d5796"></span>Asks for an exact quote</span>
+          <span class="chip">Reaches past the boundary</span>
+          <span class="chip">Invites a connection</span>
+          <span class="chip">A plain reflection</span>
+        </div>
+        <!-- Tier 2: fixed, judged -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border-top: 1px dashed #d2dde1; background: #f8fafd">
+          <span style="display: inline-flex; align-items: center; gap: 7px; color: #415168; font-size: 12.2px">
+            <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="#655ba4" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8h15M13 16h15M13 24h15M3 7l2 2 4-4M3 15l2 2 4-4M3 23l2 2 4-4"/></svg>
+            Run a reviewed scene
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 7px">
+            <span style="color: #64747c; font-size: 11.2px">8 adopted</span>
+            <svg width="13" height="13" viewBox="0 0 32 32" fill="none" stroke="#9aa7ad" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 7 9 9-9 9"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- the chip filled the box; it did not send -->
+      <div style="display: flex; align-items: flex-end; gap: 8px; margin-top: 9px; padding: 8px; border: 1px solid #9ca8d6; border-radius: 14.4px; box-shadow: 0 0 0 3px #eceefa">
+        <span style="flex: 1; padding: 6.7px; color: #19242a; font-size: 13.6px; line-height: 1.5">When the Caterpillar presses Alice to explain who she is, could you quote the start of her answer?<span style="display: inline-block; width: 1.5px; height: 15px; margin-left: 1px; background: #4d5796; vertical-align: -3px"></span></span>
+        <button style="padding: 9.3px 14.4px; border: 1px solid #4d5796; border-radius: 8.8px; background: #4d5796; color: #fff; font: inherit; font-size: 13px">Send</button>
+      </div>
+      <p style="margin: 6px 2px 0; color: #9aa7ad; font-size: 10.8px">Edit it however you like &mdash; nothing is sent until you press Send.</p>
+    </section>
+
+    <!-- The annotated map -->
+    <aside style="display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 16px 20px; background: #ffffff">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+        <div>
+          <p class="ey">Turn 02</p>
+          <h2 style="margin: 2px 0 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; font-size: 17.5px; letter-spacing: -.01em">The route, annotated</h2>
+        </div>
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4.5px 9px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 11.8px; color: #64747c">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #4d5796"></span>Released &middot; 6.4s
+        </span>
+      </div>
+
+      <div style="position: relative; margin-top: 12px; padding: 14px 16px 18px; border: 1px solid #d1dce4; border-radius: 16px; background: #f2f6f8">
+        <div style="color: #1f2937; font-size: 12.6px; font-weight: 620; letter-spacing: -.3px">Evidence retrieval</div>
+
+        <div style="display: flex; align-items: flex-start; gap: 0; margin-top: 9px; padding-left: 142px">
+          <div class="node">
+            <span style="color: #33435a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="22" height="26" rx="3"/><path d="M10 3v26M15 10h7M15 15h7"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Book corpus</span><span class="nr">Versioned source</span>
+            <span class="foot"><span style="color: #415168">ch. 1&ndash;5</span><span class="st" style="color: #4d5796">read</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Bounded</span></div>
+          <div class="node" style="border-top: 4px solid #078c9a">
+            <span style="color: #078c9a"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Librarian</span><span class="nr">Bounded retrieval</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">1.2s</span><span class="st" style="color: #4d5796">complete</span></span>
+          </div>
+        </div>
+
+        <div style="position: absolute; left: 330px; top: 92px; width: 2px; height: 46px; background: #4d5796"></div>
+        <div style="position: absolute; left: 352px; top: 88px; width: 300px; padding: 10px 12px; border: 1px solid #4d5796; border-radius: 10px; background: #ffffff; box-shadow: 0 4px 14px #25365014; z-index: 2">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <b style="font-size: 12.2px; font-weight: 600">Muse &harr; Librarian</b>
+            <span class="st" style="color: #4d5796">2.5s &rarr; 3.7s</span>
+          </div>
+          <div style="display: grid; gap: 3px; margin-top: 6px; color: #415168; font-size: 11.4px; line-height: 1.45">
+            <span>&bull; Retrieval query and safe ceiling</span>
+            <span>&bull; Exact text, version, evidence IDs</span>
+          </div>
+          <div style="margin-top: 7px; padding-top: 6px; border-top: 1px solid #e3e9f1; color: #64747c; font-size: 10.8px; line-height: 1.4">Cannot widen account scope, book revision, or the permitted ceiling.</div>
+        </div>
+
+        <div style="color: #1f2937; font-size: 12.6px; font-weight: 620; letter-spacing: -.3px; margin-top: 62px">Current conversation</div>
+
+        <div style="display: flex; align-items: flex-start; gap: 0; margin-top: 9px">
+          <div class="node">
+            <span style="color: #33435a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-8 5V8a3 3 0 0 1 2-3Z"/><path d="M10 11h12M10 16h8"/></svg></span>
+            <span class="nn" style="margin-top: 6px">User Line</span><span class="nr">Conversation input</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">0.0s</span><span class="st" style="color: #64747c">in</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Line</span></div>
+          <div class="node" style="border-top: 4px solid #655ba4">
+            <span style="color: #655ba4"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8l10-4Z"/><path d="M12 16h8M16 12v8"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Preflight</span><span class="nr">Provenance</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">0.4s</span><span class="st" style="color: #4d5796">continue</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Continue</span></div>
+          <div class="node" style="border-top: 4px solid #4673d8">
+            <span style="color: #4673d8"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m6 25 3-9L24 3c3-2 6 1 4 4L15 23l-9 2Z"/><path d="m9 16 6 7M7 25l-3 3M17 10l5 5"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Muse</span><span class="nr">Conversation</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">2.1s</span><span class="st" style="color: #4d5796">complete</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Candidate</span></div>
+          <div class="node" style="border-top: 4px solid #655ba4">
+            <span style="color: #655ba4"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-5 11-11 14C10 26 5 22 5 15V7l11-4Z"/><path d="M12 12h8M12 17h8"/></svg></span>
+            <span class="nn" style="margin-top: 5px">Provenance</span><span class="nr">Candidate review</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">2.7s</span><span class="st" style="color: #4d5796">pass</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Review</span></div>
+          <div class="node">
+            <span style="color: #26354a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M11 11h10M11 16h6M11 21h10"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Release</span><span class="nr">Application boundary</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">0.4s</span><span class="st" style="color: #4d5796">valid</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Released</span></div>
+          <div class="node">
+            <span style="color: #33435a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3h-5l-7 5v-5H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 11h12M10 16h8"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Response</span><span class="nr">Released wording</span>
+            <span class="foot"><span style="color: #415168; font-variant-numeric: tabular-nums">6.4s</span><span class="st" style="color: #4d5796">shown</span></span>
+          </div>
+        </div>
+
+        <div style="color: #1f2937; font-size: 12.6px; font-weight: 620; letter-spacing: -.3px; margin-top: 16px">Reviewed memory capture</div>
+        <div style="display: flex; align-items: flex-start; gap: 0; margin-top: 8px; padding-left: 284px">
+          <div class="node">
+            <span style="color: #26354a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="22" height="20" rx="4"/><path d="M11 7V4h10v3M11 15h10M11 21h6"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Capture binding</span><span class="nr">Bound to an exact span</span>
+            <span class="foot"><span style="color: #415168">exact</span><span class="st" style="color: #4d5796">allowed</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Bound</span></div>
+          <div class="node">
+            <span style="color: #26354a"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="22" height="25" rx="5"/><path d="M11 11h10M11 18h10"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Memory &amp; Policy</span><span class="nr">Sole writer</span>
+            <span class="foot"><span style="color: #415168">write</span><span class="st" style="color: #4d5796">committed</span></span>
+          </div>
+          <div class="conn"><span class="elbl">Stored</span></div>
+          <div class="node">
+            <span style="color: #7661ad"><svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v17c0 2 5 5 11 5s11-3 11-5V7M5 15c0 2 5 4 11 4s11-2 11-4"/></svg></span>
+            <span class="nn" style="margin-top: 6px">Memory records</span><span class="nr">Account-scoped</span>
+            <span class="foot"><span style="color: #415168">2 records</span><span class="st" style="color: #7661ad">grown here</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0,10rem) 1fr; gap: 9px; align-items: baseline; margin-top: 12px; padding: 8px 10px; border-left: 3px solid #d2dde1; border-radius: 0 7px 7px 0; background: #e9eff1">
+        <span class="st" style="color: #64747c">unresolved evidence</span>
+        <span style="color: #64747c; font-size: 11.8px">Provenance caught a citation the turn had not retrieved; Muse revised once before release.</span>
+      </div>
+
+      <p style="margin: 10px 0 0; color: #9aa7ad; font-size: 11.4px; font-variant-numeric: tabular-nums">trace 4f2ae9c1&hellip; &middot; typed line, no answer key &mdash; nothing was seeded, so these memories were captured by the session itself</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -73,10 +73,17 @@ is available at <http://127.0.0.1:8000/docs>.
 - **New chat** clears backend conversation and reading-candidate state and mints
   a fresh frontend session ID.
 
-Reader and Inspect are developer-only tools mounted in the local frontend for
-convenience. They support corpus interaction and backend debugging and are not
+Architecture, Reader, and Inspect are developer-only tools mounted in the local
+frontend for convenience. They support corpus interaction and backend debugging and are not
 part of the user-facing frontend contract. A product frontend should omit them.
 
+- **Architecture** shows the agent collaboration map. *Live turn* rebuilds the
+  turn you just sent from the server's content-free progress stream, marking
+  which agents ran, which sources they were permitted to reach, and where the
+  reply was released; components and connections open their role and bounded
+  handoff. *Explore scenarios* embeds the evaluation explorer's curated
+  explanations of the expected architecture. The panel reads released
+  diagnostics only and cannot authorize retrieval, release, capture, or storage.
 - **Reader** opens enabled canonical books by chapter or named section so a
   developer can exercise corpus behavior. Navigation and summary reveal remain
   local diagnostic state and never authorize book retrieval in chat.
@@ -135,6 +142,14 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
+The standalone explorer carries the shared map's own tests and lint:
+
+```bash
+pnpm --dir apps/evaluation-explorer test
+pnpm --dir apps/evaluation-explorer lint
+pnpm --dir apps/evaluation-explorer build
+```
+
 Vite 8 requires Node 20.19+ or 22.12+.
 
 ## Layout
@@ -149,9 +164,17 @@ apps/
 │   ├── schemas.py    # public request and response bodies
 │   ├── sessions.py   # in-process conversation and reading state
 │   └── telemetry.py  # allowlisted backend and evaluation tracing
-└── frontend/
-    └── src/
-        ├── api.ts
-        ├── types.ts
-        └── components/  # Product chat plus local Reader and Inspect developer tools
+├── frontend/
+│   └── src/
+│       ├── api.ts
+│       ├── types.ts
+│       └── components/       # Product chat plus local Architecture, Reader, and Inspect tools
+│           └── architecture/ # Maps one real turn onto the shared collaboration map
+└── evaluation-explorer/      # Standalone architecture explorer on its own port
 ```
+
+Both frontends render the shared collaboration map in
+[`../packages/architecture-map`](../packages/architecture-map): the component
+registry, graph rendering, curated Scenes, and the detail drawer. It is
+source-only and resolves through the `@linger/architecture-map` alias, so each
+app keeps its own lockfile and dev server and needs no extra install.

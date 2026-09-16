@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11.8px; text-transform: uppercase; letter-spacing: .03em; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3.5px 8px; border: 1px solid #d2dde1; border-radius: 999px; background: #fff; color: #415168; font-size: 11.6px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .mini { display: flex; flex-direction: column; align-items: center; width: 96px; padding: 9px 5px 8px; background: #fff; border: 1px solid #ccd5e1; border-radius: 8px; text-align: center; }
+    .mname { color: #172331; font-size: 12px; font-weight: 620; letter-spacing: -.25px; }
+    .mrole { margin-top: 2px; color: #415168; font-size: 9.6px; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <!-- Library reduced to a shelf of spines -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 0 0 44px; padding: 18px 0; background: #ffffff; border-right: 1px solid #d2dde1">
+    <svg width="17" height="17" viewBox="0 0 32 32" fill="none" stroke="#9aa7ad" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg>
+    <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 4px">
+      <span style="width: 7px; height: 58px; border-radius: 2px; background: #4d5796"></span>
+      <span style="width: 7px; height: 46px; border-radius: 2px; background: #9ca8d6"></span>
+      <span style="width: 7px; height: 52px; border-radius: 2px; background: #cbd2e6"></span>
+      <span style="width: 7px; height: 40px; border-radius: 2px; background: #9ca8d6"></span>
+      <span style="width: 7px; height: 50px; border-radius: 2px; background: #cbd2e6"></span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex: 1; flex-direction: column; min-width: 0; background: #ffffff">
+
+    <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 26px; border-bottom: 1px solid #d2dde1">
+      <div style="display: flex; align-items: center; gap: 11.5px">
+        <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+        <div>
+          <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+          <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+        </div>
+      </div>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </header>
+
+    <div style="flex: 1; padding: 24px 26px 0; overflow: hidden">
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 1000px; margin: 0 auto">
+
+        <div style="max-width: 62%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I finished the chapter where Alice meets the Caterpillar.</div>
+
+        <div style="max-width: 62%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14.5px">It lands differently when you&rsquo;ve just been asked to explain yourself, doesn&rsquo;t it.</div>
+
+        <!-- collapsed trace strip -->
+        <div style="display: flex; align-items: center; gap: 7px; align-self: flex-start; padding-left: 4px">
+          <span class="chip"><span class="dot" style="background: #655ba4"></span>Preflight</span>
+          <span style="color: #c3ced3">&rarr;</span>
+          <span class="chip"><span class="dot" style="background: #4673d8"></span>Muse</span>
+          <span style="color: #c3ced3">&rarr;</span>
+          <span class="chip"><span class="dot" style="background: #655ba4"></span>Provenance</span>
+          <span style="color: #9aa7ad; font-size: 11.6px; margin-left: 3px; font-variant-numeric: tabular-nums">3.1s</span>
+        </div>
+
+        <div style="max-width: 62%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I&rsquo;ve been introducing myself with my old job title for six months.</div>
+
+        <div style="max-width: 62%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14.5px">That&rsquo;s a long time to keep handing someone a description you&rsquo;ve outgrown. The Caterpillar keeps pressing because Alice&rsquo;s answer keeps shifting.</div>
+
+        <!-- expanded trace: breaks out wider than the text column -->
+        <div style="align-self: stretch; margin-top: 2px; border: 1px solid #d2dde1; border-radius: 12px; background: #f2f6f8; overflow: hidden">
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+            <div style="display: flex; align-items: center; gap: 9px">
+              <svg width="14" height="14" viewBox="0 0 32 32" fill="none" stroke="#4d5796" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 13 7 7 7-7"/></svg>
+              <b style="font-size: 13px; font-weight: 600">How this reply was made</b>
+              <span style="color: #64747c; font-size: 12.2px">&middot; 5 stages, 6.4s, released</span>
+            </div>
+            <span style="color: #9aa7ad; font-size: 11.6px">trace 4f2ae9c1&hellip;</span>
+          </div>
+
+          <!-- compact map -->
+          <div style="display: flex; align-items: center; gap: 14px; padding: 16px 14px 14px; overflow: hidden">
+            <div class="mini"><span style="color: #33435a"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-8 5V8a3 3 0 0 1 2-3Z"/><path d="M10 11h12M10 16h8"/></svg></span><span class="mname">User Line</span><span class="mrole">Input</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini" style="border-top: 3px solid #655ba4"><span style="color: #655ba4"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8l10-4Z"/><path d="M12 16h8M16 12v8"/></svg></span><span class="mname">Preflight</span><span class="mrole">Provenance</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini" style="border-top: 3px solid #4673d8"><span style="color: #4673d8"><svg width="21" height="21" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m6 25 3-9L24 3c3-2 6 1 4 4L15 23l-9 2Z"/><path d="m9 16 6 7M7 25l-3 3M17 10l5 5"/></svg></span><span class="mname">Muse</span><span class="mrole">Conversation</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini" style="border-top: 3px solid #078c9a"><span style="color: #078c9a"><svg width="21" height="21" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg></span><span class="mname">Librarian</span><span class="mrole">Retrieval</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini" style="border-top: 3px solid #655ba4"><span style="color: #655ba4"><svg width="21" height="21" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-5 11-11 14C10 26 5 22 5 15V7l11-4Z"/><path d="M12 12h8M12 17h8"/></svg></span><span class="mname">Provenance</span><span class="mrole">Review</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini"><span style="color: #26354a"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M11 11h10M11 16h6M11 21h10"/></svg></span><span class="mname">Release</span><span class="mrole">Boundary</span></div>
+            <div style="width: 18px; height: 1px; background: #53637b"></div>
+            <div class="mini"><span style="color: #33435a"><svg width="19" height="19" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3h-5l-7 5v-5H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 11h12M10 16h8"/></svg></span><span class="mname">Response</span><span class="mrole">Released</span></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 0 14px 14px">
+            <div style="padding: 11px 12px; border: 1px solid #d2dde1; border-radius: 10px; background: #ffffff">
+              <p class="ey">Release decision</p>
+              <p style="margin: 5px 0 0; font-size: 12.6px; line-height: 1.5">Provenance approved the Muse candidate; one finding was corrected first.</p>
+              <div style="display: grid; grid-template-columns: minmax(0,10rem) 1fr; gap: 8px; align-items: baseline; margin-top: 8px; padding: 6.4px 9px; border-left: 3px solid #d2dde1; border-radius: 0 6px 6px 0; background: #e9eff1">
+                <span class="st" style="color: #64747c">unresolved evidence</span>
+                <span style="color: #64747c; font-size: 11.8px">Cited a passage never retrieved.</span>
+              </div>
+            </div>
+            <div style="padding: 11px 12px; border: 1px solid #d2dde1; border-radius: 10px; background: #ffffff">
+              <p class="ey">What Linger knew</p>
+              <p style="margin: 5px 0 0; font-size: 12.6px; line-height: 1.5">Alice&rsquo;s Adventures in Wonderland, through completed chapter 5. Retrieval stayed under that ceiling.</p>
+              <div style="display: flex; gap: 6px; margin-top: 8px">
+                <span class="chip" style="background: #e9eff1">MuseTurn</span>
+                <span class="chip" style="background: #e9eff1">Context</span>
+                <span class="chip" style="background: #e9eff1">Grounding</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="padding: 14px 26px 20px">
+      <div style="display: flex; align-items: flex-end; gap: 8px; width: 100%; max-width: 1000px; margin: 0 auto; padding: 8px; border: 1px solid #d2dde1; border-radius: 14.4px">
+        <span style="flex: 1; padding: 6.7px; color: #9aa7ad; font-size: 14.5px">Say what stayed with you&hellip;</span>
+        <button style="padding: 9.3px 14.4px; border: 1px solid #4d5796; border-radius: 8.8px; background: #4d5796; color: #fff; font: inherit; font-size: 13px">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

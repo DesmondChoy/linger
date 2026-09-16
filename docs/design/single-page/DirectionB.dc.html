@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; }
+    a { color: #4d5796; } a:hover { color: #3f497f; }
+    .ey { margin: 0 0 .08rem; color: #4d5796; font-size: 10.4px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .st { font-size: 11.8px; text-transform: uppercase; letter-spacing: .03em; }
+    .node { display: flex; flex-direction: column; align-items: center; width: 122px; height: 112px; padding: 13px 6px 10px; background: #fff; border: 1px solid #ccd5e1; border-radius: 9px; box-shadow: 0 2px 3px #2536500c, 0 5px 9px #25365009; text-align: center; }
+    .nname { color: #172331; font-size: 14.5px; font-weight: 620; letter-spacing: -.4px; line-height: 1.15; }
+    .nrole { margin-top: 3px; color: #415168; font-size: 10.6px; font-weight: 450; line-height: 1.25; }
+    .tile { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 7px; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #f2f5f6; color: #19242a; overflow: hidden">
+
+  <!-- Header -->
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 0 22px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: center; gap: 11.5px">
+      <span style="display: grid; place-items: center; width: 33.6px; height: 33.6px; border-radius: 50% 50% 46% 54%; background: #4d5796; color: #fff; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 18.4px">L</span>
+      <div>
+        <h1 style="margin: 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; letter-spacing: -.02em; font-size: 19.5px">Linger</h1>
+        <p style="margin: 1.3px 0 0; color: #64747c; font-size: 12.2px">Notice what stays with you.</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px">
+      <span style="color: #9aa7ad; font-size: 12.4px">Library</span>
+      <button style="padding: 9.3px 14.4px; border: 1px solid #d2dde1; border-radius: 8.8px; background: transparent; color: #64747c; font: inherit; font-size: 13px">New chat</button>
+    </div>
+  </header>
+
+  <!-- Map stage -->
+  <section style="flex: 0 0 352px; height: 352px; padding: 14px 22px 16px; background: #ffffff; border-bottom: 1px solid #d2dde1">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <p class="ey">This turn</p>
+        <span style="color: #415168; font-size: 13px">Muse asked Librarian for the passage; Provenance approved the draft.</span>
+      </div>
+      <span style="color: #9aa7ad; font-size: 11.6px">scrolls sideways &rarr;</span>
+    </div>
+
+    <div style="position: relative; height: 280px; padding: 14px 16px; border: 1px solid #d1dce4; border-radius: 18px; background: #f2f6f8; overflow: hidden">
+      <div style="color: #1f2937; font-size: 13.4px; font-weight: 620; letter-spacing: -.3px">Evidence retrieval and conversation</div>
+
+      <!-- retrieval tier -->
+      <div style="display: flex; gap: 46px; margin-top: 10px; padding-left: 150px">
+        <div class="node">
+          <span class="tile" style="color: #33435a"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="22" height="26" rx="3"/><path d="M10 3v26M15 10h7M15 15h7M15 20h4"/></svg></span>
+          <span class="nname">Book corpus</span><span class="nrole">Versioned source</span>
+        </div>
+        <div class="node" style="border-top: 4px solid #078c9a">
+          <span class="tile" style="color: #078c9a"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8C12 4 7 4 3 5v21c4-1 9-1 13 2 4-3 9-3 13-2V5c-4-1-9-1-13 3ZM16 8v20"/></svg></span>
+          <span class="nname">Librarian</span><span class="nrole">Bounded retrieval</span>
+        </div>
+      </div>
+
+      <!-- connector -->
+      <div style="position: absolute; left: 273px; top: 158px; width: 1px; height: 22px; background: #53637b"></div>
+
+      <!-- conversation tier -->
+      <div style="display: flex; align-items: center; gap: 22px; margin-top: 22px">
+        <div class="node">
+          <span class="tile" style="color: #33435a"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-8 5V8a3 3 0 0 1 2-3Z"/><path d="M10 11h12M10 16h8"/></svg></span>
+          <span class="nname">User Line</span><span class="nrole">Conversation input</span>
+        </div>
+        <div style="width: 26px; height: 1px; background: #53637b"></div>
+        <div class="node" style="border-top: 4px solid #655ba4">
+          <span class="tile" style="color: #655ba4"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 10 4v7c0 6-4 10-10 13C10 25 6 21 6 15V8l10-4Z"/><path d="M12 16h8M16 12v8"/></svg></span>
+          <span class="nname">Preflight</span><span class="nrole">Provenance</span>
+        </div>
+        <div style="width: 26px; height: 1px; background: #53637b"></div>
+        <div class="node" style="border-top: 4px solid #4673d8">
+          <span class="tile" style="color: #4673d8"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m6 25 3-9L24 3c3-2 6 1 4 4L15 23l-9 2Z"/><path d="m9 16 6 7M7 25l-3 3M17 10l5 5"/></svg></span>
+          <span class="nname">Muse</span><span class="nrole">Conversation</span>
+        </div>
+        <div style="width: 26px; height: 1px; background: #53637b"></div>
+        <div class="node" style="border-top: 4px solid #655ba4">
+          <span class="tile" style="color: #655ba4"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-5 11-11 14C10 26 5 22 5 15V7l11-4Z"/><path d="M12 12h8M12 17h8M16 22v-1"/></svg></span>
+          <span class="nname">Provenance</span><span class="nrole">Candidate review</span>
+        </div>
+        <div style="width: 26px; height: 1px; background: #53637b"></div>
+        <div class="node">
+          <span class="tile" style="color: #26354a"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22" rx="5"/><path d="M11 11h10M11 16h6M11 21h10"/></svg></span>
+          <span class="nname">Release checks</span><span class="nrole">Application boundary</span>
+        </div>
+        <div style="width: 26px; height: 1px; background: #53637b"></div>
+        <div class="node">
+          <span class="tile" style="color: #33435a"><svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5h18a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3h-5l-7 5v-5H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M10 11h12M10 16h8"/></svg></span>
+          <span class="nname">Response</span><span class="nrole">Released wording</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chat + inspect -->
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <section style="display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 16px 21.6px; background: #ffffff; border-right: 1px solid #d2dde1">
+      <div style="display: flex; flex: 1; flex-direction: column; gap: 10px; overflow: hidden">
+        <div style="max-width: 80%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I finished the chapter where Alice meets the Caterpillar.</div>
+        <div style="max-width: 80%; align-self: flex-start; padding: 11.5px 15.4px; border: 1px solid #d2dde1; border-radius: 16px; border-bottom-left-radius: 4px; background: #e9eff1; line-height: 1.55; font-size: 14.5px">It lands differently when you&rsquo;ve just been asked to explain yourself. Alice answers that she hardly knows &mdash; she&rsquo;s been changed so many times since morning.</div>
+        <div style="max-width: 80%; align-self: flex-end; padding: 11.5px 15.4px; border-radius: 16px; border-bottom-right-radius: 4px; background: #4d5796; color: #fff; line-height: 1.55; font-size: 14.5px">I&rsquo;ve been introducing myself with my old job title for six months.</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 8px; margin-top: 10px; padding: 8px; border: 1px solid #d2dde1; border-radius: 14.4px">
+        <span style="flex: 1; padding: 6.7px; color: #9aa7ad; font-size: 14.5px">Say what stayed with you&hellip;</span>
+        <button style="padding: 9.3px 14.4px; border: 1px solid #4d5796; border-radius: 8.8px; background: #4d5796; color: #fff; font: inherit; font-size: 13px">Send</button>
+      </div>
+    </section>
+
+    <aside style="flex: 0 0 448px; width: 448px; padding: 16px 20px; background: #ffffff; overflow: hidden">
+      <p class="ey">Inspect &middot; turn 02</p>
+      <h2 style="margin: 3px 0 0; font-family: Charter, 'Iowan Old Style', Georgia, serif; font-weight: 500; font-size: 17px">Release decision</h2>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 7.2px; margin: 11px 0">
+        <span style="display: flex; gap: 7.2px; align-items: baseline; padding: 5.6px 9.6px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 12.8px"><b style="font-weight: 600">Muse</b><span style="font-variant-numeric: tabular-nums; font-weight: 600">2.1s</span></span>
+        <span style="display: flex; gap: 7.2px; align-items: baseline; padding: 5.6px 9.6px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 12.8px"><b style="font-weight: 600">Librarian</b><span style="font-variant-numeric: tabular-nums; font-weight: 600">1.2s</span></span>
+        <span style="display: flex; gap: 7.2px; align-items: baseline; padding: 5.6px 9.6px; border: 1px solid #d2dde1; border-radius: 999px; background: #e9eff1; font-size: 12.8px"><b style="font-weight: 600">Provenance</b><span style="font-variant-numeric: tabular-nums; font-weight: 600">2.7s</span></span>
+        <span style="display: flex; gap: 7.2px; align-items: baseline; padding: 5.6px 9.6px; border: 1px dashed #d2dde1; border-radius: 999px; font-size: 12.8px"><b style="font-weight: 600">Turn</b><span style="font-variant-numeric: tabular-nums; font-weight: 600">6.4s</span></span>
+      </div>
+
+      <div style="display: grid; border: 1px solid #d2dde1; border-radius: 10.4px; overflow: hidden">
+        <div style="display: grid; grid-template-columns: 52px 1fr 76px; gap: 10px; align-items: center; padding: 8.8px 12px; background: #e9eff1; font-size: 12.8px"><span style="color: #64747c; font-variant-numeric: tabular-nums">0.0s</span><b style="font-weight: 600">Provenance &middot; preflight</b><span class="st" style="color: #4d5796">complete</span></div>
+        <div style="display: grid; grid-template-columns: 52px 1fr 76px; gap: 10px; align-items: center; padding: 8.8px 12px; border-top: 1px solid #d2dde1; background: #e9eff1; font-size: 12.8px"><span style="color: #64747c; font-variant-numeric: tabular-nums">0.4s</span><b style="font-weight: 600">Muse &middot; draft</b><span class="st" style="color: #4d5796">complete</span></div>
+        <div style="display: grid; grid-template-columns: 52px 1fr 76px; gap: 10px; align-items: center; padding: 8.8px 12px; border-top: 1px solid #d2dde1; background: #e9eff1; font-size: 12.8px"><span style="color: #64747c; font-variant-numeric: tabular-nums">2.5s</span><b style="font-weight: 600">Librarian &middot; evidence</b><span class="st" style="color: #4d5796">complete</span></div>
+        <div style="display: grid; grid-template-columns: 52px 1fr 76px; gap: 10px; align-items: center; padding: 8.8px 12px; border-top: 1px solid #d2dde1; background: #e9eff1; font-size: 12.8px"><span style="color: #64747c; font-variant-numeric: tabular-nums">3.7s</span><b style="font-weight: 600">Provenance &middot; review</b><span class="st" style="color: #4d5796">complete</span></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0,11rem) 1fr; gap: 9.6px; align-items: baseline; margin-top: 12px; padding: 7.2px 9.6px; border-left: 3px solid #d2dde1; border-radius: 0 6.4px 6.4px 0; background: #e9eff1">
+        <span class="st" style="color: #64747c">unresolved evidence</span>
+        <span style="color: #64747c; font-size: 12.2px">Cited a passage the turn had not retrieved.</span>
+      </div>
+
+      <p style="margin: 12px 0 0; color: #9aa7ad; font-size: 11.4px; font-variant-numeric: tabular-nums">trace 4f2ae9c1&hellip;</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

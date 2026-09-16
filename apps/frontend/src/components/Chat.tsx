@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { Icon } from '@linger/architecture-map'
 import { ChatRequestError, resetSession, sendMessage } from '../api'
 import type {
   MemoryCaptureNotice,
@@ -7,22 +8,30 @@ import type {
   TraceReference,
   TurnRecord,
 } from '../types'
-import { Composer } from './Composer'
-import { Inspector } from './Inspector'
+import { Architecture } from './architecture/Architecture'
+import { SavedEvaluation } from './architecture/SavedEvaluation'
+import { Composer, type ComposerHandle } from './Composer'
+import { InputTray } from './InputTray'
 import { MessageList } from './MessageList'
 import { Reader } from './Reader'
+import { playableScenarios } from '@linger/architecture-map'
+
+type Surface = 'live' | 'evaluation'
 
 export function Chat() {
   // One session per page load. Reloading starts a fresh conversation.
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
   const [messages, setMessages] = useState<Message[]>([])
   const [timeline, setTimeline] = useState<TurnRecord[]>([])
-  const [view, setView] = useState<'chat' | 'inspect'>('chat')
+  const [surface, setSurface] = useState<Surface>('live')
+  const [libraryOpen, setLibraryOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [progress, setProgress] = useState<ProgressEvent[]>([])
   const [error, setError] = useState<string | null>(null)
   const [errorTrace, setErrorTrace] = useState<TraceReference | null>(null)
   const [captureNotice, setCaptureNotice] = useState<MemoryCaptureNotice | null>(null)
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+  const composer = useRef<ComposerHandle>(null)
 
   async function handleSend(text: string) {
     const turnId = crypto.randomUUID()
@@ -32,6 +41,7 @@ export function Chat() {
       { id: `${turnId}-assistant`, role: 'assistant', content: '' },
     ])
     setPending(true)
+    setPendingMessage(text)
     setError(null)
     setErrorTrace(null)
     setProgress([])
@@ -59,6 +69,7 @@ export function Chat() {
       setMessages((current) => current.slice(0, -2))
     } finally {
       setPending(false)
+      setPendingMessage(null)
     }
   }
 
@@ -71,11 +82,11 @@ export function Chat() {
     setError(null)
     setErrorTrace(null)
     setCaptureNotice(null)
+    setPendingMessage(null)
   }
 
   return (
-    <main className="workspace">
-      <Reader disabled={pending} />
+    <main className={`workspace ${libraryOpen ? 'library-open' : ''}`}>
       <section className="chat" aria-label="Reflection chat">
         <header className="chat-header">
           <div className="brand">
@@ -86,10 +97,15 @@ export function Chat() {
             </div>
           </div>
           <div className="header-actions">
-            <div className="view-tabs" role="tablist" aria-label="Chat views">
-              <button type="button" role="tab" aria-selected={view === 'chat'} onClick={() => setView('chat')}>Chat</button>
-              <button type="button" role="tab" aria-selected={view === 'inspect'} onClick={() => setView('inspect')}>Inspect</button>
-            </div>
+            <button
+              className="quiet-button icon-label"
+              type="button"
+              aria-pressed={libraryOpen}
+              onClick={() => setLibraryOpen((value) => !value)}
+            >
+              <Icon name="librarian" size={15} />
+              Library
+            </button>
             <button
               className="quiet-button"
               type="button"
@@ -101,26 +117,43 @@ export function Chat() {
           </div>
         </header>
 
-        {view === 'chat' ? <>
-          <MessageList
-            messages={messages}
-            pending={pending}
-            progress={progress[progress.length - 1]}
-          />
-          {captureNotice && (
-            <p className="notice">
-              <span>{captureNotice.notice}</span>
-            </p>
-          )}
-          {error && (
-            <p className="error">
-              {error}
-              {errorTrace && <> Reference: <code>{errorTrace.trace_id}</code></>}
-            </p>
-          )}
-          <Composer disabled={pending} onSend={handleSend} />
-        </> : <Inspector timeline={timeline} />}
+        <MessageList
+          messages={messages}
+          pending={pending}
+          progress={progress[progress.length - 1]}
+        />
+        {captureNotice && (
+          <p className="notice">
+            <span>{captureNotice.notice}</span>
+          </p>
+        )}
+        {error && (
+          <p className="error">
+            {error}
+            {errorTrace && <> Reference: <code>{errorTrace.trace_id}</code></>}
+          </p>
+        )}
+
+        <InputTray
+          disabled={pending}
+          onFill={(text) => composer.current?.fill(text)}
+          onOpenEvaluations={() => setSurface('evaluation')}
+          evaluationCount={playableScenarios.reduce((total, item) => total + item.runs.length, 0)}
+        />
+        <Composer ref={composer} disabled={pending} onSend={handleSend} />
       </section>
+
+      <section className="analysis" aria-label="How this works">
+        {surface === 'live'
+          ? <Architecture timeline={timeline} progress={progress} pendingMessage={pendingMessage} />
+          : <SavedEvaluation onClose={() => setSurface('live')} />}
+      </section>
+
+      {libraryOpen && (
+        <div className="library-drawer">
+          <Reader disabled={pending} />
+        </div>
+      )}
     </main>
   )
 }
