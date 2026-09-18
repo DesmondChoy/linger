@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+  "proposed_ground_truth_sha256": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-17T19:31:57.629022+08:00",
+  "decisions": [
+    {
+      "proposal_id": "keller-proposal-grounded",
+      "scene_id": "keller-grounded",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "keller-proposal-boundary",
+      "scene_id": "keller-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "keller-proposal-personal",
+      "scene_id": "keller-personal",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "keller-proposal-clarification",
+      "scene_id": "keller-uncertain",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "798b45578c292194a15fed5f66b7dca99f8444246d64637cdffcf91a80d5ce32"
+}

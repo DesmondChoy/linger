@@ -4,8 +4,11 @@ import asyncio
 import json
 import unittest
 
+import httpx
+from openai import APIConnectionError, APIStatusError, APITimeoutError
+from pydantic import ValidationError
 from pydantic_ai import Agent
-from pydantic_ai.exceptions import ModelHTTPError, UnexpectedModelBehavior
+from pydantic_ai.exceptions import ModelAPIError, ModelHTTPError, UnexpectedModelBehavior
 from pydantic_ai.messages import (
     ModelRequest,
     ModelResponse,
@@ -137,12 +140,17 @@ class FailedEvaluationTranscriptTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(outer.tool_exchanges[0].result)
 
     async def test_failure_category_never_copies_exception_details(self):
+        generic_with_status = RuntimeError("private application failure")
+        generic_with_status.status_code = 503
         cases = (
-            (ModelHTTPError(503, "private model name", "private provider response"), "provider_error"),
-            (RuntimeError("private application failure"), "unknown_error"),
-            (asyncio.CancelledError("private cancellation reason"), "cancelled"),
+            (ModelHTTPError(503, "private model name", "private provider response"), "provider_error", 503),
+            (ModelHTTPError(399, "private model name", "private provider response"), "provider_error", None),
+            (ModelHTTPError(600, "private model name", "private provider response"), "provider_error", None),
+            (ModelAPIError("private model name", "private API failure"), "provider_error", None),
+            (generic_with_status, "unknown_error", None),
+            (asyncio.CancelledError("private cancellation reason"), "cancelled", None),
         )
-        for error, category in cases:
+        for error, category, status_code in cases:
             with self.subTest(category=category):
                 def fail(_messages, _info):
                     raise error
@@ -155,6 +163,7 @@ class FailedEvaluationTranscriptTests(unittest.IsolatedAsyncioTestCase):
 
                 exchange = recorder.exchanges[0]
                 self.assertEqual(category, exchange.failure_category)
+                self.assertEqual(status_code, exchange.provider_status_code)
                 self.assertIn("synthetic question", json.dumps(exchange.model_messages))
                 self.assertNotIn("private", exchange.model_dump_json())
 
@@ -171,6 +180,42 @@ class FailedEvaluationTranscriptTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("usage_limit", exchange.failure_category)
         self.assertIn("not an integer", json.dumps(exchange.model_messages))
 
+    async def test_provider_kind_uses_only_known_outer_and_immediate_cause_types(self):
+        request = httpx.Request("POST", "https://private.invalid/private")
+
+        def wrapped(cause):
+            error = ModelAPIError("private model", "private exception")
+            error.__cause__ = cause
+            return error
+
+        context_only = ModelAPIError("private model", "private exception")
+        context_only.__context__ = APITimeoutError(request)
+        generic_outer = RuntimeError("private exception")
+        generic_outer.__cause__ = APITimeoutError(request)
+        hidden_timeout = RuntimeError("private exception")
+        hidden_timeout.__cause__ = APITimeoutError(request)
+        cases = (
+            (ModelHTTPError(503, "private model", "private body"), "http"),
+            (wrapped(APITimeoutError(request)), "timeout"),
+            (wrapped(APIConnectionError(request=request)), "connection"),
+            (wrapped(APIStatusError("private", response=httpx.Response(302, request=request), body="private")), "http"),
+            (wrapped(hidden_timeout), "other"),
+            (context_only, "other"),
+            (generic_outer, None),
+        )
+        for error, expected in cases:
+            with self.subTest(kind=expected):
+                def fail(_messages, _info):
+                    raise error
+
+                recorder = SceneTranscriptRecorder()
+                with bind_evaluation_transcript_sink(recorder):
+                    with self.assertRaises(type(error)):
+                        await traced(Agent(FunctionModel(fail)), "synthetic question")
+                exchange = recorder.exchanges[0]
+                self.assertEqual(expected, exchange.provider_error_kind)
+                self.assertNotIn("private", exchange.model_dump_json())
+
     async def test_saved_exchange_without_diagnostic_fields_remains_readable(self):
         agent = Agent(FunctionModel(
             lambda _messages, _info: ModelResponse(parts=[TextPart("ok")])
@@ -182,6 +227,17 @@ class FailedEvaluationTranscriptTests(unittest.IsolatedAsyncioTestCase):
         saved = recorder.exchanges[0].model_dump()
         saved.pop("failure_category", None)
         saved.pop("model_messages_include_history", None)
+        saved.pop("provider_status_code", None)
+        saved.pop("provider_error_kind", None)
         restored = AgentExchange.model_validate(saved)
         self.assertIsNone(restored.failure_category)
+        self.assertIsNone(restored.provider_status_code)
+        self.assertIsNone(restored.provider_error_kind)
         self.assertFalse(restored.model_messages_include_history)
+
+        for invalid_status in (399, 600, "503", True, 503.0):
+            with self.subTest(status_code=invalid_status):
+                with self.assertRaises(ValidationError):
+                    AgentExchange.model_validate({**saved, "provider_status_code": invalid_status})
+        with self.assertRaises(ValidationError):
+            AgentExchange.model_validate({**saved, "provider_error_kind": "private arbitrary class"})

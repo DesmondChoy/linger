@@ -32,6 +32,7 @@ from apps.backend.contracts import (
 )
 from src.linger.agents.muse.models import EvidenceUse, MemoryCandidate, MuseCandidate, validate_supported_claims
 from src.linger.agents.muse.skills import REFLECTION
+from src.linger.agents.muse.claim_repair import accepted_claims_for_revision
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
     REVISION_PROMPT_FINGERPRINT,
@@ -51,6 +52,7 @@ from src.linger.agents.provenance.prompt import (
 )
 from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.provenance.review_context import reset_review_input, set_review_input
+from src.linger.agents.provenance.quotation_audit import quoted_response_spans, source_quote_interiors
 from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionExplorationResult,
@@ -78,8 +80,7 @@ from src.linger.services.memory import AutomaticMemoryCandidate
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
-    "I’m not sure where you are in the book, so I’d rather not risk getting "
-    "ahead of you."
+    "I couldn’t verify a spoiler-safe answer from the available context."
 )
 PIPELINE_FAILURE_DECLINE = (
     "Something went wrong on my side just now — mind asking again?"
@@ -1137,7 +1138,14 @@ async def _reflection_reply(
             muse_turn=draft_input.muse_turn,
             context_resolution=draft_input.context_resolution,
             prior_evidence=draft_input.prior_evidence,
-            review=MuseRevisionReview(findings=review.response_findings),
+            review=MuseRevisionReview(
+                findings=review.response_findings,
+                previously_accepted_claims=accepted_claims_for_revision(candidate, review),
+                source_quote_interiors=source_quote_interiors(
+                    quoted_response_spans(candidate.reply), review.quotation_audit,
+                ),
+                released_reader_lines=released_user_lines,
+            ),
         ).model_dump_json()
     except Exception:
         return _record_release(

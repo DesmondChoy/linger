@@ -24,14 +24,17 @@ NoMemoryCandidateReasonCode = Literal[
 
 
 class EvidenceClaimSupport(StrictModel):
-    """Exact reply spans claimed to be supported by one source declaration."""
+    """Exact reply spans to which one source declares a supporting contribution."""
 
     supported_claims: tuple[
         Annotated[str, Field(min_length=1, max_length=20_000)], ...
     ] = Field(
         min_length=1,
         description=(
-            "Exact substantive clauses or sentences from reply supported by this source. "
+            "Exact substantive reply spans to which this source contributes support. "
+            "A complete claim may be repeated across declarations when several sources jointly support it; "
+            "this source need only establish its relevant part, while the declared sources together "
+            "must establish the whole claim. "
             "Include the factual description or interpretation itself, not just its introductory phrase. "
             "Map all claims that rely on this source and update them when revising the reply."
         ),
@@ -123,6 +126,12 @@ class MuseCandidate(StrictModel):
     memory: MemoryNomination
 
 
+def _has_bounded_span(fragment: str, reply: str) -> bool:
+    start = r"(?<![\w.,:/’'-])" if fragment[:1].isdigit() else r"(?<![\w’'-])"
+    end = r"(?![\w’'-]|[.,:/]\d)" if fragment[-1:].isdigit() else r"(?![\w’'-])"
+    return bool(re.search(start + re.escape(fragment) + end, reply))
+
+
 def supported_claim_errors(
     reply: str, evidence_uses: tuple[EvidenceUse, ...]
 ) -> list[dict[str, object]]:
@@ -150,14 +159,20 @@ def supported_claim_errors(
                     "path": f"{path}[{claim_index}]", "value": claim,
                     "error": "supported_claims entry " + "; ".join(problems) + ".",
                 }
+                trimmed = claim.strip()
                 span = claim.rstrip(".,;:!?")
-                start = r"(?<![\w.,:/’'-])" if span[:1].isdigit() else r"(?<![\w’'-])"
-                end = r"(?![\w’'-]|[.,:/]\d)" if span[-1:].isdigit() else r"(?![\w’'-])"
-                if (
+                if claim not in reply and trimmed != claim and trimmed and _has_bounded_span(trimmed, reply):
+                    error["suggested_span"] = trimmed
+                    error["suggestion_reason"] = (
+                        "Removing only outer whitespace yields this exact reply span. "
+                        "Copy it explicitly if it maps the complete substantive claim; "
+                        "the declaration is still invalid until corrected."
+                    )
+                elif (
                     claim not in reply
                     and span != claim
                     and span.strip()
-                    and re.search(start + re.escape(span) + end, reply)
+                    and _has_bounded_span(span, reply)
                 ):
                     error["suggested_span"] = span
                     error["suggestion_reason"] = (

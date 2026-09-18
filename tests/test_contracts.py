@@ -16,54 +16,6 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
-from src.linger.contracts.reading import ReadingBoundary
-
-
-class ReadingBoundaryTests(unittest.TestCase):
-    def test_rejects_unknown_field(self) -> None:
-        with self.assertRaises(ValidationError):
-            ReadingBoundary(
-                chapter_number=5,
-                chapter_state="completed",
-                extra_field="nope",
-            )
-
-    def test_rejects_missing_chapter_state(self) -> None:
-        with self.assertRaises(ValidationError):
-            ReadingBoundary(chapter_number=5)
-
-    def test_rejects_missing_chapter_number(self) -> None:
-        with self.assertRaises(ValidationError):
-            ReadingBoundary(chapter_state="completed")
-
-    def test_rejects_non_positive_chapter_number(self) -> None:
-        for chapter_number in (0, -1, -100):
-            with self.subTest(chapter_number=chapter_number):
-                with self.assertRaises(ValidationError):
-                    ReadingBoundary(
-                        chapter_number=chapter_number,
-                        chapter_state="completed",
-                    )
-
-    def test_rejects_unsupported_chapter_state(self) -> None:
-        with self.assertRaises(ValidationError):
-            ReadingBoundary(chapter_number=5, chapter_state="finished")
-
-    def test_valid_boundary_is_frozen(self) -> None:
-        boundary = ReadingBoundary(chapter_number=5, chapter_state="completed")
-        with self.assertRaises(ValidationError):
-            boundary.chapter_number = 6
-
-    def test_both_valid_chapter_states_construct(self) -> None:
-        for chapter_state in ("started", "completed"):
-            with self.subTest(chapter_state=chapter_state):
-                boundary = ReadingBoundary(
-                    chapter_number=1,
-                    chapter_state=chapter_state,
-                )
-                self.assertEqual(chapter_state, boundary.chapter_state)
-
-
 def _access_scope() -> AccessScope:
     return AccessScope(allowed_book_version_ids=("pg11-v01b38ea4",))
 
@@ -74,7 +26,7 @@ def _valid_request() -> LibrarianRequest:
         query="Why does Alice struggle to explain who she is?",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
-        reading_boundary=ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
         access_scope=_access_scope(),
         options=RetrievalOptions(),
     )
@@ -142,7 +94,7 @@ class LibrarianContractUnknownFieldTests(unittest.TestCase):
                     "query": "why?",
                     "work_id": "pg11",
                     "book_version_id": "pg11-v01b38ea4",
-                    "reading_boundary": None,
+
                     "access_scope": _access_scope(),
                     "options": RetrievalOptions(),
                 },
@@ -230,21 +182,17 @@ class ExpectedAnswerTests(unittest.TestCase):
 
 
 class LibrarianRequestTests(unittest.TestCase):
-    def test_accepts_none_reading_boundary(self) -> None:
-        request = LibrarianRequest(
-            request_id="libreq_01",
-            query="Why does Alice struggle to explain who she is?",
-            work_id="pg11",
-            book_version_id="pg11-v01b38ea4",
-            reading_boundary=None,
-            access_scope=_access_scope(),
-            options=RetrievalOptions(),
-        )
-        self.assertIsNone(request.reading_boundary)
-
-    def test_accepts_valid_reading_boundary(self) -> None:
+    def test_request_carries_no_model_authored_boundary(self) -> None:
         request = _valid_request()
-        self.assertEqual(5, request.reading_boundary.chapter_number)
+        self.assertNotIn("reading_boundary", request.model_dump())
+
+
+    def test_rejects_model_authored_boundary(self) -> None:
+        values = _valid_request().model_dump()
+        values["reading_boundary"] = {"chapter_number": 50, "chapter_state": "completed"}
+        with self.assertRaises(ValidationError):
+            LibrarianRequest.model_validate(values)
+
 
     def test_access_scope_rejects_empty_book_version_ids(self) -> None:
         with self.assertRaises(ValidationError):

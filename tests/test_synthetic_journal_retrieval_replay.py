@@ -503,9 +503,14 @@ def test_a_committed_memory_fails_the_hard_gates() -> None:
     assert "unexpected_memory_writes" in target.hard_failures
 
 
-def _provenance_passes(messages: object, info: AgentInfo) -> ModelResponse:
+def _provenance_passes(messages: list, info: AgentInfo) -> ModelResponse:
+    request = json.loads(messages[0].parts[0].content)
+    assert request["candidate"]["response"] == "I do not have an earlier note that answers that."
+    assert request["candidate"]["evidence_uses"] == []
+    assert len(request["uncovered_response_spans"]) == 1
     return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
         "findings": [],
+        "coverage_audit": [{"span_index": 0, "classification": "reader_reflection"}],
         "response_decision": "pass",
         "emotional_boundary_decision": "not_required",
         "capture_decision": "no_candidate",

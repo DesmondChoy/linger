@@ -1,0 +1,131 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "keller-care-history",
+    "person_id": "keller-reader-jun",
+    "evaluation_account_id": "keller-evaluation-jun",
+    "context": "Jun works at a print shop and reads memoirs in short evening stretches. Their sister recently moved nearby, and Jun has volunteered to help unpack and arrange her new flat. Jun enjoys making a room orderly but sometimes acts before checking what another person wants. Reading gives them a way to notice that habit without assuming a book supplies a ready-made answer. After breaks in a book, Jun can remember an emotional moment more clearly than its setting. These sessions share that personal history, while each reading note is available only in its assigned session."
+  },
+  "props": [
+    {
+      "prop_id": "keller-earlier-companionship",
+      "backstory_id": "keller-care-history",
+      "person_id": "keller-reader-jun",
+      "evaluation_account_id": "keller-evaluation-jun",
+      "source_text": "Last week in Helen Keller’s The Story of My Life, I read about her arriving at the Perkins Institution and finding children who knew the manual alphabet. Her joy at being able to talk with them in her own language stayed with me. I liked how specific that account of feeling at home was. I’ve been reading a little each night.",
+      "lifecycle": [
+        {
+          "scene_id": "keller-spoiler-inference",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "keller-earlier-loss",
+      "backstory_id": "keller-care-history",
+      "person_id": "keller-reader-jun",
+      "evaluation_account_id": "keller-evaluation-jun",
+      "source_text": "I put Helen Keller’s The Story of My Life aside a while ago. The last bit I can remember reading is her going back to a pet she had been keeping and finding it gone. I’ve lost my bookmark, and I can’t remember the animal or where she was keeping it, only that sense of finding an empty place.",
+      "lifecycle": [
+        {
+          "scene_id": "keller-uncertain",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "keller-grounded",
+      "backstory_id": "keller-care-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "keller-current-reading"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "keller-personal",
+      "backstory_id": "keller-care-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "keller-current-life"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "keller-spoiler-inference",
+      "backstory_id": "keller-care-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "keller-earlier-companionship"
+      ],
+      "line_ids": [
+        "keller-inference-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "keller-uncertain",
+      "backstory_id": "keller-care-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "keller-earlier-loss"
+      ],
+      "line_ids": [
+        "keller-current-uncertainty"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "keller-current-reading",
+      "scene_id": "keller-grounded",
+      "order": 1,
+      "text": "I've finished Part I, Chapter 10 of The Story of My Life. I haven't read further. The horseshoe crab’s disappearance and her reflection on taking it out of its element stayed with me. Could you quote the final sentence, beginning ‘My disappointment’, exactly and help me think about that change in her response? I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me."
+    },
+    {
+      "line_id": "keller-current-life",
+      "scene_id": "keller-personal",
+      "order": 1,
+      "text": "I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me. Can you help me think through how to offer help while leaving the choices with her?"
+    },
+    {
+      "line_id": "keller-inference-line",
+      "scene_id": "keller-spoiler-inference",
+      "order": 1,
+      "text": "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there. Could you quote the final sentence, beginning ‘My disappointment’, exactly and help me think about that change in her response? I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me."
+    },
+    {
+      "line_id": "keller-current-uncertainty",
+      "scene_id": "keller-uncertain",
+      "order": 1,
+      "text": "I’m reopening Helen Keller’s The Story of My Life. That part about going back to a pet and finding it gone is still the last thing I remember reading, but I can’t recover which animal it was or the surroundings. What did she make of that loss?"
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}

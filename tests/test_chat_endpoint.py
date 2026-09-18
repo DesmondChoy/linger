@@ -613,6 +613,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = SimpleNamespace(
             output=ProvenanceReview(
+                coverage_audit=({"span_index": 0, "classification": "reader_reflection"},),
                 findings=(
                     RiskFinding(
                         code="unsupported_claim",

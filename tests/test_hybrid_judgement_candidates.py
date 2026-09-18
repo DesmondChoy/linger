@@ -12,7 +12,7 @@ from src.linger.agents.librarian.agent import build_librarian_agent
 
 from apps.backend.contracts import BookScope, LibrarianRequest
 from apps.backend.hybrid_librarian import HybridLibrarian, _dedupe
-from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.models import BookRequestPlan, EvidenceStrengthDecision
 from src.linger.corpus.alice import BOOK_VERSION_ID
 from src.linger.orchestration.book_evidence import (
     EvidenceJudgementError,
@@ -50,7 +50,7 @@ def test_fused_leader_reaches_judge_with_requested_selection_budget(positive, se
     async def judge(query, records, *, max_evidence_records):
         judged.extend(records)
         assert max_evidence_records == selection_limit
-        assert len(records) == 5
+        assert len(records) == 6
         assert intended.evidence_id in {record.evidence_id for record in records}
         assert candidates[1].evidence_id in {record.evidence_id for record in records}
         return EvidenceStrengthDecision(
@@ -72,7 +72,7 @@ def test_fused_leader_reaches_judge_with_requested_selection_budget(positive, se
             max_results=request.max_results, librarian=librarian, strength_judge=judge,
         ))
 
-    assert len(judged) == 5
+    assert len(judged) == 6
     assert len(result.items) == 1
     assert result.items[0].evidence_id == intended.evidence_id
     assert result.judgement.relevant_evidence_ids == (intended.evidence_id,)
@@ -132,12 +132,13 @@ def test_model_receives_release_budget_and_cannot_exceed_it(selected_count):
         payload = json.loads(messages[-1].parts[0].content)
         model_inputs.append(payload)
         if "current_line" in payload:
-            assert payload == {"current_line": request.query, "prior_reader_statements": []}
+            assert payload == {"current_line": request.query, "prior_reader_statements": [], "search_target": "book_evidence"}
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, plan)])
-        assert set(payload) == {"request", "evidence", "max_evidence_records"}
-        assert payload["request"] == plan
+        assert set(payload) == {"original_request", "request", "evidence", "max_evidence_records"}
+        assert payload["original_request"]["current_line"] == request.query
+        assert BookRequestPlan.model_validate(payload["request"]) == BookRequestPlan.model_validate(plan)
         assert payload["max_evidence_records"] == 1
-        assert len(payload["evidence"]) == 5
+        assert len(payload["evidence"]) == 6
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
             "evidence_strength": "sufficient", "strength_reason": "Selected support.",
             "relevant_evidence_ids": [record.evidence_id for record in records[:selected_count]],
@@ -158,3 +159,50 @@ def test_model_receives_release_budget_and_cannot_exceed_it(selected_count):
         result = asyncio.run(invocation)
         assert result.relevant_evidence_ids == (records[0].evidence_id,)
     assert len(model_inputs) == 2
+
+
+def test_private_pool_preserves_low_scoring_lexical_and_semantic_candidates():
+    librarian = HybridLibrarian(embedding_model=ConstantEmbedding(), reranker=DisagreeingReranker(False))
+    request = LibrarianRequest(
+        query="A missing pet, with its identity uncertain",
+        book_scopes=[BookScope(work_id="pg11", book_version_id=BOOK_VERSION_ID, chapter_max=5)],
+        max_results=1,
+    )
+    candidates = _dedupe(librarian._eligible_windows(request), 6)
+    # Independent lexical support can rank poorly under both fusion and reranking.
+    lexical = [candidates[1], candidates[0], *candidates[2:]]
+    semantic = list(reversed(candidates))
+    with (
+        patch.object(librarian, "_bm25", return_value=lexical),
+        patch.object(librarian, "_semantic", return_value=semantic),
+    ):
+        bundle = librarian.retrieve_for_judgement(request)
+        assert {item.evidence_id for item in bundle.items} == {item.evidence_id for item in candidates}
+        assert len(bundle.items) <= 20
+        for item in bundle.items:
+            assert librarian.fetch_by_id(item.evidence_id).text == item.excerpt
+        assert librarian.retrieve(request).items == []
+
+
+def test_private_pool_retains_overlaps_with_distinct_endings_under_twenty_record_cap():
+    from apps.backend.hybrid_librarian import Candidate
+
+    class LowReranker:
+        def rerank(self, query, documents):
+            return [-10.0] * len(documents)
+
+    librarian = HybridLibrarian(embedding_model=ConstantEmbedding(), reranker=LowReranker())
+    request = LibrarianRequest(
+        query="late decisive sentence",
+        book_scopes=[BookScope(work_id="pg11", book_version_id=BOOK_VERSION_ID, chapter_max=5)],
+    )
+    first = librarian._eligible_windows(request)[0]
+    candidates = [Candidate(first.metadata, f"distinct ending {i}", (i + 1, i + 20)) for i in range(20)]
+    with (
+        patch.object(librarian, "_bm25", return_value=candidates[:10]),
+        patch.object(librarian, "_semantic", return_value=candidates[10:]) as semantic,
+    ):
+        bundle = librarian.retrieve_for_judgement(request)
+    assert len(bundle.items) == 20
+    assert {item.evidence_id for item in bundle.items} == {item.evidence_id for item in candidates}
+    assert semantic.call_args.args[2] == -1.0

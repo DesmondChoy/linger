@@ -1,7 +1,7 @@
 # Provenance evaluations
 
 Provenance assigns three runtime skills to one reusable `provenance_agent`.
-Two versioned case packs cover emotional preflight and candidate review. The
+Versioned case packs cover emotional preflight and candidate review. The
 candidate review returns independent response and capture decisions. Both packs
 are semantic regression suites that write metadata-only reports. Neither
 generates or modifies synthetic Scenarios.
@@ -124,3 +124,90 @@ evaluated Lines, prompts, rationales, and credentials.
 The command exits with a nonzero status unless all eight cases pass. Unit tests
 validate case loading, exact-label grading, aggregate metrics, and report
 redaction without contacting a model provider.
+
+## Focused wrong-passage diagnostic
+
+`claim-mapping-cases.json` contains four fixtures in two pairs. The first tests
+whether Provenance checks a claim against its **declared** passage. Both cases
+in that pair contain this answer:
+
+> Alice tells the Caterpillar that she cannot remember things as she used to and that a verse she tried to say came out differently.
+
+Both cases supply the same two book records. Only the declared evidence ID and
+its matching source location change:
+
+| Case | Declared passage | Expected result |
+| --- | --- | --- |
+| Wrong record | Chapter 5, lines 960–1016: identity and size conversation, without the memory or recitation detail | `revise`, with `unsupported_claim` |
+| Correct record | Chapter 5, lines 1004–1056: contains both details | `pass` |
+
+The second pair combines Alice's difficulty explaining herself after changing
+size with her report that a familiar verse came out differently. Both passages
+are available in both cases. Declaring only the identity passage must produce
+`revise` with `unsupported_claim`; mapping the complete joint sentence to both
+contributing passages must pass. Neither passage must establish every clause,
+but an available, undeclared passage cannot supply the missing contribution.
+
+The supporting neighboring passage remains available in the wrong-record case.
+This tests whether the gate notices a wrong mapping even when another supplied
+passage supports the answer. The correct-record control prevents blanket
+rejection from passing the pair.
+
+This is a component diagnostic through the production Provenance Agent and its
+candidate-review skill. It does not run Muse, retrieve passages, or represent an
+adopted synthetic Backstory/Ground truth Scenario. Expected labels go only to the
+grader, never to the Agent. The pair simplifies the failure discussed in
+`linger-55r9`; it is prepared test input, not a saved successful live reproduction.
+
+Run from the repository root with `LINGER_MODEL` and its matching provider API key
+configured:
+
+```bash
+uv run python -m evals.provenance.claim_mapping \
+  --report tmp/provenance-claim-mapping-report.json
+```
+
+This performs four live reviews; normal Agent retries can add provider calls.
+It needs no Exa access. The default report path is the path shown above, so
+rerunning replaces the previous report unless another path is supplied.
+
+Success requires all four cases to pass. The command exits nonzero otherwise and
+writes expected and actual decisions, findings codes, failure categories, model,
+input digest, and prompt fingerprint. A wrong-record `pass` reproduces the
+approval problem. A correct-record revision reveals over-refusal. `gate_error`
+means execution failed and does not establish a semantic failure. The existing
+grader requires the expected finding codes but permits additional codes; inspect
+`actual_codes` when interpreting a pass. Reports omit prompts and passage text.
+
+Offline validation:
+
+```bash
+uv run python -m pytest -q tests/test_provenance_claim_mapping.py
+```
+
+These checks validate the matched pair, corpus excerpts, grading, error handling,
+and production-adapter wiring with a controlled model. They do not establish
+whether a live model currently catches the mistake. No live result is included
+with this diagnostic.
+
+The candidate-review input projects each distinct declared claim into
+`claim_support_groups`, including declarations that overlap its actual reply
+occurrences. Each member lists its exact coverage. A source mapped to one
+sentence does not gain authority over the rest of a containing paragraph.
+Whole claims remain the review units; overlapping mappings do not split them
+into isolated fragments. A noncontributing overlap alone does not invalidate
+the source's original mapping, which is still reviewed in its own group. Its
+`uncovered_response_spans` table contains every non-whitespace gap between
+declared claims and canonically matching quotations, with exact character
+offsets. The reviewer classifies every gap in full-reply context through
+`coverage_audit`. Each `claim_audit` row judges one group's collective support,
+then each declared source's contribution separately. Positive contributions
+include a short excerpt bound to that named canonical record with whitespace-only
+matching; this private proof does not relax public quotation equality.
+`quoted_response_spans` projects balanced double-quoted spans for exhaustive
+`quotation_audit` classification and occurrence-specific declaration checks.
+These projections do not establish semantic support: a broad unsupported
+declaration still requires a finding, and open reader reflection must not be
+confused with an undeclared source claim. Supplied versions of derived tables
+are discarded and recomputed. Historical report payloads retain their original
+schema and are not current executable fixtures.

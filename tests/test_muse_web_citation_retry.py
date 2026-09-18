@@ -10,12 +10,29 @@ from pydantic_ai.models.function import FunctionModel
 from src.linger.agents.muse.agent import build_muse_agent
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.skills import REFLECTION
+from src.linger.contracts.connection_evidence import WebConnectionEvidence
+from src.linger.orchestration.inspection_context import (
+    begin_connection_inspection, register_connection_evidence, reset_connection_inspection,
+)
 
 
 URL = "https://example.org/reporting-errors"
 SECOND_URL = "https://example.org/team-climate"
 CLAIM = "The study describes conditions associated with reporting errors."
 CITATION = f"[Reporting study]({URL})"
+
+
+@pytest.fixture(autouse=True)
+def authorized_pages():
+    token = begin_connection_inspection()
+    register_connection_evidence([
+        WebConnectionEvidence(evidence_id=url, title="Reporting study", excerpt=CLAIM)
+        for url in (URL, SECOND_URL)
+    ])
+    try:
+        yield
+    finally:
+        reset_connection_inspection(token)
 
 
 def candidate(citation, urls=(URL,)):

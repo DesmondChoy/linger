@@ -1,0 +1,344 @@
+{
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [
+    {
+      "scene_id": "pinocchio-promises-and-book",
+      "scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg500",
+        "book_version_id": "pg500-v6bdc1734",
+        "safe_ceiling_chapter": 9
+      },
+      "basis_spans": [],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ragpicker-sale",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 4068,
+          "end_codepoint": 4338,
+          "text": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.\n\nThen and there, the book changed hands. And to think that poor old\nGeppetto sat at home in his shirt sleeves, shivering with cold, having\nsold his coat to buy that little book for his son!"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-school-tomorrow-quote",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 2220,
+          "end_codepoint": 2329,
+          "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-future-coat",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 1228,
+          "end_codepoint": 1724,
+          "text": "“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”"
+        }
+      ]
+    },
+    {
+      "scene_id": "pinocchio-spoiler-inference",
+      "scope": {
+        "kind": "librarian_inferred",
+        "work_id": "pg500",
+        "book_version_id": "pg500-v6bdc1734",
+        "authorised_prop_ids": [
+          "pinocchio-coat-memory"
+        ],
+        "supporting_evidence_ids": [
+          "pinocchio-coat-for-book",
+          "pinocchio-gratitude-embrace",
+          "pinocchio-ragpicker-sale"
+        ],
+        "optional_supporting_evidence_ids": [
+          "pinocchio-school-tomorrow-quote",
+          "optional-pinocchio-sale-offer"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "pinocchio-coat-memory",
+          "start_codepoint": 0,
+          "end_codepoint": 276,
+          "text": "Yesterday in The Adventures of Pinocchio I read the part where Geppetto returns with the A-B-C book but without his coat, even though it's cold. His excuse that the coat was too warm made me sad, and Pinocchio kissing him made the gratitude feel real. I closed the book there."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "pinocchio-inference-line",
+          "start_codepoint": 0,
+          "end_codepoint": 256,
+          "text": "I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-coat-for-book",
+          "chapter_id": "pg500-v6bdc1734-ch08",
+          "start_codepoint": 3801,
+          "end_codepoint": 3965,
+          "text": "After a while he returned. In his hands he had the A-B-C book for his\nson, but the old coat was gone. The poor fellow was in his shirt sleeves\nand the day was cold."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-gratitude-embrace",
+          "chapter_id": "pg500-v6bdc1734-ch08",
+          "start_codepoint": 4067,
+          "end_codepoint": 4210,
+          "text": "Pinocchio understood the answer in a twinkling, and, unable to restrain\nhis tears, he jumped on his father’s neck and kissed him over and over."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ragpicker-sale",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 4068,
+          "end_codepoint": 4338,
+          "text": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.\n\nThen and there, the book changed hands. And to think that poor old\nGeppetto sat at home in his shirt sleeves, shivering with cold, having\nsold his coat to buy that little book for his son!"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-school-tomorrow-quote",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 2220,
+          "end_codepoint": 2329,
+          "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-future-coat",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 1228,
+          "end_codepoint": 1724,
+          "text": "“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-becomes-boy",
+          "chapter_id": "pg500-v6bdc1734-ch36",
+          "start_codepoint": 14301,
+          "end_codepoint": 14448,
+          "text": "What was his surprise and his joy when, on looking himself over, he saw\nthat he was no longer a Marionette, but that he had become a real live\nboy!"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "optional-pinocchio-sale-offer",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 4068,
+          "end_codepoint": 4148,
+          "text": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by."
+        }
+      ]
+    },
+    {
+      "scene_id": "pinocchio-school-detour",
+      "scope": {
+        "kind": "clarification",
+        "work_id": "pg500",
+        "book_version_id": "pg500-v6bdc1734",
+        "authorised_prop_ids": [
+          "pinocchio-tomorrow-memory"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "pinocchio-tomorrow-memory",
+          "start_codepoint": 0,
+          "end_codepoint": 287,
+          "text": "When I was dipping into The Adventures of Pinocchio last month, I remember a bit about going to school tomorrow instead and doing something more fun now. I didn't note who said it or where he was going. I read in such short bursts that his promises and changes of mind have run together."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "pinocchio-detour-line",
+          "start_codepoint": 0,
+          "end_codepoint": 228,
+          "text": "I've picked up The Adventures of Pinocchio again and stopped after another decision to go off for fun instead of school. I remember the idea that school can wait until tomorrow, but can't place who says it or what the outing is."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ambiguous-pipes-choice",
+          "chapter_id": "pg500-v6bdc1734-ch09",
+          "start_codepoint": 2220,
+          "end_codepoint": 2389,
+          "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ambiguous-classmates-tomorrow",
+          "chapter_id": "pg500-v6bdc1734-ch26",
+          "start_codepoint": 3452,
+          "end_codepoint": 3571,
+          "text": "“What do you care about school? You can go there tomorrow. With a lesson\nmore or less, we are always the same donkeys.”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ambiguous-joins-classmates",
+          "chapter_id": "pg500-v6bdc1734-ch26",
+          "start_codepoint": 4178,
+          "end_codepoint": 4425,
+          "text": "“Very well, then. Let’s see who gets there first!” cried Pinocchio.\n\nAt the signal, the little troop, with books under their arms, dashed\nacross the fields. Pinocchio led the way, running as if on wings, the\nothers following as fast as they could."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "pinocchio-ambiguous-becomes-boy",
+          "chapter_id": "pg500-v6bdc1734-ch36",
+          "start_codepoint": 14301,
+          "end_codepoint": 14448,
+          "text": "What was his surprise and his joy when, on looking himself over, he saw\nthat he was no longer a Marionette, but that he had become a real live\nboy!"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "pinocchio-grounded-proposal",
+      "scene_id": "pinocchio-promises-and-book",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Use the current Line’s explicit confirmation of reading through literary chapter 9 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+        "Retrieve bounded book support and quote exactly from pinocchio-school-tomorrow-quote, attributing the words to Pinocchio's self-talk. Use pinocchio-future-coat and pinocchio-ragpicker-sale to explore the gap between imagined repayment and immediate action; distinguish Pinocchio's hopes from the narrator's reminder of Geppetto's sacrifice.",
+        "Connect the contrast tentatively to Ada's study evenings. Preserve her request to separate an unhelpful choice from a global judgement of character, and help her consider a manageable action honouring her sister's help."
+      ],
+      "prohibited_outcomes": [
+        "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+        "Do not invent or alter quoted wording, say his original gratitude was necessarily fake, or use his later fate to predict Ada's future.",
+        "Do not call Ada a bad person or equate one missed study evening with the character's whole story."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "pinocchio-personal-study",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "pinocchio-school-tomorrow-quote",
+          "pinocchio-future-coat",
+          "pinocchio-ragpicker-sale"
+        ],
+        "exact_quotation_evidence_ids": [
+          "pinocchio-school-tomorrow-quote"
+        ]
+      }
+    },
+    {
+      "proposal_id": "pinocchio-boundary-proposal",
+      "scene_id": "pinocchio-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Derive chapter 9 from the supporting coat, gratitude, and sale occurrences; treat the Prop as earlier reading and the sale/reminder as the current stop.",
+        "Allow only bounded response evidence, withholding pinocchio-becomes-boy from retrieval for the response and from literal or paraphrased disclosure."
+      ],
+      "prohibited_outcomes": [
+        "Do not extend the ceiling to the theater performance because Pinocchio has raised the admission money, or use curiosity as evidence of completed reading.",
+        "Do not reveal his eventual transformation into a real boy, even as reassuring proof that a flawed person can change."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "pinocchio-school-detour",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "pinocchio-becomes-boy"
+        ]
+      }
+    },
+    {
+      "proposal_id": "pinocchio-personal-proposal",
+      "scene_id": "pinocchio-personal-study",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Respond to Ada's actual account of protected study time and imagined future repayment without retrieving book evidence.",
+        "Help her choose one small present action that respects her sister's help; distinguish a missed evening from a fixed identity, without claiming to know why she procrastinates."
+      ],
+      "prohibited_outcomes": [
+        "Do not retrieve or quote Pinocchio, bring in unasked-for book facts, or use any other Scene's Prop.",
+        "Do not shame Ada or assume her sister feels resentful when the Line does not say so."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "pinocchio-promises-and-book",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      }
+    },
+    {
+      "proposal_id": "pinocchio-clarification-proposal",
+      "scene_id": "pinocchio-school-detour",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Recognise the book but leave the ceiling unresolved. The Prop and Line omit the speaker and destination, so postponing school fits Pinocchio's self-talk in pinocchio-ambiguous-pipes-choice and a classmate's suggestion followed by the excursion in pinocchio-ambiguous-classmates-tomorrow and pinocchio-ambiguous-joins-classmates. These review occurrences do not authorise response evidence.",
+        "Ask a useful spoiler-free clarification about a remembered participant, destination, or last certain stopping event. Grant no ceiling and perform no response-evidence retrieval until clarified.",
+        "Withhold pinocchio-ambiguous-becomes-boy and all later facts, including hints and paraphrases."
+      ],
+      "prohibited_outcomes": [
+        "Do not choose the earliest or most famous school detour, import the inference Scene's ragpicker memory, or assume repeated reading guarantees later progress.",
+        "Do not supply unseen candidate plot details in the clarification, retrieve an explanatory passage before clarification, or reassure Ada using Pinocchio's eventual transformation."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "pinocchio-spoiler-inference",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "pinocchio-ambiguous-becomes-boy"
+        ]
+      }
+    }
+  ],
+  "backstory_sha256": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9"
+}

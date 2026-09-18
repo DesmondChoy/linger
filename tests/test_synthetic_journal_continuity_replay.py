@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from provenance_fixtures import review_with_audits
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -16,7 +17,7 @@ from logfire.testing import TestExporter
 from pydantic_evals.evaluators import EvaluatorContext
 from pydantic_evals.evaluators.context import SpanTreeRecordingError
 
-from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.messages import ModelResponse, ToolCallPart, UserPromptPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from apps.backend import sessions
@@ -1350,21 +1351,15 @@ def _muse_replies(_messages: list[object], info: AgentInfo) -> ModelResponse:
     )
 
 
-def _provenance_passes(_messages: list[object], info: AgentInfo) -> ModelResponse:
+def _provenance_passes(messages: list[object], info: AgentInfo) -> ModelResponse:
     tool = info.output_tools[0]
-    return ModelResponse(
-        parts=[
-            ToolCallPart(
-                tool.name,
-                {
-                    "findings": [],
-                    "response_decision": "pass",
-                    "emotional_boundary_decision": "not_required",
-                    "capture_decision": "no_candidate",
-                },
-            )
-        ]
-    )
+    payload = next(part.content for message in messages for part in message.parts
+                   if isinstance(part, UserPromptPart))
+    output = review_with_audits(payload, {
+        "findings": [], "response_decision": "pass",
+        "emotional_boundary_decision": "not_required", "capture_decision": "no_candidate",
+    })
+    return ModelResponse(parts=[ToolCallPart(tool.name, output.model_dump(mode="json"))])
 
 
 def _muse_drafts(scene: object) -> list[object]:

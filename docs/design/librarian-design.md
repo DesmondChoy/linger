@@ -465,9 +465,9 @@ and boundary clarifications from `librarian_route`, application code releases
 the validated question after Provenance passes. Muse need not copy it verbatim.
 Evidence declarations and non-route tool calls still block release.
 A route grants a scope, not source text. Muse calls `librarian_search` with the
-returned `work_id` and `book_version_id`. A chapter route supplies
-`max_chapter_inclusive` for `reading_boundary`; a passage route requires
-`reading_boundary=None` and permits only its exact paragraph IDs. A routed
+returned `work_id` and `book_version_id`. The application supplies the exact
+inclusive chapter ceiling, named units, or passage grant from turn context.
+A passage route permits only its exact paragraph IDs. A routed
 result also names the deterministic `selection_basis` that identified the
 work — `resolved_book_identity`, `distinctive_cue`, or `session_selection`.
 
@@ -555,8 +555,9 @@ Application code validates the selected registered work, supporting memory IDs,
 canonical evidence IDs, derived chapter, and authorization basis. A Line-only
 question can locate an event but cannot authorize a ceiling; it requires one
 exact clarification even at high model confidence. A validated
-memory-supported candidate receives a request-scoped retrieval grant. Muse then
-supplies the exact question for the separate bounded evidence phase:
+memory-supported candidate receives a request-scoped retrieval grant. The
+application binds that scope and the original reader question for the separate
+bounded evidence phase:
 
 ```json
 {
@@ -564,10 +565,6 @@ supplies the exact question for the separate bounded evidence phase:
   "query": "Why does Alice struggle to explain who she is?",
   "work_id": "pg11",
   "book_version_id": "pg11-v01b38ea4",
-  "reading_boundary": {
-    "chapter_number": 5,
-    "chapter_state": "completed"
-  },
   "access_scope": {
     "allowed_book_version_ids": ["pg11-v01b38ea4"]
   },
@@ -578,9 +575,9 @@ supplies the exact question for the separate bounded evidence phase:
 }
 ```
 
-`access_scope` is created by trusted application code, never copied from model
-output. Thresholds may be overridden by evaluated configuration, but no agent
-may lower them or enlarge scope.
+Application code creates `access_scope` and obtains reading permission from
+the active turn. Neither field comes from model output. Thresholds may be
+overridden by evaluated configuration, but no agent may lower them or enlarge scope.
 
 ### 4.3 Boundary enforcement and clarification
 
@@ -621,11 +618,10 @@ result:
   "kind": "clarification",
   "request_id": "libreq_01K2...",
   "clarification_id": "clar_01K2...",
-  "reason_code": "current_chapter_state_ambiguous",
-  "question": "Have you finished Chapter 5, or have you only started it?",
+  "reason_code": "reading_boundary_unconfirmed",
+  "question": "What book and chapter have you confirmed reading so far?",
   "expected_answer": {
-    "type": "one_of",
-    "values": ["completed", "started"]
+    "type": "free_text"
   }
 }
 ```
@@ -650,39 +646,48 @@ Application-supplied reader cue, earlier reader statements, and validated scope
         ↓
 Librarian plans the book request without seeing candidate passages
         ↓
-Join the frozen plan's exact reader spans into the bounded search query
+Search each planned book need and retain the original reader text as fallback queries
         ↓
 Filter catalogue and indexes to eligible chapters
         ↓
-Keyword search (up to 10) + semantic search (up to 10, score ≥ 0.5)
+Keyword search (up to 10) + semantic search (up to 10, no private score cutoff)
         ↓
-Fuse by evidence identity and remove duplicate/overlapping windows
+Preserve independent keyword and semantic candidates by evidence identity
         ↓
-At most 15 permitted candidates
+At most 20 private candidates per query
         ↓
-Reranker orders candidates by query relevance
+Reranker scores overlapping token windows and retains each passage's best score
+        ↓
+Interleave keyword, semantic, and reranker ranks; merge queries into at most 20 candidates
         ↓
 Resolve final passages to exact canonical chapter lines
         ↓
-Librarian assesses the same fixed plan against the permitted evidence set
+Librarian assesses the plan and original reader request against the permitted evidence set
 ```
 
 Muse `librarian_search` and Serendipity `search_librarian` accept no
 model-written book query. Application code supplies the original reader cue and
-earlier reader statements to `plan_book_request` before retrieval. It joins the
-plan's exact spans into a query limited to 2,000 characters. Long reader input
-is planned before this backend query is constructed. An over-budget derived
-query fails without widening scope or silently changing the plan.
+earlier reader statements to `plan_book_request` before retrieval. Each planned
+book need becomes a separate query from its exact reader spans. The original
+current message and earlier reader statements remain fallback queries, including
+when planning fails or omits a need. Queries are split into chunks of at most
+2,000 characters, with at most 16 distinct queries. Exceeding that budget fails
+without widening scope or silently dropping the remaining reader input.
 
 Both callers then use `retrieve_for_judgement`.
-Its private shortlist contains at most five candidates, preserving the strongest
-fused keyword/semantic candidate alongside reranker leaders. This lets the
-Librarian evidence-assessment skill judge promising passages even when the
-reranker demotes them or all scores fall below its cutoff. Scope filtering still
-happens before judgment. The caller's release limit is separate from this private
-budget and is supplied as `max_evidence_records`. The judge assesses its selected
-subset; an oversized or invalid selection fails closed instead of silently
-truncating the evidence behind its verdict.
+Each query retains up to 20 independent keyword and semantic candidates,
+interleaving their ranks with reranker ranks. The combined private pool also
+has a 20-record cap and interleaves the query streams before deduplication.
+Reranker demotion or a score below its cutoff does not remove a candidate from
+this private judgment pool. Reranking uses overlapping windows that fit the
+encoder's actual query-and-passage token budget and assigns each canonical
+passage its maximum window score. The evidence text and source range remain
+unchanged. Scope filtering happens before retrieval and judgment.
+
+The caller's release limit is separate from this private budget and is supplied
+as `max_evidence_records`. The judge assesses the original request alongside
+the plan, including omitted needs. An oversized or invalid selection fails
+closed instead of silently truncating the evidence behind its verdict.
 
 Both callers receive `sufficient`, `weak`, or `none`, with a reason and
 limitations. Only judge-selected canonical records return to the caller. A
@@ -692,19 +697,21 @@ limitations in the book search result's `judgement` field. It separately
 evaluates whether the selected evidence supports a broader connection. Weak
 source evidence may support a limited comparison, but Serendipity declines when
 the evidence cannot support the proposed relationship. Provenance still
-reviews Muse's final response. Ordinary `retrieve` and boundary inference keep
-their existing cutoffs. This operation does not widen reading scope or lower
-global cutoffs.
+reviews Muse's final response. Ordinary public `retrieve` keeps its cutoff and
+15-candidate fused shortlist. Private boundary inference uses the broader
+judgment pool, then separately validates reading permission. Neither private
+operation widens disclosure scope or lowers the public retrieval cutoff.
 
 This handles a verified false negative in Douglass: the literacy passage in
 Chapter 6 ranks first for the Hugh Auld question but scores about 0.352 against
 the 0.5 cutoff. Finishing Chapter 7 already permits that passage; changing the
 corpus numbering or widening the spoiler boundary would not repair the miss.
 
-The restriction is applied before search, not after retrieval. A duplicate hit
-keeps one canonical evidence record and records both retrieval methods and
-their scores. Strongly overlapping neighbouring windows are merged only after
-resolving their exact canonical range; text is never paraphrased during merge.
+The restriction is applied before search. Duplicate evidence IDs keep one
+canonical record. Private candidates retain overlapping source windows when
+their IDs differ, while ordinary public retrieval suppresses strongly
+overlapping windows in its fused shortlist. Text is never paraphrased during
+candidate selection.
 
 ### 4.5 Reranking versus evidence strength
 
@@ -720,6 +727,12 @@ A high retrieval or reranker score does not prove that the passage answers the
 question. It may match the same words while missing the requested relationship
 or explanation. Conversely, `weak` evidence still includes its full evidence
 details so Muse can explain the limitation instead of losing context.
+
+The reranker measures query and passage tokens against its configured pair
+limit. Oversized pairs are scored through overlapping token windows, retaining
+the highest score for each canonical record. Evidence IDs, text and source
+locations remain unchanged. This prevents silent truncation of the decisive
+text; it does not turn a local relevance score into a probability of support.
 
 Librarian identifies the requested book parts before private retrieval through
 `plan_book_request` and its book-request skill. Muse and Serendipity supply the original reader message and available
@@ -1111,7 +1124,7 @@ unreported rather than being estimated.
 | Corpus identity | Stable work ID plus immutable source-revision ID |
 | Evidence identity | Book version + chapter + canonical source lines |
 | Initial derived windows | 350 words (approximately 450 tokens) with 60-word overlap (approximately 75 tokens), never crossing chapters |
-| Initial thresholds | 0.5 for semantic candidate and reranker scores; overrideable |
+| Initial thresholds | Public search uses 0.5 semantic and reranker cutoffs; private judgment retains its bounded candidate pool below those cutoffs |
 | Candidate limits | 10 keyword + 10 semantic, at most 15 reranked, at most 5 returned |
 | Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
 | Hybrid fusion | Reciprocal-rank fusion with `k = 60`, followed by 50% source-range overlap deduplication |

@@ -11,6 +11,7 @@ from pydantic_ai.models.function import FunctionModel
 
 from src.linger.agents.muse.agent import build_muse_agent, validate_muse_output
 from src.linger.agents.muse.models import MuseCandidate
+from src.linger.agents.muse.quote_repair import retained_source_quote
 from src.linger.agents.muse.skills import REFLECTION
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.turn_context import reset_turn_evidence, set_turn_evidence
@@ -23,6 +24,22 @@ SOURCE = (
 )
 CORE = 'if the gatekeeper\nwas to learn the truth, we should lose our badges'
 FULL = CORE + ', you know.'
+
+
+@pytest.mark.parametrize(('current', 'previous', 'expected'), [
+    ('  quoted words, ', 'quoted words.', True),
+    ('quoted words…', 'quoted words!', True),
+    ('...', '!', False),
+    ('?', '?', True),
+    ('C++', 'C', False),
+    ('_quoted words_', 'quoted words.', False),
+    ('Quoted words.', 'quoted words.', False),
+    ('quoted\nwords.', 'quoted words.', False),
+    ('quoted, words.', 'quoted words.', False),
+    ('-quoted words.', 'quoted words.', False),
+])
+def test_retained_quote_matching_preserves_content(current, previous, expected):
+    assert retained_source_quote(current, (previous,)) is expected
 
 
 def record(source):

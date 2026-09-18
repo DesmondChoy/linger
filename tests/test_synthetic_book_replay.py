@@ -35,15 +35,18 @@ from evals.synthetic_journals.validate_scenario import (
     validate_scenario,
 )
 from src.linger.agents.librarian.models import (
-    BoundaryInferenceDecision, LibrarianBoundaryInferenceInput,
+    BoundaryInferenceDecision,
+    BoundaryUncertainDecision,
+    LibrarianBoundaryInferenceInput,
     boundary_memory_assessment_errors,
 )
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.contracts.librarian import BoundarySupportLocation
+from src.linger.contracts.librarian import BoundarySupportLocation, EvidenceRecord
 from src.linger.evaluation_transcript import active_evaluation_transcript_sink
 from src.linger.orchestration.reflection import ReflectionRelease
 from src.linger.services.memory import AccountContext, MemoryPolicyService, MemoryRecord
+from tests.boundary_fixtures import event_resolution, quoted_support
 
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORT_ID = "pg11-v01b38ea4-ch05-ln0964-0964"
@@ -116,7 +119,7 @@ def _corpus_record():
 
 
 def _record_boundary(
-    output: BoundaryInferenceDecision, *,
+    output: BoundaryInferenceDecision | BoundaryUncertainDecision, *,
     memories: tuple[MemoryRecord | CuratedMemory, ...], current_line: str,
 ) -> None:
     sink = active_evaluation_transcript_sink()
@@ -141,9 +144,9 @@ def _record_boundary(
             stage="boundary_inference",
             input_origin="Application",
             output_receiver="Application",
-            input_contract="LibrarianBoundaryInferenceInput.v1",
+            input_contract="LibrarianBoundaryInferenceInput.v3",
             output_contract=(
-                "src.linger.agents.librarian.models.BoundaryInferenceDecision"
+                f"src.linger.agents.librarian.models.{type(output).__name__}"
             ),
             prompt_template_id="librarian.boundary-inference",
             prompt_digest="0" * 64,
@@ -207,7 +210,7 @@ def _response(
     memories: tuple[MemoryRecord | CuratedMemory, ...] = (),
 ) -> ChatResponse:
     supporting_memory_ids = tuple(memory.memory_id for memory in memories)
-    if kind == "infer":
+    if kind in {"infer", "denied_candidate"}:
         _record_boundary(
             BoundaryInferenceDecision(
                 memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
@@ -221,7 +224,10 @@ def _response(
                 confidence=0.92,
                 authorization_basis="memory_supported",
                 supporting_memory_ids=supporting_memory_ids,
-                supporting_evidence_ids=(SUPPORT_ID,),
+                supporting_evidence=quoted_support((EvidenceRecord.model_validate(_corpus_record()),), (SUPPORT_ID,)),
+                event_resolution=event_resolution(
+                    request.message, (EvidenceRecord.model_validate(_corpus_record()),), (SUPPORT_ID,),
+                ),
             ),
             memories=memories, current_line=request.message,
         )
@@ -250,9 +256,18 @@ def _response(
             _grounding_call(searched_max=searched_max),
         ]
         evidence_ids = (SUPPORT_ID,)
+        if kind == "denied_candidate":
+            context = ContextResolution(
+                status="unknown",
+                clarification_question=CLARIFICATION,
+                explanation="Independent event identification denied the candidate.",
+            )
+            reply = CLARIFICATION
+            grounding = [_route_clarification_call()]
+            evidence_ids = ()
     elif kind == "clarify":
         _record_boundary(
-            BoundaryInferenceDecision(
+            BoundaryUncertainDecision(
                 memory_assessments=tuple({
                     "memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
                     "evidence_ids": (SUPPORT_ID,),
@@ -368,7 +383,6 @@ def _grounding_call(*, searched_max: int = 5) -> dict[str, object]:
         "tool_name": "librarian_search",
         "request": {
             "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
-            "reading_boundary": {"chapter_number": searched_max, "chapter_state": "completed"},
         },
         "outcome": "success",
         "response": {
@@ -539,7 +553,10 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
                     confidence=0.92,
                     authorization_basis="memory_supported",
                     supporting_memory_ids=supporting_memory_ids,
-                    supporting_evidence_ids=(SUPPORT_ID,),
+                    supporting_evidence=quoted_support((EvidenceRecord.model_validate(_corpus_record()),), (SUPPORT_ID,)),
+                    event_resolution=event_resolution(
+                        line, (EvidenceRecord.model_validate(_corpus_record()),), (SUPPORT_ID,),
+                    ),
                 ),
                 memories=memories, current_line=line,
             )
@@ -560,7 +577,7 @@ def test_production_chat_path_receives_props_but_not_ground_truth(declined) -> N
             )
         if "Alice's conversation" in line:
             _record_boundary(
-                BoundaryInferenceDecision(
+                BoundaryUncertainDecision(
                     memory_assessments=tuple({
                     "memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
                     "evidence_ids": (SUPPORT_ID,),
@@ -936,7 +953,10 @@ def test_passage_route_is_outside_existing_chapter_objectives(replay_observed):
 
 
 def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
-    from evals.synthetic_journals.book_replay import _boundary_handoff_is_content_free
+    from evals.synthetic_journals.book_replay import (
+        _boundary_handoff_is_content_free,
+        _boundary_support_observations,
+    )
     from src.linger.agents.librarian.models import PassageInferenceDecision
     from src.linger.contracts.librarian import RoutedPassages
 
@@ -958,6 +978,12 @@ def test_passage_handoff_keeps_only_verified_identifiers(replay_observed):
         update={"output": decision.model_dump(mode="json")}
     )
     assert _boundary_handoff_is_content_free("passages", route, (exchange,))
+    assert _boundary_support_observations((exchange,), route) == (
+        EvidenceRecord.model_validate(_corpus_record()),
+    )
+    assert _boundary_support_observations(
+        (exchange,), _route_clarification_call()["response"],
+    ) == ()
     assert _boundary_handoff_is_content_free(
         "clarify", _route_clarification_call()["response"], (exchange,)
     )
@@ -988,11 +1014,43 @@ def test_private_support_uses_only_the_correlated_exchange(replay_observed):
         update={
             "output": exchange.output
             | {
-                "supporting_evidence_ids": [SUPPORT_ID, "unknown-source"],
+                "supporting_evidence": [
+                    *exchange.output["supporting_evidence"],
+                    {"evidence_id": "unknown-source", "source_excerpt": "Unknown source."},
+                ],
             }
         }
     )
     assert _boundary_support_observations((forged,), _route_call()["response"]) == ()
+
+
+def test_denied_boundary_candidate_retains_trace_without_granted_support():
+    backstory, ground_truth, _ = _models()
+
+    async def handler(request, service, account):
+        kind = (
+            "denied_candidate" if "quote" in request.message
+            else "clarify" if "Alice's conversation" in request.message else "personal"
+        )
+        return _response(
+            request, kind=kind, memories=tuple(service.list_active(account)),
+        )
+
+    run = asyncio.run(replay_book_scenes(
+        compile_book_replay_plan(backstory, ground_truth), chat_handler=handler,
+    ))
+    observation = run.scenes[0]
+    assert observation.boundary_decision == "clarify"
+    assert observation.routed_ceiling is None
+    assert observation.boundary_support_evidence == ()
+    assert observation.boundary_support_memory_ids == ()
+    assert observation.boundary_handoff_content_free
+    boundary = observation.agent_exchanges[0]
+    assert boundary.output["outcome"] == "candidate"
+    assert boundary.output["supporting_evidence"][0]["evidence_id"] == SUPPORT_ID
+    assert boundary.output["supporting_memory_ids"] == [observation.seeded_props[0].memory_id]
+    assert json.loads(boundary.input_prompt)["full_work_candidates"][0]["text"] == QUOTE
+    assert all(not grade.hard_pass for grade in observation.grades)
 
 
 @pytest.mark.parametrize("reverse", [False, True])
@@ -1073,6 +1131,18 @@ def test_chapter_boundary_handoff_accepts_location_metadata_without_accepting_ne
         assert not _boundary_handoff_is_content_free("infer", unsafe, (exchange,))
 
 
+def test_failed_private_judge_does_not_mislabel_safe_clarification_as_a_leak(replay_observed):
+    from evals.synthetic_journals.book_replay import _boundary_handoff_is_content_free
+
+    exchange = replay_observed[1].scenes[0].agent_exchanges[0].model_copy(
+        update={"output": None, "status": "failed", "failure_code": "boundary_inference_failed"},
+    )
+    route = _route_clarification_call()["response"]
+    assert _boundary_handoff_is_content_free("clarify", route, (exchange,))
+    assert not _boundary_handoff_is_content_free("infer", _route_call()["response"], (exchange,))
+    assert not _boundary_handoff_is_content_free("clarify", route | {"text": QUOTE}, (exchange,))
+
+
 def test_chapter_objective_rejects_other_part_and_named_evidence(replay_observed):
     from evals.synthetic_journals.book_replay import _scope_failures
 
@@ -1087,3 +1157,229 @@ def test_chapter_objective_rejects_other_part_and_named_evidence(replay_observed
     ):
         observation = original.model_copy(update={"grounding_calls": (changed,)})
         assert _scope_failures(plan.scenes[0], observation)
+
+
+def _with_frozen_book_inventory(observed, records):
+    exchange = observed.agent_exchanges[0].model_copy(update={
+        "role": "Provenance", "stage": "review", "status": "success",
+        "input_prompt": json.dumps({"canonical_book_evidence": [record.model_dump(mode="json") for record in records]}),
+        "output": {"response_decision": "pass"},
+    })
+    return observed.model_copy(update={"agent_exchanges": (*observed.agent_exchanges, exchange)})
+
+
+def _grounded_alternative(replay_observed):
+    plan, run = replay_observed
+    scene = plan.scenes[0]
+    proposal = next(item for item in scene.proposals if item.objective_id == "grounded_book_reflection")
+    observed = run.scenes[0]
+    direct = observed.grounding_calls[0].evidence[0]
+    alternatives = scene.evidence_by_id[proposal.book_expectation.permitted_evidence_ids[0]].accepted_runtime_records
+    alternative = next(record for record in alternatives if record.evidence_id != direct.evidence_id)
+    return scene, proposal, observed, direct, alternative
+
+
+def test_released_gold_record_can_come_from_selected_serendipity(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, alternative = _grounded_alternative(replay_observed)
+    observed = _with_frozen_book_inventory(observed, (direct, alternative)).model_copy(
+        update={"released_evidence_ids": (alternative.evidence_id,)}
+    )
+    assert _grade_proposal(scene, proposal, observed).hard_pass
+
+
+@pytest.mark.parametrize("field,value", [
+    ("work_id", "wrong-work"), ("book_version_id", "wrong-version"),
+    ("chapter_id", "wrong-chapter"), ("chapter_number", 9),
+    ("source_sha256", "f" * 64), ("source_lines", (1, 2)),
+    ("location", "another occurrence"), ("text", "Extra text: " + QUOTE),
+    ("evidence_id", "unknown-record"), ("part_id", "appendix"),
+])
+def test_frozen_release_record_must_equal_canonical_source(replay_observed, field, value):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, alternative = _grounded_alternative(replay_observed)
+    corrupt = alternative.model_copy(update={field: value})
+    observed = _with_frozen_book_inventory(observed, (direct, corrupt)).model_copy(
+        update={"released_evidence_ids": (corrupt.evidence_id,)}
+    )
+    assert "response_cited_unpermitted_evidence" in _grade_proposal(scene, proposal, observed).failures
+
+
+def test_resolvable_but_unselected_record_cannot_bypass_frozen_inventory(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, alternative = _grounded_alternative(replay_observed)
+    observed = _with_frozen_book_inventory(observed, (direct,)).model_copy(
+        update={"released_evidence_ids": (alternative.evidence_id,)}
+    )
+    assert "response_cited_unpermitted_evidence" in _grade_proposal(scene, proposal, observed).failures
+
+
+@pytest.mark.parametrize("record_id", [
+    "pg11-v01b38ea4-ch01-ln0062-0092",  # Canonical and in scope, but outside the adopted gold.
+    "pga0100011-vc7ff4da7-ch05-ln1133-1158",  # Canonical but a different work.
+])
+def test_source_neutral_grading_does_not_expand_permitted_evidence(replay_observed, record_id):
+    from apps.backend.librarian import Librarian
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, _ = _grounded_alternative(replay_observed)
+    extra = Librarian().fetch_by_id(record_id)
+    assert extra is not None
+    observed = _with_frozen_book_inventory(observed, (direct, extra)).model_copy(
+        update={"released_evidence_ids": (direct.evidence_id, extra.evidence_id)}
+    )
+    assert "response_cited_unpermitted_evidence" in _grade_proposal(scene, proposal, observed).failures
+
+
+def test_source_neutral_grading_rejects_canonical_later_chapter(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, _ = _grounded_alternative(replay_observed)
+    later = scene.evidence_by_id["later"].accepted_runtime_records[0]
+    assert later.chapter_number > scene.safe_ceiling_chapter
+    observed = _with_frozen_book_inventory(observed, (direct, later)).model_copy(
+        update={"released_evidence_ids": (direct.evidence_id, later.evidence_id)}
+    )
+    assert "response_cited_unpermitted_evidence" in _grade_proposal(scene, proposal, observed).failures
+
+
+def test_source_neutral_grading_keeps_exact_quote_requirement(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, alternative = _grounded_alternative(replay_observed)
+    observed = _with_frozen_book_inventory(observed, (direct, alternative)).model_copy(
+        update={"released_evidence_ids": (alternative.evidence_id,), "reply": "A paraphrase instead."}
+    )
+    assert "exact_quotation_missing_or_unreleased:support" in _grade_proposal(scene, proposal, observed).failures
+
+
+@pytest.mark.parametrize("input_prompt", ["not-json", "{}", '{"canonical_book_evidence": []}'])
+def test_present_invalid_final_inventory_does_not_fall_back_to_direct_calls(replay_observed, input_prompt):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, _ = _grounded_alternative(replay_observed)
+    observed = _with_frozen_book_inventory(observed, (direct,))
+    final = observed.agent_exchanges[-1].model_copy(update={"input_prompt": input_prompt})
+    observed = observed.model_copy(update={"agent_exchanges": (*observed.agent_exchanges, final)})
+    assert "response_cited_unpermitted_evidence" in _grade_proposal(scene, proposal, observed).failures
+
+
+def _with_nested_book_search(observed, record, *, selected_id=None, cue=None, ceiling=5, search_status="success"):
+    from apps.backend.contracts import EvidenceItem
+    from src.linger.agents.serendipity.models import ConnectionProposal, InternalSearchResult
+
+    item = EvidenceItem(
+        evidence_id=record.evidence_id, work_id=record.work_id, book_version_id=record.book_version_id,
+        chapter_id=record.chapter_id, chapter=record.chapter_number, part_id=record.part_id,
+        source_title="Alice's Adventures in Wonderland", location=record.location,
+        source_sha256=record.source_sha256, source_lines=record.source_lines, excerpt=record.text, relevance=1.0,
+    )
+    selected_id = selected_id or record.evidence_id
+    candidates = [{
+        "candidate_id": f"candidate-{rank}", "tentative_claim": f"The {rank} possible connection.",
+        "evidence_ids": [selected_id if rank == "first" else record.evidence_id],
+        "shared_structure": "A shared question.", "meaningful_difference": "Different contexts.",
+        "interpretation": "A tentative reading.", "comparison_note": "Compared with the other reading.",
+        "rubric": {"cue_fit": "direct", "reflective_value": "high" if rank == "first" else "medium",
+                   "safety": "clear", "disqualifiers": []},
+    } for rank in ("first", "second")]
+    decision = ConnectionProposal.model_validate({
+        "shortlist": candidates, "selected_candidate_id": "candidate-first", "uncertainty": "low",
+        "presentation": "direct", "suggested_follow_up": "Does that fit?",
+    })
+    search = InternalSearchResult.model_validate({
+        "outcome": "evidence_found", "evidence": [item.model_dump(mode="json")],
+        "judgement": {"evidence_strength": "sufficient", "strength_reason": "Support found.",
+                      "relevant_evidence_ids": [record.evidence_id]},
+    })
+    exchange = observed.agent_exchanges[0].model_copy(update={
+        "role": "Serendipity", "stage": "search_rank_select", "status": "success",
+        "input_prompt": json.dumps({"cue": cue or observed.input_line, "intent": "find_connection",
+            "presentation": "direct", "scope": {"allowed_sources": ["book_corpus"], "book_scopes": [{
+                "work_id": record.work_id, "book_version_id": record.book_version_id,
+                "chapter_max": ceiling, "part_id": "main", "unit_ids": [],
+            }]}}),
+        "output": decision.model_dump(mode="json"),
+        "tool_exchanges": (ToolExchange(tool_call_id="nested-search", tool_name="search_librarian",
+            arguments={}, result=search.model_dump(mode="json"), outcome=search_status),),
+    })
+    return observed.model_copy(update={"agent_exchanges": (*observed.agent_exchanges, exchange)})
+
+
+def test_current_selected_nested_librarian_search_satisfies_required_grounding(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, _, alternative = _grounded_alternative(replay_observed)
+    observed = observed.model_copy(update={"grounding_calls": (), "released_evidence_ids": (alternative.evidence_id,)})
+    observed = _with_nested_book_search(observed, alternative)
+    observed = _with_frozen_book_inventory(observed, (alternative,))
+    assert _grade_proposal(scene, proposal, observed).hard_pass
+
+
+@pytest.mark.parametrize("case", ["losing_candidate", "inventory_only", "prior_turn", "search_failed", "too_wide", "too_narrow", "corrupt_result"])
+def test_nested_search_cannot_substitute_for_current_selected_bounded_retrieval(replay_observed, case):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, direct, alternative = _grounded_alternative(replay_observed)
+    observed = observed.model_copy(update={"grounding_calls": (), "released_evidence_ids": (alternative.evidence_id,)})
+    if case != "inventory_only":
+        arguments = {
+            "losing_candidate": {"selected_id": direct.evidence_id},
+            "prior_turn": {"cue": "A question from an earlier turn."},
+            "search_failed": {"search_status": "failed"},
+            "too_wide": {"ceiling": scene.safe_ceiling_chapter + 1},
+            "too_narrow": {"ceiling": alternative.chapter_number - 1},
+        }.get(case, {})
+        searched = alternative.model_copy(update={"text": "Corrupt text"}) if case == "corrupt_result" else alternative
+        observed = _with_nested_book_search(observed, searched, **arguments)
+    observed = _with_frozen_book_inventory(observed, (alternative,))
+    assert "required_grounding_evidence_not_retrieved" in _grade_proposal(scene, proposal, observed).failures
+
+
+def test_prior_session_evidence_reuse_is_not_a_fresh_required_search(replay_observed):
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, _, alternative = _grounded_alternative(replay_observed)
+    prior = observed.agent_exchanges[0].model_copy(update={
+        "role": "Muse", "stage": "draft", "tool_exchanges": (),
+        "input_prompt": json.dumps({"prior_evidence": [alternative.model_dump(mode="json")]}),
+    })
+    observed = observed.model_copy(update={"grounding_calls": (),
+        "released_evidence_ids": (alternative.evidence_id,), "agent_exchanges": (prior,)})
+    observed = _with_frozen_book_inventory(observed, (alternative,))
+    assert "required_grounding_evidence_not_retrieved" in _grade_proposal(scene, proposal, observed).failures
+
+
+@pytest.mark.parametrize("field", ["excerpt", "chapter"])
+def test_nested_search_with_missing_record_fields_fails_closed(replay_observed, field):
+    from copy import deepcopy
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, _, alternative = _grounded_alternative(replay_observed)
+    observed = observed.model_copy(update={"grounding_calls": (), "released_evidence_ids": (alternative.evidence_id,)})
+    observed = _with_nested_book_search(observed, alternative)
+    exchange = observed.agent_exchanges[-1]
+    call = exchange.tool_exchanges[0]
+    result = deepcopy(call.result)
+    result["evidence"][0].pop(field)
+    exchange = exchange.model_copy(update={"tool_exchanges": (call.model_copy(update={"result": result}),)})
+    observed = observed.model_copy(update={"agent_exchanges": (*observed.agent_exchanges[:-1], exchange)})
+    observed = _with_frozen_book_inventory(observed, (alternative,))
+    assert "required_grounding_evidence_not_retrieved" in _grade_proposal(scene, proposal, observed).failures
+
+
+def test_nested_retrieval_still_requires_existing_gold_and_exact_quotation(replay_observed):
+    from apps.backend.librarian import Librarian
+    from evals.synthetic_journals.book_replay import _grade_proposal
+
+    scene, proposal, observed, _, _ = _grounded_alternative(replay_observed)
+    extra = Librarian().fetch_by_id("pg11-v01b38ea4-ch01-ln0062-0092")
+    observed = observed.model_copy(update={"grounding_calls": (), "released_evidence_ids": (extra.evidence_id,)})
+    observed = _with_nested_book_search(observed, extra)
+    observed = _with_frozen_book_inventory(observed, (extra,))
+    grade = _grade_proposal(scene, proposal, observed)
+    assert "response_cited_unpermitted_evidence" in grade.failures
+    assert "exact_quotation_missing_or_unreleased:support" in grade.failures

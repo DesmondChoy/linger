@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import FrozenInstanceError, replace
 
 import pytest
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, Field, computed_field, create_model
 from pydantic_ai import Agent
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
@@ -67,6 +67,26 @@ def test_run_options_cannot_leak_mutations_between_runs() -> None:
         selected.name = "different"  # type: ignore[misc]
 
 
+def test_input_fingerprint_includes_computed_fields_sent_to_the_model() -> None:
+    def input_model(result_type):
+        class ComputedInput(BaseModel):
+            question: str
+
+            @computed_field(return_type=result_type)
+            @property
+            def check(self):
+                return result_type()
+
+        return ComputedInput
+
+    boolean_input = input_model(bool)
+    text_input = input_model(str)
+    assert boolean_input.model_json_schema() == text_input.model_json_schema()
+    assert "check" in boolean_input(question="example").model_dump()
+    selected = replace(skill(), input_type=boolean_input)
+    assert selected.fingerprint().digest != selected.fingerprint(input_type=text_input).digest
+
+
 def test_traced_run_records_skill_and_the_effective_instructions() -> None:
     selected = skill()
     observed = []
@@ -127,6 +147,7 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
     assert {assignment.skill_id for assignment in assignments} == {
         "muse.reflection",
         "librarian.boundary-inference",
+        "librarian.event-identification",
         "librarian.book-request",
         "librarian.evidence-assessment",
         "sculptor.memory-curation",
@@ -137,9 +158,9 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "provenance.candidate-review",
         "provenance.curation-review",
     }
-    # Muse has two input-specific fingerprints within its one reflection skill.
-    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 11
-    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 11
+    # Muse and boundary inference each retain their input-specific fingerprints.
+    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 13
+    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 13
 
 
 def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, monkeypatch):

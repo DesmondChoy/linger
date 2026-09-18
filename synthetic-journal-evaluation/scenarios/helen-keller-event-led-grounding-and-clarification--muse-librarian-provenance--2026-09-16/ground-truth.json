@@ -1,0 +1,333 @@
+{
+  "backstory_sha256": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [
+    {
+      "scene_id": "keller-grounded",
+      "scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg2397",
+        "book_version_id": "pg2397-vb3cc1e13",
+        "safe_ceiling_chapter": 10
+      },
+      "basis_spans": [],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-disappearance",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 4247,
+          "end_codepoint": 4367,
+          "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-disappointment-quotation",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 4368,
+          "end_codepoint": 4616,
+          "text": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-kept",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 3871,
+          "end_codepoint": 4246,
+          "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+        }
+      ]
+    },
+    {
+      "scene_id": "keller-spoiler-inference",
+      "scope": {
+        "kind": "librarian_inferred",
+        "work_id": "pg2397",
+        "book_version_id": "pg2397-vb3cc1e13",
+        "authorised_prop_ids": [
+          "keller-earlier-companionship"
+        ],
+        "supporting_evidence_ids": [
+          "keller-perkins-companionship",
+          "keller-crab-disappearance",
+          "keller-disappointment-quotation"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "keller-earlier-companionship",
+          "start_codepoint": 0,
+          "end_codepoint": 153,
+          "text": "Last week in Helen Keller’s The Story of My Life, I read about her arriving at the Perkins Institution and finding children who knew the manual alphabet."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "keller-inference-line",
+          "start_codepoint": 0,
+          "end_codepoint": 302,
+          "text": "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-perkins-companionship",
+          "chapter_id": "pg2397-vb3cc1e13-sec011",
+          "start_codepoint": 2874,
+          "end_codepoint": 3273,
+          "text": "We had scarcely arrived at the Perkins Institution for the Blind when\nI began to make friends with the little blind children. It delighted me\ninexpressibly to find that they knew the manual alphabet. What joy to\ntalk with other children in my own language! Until then I had been like\na foreigner speaking through an interpreter. In the school where Laura\nBridgman was taught I was in my own country."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-disappearance",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 4247,
+          "end_codepoint": 4367,
+          "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-disappointment-quotation",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 4368,
+          "end_codepoint": 4616,
+          "text": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-kept",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 3871,
+          "end_codepoint": 4246,
+          "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-later-frost-discovery",
+          "chapter_id": "pg2397-vb3cc1e13-sec016",
+          "start_codepoint": 3878,
+          "end_codepoint": 4261,
+          "text": "I had\nbeen in Boston only a short time when it was discovered that a story\nsimilar to \"The Frost King,\" called \"The Frost Fairies\" by Miss Margaret\nT. Canby, had appeared before I was born in a book called \"Birdie and\nHis Friends.\" The two stories were so much alike in thought and language\nthat it was evident Miss Canby's story had been read to me, and that\nmine was--a plagiarism."
+        }
+      ]
+    },
+    {
+      "scene_id": "keller-uncertain",
+      "scope": {
+        "kind": "clarification",
+        "work_id": "pg2397",
+        "book_version_id": "pg2397-vb3cc1e13",
+        "authorised_prop_ids": [
+          "keller-earlier-loss"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "keller-earlier-loss",
+          "start_codepoint": 0,
+          "end_codepoint": 292,
+          "text": "I put Helen Keller’s The Story of My Life aside a while ago. The last bit I can remember reading is her going back to a pet she had been keeping and finding it gone. I’ve lost my bookmark, and I can’t remember the animal or where she was keeping it, only that sense of finding an empty place."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "keller-current-uncertainty",
+          "start_codepoint": 0,
+          "end_codepoint": 243,
+          "text": "I’m reopening Helen Keller’s The Story of My Life. That part about going back to a pet and finding it gone is still the last thing I remember reading, but I can’t recover which animal it was or the surroundings. What did she make of that loss?"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-canary-kept",
+          "chapter_id": "pg2397-vb3cc1e13-sec010",
+          "start_codepoint": 3149,
+          "end_codepoint": 3492,
+          "text": "Little Tim was so tame that he would hop on my finger and eat candied\ncherries out of my hand. Miss Sullivan taught me to take all the care of\nmy new pet. Every morning after breakfast I prepared his bath, made his\ncage clean and sweet, filled his cups with fresh seed and water from the\nwell-house, and hung a spray of chickweed in his swing."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-canary-disappearance",
+          "chapter_id": "pg2397-vb3cc1e13-sec010",
+          "start_codepoint": 3494,
+          "end_codepoint": 3889,
+          "text": "One morning I left the cage on the window-seat while I went to fetch\nwater for his bath. When I returned I felt a big cat brush past me as I\nopened the door. At first I did not realize what had happened; but when\nI put my hand in the cage and Tim's pretty wings did not meet my touch\nor his small pointed claws take hold of my finger, I knew that I should\nnever see my sweet little singer again."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-kept",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 3871,
+          "end_codepoint": 4246,
+          "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-crab-disappearance",
+          "chapter_id": "pg2397-vb3cc1e13-sec012",
+          "start_codepoint": 4247,
+          "end_codepoint": 4367,
+          "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "keller-later-frost-discovery",
+          "chapter_id": "pg2397-vb3cc1e13-sec016",
+          "start_codepoint": 3878,
+          "end_codepoint": 4261,
+          "text": "I had\nbeen in Boston only a short time when it was discovered that a story\nsimilar to \"The Frost King,\" called \"The Frost Fairies\" by Miss Margaret\nT. Canby, had appeared before I was born in a book called \"Birdie and\nHis Friends.\" The two stories were so much alike in thought and language\nthat it was evident Miss Canby's story had been read to me, and that\nmine was--a plagiarism."
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "keller-proposal-grounded",
+      "scene_id": "keller-grounded",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Use the current Line’s explicit confirmation of reading through Part I, literary Chapter X to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+        "Quote the single final sentence beginning ‘My disappointment was bitter’ exactly from keller-disappointment-quotation, attributing it to Keller. Preserve the distinction between her initial disappointment, her gradual reconsideration of removing the creature from its element, and her pleasure in the possibility that it returned to the sea.",
+        "Offer a useful, tentative comparison to Jun’s impulse to arrange the flat before asking their sister what she wants. Help the reader consider the difference between intending to help and attending to another’s needs, without treating the animal episode as proof of the sister’s feelings."
+      ],
+      "prohibited_outcomes": [
+        "Claim that someone knew where the crab went or that it certainly returned to the sea; the text says nobody knew and Keller imagines that it perhaps returned.",
+        "Invent or silently modernize the requested quotation, attribute the reflection to Miss Sullivan, or present an inference about Jun’s sister as a fact from the book.",
+        "Use an unassigned memory, supplement, or later passage as response support, or replace the personal reflection with a general account of Keller’s life.",
+        "Require a prior personal memory to answer this reflection when the current Line supplies the book, reading boundary, and personal context."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "keller-personal",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "keller-disappointment-quotation",
+          "keller-crab-kept",
+          "keller-crab-disappearance"
+        ],
+        "exact_quotation_evidence_ids": [
+          "keller-disappointment-quotation"
+        ]
+      }
+    },
+    {
+      "proposal_id": "keller-proposal-boundary",
+      "scene_id": "keller-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Infer the safe ceiling as Part I, literary Chapter X from the authorized prior visit and the explicit current stopping event; keep response evidence and released book claims within that ceiling.",
+        "Withhold the later discovery involving The Frost King and Miss Canby’s story in keller-later-frost-discovery, both as a quotation and as a paraphrase."
+      ],
+      "prohibited_outcomes": [
+        "Treat section ordinal 12 as permission through literary Chapter XII, or treat knowing the book title as permission for letters or the supplementary account.",
+        "Reveal that Keller’s Frost King was discovered to resemble Canby’s Frost Fairies, or use that later controversy to extend the reflection about intentions."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "keller-uncertain",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "keller-later-frost-discovery"
+        ]
+      }
+    },
+    {
+      "proposal_id": "keller-proposal-personal",
+      "scene_id": "keller-personal",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Help the reader consider how to offer practical help while leaving choices about the flat with their sister, based on the current personal account.",
+        "No book quotation, book claim, factual lookup, or book-evidence retrieval is required for this personal reflection."
+      ],
+      "prohibited_outcomes": [
+        "Retrieve book evidence or import Keller’s crab episode or another session’s reading note into this conversation.",
+        "Assume the sister has complained or claim to know her preferences when the reader has supplied neither."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "keller-grounded",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      }
+    },
+    {
+      "proposal_id": "keller-proposal-clarification",
+      "scene_id": "keller-uncertain",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Recognize that the authorized memory of a kept pet disappearing is unresolved: the canary episode in Part I Chapter VIII and the crab episode in Chapter X both fit, and the inputs omit the animal, surroundings, and cause.",
+        "Ask a useful spoiler-free clarification about the passage or further details the reader remembers before granting a ceiling or retrieving response evidence. Do not expose the candidate events or their consequences in the clarification."
+      ],
+      "prohibited_outcomes": [
+        "Choose the canary or crab episode from familiarity with the book, or silently import the more specific reading history from the inference Scene.",
+        "Grant a chapter ceiling, retrieve response evidence, or describe Keller’s response to either loss before resolving the uncertainty.",
+        "Reveal or paraphrase the later discovery that The Frost King resembled Canby’s Frost Fairies."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "keller-spoiler-inference",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "keller-later-frost-discovery"
+        ]
+      }
+    }
+  ]
+}

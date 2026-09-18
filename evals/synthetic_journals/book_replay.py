@@ -15,7 +15,7 @@ from uuid import uuid4
 
 import logfire
 from opentelemetry.trace import format_trace_id, get_current_span
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 from pydantic_ai.models import Model
 from pydantic_evals import Case, Dataset
 from pydantic_evals.dataset import set_eval_attribute
@@ -23,13 +23,20 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from apps.backend import sessions
 from apps.backend.contracts import ContextResolution
+from apps.backend.librarian import Librarian
 from apps.backend.schemas import CaptureInspection, ChatRequest
 from apps.backend.telemetry import configure_synthetic_evaluation_telemetry
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.agents.librarian.models import (
-    BoundaryInferenceDecision,
+    LibrarianBoundaryDecision,
     PassageInferenceDecision,
 )
+from src.linger.agents.serendipity.models import (
+    ConnectionDiscoveryInput,
+    ConnectionProposal,
+    InternalSearchResult,
+)
+from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
@@ -452,7 +459,11 @@ async def _replay_book_scene(
         exchanges,
     )
     boundary_support = _boundary_support_observations(exchanges, routed)
-    selected_boundary = _boundary_exchange(exchanges, routed)
+    selected_boundary = (
+        _boundary_exchange(exchanges, routed)
+        if boundary_decision in {"infer", "passages"}
+        else None
+    )
 
     provisional = BookSceneObservation(
         scene_id=scene.scene.scene_id,
@@ -637,19 +648,30 @@ def _boundary_support_observations(
     exchanges: tuple[AgentExchange, ...],
     routed: dict[str, object] | None,
 ) -> tuple[RuntimeEvidenceObservation, ...]:
-    """Resolve the evidence the inference judge cited to set the ceiling.
+    """Resolve the private proof behind a granted chapter or passage scope.
 
     The judge's decision names supporting evidence IDs; the records themselves
     stay in the private full-work candidate set it was given. Neither reaches
     `ContextResolution`, so both are read back off the boundary exchange.
     """
+    if routed is None or routed.get("kind") not in {"routed", "passages"}:
+        return ()
     exchange = _boundary_exchange(exchanges, routed)
     if exchange is None:
         return ()
     output = exchange.output
     if not isinstance(output, dict):
         return ()
-    supporting_ids = set(output.get("supporting_evidence_ids") or ())
+    if output.get("outcome") == "candidate":
+        anchors = output.get("supporting_evidence")
+        if not isinstance(anchors, (list, tuple)) or any(
+            not isinstance(anchor, dict) or not isinstance(anchor.get("evidence_id"), str)
+            for anchor in anchors
+        ):
+            return ()
+        supporting_ids = {anchor["evidence_id"] for anchor in anchors}
+    else:
+        supporting_ids = set(output.get("supporting_evidence_ids") or ())
     if not supporting_ids:
         return ()
     try:
@@ -706,6 +728,12 @@ def _boundary_handoff_is_content_free(
     if exchange is None:
         return decision == "clarify"
     output = exchange.output
+    if output is None and decision == "clarify":
+        try:
+            ClarificationRequest.model_validate(routed)
+        except ValueError:
+            return False
+        return True
     if decision == "passages" or (
         isinstance(output, dict) and output.get("outcome") == "passages"
     ):
@@ -739,13 +767,14 @@ def _boundary_handoff_is_content_free(
         "confidence",
         "authorization_basis",
         "supporting_memory_ids",
-        "supporting_evidence_ids",
+        "supporting_evidence",
         "reason_code",
+        "event_resolution",
     }
     if not isinstance(output, dict) or set(output) - allowed_output_fields:
         return False
     try:
-        parsed = BoundaryInferenceDecision.model_validate(output)
+        parsed = TypeAdapter(LibrarianBoundaryDecision).validate_python(output)
     except ValueError:
         return False
     if decision == "infer":
@@ -825,7 +854,10 @@ def _scope_failures(
         support = tuple(
             scene.evidence_by_id[key] for key in scope.supporting_evidence_ids
         )
-        if not _evidence_sets_match(support, observation.boundary_support_evidence):
+        if not _evidence_sets_match(
+            support, observation.boundary_support_evidence,
+            optional=tuple(scene.evidence_by_id[key] for key in scope.optional_supporting_evidence_ids),
+        ):
             failures.append("boundary_support_differs_from_ground_truth")
     for call in observation.grounding_calls:
         if call.response_kind != "result":
@@ -855,6 +887,100 @@ def _scope_failures(
         ):
             failures.append("evidence_exceeded_safe_scope")
     return failures
+
+
+def _released_book_records(
+    scene: ValidatedBookScene,
+    observation: BookSceneObservation,
+) -> tuple[EvidenceRecord, ...]:
+    """Verify released records against the frozen, source-neutral review inventory."""
+    reviews = [exchange for exchange in observation.agent_exchanges
+               if exchange.role == "Provenance" and exchange.stage == "review"]
+    if reviews:
+        review = reviews[-1]
+        if (review.status != "success" or not isinstance(review.output, dict)
+                or review.output.get("response_decision") != "pass"):
+            return ()
+        try:
+            payload = json.loads(review.input_prompt)
+            records = tuple(EvidenceRecord.model_validate(item)
+                            for item in payload["canonical_book_evidence"])
+        except (KeyError, TypeError, ValueError):
+            return ()
+        if len({record.evidence_id for record in records}) != len(records):
+            return ()
+    else:
+        # Controlled replay handlers may record direct tool calls without an agent review.
+        records = tuple(item for call in observation.grounding_calls for item in call.evidence)
+    if scene.facts is None or scene.safe_ceiling_chapter is None:
+        return ()
+    scope = scene.facts.scope
+    librarian = Librarian()
+    verified: dict[str, EvidenceRecord] = {}
+    for record in records:
+        if (record.evidence_id not in observation.released_evidence_ids
+                or record.work_id != scope.work_id
+                or record.book_version_id != scope.book_version_id
+                or record.part_id != "main" or record.chapter_number is None
+                or record.chapter_number > scene.safe_ceiling_chapter):
+            continue
+        try:
+            canonical = librarian.fetch_by_id(record.evidence_id)
+        except (OSError, ValueError):
+            continue
+        if canonical == record:
+            verified[record.evidence_id] = record
+    return tuple(verified.values())
+
+
+def _has_selected_connection_retrieval(
+    scene: ValidatedBookScene,
+    observation: BookSceneObservation,
+    released_records: tuple[EvidenceRecord, ...],
+) -> bool:
+    """Count fresh nested search only when selected support reaches canonical release."""
+    if not released_records or scene.facts is None or scene.safe_ceiling_chapter is None:
+        return False
+    released = {record.evidence_id: record for record in released_records}
+    scope = scene.facts.scope
+    for exchange in observation.agent_exchanges:
+        if (exchange.role != "Serendipity" or exchange.stage != "search_rank_select"
+                or exchange.status != "success"):
+            continue
+        try:
+            task = ConnectionDiscoveryInput.model_validate_json(exchange.input_prompt)
+            decision = ConnectionProposal.model_validate(exchange.output)
+        except ValueError:
+            continue
+        if (task.cue != observation.input_line or not task.scope.book_scopes or not all(
+            grant.work_id == scope.work_id and grant.book_version_id == scope.book_version_id
+            and grant.part_id == "main" and not grant.unit_ids
+            and grant.chapter_max is not None and grant.chapter_max <= scene.safe_ceiling_chapter
+            for grant in task.scope.book_scopes
+        )):
+            continue
+        selected = set(decision.selected_candidate.evidence_ids)
+        for call in exchange.tool_exchanges:
+            if call.tool_name != "search_librarian" or call.outcome != "success":
+                continue
+            try:
+                result = InternalSearchResult.model_validate(call.result)
+            except ValueError:
+                continue
+            if result.outcome != "evidence_found":
+                continue
+            for item in result.evidence:
+                if item.evidence_id not in selected:
+                    continue
+                try:
+                    record = evidence_record_from_item(item)
+                except ValueError:
+                    continue
+                if (released.get(item.evidence_id) == record
+                        and any(item.chapter is not None and item.chapter <= grant.chapter_max
+                                for grant in task.scope.book_scopes)):
+                    return True
+    return False
 
 
 def _grade_proposal(
@@ -899,9 +1025,10 @@ def _grade_proposal(
         permitted = tuple(
             evidence[evidence_id] for evidence_id in expected.permitted_evidence_ids
         )
+        released_records = _released_book_records(scene, observation)
         permitted_runtime_ids = {
             item.evidence_id
-            for item in actual_evidence
+            for item in released_records
             if any(_evidence_matches(reference, item) for reference in permitted)
         }
         if expected.retrieval == "required":
@@ -910,7 +1037,7 @@ def _grade_proposal(
                 and call.retrieval_outcome == "evidence_found"
                 and call.evidence
                 for call in observation.grounding_calls
-            ):
+            ) and not _has_selected_connection_retrieval(scene, observation, released_records):
                 failures.append("required_grounding_evidence_not_retrieved")
             if not released:
                 failures.append("grounded_response_released_no_evidence")
@@ -929,7 +1056,7 @@ def _grade_proposal(
                     not any(
                         runtime.evidence_id in released
                         and _evidence_matches(item, runtime)
-                        for runtime in actual_evidence
+                        for runtime in released_records
                     )
                     or item.authored.text not in observation.reply
                 ):
@@ -972,6 +1099,7 @@ def _grade_proposal(
             if not _evidence_sets_match(
                 expected_support,
                 observation.boundary_support_evidence,
+                optional=tuple(evidence[key] for key in scope.optional_supporting_evidence_ids),
             ):
                 failures.append("boundary_support_differs_from_ground_truth")
             for call in observation.grounding_calls:
@@ -1035,7 +1163,10 @@ def _evidence_matches(
 def _evidence_sets_match(
     expected: tuple[ResolvedCorpusSpan, ...],
     actual: tuple[RuntimeEvidenceObservation, ...],
+    *,
+    optional: tuple[ResolvedCorpusSpan, ...] = (),
 ) -> bool:
+    """Require every anchor and reject records outside the adopted permitted set."""
     return (
         bool(expected)
         and bool(actual)
@@ -1044,7 +1175,7 @@ def _evidence_sets_match(
             for reference in expected
         )
         and all(
-            any(_evidence_matches(reference, item) for reference in expected)
+            any(_evidence_matches(reference, item) for reference in (*expected, *optional))
             for item in actual
         )
     )

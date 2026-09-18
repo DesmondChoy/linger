@@ -61,11 +61,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -184,11 +180,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -305,11 +297,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -428,11 +416,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -549,11 +533,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 12,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -672,11 +652,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -793,11 +769,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -916,11 +888,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -1037,11 +1005,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -1160,11 +1124,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -1281,11 +1241,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2000,11 +1956,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2127,11 +2079,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2252,11 +2200,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2373,11 +2317,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2570,11 +2510,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",
@@ -2727,11 +2663,7 @@
             "outcome": "success",
             "args": {
               "work_id": "pg11",
-              "book_version_id": "pg11-v01b38ea4",
-              "reading_boundary": {
-                "chapter_number": 6,
-                "chapter_state": "completed"
-              }
+              "book_version_id": "pg11-v01b38ea4"
             },
             "content": {
               "kind": "retrieval_result",

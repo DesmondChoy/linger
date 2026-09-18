@@ -24,7 +24,7 @@ from tests.test_librarian_route_e2e import (
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.librarian import Librarian
-from src.linger.agents.librarian.models import BoundaryInferenceDecision, PassageInferenceDecision
+from src.linger.agents.librarian.models import BoundaryUncertainDecision, BoundaryInferenceDecision, PassageInferenceDecision
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import confirmed_reading, passage_grant
@@ -97,7 +97,7 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(*args):
             calls.append(args)
-            return BoundaryInferenceDecision(
+            return BoundaryUncertainDecision(
                 memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                     "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                     for memory in args[1]),
@@ -146,7 +146,7 @@ class SessionPassageChatTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual((QUOTE_ID,), passage_grant().scope.evidence_ids)
                 return ModelResponse(parts=[ToolCallPart("librarian_search", {
                     "work_id": routed["work_id"],
-                    "book_version_id": routed["book_version_id"], "reading_boundary": None,
+                    "book_version_id": routed["book_version_id"],
                 })])
             observed.append(searched)
             record = searched["evidence"][0]

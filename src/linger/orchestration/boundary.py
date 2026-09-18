@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from itertools import zip_longest
-from typing import Any
+import logging
+from typing import Any, Literal, Protocol
 
 from pydantic import ValidationError
 from pydantic_ai import Agent
@@ -12,15 +13,25 @@ from pydantic_ai import Agent
 from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
 from apps.backend.telemetry import run_agent_traced
-from src.linger.agents.librarian.boundary_prompt import PROMPT_FINGERPRINT
+from src.linger.agents.librarian.boundary_prompt import (
+    EVENT_IDENTIFICATION_PROMPT_FINGERPRINT,
+    NO_HISTORY_PROMPT_FINGERPRINT,
+    PROMPT_FINGERPRINT,
+)
 from src.linger.agents.librarian.models import (
+    BoundaryEventIdentified,
+    BoundaryEventUnresolved,
     BoundaryMemory,
+    BookRequestPlan,
     boundary_memory_assessment_errors,
     LibrarianBoundaryDecision,
     LibrarianBoundaryInferenceInput,
     PassageInferenceDecision,
+    LibrarianEventIdentification,
+    LibrarianEventIdentificationInput,
+    event_identification_errors,
 )
-from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE
+from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE, BOUNDARY_INFERENCE_NO_HISTORY, EVENT_IDENTIFICATION
 from src.linger.contracts.librarian import (
     BoundaryCandidate,
     BoundaryInferenceResult,
@@ -32,11 +43,15 @@ from src.linger.contracts.librarian import (
 )
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.session import ReaderStatement
+from src.linger.orchestration import evidence_strength
 from src.linger.services.memory import MemoryRecord
 
 BOUNDARY_CONFIDENCE_THRESHOLD = 0.75
 MAX_BOUNDARY_MEMORIES = 8
-MAX_BOUNDARY_CANDIDATES = 10
+MAX_BOUNDARY_SEARCH_RESULTS = 5
+MAX_BOUNDARY_CANDIDATES = 20
+MAX_BOUNDARY_QUERY_CHARACTERS = 2000
+logger = logging.getLogger(__name__)
 
 RetrievalMemory = MemoryRecord | CuratedMemory
 
@@ -44,6 +59,18 @@ BoundaryJudge = Callable[
     [str, tuple[RetrievalMemory, ...], tuple[EvidenceRecord, ...], tuple[ReaderStatement, ...]],
     Awaitable[LibrarianBoundaryDecision],
 ]
+
+EventIdentifier = Callable[
+    [LibrarianEventIdentificationInput], Awaitable[LibrarianEventIdentification],
+]
+
+
+class BoundaryPlanner(Protocol):
+    async def __call__(
+        self, current_line: str, *,
+        prior_reader_statements: tuple[ReaderStatement, ...],
+        search_target: Literal["reading_progress"],
+    ) -> BookRequestPlan: ...
 
 
 def _clarification(scope: RegisteredCorpusScope, *, chapter: int | None = None) -> str:
@@ -145,22 +172,64 @@ async def judge_spoiler_boundary(
         agent = librarian_agent
 
     task = _boundary_input(current_line, memories, evidence, prior_reader_statements)
+    skill = BOUNDARY_INFERENCE if prior_reader_statements else BOUNDARY_INFERENCE_NO_HISTORY
+    fingerprint = PROMPT_FINGERPRINT if prior_reader_statements else NO_HISTORY_PROMPT_FINGERPRINT
     result = await run_agent_traced(
         agent,
         task.model_dump_json(),
         span_name="librarian.boundary_inference",
         role="Librarian",
         stage="boundary_inference",
-        input_contract="LibrarianBoundaryInferenceInput.v2",
+        input_contract="LibrarianBoundaryInferenceInput.v3",
         output_contract=(
             "src.linger.agents.librarian.models.LibrarianBoundaryDecision"
+            if prior_reader_statements else
+            "src.linger.agents.librarian.models.LibrarianChapterBoundaryDecision"
         ),
-        prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_digest=PROMPT_FINGERPRINT.digest,
+        prompt_template_id=fingerprint.template_id,
+        prompt_digest=fingerprint.digest,
         failure_code="boundary_inference_model_failed",
-        **BOUNDARY_INFERENCE.run_options(),
+        **skill.run_options(),
     )
     return result.output
+
+
+async def identify_reader_event(
+    task: LibrarianEventIdentificationInput, *, agent: Agent[None, Any] | None = None,
+) -> LibrarianEventIdentification:
+    """Independently locate the current event with no proposed grant or stored memory."""
+    if agent is None:
+        from src.linger.agents.librarian.agent import librarian_agent
+
+        agent = librarian_agent
+    fingerprint = EVENT_IDENTIFICATION_PROMPT_FINGERPRINT
+    result = await run_agent_traced(
+        agent, task.model_dump_json(),
+        span_name="librarian.event_identification", role="Librarian", stage="event_identification",
+        input_contract="LibrarianEventIdentificationInput.v1",
+        output_contract="src.linger.agents.librarian.models.LibrarianEventIdentification",
+        prompt_template_id=fingerprint.template_id, prompt_digest=fingerprint.digest,
+        failure_code="event_identification_model_failed", **EVENT_IDENTIFICATION.run_options(),
+    )
+    return result.output
+
+
+def _same_stopping_occurrence(
+    identified: tuple[EvidenceRecord, ...], selected: tuple[EvidenceRecord, ...], chapter: int,
+) -> bool:
+    """Different canonical windows may describe the same final occurrence."""
+    if not identified or any(record.chapter_number != chapter for record in identified):
+        return False
+    latest = tuple(record for record in selected if record.chapter_number == chapter)
+    return all(any(
+        record.work_id == other.work_id
+        and record.book_version_id == other.book_version_id
+        and record.chapter_id == other.chapter_id
+        and record.source_sha256 == other.source_sha256
+        and max(record.source_lines[0], other.source_lines[0])
+        <= min(record.source_lines[1], other.source_lines[1])
+        for other in latest
+    ) for record in identified)
 
 
 def _validated_passages(
@@ -228,15 +297,21 @@ def _validated_passages(
 def _search_boundary_signal(
     query: str, scope: RegisteredCorpusScope, librarian: Librarian,
 ) -> tuple[EvidenceRecord, ...]:
-    bundle = librarian.retrieve(
+    if len(query) > MAX_BOUNDARY_QUERY_CHARACTERS:
+        return _interleave_evidence([
+            _search_boundary_signal(query[start:start + MAX_BOUNDARY_QUERY_CHARACTERS], scope, librarian)
+            for start in range(0, len(query), MAX_BOUNDARY_QUERY_CHARACTERS)
+            if query[start:start + MAX_BOUNDARY_QUERY_CHARACTERS].strip()
+        ])
+    bundle = librarian.retrieve_for_judgement(
         SearchRequest(
-            query=query[:2000],
+            query=query,
             book_scopes=[BookScope(
                 work_id=scope.work_id, book_version_id=scope.book_version_id,
                 chapter_max=scope.max_chapter,
             )],
             retrieval_score_threshold=0.5,
-            max_results=MAX_BOUNDARY_CANDIDATES,
+            max_results=MAX_BOUNDARY_SEARCH_RESULTS,
             purpose="boundary_inference",
         )
     )
@@ -256,6 +331,43 @@ def _search_boundary_signal(
     )
 
 
+async def _progress_search_queries(
+    current_line: str,
+    prior_reader_statements: tuple[ReaderStatement, ...],
+    planner: BoundaryPlanner,
+) -> tuple[str, ...]:
+    try:
+        plan = await planner(
+            current_line, prior_reader_statements=prior_reader_statements,
+            search_target="reading_progress",
+        )
+        queries = tuple(dict.fromkeys(
+            " ".join(dict.fromkeys((*part.context_spans, *part.reader_spans)))
+            for part in plan.parts
+        ))
+    except Exception:
+        logger.warning("Reading-progress planning failed; using original boundary search.")
+        return ()
+    if not queries:
+        logger.info("Reading-progress planning returned no queries; using original boundary search.")
+    return queries
+
+
+def _interleave_evidence(
+    streams: list[tuple[EvidenceRecord, ...]],
+) -> tuple[EvidenceRecord, ...]:
+    by_id: dict[str, EvidenceRecord] = {}
+    for ranked_records in zip_longest(*streams):
+        for record in ranked_records:
+            if record is None:
+                continue
+            if record.evidence_id in by_id and by_id[record.evidence_id] != record:
+                raise ValueError("Conflicting boundary evidence for one ID")
+            if len(by_id) < MAX_BOUNDARY_CANDIDATES:
+                by_id.setdefault(record.evidence_id, record)
+    return tuple(by_id.values())
+
+
 async def infer_spoiler_boundary(
     current_line: str,
     *,
@@ -265,6 +377,8 @@ async def infer_spoiler_boundary(
     librarian: Librarian,
     prior_reader_statements: tuple[ReaderStatement, ...] = (),
     judge: BoundaryJudge | None = None,
+    event_identifier: EventIdentifier | None = None,
+    planner: BoundaryPlanner | None = None,
     confidence_threshold: float = BOUNDARY_CONFIDENCE_THRESHOLD,
 ) -> BoundaryInferenceResult:
     """Privately validate chapter progress or a grant for exact known passages."""
@@ -272,39 +386,31 @@ async def infer_spoiler_boundary(
     if scope is None:
         raise ValueError("boundary inference requires a registered corpus revision")
     selected_memories = relevant_memories(memories, scope, librarian)
-    search_signals = (current_line,)
-    if prior_reader_statements:
-        search_signals = (
-            current_line[:1000],
-            *(statement.text for statement in reversed(prior_reader_statements)),
-        )
-    search_query = "\n\n".join(search_signals)[:2000]
+    search_signals = (
+        current_line,
+        *(statement.text for statement in reversed(prior_reader_statements)),
+    )
+    focused_queries = await _progress_search_queries(
+        current_line, prior_reader_statements, planner or evidence_strength.plan_book_request,
+    )
     try:
-        current_evidence = _search_boundary_signal(search_query, scope, librarian)
-        if not current_evidence:
+        streams = [
+            _search_boundary_signal(query, scope, librarian)
+            for query in dict.fromkeys((*focused_queries, *search_signals))
+            if query.strip()
+        ]
+        if not any(streams):
             return BoundaryUncertain(
                 kind="uncertain", work_id=scope.work_id,
                 book_version_id=scope.book_version_id,
                 reason_code="insufficient_context",
                 clarification_question=_clarification(scope),
             )
-        streams = [current_evidence]
         streams.extend(
             _search_boundary_signal(memory.text, scope, librarian)
             for memory in selected_memories
         )
-        by_id: dict[str, EvidenceRecord] = {}
-        # Interleave ranks so current-question hits cannot crowd out every
-        # memory anchor. This is private evidence selection, not a scope grant.
-        for ranked_records in zip_longest(*streams):
-            for record in ranked_records:
-                if record is None:
-                    continue
-                if record.evidence_id in by_id and by_id[record.evidence_id] != record:
-                    raise ValueError("Conflicting boundary evidence for one ID")
-                if len(by_id) < MAX_BOUNDARY_CANDIDATES:
-                    by_id.setdefault(record.evidence_id, record)
-        evidence = tuple(by_id.values())
+        evidence = _interleave_evidence(streams)
     except Exception:
         return BoundaryUncertain(
             kind="uncertain",
@@ -332,6 +438,14 @@ async def infer_spoiler_boundary(
             clarification_question=_clarification(scope),
         )
 
+    try:
+        decision = type(decision).model_validate_json(decision.model_dump_json())
+    except (ValueError, TypeError, AttributeError):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable", clarification_question=_clarification(scope),
+        )
+
     if isinstance(decision, PassageInferenceDecision):
         return _validated_passages(
             decision, scope, evidence, prior_reader_statements, confidence_threshold, librarian
@@ -355,9 +469,8 @@ async def infer_spoiler_boundary(
             clarification_question=_clarification(scope),
         )
 
-    if len(set(decision.supporting_evidence_ids)) != len(
-        decision.supporting_evidence_ids
-    ):
+    support_ids = tuple(anchor.evidence_id for anchor in decision.supporting_evidence)
+    if len(set(support_ids)) != len(support_ids):
         return BoundaryUncertain(
             kind="uncertain",
             work_id=scope.work_id,
@@ -389,7 +502,7 @@ async def infer_spoiler_boundary(
 
     by_id = {record.evidence_id: record for record in evidence}
     try:
-        supporting = tuple(by_id[evidence_id] for evidence_id in decision.supporting_evidence_ids)
+        supporting = tuple(by_id[evidence_id] for evidence_id in support_ids)
     except KeyError:
         return BoundaryUncertain(
             kind="uncertain",
@@ -457,6 +570,39 @@ async def infer_spoiler_boundary(
             candidate_chapter=derived_chapter,
             supporting_locations=locations,
             clarification_question=_clarification(scope, chapter=derived_chapter),
+        )
+    task = LibrarianEventIdentificationInput(
+        current_line=current_line, prior_reader_statements=prior_reader_statements,
+        full_work_candidates=evidence,
+    )
+    try:
+        identification = await (event_identifier or identify_reader_event)(task)
+        if not isinstance(identification, (BoundaryEventIdentified, BoundaryEventUnresolved)):
+            raise ValueError("Invalid event-identification result")
+        identification = type(identification).model_validate_json(identification.model_dump_json())
+        if event_identification_errors(identification, task):
+            raise ValueError("Invalid event-identification anchors")
+    except Exception:
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="inference_unavailable", clarification_question=_clarification(scope),
+        )
+    if isinstance(identification, BoundaryEventUnresolved):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code=identification.reason_code, clarification_question=_clarification(scope),
+        )
+    identified = tuple(by_id[identity] for identity in identification.evidence_ids)
+    selected = tuple(
+        by_id[identity]
+        for occurrence in decision.event_resolution.occurrences
+        if occurrence.disposition == "selected"
+        for identity in occurrence.evidence_ids
+    )
+    if not _same_stopping_occurrence(identified, selected, derived_chapter):
+        return BoundaryUncertain(
+            kind="uncertain", work_id=scope.work_id, book_version_id=scope.book_version_id,
+            reason_code="conflicting_context", clarification_question=_clarification(scope),
         )
     return BoundaryCandidate(
         kind="candidate",

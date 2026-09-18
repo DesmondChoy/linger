@@ -7,7 +7,7 @@ Role packages construct their own Agents at import time. An unsupported
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.models.openai import OpenAIResponsesModel
+from pydantic_ai.models.openai import OpenAIResponsesModel, OpenAIResponsesModelSettings
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google import GoogleProvider
 from pydantic_ai.providers.openai import OpenAIProvider
@@ -15,6 +15,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from apps.backend.config import get_settings
 
 SUPPORTED_PROVIDERS = ("google", "openai", "anthropic")
+LUNA_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort="medium")
 
 
 def build_model() -> Model:
@@ -38,6 +39,7 @@ def build_model() -> Model:
             model = OpenAIResponsesModel(
                 model_name,
                 provider=OpenAIProvider(api_key=api_key),
+                settings=LUNA_SETTINGS if model_name == "gpt-5.6-luna" else None,
             )
         case "anthropic":
             model = AnthropicModel(

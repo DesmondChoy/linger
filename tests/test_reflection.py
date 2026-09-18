@@ -4,6 +4,7 @@ import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
+from provenance_fixtures import review_with_audits
 
 from pydantic import ValidationError
 from pydantic_ai.messages import (
@@ -96,7 +97,22 @@ async def reflection_reply(message: str, *args, **kwargs):
     """Keep tests concise while exercising the strict production envelope."""
     prompt = message if message.lstrip().startswith("{") else muse_input(message)
     kwargs.setdefault("capture_source_text", message)
-    return await production_reflection_reply(prompt, *args, **kwargs)
+    provenance = kwargs.get("provenance")
+    if provenance is not None:
+        mock_run = provenance.run
+
+        async def audited_run(payload, *run_args, **run_kwargs):
+            result = await mock_run(payload, *run_args, **run_kwargs)
+            if isinstance(result.output, ProvenanceReview):
+                result.output = review_with_audits(payload, result.output)
+            return result
+
+        provenance.run = AsyncMock(side_effect=audited_run)
+    try:
+        return await production_reflection_reply(prompt, *args, **kwargs)
+    finally:
+        if provenance is not None:
+            provenance.run = mock_run
 
 
 def candidate(
@@ -420,6 +436,9 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
     def test_revision_contract_rejects_capture_findings(self) -> None:
         with self.assertRaises(ValidationError):
             MuseRevisionReview(
+                previously_accepted_claims=(),
+                source_quote_interiors=(),
+                released_reader_lines=(),
                 findings=(
                     RiskFinding(
                         code="unsupported_claim",
@@ -763,7 +782,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 )
                 self.assertEqual(expected, release.release_source)
                 if declared_id == "invented-evidence":
-                    self.assertEqual("deterministic_validation", release.failure_stage)
+                    self.assertEqual("provenance_review", release.failure_stage)
 
     async def test_serendipity_decline_can_be_relayed_after_semantic_pass(self) -> None:
         muse = AsyncMock()
@@ -992,7 +1011,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         cases = (
             (
                 candidate(question, evidence_id=EVIDENCE_ID), (),
-                review("pass"), "deterministic_validation",
+                review("pass"), "provenance_review",
             ),
             (
                 candidate(question),
@@ -1151,7 +1170,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 )
 
                 self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
-                self.assertEqual("deterministic_validation", release.failure_stage)
+                self.assertEqual(
+                    "provenance_review" if evidence_id == "unknown-evidence"
+                    else "deterministic_validation", release.failure_stage,
+                )
 
     async def test_quote_and_location_mismatches_fail_closed(self) -> None:
         self.register_evidence()
@@ -1265,10 +1287,14 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_passed_revision_still_requires_deterministic_validation(self) -> None:
+        self.register_evidence()
         muse = AsyncMock()
         muse.run.side_effect = [
             result("Draft"),
-            result(candidate("Still unsupported.", evidence_id="unknown-evidence")),
+            result(
+                candidate("Supported but outside the scope.", evidence_id=EVIDENCE_ID),
+                ToolReturnPart("librarian_search", retrieval_result()),
+            ),
         ]
         provenance = AsyncMock()
         provenance.run.side_effect = [
@@ -1276,7 +1302,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             result(review("pass", finding_resolutions=({
                 'finding_index': 0,
                 'status': 'resolved',
-                'explanation': 'The reviewer accepts the added support; canonical citation identity still needs application validation.',
+                'explanation': 'The reviewer accepts the added support; canonical citation scope still needs application validation.',
             },))),
         ]
 
@@ -1285,7 +1311,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             [],
             muse=muse,
             provenance=provenance,
-            release_scope=RELEASE_SCOPE,
+            release_scope=RELEASE_SCOPE.model_copy(update={"chapter_max": 1}),
         )
 
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
@@ -1317,7 +1343,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
-        self.assertEqual("deterministic_validation", release.failure_stage)
+        self.assertEqual("provenance_review", release.failure_stage)
 
     async def test_session_line_verified_against_released_history_releases(self) -> None:
         history = [
@@ -1352,7 +1378,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
             review_payload["canonical_session_lines"],
         )
 
-    async def test_session_line_absent_from_released_history_fails_deterministic_validation(
+    async def test_session_line_absent_from_released_history_fails_source_bound_review(
         self,
     ) -> None:
         history = [
@@ -1373,7 +1399,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual("application_safe_decline", release.release_source)
-        self.assertEqual("deterministic_validation", release.failure_stage)
+        self.assertEqual("provenance_review", release.failure_stage)
 
     async def test_session_line_only_in_a_muse_reply_is_unresolved(self) -> None:
         history = [
@@ -1401,7 +1427,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual("application_safe_decline", release.release_source)
-        self.assertEqual("deterministic_validation", release.failure_stage)
+        self.assertEqual("provenance_review", release.failure_stage)
 
     async def test_session_line_from_the_current_turn_verifies_and_releases(self) -> None:
         """An echo of the current turn's own message launders nothing: it is

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.librarian import Librarian
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from src.linger.agents.librarian.models import BoundaryUncertainDecision, BoundaryInferenceDecision
 from src.linger.contracts.librarian import BoundaryPassages, BoundaryUncertain
 from src.linger.contracts.session import ReaderStatement
 from src.linger.orchestration.boundary import infer_spoiler_boundary, judge_spoiler_boundary
@@ -66,8 +66,10 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
                 SECOND, work_id=WORK, book_version_id=VERSION, memories=(),
                 librarian=self.librarian, prior_reader_statements=prior, judge=judge,
             )
-        self.assertEqual(1, retrieve.call_count)
-        self.search_request = retrieve.call_args.args[0]
+        self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+        self.assertTrue(self.search_requests)
+        self.assertTrue(all(len(request.query) <= 2000 for request in self.search_requests))
+        self.search_request = self.search_requests[-1]
         return result
 
     async def test_alice_pair_grants_only_requested_canonical_paragraph(self) -> None:
@@ -183,7 +185,7 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_semantic_uncertainty_stays_clarification(self) -> None:
         for reason in ("conflicting_context", "insufficient_context", "low_confidence"):
             with self.subTest(reason=reason):
-                result = await self.infer(AsyncMock(return_value=BoundaryInferenceDecision(
+                result = await self.infer(AsyncMock(return_value=BoundaryUncertainDecision(
                     memory_assessments=(),
                     outcome="uncertain", confidence=0.5, reason_code=reason,
                 )))
@@ -203,6 +205,8 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         result = await self.infer(judge, prior=prior)
         self.assertIsInstance(result, BoundaryPassages)
         self.assertLessEqual(len(self.search_request.query), 2000)
+        retrieved_text = "".join(request.query for request in self.search_requests)
+        self.assertIn(prior[0].text, retrieved_text)
         self.assertEqual(prior, judge.await_args.args[3])
 
     async def test_payload_separates_original_statements_from_memories(self) -> None:
@@ -214,7 +218,7 @@ class PassageInferenceTests(unittest.IsolatedAsyncioTestCase):
         payload = json.loads(run.await_args.args[1])
         self.assertEqual([PRIOR[0].model_dump()], payload["prior_reader_statements"])
         self.assertEqual([], payload["relevant_memories"])
-        self.assertEqual("LibrarianBoundaryInferenceInput.v2", run.await_args.kwargs["input_contract"])
+        self.assertEqual("LibrarianBoundaryInferenceInput.v3", run.await_args.kwargs["input_contract"])
         self.assertEqual(
             "librarian.boundary-inference",
             run.await_args.kwargs["metadata"]["linger_skill"],

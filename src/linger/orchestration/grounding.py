@@ -34,7 +34,6 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.corpus.registry import BookClarification
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge,
@@ -67,7 +66,6 @@ def build_request(
     query: str,
     work_id: str,
     book_version_id: str,
-    reading_boundary: ReadingBoundary | None,
     max_final_evidence: int = MAX_FINAL_EVIDENCE,
 ) -> LibrarianRequest:
     """Mint what Muse may not author: the request id and the trusted access scope."""
@@ -77,7 +75,6 @@ def build_request(
         query=query,
         work_id=work_id,
         book_version_id=book_version_id,
-        reading_boundary=reading_boundary,
         access_scope=AccessScope(allowed_book_version_ids=settings.allowed_book_version_ids),
         options=RetrievalOptions(max_final_evidence=_clamp_max_final_evidence(max_final_evidence)),
     )
@@ -209,28 +206,8 @@ async def _grounding_evidence(
             ExpectedAnswer(type="free_text"),
         )
 
-    if request.reading_boundary is None:
-        return _clarification(
-            request.request_id,
-            "current_chapter_state_ambiguous",
-            "Have you completed that chapter, or are you still partway through it?",
-            ExpectedAnswer(type="one_of", values=("completed", "started")),
-        )
-
-    boundary: ReadingBoundary = request.reading_boundary
-    if boundary.part_id != reading.part_id or bool(boundary.unit_ids) != bool(reading.unit_ids):
-        return _clarification(request.request_id, "reading_location_conflict",
-            "Which part or named section have you completed?", ExpectedAnswer(type="free_text"))
-    if reading.unit_ids:
-        if not set(boundary.unit_ids) <= set(reading.unit_ids) or boundary.chapter_state != "completed":
-            return _clarification(request.request_id, "reading_location_conflict",
-                "Which named section have you completed?", ExpectedAnswer(type="free_text"))
-        ceiling = None
-        unit_ids = boundary.unit_ids
-    else:
-        declared = boundary.chapter_number - 1 if boundary.chapter_state == "started" else boundary.chapter_number
-        ceiling = min(declared, reading.chapter_max)
-        unit_ids = ()
+    ceiling = reading.chapter_max
+    unit_ids = reading.unit_ids
     searched_scope = SearchedScope(
         work_id=reading.work_id,
         book_version_id=request.book_version_id,
@@ -238,19 +215,6 @@ async def _grounding_evidence(
         part_id=reading.part_id,
         unit_ids=unit_ids,
     )
-
-    if ceiling is not None and ceiling <= 0:
-        result = RetrievalResult(
-            kind="result",
-            request_id=request.request_id,
-            outcome="no_evidence",
-            evidence_strength="none",
-            strength_reason="No chapters have been confirmed as read yet.",
-            searched_scope=searched_scope,
-            evidence=(),
-            limitations=(),
-        )
-        return result
 
     try:
         judged = await retrieve_book_evidence(

@@ -106,9 +106,12 @@ class MuseDraftInput(StrictModel):
 
 
 class MuseRevisionReview(StrictModel):
-    """Only response-scoped findings from the first Provenance review."""
+    """Response findings and application-bound obligations for the single rewrite."""
 
     findings: tuple[RiskFinding, ...] = Field(min_length=1)
+    previously_accepted_claims: tuple[str, ...]
+    source_quote_interiors: tuple[str, ...]
+    released_reader_lines: tuple[str, ...]
 
     @model_validator(mode="after")
     def require_response_findings(self) -> Self:

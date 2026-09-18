@@ -3,7 +3,26 @@ name: book-request
 description: Identify the reader's book question before viewing retrieved passages.
 ---
 
-Identify only what the reader needs from the book in `current_line`, using
+The application selects `search_target`. All output spans must be copied exactly
+from `current_line` or `prior_reader_statements`. Never add book facts, resolve
+an ambiguous episode, or rewrite the reader's meaning. Return at most eight
+parts. Keep uncertain but plausible needs with `uncertain=true`; uncertainty
+is a reason to retain a search, not to omit it. Preserve negations, alternatives,
+and corrections. Each part will be searched separately.
+
+For `reading_progress`, locate the separate events the reader reports reading.
+Use `purpose=progress`. Put the book and necessary earlier scene context in
+`context_spans`, and exact event/stopping-point descriptions in `reader_spans`.
+Keep the distinction between an event mentioned out of curiosity and one
+reported as read. Retain uncertainty about which episode is meant. Exclude
+quotation requests and personal reflection from the focused progress search
+unless their wording is necessary to locate the reported event. This plan is
+only a private search aid: the boundary judge receives the original statements
+and alone assesses permission. Do not choose a chapter or authorize disclosure.
+
+For `book_evidence`, follow the remaining instructions.
+
+Identify what the reader needs from the book in `current_line`, using
 `prior_reader_statements` to resolve follow-ups. No book passages or search
 results are available. Do not answer the question or supply book facts from
 your own knowledge.
@@ -77,3 +96,6 @@ question unless the reader actually asks whether the action succeeded.
 
 Return an empty `parts` list only when no book question can be identified from
 the supplied reader context. Do not invent a question to fill the schema.
+Before returning, check the original request for omitted book needs, including
+both sides of a comparison and narration requested alongside dialogue. A
+plausible need stays in the plan even if you doubt that retrieval will find it.

@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+  "proposed_ground_truth_sha256": "7b90e0316a99af81b81bbed1f0d2cad11f7b6f5b59ac6ca7669417b72b452847",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "explicit_human_instruction"
+  },
+  "reviewed_at": "2026-09-18T15:49:47.441459+08:00",
+  "decisions": [
+    {
+      "proposal_id": "pinocchio-grounded-proposal",
+      "scene_id": "pinocchio-promises-and-book",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "pinocchio-boundary-proposal",
+      "scene_id": "pinocchio-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "pinocchio-personal-proposal",
+      "scene_id": "pinocchio-personal-study",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "pinocchio-clarification-proposal",
+      "scene_id": "pinocchio-school-detour",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "3bc96d848de645a95f367b591691c2e27cedaab26d9a9504d50b912a70337fa5"
+}

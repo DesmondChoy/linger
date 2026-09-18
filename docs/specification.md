@@ -373,27 +373,40 @@ replay records blocked and issued queries separately, so a refused query does
 not count as an external disclosure.
 
 Muse grounding and Serendipity book search use the same application-owned
-judged retrieval operation. Both use hybrid `retrieve_for_judgement`, using a
-private shortlist of at most five
-passages that retains the strongest fused-search candidate alongside reranker
-leaders, including below-cutoff candidates for independent judgment. Application
-code filters the candidates against the
-trusted work, book version, and reading scope before invoking Librarian's
-evidence-assessment skill on its reusable Agent. The result carries
-`sufficient`, `weak`, or `none`, a reason, and limitations. The judge receives
-the requested release limit separately from the
-private shortlist budget. Only judge-selected canonical records within that
-limit return to either caller; an oversized selection fails closed instead of
-truncating a verdict about a larger evidence set. Retrieval or judge failure
-returns no evidence.
+judged retrieval operation. Librarian first identifies separate book needs from
+the original reader message and supplied earlier statements. Each planned need
+is searched separately. The original texts also supply scoped fallback queries,
+including when planning fails or returns no parts. Queries retain the same
+trusted work, book version, and reading scope; absent scope permits no search.
+Long query text is split into segments of at most 2,000 characters. More than
+16 distinct queries produces a failure instead of silently dropping a need.
+
+Hybrid `retrieve_for_judgement` retains up to 20 independent keyword and semantic
+candidates per query, including candidates below the normal retrieval cutoff.
+Local reranking scores overlapping token windows when a complete query and
+passage pair exceeds the cross-encoder's token limit. These windows change scores,
+not canonical evidence text or source locations. Application code merges query
+results in turn, checks their scope, and admits at most 20 canonical records to
+Librarian's evidence-assessment skill on its reusable Agent.
+
+The assessment receives both the plan and the original reader context so it can
+identify omitted book needs. `sufficient` requires support for every planned or
+recovered need; partial support returns `weak` with limitations. These are model
+judgments, while application code verifies exact reader anchors, support
+coverage, source identities, and selection limits. The judge receives the
+requested release limit separately from the private candidate budget. Only its
+selected canonical records within that limit return to either caller. An
+oversized selection fails closed instead of truncating a verdict about a larger
+evidence set. Retrieval or judge failure returns no evidence.
 
 Serendipity receives the source strength, reason, and limitations in the book
 search result's `judgement` field, then evaluates the broader connection. Weak
 source evidence may support a limited comparison. Serendipity declines when the
 evidence cannot support the proposed relationship. Provenance still reviews
 Muse's complete draft. This common retrieval contract does not widen reading
-scope or lower global cutoffs. Ordinary retrieval and boundary inference retain
-their existing cutoffs.
+scope. Ordinary retrieval retains its configured cutoff. Private boundary
+inference also uses `retrieve_for_judgement`; its candidates remain private
+until the separate boundary checks authorize a reading scope.
 
 #### 4.2.4 Developer corpus and inspection tools
 

@@ -23,6 +23,7 @@ with patch.dict(
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from provenance_fixtures import review_with_audits
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.agents.serendipity.agent import serendipity_agent
@@ -63,14 +64,23 @@ def _candidate(info: AgentInfo, reply: str, evidence_uses: list[dict]) -> ModelR
     })])
 
 
-def _provenance_review(info: AgentInfo, decision: str, **fields) -> ModelResponse:
-    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+def _provenance_review(payload: dict, info: AgentInfo, decision: str, **fields) -> ModelResponse:
+    coverage = [
+        {"span_index": span["span_index"],
+         "classification": "source_dependent" if decision == "revise" else "reader_reflection"}
+        for span in payload["uncovered_response_spans"]
+    ]
+    review = review_with_audits(payload, {
         "findings": [],
         "response_decision": decision,
         "emotional_boundary_decision": "not_required",
         "capture_decision": "no_candidate",
+        "coverage_audit": coverage,
         **fields,
-    })])
+    })
+    return ModelResponse(parts=[ToolCallPart(
+        info.output_tools[0].name, review.model_dump(mode="json"),
+    )])
 
 
 class ChatSessionLineTests(unittest.IsolatedAsyncioTestCase):
@@ -124,19 +134,22 @@ class ChatSessionLineTests(unittest.IsolatedAsyncioTestCase):
             )
             provenance_inputs.append(payload)
             if payload["previous_response_review"] is not None:
-                return _provenance_review(info, "pass", finding_resolutions=[{
+                return _provenance_review(payload, info, "pass", finding_resolutions=[{
                     "finding_index": 0,
                     "status": "resolved",
                     "explanation": "The day is now attributed to the reader and declared as a session line.",
                 }])
             if payload["current_line"]["text"] == DEADLINE_QUESTION:
-                return _provenance_review(info, "revise", findings=[{
+                return _provenance_review(payload, info, "revise", findings=[{
                     "code": "misattribution",
                     "applies_to": "response",
-                    "location": {"kind": "structural", "source_field": "candidate.response", "path": ""},
+                    "location": {
+                        "kind": "text_span", "source_field": "candidate.response", "path": "",
+                        "quote": payload["candidate"]["response"],
+                    },
                     "explanation": "The reply states the assembly day as fact without attributing it to the reader.",
                 }])
-            return _provenance_review(info, "pass")
+            return _provenance_review(payload, info, "pass")
 
         with muse_chat_agent.override(model=FunctionModel(muse)):
             with provenance_agent.override(model=FunctionModel(provenance)):
@@ -185,11 +198,12 @@ class ChatSessionLineTests(unittest.IsolatedAsyncioTestCase):
             self.fail("serendipity_explore must not run for a general-knowledge question")
 
         def provenance(messages, info):
-            provenance_inputs.append(next(
+            payload = next(
                 prompt for prompt in _json_prompts(messages)
                 if "canonical_connection_evidence" in prompt
-            ))
-            return _provenance_review(info, "pass")
+            )
+            provenance_inputs.append(payload)
+            return _provenance_review(payload, info, "pass")
 
         with muse_chat_agent.override(model=FunctionModel(muse)):
             with serendipity_agent.override(model=FunctionModel(serendipity)):

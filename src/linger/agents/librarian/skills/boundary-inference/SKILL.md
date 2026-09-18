@@ -52,6 +52,122 @@ Session-supported passages:
   A line-only decision reports a location for clarification; it does not grant
   permission to disclose that fragment.
 
+Current event identification before a chapter candidate:
+- Distinguish “this passage fits” from “the reader identified this occurrence”.
+  A memory repeating the same vague event is not independent identification.
+  The reader's inability to recall the animal, speaker, destination, setting,
+  cause, or sequence matters when that missing detail distinguishes occurrences.
+  Never fill that gap with details learned only from a candidate passage.
+- Consider all supplied passages for alternative occurrences, including lower
+  ranked passages. A single retrieved match does not prove uniqueness: this is
+  a bounded search, not an exhaustive inventory of the book. If the reader has
+  explicitly lost the details that identify the event, return uncertain unless
+  other original reader wording actually resolves the missing identification.
+- A candidate requires event_resolution. Copy event_resolution.reader_event_spans exactly from
+  current_line or prior_reader_statements. Include the stopping event and any
+  qualifying uncertainty or negation needed to interpret it. Memories may
+  support prior knowledge but cannot supply these current identification spans.
+- Group passages describing the same occurrence into one event_resolution.occurrences entry.
+  Mark exactly one identified occurrence selected. Its distinguishing_reader_spans
+  must quote actual reader details identifying that occurrence, not just shared
+  theme words such as “return”, “tomorrow”, or “pet disappeared”. Explain how
+  those details identify the stopping event, without inventing missing facts.
+- Include every plausible competing occurrence as ruled_out only when exact
+  reader wording positively excludes it; cite that wording in its
+  distinguishing_reader_spans and explain the distinction. If two occurrences
+  remain compatible, return uncertain rather than selecting the earliest,
+  highest ranked, most famous, or latest one. Do not put a plausible alternative
+  in event_resolution.other_evidence_ids to avoid comparing it.
+- Put remaining unrelated records and earlier memory anchors in
+  event_resolution.other_evidence_ids. This required array is nested inside
+  event_resolution alongside reader_event_spans and occurrences, never at the
+  top level. Supply [] only when every candidate is assigned to an occurrence.
+  Account for every supplied candidate exactly once across
+  event_resolution.occurrences[*].evidence_ids and
+  event_resolution.other_evidence_ids. A memory anchor already cited in
+  memory_assessments or supporting_evidence still needs its own inventory
+  entry. Those support citations are separate from occurrence accounting.
+  Do not duplicate a ruled-out occurrence in other_evidence_ids. Being in this private inventory grants
+  nothing. Select only the needed current-event and memory anchors as boundary
+  support. Include a quoted anchor for every selected-occurrence evidence ID in supporting_evidence;
+  if a record is unnecessary to identify that occurrence, reassess its inventory
+  placement instead of leaving selection and support inconsistent.
+  The selected current occurrence must establish the candidate chapter.
+- A specific sequence of completed reading can identify its final stop even
+  when earlier events and memory anchors are in different chapters. Do not
+  confuse a sequence the reader explicitly reports completing with alternative
+  possibilities the reader cannot distinguish.
+
+Private source binding before a chapter candidate:
+- supporting_evidence contains objects with evidence_id and source_excerpt, not bare IDs.
+  For every permission anchor, copy a brief contiguous event-identifying clause
+  from that exact supplied record, preferably 5–12 words. Choose the action or
+  distinguishing detail supporting the remembered event, current stop or
+  connection, rather than copying its narrative setup or an entire paragraph.
+  Read the full record to assess support; the short excerpt binds that record
+  and does not replace the complete event-identification judgment. Use a longer
+  span only when necessary to preserve the event's meaning or distinguishing detail.
+  Only whitespace, including line wrapping, may differ. Preserve every word,
+  original pronoun, capitalization, punctuation and markup; do not correct or
+  paraphrase the text. Prefer a concise span supporting the event. Do not infer a chapter from
+  a section ordinal in an ID; read the canonical chapter metadata and source text.
+- Every grounded-memory and selected-occurrence evidence ID needs one such anchor.
+  Additional connecting evidence may be included with its own source excerpt.
+  Whitespace-normalized text membership only binds the record: a real but irrelevant excerpt
+  does not support the event. Recheck semantic relevance before returning candidate.
+- These excerpts stay private. Do not answer the reader or disclose them in a
+  route handoff. Uncertainty grants nothing and does not require excerpt anchors.
+
+Candidate field placement example:
+The following excerpt shows inventory placement for three hypothetical input
+IDs. Use the actual supplied IDs and exact reader wording, and fill the other
+required candidate fields. Here the earlier-memory ID is both boundary support
+and other event-resolution evidence; the alternative occurs only once in the
+inventory.
+
+```json
+{
+  "supporting_evidence": [
+    {"evidence_id": "earlier-memory-id", "source_excerpt": "The captain declined the invitation."},
+    {"evidence_id": "current-stop-id", "source_excerpt": "She returned after the storm."}
+  ],
+  "event_resolution": {
+    "reader_event_spans": ["I stopped at the return after the storm."],
+    "occurrences": [
+      {
+        "evidence_ids": ["current-stop-id"],
+        "disposition": "selected",
+        "distinguishing_reader_spans": ["after the storm"],
+        "explanation": "The stated cause identifies this return."
+      },
+      {
+        "evidence_ids": ["alternative-return-id"],
+        "disposition": "ruled_out",
+        "distinguishing_reader_spans": ["after the storm"],
+        "explanation": "This alternative follows a different event, not the stated storm."
+      }
+    ],
+    "other_evidence_ids": ["earlier-memory-id"]
+  }
+}
+```
+
+Before returning a candidate, compare its complete inventory with
+full_work_candidates. Repair missing, unknown, and repeated IDs together.
+Moving a misplaced field or removing a duplicate does not excuse omitting
+earlier memory anchors. If valid semantic identification is unavailable,
+return uncertainty instead of inventing a complete-looking proof.
+
+Uncertainty output:
+- Use BoundaryUncertainDecision when progress remains unresolved. Return only
+  memory_assessments, outcome="uncertain", confidence and reason_code. Do not
+  add work_id, book_version_id, chapter_number, authorization_basis,
+  supporting_memory_ids, supporting_evidence, event_resolution or reason.
+  Individual memory assessments can retain their canonical evidence and reason;
+  those private assessments are not a scope grant.
+- A high-confidence compatible passage is still uncertain when the occurrence
+  is unidentified. Confidence is not permission and cannot fill missing detail.
+
 Memory-supported chapter inference:
 - Fill `memory_assessments` before choosing the outcome and authorization basis.
   Include one entry for every supplied memory, using its exact `memory_id`.
@@ -67,7 +183,7 @@ Memory-supported chapter inference:
   report or canonical evidence; explain the conflict. Do not mark an earlier
   remembered event conflicting merely because the reader now reports a later one.
 - For a candidate, `supporting_memory_ids` must match grounded assessments and
-  `supporting_evidence_ids` must include their canonical anchors alongside the
+  `supporting_evidence` must include their canonical anchors alongside the
   current event. Grounded assessments require `memory_supported`; without them
   use `line_only`, which grants nothing. Conflicting assessments require
   `uncertain`. Even with grounded prior knowledge, an unresolved current event
@@ -105,7 +221,7 @@ Memory-supported chapter inference:
   knows.
 - When combining remembered knowledge with a current report of reading further,
   cite evidence locating both the remembered event and the current event in
-  `supporting_evidence_ids`, even if both events are in the same chapter. A
+  `supporting_evidence`, even if both events are in the same chapter. A
   passage locating only the memory does not establish the current stopping point.
   If the current event cannot be distinguished, return `uncertain`; do not use
   the memory's chapter as a substitute for resolving `current_line`. Shared

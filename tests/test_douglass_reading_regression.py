@@ -17,7 +17,6 @@ from src.linger.orchestration.turn_context import set_confirmed_reading, reset_c
 from src.linger.orchestration.turn_context import set_turn_evidence, reset_turn_evidence, turn_evidence
 from apps.backend.hybrid_librarian import HybridLibrarian
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.orchestration.grounding import _grounding_evidence, build_request
 from test_hybrid_librarian import ConstantEmbedding
 
@@ -85,7 +84,7 @@ def test_recovery_cannot_open_the_answer_beyond_the_completed_chapters():
     result = librarian.retrieve_for_judgement(LibrarianRequest(query=QUESTION, book_scopes=[
         BookScope(work_id="pg23", book_version_id=VERSION, chapter_max=5),
     ]))
-    assert 1 <= len(result.items) <= 5
+    assert 1 <= len(result.items) <= 20
     assert all(item.chapter <= 5 for item in result.items)
     assert all("desire and determination to learn" not in item.excerpt for item in result.items)
 
@@ -101,7 +100,7 @@ def test_low_scoring_match_reaches_judge_before_it_can_be_released(judgement):
 
     async def judge(query, records, *, max_evidence_records):
         seen.extend(records)
-        assert 1 < len(records) <= 5
+        assert 1 < len(records) <= 20
         assert all(record.chapter_number <= 7 for record in records)
         supporting = next(record for record in records if "desire and determination to learn" in record.text)
         assert supporting.chapter_number == 6
@@ -115,10 +114,9 @@ def test_low_scoring_match_reaches_judge_before_it_can_be_released(judgement):
     token = set_confirmed_reading(ConfirmedReading(work_id="pg23", chapter_max=7))
     ledger = set_turn_evidence(())
     try:
-        request = build_request(QUESTION, "pg23", VERSION,
-            ReadingBoundary(chapter_number=7, chapter_state="completed"))
+        request = build_request(QUESTION, "pg23", VERSION)
         result = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=judge))
-        assert 1 < len(seen) <= 5
+        assert 1 < len(seen) <= 20
         if judgement == "sufficient":
             assert result.outcome == "evidence_found"
             assert len(result.evidence) == 1

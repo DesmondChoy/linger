@@ -5,6 +5,7 @@ import unittest
 from types import SimpleNamespace
 
 from pydantic_ai import ModelRetry
+from provenance_fixtures import review_with_audits
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
@@ -33,7 +34,7 @@ MISMATCHED_QUOTE = EXACT_QUOTE[:-1] + "."
 
 
 def _revise(quote: str) -> ProvenanceReview:
-    return ProvenanceReview(
+    return review_with_audits(provenance_input(RESPONSE), ProvenanceReview(
         findings=(
             RiskFinding(
                 code="uncited_web_claim",
@@ -50,7 +51,7 @@ def _revise(quote: str) -> ProvenanceReview:
         response_decision="revise",
         emotional_boundary_decision="not_required",
         capture_decision="no_candidate",
-    )
+    ))
 
 
 class ProvenanceReviewValidatorTests(unittest.TestCase):
@@ -124,6 +125,20 @@ class FindingSourceTests(unittest.TestCase):
 
 
 class CandidateReviewOutputToolTests(unittest.IsolatedAsyncioTestCase):
+    async def test_candidate_review_cannot_run_without_current_input(self) -> None:
+        def respond(messages, info: AgentInfo) -> ModelResponse:
+            tool, = info.output_tools
+            return ModelResponse(parts=[ToolCallPart(tool.name, {
+                "findings": [],
+                "response_decision": "pass",
+                "emotional_boundary_decision": "not_required",
+                "capture_decision": "no_candidate",
+            })])
+
+        agent = build_provenance_agent(FunctionModel(respond))
+        with self.assertRaisesRegex(ValueError, "typed current review input"):
+            await agent.run(**CANDIDATE_REVIEW.run_options())
+
     async def test_validated_run_keeps_the_plain_review_output_tool(self) -> None:
         seen: list[tuple[str, str | None, dict]] = []
 
@@ -132,6 +147,7 @@ class CandidateReviewOutputToolTests(unittest.IsolatedAsyncioTestCase):
             seen.append((tool.name, tool.description, tool.parameters_json_schema))
             return ModelResponse(parts=[ToolCallPart(tool.name, {
                 "findings": [],
+                "coverage_audit": [{"span_index": 0, "classification": "reader_reflection"}],
                 "response_decision": "pass",
                 "emotional_boundary_decision": "not_required",
                 "capture_decision": "no_candidate",

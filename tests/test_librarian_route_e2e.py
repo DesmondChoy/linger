@@ -32,8 +32,11 @@ from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_core import to_jsonable_python
 
+from tests.boundary_fixtures import event_resolution, quoted_support
+from tests.provenance_fixtures import review_with_audits
 from src.linger.agents.librarian.models import (
     BoundaryInferenceDecision,
+    BoundaryUncertainDecision,
 )
 from src.linger.agents.librarian.agent import librarian_agent
 from src.linger.agents.muse.agent import muse_chat_agent
@@ -56,12 +59,24 @@ def _librarian_book_model(messages, info):
         if isinstance(getattr(part, "content", None), str)
         and part.content.startswith("{")
     ))
+    if "full_work_candidates" in payload:
+        records = [record for record in payload["full_work_candidates"]
+                   if record["chapter_number"] == 5 and "Caterpillar" in record["text"]]
+        output = {
+            "outcome": "identified",
+            "evidence_ids": [record["evidence_id"] for record in records],
+            "reader_spans": [payload["current_line"]],
+            "explanation": "The independent controlled fixture identifies the supplied stop.",
+        }
+        tool = next(tool for tool in info.output_tools if tool.name.endswith("BoundaryEventIdentified"))
+        return ModelResponse(parts=[ToolCallPart(tool.name, output)])
     if "current_line" in payload:
         reader_texts = [payload["current_line"], *(
             statement["text"] for statement in payload["prior_reader_statements"]
         )]
         requested = BOOK_REQUEST_MESSAGE if BOOK_REQUEST_MESSAGE in reader_texts else payload["current_line"]
-        output = {"parts": [{"context_spans": [], "purpose": "answer", "reader_spans": [requested]}]}
+        purpose = "progress" if payload["search_target"] == "reading_progress" else "answer"
+        output = {"parts": [{"context_spans": [], "purpose": purpose, "reader_spans": [requested]}]}
     else:
         records = payload["evidence"][:payload["max_evidence_records"]]
         output = {
@@ -78,16 +93,25 @@ def _librarian_book_model(messages, info):
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
     tool = info.output_tools[0]
+    payload = next(
+        part.content
+        for message in messages
+        for part in message.parts
+        if isinstance(getattr(part, "content", None), str)
+        and part.content.lstrip().startswith("{")
+        and "candidate" in json.loads(part.content)
+    )
+    review = review_with_audits(payload, {
+        "findings": [],
+        "response_decision": "pass",
+        "emotional_boundary_decision": "not_required",
+        "capture_decision": "no_candidate",
+    })
     return ModelResponse(
         parts=[
             ToolCallPart(
                 tool.name,
-                {
-                    "findings": [],
-                    "response_decision": "pass",
-                    "emotional_boundary_decision": "not_required",
-                    "capture_decision": "no_candidate",
-                },
+                review.model_dump(mode="json"),
             )
         ]
     )
@@ -162,10 +186,7 @@ def _muse_routes_then_searches(captured: list):
                         {
                             "work_id": route_result["work_id"],
                             "book_version_id": route_result["book_version_id"],
-                            "reading_boundary": {
-                                "chapter_number": route_result["max_chapter_inclusive"],
-                                "chapter_state": "completed",
-                            },
+
                             "max_final_evidence": 5,
                         },
                     )
@@ -219,10 +240,7 @@ def _muse_routes_then_overreaches(captured: list):
                         {
                             "work_id": route_result["work_id"],
                             "book_version_id": route_result["book_version_id"],
-                            "reading_boundary": {
-                                "chapter_number": 12,
-                                "chapter_state": "completed",
-                            },
+
                             "max_final_evidence": 5,
                         },
                     )
@@ -301,10 +319,7 @@ def _muse_searches_directly(captured: list, *, chapter: int):
                         {
                             "work_id": "pg11",
                             "book_version_id": "pg11-v01b38ea4",
-                            "reading_boundary": {
-                                "chapter_number": chapter,
-                                "chapter_state": "completed",
-                            },
+
                             "max_final_evidence": 5,
                         },
                     )
@@ -343,6 +358,10 @@ def _muse_searches_directly(captured: list, *, chapter: int):
 
 
 async def _confident_judge(_line, memories, evidence, _statements):
+    all_evidence = evidence
+    evidence = tuple(record for record in evidence if record.chapter_number == 5
+                     and "Caterpillar" in record.text)
+    assert evidence, "The controlled boundary judgment needs the canonical Caterpillar scene."
     return BoundaryInferenceDecision(
         memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
             "evidence_ids": [record.evidence_id for record in evidence],
@@ -351,33 +370,22 @@ async def _confident_judge(_line, memories, evidence, _statements):
         outcome="candidate",
         work_id="pg11",
         book_version_id="pg11-v01b38ea4",
-        chapter_number=max(record.chapter_number for record in evidence),
+        chapter_number=5,
         confidence=0.95,
         authorization_basis="memory_supported",
         supporting_memory_ids=[memory.memory_id for memory in memories],
-        supporting_evidence_ids=[record.evidence_id for record in evidence],
+        supporting_evidence=quoted_support(all_evidence, [record.evidence_id for record in evidence]),
+        event_resolution=event_resolution(_line, all_evidence, [record.evidence_id for record in evidence]),
     )
 
 
 async def _low_confidence_candidate_judge(_line, memories, evidence, _statements):
-    return BoundaryInferenceDecision(
-        memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
-            "evidence_ids": [record.evidence_id for record in evidence],
-            "reason": "The controlled canonical passages ground the remembered book event."}
-            for memory_id in [memory.memory_id for memory in memories]),
-        outcome="candidate",
-        work_id="pg11",
-        book_version_id="pg11-v01b38ea4",
-        chapter_number=max(record.chapter_number for record in evidence),
-        confidence=0.6,
-        authorization_basis="memory_supported",
-        supporting_memory_ids=[memory.memory_id for memory in memories],
-        supporting_evidence_ids=[record.evidence_id for record in evidence],
-    )
+    decision = await _confident_judge(_line, memories, evidence, _statements)
+    return decision.model_copy(update={"confidence": 0.6})
 
 
 async def _insufficient_context_judge(_line, _memories, _evidence, _statements):
-    return BoundaryInferenceDecision(
+    return BoundaryUncertainDecision(
         memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
             "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
             for memory in _memories),
@@ -400,7 +408,7 @@ def _muse_searches_cold_then_relays_clarification():
                         {
                             "work_id": "pg11",
                             "book_version_id": "pg11-v01b38ea4",
-                            "reading_boundary": None,
+
                             "max_final_evidence": 5,
                         },
                     )
@@ -453,6 +461,18 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self) -> None:
         sessions.clear(self.session_id)
+
+    def assert_scoped_followup_searches(self, retrieval, follow_up, chapter):
+        requests = [call.args[0] for call in retrieval.call_args_list]
+        self.assertIn(BOOK_REQUEST_MESSAGE, [request.query for request in requests])
+        self.assertIn(follow_up, [request.query for request in requests])
+        for request in requests:
+            self.assertEqual("evidence_retrieval", request.purpose)
+            self.assertEqual(1, len(request.book_scopes))
+            scope = request.book_scopes[0]
+            self.assertEqual("pg11", scope.work_id)
+            self.assertEqual("pg11-v01b38ea4", scope.book_version_id)
+            self.assertEqual(chapter, scope.chapter_max)
 
     async def test_ambiguous_identity_clarifies_before_any_boundary_inference(self) -> None:
         sessions.set_book_selection(self.session_id, sessions.BookSelection(book_id="pg11"))
@@ -768,7 +788,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         grounding = second_response.inspection.librarian_grounding
         self.assertEqual(1, len(grounding))
         self.assertNotIn("query", grounding[0]["request"])
-        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
+        self.assert_scoped_followup_searches(retrieval, follow_up.message, 2)
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
     async def test_bare_chapter_answer_after_search_clarification_reaches_bounded_search(
@@ -813,7 +833,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, second_response.inspection.context_resolution["chapter_max"])
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
-        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
+        self.assert_scoped_followup_searches(retrieval, follow_up.message, 2)
         self.assertEqual(2, captured[0]["searched_scope"]["max_chapter_inclusive"])
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
@@ -888,7 +908,7 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", second_response.inspection.release.release_source)
         self.assertEqual(1, len(captured))
         self.assertEqual("result", captured[0]["kind"])
-        self.assertEqual(BOOK_REQUEST_MESSAGE, retrieval.call_args.args[0].query)
+        self.assert_scoped_followup_searches(retrieval, follow_up.message, candidate.chapter)
         self.assertIsNone(sessions.pending_clarification(self.session_id))
 
     async def test_generic_clarification_does_not_leave_a_confirmable_chapter(self) -> None:
@@ -904,7 +924,8 @@ class LibrarianRouteEndToEndTests(unittest.IsolatedAsyncioTestCase):
                 chapter_number=5,
                 confidence=0.99,
                 authorization_basis="line_only",
-                supporting_evidence_ids=(record.evidence_id,),
+                supporting_evidence=quoted_support(evidence, (record.evidence_id,)),
+                event_resolution=event_resolution(_line, evidence, (record.evidence_id,)),
             )
 
         # A new generic question must also clear an older chapter question.

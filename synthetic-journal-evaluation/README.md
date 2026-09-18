@@ -47,6 +47,23 @@ The historical Caterpillar, quotation, and kitchen scenarios require explicit sc
 
 Saved scenarios live under `scenarios/`. Folder names use `<scenario-name>--<agents>--<YYYY-MM-DD>`; names identify the complete Scene set rather than one attempt.
 
+## Five-book grounding and clarification
+
+The five Scenarios generated on September 16, 2026 cover all registered books. Each now has four Scenes: grounded reflection without memory, personal reflection without book retrieval, memory-supported spoiler inference, and clarification of ambiguous reading progress. Human review on September 17 requested the separation of grounding from memory input. All five validate against the current contracts. Independent human adoption is recorded for all five revised Scenarios.
+
+Each adopted Scenario ran once on September 17 with `openai:gpt-5.6-luna`. The recorded result is 14 of 20 Scenes passed: Alice 3/4, Animal Farm 3/4, Pinocchio 2/4, Douglass 3/4, and Keller 3/4. All five completed without execution errors and reported successful Logfire flushes. The [evaluation report](reports/five-book-replay-2026-09-17/evaluation-report.md) links every run, Logfire evaluation, and per-Scene analysis. It separates Pinocchio's unsafe Chapter 26 disclosure from unnecessary clarification and exact support-set mismatches. No optional semantic judge or rerun was invoked.
+
+| Book | Backstory | Ground truth source | Adoption | Planning report |
+| --- | --- | --- | --- | --- |
+| Alice’s Adventures in Wonderland | [Read](scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | [Read](scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json) | [Recorded](scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json) | [Read](scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/pre-generation-report.md) |
+| Animal Farm | [Read](scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | [Read](scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json) | [Recorded](scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json) | [Read](scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/pre-generation-report.md) |
+| The Adventures of Pinocchio | [Read](scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | [Read](scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json) | [Recorded](scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json) | [Read](scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/pre-generation-report.md) |
+| Narrative of the Life of Frederick Douglass | [Read](scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | [Read](scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json) | [Recorded](scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json) | [Read](scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/pre-generation-report.md) |
+| The Story of My Life | [Read](scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json) | [Read](scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json) | [Recorded](scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json) | [Read](scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/pre-generation-report.md) |
+
+Douglass and Keller use section catalogs. The evaluator now reads them through the same corpus reader as production, preserving literary chapter numbers and excluding front matter, letters, and other parts from chapter-scoped evidence.
+
+
 ## Definitions and tooling
 
 [Scenario descriptions](scenario_descriptions.md) explain the expected behavior. [The Objective catalog](evaluation-objectives.yaml) defines evaluation goals. [Generation presets](generation-presets/) remain shared inputs. None of these files is a live evaluation result.

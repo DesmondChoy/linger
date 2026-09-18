@@ -23,6 +23,7 @@ with patch.dict(
 
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from provenance_fixtures import review_with_audits
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.agents.serendipity.agent import serendipity_agent
@@ -150,16 +151,20 @@ class SerendipityGenericDeclineTests(unittest.IsolatedAsyncioTestCase):
             })])
 
         def provenance(messages, info: AgentInfo) -> ModelResponse:
-            provenance_inputs.append(next(
+            payload = next(
                 prompt for prompt in _json_prompts(messages)
                 if "canonical_connection_evidence" in prompt
-            ))
-            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+            )
+            provenance_inputs.append(payload)
+            review = review_with_audits(payload, {
                 "findings": [],
                 "response_decision": "pass",
                 "emotional_boundary_decision": "not_required",
                 "capture_decision": "no_candidate",
-            })])
+            })
+            return ModelResponse(parts=[ToolCallPart(
+                info.output_tools[0].name, review.model_dump(mode="json"),
+            )])
 
         with bind_evaluation_transcript_sink(Sink()):
             with muse_chat_agent.override(model=FunctionModel(muse)):

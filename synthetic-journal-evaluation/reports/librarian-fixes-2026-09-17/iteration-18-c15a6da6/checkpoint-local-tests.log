@@ -1,0 +1,513 @@
+.......................................................................................................................... [  6%]
+...................................................................... [ 10%]
+................................................... [ 12%]
+..................................................................................................................... [ 18%]
+................................................. [ 21%]
+................................FFFF.F........................... [ 24%]
+.................................................................. [ 28%]
+............................. [ 29%]
+........................................................... [ 32%]
+................................................................................................... [ 38%]
+........................................................................ [ 41%]
+......................................... [ 44%]
+............................................................... [ 47%]
+........................................................................ [ 51%]
+.............................................................................................................. [ 56%]
+.................................................................................................................................................................................... [ 66%]
+......................................................... [ 69%]
+....................................................... [ 72%]
+........................................................ [ 75%]
+........................................................................ [ 78%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 90%]
+........................................................................ [ 94%]
+................................................................. [ 97%]
+......................................FF..FFFFFF                 [100%]
+=================================== FAILURES ===================================
+_________ test_make_changes_returns_to_agent_without_writing_adoption __________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_make_changes_returns_to_a0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_make_changes_returns_to_a0/ui')
+
+    def test_make_changes_returns_to_agent_without_writing_adoption(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x169151160>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+__________ test_confirm_requires_every_row_and_writes_exact_adoption ___________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_confirm_requires_every_ro0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_confirm_requires_every_ro0/ui')
+
+    def test_confirm_requires_every_row_and_writes_exact_adoption(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _write_curation_scenario(scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:703: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x169153200>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+___________ test_confirm_rejects_files_changed_while_review_is_open ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_confirm_rejects_files_cha0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_confirm_rejects_files_cha0/ui')
+
+    def test_confirm_rejects_files_changed_while_review_is_open(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x1691532c0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+____________ test_make_changes_rejects_approved_and_flagged_overlap ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_make_changes_rejects_appr0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_make_changes_rejects_appr0/ui')
+
+    def test_make_changes_rejects_approved_and_flagged_overlap(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:785: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x169153320>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+____________ test_review_server_rejects_unauthorized_scenario_reads ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_review_server_rejects_una0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_review_server_rejects_una0/ui')
+
+    def test_review_server_rejects_unauthorized_scenario_reads(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:856: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x169155730>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+__ test_all_twelve_saved_inputs_preserve_exact_prompts_and_canonical_context ___
+
+    def test_all_twelve_saved_inputs_preserve_exact_prompts_and_canonical_context():
+>       cases = comparison.load_inputs(comparison.DEFAULT_INPUT)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+_______ test_dry_plan_never_reserves_constructs_models_or_changes_ledger _______
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_dry_plan_never_reserves_c0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x42b0eb470>
+capsys = <_pytest.capture.CaptureFixture object at 0x177b80d40>
+
+    def test_dry_plan_never_reserves_constructs_models_or_changes_ledger(tmp_path, monkeypatch, capsys):
+        budget = tmp_path / 'live-budget.json'
+        budget.write_text('{"maximum_iterations":20,"iterations":[]}')
+        before = budget.read_bytes()
+        def forbidden(*args, **kwargs):
+            raise AssertionError('Dry plan attempted a live action')
+        monkeypatch.setattr(comparison, 'reserve', forbidden)
+        monkeypatch.setattr(comparison, 'make_agent', forbidden)
+>       comparison.main(SimpleNamespace(inputs=comparison.DEFAULT_INPUT, budget=budget,
+                                        execute=False, approved_models=None))
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:220: in main
+    prepared = plan(args.inputs.resolve())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:121: in plan
+    cases = load_inputs(folder)
+            ^^^^^^^^^^^^^^^^^^^
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+_____ test_real_agent_receives_saved_input_and_same_skill_and_keeps_review _____
+
+    def test_real_agent_receives_saved_input_and_same_skill_and_keeps_review():
+        from src.linger.agents.provenance.agent import build_provenance_agent
+        from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
+>       case = comparison.load_inputs(comparison.DEFAULT_INPUT)[8]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+_ test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[invalid_output] _
+
+failure = 'invalid_output'
+
+    @pytest.mark.parametrize('failure', ['invalid_output', 'http', 'generic'])
+    def test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry(failure):
+        from src.linger.agents.provenance.agent import build_provenance_agent
+>       case = comparison.load_inputs(comparison.DEFAULT_INPUT)[8]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+__ test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[http] __
+
+failure = 'http'
+
+    @pytest.mark.parametrize('failure', ['invalid_output', 'http', 'generic'])
+    def test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry(failure):
+        from src.linger.agents.provenance.agent import build_provenance_agent
+>       case = comparison.load_inputs(comparison.DEFAULT_INPUT)[8]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+_ test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[generic] _
+
+failure = 'generic'
+
+    @pytest.mark.parametrize('failure', ['invalid_output', 'http', 'generic'])
+    def test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry(failure):
+        from src.linger.agents.provenance.agent import build_provenance_agent
+>       case = comparison.load_inputs(comparison.DEFAULT_INPUT)[8]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+_ test_both_models_run_each_frozen_case_once_and_never_claim_semantic_all_pass _
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-18/test_both_models_run_each_froz0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x177acb0e0>
+
+    def test_both_models_run_each_frozen_case_once_and_never_claim_semantic_all_pass(tmp_path, monkeypatch):
+        import apps.backend.telemetry as telemetry
+        from src.linger.agents.provenance.agent import build_provenance_agent
+>       prepared = comparison.plan(comparison.DEFAULT_INPUT)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:121: in plan
+    cases = load_inputs(folder)
+            ^^^^^^^^^^^^^^^^^^^
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+__________ test_local_grade_error_is_not_silently_reported_as_success __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x42b0e9520>
+
+    def test_local_grade_error_is_not_silently_reported_as_success(monkeypatch):
+        from evals.provenance import risk_codes
+        from src.linger.agents.provenance.agent import build_provenance_agent
+>       case = comparison.load_inputs(comparison.DEFAULT_INPUT)[8]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:73: in load_inputs
+    add('smoke-' + label, path, exchange)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+case_id = 'smoke-draft'
+path = PosixPath('/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-smoke.diagnostics.json')
+exchange = {'sequence': 6, 'role': 'Provenance', 'stage': 'review', 'skill_id': 'provenance.candidate-review', ...}
+expected = None
+
+    def add(case_id, path, exchange, expected=None):
+        prompt = exchange['input_prompt']
+        payload = json.loads(prompt)
+        typed = ProvenanceInput.model_validate(payload)
+        if typed.model_dump(mode='json') != payload:
+>           raise ValueError(f'Saved input no longer matches current typed projection: {case_id}')
+E           ValueError: Saved input no longer matches current typed projection: smoke-draft
+
+synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/compare_review_models.py:58: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_ground_truth_review.py::test_make_changes_returns_to_agent_without_writing_adoption
+FAILED tests/test_ground_truth_review.py::test_confirm_requires_every_row_and_writes_exact_adoption
+FAILED tests/test_ground_truth_review.py::test_confirm_rejects_files_changed_while_review_is_open
+FAILED tests/test_ground_truth_review.py::test_make_changes_rejects_approved_and_flagged_overlap
+FAILED tests/test_ground_truth_review.py::test_review_server_rejects_unauthorized_scenario_reads
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_all_twelve_saved_inputs_preserve_exact_prompts_and_canonical_context
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_dry_plan_never_reserves_constructs_models_or_changes_ledger
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_real_agent_receives_saved_input_and_same_skill_and_keeps_review
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[invalid_output]
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[http]
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_failed_agent_keeps_sanitized_attempts_without_extra_outer_retry[generic]
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_both_models_run_each_frozen_case_once_and_never_claim_semantic_all_pass
+FAILED synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py::test_local_grade_error_is_not_silently_reported_as_success
+13 failed, 1893 passed, 670 subtests passed in 43.41s

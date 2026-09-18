@@ -22,8 +22,9 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
     get_settings()
 
-from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart, UserPromptPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from provenance_fixtures import review_with_audits
 from src.linger.agents.librarian.agent import librarian_agent
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
@@ -72,16 +73,18 @@ def _librarian_strength(messages, info: AgentInfo) -> ModelResponse:
 
 def _provenance_pass(messages, info: AgentInfo) -> ModelResponse:
     tool = info.output_tools[0]
+    payload = next(part.content for message in messages for part in message.parts
+                   if isinstance(part, UserPromptPart))
     return ModelResponse(
         parts=[
             ToolCallPart(
                 tool.name,
-                {
+                review_with_audits(payload, {
                     "findings": [],
                     "response_decision": "pass",
                     "emotional_boundary_decision": "not_required",
                     "capture_decision": "no_candidate",
-                },
+                }).model_dump(mode="json"),
             )
         ]
     )

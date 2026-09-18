@@ -1,0 +1,68 @@
+{
+  "checkpoint": "iteration-18-c15a6da6",
+  "manifest_files_verified": 222,
+  "restored_paths": [
+    "src/linger/agents/librarian/agent.py",
+    "src/linger/agents/librarian/models.py",
+    "src/linger/agents/librarian/skills/boundary-inference/SKILL.md",
+    "src/linger/agents/muse/skills/reflection/SKILL.md",
+    "src/linger/agents/provenance/skills/candidate-review/SKILL.md",
+    "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/approved-menu.json",
+    "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_batch.py",
+    "synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+    "synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json"
+  ],
+  "later_files_preserved_at": "tmp/iteration18-recovery/preserved-after21",
+  "later_tests_excluded": [
+    "tests/test_boundary_other_inventory.py",
+    "test_one_authorized_extension_preserves_history_and_stops_at_twenty_one"
+  ],
+  "provider_calls": 0,
+  "method_receipt": [
+    {
+      "path": "src/linger/agents/librarian/skills/boundary-inference/SKILL.md",
+      "sha256": "962afbbf5908a6a5ebbb022a7f0d671e7084307e50ed7f0a52c06309a142a542",
+      "method": "Exact model instructions in iteration18 suite-9.json, removing unchanged shared header and runtime mode suffix; final newline restored and hash verified.",
+      "before_recovery_sha256": "a0b7a6cf3897b36c927a704d5af35a0496620208df978713bfbc463623e44a98"
+    },
+    {
+      "path": "src/linger/agents/muse/skills/reflection/SKILL.md",
+      "sha256": "4e30d27f5ad8def5a4e98daeb5f09cf35ea04067d984836899e99a5a71595f37",
+      "method": "Exact model instructions in iteration18 suite-9.json, removing unchanged shared header and runtime mode suffix; final newline restored and hash verified.",
+      "before_recovery_sha256": "f52371c72f4efbd70ab3b3f3bdef85242dd1828ed8016457d7f381349da73671"
+    },
+    {
+      "path": "src/linger/agents/provenance/skills/candidate-review/SKILL.md",
+      "sha256": "dcf50f50417b12eb7524fa14b7b73b4d8a1043b21b41234914eed29938d98114",
+      "method": "Exact model instructions in iteration18 suite-9.json, removing unchanged shared header and runtime mode suffix; final newline restored and hash verified.",
+      "before_recovery_sha256": "527aaef50d8d11a48cd37e537581257dc0379eb8cb547f1d4702e1723d620f63"
+    },
+    {
+      "path": "src/linger/agents/librarian/agent.py",
+      "sha256": "172863a2118063c1cd1e9a5996dc52f8ef01ae9186eef6415352830777817361",
+      "method": "Restore exact aggregate retry text captured in iteration18 suite-9.json and verify complete source hash.",
+      "before_recovery_sha256": "351ec3f2b9cf61025ea41cea6be0dbacf0770e27994cc3a5f5b3dbb4401a0fbc"
+    },
+    {
+      "path": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_batch.py",
+      "sha256": "c1b903b1cdadf72fabdd803c1ec4f136232ebab5320690238b5164f7f2d1a465",
+      "method": "Reverse iteration21 cap expression and verify entire source against iteration18 hash.",
+      "before_recovery_sha256": "f93d4aea936c499d4a00a2363960206541619a8622f47131a00da0b9ada49dd6"
+    },
+    {
+      "path": "src/linger/agents/librarian/models.py",
+      "sha256": "58de6d0116c9abedfe826068f5673305620dfa1257669107b11de42cb55bef54",
+      "method": "Reverse exact original repair19 patch supplied by its author agent; original tool call call_18ISVHzfoGDQQaDKT0fjIrOd; full source SHA256 matches iteration18 manifest.",
+      "before_recovery_sha256": "db3edf55ee41c1b1cfe46803386f2656aed29e863eaa2b0133b035fcd193a59e"
+    }
+  ],
+  "validation_scope_note": "The first expanded local run included the unused model-comparison experiment: eight tests reject stale saved-input schemas. It is not part of the iteration18 batch or commit. Five review-server tests were blocked by sandbox loopback permissions. A fresh checkpoint-only full run uses local-server permission.",
+  "fresh_validation": {
+    "passed": 1896,
+    "subtests_passed": 670,
+    "log": "checkpoint-validation.log",
+    "command": ".venv/bin/python -m pytest -q tests synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_batch_driver.py synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_live_mapping_adapter.py synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_direct_transcript_adapter.py",
+    "local_server_permission": true,
+    "manifest_reverified_after_tests": 222
+  }
+}

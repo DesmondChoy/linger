@@ -11,7 +11,7 @@ from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from src.linger.agents.librarian.models import (
-    BoundaryInferenceDecision,
+    BoundaryUncertainDecision,
     EvidenceStrengthDecision,
 )
 from src.linger.agents.librarian.skills import (
@@ -85,7 +85,7 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                     "memory_id", "text", "evidence_ids",
                 }
                 assert "assessment-only" not in json.dumps(payload)
-                assert len(info.output_tools) == 2
+                assert len(info.output_tools) == 3
                 response = {
                     "memory_assessments": [{
                         "memory_id": memory["memory_id"], "status": "not_supported",
@@ -95,11 +95,12 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                     "reason_code": "insufficient_context",
                 }
                 tool = next(tool for tool in info.output_tools
-                            if tool.name.endswith("BoundaryInferenceDecision"))
+                            if tool.name.endswith("BoundaryUncertainDecision"))
             elif is_plan:
                 assert payload == {
                     "current_line": "assessment-only original reader question",
                     "prior_reader_statements": [{"statement_id": "s2", "text": "assessment-only prior context"}],
+                    "search_target": "book_evidence",
                 }
                 assert len(info.output_tools) == 1
                 response = {"parts": [{
@@ -108,14 +109,17 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                 }]}
                 tool = info.output_tools[0]
             else:
-                assert set(payload) == {"request", "evidence", "max_evidence_records"}
+                assert set(payload) == {"original_request", "request", "evidence", "max_evidence_records"}
                 assert payload["request"] == {"parts": [{
                     "context_spans": [], "purpose": "answer",
                     "reader_spans": ["assessment-only original reader question"],
+                    "uncertain": False,
                 }]}
                 assert payload["max_evidence_records"] == 5
                 assert "boundary-only" not in json.dumps(payload)
-                assert "assessment-only prior context" not in json.dumps(payload)
+                assert payload["original_request"]["prior_reader_statements"] == [
+                    {"statement_id": "s2", "text": "assessment-only prior context"},
+                ]
                 assert "expanded search" not in json.dumps(payload)
                 assert len(info.output_tools) == 1
                 response = {
@@ -154,7 +158,7 @@ def test_boundary_and_assessment_are_isolated_concurrent_runs_of_one_agent():
                 prior_reader_statements=(ReaderStatement(statement_id="s2", text="assessment-only prior context"),),
             ),
         ), timeout=5)
-        assert isinstance(boundary, BoundaryInferenceDecision)
+        assert isinstance(boundary, BoundaryUncertainDecision)
         assert isinstance(assessment, EvidenceStrengthDecision)
         assert set(observed) == {
             BOUNDARY_INFERENCE.skill_id, BOOK_REQUEST.skill_id, EVIDENCE_ASSESSMENT.skill_id,
@@ -190,7 +194,7 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
             if not valid:
                 response["chapter_number"] = 1
             tool = next(tool for tool in info.output_tools
-                        if tool.name.endswith("BoundaryInferenceDecision"))
+                        if tool.name.endswith("BoundaryUncertainDecision"))
         elif selected_task == "book_request":
             response = {"parts": [{
                     "context_spans": [], "purpose": "answer",
@@ -213,6 +217,10 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
         agent = build_librarian_agent(FunctionModel(model))
         if task == "boundary":
             return await judge_spoiler_boundary("query", (), (), (), agent=agent)
+        if task == "book_request":
+            from src.linger.orchestration.evidence_strength import plan_book_request
+
+            return await plan_book_request("query", agent=agent)
         return await judge_evidence_strength("query", (_evidence("test"),), agent=agent)
 
     if recover:
@@ -221,4 +229,4 @@ def test_each_contract_keeps_schema_validation_and_one_output_retry(task, recove
         with pytest.raises(UnexpectedModelBehavior, match="Exceeded maximum"):
             asyncio.run(run())
     assert task_calls == 2
-    assert calls == (3 if task == "assessment" or (task == "book_request" and recover) else 2)
+    assert calls == (3 if task == "assessment" else 2)

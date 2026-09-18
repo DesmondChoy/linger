@@ -93,7 +93,7 @@ class BookActivationTests(unittest.TestCase):
                 self.assertIsNone(context.work_id)
                 self.assertIsNone(context.chapter_max)
                 self.assertIsInstance(self.librarian.route_work(book.title, restricted.allowed_book_version_ids), BookClarification)
-                request = build_request("query", book.work_id, book.book_version_id, None)
+                request = build_request("query", book.work_id, book.book_version_id)
                 with self.assertRaises(BookVersionOutOfScope):
                     asyncio.run(grounding_evidence(request, librarian=self.librarian))
 

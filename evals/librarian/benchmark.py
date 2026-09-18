@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import statistics
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -15,6 +17,7 @@ import bm25s
 import numpy as np
 from fastembed import TextEmbedding
 from fastembed.rerank.cross_encoder import TextCrossEncoder
+from apps.backend.rerank_windows import TokenWindowReranker
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from apps.backend.contracts import BookScope, LibrarianRequest
@@ -59,7 +62,7 @@ class BenchmarkCase(StrictModel):
     chapter_max: int = Field(ge=1)
     expected_strength: Literal["sufficient", "weak", "none"]
     relevant_ranges: tuple[tuple[int, int, int], ...]
-    required_ranges: tuple[tuple[int, int, int], ...] | None = None
+    required_range_groups: tuple[tuple[tuple[int, int, int], ...], ...] | None = None
 
     @model_validator(mode="after")
     def ranges_match_strength(self) -> "BenchmarkCase":
@@ -67,7 +70,14 @@ class BenchmarkCase(StrictModel):
             RelevantRange(chapter=chapter, start=start, end=end)
             if chapter > self.chapter_max:
                 raise ValueError("gold evidence exceeds the spoiler boundary")
-        for gold in self.required_ranges or ():
+        if self.required_range_groups is not None and (
+            not self.required_range_groups or any(not group for group in self.required_range_groups)
+        ):
+            raise ValueError("required range groups must be nonempty")
+        required = [gold for group in self.required_range_groups or () for gold in group]
+        if len(required) != len(set(required)):
+            raise ValueError("required alternatives must not repeat")
+        for gold in required:
             chapter, start, end = gold
             RelevantRange(chapter=chapter, start=start, end=end)
             if chapter > self.chapter_max:
@@ -79,9 +89,22 @@ class BenchmarkCase(StrictModel):
         return self
 
     @property
-    def recall_ranges(self) -> tuple[tuple[int, int, int], ...]:
-        """Evidence facts required for recall, excluding optional support."""
-        return self.required_ranges or self.relevant_ranges
+    def recall_groups(self) -> tuple[tuple[tuple[int, int, int], ...], ...]:
+        """Every group is required; any one specific range can satisfy a group."""
+        if self.required_range_groups is not None:
+            return self.required_range_groups
+        return tuple((gold,) for gold in self.relevant_ranges)
+
+    def evidence_recall(self, ranges: Sequence[tuple[int, int, int]]) -> float:
+        groups = self.recall_groups
+        if not groups:
+            return float(not ranges)
+        matched = sum(any(
+            chapter == gold_chapter and start <= gold_end and gold_start <= end
+            for gold_chapter, gold_start, gold_end in group
+            for chapter, start, end in ranges
+        ) for group in groups)
+        return matched / len(groups)
 
 
 class BenchmarkSet(StrictModel):
@@ -203,7 +226,7 @@ class BenchmarkRunner:
         self.librarian = Librarian()
         self.embedding_model = TextEmbedding(model_name=EMBEDDING_MODEL)
         self.embeddings = np.asarray(list(self.embedding_model.passage_embed([w.text for w in windows])))
-        self.reranker = TextCrossEncoder(model_name=RERANKER_MODEL)
+        self.reranker = TokenWindowReranker(TextCrossEncoder(model_name=RERANKER_MODEL))
         self._bm25: dict[int, tuple[list[Window], bm25s.BM25]] = {}
 
     def _eligible(self, ceiling: int) -> tuple[list[Window], np.ndarray]:
@@ -300,13 +323,13 @@ def _overlaps(hit: Hit, gold: tuple[int, int, int]) -> bool:
 
 def _citation_resolves(hit: Hit, source_lines: list[str]) -> bool:
     start, end = hit.source_lines
-    return hit.text == "\n".join(source_lines[start - 1 : end])
+    original = "\n".join(source_lines[start - 1 : end])
+    return re.sub(r"\n{3,}", "\n\n", hit.text) == re.sub(r"\n{3,}", "\n\n", original)
 
 
 def measure(case: BenchmarkCase, hits: list[Hit], source_lines: list[str]) -> CaseMeasurement:
-    matched_gold = {index for index, gold in enumerate(case.recall_ranges) if any(_overlaps(hit, gold) for hit in hits)}
     relevant_hits = [hit for hit in hits if any(_overlaps(hit, gold) for gold in case.relevant_ranges)]
-    recall = len(matched_gold) / len(case.recall_ranges) if case.recall_ranges else float(not hits)
+    recall = case.evidence_recall([(hit.chapter, *hit.source_lines) for hit in hits])
     precision = len(relevant_hits) / len(hits) if hits else 1.0
     if not relevant_hits:
         predicted_strength = "none"

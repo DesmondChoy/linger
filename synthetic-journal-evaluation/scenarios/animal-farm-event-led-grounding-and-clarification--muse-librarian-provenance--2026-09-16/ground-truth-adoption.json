@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+  "proposed_ground_truth_sha256": "b7628464d31c36cc047f1c3ddf3fcec0558a02172da570801e75ab3813e8980c",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "explicit_human_instruction"
+  },
+  "reviewed_at": "2026-09-18T15:49:47.397159+08:00",
+  "decisions": [
+    {
+      "proposal_id": "farm-grounded-proposal",
+      "scene_id": "farm-decision-reversal",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "farm-boundary-proposal",
+      "scene_id": "farm-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "farm-personal-proposal",
+      "scene_id": "farm-personal-trust",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "farm-clarification-proposal",
+      "scene_id": "farm-interrupted-discussion",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "f16a0b8c4be3474a80ecdaf87bbe2a3680bd2cc9efce21137dc98a8dc84be42c"
+}

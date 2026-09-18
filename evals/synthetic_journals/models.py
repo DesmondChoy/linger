@@ -552,6 +552,10 @@ class LibrarianInferredBookScope(StrictModel):
     book_version_id: Identifier
     authorised_prop_ids: tuple[Identifier, ...] = Field(min_length=1)
     supporting_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
+    optional_supporting_evidence_ids: tuple[Identifier, ...] = Field(
+        default=(),
+        description="Permitted additional boundary support; never replaces required anchors or raises their ceiling.",
+    )
 
     @model_validator(mode="after")
     def validate_unique_ids(self) -> Self:
@@ -559,6 +563,11 @@ class LibrarianInferredBookScope(StrictModel):
         _require_unique(
             "book scope supporting evidence IDs", self.supporting_evidence_ids
         )
+        _require_unique(
+            "book scope optional supporting evidence IDs", self.optional_supporting_evidence_ids
+        )
+        if set(self.supporting_evidence_ids) & set(self.optional_supporting_evidence_ids):
+            raise ValueError("required and optional supporting evidence IDs must be disjoint")
         return self
 
 

@@ -23,6 +23,7 @@ with patch.dict(
 
 from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from provenance_fixtures import review_with_audits
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
@@ -73,14 +74,23 @@ def _candidate(info: AgentInfo, reply: str) -> ModelResponse:
     })])
 
 
-def _provenance_review(info: AgentInfo, decision: str, **fields) -> ModelResponse:
-    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+def _provenance_review(payload: dict, info: AgentInfo, decision: str, **fields) -> ModelResponse:
+    coverage = [
+        {"span_index": span["span_index"],
+         "classification": "source_dependent" if decision == "revise" else "reader_reflection"}
+        for span in payload["uncovered_response_spans"]
+    ]
+    review = review_with_audits(payload, {
         "findings": [],
         "response_decision": decision,
         "emotional_boundary_decision": "not_required",
         "capture_decision": "no_candidate",
+        "coverage_audit": coverage,
         **fields,
-    })])
+    })
+    return ModelResponse(parts=[ToolCallPart(
+        info.output_tools[0].name, review.model_dump(mode="json"),
+    )])
 
 
 def _uncited_finding(quote: str) -> dict:
@@ -134,7 +144,7 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
                 if "canonical_connection_evidence" in prompt
             )
             if payload["previous_response_review"] is not None:
-                return _provenance_review(info, "pass", finding_resolutions=[{
+                return _provenance_review(payload, info, "pass", finding_resolutions=[{
                     "finding_index": 0,
                     "status": "resolved",
                     "explanation": "The reply no longer asserts the public fact.",
@@ -143,10 +153,10 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
             if retries:
                 retry_contents.extend(str(part.content) for part in retries)
                 return _provenance_review(
-                    info, "revise", findings=[_uncited_finding(FIRST_SENTENCE)],
+                    payload, info, "revise", findings=[_uncited_finding(FIRST_SENTENCE)],
                 )
             return _provenance_review(
-                info, "revise", findings=[_uncited_finding(MISMATCHED_QUOTE)],
+                payload, info, "revise", findings=[_uncited_finding(MISMATCHED_QUOTE)],
             )
 
         with muse_chat_agent.override(model=FunctionModel(muse)):
@@ -173,8 +183,12 @@ class ChatReviewRetryTests(unittest.IsolatedAsyncioTestCase):
         def provenance(messages, info):
             nonlocal provenance_calls
             provenance_calls += 1
+            payload = next(
+                prompt for prompt in _json_prompts(messages)
+                if "canonical_connection_evidence" in prompt
+            )
             return _provenance_review(
-                info, "revise", findings=[_uncited_finding(MISMATCHED_QUOTE)],
+                payload, info, "revise", findings=[_uncited_finding(MISMATCHED_QUOTE)],
             )
 
         with muse_chat_agent.override(model=FunctionModel(muse)):

@@ -14,7 +14,6 @@ from typing import Literal
 from apps.backend.contracts import ConnectionBrief
 from src.linger.agents.serendipity.models import ConnectionExplorationResult
 from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.orchestration.connection import connection_exploration
 from src.linger.orchestration.grounding import build_request, grounding_evidence
 from src.linger.orchestration.routing import route_reader_message
@@ -24,7 +23,6 @@ from src.linger.orchestration.turn_context import reader_message
 async def librarian_search(
     work_id: str,
     book_version_id: str,
-    reading_boundary: ReadingBoundary | None,
     max_final_evidence: int = 5,
 ) -> LibrarianResponse:
     """Retrieve permitted book evidence for the reader's current request.
@@ -35,15 +33,12 @@ async def librarian_search(
     request before searching, preserving the reader's wording and resolving
     follow-ups without a model-written replacement question.
     `work_id` and `book_version_id` must
-    match the application-validated request scope. Pass the validated current
-    chapter position from `reading_context` as `reading_boundary` (its
-    `chapter_state` of "started" or "completed" determines how far into the
-    book the search is allowed to look — never chapters beyond what the
-    reader is known to have reached). After a `passages` route, pass
-    `reading_boundary=None` to fetch only the granted exact passages; this does
-    not establish chapter completion or allow neighboring text. Without either
-    permission, `reading_boundary=None` returns a clarification instead of search
-    results. The response may be a
+    match the application-validated request scope. The application supplies
+    the exact inclusive chapter ceiling or named units; do not reinterpret
+    that permission. After a `passages` route, only the granted exact passages
+    are eligible, without neighboring text or implied chapter completion.
+    Without permission, the application returns clarification instead of
+    searching. The response may be a
     clarification request, a retrieval result (with or without evidence), or
     a retrieval failure — handle all three without assuming evidence exists.
     For a clarification, ask its exact question without evidence or other tools.
@@ -51,7 +46,7 @@ async def librarian_search(
     message = reader_message()
     if message is None:
         raise RuntimeError("librarian_search requires an active reader turn")
-    request = build_request(message, work_id, book_version_id, reading_boundary, max_final_evidence)
+    request = build_request(message, work_id, book_version_id, max_final_evidence)
     return await grounding_evidence(request)
 
 
@@ -67,10 +62,8 @@ async def librarian_route() -> LibrarianRoutingResponse:
     statements; the model cannot replace them.
     Returns a chapter-scoped `routed` work, exact `passages` permission,
     a clarification, or no match. Call `librarian_search` with the returned
-    `work_id` and `book_version_id`. For `routed`, build `reading_boundary` from
-    `max_chapter_inclusive`, preserving `part_id`. When `unit_ids` is nonempty,
-    pass those exact IDs with chapter_number=None and chapter_state="completed";
-    for `passages`, pass `reading_boundary=None`.
+    `work_id` and `book_version_id`. Search automatically uses the returned
+    chapter, named-unit, or exact-passage permission from application context.
     Routing returns no source text and grants no write authority. If clarification
     is needed, stop book answering and other tools; after safety review the
     application sends the validated question without requiring a verbatim copy.

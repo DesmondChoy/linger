@@ -12,7 +12,7 @@ from pydantic_ai.models.function import FunctionModel
 
 from apps.backend.contracts import BookScope, EvidenceBundle, EvidenceItem
 from src.linger.agents.librarian.agent import build_librarian_agent
-from src.linger.agents.librarian.models import BookRequestPart
+from src.linger.agents.librarian.models import BookRequestPart, BookRequestPlan
 from src.linger.orchestration.book_evidence import retrieve_book_evidence
 from src.linger.orchestration.evidence_strength import plan_book_request
 
@@ -39,9 +39,12 @@ def test_preceding_scene_resolves_quotation_pronouns_before_retrieval():
 
     class Librarian:
         def retrieve_for_judgement(self, request):
-            phases.append("retrieval")
-            assert request.query == f"{SCENE} {QUESTION}"
-            assert PRIVATE not in request.query
+            if request.query == f"{SCENE} {QUESTION}":
+                phases.append("focused_retrieval")
+                assert PRIVATE not in request.query
+            else:
+                phases.append("original_retrieval")
+                assert request.query == LINE
             assert request.book_scopes[0].chapter_max == 5
             selected = desired if SCENE in request.query else unrelated
             return EvidenceBundle(items=[selected], retrieval_note="controlled query-sensitive search")
@@ -56,8 +59,9 @@ def test_preceding_scene_resolves_quotation_pronouns_before_retrieval():
             output = PLAN
         else:
             phases.append("assessment")
-            assert payload["request"] == PLAN
-            assert PRIVATE not in json.dumps(payload)
+            assert BookRequestPlan.model_validate(payload["request"]) == BookRequestPlan.model_validate(PLAN)
+            assert PRIVATE not in json.dumps(payload["request"])
+            assert payload["original_request"]["current_line"] == LINE
             assert payload["evidence"][0]["evidence_id"] == desired.evidence_id
             output = {
                 "evidence_strength": "sufficient", "strength_reason": "The located reply includes the requested narration.",
@@ -72,7 +76,7 @@ def test_preceding_scene_resolves_quotation_pronouns_before_retrieval():
             LINE, book_scopes=(BookScope(work_id="fiction", book_version_id="fiction-v1", chapter_max=5),),
             librarian=Librarian(),
         ))
-    assert phases == ["planning", "retrieval", "assessment"]
+    assert phases == ["planning", "focused_retrieval", "original_retrieval", "assessment"]
     assert result.items == (desired,)
 
 
@@ -94,7 +98,7 @@ def test_context_and_question_are_both_exactly_validated_with_repair(field):
 
     result = asyncio.run(plan_book_request(LINE, agent=build_librarian_agent(FunctionModel(model))))
     assert len(calls) == 2
-    assert result.model_dump(mode="json") == PLAN
+    assert result == BookRequestPlan.model_validate(PLAN)
 
 
 def test_context_from_an_unsupplied_source_is_not_accepted():

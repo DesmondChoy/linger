@@ -5,13 +5,14 @@ configurations on the same Alice query set. Direct canonical reads are the
 control. BM25S supplies lexical retrieval; FastEmbed supplies local dense
 embeddings and the optional cross-encoder reranker.
 
-Librarian owns one reusable Agent with two application-selected skills:
-[boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md)
-and [evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md).
-Both have typed inputs and per-run outputs and expose no model tools. Retrieval,
+Librarian owns one reusable Agent with four application-selected skills:
+[book request planning](../../src/linger/agents/librarian/skills/book-request/SKILL.md),
+[boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md),
+[independent event identification](../../src/linger/agents/librarian/skills/event-identification/SKILL.md), and [evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md).
+All have typed inputs and per-run outputs and expose no model tools. Retrieval,
 scope filtering, fusion, and reranking remain application code. The retrieval
 benchmark exercises a known boundary; production routing and book replay can
-also invoke the boundary-inference skill. A role model override covers both
+also invoke the boundary-inference skill. A role model override covers all
 tasks while skill IDs and fingerprints keep their results distinguishable.
 
 The frozen benchmark and provider-backed release report evaluate retrieval
@@ -22,6 +23,23 @@ grounding, and release against typed proposed or independently adopted Ground
 truth. Its chapter-scoped grades do not cover runtime passage grants. Each
 report's scenario, adoption, model, and prompt identity determine its evidence
 scope.
+
+The `identity-theme` case expects sufficient evidence for a **qualified literary
+interpretation**. Either Chapter 5 lines 966–981 (Alice cannot explain herself)
+or lines 1026–1032 (her changing memory and size) satisfies its required
+dialogue anchor. Both together count as one required fact. Chapter 4 lines
+762–770 and Chapter 2 lines 327–360 remain optional support; neither alone
+replaces the dialogue. An unrelated Chapter 5 passage also does not qualify. The query
+and Chapter 5 ceiling are unchanged. These retrieval labels do not establish
+that uncertain identity causes physical growth: manual semantic review must
+still distinguish a supported thematic relationship from an unsupported
+reciprocal causal claim. Historical reports retain their original grades.
+
+Required evidence uses `required_range_groups`: every group must be satisfied,
+and any one listed range can satisfy a group. Cases without explicit groups
+require every relevant range separately. The benchmark, manual notebook,
+direct evaluation and release validation share this recall calculation;
+precision still uses the complete relevant-range list.
 
 ## Manual notebook
 
@@ -92,11 +110,12 @@ uv run python -m evals.librarian.live_validation
 The command uses the selected hybrid retriever, configured model, Muse,
 Provenance, and deterministic release validation. `--case <id>` is repeatable,
 `--limit <count>` runs the first bounded subset, and `--report <path>` chooses
-the metadata-only JSON report location. The default report is
+the synthetic evaluation JSON report location. The default report is
 `evals/librarian/live-report.json`.
 
-The report excludes prompts, replies, evidence text, and credentials. It records
-case outcomes, release metrics, latency, and any provider usage the SDK exposes.
+The report retains synthetic replies and agent exchanges for investigation,
+alongside case outcomes, release metrics, latency, and complete provider usage
+when the SDK exposes it for every nested agent call. It contains no credentials.
 
 Indexes and model caches are derived artifacts. Canonical chapter or section
 Markdown remains the source of truth, and the query boundary filters eligible

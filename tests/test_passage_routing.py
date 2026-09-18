@@ -19,7 +19,7 @@ from src.linger.contracts.librarian import (
     RoutedPassages,
     RoutedWork,
 )
-from src.linger.contracts.reading import ReadingBoundary, permits_scope
+from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration import turn_context
@@ -60,7 +60,7 @@ class PassageRoutingTests(unittest.IsolatedAsyncioTestCase):
         return LibrarianRequest(
             request_id="ground-after-route", query="What are her exact words?",
             work_id=self.record.work_id, book_version_id=self.record.book_version_id,
-            reading_boundary=ReadingBoundary(chapter_number=12, chapter_state="completed"),
+
             access_scope=AccessScope(allowed_book_version_ids=(self.record.book_version_id,)),
             options=RetrievalOptions(),
         )

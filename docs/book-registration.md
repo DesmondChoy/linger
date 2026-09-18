@@ -81,16 +81,16 @@ The grant neither exposes surrounding paragraphs nor permits Serendipity book
 search. Explicit completed-chapter context remains authoritative when present.
 
 Routing returns no passage text. Muse uses the returned identifiers with
-`librarian_search`, passing a completed `reading_boundary` for a `routed`
-chapter result or `reading_boundary=None` for a `passages` result. The latter
-search can return only the granted evidence IDs.
+`librarian_search`. The application supplies the validated inclusive chapter
+ceiling, named units, or exact passage permission from the active turn.
+A `passages` search can return only the granted evidence IDs.
 
 A reply such as "Chapter 3" establishes completed progress only when answering
 a pending chapter question for that available book. Switching books discards
 the previous book's pending question. A direct `librarian_search` call without
-a boundary also checks identity from the original reader message or validated
-session selection before it can leave a pending chapter question; Muse's tool
-arguments cannot select the book by themselves.
+confirmed reading permission also checks identity from the original reader
+message or validated session selection before it can leave a pending chapter
+question. Muse's tool arguments cannot select the book by themselves.
 
 ## Add a book
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -29,11 +30,59 @@ class LibrarianBoundaryInferenceInput(StrictModel):
     full_work_candidates: tuple[EvidenceRecord, ...]
 
 
+class LibrarianEventIdentificationInput(StrictModel):
+    """Locate the reader's current event without a proposed grant or stored memories."""
+
+    current_line: str
+    prior_reader_statements: tuple[ReaderStatement, ...]
+    full_work_candidates: tuple[EvidenceRecord, ...]
+
+
+class BoundaryEventIdentified(StrictModel):
+    outcome: Literal["identified"]
+    evidence_ids: tuple[str, ...] = Field(min_length=1)
+    reader_spans: tuple[str, ...] = Field(min_length=1)
+    explanation: str = Field(min_length=1, max_length=700)
+
+
+class BoundaryEventUnresolved(StrictModel):
+    outcome: Literal["unresolved"]
+    reason_code: Literal["insufficient_context", "conflicting_context"]
+    explanation: str = Field(min_length=1, max_length=700)
+
+
+LibrarianEventIdentification = BoundaryEventIdentified | BoundaryEventUnresolved
+
+
+def event_identification_errors(
+    decision: LibrarianEventIdentification, request: LibrarianEventIdentificationInput,
+) -> list[dict[str, object]]:
+    """Bind identification to supplied reader wording and private canonical records."""
+    if isinstance(decision, BoundaryEventUnresolved):
+        return []
+    errors: list[dict[str, object]] = []
+    by_id = {record.evidence_id: record for record in request.full_work_candidates}
+    if len(set(decision.evidence_ids)) != len(decision.evidence_ids):
+        errors.append({"path": "evidence_ids", "error": "Evidence IDs must be unique."})
+    for index, identity in enumerate(decision.evidence_ids):
+        record = by_id.get(identity)
+        if record is None or record.part_id != "main" or record.chapter_number is None:
+            errors.append({"path": f"evidence_ids[{index}]", "error": "Select a supplied numbered main-text record."})
+    texts = (request.current_line, *(statement.text for statement in request.prior_reader_statements))
+    for index, span in enumerate(decision.reader_spans):
+        if not span.strip() or not any(span in text for text in texts):
+            errors.append({"path": f"reader_spans[{index}]", "error": "Copy a non-empty exact span from the supplied reader wording."})
+    if not any(span.strip() and span in request.current_line for span in decision.reader_spans):
+        errors.append({"path": "reader_spans", "error": "Include the current reader's stopping-event wording, not only earlier statements."})
+    return errors
+
+
 class LibrarianBookRequestInput(StrictModel):
     """Reader context without retrieved text or a model-expanded search query."""
 
     current_line: str
     prior_reader_statements: tuple[ReaderStatement, ...] = ()
+    search_target: Literal["book_evidence", "reading_progress"] = "book_evidence"
 
 
 class BookRequestPart(StrictModel):
@@ -46,21 +95,24 @@ class BookRequestPart(StrictModel):
             "scene without additional context. These locators add no answer requirements."
         ),
     )
-    purpose: Literal["reference", "answer"] = Field(
+    purpose: Literal["reference", "answer", "progress"] = Field(
         description=(
             "reference: the named book material anchors reflection or a comparison "
             "with another source. answer: the reader asks a book question, asks "
             "to verify a book claim, or requests particular wording. Determine "
-            "this from the original reader request before seeing evidence."
+            "this from the original reader request before seeing evidence. "
+            "progress: locate a reported reading event for private boundary judgment."
         ),
     )
+    uncertain: bool = Field(default=False, description="A plausible need whose interpretation remains uncertain; still search it.")
     reader_spans: tuple[str, ...] = Field(
         min_length=1,
         description=(
             "Shortest exact reader fragments naming a requested book event, fact, "
             "interpretation or quotation. Exclude personal experiences, other sources "
-            "and reading-progress statements. Split a mixed-source sentence rather "
-            "than copying it whole. Never rewrite the reader's words."
+            "and, for book_evidence, general reading-progress statements. For "
+            "reading_progress, retain the reported event and stopping-point wording. "
+            "Split a mixed-source sentence rather than copying it whole. Never rewrite the reader's words."
         ),
     )
 
@@ -68,7 +120,7 @@ class BookRequestPart(StrictModel):
 class BookRequestPlan(StrictModel):
     """Book needs identified independently of the available passages."""
 
-    parts: tuple[BookRequestPart, ...]
+    parts: tuple[BookRequestPart, ...] = Field(max_length=8)
 
 
 def book_request_span_errors(
@@ -78,6 +130,8 @@ def book_request_span_errors(
     texts = (request.current_line, *(statement.text for statement in request.prior_reader_statements))
     errors: list[dict[str, object]] = []
     for part_index, part in enumerate(plan.parts):
+        if (part.purpose == "progress") != (request.search_target == "reading_progress"):
+            errors.append({"path": f"parts[{part_index}].purpose", "error": "Part purpose must match the application-selected search target."})
         for field in ("context_spans", "reader_spans"):
             for span_index, span in enumerate(getattr(part, field)):
                 if span.strip() and any(span in text for text in texts):
@@ -102,6 +156,7 @@ def book_request_span_errors(
 class LibrarianEvidenceStrengthInput(StrictModel):
     """Fixed book needs and exact evidence admitted by retrieval policy."""
 
+    original_request: LibrarianBookRequestInput
     request: BookRequestPlan
     evidence: tuple[EvidenceRecord, ...]
     max_evidence_records: int = Field(default=5, ge=1, le=10)
@@ -133,8 +188,12 @@ class RequestedBookSupport(StrictModel):
 
 
 class BookEvidenceAssessment(EvidenceStrengthDecision):
-    """Every selected record must account for an existing requested part."""
+    """Every selected record supports a planned or recovered reader need."""
 
+    additional_parts: tuple[BookRequestPart, ...] = Field(
+        default=(), max_length=8,
+        description="Book needs omitted by the plan, copied from original_request. Support indices follow the original planned parts.",
+    )
     support: tuple[RequestedBookSupport, ...]
 
     @model_validator(mode="after")
@@ -156,97 +215,335 @@ class BoundaryMemoryAssessment(StrictModel):
     reason: str = Field(min_length=1, max_length=1000)
 
 
-class BoundaryInferenceDecision(StrictModel):
-    """Private full-work judgment before the application grants retrieval."""
+class BoundaryEventOccurrence(StrictModel):
+    """One possible current reading event, located without disclosing its text."""
 
-    memory_assessments: tuple[BoundaryMemoryAssessment, ...] = Field(
-        description=(
-            "Assess every supplied memory exactly once before selecting a boundary. "
-            "Ground memory text in full_work_candidates even when its stored evidence_ids "
-            "is empty. Empty only when no memories were supplied."
-        ),
+    evidence_ids: tuple[str, ...] = Field(min_length=1)
+    disposition: Literal["selected", "ruled_out"]
+    distinguishing_reader_spans: tuple[str, ...] = Field(
+        min_length=1,
+        description="Exact current or prior reader wording that identifies or rules out this occurrence; never infer missing details from the passage or a vague memory.",
     )
-    outcome: Literal["candidate", "uncertain"]
-    work_id: str | None = None
-    book_version_id: str | None = None
-    chapter_number: int | None = Field(default=None, ge=1)
-    confidence: float = Field(ge=0, le=1)
-    authorization_basis: Literal["memory_supported", "line_only"] | None = Field(
-        default=None,
-        description=(
-            "Assess supplied memories before choosing. memory_supported combines "
-            "grounded earlier knowledge with a coherent, specific current reading "
-            "report; the memory need not name the current stopping scene. line_only "
-            "means no supplied memory provides that support, not merely that the "
-            "current Line identifies the scene on its own. Memory presence alone "
-            "does not grant progress; an ambiguous current event remains uncertain."
-        ),
+    explanation: str = Field(min_length=1, max_length=700)
+
+
+class BoundaryEventResolution(StrictModel):
+    """An auditable comparison of occurrences against the original reader input."""
+
+    reader_event_spans: tuple[str, ...] = Field(min_length=1)
+    occurrences: tuple[BoundaryEventOccurrence, ...] = Field(min_length=1)
+    other_evidence_ids: tuple[str, ...] = Field(
+        description="Required inside event_resolution, never at the top level. Every candidate not assigned to event_resolution.occurrences, including earlier memory anchors even when already cited in memory_assessments or supporting_evidence. Use [] only when all candidates are assigned to occurrences. Never hide a plausible alternative here.",
     )
-    supporting_memory_ids: tuple[str, ...] = Field(
-        default=(),
-        description=(
-            "Exact supplied memory IDs demonstrating earlier knowledge of this work, "
-            "located by supporting evidence and consistent with the current report. "
-            "Do not omit grounded earlier knowledge because it names a different "
-            "scene. Current corrections override older memory claims."
-        ),
-    )
-    supporting_evidence_ids: tuple[str, ...] = Field(
-        default=(),
-        description=(
-            "Exact supplied passages locating both the remembered event and current "
-            "reading event for memory_supported decisions, even in the same chapter. "
-            "Their latest chapter must equal chapter_number. Never substitute the "
-            "memory's location for an unresolved current stopping point."
-        ),
-    )
-    reason_code: Literal[
-        "insufficient_context",
-        "conflicting_context",
-        "low_confidence",
-    ] | None = None
 
     @model_validator(mode="after")
-    def _fields_match_outcome(self) -> "BoundaryInferenceDecision":
-        errors = boundary_memory_assessment_errors(self)
-        if errors:
-            raise ValueError(str(errors))
-        candidate_fields = (
-            self.work_id,
-            self.book_version_id,
-            self.chapter_number,
-        )
-        if self.outcome == "candidate":
-            if any(value is None for value in candidate_fields):
-                raise ValueError("candidate outcome requires work, version, and chapter")
-            if not self.supporting_evidence_ids:
-                raise ValueError("candidate outcome requires supporting evidence IDs")
-            if self.authorization_basis is None:
-                raise ValueError("candidate outcome requires an authorization basis")
-            if self.authorization_basis == "memory_supported":
-                if not self.supporting_memory_ids:
-                    raise ValueError(
-                        "memory-supported candidate requires supporting memory IDs"
-                    )
-            elif self.supporting_memory_ids:
-                raise ValueError("line-only candidate cannot cite supporting memories")
-            if self.reason_code is not None:
-                raise ValueError("candidate outcome cannot declare an uncertainty reason")
-        else:
-            if (
-                any(value is not None for value in candidate_fields)
-                or self.authorization_basis is not None
-                or self.supporting_memory_ids
-                or self.supporting_evidence_ids
-            ):
-                raise ValueError("uncertain outcome cannot declare a candidate boundary")
-            if self.reason_code is None:
-                raise ValueError("uncertain outcome requires a reason code")
+    def _one_resolved_occurrence(self) -> "BoundaryEventResolution":
+        if sum(item.disposition == "selected" for item in self.occurrences) != 1:
+            raise ValueError(
+                "a candidate requires exactly one identified occurrence; otherwise return uncertain"
+            )
+        ids = [
+            *self.other_evidence_ids,
+            *(key for item in self.occurrences for key in item.evidence_ids),
+        ]
+        if len(ids) != len(set(ids)):
+            raise ValueError("account for each candidate evidence ID exactly once")
+        if any(not span.strip() for span in self.reader_event_spans) or any(
+            not span.strip()
+            for item in self.occurrences
+            for span in item.distinguishing_reader_spans
+        ):
+            raise ValueError("reader identification spans cannot be empty")
         return self
 
 
-def boundary_memory_assessment_errors(
+class BoundaryEvidenceAnchor(StrictModel):
+    """Private source binding for one chapter-permission support record."""
+
+    evidence_id: str = Field(min_length=1)
+    source_excerpt: str = Field(
+        min_length=1,
+        description="Short contiguous excerpt copied from this evidence_id's supplied canonical text, supporting the memory, current event or connecting evidence. Only whitespace may differ. Preserve words, case, punctuation and markup, including original pronouns; never substitute words or copy another record under this ID.",
+    )
+
+    @model_validator(mode="after")
+    def _nonblank_excerpt(self) -> "BoundaryEvidenceAnchor":
+        if not self.source_excerpt.strip():
+            raise ValueError("Boundary source excerpt cannot be blank")
+        return self
+
+
+class BoundaryInferenceDecision(StrictModel):
+    """A proposed chapter grant with explicit reader identification of the stop."""
+
+    memory_assessments: tuple[BoundaryMemoryAssessment, ...]
+    outcome: Literal["candidate"]
+    work_id: str
+    book_version_id: str
+    chapter_number: int = Field(ge=1)
+    confidence: float = Field(ge=0, le=1)
+    authorization_basis: Literal["memory_supported", "line_only"]
+    supporting_memory_ids: tuple[str, ...] = ()
+    supporting_evidence: tuple[BoundaryEvidenceAnchor, ...] = Field(min_length=1)
+    event_resolution: BoundaryEventResolution
+
+    @model_validator(mode="after")
+    def _valid_support(self) -> "BoundaryInferenceDecision":
+        errors = boundary_memory_assessment_errors(self)
+        if errors:
+            raise ValueError(str(errors))
+        if (
+            self.authorization_basis == "memory_supported"
+            and not self.supporting_memory_ids
+        ):
+            raise ValueError(
+                "memory-supported candidate requires supporting memory IDs"
+            )
+        if self.authorization_basis == "line_only" and self.supporting_memory_ids:
+            raise ValueError("line-only candidate cannot cite supporting memories")
+        if len({anchor.evidence_id for anchor in self.supporting_evidence}) != len(self.supporting_evidence):
+            raise ValueError("Boundary support evidence IDs must be unique")
+        selected = next(
+            item
+            for item in self.event_resolution.occurrences
+            if item.disposition == "selected"
+        )
+        if not set(selected.evidence_ids) <= {anchor.evidence_id for anchor in self.supporting_evidence}:
+            raise ValueError(
+                "boundary support must include the selected current occurrence"
+            )
+        return self
+
+
+class BoundaryUncertainDecision(StrictModel):
+    """Unresolved progress, with no fields capable of declaring a chapter grant."""
+
+    memory_assessments: tuple[BoundaryMemoryAssessment, ...]
+    outcome: Literal["uncertain"]
+    confidence: float = Field(ge=0, le=1)
+    reason_code: Literal[
+        "insufficient_context", "conflicting_context", "low_confidence"
+    ]
+
+    @model_validator(mode="after")
+    def _valid_assessments(self) -> "BoundaryUncertainDecision":
+        errors = boundary_memory_assessment_errors(self)
+        if errors:
+            raise ValueError(str(errors))
+        return self
+
+
+def boundary_candidate_inventory_errors(
+    output: dict[str, object],
+    request: LibrarianBoundaryInferenceInput,
+) -> list[dict[str, object]]:
+    """Collect canonical excerpt binding, support and inventory faults for one repair."""
+    errors: list[dict[str, object]] = []
+    if output.get("outcome") != "candidate":
+        return errors
+    by_id = {item.evidence_id: item for item in request.full_work_candidates}
+    support_ids: set[str] = set()
+    support = output.get("supporting_evidence")
+    if isinstance(support, (list, tuple)):
+        for index, anchor in enumerate(support):
+            if not isinstance(anchor, dict):
+                continue
+            identity = anchor.get("evidence_id")
+            excerpt = anchor.get("source_excerpt")
+            path = f"supporting_evidence[{index}]"
+            if not isinstance(identity, str):
+                continue
+            if identity in support_ids:
+                errors.append({"path": f"{path}.evidence_id", "error": "Boundary support evidence IDs must be unique.", "evidence_id": identity})
+            support_ids.add(identity)
+            record = by_id.get(identity)
+            if record is None:
+                errors.append({"path": f"{path}.evidence_id", "error": "Use only supplied canonical evidence IDs.", "evidence_id": identity})
+            elif (
+                not isinstance(excerpt, str)
+                or not excerpt.strip()
+                or " ".join(excerpt.split()) not in " ".join(record.text.split())
+            ):
+                errors.append({
+                    "path": f"{path}.source_excerpt",
+                    "error": "Copy a short nonblank source_excerpt from this named canonical record. Only whitespace may differ: preserve every word, pronoun, letter case, punctuation mark and markup character. Do not correct or paraphrase the source; choose a concise contiguous span that supports the intended event. Recheck the named record rather than attaching another record's words or unrelated text.",
+                    "evidence_id": identity,
+                })
+    assessments = output.get("memory_assessments", [])
+    if isinstance(assessments, (list, tuple)):
+        if all(isinstance(item, dict) and isinstance(item.get("memory_id"), str)
+               for item in assessments):
+            supplied_ids = [memory.memory_id for memory in request.relevant_memories]
+            memory_ids = [item["memory_id"] for item in assessments]
+            counts = Counter(memory_ids)
+            missing = sorted(set(supplied_ids) - counts.keys())
+            unknown = sorted(counts.keys() - set(supplied_ids))
+            duplicated = sorted(identity for identity, count in counts.items() if count > 1)
+            if missing or unknown or duplicated:
+                errors.append({
+                    "path": "memory_assessments",
+                    "error": "Assess every supplied memory exactly once; copy its exact memory ID.",
+                    "required_memory_ids": supplied_ids,
+                    "actual_memory_ids": memory_ids,
+                    "missing_memory_ids": missing,
+                    "unknown_memory_ids": unknown,
+                    "duplicate_memory_ids": duplicated,
+                })
+            grounded_ids = {
+                item["memory_id"] for item in assessments
+                if item.get("status") == "grounded_prior_knowledge"
+            }
+            supporting_ids = output.get("supporting_memory_ids", [])
+            if isinstance(supporting_ids, (list, tuple)) and all(
+                isinstance(identity, str) for identity in supporting_ids
+            ):
+                support_counts = Counter(supporting_ids)
+                missing = sorted(grounded_ids - support_counts.keys())
+                unexpected = sorted(support_counts.keys() - grounded_ids)
+                unknown = sorted(support_counts.keys() - set(supplied_ids))
+                duplicated = sorted(identity for identity, count in support_counts.items() if count > 1)
+                if missing or unexpected or unknown or duplicated:
+                    errors.append({
+                        "path": "supporting_memory_ids",
+                        "error": "Use only exact supplied memory IDs and match the grounded prior-knowledge assessments; do not promote other memories.",
+                        "supplied_memory_ids": supplied_ids,
+                        "grounded_assessment_memory_ids": sorted(grounded_ids),
+                        "actual_memory_ids": list(supporting_ids),
+                        "missing_memory_ids": missing,
+                        "unexpected_memory_ids": unexpected,
+                        "unknown_memory_ids": unknown,
+                        "duplicate_memory_ids": duplicated,
+                    })
+        memory_support = {
+            identity
+            for assessment in assessments
+            if isinstance(assessment, dict) and assessment.get("status") == "grounded_prior_knowledge"
+            and isinstance(assessment.get("evidence_ids"), (list, tuple))
+            for identity in assessment["evidence_ids"] if isinstance(identity, str)
+        }
+        missing_memory = sorted(memory_support - support_ids)
+        if missing_memory:
+            errors.append({"path": "supporting_evidence", "error": "Include a canonical excerpt anchor for every grounded-memory evidence ID.", "missing_evidence_ids": missing_memory})
+    if "other_evidence_ids" in output:
+        errors.append(
+            {
+                "path": "other_evidence_ids",
+                "error": "Move this field inside event_resolution.other_evidence_ids; it is not a top-level candidate field.",
+            }
+        )
+    resolution = output.get("event_resolution")
+    if not isinstance(resolution, dict):
+        return errors
+    if "other_evidence_ids" not in resolution:
+        errors.append(
+            {
+                "path": "event_resolution.other_evidence_ids",
+                "error": "This nested field is required. Include remaining candidate IDs, including earlier memory anchors; do not delete the inventory to repair nesting.",
+            }
+        )
+    other = resolution.get("other_evidence_ids", [])
+    occurrences = resolution.get("occurrences", [])
+    if not isinstance(other, (list, tuple)) or not isinstance(
+        occurrences, (list, tuple)
+    ):
+        return errors
+    ids = list(other)
+    for occurrence in occurrences:
+        if not isinstance(occurrence, dict) or not isinstance(
+            occurrence.get("evidence_ids"), (list, tuple)
+        ):
+            return errors
+        ids.extend(occurrence["evidence_ids"])
+    if not all(isinstance(identity, str) for identity in ids):
+        return errors
+    counts = Counter(ids)
+    required = {item.evidence_id for item in request.full_work_candidates}
+    missing = sorted(required - counts.keys())
+    unknown = sorted(counts.keys() - required)
+    duplicated = sorted(identity for identity, count in counts.items() if count > 1)
+    if missing or unknown or duplicated:
+        errors.append(
+            {
+                "path": "event_resolution",
+                "error": "Account for every supplied candidate exactly once across event_resolution.occurrences[*].evidence_ids and event_resolution.other_evidence_ids. Memory and boundary support citations do not replace this inventory.",
+                "missing_evidence_ids": missing,
+                "unknown_evidence_ids": unknown,
+                "duplicate_evidence_ids": duplicated,
+            }
+        )
+    if isinstance(support, (list, tuple)):
+        selected_ids = {
+            identity
+            for occurrence in occurrences
+            if occurrence.get("disposition") == "selected"
+            for identity in occurrence["evidence_ids"]
+        }
+        missing_support = sorted(selected_ids - support_ids)
+        if missing_support:
+            errors.append({
+                "path": "supporting_evidence",
+                "error": "Boundary support must include a quoted anchor for every record assigned to the selected current occurrence. Repair the occurrence selection and boundary support together against the reader's actual stopping event.",
+                "missing_evidence_ids": missing_support,
+            })
+    return errors
+
+
+def boundary_event_resolution_errors(
     decision: BoundaryInferenceDecision,
+    request: LibrarianBoundaryInferenceInput,
+) -> list[dict[str, object]]:
+    """Check occurrence coverage and exact reader anchors, not semantic truth."""
+    errors: list[dict[str, object]] = []
+    resolution = decision.event_resolution
+    reader_texts = (
+        request.current_line,
+        *(item.text for item in request.prior_reader_statements),
+    )
+    spans = [
+        ("event_resolution.reader_event_spans", span)
+        for span in resolution.reader_event_spans
+    ]
+    spans.extend(
+        (f"event_resolution.occurrences[{index}].distinguishing_reader_spans", span)
+        for index, item in enumerate(resolution.occurrences)
+        for span in item.distinguishing_reader_spans
+    )
+    for path, span in spans:
+        if not any(span in text for text in reader_texts):
+            errors.append(
+                {
+                    "path": path,
+                    "error": "Copy an exact current or prior reader span; corpus text and memory alone cannot identify the current occurrence.",
+                    "span": span,
+                }
+            )
+    by_id = {item.evidence_id: item for item in request.full_work_candidates}
+    errors.extend(boundary_candidate_inventory_errors(decision.model_dump(), request))
+    selected = next(
+        item for item in resolution.occurrences if item.disposition == "selected"
+    )
+    records = [by_id[key] for key in selected.evidence_ids if key in by_id]
+    if not records or any(
+        item.chapter_number is None or item.part_id != "main" for item in records
+    ):
+        errors.append(
+            {
+                "path": "event_resolution",
+                "error": "The selected current event must have canonical main-text chapter evidence.",
+            }
+        )
+    elif max(item.chapter_number for item in records) != decision.chapter_number:
+        errors.append(
+            {
+                "path": "chapter_number",
+                "error": "The identified current stopping event must establish the candidate chapter; an earlier or different memory cannot extend it.",
+            }
+        )
+    return errors
+
+
+def boundary_memory_assessment_errors(
+    decision: BoundaryInferenceDecision | BoundaryUncertainDecision,
     request: LibrarianBoundaryInferenceInput | None = None,
 ) -> list[dict[str, object]]:
     """Validate declared assessment coverage and consistency, not semantic truth."""
@@ -285,8 +582,10 @@ def boundary_memory_assessment_errors(
         expected_basis = "memory_supported" if grounded_ids else "line_only"
         if decision.authorization_basis != expected_basis:
             errors.append({"path": "authorization_basis", "error": f"Declared assessments require {expected_basis}; never promote ungrounded memory."})
-        if not grounded_evidence <= set(decision.supporting_evidence_ids):
-            errors.append({"path": "supporting_evidence_ids", "error": "Include the canonical anchors for every grounded memory as well as the current event."})
+        if not grounded_evidence <= {anchor.evidence_id for anchor in decision.supporting_evidence}:
+            errors.append({"path": "supporting_evidence", "error": "Include the canonical anchors for every grounded memory as well as the current event."})
+        if request is not None:
+            errors.extend(boundary_event_resolution_errors(decision, request))
     return errors
 
 
@@ -321,4 +620,5 @@ class PassageInferenceDecision(StrictModel):
         return self
 
 
-LibrarianBoundaryDecision = BoundaryInferenceDecision | PassageInferenceDecision
+LibrarianChapterBoundaryDecision = BoundaryInferenceDecision | BoundaryUncertainDecision
+LibrarianBoundaryDecision = LibrarianChapterBoundaryDecision | PassageInferenceDecision

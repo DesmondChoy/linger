@@ -13,6 +13,10 @@ from src.linger.agents.muse.agent import build_muse_agent, validate_muse_output
 from src.linger.agents.muse.models import MuseCandidate, validate_supported_claims
 from src.linger.agents.muse.skills import REFLECTION
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.connection_evidence import WebConnectionEvidence
+from src.linger.orchestration.inspection_context import (
+    begin_connection_inspection, register_connection_evidence, reset_connection_inspection,
+)
 from src.linger.orchestration.turn_context import reset_turn_evidence, set_turn_evidence
 
 
@@ -29,9 +33,14 @@ BOOK = EvidenceRecord(
 @pytest.fixture(autouse=True)
 def evidence_ledger():
     token = set_turn_evidence((BOOK,))
+    connection_token = begin_connection_inspection()
+    register_connection_evidence((WebConnectionEvidence(
+        evidence_id=URL, title="Reporting study", excerpt=WEB_CLAIM,
+    ),))
     try:
         yield
     finally:
+        reset_connection_inspection(connection_token)
         reset_turn_evidence(token)
 
 
@@ -120,6 +129,36 @@ def test_unknown_book_does_not_hide_later_citation_errors():
     assert errors["evidence_uses[1].evidence_id"]["value"] == URL
     assert "evidence_uses[0].supported_claims[0]" in errors
     assert "evidence_uses[1].supported_claims[0]" in errors
+
+
+def test_claim_feedback_suggests_exact_reply_span_for_outer_whitespace_only():
+    reply = '> “We’re fixing it,”'
+    output = broken_candidate().model_copy(update={
+        'reply': reply,
+        'evidence_uses': (broken_candidate().evidence_uses[0].model_copy(update={
+            'source_location': BOOK.location, 'exact_quote': 'We’re fixing it,',
+            'supported_claims': (' ' + reply,),
+        }),),
+    })
+    before = output.model_dump()
+    error, = feedback_for(output)['errors']
+    assert error['suggested_span'] == reply
+    assert output.model_dump() == before
+    with pytest.raises(ValueError, match='supported_claims'):
+        validate_supported_claims(output.reply, output.evidence_uses)
+
+
+@pytest.mark.parametrize(('reply', 'claim'), [('A catastrophe.', ' cat '), ('12.5 units.', ' 12 ')])
+def test_outer_whitespace_hint_does_not_suggest_partial_words_or_numbers(reply, claim):
+    output = broken_candidate().model_copy(update={
+        'reply': reply,
+        'evidence_uses': (broken_candidate().evidence_uses[0].model_copy(update={
+            'source_location': BOOK.location, 'exact_quote': None,
+            'supported_claims': (claim,),
+        }),),
+    })
+    error, = feedback_for(output)['errors']
+    assert 'suggested_span' not in error
 
 
 @pytest.mark.parametrize("claims", [

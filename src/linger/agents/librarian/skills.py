@@ -1,12 +1,17 @@
 """Explicit assignment of Librarian's model tasks and their contracts."""
 
+from dataclasses import replace
+
 from src.linger.agents.librarian.models import (
     BookEvidenceAssessment,
     BookRequestPlan,
     LibrarianBookRequestInput,
     LibrarianBoundaryDecision,
+    LibrarianChapterBoundaryDecision,
     LibrarianBoundaryInferenceInput,
     LibrarianEvidenceStrengthInput,
+    LibrarianEventIdentificationInput,
+    LibrarianEventIdentification,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
 from src.linger.prompts import load_prompt
@@ -26,7 +31,33 @@ BOUNDARY_INFERENCE = RuntimeSkill[
     capabilities=("src.linger.agents.librarian.agent.BoundaryMemoryValidation",),
     validators=(
         "src.linger.agents.librarian.models.boundary_memory_assessment_errors",
+        "src.linger.agents.librarian.models.boundary_event_resolution_errors",
         "LibrarianBoundaryDecision",
+        "src.linger.orchestration.boundary.infer_spoiler_boundary",
+    ),
+)
+
+BOUNDARY_INFERENCE_NO_HISTORY = replace(
+    BOUNDARY_INFERENCE,
+    output_type=LibrarianChapterBoundaryDecision,
+    instructions=BOUNDARY_INFERENCE.instructions + "\n\n"
+    "Application-selected mode: no earlier reader statements are supplied. "
+    "Session-supported passage permission is unavailable. Return a chapter candidate "
+    "only when the current event and supplied memories establish its required support; "
+    "otherwise return uncertainty. Assess every supplied memory in either outcome. "
+    "Do not return a line-only passage location in this mode.",
+)
+
+EVENT_IDENTIFICATION = RuntimeSkill[LibrarianEventIdentificationInput, LibrarianEventIdentification](
+    role="Librarian",
+    name="event-identification",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(PACKAGE, "skills/event-identification/SKILL.md"),
+    input_type=LibrarianEventIdentificationInput,
+    output_type=LibrarianEventIdentification,
+    capabilities=("src.linger.agents.librarian.agent.EventIdentificationValidation",),
+    validators=(
+        "src.linger.agents.librarian.models.event_identification_errors",
         "src.linger.orchestration.boundary.infer_spoiler_boundary",
     ),
 )
@@ -60,4 +91,4 @@ EVIDENCE_ASSESSMENT = RuntimeSkill[
     ),
 )
 
-SKILLS = (BOUNDARY_INFERENCE, BOOK_REQUEST, EVIDENCE_ASSESSMENT)
+SKILLS = (BOUNDARY_INFERENCE, EVENT_IDENTIFICATION, BOOK_REQUEST, EVIDENCE_ASSESSMENT)

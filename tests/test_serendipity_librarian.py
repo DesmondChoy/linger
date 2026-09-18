@@ -14,10 +14,10 @@ from apps.backend.contracts import BookScope, EvidenceBundle, LibrarianRequest
 from apps.backend.hybrid_librarian import HybridLibrarian
 from apps.backend.librarian import Librarian
 from src.linger.agents.librarian.agent import build_librarian_agent
-from src.linger.agents.librarian.models import EvidenceStrengthDecision
+from src.linger.agents.librarian.models import BookRequestPlan, EvidenceStrengthDecision
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
 from src.linger.agents.serendipity.tools import SerendipityDependencies, search_librarian
-from src.linger.contracts.reading import ReadingBoundary, permits_scope
+from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.corpus.alice import BOOK_VERSION_ID
@@ -75,7 +75,7 @@ def test_low_scoring_recovery_has_the_same_judgement_in_muse_and_serendipity(str
 
     async def judge(query, records, *, max_evidence_records):
         assert query == QUESTION
-        assert 1 < len(records) <= 5
+        assert 1 < len(records) <= 20
         supporting = next(record for record in records if "desire and determination to learn" in record.text)
         assert supporting.chapter_number == 6
         judged.append(records)
@@ -99,7 +99,7 @@ def test_low_scoring_recovery_has_the_same_judgement_in_muse_and_serendipity(str
         assert not turn_evidence(), "Discovery must not register evidence for Muse before selection."
         settings = Settings(_env_file=None, linger_model="google:gemini-2.5-flash")
         with patch("src.linger.orchestration.grounding.get_settings", return_value=settings):
-            request = build_request(QUESTION, "pg23", VERSION, ReadingBoundary(chapter_number=7, chapter_state="completed"))
+            request = build_request(QUESTION, "pg23", VERSION)
         grounding = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=judge))
         assert judged[0] == judged[1]
         if strength in {"failure", "unknown_id"}:
@@ -244,12 +244,18 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
     model_inputs = []
     injected_calls = []
     retrieval_inputs = []
+    expected_queries = list(dict.fromkeys([
+        *([] if custom_judge else [QUESTION]),
+        *(original_reader[start:start + 2000].strip() for start in range(0, len(original_reader), 2000)),
+    ]))
 
     def retrieve_planned(request):
         retrieval_inputs.append(request)
         if not custom_judge:
             assert len(model_inputs) == 1
-            assert request.query == QUESTION
+            assert request.query in expected_queries
+        assert request.book_scopes == [scope]
+        assert expanded_query not in request.query
         return bundle
 
     async def model(messages, info):
@@ -263,7 +269,7 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
         if "current_line" in payload:
             assert not retrieval_inputs
         else:
-            assert len(retrieval_inputs) == 1
+            assert len(retrieval_inputs) == len(expected_queries)
         response = plan if "current_line" in payload else {
             "evidence_strength": "sufficient",
             "strength_reason": "The selected passage supports the requested book question.",
@@ -297,7 +303,7 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
                 with patch("src.linger.orchestration.grounding.get_settings", return_value=settings):
                     request = build_request(
                         original_reader if long_reader else expanded_query, "pg23", VERSION,
-                        ReadingBoundary(chapter_number=7, chapter_state="completed"),
+
                         max_final_evidence=2,
                     )
                 result = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=judge))
@@ -310,9 +316,8 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
 
         assert result.outcome == "evidence_found"
         assert [record.evidence_id for record in result.evidence] == [selected_id]
-        assert retrieve.call_count == 1
+        assert [call.args[0].query for call in retrieve.call_args_list] == expected_queries
         expected_query = original_reader if custom_judge else QUESTION
-        assert retrieve.call_args.args[0].query == expected_query
         if custom_judge:
             assert not model_inputs
             assert len(injected_calls) == 1
@@ -322,12 +327,13 @@ def test_original_reader_plan_drives_retrieval_and_is_reused_by_assessment(route
         else:
             assert not injected_calls
             assert len(model_inputs) == 2
-            assert model_inputs[0] == {"current_line": original_reader, "prior_reader_statements": []}
+            assert model_inputs[0] == {"current_line": original_reader, "prior_reader_statements": [], "search_target": "book_evidence"}
             assessment = model_inputs[1]
-            assert set(assessment) == {"request", "evidence", "max_evidence_records"}
-            assert assessment["request"] == plan
+            assert set(assessment) == {"original_request", "request", "evidence", "max_evidence_records"}
+            assert assessment["request"] == BookRequestPlan.model_validate(plan).model_dump(mode="json")
             assert expanded_query not in json.dumps(model_inputs)
-            assert "My voice at the meeting" not in json.dumps(assessment)
+            assert assessment["original_request"]["current_line"] == original_reader
+            assert "My voice at the meeting" not in json.dumps(assessment["request"])
             assert "An unrelated ambient reader message" not in json.dumps(model_inputs)
             assert assessment["max_evidence_records"] == 2
             assert selected_id in {record["evidence_id"] for record in assessment["evidence"]}
@@ -387,22 +393,24 @@ def test_muse_clarification_answer_keeps_prior_reader_question_without_expanded_
         ):
             request = build_request(
                 expanded_query, "pg11", BOOK_VERSION_ID,
-                ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
             )
             result = asyncio.run(_grounding_evidence(request, librarian=librarian))
 
         assert result.outcome == "evidence_found"
         assert [record.evidence_id for record in result.evidence] == [selected_id]
-        assert retrieve.call_args.args[0].query == original_question
+        assert [call.args[0].query for call in retrieve.call_args_list] == [original_question, current_answer]
+        assert all(call.args[0].book_scopes == [scope] for call in retrieve.call_args_list)
         assert len(model_inputs) == 2
         assert model_inputs[0] == {
             "current_line": current_answer, "prior_reader_statements": [prior.model_dump()],
+            "search_target": "book_evidence",
         }
-        assert set(model_inputs[1]) == {"request", "evidence", "max_evidence_records"}
-        assert model_inputs[1]["request"] == plan
+        assert set(model_inputs[1]) == {"original_request", "request", "evidence", "max_evidence_records"}
+        assert model_inputs[1]["request"] == BookRequestPlan.model_validate(plan).model_dump(mode="json")
         assert selected_id in {record["evidence_id"] for record in model_inputs[1]["evidence"]}
         assert expanded_query not in json.dumps(model_inputs)
-        assert current_answer not in json.dumps(model_inputs[1])
+        assert model_inputs[1]["original_request"] == model_inputs[0]
     finally:
         reset_reader_statements(statements)
         reset_reader_message(message)

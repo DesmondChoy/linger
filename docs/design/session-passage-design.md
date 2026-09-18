@@ -28,15 +28,14 @@ paragraph IDs. Muse requests grounding through the existing tool:
 
 ```python
 	await librarian_search(
-		query=reader_question,
 		work_id=route.work_id,
 		book_version_id=route.book_version_id,
-		reading_boundary=None,
 	)
 ```
 
-The query can affect relevance, not permission. Even a larger chapter argument
-cannot extend the exact eligible paragraphs.
+The application supplies the original reader question and exact passage grant.
+Muse cannot replace the question or extend the eligible paragraphs through
+tool arguments.
 
 ## Shape and ownership
 

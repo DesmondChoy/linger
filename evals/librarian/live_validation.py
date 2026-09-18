@@ -2,9 +2,8 @@
 
 This evaluation uses the frozen Librarian cases, the selected local hybrid
 retriever, the configured evidence-strength model, Muse, Provenance, and the
-deterministic application release gate.  The report intentionally stores only
-bounded evaluation metadata; prompts, replies, evidence text, and credentials
-are excluded.
+deterministic application release gate. Reports retain synthetic replies and
+agent exchanges so coverage and review failures can be investigated locally.
 """
 
 from __future__ import annotations
@@ -37,10 +36,14 @@ from src.linger.orchestration.reflection import _tool_results, reflection_reply
 from src.linger.orchestration.grounding import librarian_service
 from src.linger.orchestration.turn_context import (
     reset_confirmed_reading,
+    reset_reader_message,
     reset_turn_evidence,
     set_confirmed_reading,
+    set_reader_message,
     set_turn_evidence,
 )
+from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+from evals.synthetic_journals.transcript import SceneTranscriptRecorder
 
 from evals.librarian.benchmark import (
     MIN_CITATION_PRECISION,
@@ -94,15 +97,20 @@ def _overlaps(
 
 def _usage(results: list[Any]) -> dict[str, int | bool | None]:
     totals = {"input_tokens": 0, "output_tokens": 0, "requests": 0}
+    complete = bool(results)
     for result in results:
         try:
-            usage = result.usage()
+            usage = result.usage
         except Exception:
+            complete = False
+            continue
+        if usage is None or any(getattr(usage, key, None) is None for key in totals):
+            complete = False
             continue
         totals["input_tokens"] += int(getattr(usage, "input_tokens", 0) or 0)
         totals["output_tokens"] += int(getattr(usage, "output_tokens", 0) or 0)
         totals["requests"] += int(getattr(usage, "requests", 0) or 0)
-    if totals["requests"] == 0:
+    if not complete or totals["requests"] == 0:
         return {
             "available": False,
             "input_tokens": None,
@@ -132,24 +140,14 @@ def _librarian_call_metadata(
                 if part.tool_name != "librarian_search":
                     continue
                 args = part.args_as_dict()
-                boundary = args.get("reading_boundary")
                 calls.append(
                     {
-                        "query_matches_case": args.get("query") == case.query,
+                        "query_argument_absent": "query" not in args,
                         "work_id_matches": args.get("work_id") == "pg11",
                         "book_version_id_matches": (
                             args.get("book_version_id") == "pg11-v01b38ea4"
                         ),
-                        "boundary_chapter": (
-                            boundary.get("chapter_number")
-                            if isinstance(boundary, dict)
-                            else None
-                        ),
-                        "boundary_state": (
-                            boundary.get("chapter_state")
-                            if isinstance(boundary, dict)
-                            else None
-                        ),
+                        "application_owned_scope": "reading_boundary" not in args,
                     }
                 )
     return calls
@@ -185,17 +183,22 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
         )
     )
     evidence_token = set_turn_evidence(())
+    reader_token = set_reader_message(request.message)
+    recorder = SceneTranscriptRecorder()
     started = time.perf_counter()
     try:
-        release = await reflection_reply(
-            muse_input,
-            [],
-            muse=recording_muse,
-            provenance=recording_provenance,
-            review_context=review_context,
-            release_scope=release_scope,
-        )
+        with bind_evaluation_transcript_sink(recorder):
+            release = await reflection_reply(
+                muse_input,
+                [],
+                muse=recording_muse,
+                provenance=recording_provenance,
+                review_context=review_context,
+                release_scope=release_scope,
+                capture_source_text=request.message,
+            )
     finally:
+        reset_reader_message(reader_token)
         reset_turn_evidence(evidence_token)
         reset_confirmed_reading(token)
         sessions.clear(session_id)
@@ -250,19 +253,9 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
             for gold in case.relevant_ranges
         )
     ]
-    matched_gold = {
-        index
-        for index, gold in enumerate(case.recall_ranges)
-        if any(
-            _overlaps(record.chapter_number, record.source_lines, gold)
-            for record in cited_records
-        )
-    }
-    final_recall = (
-        len(matched_gold) / len(case.recall_ranges)
-        if case.recall_ranges
-        else float(not cited_records)
-    )
+    final_recall = case.evidence_recall([
+        (record.chapter_number, *record.source_lines) for record in cited_records
+    ])
     final_precision = (
         len(relevant_citations) / len(cited_records) if cited_records else 1.0
     )
@@ -303,10 +296,12 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
                     ),
                 }
             )
-    usage = _usage(recording_muse.results + recording_provenance.results)
+    usage = _usage(list(recorder.exchanges))
 
     return {
         "case_id": case.case_id,
+        "reply": release.reply,
+        "agent_exchanges": [exchange.model_dump(mode="json") for exchange in recorder.exchanges],
         "expected_strength": case.expected_strength,
         "predicted_strength": predicted_strength,
         "strength_correct": predicted_strength == case.expected_strength,

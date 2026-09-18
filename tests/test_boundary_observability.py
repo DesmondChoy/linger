@@ -35,7 +35,8 @@ with patch.dict(
 
 from pydantic_ai.models.function import FunctionModel
 
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from tests.boundary_fixtures import event_resolution, quoted_support, identify_fixture_event
+from src.linger.agents.librarian.models import BoundaryUncertainDecision, BoundaryInferenceDecision
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
@@ -78,12 +79,13 @@ async def _confident_ceiling_judge(_line, memories, evidence, _statements):
         confidence=0.93,
         authorization_basis="memory_supported",
         supporting_memory_ids=[memory.memory_id for memory in memories],
-        supporting_evidence_ids=[record.evidence_id for record in within],
+        supporting_evidence=quoted_support(evidence, [record.evidence_id for record in within]),
+        event_resolution=event_resolution(_line, evidence, [record.evidence_id for record in within]),
     )
 
 
 async def _uncertain_judge(_line, _memories, _evidence, _statements):
-    return BoundaryInferenceDecision(
+    return BoundaryUncertainDecision(
         memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
             "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
             for memory in _memories),
@@ -97,6 +99,10 @@ class BoundaryObservabilityTests(unittest.IsolatedAsyncioTestCase):
     session_id = "boundary-observability-test"
 
     def setUp(self) -> None:
+        self.enterContext(patch(
+            "src.linger.orchestration.boundary.identify_reader_event",
+            side_effect=identify_fixture_event(CEILING),
+        ))
         self.enterContext(librarian_agent.override(model=FunctionModel(_librarian_book_model)))
         self._directory = tempfile.TemporaryDirectory()
         self.addCleanup(self._directory.cleanup)

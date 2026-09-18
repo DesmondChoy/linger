@@ -11,12 +11,13 @@ from pydantic_ai.models.function import FunctionModel
 
 from src.linger.agents.librarian.agent import build_librarian_agent
 from src.linger.agents.librarian.models import (
-    BoundaryInferenceDecision, BoundaryMemory, LibrarianBoundaryInferenceInput,
+    BoundaryInferenceDecision, BoundaryUncertainDecision, BoundaryMemory, LibrarianBoundaryInferenceInput,
     PassageInferenceDecision, boundary_memory_assessment_errors,
 )
 from src.linger.agents.librarian.skills import BOUNDARY_INFERENCE
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.orchestration.boundary import infer_spoiler_boundary
+from tests.boundary_fixtures import event_resolution, quoted_support
 from tests.test_boundary_inference import FakeLibrarian, VERSION_ID, WORK_ID, memory
 
 
@@ -47,7 +48,8 @@ def candidate(memory_id="memory-earlier"):
         }],
         "outcome": "candidate", "work_id": "book", "book_version_id": "book-v1",
         "chapter_number": 1, "confidence": .9, "authorization_basis": "memory_supported",
-        "supporting_memory_ids": [memory_id], "supporting_evidence_ids": ["earlier", "current"],
+        "supporting_memory_ids": [memory_id], "supporting_evidence": list(quoted_support(task().full_work_candidates)),
+        "event_resolution": event_resolution(task().current_line, task().full_work_candidates, ("current",)),
     }
 
 
@@ -74,7 +76,7 @@ def test_boundary_repairs_inconsistent_assessments_within_existing_retry_budget(
                 output = candidate("invented-memory")
             elif fault == "unknown_evidence":
                 output["memory_assessments"][0]["evidence_ids"] = ["invented-evidence"]
-                output["supporting_evidence_ids"].append("invented-evidence")
+                output["supporting_evidence"].append({"evidence_id": "invented-evidence", "source_excerpt": "Invented evidence."})
             else:
                 output.update(authorization_basis="line_only", supporting_memory_ids=[])
         else:
@@ -116,7 +118,7 @@ def test_structurally_inconsistent_candidates_are_rejected(fault):
     elif fault == "empty_grounding":
         output["memory_assessments"][0]["evidence_ids"] = []
     elif fault == "missing_anchor":
-        output["supporting_evidence_ids"] = ["current"]
+        output["supporting_evidence"] = list(quoted_support(task().full_work_candidates, ("current",)))
     else:
         output["memory_assessments"][0]["status"] = "conflicting"
     with pytest.raises(ValidationError):
@@ -125,21 +127,22 @@ def test_structurally_inconsistent_candidates_are_rejected(fault):
 
 @pytest.mark.parametrize("status", ["grounded_prior_knowledge", "not_supported", "conflicting"])
 def test_uncertain_current_progress_does_not_become_a_candidate(status):
-    decision = BoundaryInferenceDecision.model_validate(uncertain(status))
+    decision = BoundaryUncertainDecision.model_validate(uncertain(status))
     assert boundary_memory_assessment_errors(decision, task()) == []
     assert decision.outcome == "uncertain"
-    assert decision.supporting_memory_ids == ()
-    assert decision.authorization_basis is None
+    assert "supporting_memory_ids" not in type(decision).model_fields
+    assert "authorization_basis" not in type(decision).model_fields
 
 
-@pytest.mark.parametrize("fault", ["missing", "unknown_evidence", "line_only", "conflicting"])
+@pytest.mark.parametrize("fault", ["missing", "unknown_evidence", "line_only", "conflicting", "missing_current_event"])
 def test_application_rechecks_injected_decisions_without_auto_promotion(fault):
     librarian = FakeLibrarian()
     stored = memory("memory-earlier", "Alice and the Caterpillar")
     output = candidate()
     output.update(work_id=WORK_ID, book_version_id=VERSION_ID, chapter_number=5)
     output["memory_assessments"][0]["evidence_ids"] = [librarian.chapter_five.evidence_id]
-    output["supporting_evidence_ids"] = [librarian.chapter_five.evidence_id]
+    output["supporting_evidence"] = list(quoted_support((librarian.chapter_five,)))
+    output["event_resolution"] = event_resolution("I finished the Caterpillar encounter.", (librarian.chapter_five,), (librarian.chapter_five.evidence_id,))
     decision = BoundaryInferenceDecision.model_validate(output)
     if fault == "missing":
         decision = decision.model_copy(update={"memory_assessments": ()})
@@ -149,6 +152,9 @@ def test_application_rechecks_injected_decisions_without_auto_promotion(fault):
         )})
     elif fault == "line_only":
         decision = decision.model_copy(update={"authorization_basis": "line_only", "supporting_memory_ids": ()})
+    elif fault == "missing_current_event":
+        decision = decision.model_copy(update={"event_resolution":
+            decision.event_resolution.model_copy(update={"occurrences": ()})})
     else:
         decision = decision.model_copy(update={"memory_assessments": (
             decision.memory_assessments[0].model_copy(update={"status": "conflicting"}),

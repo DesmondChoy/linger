@@ -14,7 +14,9 @@ from apps.backend import sessions
 from apps.backend.config import Settings
 from apps.backend.librarian import Librarian, RoutingDecision
 from corpus_fixtures import fake_registration
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from tests.boundary_fixtures import event_resolution, quoted_support
+from src.linger.agents.librarian.models import BoundaryUncertainDecision
+from src.linger.agents.librarian.models import BookRequestPlan, BoundaryInferenceDecision
 from src.linger.agents.muse.tools import librarian_route
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import (
@@ -259,6 +261,16 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual("session_selection", result.selection_basis)
 
     async def test_confident_route_with_resolvable_boundary_is_routed(self) -> None:
+        from src.linger.agents.librarian.models import BoundaryEventIdentified
+
+        async def identify(task):
+            chapter = max(record.chapter_number for record in task.full_work_candidates)
+            return BoundaryEventIdentified(
+                outcome="identified", evidence_ids=tuple(record.evidence_id for record in task.full_work_candidates if record.chapter_number == chapter),
+                reader_spans=(task.current_line,), explanation="The independent fixture identifies the controlled stop.",
+            )
+
+        self.enterContext(patch("src.linger.orchestration.boundary.identify_reader_event", side_effect=identify))
         async def confident_judge(_line, memories, evidence, _statements):
             return BoundaryInferenceDecision(
                 memory_assessments=tuple({"memory_id": memory_id, "status": "grounded_prior_knowledge",
@@ -272,7 +284,8 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
                 confidence=0.95,
                 authorization_basis="memory_supported",
                 supporting_memory_ids=[memory.memory_id for memory in memories],
-                supporting_evidence_ids=[record.evidence_id for record in evidence],
+                supporting_evidence=quoted_support(evidence, [record.evidence_id for record in evidence]),
+                event_resolution=event_resolution(_line, evidence, [record.evidence_id for record in evidence]),
             )
 
         # A ceiling needs an account-scoped memory backing the routed work.
@@ -313,7 +326,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_low_confidence_boundary_yields_clarification(self) -> None:
         async def uncertain_judge(_line, _memories, _evidence, _statements):
-            return BoundaryInferenceDecision(
+            return BoundaryUncertainDecision(
                 memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                     "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                     for memory in _memories),
@@ -445,7 +458,7 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.embeddings
     async def test_unrelated_turn_after_selection_reaches_inference_and_is_declined(self) -> None:
         async def declining_judge(_line, _memories, _evidence, _statements):
-            return BoundaryInferenceDecision(
+            return BoundaryUncertainDecision(
                 memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                     "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                     for memory in _memories),
@@ -460,9 +473,12 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
         reset_active_memories(self._token)
         self._token = set_active_memories((_caterpillar_scene_memory(),))
         self._set_message("Help me repair my bicycle.")
-        # Inference runs through the session fallback, and the unrelated line
-        # retrieves no evidence, so the boundary path declines before the judge.
+        # Low-scoring private candidates can reach judgment, but an unrelated
+        # request and reading memory do not themselves grant progress.
         with patch(
+            "src.linger.orchestration.evidence_strength.plan_book_request",
+            return_value=BookRequestPlan(parts=()),
+        ), patch(
             "src.linger.orchestration.routing.infer_spoiler_boundary",
             new=AsyncMock(wraps=infer_spoiler_boundary),
         ) as infer, patch(
@@ -472,7 +488,9 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
             result = await librarian_route()
 
         self.assertEqual(1, infer.await_count)
-        self.assertEqual(0, judge.await_count)
+        self.assertEqual(1, judge.await_count)
+        self.assertEqual("Help me repair my bicycle.", judge.call_args.args[0])
+        self.assertTrue(judge.call_args.args[2])
         self.assertIsInstance(result, ClarificationRequest)
         self.assertIsNone(sessions.reading_candidate("route-session"))
         self.assertIsNone(confirmed_reading())
@@ -565,7 +583,8 @@ class LibrarianRouteToolTests(unittest.IsolatedAsyncioTestCase):
                 chapter_number=evidence[0].chapter_number,
                 confidence=0.99,
                 authorization_basis="line_only",
-                supporting_evidence_ids=(evidence[0].evidence_id,),
+                supporting_evidence=quoted_support(evidence, (evidence[0].evidence_id,)),
+                event_resolution=event_resolution(_line, evidence, (evidence[0].evidence_id,)),
             )
 
         self._set_message(

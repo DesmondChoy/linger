@@ -574,6 +574,7 @@ class ReflectionSpanTests(TelemetryTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = result(
             ProvenanceReview(
+                coverage_audit=({"span_index": 0, "classification": "reader_reflection"},),
                 findings=(),
                 response_decision="pass",
                 emotional_boundary_decision="not_required",
@@ -641,6 +642,7 @@ class ReflectionSpanTests(TelemetryTestCase):
         provenance = AsyncMock()
         provenance.run.return_value = result(
             ProvenanceReview(
+                coverage_audit=({"span_index": 0, "classification": "reader_reflection"},),
                 findings=(
                     RiskFinding(
                         code="unsupported_claim",
@@ -691,6 +693,7 @@ class ReflectionSpanTests(TelemetryTestCase):
         provenance.run.side_effect = [
             result(
                 ProvenanceReview(
+                    coverage_audit=({"span_index": 0, "classification": "reader_reflection"},),
                     findings=(
                         RiskFinding(
                             code="unsupported_claim",
@@ -710,6 +713,7 @@ class ReflectionSpanTests(TelemetryTestCase):
             ),
             result(
                 ProvenanceReview(
+                    coverage_audit=({"span_index": 0, "classification": "reader_reflection"},),
                     findings=(),
                     response_decision="pass",
                     finding_resolutions=({

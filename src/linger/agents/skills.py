@@ -91,7 +91,7 @@ class RuntimeSkill(Generic[InputT, OutputT]):
         artifact = {
             "skill": self.skill_id,
             "instructions": self.effective_instructions,
-            "input_schema": TypeAdapter(input_type or self.input_type).json_schema(),
+            "input_schema": TypeAdapter(input_type or self.input_type).json_schema(mode="serialization"),
             "output_schema": TypeAdapter(output).json_schema(),
             "tools": self.tools,
             "capabilities": self.capabilities,

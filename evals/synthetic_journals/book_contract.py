@@ -158,12 +158,12 @@ def compile_book_replay_plan(
             for span in facts.basis_spans:
                 failures.extend(_validate_span(span, scene, props, lines, {}))
             try:
-                _, catalog = resolver.catalog(
+                max_chapter = resolver.max_chapter(
                     facts.scope.work_id, facts.scope.book_version_id
                 )
                 if (
                     isinstance(facts.scope, ReaderConfirmedBookScope)
-                    and facts.scope.safe_ceiling_chapter > catalog["chapter_count"]
+                    and facts.scope.safe_ceiling_chapter > max_chapter
                 ):
                     failures.append(f"Scene {scene.scene_id} ceiling exceeds corpus")
             except (OSError, ValueError) as error:
@@ -195,6 +195,16 @@ def compile_book_replay_plan(
                     )
                 elif supporting:
                     ceiling = max(item.chapter_number for item in supporting if item)
+                for evidence_id in facts.scope.optional_supporting_evidence_ids:
+                    optional = resolved.get(evidence_id)
+                    if optional is None:
+                        failures.append(
+                            f"book Scene {scene.scene_id} references missing optional supporting evidence: {evidence_id}"
+                        )
+                    elif ceiling is not None and optional.chapter_number > ceiling:
+                        failures.append(
+                            f"book Scene {scene.scene_id} optional supporting evidence {evidence_id} exceeds required-derived ceiling"
+                        )
 
         failures.extend(
             _validate_scene_proposals(
@@ -425,11 +435,4 @@ def _coverage_failures(
         }
         if not {"librarian_inferred", "clarification"} <= scope_kinds:
             failures.append("spoiler replay requires inferred and clarification Scenes")
-    if selected == BOOK_OBJECTIVE_IDS and not any(
-        set(scene.scene.objective_ids) == BOOK_OBJECTIVE_IDS
-        and scene.facts is not None
-        and scene.facts.scope.kind == "librarian_inferred"
-        for scene in scenes
-    ):
-        failures.append("combined book replay requires one shared inferred Scene")
     return failures

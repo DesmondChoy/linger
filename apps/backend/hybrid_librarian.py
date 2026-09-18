@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from itertools import zip_longest
 from typing import Protocol
 
 import bm25s
@@ -21,6 +22,7 @@ from apps.backend.librarian import (
     Paragraph,
     _paragraphs,
 )
+from apps.backend.rerank_windows import TokenWindowReranker
 from src.linger.corpus.units import CorpusUnit, read_unit
 from src.linger.corpus import registry
 
@@ -32,7 +34,7 @@ OVERLAP_WORDS = 60
 KEYWORD_CANDIDATES = 10
 SEMANTIC_CANDIDATES = 10
 MAX_RERANKER_CANDIDATES = 15
-MAX_JUDGEMENT_CANDIDATES = 5
+MAX_JUDGEMENT_CANDIDATES = KEYWORD_CANDIDATES + SEMANTIC_CANDIDATES
 RRF_K = 60
 OVERLAP_DEDUPE_THRESHOLD = 0.5
 
@@ -156,7 +158,7 @@ class HybridLibrarian(Librarian):
         if self._reranker is None:
             from fastembed.rerank.cross_encoder import TextCrossEncoder
 
-            self._reranker = TextCrossEncoder(model_name=RERANKER_MODEL)
+            self._reranker = TokenWindowReranker(TextCrossEncoder(model_name=RERANKER_MODEL))
         return self._reranker
 
     def _eligible_windows(self, request: LibrarianRequest) -> list[Candidate]:
@@ -272,7 +274,7 @@ class HybridLibrarian(Librarian):
         return self._retrieve(request, recover_for_judgement=False)
 
     def retrieve_for_judgement(self, request: LibrarianRequest) -> EvidenceBundle:
-        """Retain independent search leaders privately until answerability is judged."""
+        """Retain bounded independent search candidates until answerability is judged."""
         return self._retrieve(request, recover_for_judgement=True)
 
     def _retrieve(self, request: LibrarianRequest, *, recover_for_judgement: bool) -> EvidenceBundle:
@@ -281,13 +283,19 @@ class HybridLibrarian(Librarian):
             return EvidenceBundle(items=[], retrieval_note="No eligible chapter text was searched.")
 
         keyword = self._bm25(request.query, index)
-        semantic = self._semantic(request.query, index, request.retrieval_score_threshold)
+        semantic = self._semantic(
+            request.query, index,
+            -1.0 if recover_for_judgement else request.retrieval_score_threshold,
+        )
         fused = self._fuse(keyword, semantic)
         if not fused:
             return EvidenceBundle(items=[], retrieval_note="No candidate cleared retrieval thresholds.")
 
+        candidates = fused
+        if recover_for_judgement:
+            candidates = list({candidate.evidence_id: candidate for candidate in [*keyword, *semantic]}.values())
         raw_scores = self._reranker_model().rerank(
-            request.query, [candidate.text for candidate in fused]
+            request.query, [candidate.text for candidate in candidates]
         )
         scored = sorted(
             (
@@ -297,16 +305,18 @@ class HybridLibrarian(Librarian):
                     candidate.source_lines,
                     1 / (1 + math.exp(-float(score))),
                 )
-                for candidate, score in zip(fused, raw_scores, strict=True)
+                for candidate, score in zip(candidates, raw_scores, strict=True)
             ),
             key=lambda candidate: -candidate.score,
         )
         if recover_for_judgement:
-            fused_leader = next(
-                candidate for candidate in scored
-                if candidate.evidence_id == fused[0].evidence_id
-            )
-            final = _dedupe([fused_leader, *scored], MAX_JUDGEMENT_CANDIDATES)
+            by_id = {candidate.evidence_id: candidate for candidate in scored}
+            selected: dict[str, Candidate] = {}
+            for rank in zip_longest(keyword, fused, semantic, scored):
+                for candidate in rank:
+                    if candidate is not None:
+                        selected.setdefault(candidate.evidence_id, by_id[candidate.evidence_id])
+            final = list(selected.values())[:MAX_JUDGEMENT_CANDIDATES]
         else:
             final = _dedupe(
                 [

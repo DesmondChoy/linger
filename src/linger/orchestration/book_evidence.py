@@ -1,12 +1,16 @@
 """Shared scoped book retrieval and independent relevance judgment."""
 
 from dataclasses import dataclass
+from itertools import zip_longest
 from typing import Literal
 
+import logfire
+
 from apps.backend.contracts import BookScope, EvidenceItem, LibrarianRequest
-from apps.backend.hybrid_librarian import MAX_JUDGEMENT_CANDIDATES
 from apps.backend.librarian import Librarian
-from src.linger.agents.librarian.models import BookRequestPlan, EvidenceStrengthDecision
+from src.linger.agents.librarian.models import (
+    BookRequestPlan, EvidenceStrengthDecision, LibrarianBookRequestInput,
+)
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.session import ReaderStatement
@@ -17,6 +21,11 @@ from src.linger.orchestration.evidence_strength import (
 
 class EvidenceJudgementError(ValueError):
     """No evidence can be admitted when judgment fails or selects unknown records."""
+
+
+MAX_SEARCH_QUERIES = 16
+MAX_BOOK_CANDIDATES = 20
+MAX_QUERY_CHARACTERS = 2000
 
 
 @dataclass(frozen=True)
@@ -47,6 +56,7 @@ async def judge_records(
     strength_judge: StrengthJudge | None = None,
     max_evidence_records: int = 5,
     request_plan: BookRequestPlan | None = None,
+    original_request: LibrarianBookRequestInput | None = None,
 ) -> EvidenceStrengthDecision:
     if not records:
         return EvidenceStrengthDecision(
@@ -55,8 +65,11 @@ async def judge_records(
         )
     try:
         if request_plan is not None:
+            if original_request is None:
+                raise ValueError("planned evidence assessment requires original reader context")
             output = await assess_book_evidence(
                 request_plan, records, max_evidence_records=max_evidence_records,
+                original_request=original_request,
             )
         elif strength_judge is None:
             output = await judge_evidence_strength(
@@ -79,6 +92,37 @@ async def judge_records(
         raise EvidenceJudgementError("Evidence judgment unavailable") from error
 
 
+def _search_queries(plan: BookRequestPlan, original: LibrarianBookRequestInput) -> tuple[str, ...]:
+    texts = [
+        " ".join(dict.fromkeys((*part.context_spans, *part.reader_spans)))
+        for part in plan.parts
+    ]
+    texts.extend((original.current_line, *(s.text for s in original.prior_reader_statements)))
+    queries = tuple(dict.fromkeys(
+        text[start:start + MAX_QUERY_CHARACTERS].strip()
+        for text in texts for start in range(0, len(text), MAX_QUERY_CHARACTERS)
+        if text[start:start + MAX_QUERY_CHARACTERS].strip()
+    ))
+    if len(queries) > MAX_SEARCH_QUERIES:
+        raise EvidenceJudgementError("The complete request exceeds the retrieval query budget")
+    return queries
+
+
+def _merge_candidates(
+    streams: list[tuple[EvidenceItem, ...]], book_scopes: tuple[BookScope, ...],
+) -> tuple[EvidenceItem, ...]:
+    by_id: dict[str, EvidenceItem] = {}
+    for ranked in zip_longest(*streams):
+        for item in ranked:
+            if item is None or not any(permits_scope(scope, item) for scope in book_scopes):
+                continue
+            prior = by_id.get(item.evidence_id)
+            if prior is not None and evidence_record_from_item(prior) != evidence_record_from_item(item):
+                raise EvidenceJudgementError("Conflicting retrieved content for one evidence ID")
+            by_id.setdefault(item.evidence_id, item)
+    return tuple(by_id.values())[:MAX_BOOK_CANDIDATES]
+
+
 async def retrieve_book_evidence(
     reader_question: str,
     *,
@@ -91,44 +135,42 @@ async def retrieve_book_evidence(
     prior_reader_statements: tuple[ReaderStatement, ...] = (),
 ) -> JudgedBookEvidence:
     """Recover, scope, and judge candidates before exposing selected evidence."""
+    if not book_scopes:
+        return JudgedBookEvidence(items=(), judgement=EvidenceStrengthDecision(
+            evidence_strength="none", strength_reason="No book scope is authorized for retrieval.",
+        ))
+    original = LibrarianBookRequestInput(
+        current_line=reader_question, prior_reader_statements=prior_reader_statements,
+    )
     plan = None
-    retrieval_query = reader_question
     if strength_judge is None:
         try:
             plan = await plan_book_request(
                 reader_question,
                 prior_reader_statements=prior_reader_statements,
             )
-        except Exception as error:
-            raise EvidenceJudgementError("Book request planning unavailable") from error
-        if not plan.parts:
-            return JudgedBookEvidence(items=(), judgement=EvidenceStrengthDecision(
-                evidence_strength="none",
-                strength_reason="No book question was identified in the supplied reader context.",
-            ))
-        retrieval_query = " ".join(dict.fromkeys(
-            span for field in ("context_spans", "reader_spans")
-            for part in plan.parts for span in getattr(part, field)
-        ))
+        except Exception:
+            logfire.warning("librarian.book_request_fallback", reason="planning_unavailable")
+            plan = BookRequestPlan(parts=())
+    queries = _search_queries(plan or BookRequestPlan(parts=()), original)
     try:
-        retrieval_request = LibrarianRequest(
-            query=retrieval_query, book_scopes=list(book_scopes),
+        requests = [LibrarianRequest(
+            query=query, book_scopes=list(book_scopes),
             retrieval_score_threshold=retrieval_score_threshold,
-            max_results=MAX_JUDGEMENT_CANDIDATES, purpose=purpose,
-        )
+            max_results=max_results, purpose=purpose,
+        ) for query in queries]
     except ValueError as error:
         raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
-    bundle = librarian.retrieve_for_judgement(retrieval_request)
-    items = tuple(
-        item for item in bundle.items
-        if any(permits_scope(scope, item) for scope in book_scopes)
-    )[:MAX_JUDGEMENT_CANDIDATES]
+    items = _merge_candidates(
+        [tuple(librarian.retrieve_for_judgement(request).items) for request in requests], book_scopes,
+    )
     records = tuple(evidence_record_from_item(item) for item in items)
     if len({record.evidence_id for record in records}) != len(records):
         raise ValueError("retrieved evidence IDs must be unique")
     decision = await judge_records(
-        retrieval_query, records, strength_judge=strength_judge,
+        reader_question, records, strength_judge=strength_judge,
         max_evidence_records=max_results, request_plan=plan,
+        original_request=original,
     )
     selected = set(decision.relevant_evidence_ids)
     return JudgedBookEvidence(

@@ -1,0 +1,131 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "douglass-learning-history",
+    "person_id": "douglass-reader-mara",
+    "evaluation_account_id": "douglass-evaluation-mara",
+    "context": "Mara is a library assistant who reads memoirs in short evening sessions. She recently joined her apartment residents’ committee and has been sorting unanswered maintenance requests. Reading about language and agency sometimes helps her name her frustration, but she wants to respect the historical stakes of Douglass’s account rather than treat it as a productivity lesson. She remembers vivid images better than the sequence of moves between households, and after interruptions can lose her place. The four sessions share this reading life and practical concern; only each session’s assigned prior reading note is available to it."
+  },
+  "props": [
+    {
+      "prop_id": "douglass-earlier-lessons",
+      "backstory_id": "douglass-learning-history",
+      "person_id": "douglass-reader-mara",
+      "evaluation_account_id": "douglass-evaluation-mara",
+      "source_text": "Last weekend in Frederick Douglass’s Narrative, I read how Hugh Auld stopped his wife from teaching Douglass to read. What stayed with me was Douglass hearing a reason to learn in the very argument meant to prevent it. I’m reading a little each evening, and I keep returning to that reversal.",
+      "lifecycle": [
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "douglass-earlier-return",
+      "backstory_id": "douglass-learning-history",
+      "person_id": "douglass-reader-mara",
+      "evaluation_account_id": "douglass-evaluation-mara",
+      "source_text": "I put Frederick Douglass’s Narrative down a while ago after reading about his being sent back to Baltimore. I remember the return more clearly than what led to it; I didn’t keep the bookmark, and I’ve lost track of whose household or workplace he was coming from.",
+      "lifecycle": [
+        {
+          "scene_id": "douglass-uncertain",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "douglass-grounded",
+      "backstory_id": "douglass-learning-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "douglass-current-reading"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "douglass-personal",
+      "backstory_id": "douglass-learning-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "douglass-current-life"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "douglass-spoiler-inference",
+      "backstory_id": "douglass-learning-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "douglass-earlier-lessons"
+      ],
+      "line_ids": [
+        "douglass-inference-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "douglass-uncertain",
+      "backstory_id": "douglass-learning-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "douglass-earlier-return"
+      ],
+      "line_ids": [
+        "douglass-current-uncertainty"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "douglass-current-reading",
+      "scene_id": "douglass-grounded",
+      "order": 1,
+      "text": "I've finished Chapter 7 of Narrative of the Life of Frederick Douglass. I haven't read further. In that chapter he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly and help me think about the difference between understanding a problem and having a way to act? I’m volunteering on our apartment residents’ committee; learning how often repair requests disappear has made me more upset, but I still don’t know what useful step to take. The circumstances are very different from his, but that gap between seeing and acting stayed with me."
+    },
+    {
+      "line_id": "douglass-current-life",
+      "scene_id": "douglass-personal",
+      "order": 1,
+      "text": "I’m volunteering on our apartment residents’ committee. After sorting the repair requests, I can see how often they disappear, and I’m more upset than before. I keep reading more documents instead of choosing something I can actually do. Can you help me separate understanding the problem from one useful next step?"
+    },
+    {
+      "line_id": "douglass-inference-line",
+      "scene_id": "douglass-spoiler-inference",
+      "order": 1,
+      "text": "Tonight I got to the end of Frederick Douglass’s account of learning to write in his Narrative: he uses the spaces in little Thomas’s discarded copybooks while Mrs. Auld is at her Monday meeting, until his handwriting resembles Thomas’s. I stopped there. Earlier in that account he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly and help me think about the difference between understanding a problem and having a way to act? I’m volunteering on our apartment residents’ committee; learning how often repair requests disappear has made me more upset, but I still don’t know what useful step to take. The circumstances are very different from his, but that gap between seeing and acting stayed with me."
+    },
+    {
+      "line_id": "douglass-current-uncertainty",
+      "scene_id": "douglass-uncertain",
+      "order": 1,
+      "text": "I’m trying to pick up Frederick Douglass’s Narrative again. The return to Baltimore I mentioned is still the last bit I can place, but I can’t recall what had sent him away or who sent him back. What did that return change for him?"
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}

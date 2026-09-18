@@ -22,6 +22,7 @@ AgentFailureCategory = Literal[
     "unknown_error",
     "cancelled",
 ]
+ProviderErrorKind = Literal["http", "timeout", "connection", "other"]
 
 
 class EvaluationTranscriptSink(Protocol):
@@ -55,6 +56,8 @@ class EvaluationTranscriptSink(Protocol):
         failure_code: str | None,
         partial_messages: Sequence[Any] = (),
         failure_category: AgentFailureCategory | None = None,
+        provider_status_code: int | None = None,
+        provider_error_kind: ProviderErrorKind | None = None,
     ) -> None:
         """Attach a result or failure with evaluation-only attempted messages."""
 

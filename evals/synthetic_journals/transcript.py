@@ -18,6 +18,7 @@ from pydantic_ai.messages import (
 from src.linger.agents.contracts import PromptFingerprint
 from src.linger.evaluation_transcript import (
     AgentFailureCategory,
+    ProviderErrorKind,
     ConnectionEvaluationEvent,
     active_evaluation_correlation_id,
 )
@@ -70,6 +71,8 @@ class AgentExchange(StrictModel):
     status: str
     failure_code: str | None
     failure_category: AgentFailureCategory | None = None
+    provider_status_code: int | None = Field(default=None, ge=400, le=599, strict=True)
+    provider_error_kind: ProviderErrorKind | None = None
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     span_id: str = Field(pattern=r"^[0-9a-f]{16}$")
 
@@ -155,6 +158,8 @@ class SceneTranscriptRecorder:
         failure_code: str | None,
         partial_messages: Sequence[Any] = (),
         failure_category: AgentFailureCategory | None = None,
+        provider_status_code: int | None = None,
+        provider_error_kind: ProviderErrorKind | None = None,
     ) -> None:
         if not isinstance(handle, _PendingExchange) or handle not in self._pending:
             raise ValueError("unknown evaluation transcript exchange")
@@ -200,6 +205,8 @@ class SceneTranscriptRecorder:
             status=status,
             failure_code=failure_code,
             failure_category=failure_category,
+            provider_status_code=provider_status_code,
+            provider_error_kind=provider_error_kind,
             trace_id=handle.trace_id,
             span_id=handle.span_id,
         )

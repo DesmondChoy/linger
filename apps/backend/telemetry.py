@@ -15,10 +15,12 @@ from contextvars import ContextVar
 from typing import Any, Literal
 
 import logfire
+from openai import APIConnectionError, APIStatusError, APITimeoutError
 from opentelemetry.trace import format_span_id, format_trace_id
 from pydantic_ai import capture_run_messages
 from pydantic_ai.exceptions import (
     ModelAPIError,
+    ModelHTTPError,
     ModelRetry,
     UnexpectedModelBehavior,
     UsageLimitExceeded,
@@ -29,6 +31,7 @@ from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.evaluation_transcript import (
     AgentFailureCategory,
+    ProviderErrorKind,
     active_evaluation_transcript_sink,
 )
 from src.linger.orchestration.progress_context import emit_progress
@@ -252,6 +255,22 @@ def _agent_failure_category(error: Exception) -> AgentFailureCategory:
     return "unknown_error"
 
 
+def _provider_error_kind(error: Exception) -> ProviderErrorKind | None:
+    """Classify known SDK wrappers without examining their sensitive contents."""
+    if not isinstance(error, ModelAPIError):
+        return None
+    if isinstance(error, ModelHTTPError):
+        return "http"
+    cause = error.__cause__
+    if isinstance(cause, APITimeoutError):
+        return "timeout"
+    if isinstance(cause, APIConnectionError):
+        return "connection"
+    if isinstance(cause, APIStatusError):
+        return "http"
+    return "other"
+
+
 async def run_agent_traced(
     agent: Any,
     prompt: str,
@@ -284,6 +303,8 @@ async def run_agent_traced(
     transcript_status = "failure"
     transcript_failure_code: str | None = failure_code
     failure_category: AgentFailureCategory | None = None
+    provider_status_code: int | None = None
+    provider_error_kind: ProviderErrorKind | None = None
     captured_messages: Sequence[Any] = ()
     transcript_sink = active_evaluation_transcript_sink()
     transcript_handle: object | None = None
@@ -355,6 +376,13 @@ async def run_agent_traced(
             caught = exc
             transcript_failure_code = failure_code
             failure_category = _agent_failure_category(exc)
+            provider_error_kind = _provider_error_kind(exc)
+            if (
+                isinstance(exc, ModelHTTPError)
+                and type(exc.status_code) is int
+                and 400 <= exc.status_code <= 599
+            ):
+                provider_status_code = exc.status_code
             span.set_attribute("failure.category", failure_category)
             record_failure(
                 span,
@@ -393,6 +421,8 @@ async def run_agent_traced(
             failure_code=transcript_failure_code,
             partial_messages=captured_messages if result is None else (),
             failure_category=failure_category,
+            provider_status_code=provider_status_code,
+            provider_error_kind=provider_error_kind,
         )
 
     emit_progress(

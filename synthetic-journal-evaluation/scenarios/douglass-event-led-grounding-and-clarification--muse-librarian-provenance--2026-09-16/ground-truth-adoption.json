@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+  "proposed_ground_truth_sha256": "22f9a94565492b0ea6b43757b295b6cfa7f9ab76e0542455051e109f848ba973",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-17T19:32:31.515900+08:00",
+  "decisions": [
+    {
+      "proposal_id": "douglass-proposal-grounded",
+      "scene_id": "douglass-grounded",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "douglass-proposal-boundary",
+      "scene_id": "douglass-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "douglass-proposal-personal",
+      "scene_id": "douglass-personal",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "douglass-proposal-clarification",
+      "scene_id": "douglass-uncertain",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "4093f5046822511b8437750639753d5a69ec1e86e3a4d750ba87ef407dc56f51"
+}

@@ -9,7 +9,8 @@ from unittest.mock import AsyncMock, patch
 
 from apps.backend.contracts import EvidenceBundle, EvidenceItem
 from apps.backend.librarian import Librarian, RegisteredCorpusScope, WorkRouteCandidate
-from src.linger.agents.librarian.models import BoundaryInferenceDecision
+from tests.boundary_fixtures import event_resolution, quoted_support, identify_fixture_event
+from src.linger.agents.librarian.models import BoundaryUncertainDecision, BoundaryInferenceDecision, BookRequestPlan
 from src.linger.contracts.librarian import BoundaryCandidate, BoundaryUncertain
 from src.linger.orchestration.boundary import infer_spoiler_boundary
 from src.linger.services.memory import (
@@ -53,7 +54,7 @@ def memory(memory_id: str, text: str, evidence_ids: tuple[str, ...] = ()) -> Mem
     )
 
 
-class FakeLibrarian:
+class FakeLibrarian(Librarian):
     def __init__(self) -> None:
         self.requests = []
         self.chapter_five = item(5, "The Caterpillar asks Alice who she is.")
@@ -102,6 +103,18 @@ class FakeLibrarian:
 
 
 class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.enterContext(patch(
+            "src.linger.orchestration.boundary.identify_reader_event",
+            side_effect=identify_fixture_event(5),
+        ))
+        planner = patch(
+            "src.linger.orchestration.evidence_strength.plan_book_request",
+            AsyncMock(return_value=BookRequestPlan(parts=())),
+        )
+        planner.start()
+        self.addCleanup(planner.stop)
+
     async def test_separate_searches_preserve_current_and_memory_anchors(self) -> None:
         librarian = FakeLibrarian()
         line = "Current event question"
@@ -114,7 +127,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(_line, memories, evidence, _statements):
             received.append((memories, evidence))
-            return BoundaryInferenceDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
+            return BoundaryUncertainDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "grounded_prior_knowledge",
                                                  "evidence_ids": (librarian.chapter_five.evidence_id,),
                                                  "reason": "The prior Caterpillar event is grounded, but the current event remains ambiguous."}
                                                  for memory in memories),
@@ -135,7 +148,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         librarian = FakeLibrarian()
         line = "An ambiguous current event"
         stored = memory("memory-anchor", "Alice and the Caterpillar")
-        judge = AsyncMock(return_value=BoundaryInferenceDecision(
+        judge = AsyncMock(return_value=BoundaryUncertainDecision(
             memory_assessments=(),
             outcome="uncertain", confidence=0.2, reason_code="conflicting_context",
         ))
@@ -155,7 +168,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("insufficient_context", result.reason_code)
         self.assertIsNone(result.candidate_chapter)
 
-    async def test_separate_candidates_are_deduplicated_and_bounded_fairly(self) -> None:
+    async def test_separate_candidates_are_deduplicated_and_interleaved(self) -> None:
         librarian = FakeLibrarian()
         line = "Current event"
         stored = memory("memory-anchor", "Alice and the Caterpillar")
@@ -165,14 +178,15 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(_line, _memories, evidence, _statements):
             received.extend(evidence)
-            return BoundaryInferenceDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
+            return BoundaryUncertainDecision(memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                                                  "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                                                  for memory in _memories),
                                              outcome="uncertain", confidence=0.2,
                                              reason_code="conflicting_context")
 
         def retrieve(request):
-            return EvidenceBundle(items=previous if request.query == stored.text else current,
+            candidates = previous if request.query == stored.text else current
+            return EvidenceBundle(items=candidates[:request.max_results],
                                   retrieval_note="private")
 
         with patch.object(librarian, "retrieve", side_effect=retrieve):
@@ -180,8 +194,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 line, work_id=WORK_ID, book_version_id=VERSION_ID,
                 memories=(stored,), librarian=librarian, judge=judge,
             )
-        self.assertEqual(10, len(received))
-        self.assertEqual(10, len({record.evidence_id for record in received}))
+        self.assertEqual(6, len(received))
+        self.assertEqual(6, len({record.evidence_id for record in received}))
         self.assertEqual([1, 12], [record.chapter_number for record in received[:2]])
 
     async def test_adopted_prop_reaches_private_judge_from_saved_memory(self) -> None:
@@ -216,7 +230,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
                     async def judge(current_line, selected, evidence, statements):
                         received.append((current_line, selected, evidence, statements))
-                        return BoundaryInferenceDecision(
+                        return BoundaryUncertainDecision(
                             memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                                 "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                                 for memory in selected),
@@ -280,7 +294,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 confidence=0.93,
                 authorization_basis="memory_supported",
                 supporting_memory_ids=(stored.memory_id,),
-                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+                supporting_evidence=quoted_support(evidence, (librarian.chapter_five.evidence_id,)),
+                event_resolution=event_resolution(current_line, evidence, (librarian.chapter_five.evidence_id,)),
             )
 
         result = await infer_spoiler_boundary(
@@ -324,7 +339,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 confidence=0.61,
                 authorization_basis="memory_supported",
                 supporting_memory_ids=(stored.memory_id,),
-                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+                supporting_evidence=quoted_support(_args[2], (librarian.chapter_five.evidence_id,)),
+                event_resolution=event_resolution(_args[0], _args[2], (librarian.chapter_five.evidence_id,)),
             )
 
         result = await infer_spoiler_boundary(
@@ -360,7 +376,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 chapter_number=5,
                 confidence=0.99,
                 authorization_basis="line_only",
-                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+                supporting_evidence=quoted_support(_args[2], (librarian.chapter_five.evidence_id,)),
+                event_resolution=event_resolution(_args[0], _args[2], (librarian.chapter_five.evidence_id,)),
             )
 
         result = await infer_spoiler_boundary(
@@ -384,7 +401,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
 
         async def judge(_line, memories, _evidence, _prior_reader_statements):
             self.assertEqual((), memories)
-            return BoundaryInferenceDecision(
+            return BoundaryUncertainDecision(
                 memory_assessments=tuple({"memory_id": memory.memory_id, "status": "not_supported",
                     "evidence_ids": (), "reason": "The memory does not establish the requested current position."}
                     for memory in memories),
@@ -424,7 +441,7 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 (chapter_five_memory, later_memory),
                 memories,
             )
-            return BoundaryInferenceDecision(
+            return BoundaryUncertainDecision(
                 memory_assessments=tuple({"memory_id": memory.memory_id, "status": "conflicting",
                     "evidence_ids": memory.evidence_ids, "reason": "These memories give conflicting reading-position context."}
                     for memory in memories),
@@ -461,7 +478,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 chapter_number=5,
                 confidence=0.95,
                 authorization_basis="line_only",
-                supporting_evidence_ids=("invented-evidence",),
+                supporting_evidence=({"evidence_id": "invented-evidence", "source_excerpt": "Invented test source."},),
+                event_resolution=event_resolution(_args[0], _args[2], ('invented-evidence',)),
             )
 
         result = await infer_spoiler_boundary(
@@ -491,10 +509,11 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 chapter_number=5,
                 confidence=0.95,
                 authorization_basis="line_only",
-                supporting_evidence_ids=(
+                supporting_evidence=quoted_support(_args[2], (
                     librarian.chapter_five.evidence_id,
                     librarian.chapter_five.evidence_id,
-                ),
+                )),
+                event_resolution=event_resolution(_args[0], _args[2], (librarian.chapter_five.evidence_id, librarian.chapter_five.evidence_id)),
             )
 
         result = await infer_spoiler_boundary(
@@ -531,7 +550,8 @@ class BoundaryInferenceTests(unittest.IsolatedAsyncioTestCase):
                 confidence=0.95,
                 authorization_basis="memory_supported",
                 supporting_memory_ids=("memory-invented",),
-                supporting_evidence_ids=(librarian.chapter_five.evidence_id,),
+                supporting_evidence=quoted_support(_args[2], (librarian.chapter_five.evidence_id,)),
+                event_resolution=event_resolution(_args[0], _args[2], (librarian.chapter_five.evidence_id,)),
             )
 
         result = await infer_spoiler_boundary(

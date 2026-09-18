@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from provenance_fixtures import review_with_audits
 import os
 from dataclasses import replace
 from pathlib import Path
@@ -198,7 +199,7 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
         tool_name="librarian_search",
         args={
             "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
-            "reading_boundary": None,
+
         },
         tool_call_id="call-1",
     )
@@ -235,7 +236,7 @@ def test_scene_transcript_records_tool_call_and_result() -> None:
     assert exchange.tool_exchanges[0].tool_name == "librarian_search"
     assert exchange.tool_exchanges[0].arguments == {
         "work_id": "pg11", "book_version_id": "pg11-v01b38ea4",
-        "reading_boundary": None,
+
     }
     assert exchange.tool_exchanges[0].result == {"kind": "result", "evidence": []}
     assert "hidden model reasoning" not in json.dumps(exchange.model_messages)
@@ -753,12 +754,12 @@ def test_replay_uses_production_capture_path_without_handing_off_labels() -> Non
             else "no_candidate"
         )
         return _result(
-            ProvenanceReview(
+            review_with_audits(payload, ProvenanceReview(
                 findings=(),
                 response_decision="pass",
                 emotional_boundary_decision="not_required",
                 capture_decision=decision,
-            )
+            ))
         )
 
     get_settings.cache_clear()

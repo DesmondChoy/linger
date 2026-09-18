@@ -165,10 +165,6 @@ def librarian_outcome(
         args={
             "work_id": WORK_ID,
             "book_version_id": BOOK_VERSION_ID,
-            "reading_boundary": {
-                "chapter_number": chapter_max,
-                "chapter_state": "completed",
-            },
         },
         content={
             "kind": "retrieval_result",

@@ -13,7 +13,6 @@ from src.linger.contracts.librarian import (
     RetrievalOptions,
     RetrievalResult,
 )
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.orchestration import turn_context
 from src.linger.orchestration.grounding import BookVersionOutOfScope, grounding_evidence
 
@@ -51,7 +50,7 @@ class PassageGroundingTests(unittest.IsolatedAsyncioTestCase):
             "query": "What does Alice actually say?",
             "work_id": self.record.work_id,
             "book_version_id": self.record.book_version_id,
-            "reading_boundary": None,
+
             "access_scope": AccessScope(
                 allowed_book_version_ids=(self.record.book_version_id, "another-version")
             ),
@@ -82,7 +81,7 @@ class PassageGroundingTests(unittest.IsolatedAsyncioTestCase):
         query = "Tell me everything in the last chapter."
         response = await self.search(
             query=query,
-            reading_boundary=ReadingBoundary(chapter_number=12, chapter_state="completed"),
+
         )
 
         self.assertIsInstance(response, RetrievalResult)

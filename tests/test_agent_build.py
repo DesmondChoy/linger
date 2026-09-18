@@ -1,10 +1,14 @@
 """Tests for provider selection shared by all role Agent builders."""
 
+import asyncio
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from pydantic import ValidationError
+from pydantic_ai import Agent
+from pydantic_ai.models import override_allow_model_requests
+from openai.types.responses import Response
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.openai import OpenAIResponsesModel
@@ -14,6 +18,31 @@ from src.linger.agents.build import build_model
 
 
 class BuildModelTests(unittest.TestCase):
+    def test_luna_reasoning_setting_reaches_responses_request(self) -> None:
+        settings = Settings(
+            _env_file=None, linger_model="openai:gpt-5.6-luna",
+            openai_api_key="test-key",
+        )
+        with patch("src.linger.agents.build.get_settings", return_value=settings):
+            model = build_model()
+        response = Response.model_validate({
+            "id": "resp_local", "created_at": 0, "object": "response",
+            "model": "gpt-5.6-luna", "status": "completed",
+            "parallel_tool_calls": True, "tool_choice": "auto", "tools": [],
+            "output": [{
+                "id": "msg_local", "type": "message", "role": "assistant",
+                "status": "completed", "content": [{
+                    "type": "output_text", "text": "Local response", "annotations": [],
+                }],
+            }],
+        })
+        create = AsyncMock(return_value=response)
+        with patch.object(model.client.responses, "create", create), override_allow_model_requests(True):
+            result = asyncio.run(Agent(model).run("Check configured reasoning."))
+        self.assertEqual("Local response", result.output)
+        self.assertEqual("medium", create.await_args.kwargs["reasoning"]["effort"])
+        create.assert_awaited_once()
+
     def test_requires_explicit_model_configuration(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(ValidationError):
@@ -52,6 +81,7 @@ class BuildModelTests(unittest.TestCase):
                     model = build_model()
 
                 self.assertIsInstance(model, expected_type)
+                self.assertFalse(model.settings)
 
     def test_rejects_missing_provider_key(self) -> None:
         for key in (None, "", "   "):

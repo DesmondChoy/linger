@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from provenance_fixtures import review_with_audits
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -170,12 +171,12 @@ def test_combined_replay_uses_production_handlers_and_original_adoption(
         payload = _payload(messages)
         source_payloads.append(payload)
         scene = scenes_by_text[payload["current_line"]["text"]]
-        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, review_with_audits(payload, {
             "findings": [],
             "response_decision": "pass",
             "emotional_boundary_decision": "not_required",
             "capture_decision": proposals[scene.scene_id].capture.provenance_decision,
-        })])
+        }).model_dump(mode="json"))])
 
     def sculptor(messages: list[object], info: AgentInfo) -> ModelResponse:
         payload = _payload(messages)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Self
 
 from pydantic import Field, model_validator
 
@@ -56,17 +56,4 @@ class ReadingScope(StrictModel):
     @model_validator(mode="after")
     def valid_selector(self) -> Self:
         validate_selector(self.chapter_max, self.unit_ids)
-        return self
-
-
-class ReadingBoundary(StrictModel):
-    """Actual chapter within a part, or exact named units."""
-    chapter_number: int | None = Field(default=None, ge=1)
-    chapter_state: Literal["started", "completed"]
-    part_id: str = "main"
-    unit_ids: tuple[str, ...] = ()
-
-    @model_validator(mode="after")
-    def valid_selector(self) -> Self:
-        validate_selector(self.chapter_number, self.unit_ids)
         return self

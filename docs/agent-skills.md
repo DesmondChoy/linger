@@ -13,8 +13,9 @@ calls or transfer application authority to a model.
 |---|---|---|---|
 | [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md), including revision | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
 | [Librarian](../src/linger/agents/librarian/README.md) · [assignment](../src/linger/agents/librarian/skills.py) | [Boundary inference](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary`; deterministic grant validation follows |
-| Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` identifies requested book parts before retrieval; exact reader spans are validated |
-| Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` validates requested-part support and selected IDs, then returns `EvidenceStrengthDecision` |
+| Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | Original reader wording and private canonical candidates → identified occurrence or unresolved | Independent precondition before accepting a proposed chapter boundary; receives no proposed grant or memories |
+| Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
+| Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
 | Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
 | [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
@@ -124,12 +125,33 @@ the existing single output retry. The decision must agree with its assessments;
 the application rechecks them before granting a boundary. This adds no model
 invocation and never promotes a memory merely because it exists. Uncertain
 current progress still grants nothing. Session-supported passage decisions keep
-their separate statement-based contract.
+their separate statement-based contract. Without earlier reader statements,
+the application offers only the chapter-candidate and uncertainty output types;
+it does not offer a passage result that cannot grant permission. Both output
+contracts retain the same Agent and logical skill, with distinct fingerprints.
+
+Before a proposed chapter grant is accepted, Librarian independently identifies
+its current stopping event in a fresh run of the same role. This focused skill
+sees original reader wording and private canonical candidates, without the
+first decision, its proposed chapter, or memories. Exact reader/source bindings
+and agreement with the proposed occurrence and chapter are required. Unresolved
+identification, disagreement, invalid output, or execution failure grants
+nothing. This adds one bounded call for an otherwise valid positive chapter
+proposal. It does not replace the existing memory proof or authorize passage
+access. Two model judgments can still share errors; the extra check is a
+conservative precondition, not a deterministic proof of semantic uniqueness.
 
 Provenance reuses its Agent across three skills, but every review begins with a
 fresh typed input and no message history or tools. Emotional preflight sees
 the current Line and policy. Candidate review sees the complete candidate,
 canonical evidence, untrusted tool outcomes, and bounded reader context.
+Application-computed `quote_checks` establish exact character matches between
+declared quotations, their named canonical sources and the current reply.
+They are recomputed when the input is serialized or revalidated; supplied flags
+cannot override the source text. These checks do not establish attribution or
+semantic support, which remain Provenance judgments. Skill fingerprints include
+the serialized input schema so these derived fields are part of the recorded
+model contract.
 When validated routing requires clarification, the application also supplies
 the exact question in `context.required_clarification`. Provenance can review
 that question's catalog metadata without demanding book passages. This field

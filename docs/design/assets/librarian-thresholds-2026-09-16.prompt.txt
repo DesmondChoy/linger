@@ -1,0 +1,97 @@
+Mode: built-in imagegen
+
+Final edit prompt: Edit this infographic changing ONLY its background and shadows: replace the entire dark blurred multicolor background with uniform solid light ivory #FAF8F2. Remove every glow, gradient, vignette, and box shadow. Preserve every word, mathematical symbol, arrow, box, layout, size and color-coded light box fill exactly. All navy text including the title and connectors must have high contrast against the light background. No other changes.
+
+Use case: infographic-diagram
+Asset type: technical documentation poster for Linger.
+Create a highly legible detailed flow infographic titled "Librarian: thresholds, reranking & judgment". Subtitle "Current implementation · Default thresholds · 16 Sep 2026".
+Use a large portrait canvas, high resolution, clean cream background, dark navy text, green deterministic retrieval boxes, purple model judgment, amber caution notes. Flat editorial diagram, crisp sans-serif typography, abundant padding. No shadows, gradient, decorative art or tiny type.
+
+Draw the following exact pipeline top-to-bottom, with a clear fork after reranking. All text quoted below should be rendered accurately. Prioritize logical accuracy over ornament.
+
+At top, compact preparation strip:
+"Validated reading scope + frozen request plan"
+"Search only permitted chapters or units"
+"Windows: ~350 words · ~60-word overlap · Never cross a chapter"
+
+Split into two side-by-side search boxes with arrows into fusion:
+"BM25 keyword search"
+"Top 10 · Keep score > 0"
+and
+"Semantic search"
+"Top 10 · Keep cosine ≥ 0.5"
+Small annotation between boxes: "Either search can admit a passage"
+
+Both arrows merge into:
+"Reciprocal-rank fusion"
+"Score = Σ 1 / (60 + rank)"
+"No fusion-score cutoff"
+"Deduplicate overlap ≥ 50% of shorter window"
+"Keep at most 15"
+Outgoing down arrow to reranker. Small side note connected to fusion: "No candidates → none; skip judge"
+
+Next:
+"Cross-encoder reranker"
+"Xenova/ms-marco-MiniLM-L-6-v2"
+"Score = 1 / (1 + exp(−raw))"
+"Always runs when fused candidates exist"
+
+Next split into TWO DISTINCT BRANCH COLUMNS. These are alternate API entry points, NOT conditional on low scores; label split "Entry point determines filtering".
+LEFT narrower muted green column:
+"STANDARD: retrieve()"
+"Keep reranker score ≥ 0.5"
+"Equivalent to raw score ≥ 0"
+"Deduplicate; cap at max_results"
+"All below cutoff → empty"
+End this branch in a small endpoint "Used by private boundary search".
+Do NOT connect standard branch to judge.
+
+RIGHT wider purple-highlighted column:
+"PRODUCTION: retrieve_for_judgement()"
+"NO reranker-score cutoff"
+"Preserve top fusion candidate first"
+"Then append reranked candidates"
+"Deduplicate; keep at most 5"
+Arrow down from THIS column alone to:
+"Evidence-strength judge"
+"Fixed request parts + canonical passages"
+"No retrieval scores supplied"
+"Select smallest useful set; default maximum 5"
+"There is no numeric judge-confidence threshold"
+
+Under judge make three short side-by-side verdict cards WITH arrows from judge:
+"sufficient"
+"Support every requested part"
+"At least one selected passage"
+"→ evidence_found"
+and
+"weak"
+"Useful but incomplete support"
+"At least one passage + limitation"
+"→ evidence_found with limitations"
+and
+"none"
+"No useful support"
+"No selected IDs"
+"→ no_evidence"
+
+Below verdict cards a validation strip:
+"Application validates the verdict"
+"Known unique IDs · Within budget · Every selected record mapped to a valid request part"
+"Invalid output → evidence_judgement_unavailable"
+"No evidence is released on judgment failure"
+
+At bottom add two clearly separated small teaching cards, NOT connected as runtime branches:
+"Why low score is not final failure"
+"Raw scores −6, −1, −2, −3, −4, −5: all below 0.5 after sigmoid."
+"Standard: empty. Production: up to 5 reach the judge, including the fusion leader."
+and
+"Separate permission gates"
+"Boundary confidence ≥ 0.75 is necessary, not sufficient: authorization must also validate."
+"Exact-passage grants bypass hybrid search and reranking; judge only granted records."
+
+Footer:
+"Scores rank candidates; the judge assesses answerability; permission checks control access."
+"Thresholds are implementation settings, not measured accuracy or calibrated confidence."
+
+Constraints: Do not invent any extra numbers, success rates or connections. Keep all inequality signs correct. Reranker cutoff applies ONLY to standard branch; semantic cutoff applies to both branches before fusion. Judge only connects to production branch. A weak verdict is not a system failure. Show all textual details with readable font size and no collisions. Avoid long crossing arrows. This is a new illustration, not an edit of an earlier image.

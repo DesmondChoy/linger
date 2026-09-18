@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from apps.backend.contracts import BookScope, EvidenceItem
 from apps.backend.librarian import Librarian
 from src.linger.contracts.librarian import EvidenceRecord, SearchedScope
-from src.linger.contracts.reading import ReadingBoundary, contains_scope, permits_scope
+from src.linger.contracts.reading import contains_scope, permits_scope
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.grounding import build_request, _grounding_evidence
 from src.linger.orchestration.reflection import _validate_record_scope, ReleaseValidationError
@@ -46,17 +46,16 @@ def test_letter_permission_never_grants_preceding_letters():
             unit_ids=(f"{VERSION}-sec032",))
 
 
-def test_grounding_rejects_cross_part_before_retrieval():
-    librarian = Librarian()
-    token = set_confirmed_reading(ConfirmedReading(work_id="pg2397", chapter_max=3))
-    try:
-        request = build_request("How did this happen?", "pg2397", VERSION,
-            ReadingBoundary(chapter_number=1, chapter_state="completed", part_id="part-iii"))
-        with patch.object(librarian, "retrieve", side_effect=AssertionError("must not retrieve")):
-            response = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=AsyncMock()))
-        assert response.kind == "clarification"
-    finally:
-        reset_confirmed_reading(token)
+def test_grounding_request_cannot_inject_a_cross_part_boundary():
+    from pydantic import ValidationError
+    from src.linger.contracts.librarian import LibrarianRequest
+
+    request = build_request("How did this happen?", "pg2397", VERSION)
+    payload = request.model_dump()
+    payload["reading_boundary"] = {"chapter_number": 1, "chapter_state": "completed", "part_id": "part-iii"}
+    with pytest.raises(ValidationError):
+        LibrarianRequest.model_validate(payload)
+
 
 
 def test_named_grounding_reads_only_exact_letter_and_connection_keeps_permission():
@@ -83,8 +82,7 @@ def test_named_grounding_reads_only_exact_letter_and_connection_keeps_permission
             relevant_evidence_ids=tuple(item.evidence_id for item in evidence))
 
     try:
-        request = build_request("Boston school", "pg2397", VERSION,
-            ReadingBoundary(chapter_state="completed", part_id="letters", unit_ids=reading.unit_ids))
+        request = build_request("Boston school", "pg2397", VERSION)
         request = request.model_copy(update={"options": request.options.model_copy(update={"retrieval_score_threshold": 0})})
         with patch.object(Path, "read_text", autospec=True, side_effect=recording_read):
             response = asyncio.run(_grounding_evidence(request, librarian=librarian, strength_judge=strength))

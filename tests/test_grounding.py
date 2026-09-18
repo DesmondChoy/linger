@@ -15,7 +15,6 @@ from src.linger.contracts.librarian import (
     RetrievalResult,
     SearchedScope,
 )
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.orchestration.grounding import BookVersionOutOfScope, build_request, grounding_evidence
 from src.linger.orchestration.turn_context import (
@@ -233,27 +232,28 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_out_of_scope_book_version_raises_and_never_dispatches(self) -> None:
         self._confirm()
         librarian = MagicMock()
-        request = build_request("query", WORK_ID, "not-an-allowed-version", ReadingBoundary(chapter_number=2, chapter_state="completed"))
+        request = build_request("query", WORK_ID, "not-an-allowed-version")
 
         with self.assertRaises(BookVersionOutOfScope):
             await grounding_evidence(request, librarian=librarian)
 
         librarian.retrieve_for_judgement.assert_not_called()
 
-    async def test_no_reading_boundary_returns_clarification_without_dispatch(self) -> None:
-        self._confirm()
+    async def test_application_permission_needs_no_model_boundary(self) -> None:
+        self._confirm(chapter_max=5)
         librarian = MagicMock()
-        request = build_request("query", WORK_ID, VALID_VERSION, None)
+        librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
+        response = await grounding_evidence(
+            build_request("query", WORK_ID, VALID_VERSION), librarian=librarian,
+            strength_judge=self._judge("none", ()),
+        )
+        self.assertIsInstance(response, RetrievalResult)
+        self.assertEqual(5, response.searched_scope.max_chapter_inclusive)
 
-        response = await grounding_evidence(request, librarian=librarian)
-
-        self.assertIsInstance(response, ClarificationRequest)
-        self.assertEqual("current_chapter_state_ambiguous", response.reason_code)
-        librarian.retrieve_for_judgement.assert_not_called()
 
     async def test_no_confirmed_reading_returns_clarification_without_dispatch(self) -> None:
         librarian = MagicMock()
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=2, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         judge = self._judge("weak", ("e1",))
         response = await grounding_evidence(
@@ -268,7 +268,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_work_id_mismatch_returns_clarification_without_dispatch(self) -> None:
         self._confirm(work_id="animal-farm")
         librarian = MagicMock()
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=2, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         response = await grounding_evidence(request, librarian=librarian)
 
@@ -276,35 +276,27 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("work_not_confirmed", response.reason_code)
         librarian.retrieve_for_judgement.assert_not_called()
 
-    async def test_started_and_completed_ceilings(self) -> None:
-        cases = [
-            ("started", 5, 4),
-            ("completed", 5, 5),
-        ]
-        for chapter_state, chapter_number, expected_ceiling in cases:
-            with self.subTest(chapter_state=chapter_state):
-                self._confirm(chapter_max=5)
+    async def test_inclusive_application_ceiling_is_not_decremented(self) -> None:
+        for ceiling in (5, 10):
+            with self.subTest(ceiling=ceiling):
+                self._confirm(chapter_max=ceiling)
                 librarian = MagicMock()
                 librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
-                request = build_request(
-                    "query", WORK_ID, VALID_VERSION,
-                    ReadingBoundary(chapter_number=chapter_number, chapter_state=chapter_state),
+                response = await grounding_evidence(
+                    build_request("query", WORK_ID, VALID_VERSION),
+                    librarian=librarian, strength_judge=self._judge("none", ()),
                 )
-
-                await grounding_evidence(
-                    request, librarian=librarian, strength_judge=self._judge("none", ()),
-                )
-
-                called_request = librarian.retrieve_for_judgement.call_args.args[0]
-                self.assertEqual(expected_ceiling, called_request.book_scopes[0].chapter_max)
+                self.assertEqual(ceiling, response.searched_scope.max_chapter_inclusive)
+                self.assertEqual(ceiling, librarian.retrieve_for_judgement.call_args.args[0].book_scopes[0].chapter_max)
                 reset_confirmed_reading(self._token)
                 self._token = None
 
-    async def test_clamp_muse_cannot_widen_past_confirmed_ceiling(self) -> None:
+
+    async def test_retrieval_uses_confirmed_ceiling(self) -> None:
         self._confirm(chapter_max=3)
         librarian = MagicMock()
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=9, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         await grounding_evidence(
             request, librarian=librarian, strength_judge=self._judge("none", ()),
@@ -313,30 +305,19 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         called_request = librarian.retrieve_for_judgement.call_args.args[0]
         self.assertEqual(3, called_request.book_scopes[0].chapter_max)
 
-    async def test_muse_may_narrow_below_confirmed_ceiling(self) -> None:
+    async def test_muse_does_not_redeclare_or_narrow_confirmed_ceiling(self) -> None:
         self._confirm(chapter_max=7)
         librarian = MagicMock()
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[], retrieval_note="")
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=2, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         await grounding_evidence(
             request, librarian=librarian, strength_judge=self._judge("none", ()),
         )
 
         called_request = librarian.retrieve_for_judgement.call_args.args[0]
-        self.assertEqual(2, called_request.book_scopes[0].chapter_max)
+        self.assertEqual(7, called_request.book_scopes[0].chapter_max)
 
-    async def test_started_chapter_one_returns_no_evidence_without_dispatch(self) -> None:
-        self._confirm(chapter_max=5)
-        librarian = MagicMock()
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=1, chapter_state="started"))
-
-        response = await grounding_evidence(request, librarian=librarian)
-
-        self.assertIsInstance(response, RetrievalResult)
-        self.assertEqual("no_evidence", response.outcome)
-        self.assertEqual("none", response.evidence_strength)
-        librarian.retrieve_for_judgement.assert_not_called()
 
     async def test_item_above_ceiling_is_filtered_out(self) -> None:
         self._confirm(chapter_max=5)
@@ -344,7 +325,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(
             items=[evidence_item("e1", 3), evidence_item("e2", 6)], retrieval_note=""
         )
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         judge = self._judge("weak", ("e1",))
         response = await grounding_evidence(
@@ -366,7 +347,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=items, retrieval_note="")
         request = build_request(
             "query", WORK_ID, VALID_VERSION,
-            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
             max_final_evidence=50,
         )
 
@@ -383,7 +364,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         self._confirm(chapter_max=5)
         librarian = MagicMock()
         librarian.retrieve_for_judgement.side_effect = RuntimeError("boom")
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         judge = self._judge("none", ())
         response = await grounding_evidence(
@@ -399,7 +380,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
         self._confirm(chapter_max=5)
         librarian = MagicMock()
         librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[evidence_item("e1", 2)], retrieval_note="")
-        request = build_request("query", WORK_ID, VALID_VERSION, ReadingBoundary(chapter_number=5, chapter_state="completed"))
+        request = build_request("query", WORK_ID, VALID_VERSION)
 
         response = await grounding_evidence(
             request,
@@ -421,7 +402,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
             "Why is Alice confused?",
             WORK_ID,
             VALID_VERSION,
-            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
         )
 
         response = await grounding_evidence(
@@ -445,7 +426,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
             "Why does this happen?",
             WORK_ID,
             VALID_VERSION,
-            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
         )
 
         response = await grounding_evidence(
@@ -470,7 +451,7 @@ class GroundingEvidenceTests(unittest.IsolatedAsyncioTestCase):
             "identity",
             WORK_ID,
             VALID_VERSION,
-            ReadingBoundary(chapter_number=5, chapter_state="completed"),
+
         )
 
         response = await grounding_evidence(
@@ -499,13 +480,12 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             strength_reason="no evidence",
             searched_scope=SearchedScope(work_id=WORK_ID, book_version_id=VALID_VERSION, max_chapter_inclusive=2),
         )
-        boundary = ReadingBoundary(chapter_number=2, chapter_state="completed")
 
         with patch(
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            result = await librarian_search(WORK_ID, VALID_VERSION, boundary, max_final_evidence=3)
+            result = await librarian_search(WORK_ID, VALID_VERSION,  max_final_evidence=3)
 
         self.assertIs(sentinel_response, result)
         mocked.assert_awaited_once()
@@ -513,7 +493,7 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("The reader's original question", built_request.query)
         self.assertEqual(WORK_ID, built_request.work_id)
         self.assertEqual(VALID_VERSION, built_request.book_version_id)
-        self.assertEqual(boundary, built_request.reading_boundary)
+        self.assertNotIn("reading_boundary", built_request.model_dump())
 
     async def test_built_request_carries_access_scope_and_request_id_muse_did_not_supply(self) -> None:
         from src.linger.agents.muse.tools import librarian_search
@@ -531,7 +511,7 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            await librarian_search(WORK_ID, VALID_VERSION, None)
+            await librarian_search(WORK_ID, VALID_VERSION)
 
         (built_request,), _ = mocked.call_args
         self.assertTrue(built_request.request_id.startswith("libreq_"))
@@ -553,7 +533,7 @@ class LibrarianSearchToolAdapterTests(unittest.IsolatedAsyncioTestCase):
             "src.linger.agents.muse.tools.grounding_evidence",
             new=AsyncMock(return_value=sentinel_response),
         ) as mocked:
-            await librarian_search(WORK_ID, VALID_VERSION, None, max_final_evidence=50)
+            await librarian_search(WORK_ID, VALID_VERSION,  max_final_evidence=50)
 
         (built_request,), _ = mocked.call_args
         self.assertEqual(5, built_request.options.max_final_evidence)
@@ -571,7 +551,7 @@ class WorkIdentityTests(unittest.IsolatedAsyncioTestCase):
                     "identity",
                     WORK_ID,
                     VALID_VERSION,
-                    ReadingBoundary(chapter_number=2, chapter_state="completed"),
+
                 ),
                 librarian=librarian,
             )
@@ -593,7 +573,7 @@ class WorkIdentityTests(unittest.IsolatedAsyncioTestCase):
                         "power",
                         "animal-farm",
                         VALID_VERSION,
-                        ReadingBoundary(chapter_number=3, chapter_state="completed"),
+
                     ),
                     librarian=librarian,
                 )

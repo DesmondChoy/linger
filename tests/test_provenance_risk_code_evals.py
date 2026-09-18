@@ -2,6 +2,8 @@
 
 import unittest
 
+from provenance_fixtures import review_with_audits
+
 from pydantic import ValidationError
 
 from evals.provenance._fixtures import build_case_set
@@ -74,7 +76,7 @@ def review(
                   for status in case.expected_finding_resolutions)
             if case is not None else ()
         )
-    return ProvenanceReview(
+    output = ProvenanceReview(
         findings=tuple(findings),
         finding_resolutions=tuple({
             "finding_index": index, "status": status,
@@ -84,6 +86,7 @@ def review(
         emotional_boundary_decision="not_required",
         capture_decision=capture_decision,
     )
+    return review_with_audits(case.review_input, output) if case is not None else output
 
 
 def expected_review(case) -> ProvenanceReview:

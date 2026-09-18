@@ -9,7 +9,6 @@ import numpy as np
 from apps.backend.hybrid_librarian import HybridLibrarian
 from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.librarian import ClarificationRequest, RetrievalFailure, RetrievalResult
-from src.linger.contracts.reading import ReadingBoundary
 from src.linger.contracts.turn import ConfirmedReading
 from src.linger.corpus.alice import BOOK, BOOK_VERSION_ID, WORK_ID
 from src.linger.orchestration.grounding import build_request, grounding_evidence
@@ -50,8 +49,10 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
     def tearDown(self) -> None:
         reset_confirmed_reading(self.token)
 
-    def request(self, query: str, boundary: ReadingBoundary | None):
-        return build_request(query, WORK_ID, BOOK_VERSION_ID, boundary)
+    def request(self, query: str, reading: ConfirmedReading | None):
+        reset_confirmed_reading(self.token)
+        self.token = set_confirmed_reading(reading)
+        return build_request(query, WORK_ID, BOOK_VERSION_ID)
 
     async def test_completed_boundary_returns_judged_exact_evidence(self) -> None:
         judge = AsyncMock()
@@ -67,7 +68,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         response = await grounding_evidence(
             self.request(
                 "Why can Alice not explain herself to the Caterpillar?",
-                ReadingBoundary(chapter_number=5, chapter_state="completed"),
+                ConfirmedReading(work_id=WORK_ID, chapter_max=5),
             ),
             librarian=self.librarian,
             strength_judge=judge,
@@ -81,7 +82,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         source = BOOK.default_source.read_text(encoding="utf-8").splitlines()
         self.assertEqual("\n".join(source[start - 1 : end]), record.text)
 
-    async def test_started_boundary_excludes_current_chapter_from_judge(self) -> None:
+    async def test_confirmed_fourth_chapter_excludes_fifth_chapter_from_judge(self) -> None:
         async def weak(_query, evidence, *, max_evidence_records):
             return EvidenceStrengthDecision(
                 evidence_strength="weak",
@@ -93,7 +94,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         response = await grounding_evidence(
             self.request(
                 "What does the Caterpillar say?",
-                ReadingBoundary(chapter_number=5, chapter_state="started"),
+                ConfirmedReading(work_id=WORK_ID, chapter_max=4),
             ),
             librarian=self.librarian,
             strength_judge=weak,
@@ -120,7 +121,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         response = await grounding_evidence(
             self.request(
                 "Where does Alice repair a spaceship?",
-                ReadingBoundary(chapter_number=5, chapter_state="completed"),
+                ConfirmedReading(work_id=WORK_ID, chapter_max=5),
             ),
             librarian=self.librarian,
             strength_judge=judge,
@@ -138,7 +139,7 @@ class LibrarianEndToEndTests(unittest.IsolatedAsyncioTestCase):
         response = await grounding_evidence(
             self.request(
                 "Caterpillar",
-                ReadingBoundary(chapter_number=5, chapter_state="completed"),
+                ConfirmedReading(work_id=WORK_ID, chapter_max=5),
             ),
             librarian=failing,
             strength_judge=judge,

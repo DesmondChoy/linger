@@ -8,7 +8,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, TypeAdapter, model_validator
 
 from src.linger.contracts.base import StrictModel
-from src.linger.contracts.reading import ReadingBoundary, validate_selector
+from src.linger.contracts.reading import validate_selector
 
 SelectionBasis = Literal["resolved_book_identity", "distinctive_cue", "session_selection"]
 
@@ -36,7 +36,6 @@ class LibrarianRequest(StrictModel):
     )
     work_id: str
     book_version_id: str
-    reading_boundary: ReadingBoundary | None
     access_scope: AccessScope
     options: RetrievalOptions
 

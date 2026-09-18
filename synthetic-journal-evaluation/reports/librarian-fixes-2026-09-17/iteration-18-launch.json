@@ -1,0 +1,6 @@
+{
+  "pid": 30021,
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-driver.log",
+  "maximum_concurrent_suites": 6,
+  "mode": "detached driver;12suites once;noautomaticretries"
+}

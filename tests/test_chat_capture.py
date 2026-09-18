@@ -30,6 +30,7 @@ from src.linger.agents.muse.models import (
     NoMemoryCandidate,
 )
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
+from provenance_fixtures import review_with_audits
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate, MemoryPolicyService
 from src.linger.orchestration.reflection import ReflectionRelease
@@ -154,7 +155,9 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         muse = AsyncMock()
         muse.run.return_value = result(candidate)
         provenance = AsyncMock()
-        provenance.run.return_value = result(provenance_review)
+        provenance.run.side_effect = lambda payload, **kwargs: result(
+            review_with_audits(payload, provenance_review)
+        )
         with (
             patch.object(
                 chat_turn,
@@ -183,10 +186,15 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             for candidate in candidates
         ]
         provenance = AsyncMock()
-        provenance.run.side_effect = [
-            item if isinstance(item, Exception) else result(item)
-            for item in reviews
-        ]
+        pending_reviews = iter(reviews)
+
+        def reviewed_output(payload, **kwargs):
+            item = next(pending_reviews)
+            if isinstance(item, Exception):
+                raise item
+            return result(review_with_audits(payload, item))
+
+        provenance.run.side_effect = reviewed_output
         with (
             patch.object(
                 chat_turn,
@@ -392,7 +400,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("invalid", capture.binding)
         self.assertEqual([], self.service.list_active(self.account))
 
-    async def test_every_safe_decline_path_suppresses_an_allowed_candidate(self) -> None:
+    async def test_every_safe_decline_path_prevents_capture_storage(self) -> None:
         self.service.set_capture_enabled(self.account, True)
         source = "I want to pause before I answer next time."
         valid = muse_candidate(source, nominated=source)
@@ -444,7 +452,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             (
                 [unsupported],
                 [review("allow_capture")],
-                "deterministic_validation",
+                "provenance_review",
             ),
             (
                 [valid, unsupported],
@@ -456,7 +464,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                         'explanation': 'The reviewer accepts the citation; application identity validation remains required.',
                     },)),
                 ],
-                "deterministic_validation",
+                "provenance_review",
             ),
             (
                 [valid, RuntimeError("revision failed")],
@@ -488,10 +496,15 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
                 release = response.inspection.release
                 self.assertEqual("application_safe_decline", release.release_source)
                 self.assertEqual(failure_stage, release.failure_stage)
-                self.assertEqual("suppressed", release.capture.storage)
-                self.assertEqual(
-                    "safe_decline_capture_suppressed",
-                    release.capture.reason_code,
-                )
+                if index == 3:
+                    self.assertEqual("not_applicable", release.capture.storage)
+                    self.assertIsNone(release.capture.provenance_decision)
+                    self.assertIsNone(release.capture.reason_code)
+                else:
+                    self.assertEqual("suppressed", release.capture.storage)
+                    self.assertEqual(
+                        "safe_decline_capture_suppressed",
+                        release.capture.reason_code,
+                    )
                 self.assertIsNone(response.memory_capture)
                 self.assertEqual([], self.service.list_active(self.account))

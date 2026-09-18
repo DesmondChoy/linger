@@ -1,13 +1,13 @@
 {
   "backstory_sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
-  "proposed_ground_truth_sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+  "proposed_ground_truth_sha256": "b7826e51a38e6775fd401e664eacee6648a3101e610f33f5ff4a3d5ea9052074",
   "ground_truth_status": "adopted",
   "reviewer": {
     "reviewer_id": "kevin.manueldx@hotmail.com",
     "reviewer_kind": "human_developer",
-    "review_method": "interactive_local_review"
+    "review_method": "explicit_human_instruction"
   },
-  "reviewed_at": "2026-09-05T10:10:53.432734+08:00",
+  "reviewed_at": "2026-09-18T15:49:47.374633+08:00",
   "decisions": [
     {
       "proposal_id": "pigeon-grounding",
@@ -34,5 +34,5 @@
       "decision": "adopted"
     }
   ],
-  "adopted_ground_truth_identity": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3"
+  "adopted_ground_truth_identity": "5b35caceb82ae82ed39d2d7706b814ce7583054e86e8ae712a5ebc83575a066c"
 }

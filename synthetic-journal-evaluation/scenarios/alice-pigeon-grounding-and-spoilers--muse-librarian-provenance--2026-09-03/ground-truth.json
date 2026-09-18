@@ -14,6 +14,11 @@
         "supporting_evidence_ids": [
           "identity",
           "pigeon"
+        ],
+        "optional_supporting_evidence_ids": [
+          "optional-pigeon-accusation",
+          "optional-pigeon-neck-comparison",
+          "optional-pigeon-departure"
         ]
       },
       "basis_spans": [
@@ -56,6 +61,30 @@
           "start_codepoint": 9595,
           "end_codepoint": 9935,
           "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "optional-pigeon-accusation",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "start_codepoint": 9436,
+          "end_codepoint": 9467,
+          "text": "“Serpent!” screamed the Pigeon."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "optional-pigeon-neck-comparison",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "start_codepoint": 10844,
+          "end_codepoint": 11133,
+          "text": "“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "optional-pigeon-departure",
+          "chapter_id": "pg11-v01b38ea4-ch05",
+          "start_codepoint": 11822,
+          "end_codepoint": 11916,
+          "text": "“Well, be off, then!” said the Pigeon in a sulky tone, as it settled\ndown again into its nest."
         }
       ]
     },

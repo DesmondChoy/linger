@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from provenance_fixtures import review_with_audits
 from unittest.mock import AsyncMock
 
 import pytest
@@ -27,7 +28,7 @@ def test_revision_review_receives_original_candidate_and_response_findings():
     provenance = AsyncMock()
     second = review("pass").model_dump()
     second["finding_resolutions"] = [resolution()]
-    provenance.run.side_effect = [result(first_review), result(second)]
+    provenance.run.side_effect = [result(first_review), result(ProvenanceReview.model_validate(second))]
 
     released = asyncio.run(reflection_reply("Help me reflect", [], muse=muse, provenance=provenance))
 
@@ -70,7 +71,7 @@ def test_revision_requires_each_prior_finding_exactly_once(resolutions):
     payload = revision_input()
     second = ProvenanceReview.model_validate({**review("pass").model_dump(), "finding_resolutions": resolutions})
     with pytest.raises(ValueError, match="finding_resolutions"):
-        payload.validate_review(second)
+        payload.validate_review(review_with_audits(payload, second))
 
 
 def test_unresolved_finding_cannot_be_marked_passed():
@@ -79,7 +80,7 @@ def test_unresolved_finding_cannot_be_marked_passed():
         second = ProvenanceReview.model_validate({
             **review("pass").model_dump(), "finding_resolutions": [resolution(status="unresolved")],
         })
-        payload.validate_review(second)
+        payload.validate_review(review_with_audits(payload, second))
 
 
 def test_resolution_does_not_hide_a_new_finding():
@@ -88,7 +89,7 @@ def test_resolution_does_not_hide_a_new_finding():
         **review("revise", finding="A new factual claim has no supporting evidence.").model_dump(),
         "finding_resolutions": [resolution()],
     })
-    payload.validate_review(second)
+    payload.validate_review(review_with_audits(payload, second))
     assert second.response_decision == "revise"
 
 
@@ -96,7 +97,7 @@ def test_initial_review_cannot_resolve_nonexistent_findings():
     payload = _provenance_input(candidate("A reply."), {}, [], "Help me reflect", ())
     second = ProvenanceReview.model_validate({**review("pass").model_dump(), "finding_resolutions": [resolution()]})
     with pytest.raises(ValueError, match="finding_resolutions"):
-        payload.validate_review(second)
+        payload.validate_review(review_with_audits(payload, second))
 
 
 def test_prior_capture_findings_cannot_become_response_repair_obligations():

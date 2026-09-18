@@ -119,7 +119,7 @@ TITLE_LEAD_PATTERN = re.compile(
     re.IGNORECASE,
 )
 TITLE_END_PATTERN = re.compile(
-    r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|through|up to|at|on))\b",
+    r"\s*(?:,|;|\band\s+i(?:'m| am| have|'ve|’ve)\s+(?:read|finished|completed|through|up to|at|on))\b",
     re.IGNORECASE,
 )
 COMPLETION_PATTERN = re.compile(

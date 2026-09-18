@@ -1,0 +1,46 @@
+Generation mode: built-in imagegen
+
+Use case: infographic-diagram
+Asset type: Linger project architecture documentation, high-resolution landscape infographic.
+Primary request: Explain the current Librarian implementation accurately to an engineering reader, with a clean readable flowchart, not decorative art.
+Style: refined editorial information design, cream paper background, dark ink typography, green application-owned steps, purple reasoning-skill steps, amber safe-stop notes. Crisp flat shapes, generous whitespace, large legible sans-serif labels, restrained serif title. No textures that reduce readability.
+Title verbatim: "Librarian: from reader intent to grounded evidence"
+Subtitle verbatim: "One reusable agent · Three application-selected skills · Application-enforced authority"
+
+Composition: three horizontal bands stacked vertically, each flows left to right, with clearly routed arrows linking the end of a band to the beginning of the next. Wide landscape canvas. Never overlap text or arrows. Show exactly these steps and copy:
+Band 1 heading "ESTABLISH READING PERMISSION"
+Green box "Reader → Muse" with subtext "Original reader wording"
+arrow to green "Resolve book" / "Identity is not permission"
+arrow to a diamond "Confirmed progress?"
+YES branch bypasses inference and goes to green "Validate reading grant".
+NO branch goes to purple box "1  Boundary inference" / "Reader statements + scoped memories + private candidates" then to the SAME green "Validate reading grant".
+Under purple box a small privacy note: "Full-work candidates stay private."
+Under grant box small text: "Chapter ceiling OR exact paragraph grant".
+Do not connect the yes branch to the inference box.
+
+Band 2 heading "PLAN, RETRIEVE, ASSESS"
+Previous grant validation flows to purple "2  Book-request plan" / "Exact reader spans; no candidate text"
+arrow to green "Validate & freeze plan"
+arrow to green "Scoped retrieval" / "Chapter scope: hybrid search + rerank" / "Passage scope: granted paragraphs only"
+arrow to purple "3  Evidence assessment" / "Select evidence; map every requested part"
+arrow to green "Validate evidence" / "Canonical IDs, coverage, scope".
+Purple boxes mean calls to the SAME Librarian agent, not separate agents.
+A note under this row: "The request plan is frozen before evidence retrieval."
+
+Band 3 heading "RELEASE TO THE READER"
+Green "Typed Librarian outcome" / "result · clarification · failure"
+arrow to "Muse drafts"
+arrow to "Provenance review"
+arrow to green "Deterministic release checks"
+arrow to "Reader response".
+From permission validation and plan validation draw subtle amber dashed failure exits to an amber box "Uncertain or invalid? Stop safely." which feeds into "Typed Librarian outcome", never bypassing release checks.
+Footer exact text: "Librarian retrieves and assesses. It does not write memory or release answers."
+Small legend "Purple: agent reasoning" and "Green: application control". Small date "Implementation snapshot · 16 Sep 2026".
+
+Accuracy constraints: all three skills shown exactly once; successful path always validates grant, freezes plan before scoped retrieval, validates evidence before returning to Muse; private full-work text cannot flow directly to Muse; release checks between review and reader. No invented percentages, metrics, tests, integrations or capabilities. No human librarian cartoon, watermark, logos or extraneous copy. Require verbatim spelling and clean readable typography.
+
+First edit prompt:
+Edit this Librarian flow diagram. Keep all labels, box positions, three bands and overall structure unchanged. Make the entire background solid light cream (#f8f5ee), including header and footer, eliminating ALL dark gradients, shadows and vignette so every word has strong contrast. Correct two arrows: (1) the black line from Validate reading grant must terminate at the top edge of the purple Book-request plan box, not the band heading; remove the orphan incoming arrow from the far left into that box. (2) the amber arrow from Uncertain or invalid? Stop safely. must route to the TOP of Typed Librarian outcome at bottom left, NOT Provenance review. Keep the successful release chain intact. Route the amber arrow in the gap above the bottom band with clean right-angle bends, not through any text. No other content changes.
+
+Final connector edit prompt:
+Keep this diagram completely unchanged except restore ONE missing successful-path connector: add a solid dark arrow from the RIGHT edge of the green 'Validate evidence' box, extending right into the outer margin, turning down, then left through the clear horizontal space below the amber safe-stop box and above the third panel, then down into the TOP RIGHT portion of 'Typed Librarian outcome'. This arrow MUST connect Validate evidence to Typed Librarian outcome and avoid all text and the amber connector. Preserve all existing arrows, text, positions, light background and colors. Do not remove any existing connector.

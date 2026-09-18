@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from provenance_fixtures import review_with_audits
 import os
 import tempfile
 import unittest
@@ -62,6 +63,18 @@ from src.linger.orchestration.emotional import (
 
 def result(output: object) -> SimpleNamespace:
     return SimpleNamespace(output=output, new_messages=lambda: [])
+
+
+def complete_candidate_reviews(provenance):
+    """Keep emotional verdict fixtures explicit under the response coverage contract."""
+    mock_run = provenance.run
+
+    async def audited_run(payload, **kwargs):
+        reviewed = await mock_run(payload, **kwargs)
+        reviewed.output = review_with_audits(payload, reviewed.output)
+        return reviewed
+
+    provenance.run = AsyncMock(side_effect=audited_run)
 
 
 def draft_input(message: str) -> str:
@@ -228,7 +241,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
                             {
                                 "work_id": "pg11",
                                 "book_version_id": "pg11-v01b38ea4",
-                                "reading_boundary": None,
+
                             },
                             "boundary-call",
                         ),
@@ -268,6 +281,7 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+        complete_candidate_reviews(provenance)
         with (
             patch.object(
                 chat_turn,
@@ -551,6 +565,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+        complete_candidate_reviews(provenance)
         release = await chat_turn.reflection_reply(
             draft_input(message),
             [],
@@ -635,6 +650,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
+        complete_candidate_reviews(provenance)
         release = await chat_turn.reflection_reply(
             draft_input(message),
             [],
@@ -710,6 +726,7 @@ class EmotionalBoundaryFallbackTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
+        complete_candidate_reviews(provenance)
         release = await chat_turn.reflection_reply(
             draft_input(message),
             [],

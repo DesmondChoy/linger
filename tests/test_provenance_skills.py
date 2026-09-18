@@ -18,6 +18,7 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
+from provenance_fixtures import review_with_audits
 
 from src.linger.agents.muse.models import NoMemoryCandidate
 from src.linger.agents.provenance.agent import build_provenance_agent
@@ -100,6 +101,7 @@ def valid_output(skill: RuntimeSkill[Any, Any]) -> dict[str, Any]:
             "capture_decision": "no_candidate",
             "emotional_boundary_decision": "not_required",
             "findings": [],
+            "coverage_audit": [{"span_index": 0, "classification": "reader_reflection"}],
         }
     return {"proposal_digest": "a" * 64, "decision": "allow", "findings": []}
 
@@ -291,8 +293,12 @@ def test_evaluation_entry_points_select_skills_under_one_production_override() -
         assert info.instructions == skill.effective_instructions
         assert not info.function_tools
         seen.append(skill.skill_id)
+        output = valid_output(skill)
+        if skill is CANDIDATE_REVIEW:
+            output.pop("coverage_audit")
+            output = review_with_audits(messages[0].parts[0].content, output).model_dump(mode="json")
         return ModelResponse(
-            parts=[ToolCallPart(info.output_tools[0].name, valid_output(skill))]
+            parts=[ToolCallPart(info.output_tools[0].name, output)]
         )
 
     async def run() -> None:
@@ -331,3 +337,130 @@ def test_resources_and_fingerprints_do_not_depend_on_working_directory(
             != skill.fingerprint()
         )
         assert replace(skill, output_type=str).fingerprint() != skill.fingerprint()
+
+
+@pytest.mark.parametrize("invalid_location", [
+    {"kind": "text_span", "source_field": "candidate.response", "path": "", "quote": "old candidate wording"},
+    {"kind": "structural", "source_field": "candidate.evidence_uses", "path": "/9"},
+])
+def test_current_input_finding_validation_repairs_within_candidate_run(invalid_location):
+    calls = 0
+    request = task_input(CANDIDATE_REVIEW, "The current candidate is useful.")
+
+    def respond(messages, info):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            output = {
+                **valid_output(CANDIDATE_REVIEW), "response_decision": "revise",
+                "findings": [{"code": "unresolved_evidence", "applies_to": "response",
+                              "location": invalid_location, "explanation": "Recheck this claim."}],
+            }
+        else:
+            retries = [part for message in messages for part in message.parts
+                       if isinstance(part, RetryPromptPart)]
+            assert retries
+            assert "current" in str(retries[-1].content).lower()
+            repair = json.loads(retries[-1].content)
+            assert repair["errors"][0]["path"].startswith("findings[0].location.")
+            assert "current_target" in repair["errors"][0]
+            output = valid_output(CANDIDATE_REVIEW)
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+    result = build_provenance_agent(FunctionModel(respond)).run_sync(
+        request.model_dump_json(), **CANDIDATE_REVIEW.run_options(),
+    )
+    assert calls == 2
+    assert result.output.response_decision == "pass"
+    request.validate_review(result.output)
+
+
+def test_invalid_current_finding_exhausts_bounded_output_repair():
+    calls = 0
+
+    def respond(messages, info):
+        nonlocal calls
+        calls += 1
+        output = {**valid_output(CANDIDATE_REVIEW), "response_decision": "revise",
+                  "findings": [{"code": "unresolved_evidence", "applies_to": "response",
+                                "location": {"kind": "text_span", "source_field": "candidate.response",
+                                             "path": "", "quote": "absent quotation"},
+                                "explanation": "The quote should be checked."}]}
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+    with pytest.raises(UnexpectedModelBehavior, match="output retries"):
+        build_provenance_agent(FunctionModel(respond)).run_sync(
+            task_input(CANDIDATE_REVIEW, "Current words.").model_dump_json(),
+            **CANDIDATE_REVIEW.run_options(),
+        )
+    assert calls == CANDIDATE_REVIEW.output_retries + 1
+
+
+def test_location_repair_preserves_a_current_revision_defect():
+    request = task_input(CANDIDATE_REVIEW, "The current claim remains unsupported.")
+    finding = {
+        "code": "unsupported_claim", "applies_to": "response",
+        "location": {"kind": "text_span", "source_field": "candidate.response",
+                     "path": "", "quote": "The old claim was unsupported."},
+        "explanation": "Supply support or remove this claim.",
+    }
+    payload = request.model_dump(mode="json")
+    payload["previous_response_review"] = {
+        "candidate": {**payload["candidate"], "response": finding["location"]["quote"]},
+        "findings": [finding],
+    }
+    calls = 0
+
+    def respond(messages, info):
+        nonlocal calls
+        calls += 1
+        current_finding = {**finding, "location": {
+            **finding["location"],
+            "quote": finding["location"]["quote"] if calls == 1 else request.candidate.response,
+        }}
+        output = {
+            **valid_output(CANDIDATE_REVIEW), "response_decision": "revise",
+            "findings": [current_finding],
+            "finding_resolutions": [{"finding_index": 0, "status": "unresolved",
+                                     "explanation": "The current claim still lacks support."}],
+        }
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+    result = build_provenance_agent(FunctionModel(respond)).run_sync(
+        json.dumps(payload), **CANDIDATE_REVIEW.run_options(),
+    )
+    assert calls == 2
+    assert result.output.response_decision == "revise"
+    assert result.output.finding_resolutions[0].status == "unresolved"
+    assert result.output.findings[0].location.quote == request.candidate.response
+
+
+def test_missing_coverage_is_repaired_against_current_projected_gaps():
+    request = task_input(CANDIDATE_REVIEW, "An open reader reflection.")
+    calls = 0
+
+    def respond(messages, info):
+        nonlocal calls
+        calls += 1
+        prompt = json.loads(messages[0].parts[0].content)
+        assert prompt["uncovered_response_spans"] == [{
+            "span_index": 0, "start": 0, "end": len(request.candidate.response),
+            "text": request.candidate.response,
+        }]
+        assert prompt["claim_support_groups"] == []
+        output = valid_output(CANDIDATE_REVIEW)
+        if calls == 1:
+            output["coverage_audit"] = []
+        else:
+            retries = [part for message in messages for part in message.parts
+                       if isinstance(part, RetryPromptPart)]
+            error = json.loads(retries[-1].content)["errors"][0]
+            assert error["path"] == "coverage_audit"
+            assert error["current_target"] == prompt["uncovered_response_spans"]
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+    result = build_provenance_agent(FunctionModel(respond)).run_sync(
+        request.model_dump_json(), **CANDIDATE_REVIEW.run_options(),
+    )
+    assert calls == 2
+    request.validate_review(result.output)

@@ -1,0 +1,17 @@
+{
+  "suite": "mapping",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "mapping",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6/suite-mapping.json"
+  ],
+  "started_at": "2026-09-18T11:12:43.415561+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6/suite-mapping.log",
+  "passed": true,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6/suite-mapping.json",
+  "failures": [],
+  "finished_at": "2026-09-18T11:13:19.344773+00:00"
+}

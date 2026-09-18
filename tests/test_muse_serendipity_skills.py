@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from provenance_fixtures import review_with_audits
 import unittest
 
 from pydantic_ai.messages import (
@@ -102,7 +103,7 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
             payload = latest_input(messages)
             calls.append(("Provenance", messages, info))
             initial = payload["candidate"]["response"] == "Initial candidate"
-            return output_response(info, {
+            return output_response(info, review_with_audits(payload, {
                 "response_decision": "revise" if initial else "pass",
                 "finding_resolutions": [] if initial else [{
                     "finding_index": 0, "status": "resolved",
@@ -116,7 +117,7 @@ class MuseSelectedSkillTests(unittest.IsolatedAsyncioTestCase):
                     "location": {"kind": "structural", "source_field": "candidate.response", "path": ""},
                     "explanation": "Remove the unsupported response claim.",
                 }] if initial else [],
-            })
+            }).model_dump(mode="json"))
 
         released_history = [
             ModelRequest(parts=[UserPromptPart("I used to prefer a long reflection.")]),

@@ -1,4 +1,4 @@
-"""Book needs must be fixed before retrieved passages can influence selection."""
+"""Book planning focuses retrieval without hiding original reader requirements."""
 
 import asyncio
 import json
@@ -23,7 +23,7 @@ def record(identity, text):
 
 
 @pytest.mark.parametrize("purpose", ["reference", "answer"])
-def test_book_request_is_fixed_before_selection_and_non_book_context_is_absent(purpose):
+def test_book_request_precedes_selection_and_original_context_survives(purpose):
     question = "Compare Mara refusing the invitation with my two voices at work and home."
     anchor = "Mara refusing the invitation"
     inputs = []
@@ -39,7 +39,8 @@ def test_book_request_is_fixed_before_selection_and_non_book_context_is_absent(p
             assert payload["current_line"] == question
             output = {"parts": [{"context_spans": [], "purpose": purpose, "reader_spans": [anchor]}]}
         else:
-            assert "my two voices" not in json.dumps(payload)
+            assert payload["original_request"]["current_line"] == question
+            assert "my two voices" not in json.dumps(payload["request"])
             assert payload["request"]["parts"][0]["reader_spans"] == [anchor]
             assert payload["request"]["parts"][0]["purpose"] == purpose
             output = {
@@ -144,6 +145,47 @@ def test_sufficient_cannot_omit_an_existing_book_need():
         ))
 
 
+@pytest.mark.parametrize("fault", [None, "invented_span", "missing_support"])
+def test_assessment_recovers_omitted_need_without_relaxing_span_or_coverage_checks(fault):
+    question = "Compare the refusal with the invitation. My work situation feels similar."
+
+    def model(messages, info):
+        payload = json.loads(next(
+            part.content for message in messages for part in message.parts
+            if isinstance(part, UserPromptPart)
+        ))
+        if "current_line" in payload:
+            output = {"parts": [{"context_spans": [], "purpose": "reference",
+                                  "reader_spans": ["the refusal"]}]}
+        else:
+            assert payload["original_request"]["current_line"] == question
+            output = {
+                "additional_parts": [{"context_spans": [], "purpose": "reference",
+                                      "reader_spans": ["the celebration" if fault == "invented_span" else "the invitation"]}],
+                "evidence_strength": "sufficient", "strength_reason": "Both requested events are supported.",
+                "relevant_evidence_ids": ["refusal"],
+                "support": [{"evidence_id": "refusal", "part_index": 0,
+                             "necessary_support": "The refusal."}],
+            }
+            if fault != "missing_support":
+                output["relevant_evidence_ids"].append("invitation")
+                output["support"].append({"evidence_id": "invitation", "part_index": 1,
+                                          "necessary_support": "The invitation named in the original request."})
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, output)])
+
+    invocation = judge_evidence_strength(
+        question, (record("refusal", "Mara refused."), record("invitation", "Mara was invited.")),
+        agent=build_librarian_agent(FunctionModel(model)),
+    )
+    if fault:
+        with pytest.raises(ValueError, match="invented reader span" if fault == "invented_span" else "every requested part"):
+            asyncio.run(invocation)
+    else:
+        result = asyncio.run(invocation)
+        assert result.evidence_strength == "sufficient"
+        assert result.relevant_evidence_ids == ("refusal", "invitation")
+
+
 def test_book_request_cannot_replace_reader_words_with_a_generated_question():
     with pytest.raises(ValidationError, match="Extra inputs"):
         BookRequestPart.model_validate({
@@ -154,7 +196,7 @@ def test_book_request_cannot_replace_reader_words_with_a_generated_question():
         })
 
 
-def test_empty_plan_stops_before_private_retrieval_or_assessment():
+def test_no_authorized_scope_stops_before_planning_retrieval_or_assessment():
     from unittest.mock import Mock, patch
 
     from src.linger.agents.librarian.models import BookRequestPlan
@@ -170,39 +212,67 @@ def test_empty_plan_stops_before_private_retrieval_or_assessment():
         ))
     assert result.items == ()
     assert result.judgement.evidence_strength == "none"
-    planner.assert_awaited_once()
+    planner.assert_not_awaited()
     librarian.retrieve_for_judgement.assert_not_called()
     assessor.assert_not_called()
 
 
-def test_planning_failure_stops_before_private_retrieval():
+@pytest.mark.parametrize("planning_failed", [False, True])
+def test_empty_or_failed_plan_recovers_original_request_within_scope(planning_failed):
     from unittest.mock import Mock, patch
 
-    from src.linger.orchestration.book_evidence import EvidenceJudgementError, retrieve_book_evidence
+    from apps.backend.contracts import BookScope, EvidenceBundle, EvidenceItem
+    from src.linger.agents.librarian.models import BookRequestPlan, EvidenceStrengthDecision
+    from src.linger.orchestration.book_evidence import retrieve_book_evidence
 
     librarian = Mock()
-    with patch("src.linger.orchestration.book_evidence.plan_book_request", side_effect=ValueError("invalid reader span")):
-        with pytest.raises(EvidenceJudgementError):
-            asyncio.run(retrieve_book_evidence(
-                "The scene the reader actually named.", book_scopes=(), librarian=librarian,
-            ))
-    librarian.retrieve_for_judgement.assert_not_called()
+    question = "The scene the reader actually named."
+    scope = BookScope(work_id="test", book_version_id="test-v1", chapter_max=1)
+    item = EvidenceItem(
+        evidence_id="scene", work_id="test", book_version_id="test-v1",
+        chapter_id="test-ch01", chapter=1, location="Chapter 1", source_title="Test",
+        source_sha256="a" * 64, source_lines=(1, 2), excerpt="The named scene.", relevance=.9,
+    )
+    librarian.retrieve_for_judgement.return_value = EvidenceBundle(items=[item], retrieval_note="bounded recovery")
+    with (
+        patch("src.linger.orchestration.book_evidence.plan_book_request",
+              return_value=BookRequestPlan(parts=()),
+              side_effect=ValueError("invalid reader span") if planning_failed else None),
+        patch("src.linger.orchestration.book_evidence.assess_book_evidence", return_value=EvidenceStrengthDecision(
+            evidence_strength="sufficient", strength_reason="Original need is supported.",
+            relevant_evidence_ids=("scene",),
+        )) as assessor,
+    ):
+        result = asyncio.run(retrieve_book_evidence(question, book_scopes=(scope,), librarian=librarian))
+    request = librarian.retrieve_for_judgement.call_args.args[0]
+    assert request.query == question
+    assert request.book_scopes == [scope]
+    assert librarian.retrieve_for_judgement.call_count == 1
+    assert assessor.await_args.args[0].parts == ()
+    assert assessor.await_args.kwargs["original_request"].current_line == question
+    assert result.items == (item,)
 
 
 def test_over_budget_plan_is_rejected_without_truncating_requested_parts():
     from unittest.mock import Mock, patch
 
     from src.linger.agents.librarian.models import BookRequestPlan
-    from src.linger.orchestration.book_evidence import EvidenceJudgementError, retrieve_book_evidence
+    from apps.backend.contracts import BookScope
+    from src.linger.orchestration.book_evidence import (
+        EvidenceJudgementError, MAX_QUERY_CHARACTERS, MAX_SEARCH_QUERIES, retrieve_book_evidence,
+    )
 
+    original = "".join(f"{index:04d}" + "a" * (MAX_QUERY_CHARACTERS - 4)
+                       for index in range(MAX_SEARCH_QUERIES + 1))
     plan = BookRequestPlan(parts=(BookRequestPart(
-        context_spans=(), purpose="answer", reader_spans=("a" * 1001, "b" * 1001),
+        context_spans=(), purpose="answer", reader_spans=(original,),
     ),))
     librarian = Mock()
     with patch("src.linger.orchestration.book_evidence.plan_book_request", return_value=plan):
-        with pytest.raises(EvidenceJudgementError, match="retrieval budget"):
+        with pytest.raises(EvidenceJudgementError, match="retrieval query budget"):
             asyncio.run(retrieve_book_evidence(
-                "Compare the two prior passages.", book_scopes=(), librarian=librarian,
+                original, book_scopes=(BookScope(work_id="test", book_version_id="test-v1", chapter_max=1),),
+                librarian=librarian,
             ))
     librarian.retrieve_for_judgement.assert_not_called()
 
