@@ -25,13 +25,23 @@ from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.agents.serendipity.agent import serendipity_agent
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
-from src.linger.services.memory import AccountContext, MemoryPolicyService
+from src.linger.services.memory import (
+    AccountContext,
+    AutomaticMemoryCandidate,
+    MemoryPolicyService,
+)
 
 
 ASSEMBLY_LINE = "The farewell assembly is next Tuesday. Thursday is only the band's run-through in the hall."
 ASSEMBLY_QUOTE = "The farewell assembly is next Tuesday."
 DEADLINE_QUESTION = "I'd like the final draft finished two days before the assembly. Which day does that make my deadline?"
+BRAILLE_QUESTION = (
+    "Random thing I wondered about while photocopying parts today: how do blind "
+    "musicians read music? Is there a braille form of notation, and how would a "
+    "player manage it when both hands are busy on the instrument?"
+)
 NO_MEMORY = {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
 
 
@@ -148,6 +158,56 @@ class ChatSessionLineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([], provenance_inputs[1]["canonical_session_lines"])
         self.assertEqual([ASSEMBLY_QUOTE], provenance_inputs[2]["canonical_session_lines"])
         self.assertIn("You said the assembly is next Tuesday", second.reply)
+
+    async def test_world_fact_question_releases_without_using_the_connection_grant(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text="Reading about Helen Keller made me think about how I learn by touch.",
+            source_event_id="fixture-keller",
+            review_allows_capture=True,
+            contains_sensitive_content=False,
+        ))
+        self.service.set_capture_enabled(self.account, False)
+        provenance_inputs = []
+        muse_calls = 0
+
+        def muse(messages, info):
+            nonlocal muse_calls
+            muse_calls += 1
+            return _candidate(
+                info,
+                "I can't cite a source for that here, so I won't state how braille music "
+                "notation works. What drew you to the question while photocopying parts?",
+                [],
+            )
+
+        def serendipity(messages, info):
+            self.fail("serendipity_explore must not run for a general-knowledge question")
+
+        def provenance(messages, info):
+            provenance_inputs.append(next(
+                prompt for prompt in _json_prompts(messages)
+                if "canonical_connection_evidence" in prompt
+            ))
+            return _provenance_review(info, "pass")
+
+        with muse_chat_agent.override(model=FunctionModel(muse)):
+            with serendipity_agent.override(model=FunctionModel(serendipity)):
+                with provenance_agent.override(model=FunctionModel(provenance)):
+                    response = await chat_turn.run_chat_turn(
+                        ChatRequest(session_id=self.session_id, message=BRAILLE_QUESTION),
+                        self.service, self.account,
+                    )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertEqual(("pass",), response.inspection.release.provenance_verdicts)
+        self.assertEqual(1, muse_calls)
+        self.assertEqual(1, len(provenance_inputs))
+        payload = provenance_inputs[0]
+        self.assertTrue(payload["context"]["policy"]["allow_connection"])
+        self.assertEqual([], payload["canonical_connection_evidence"])
+        self.assertEqual([], payload["untrusted_tool_outcomes"])
+        self.assertIn("I can't cite a source for that here", response.reply)
 
 
 if __name__ == "__main__":
