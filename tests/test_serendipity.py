@@ -277,6 +277,19 @@ class SerendipityContractTests(unittest.TestCase):
                 selected_candidate_id="candidate-first",
             )
 
+    def test_generic_only_disqualifier_alone_rejects_a_shortlist_candidate(self) -> None:
+        generic = rubric(cue_fit="partial", disqualifiers=("generic_only",))
+
+        self.assertFalse(generic.eligible)
+        with self.assertRaisesRegex(ValidationError, "only eligible"):
+            proposal(
+                shortlist=(
+                    candidate("candidate-first", 1),
+                    candidate("candidate-generic", 2, candidate_rubric=generic),
+                ),
+                selected_candidate_id="candidate-first",
+            )
+
     def test_low_reflective_value_is_ineligible(self) -> None:
         with self.assertRaisesRegex(ValidationError, "only eligible"):
             proposal(
