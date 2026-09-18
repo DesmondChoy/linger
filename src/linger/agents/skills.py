@@ -8,12 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from importlib.resources import files
 from typing import Any, Generic, TypeVar
 
 from pydantic import TypeAdapter
-from pydantic_ai import AgentRetries
+from pydantic_ai import AgentRetries, ToolOutput
 from pydantic_ai.output import OutputSpec
 
 from src.linger.agents.contracts import PromptFingerprint
@@ -39,6 +40,7 @@ class RuntimeSkill(Generic[InputT, OutputT]):
     output_type: OutputSpec[OutputT]
     # Registered output validators require the agent's fixed output contract.
     override_output: bool = True
+    output_validator: Callable[..., Any] | None = None
     tools: tuple[str, ...] = ()
     capabilities: tuple[str, ...] = ()
     validators: tuple[str, ...] = ()
@@ -65,7 +67,11 @@ class RuntimeSkill(Generic[InputT, OutputT]):
             "metadata": {"linger_skill": self.skill_id},
         }
         if self.override_output:
-            options["output_type"] = self.output_type
+            options["output_type"] = (
+                ToolOutput(self.output_validator)
+                if self.output_validator is not None
+                else self.output_type
+            )
         return options
 
     def fingerprint(
