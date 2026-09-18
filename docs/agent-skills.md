@@ -59,8 +59,11 @@ constant, invoke the role's Agent, and apply existing domain checks.
 
 Muse and Serendipity retain fixed output schemas and registered output
 validators. Librarian, Sculptor, and Provenance select task-specific output
-schemas per run. No run modifies a shared Agent's configuration. Requests keep
-their existing dependencies, bounded context, evidence, and histories.
+schemas per run. The Provenance candidate-review run also binds its typed input
+in a request-scoped context so its skill-selected output validator can retry
+finding-location mismatches within the skill's output retries. No run modifies
+a shared Agent's configuration. Requests keep their existing dependencies,
+bounded context, evidence, and histories.
 
 Instructions load through `importlib.resources`, independently of the working
 directory. Only shared policy and the selected skill reach the model. Runtime
