@@ -214,7 +214,10 @@ candidate or stored curation, and deterministic application checks still apply.
 
 Chat currently uses Muse reflection, Librarian boundary inference, book-request
 planning, and evidence assessment when needed, optional Serendipity connection discovery, and the two
-Provenance conversation skills. Reviewed automatic capture stays under the
+Provenance conversation skills. The same Serendipity skill also serves plain
+personal recall: when Muse asks and the account has active memories, it searches
+the curated retrieval view and returns memory evidence for the ordinary
+Provenance and release path. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 
 `run_curation_loop` implements reviewed curation as a callable application

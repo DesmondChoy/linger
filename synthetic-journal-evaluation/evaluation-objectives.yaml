@@ -96,12 +96,14 @@ developer_workflow:
       - reviewed_automatic_memory_capture
       - bounded_memory_curation
       - session_scoped_conversation_continuity
+      - longitudinal_memory_retrieval
       - grounded_book_reflection
       - spoiler_boundary_clarification
       - cross_source_tentative_connection
       - weak_evidence_safe_decline
     supported_replay_combinations:
       - [reviewed_automatic_memory_capture, bounded_memory_curation]
+      - [session_scoped_conversation_continuity, longitudinal_memory_retrieval]
       - [grounded_book_reflection, spoiler_boundary_clarification]
       - [cross_source_tentative_connection, weak_evidence_safe_decline]
     component_replay_coverage:
@@ -406,10 +408,11 @@ evaluation_objectives:
       title: Longitudinal memory retrieval
       family: conversation_and_memory
       summary: >-
-        Across sessions, Librarian retrieves active memories authorized by the
-        Memory & Policy Service. This objective tests whether Muse benefits from
-        one person's relevant history without relying on prior chat context or
-        forcing unrelated memories into the response.
+        Across sessions, Serendipity searches the active memories that the
+        Memory & Policy Service authorizes, at Muse's request, while Librarian
+        still handles any book a line refers to. This objective tests whether
+        Muse benefits from one person's relevant history without relying on
+        prior chat context or forcing unrelated memories into the response.
       selection_hint: >-
         Use when a later session should benefit selectively from durable memory.
     composition:
@@ -450,8 +453,8 @@ evaluation_objectives:
         description: Complete rules for active-memory eligibility and fresh-session evaluation.
     evaluation_metadata:
       expected_architecture:
-        primary_components: [muse, librarian]
-        supporting_components: []
+        primary_components: [muse, serendipity]
+        supporting_components: [librarian]
         mandatory_gates: [provenance]
         deterministic_services: [memory_and_policy]
       ground_truth_requirements:

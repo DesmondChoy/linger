@@ -471,6 +471,7 @@ def prepare_reflection_turn(
     request: ChatRequest,
     *,
     allow_memory_capture: bool,
+    has_active_memories: bool = False,
     prior_evidence: tuple[EvidenceRecord, ...] = (),
     resolution: ContextResolution | None = None,
 ) -> tuple[TurnInspection, str, dict[str, object]]:
@@ -496,7 +497,9 @@ def prepare_reflection_turn(
         policy=TurnPolicy(
             spoiler_ceiling=context.chapter_max if context else None,
             allow_retrieval=book_connection_permitted,
-            allow_connection=book_connection_permitted or web_reach_permitted(),
+            allow_connection=(
+                book_connection_permitted or web_reach_permitted() or has_active_memories
+            ),
             allow_memory_capture=allow_memory_capture,
         ),
     )
@@ -883,9 +886,15 @@ async def _run_chat_pipeline(
         if boundary.decision == "apply_boundary":
             release = emotional_boundary_release(origin="preflight")
 
+    try:
+        active_memories = tuple(service.list_for_retrieval(account))
+    except MemoryServiceError:
+        active_memories = ()
+
     inspection, muse_input, review_context = prepare_reflection_turn(
         request,
         allow_memory_capture=service.capture_enabled(account),
+        has_active_memories=bool(active_memories),
         prior_evidence=prior_evidence,
         resolution=resolution,
     )
@@ -919,10 +928,6 @@ async def _run_chat_pipeline(
         statements_token = set_reader_statements(sessions.reader_statements(request.session_id))
         routing_token = set_routing_context()
         session_id_token = set_session_id(request.session_id)
-        try:
-            active_memories = tuple(service.list_for_retrieval(account))
-        except MemoryServiceError:
-            active_memories = ()
         memories_token = set_active_memories(active_memories)
         connection_token = begin_connection_inspection()
         public_sources_token = set_public_source_urls(public_source_urls)

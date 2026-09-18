@@ -1,5 +1,5 @@
 {
-  "catalogSha256": "2bcd10711b606c5d6a51ed82176b17f656857d602753ffb8406ecf785ed04e45",
+  "catalogSha256": "494798da789f8dcb87d9ad95eccb23c651647680aae2bdcb31b9d88fb1b8b670",
   "catalogSource": "synthetic-journal-evaluation/evaluation-objectives.yaml",
   "families": [
     {
@@ -84,7 +84,7 @@
       "id": "longitudinal_memory_retrieval",
       "title": "Longitudinal memory retrieval",
       "family": "conversation_and_memory",
-      "summary": "Across sessions, Librarian retrieves active memories authorized by the Memory & Policy Service. This objective tests whether Muse benefits from one person's relevant history without relying on prior chat context or forcing unrelated memories into the response.",
+      "summary": "Across sessions, Serendipity searches the active memories that the Memory & Policy Service authorizes, at Muse's request, while Librarian still handles any book a line refers to. This objective tests whether Muse benefits from one person's relevant history without relying on prior chat context or forcing unrelated memories into the response.",
       "measures": [
         "recall_at_5",
         "ndcg_at_5",

@@ -316,7 +316,8 @@ async def connection_exploration(
                 run = ExplorationResult(
                     response=_decline(
                         "no_permitted_evidence",
-                        "Confirm a book or enable bounded public-web search first.",
+                        "No stored reflection, confirmed book, or bounded public-web "
+                        "source is available to search yet.",
                     ),
                     evidence=(),
                     searches=(),

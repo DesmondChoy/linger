@@ -48,10 +48,19 @@ def test_current_catalog_has_eleven_unique_objectives() -> None:
         "reviewed_automatic_memory_capture",
         "bounded_memory_curation",
         "session_scoped_conversation_continuity",
+        "longitudinal_memory_retrieval",
         "grounded_book_reflection",
         "spoiler_boundary_clarification",
         "cross_source_tentative_connection",
         "weak_evidence_safe_decline",
+    ]
+    assert document["developer_workflow"]["handoff_boundary"][
+        "supported_replay_combinations"
+    ] == [
+        ["reviewed_automatic_memory_capture", "bounded_memory_curation"],
+        ["session_scoped_conversation_continuity", "longitudinal_memory_retrieval"],
+        ["grounded_book_reflection", "spoiler_boundary_clarification"],
+        ["cross_source_tentative_connection", "weak_evidence_safe_decline"],
     ]
     assert set(document["ground_truth_lifecycle"]) == {
         "generation",

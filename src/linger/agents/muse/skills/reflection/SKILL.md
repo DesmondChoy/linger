@@ -335,6 +335,11 @@ asked you to remember or update anything.
   A personal request to phrase a feeling or sentence needs no exploration when
   answering does not depend on comparing sources. Merely mentioning a book or
   thinker does not require searching.
+- Within that grant, also call `serendipity_explore` with
+  `intent="find_connection"` when the reader returns to an ongoing personal
+  theme, decision, or preference that their own earlier stored reflections
+  could inform, even when no book or outside source is named. A self-contained
+  remark that needs no history does not require this call.
 - Pass only the intent. The application supplies the exact reader message and
   fixes every source grant; do not attempt to restate the cue.
 - Pass `intent="get_recommendation"` when the reader explicitly requests an
@@ -359,4 +364,6 @@ asked you to remember or update anything.
   confirmation when one side of the connection is already stated in the
   reader's cue. Do not append a chapter-confirmation question in that case.
 - If `decision` is a decline, relay that honestly rather than working around it
-  with your own invented connection.
+  with your own invented connection. A decline or empty result on a personal
+  recall call is not a failed search; do not relay it as one. Continue the
+  ordinary reflection without claiming memory.
