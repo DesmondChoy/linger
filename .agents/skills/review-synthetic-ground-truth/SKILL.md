@@ -83,6 +83,15 @@ explains the provider-backed side effect.
   temporary output path. The runner grades only the session boundary; correction
   adoption and fresh-session leakage wording remain human reviewer judgments
   read from the durable run artifact.
+- For exactly `longitudinal_memory_retrieval`, or for
+  `session_scoped_conversation_continuity` and `longitudinal_memory_retrieval`
+  in either order, run `evals.synthetic_journals.retrieval_replay` with
+  `--adoption` and a fresh temporary output path. It dispatches each Scene by
+  its own Objective, seeding each retrieval Scene's Props into an isolated store
+  with capture disabled for the Line. It grades retrieval and citation of the
+  proposed relevant and distractor Props from the recorded connection events.
+  Whether the reply separates recalled words from generated interpretation
+  remains a human reviewer judgment read from the durable run artifact.
 - For exactly `grounded_book_reflection`, exactly
   `spoiler_boundary_clarification`, or their two-Objective combination in either
   order, run `evals.synthetic_journals.book_replay` with `--adoption` and a fresh

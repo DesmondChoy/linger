@@ -138,7 +138,9 @@ The complete workflow is:
    runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
    supported selection, the agent validates that adoption and starts one
    provider-backed replay. Supported selections include capture, curation,
-   their combination in either order, continuity, either book Objective alone,
+   their combination in either order, continuity, longitudinal retrieval,
+   continuity and longitudinal retrieval in either order, either book Objective
+   alone,
    both book Objectives in either order, either connection or weak-evidence
    Objective alone, and their combined selection. Other selections stop after
    adoption.
@@ -227,6 +229,7 @@ The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
 post-confirmation routes cover capture, curation, their combination, continuity,
+longitudinal retrieval, continuity and longitudinal retrieval together,
 either book Objective alone, both book Objectives, either connection or
 weak-evidence Objective alone, and their combination. Other selections stop
 after adoption.
@@ -490,6 +493,51 @@ and `session_state_invariants` label in the Logfire view. The Ground-truth
 grade, adoption-authority fields, and durable artifact are unaffected; because
 the redaction is value-triggered, only a scrubbing-configuration decision, not
 a rename, can restore visibility.
+
+## Longitudinal retrieval replay
+
+Replay a validated longitudinal-retrieval scenario through the production chat
+boundary:
+
+```bash
+uv run python -m evals.synthetic_journals.retrieval_replay \
+  path/to/backstory.json path/to/ground-truth.json \
+  --adoption path/to/ground-truth-adoption.json \
+  --output /tmp/longitudinal-memory-retrieval-run.json
+```
+
+This runner accepts `longitudinal_memory_retrieval` alone or together with
+`session_scoped_conversation_continuity` in either order. It takes Lines and
+Props only, requires the resolved
+`longitudinal-memory-retrieval-10-to-1` run configuration, and requires every
+Scene to select exactly one of the two Objectives. Continuity Scenes run
+through the session-continuity path unchanged and keep that runner's boundary
+grade; retrieval Scenes run here.
+
+Each retrieval Scene must use a fresh session, carry exactly one Line, and list
+at least one Prop that its own lifecycle marks `active`, with one
+`prop_relevance` judgment per Prop. The runner gives each retrieval Scene its
+own isolated memory store: it briefly enables capture to seed every Scene Prop
+as an automatic record, keeps the `prop_id` to `memory_id` mapping, then
+disables capture before the Line is sent. A Scene with a relevant Prop is the
+target Scene; a Scene with none is the comparison.
+
+Retrieval and citation come from the recorded connection events, not from the
+reply text. Memory `search` events supply the retrieved record identifiers and
+the last `release` event supplies the cited ones. A Scene fails its hard gates
+on `missing_release_observation`, `unexpected_release_source` (the normal
+source is `muse_candidate`), `invalid_evidence_observation`,
+`relevant_prop_not_retrieved`, `relevant_prop_not_cited`,
+`distractor_prop_cited`, `props_changed`, `unexpected_memory_writes`, or
+`capture_enabled_after_scene`. A distractor that was retrieved but not cited is
+recorded as an observation, not a failure.
+
+Semantic quality is not graded. Whether the reply separates recalled words from
+generated interpretation, and whether the recall was useful, remain review
+judgments; `semantic_review_required` stays true on every Scene. One known
+limitation shapes what a miss means: Serendipity's memory search ranks records
+by lexical token overlap with the cue and drops records that share no token, so
+a heavily paraphrased Line can fail to retrieve a genuinely relevant Prop.
 
 ## Weak-evidence reflection replay
 

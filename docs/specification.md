@@ -149,7 +149,7 @@ The allowed tool surface is deliberately smaller than each agent's responsibilit
 | **Muse** | No general-purpose tools. Photographs use Pydantic AI's model input support. Muse may select only the Linger-specific Librarian and Serendipity function tools permitted by the request; the application owns their grants, scope, execution, validation, inspection, and release. Memory nomination remains part of Muse's typed output. | Pydantic AI multimodal input, typed outputs, and thin Linger function-tool adapters over application services |
 | **Librarian** | No model tools. Boundary inference receives privately selected candidates from the work's numbered main-text chapters and authorised reading context. Evidence assessment receives a bounded evidence set. Application code owns retrieval and exact record resolution. | Typed model tasks over application-selected evidence; deterministic retrieval and Memory & Policy services |
 | **Sculptor** | No retrieval or write tools. It receives a bounded input set and returns a typed `CurationProposal` or `NoCurationProposal` for curation, or a `SurfacingDecision` for surfacing. The latter currently has an offline execution path only. | Pydantic AI typed input and output contracts |
-| **Serendipity** | Search internal evidence through the same bounded Librarian adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
+| **Serendipity** | Search the authenticated account's active memories and internal book evidence through the same bounded Linger adapters; search and retrieve public web evidence with Exa. | Internal Linger adapters plus the maintained [`pydantic_ai_harness.exa.ExaSearch`](https://pydantic.dev/docs/ai/tools-toolsets/common-tools/#exa-search-tool) capability |
 | **Provenance** | No tools. Its preflight receives only the current Line and emotional-content policy. Its candidate gate receives the typed candidate, canonical evidence, untrusted tool outcomes, current Line, and policy constraints. Its separate curation gate receives one complete proposal digest, the proposal, and only the exact immutable source evidence selected by that proposal. | Pydantic AI typed input and output contracts |
 
 Exa is the sole general web-search integration for the prototype. Install the `pydantic-ai-harness[exa]` extra and register `ExaSearch()` in Serendipity's `capabilities`; do not implement an Exa client or web-search tool locally. The older `exa_search_tool`, related Exa common tools, and `ExaToolset` are deprecated and must not be introduced. Exa results remain untrusted evidence and are still subject to Sections 6.4 and 6.5. This allocation does not authorise browser control, arbitrary URL fetching, shell access, or any external action excluded by Section 3.
@@ -182,7 +182,9 @@ The five roles separate conversation and optional memory nomination, retrieval,
 memory curation and usefulness decisions, connection generation, and independent
 verification. Librarian and application services select authorised evidence.
 Sculptor judges the supplied memories' usefulness, timing, and repetition.
-Serendipity proposes broader connections. Muse retains the application's
+Serendipity searches the authorised sources and proposes broader connections,
+including plain recall of the reader's own stored reflections when Muse asks for
+it. Muse retains the application's
 intentionally managed session history and bounded revision context. Other
 roles receive only their task-specific projections. Deterministic application code
 enforces access, capture, writes, and output release.
@@ -347,10 +349,15 @@ autonomous scheduler in this slice.
 
 Serendipity supplies a proposed connection and evidence identifiers to Muse. Muse drafts the user-facing reply, which uses the same mandatory Provenance gate and deterministic checks as an ordinary reflection.
 
-The implemented discovery slice keeps a narrow release boundary. Serendipity may
+The implemented discovery slice keeps a narrow release boundary. The application
+grants the Serendipity tool when the reader has a confirmed book, permitted
+public-web reach, or any active memory, so a memory-only reader can reach plain
+personal recall. Serendipity may
 search the curated memory retrieval view supplied by the authenticated
 application, an application-granted book corpus, or application-granted Exa web
-sources. It returns a typed proposal or decline with request-local evidence for deterministic
+sources. Its memory search compares the cue with each authorised record by
+lexical token overlap and drops records that share no token, so a heavily
+paraphrased cue can miss a relevant record. It returns a typed proposal or decline with request-local evidence for deterministic
 validation. The application, not Muse, supplies the exact current reader message
 as the cue. Each run is limited to eight model requests and six total tool calls.
 Muse may relay a typed decline. Application code validates the selected book,
@@ -938,9 +945,12 @@ and future designs must use these terms instead of ad hoc synonyms such as
 vocabulary, Backstory and Ground truth structures, deterministic scenario
 validator, and Ground truth authority lifecycle below. Interactive independent
 adoption is implemented. The catalog registers reviewed automatic capture,
-bounded memory curation, session continuity, grounded book reflection, spoiler
+bounded memory curation, session continuity, longitudinal memory retrieval,
+grounded book reflection, spoiler
 boundary clarification, cross-source tentative connection, and weak-evidence
-safe decline as supported replay Objectives. The book runner accepts either
+safe decline as supported replay Objectives. The retrieval runner accepts
+longitudinal memory retrieval alone or combined with session continuity in
+either order. The book runner accepts either
 book Objective alone or both in either order. The connection runner accepts
 either connection or weak-evidence Objective alone or both in either order;
 legacy weak-evidence scenarios delegate to the narrower reflection runner.
@@ -1065,6 +1075,8 @@ The end-to-end workflow has distinct human gates:
    the agent validates the adoption and starts one provider-backed replay. The
    supported complete selections are reviewed automatic capture, bounded memory
    curation, their combined selection in either order, session continuity,
+   longitudinal memory retrieval, session continuity and longitudinal memory
+   retrieval in either order,
    either book Objective alone, both book
    Objectives in either order, either connection or weak-evidence Objective
    alone, and their combination in either order. Surfacing is not registered
@@ -1271,6 +1283,20 @@ reader's correction, and whether a comparison reply leaked prior-session
 content, remain review judgments. This runner is registered in the Objective
 catalog as a supported replay path.
 
+A longitudinal-retrieval runner replays `longitudinal_memory_retrieval`
+scenarios alone, or together with session-continuity Scenes in one ordered run,
+dispatching each Scene by its own Objective and reusing the continuity runner
+for continuity Scenes. Each retrieval Scene seeds its own isolated store with
+that Scene's active Props, disables capture, and sends one Line in a fresh
+session. Retrieved records come from the recorded memory search events and
+cited records from the release event. A Scene fails its hard gates when a
+relevant Prop is not retrieved or not cited, a distractor is cited, the release
+is missing or not the ordinary Muse release, a Prop changes, an unexpected
+record is written, or capture is left enabled. Retrieved but uncited
+distractors are recorded as observations. Whether the reply separates recalled
+words from interpretation remains a review judgment. This runner is registered
+in the Objective catalog as a supported replay path.
+
 The manual `reflection_replay` runner accepts only
 `weak_evidence_safe_decline`. It executes ordered Scene Lines through the chat
 boundary with capture disabled and supports optional hash-bound adoption.
@@ -1357,7 +1383,7 @@ model.
 
 The generation briefs and prompt boundaries describe requirements that a future design must preserve. A pre-generation report may propose a target-state stage sequence or unresolved workflow decision, but it must use the defined scenario models and validator rather than inventing another schema. Every remaining proposal must be labelled as proposed, compared with current repository facts, and approved by a human before use. The earlier inventory of 40 proposed scenes, category allocation, numeric thresholds, and frozen-baseline policy remain unadopted and do not constrain a new proposal.
 
-Resolved run configurations keep each imbalance tied to the entity and Objective it tests. [`reviewed-automatic-memory-capture-10-to-1.json`](../synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json) applies a 1:10 capture-candidate/no-candidate **Scene** mix to one `reviewed_automatic_memory_capture` scenario. [`longitudinal-memory-retrieval-10-to-1.json`](../synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json) applies a 1:10 relevant/distractor **Prop** mix to the target Scene for `longitudinal_memory_retrieval`; its paired comparison Scene uses the same 11 active Props with none relevant. Neither configuration is a universal Objective minimum. A full dataset repeats these patterns across multiple Backstories because one positive example cannot support stable recall measurement.
+Resolved run configurations keep each imbalance tied to the entity and Objective it tests. [`reviewed-automatic-memory-capture-10-to-1.json`](../synthetic-journal-evaluation/generation-presets/reviewed-automatic-memory-capture-10-to-1.json) applies a 1:10 capture-candidate/no-candidate **Scene** mix to one `reviewed_automatic_memory_capture` scenario. [`longitudinal-memory-retrieval-10-to-1.json`](../synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json) applies a 1:10 relevant/distractor **Prop** mix to the target Scene for `longitudinal_memory_retrieval`; its paired comparison Scene uses the same 11 active Props with none relevant. The retrieval runner requires that resolved run configuration on the Backstory before it replays. Neither configuration is a universal Objective minimum. A full dataset repeats these patterns across multiple Backstories because one positive example cannot support stable recall measurement.
 
 ### 7.3 Deployment checks
 
