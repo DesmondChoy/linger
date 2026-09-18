@@ -60,7 +60,7 @@ defined in the specification.
 | Term | How it applies here |
 |---|---|
 | Objective | Two catalog entries, confirmed together. The catalog lists each as a `combines_well_with` partner of the other, and its `selection_guidance` allows combining Objectives when one Backstory can satisfy both. Catalog minimum is one Objective; this plan uses two. |
-| Backstory | One memory-led Backstory, one person, one evaluation account (`evals/synthetic_journals/models.py:56-62`, `Backstory`). No Objective here needs book evidence, so no corpus fact is required. Lines and Props **may** naturally mention a book the person is reading; when they do, the future generator discovers the available work, immutable version, and structure under `data/corpus/` at invocation time and never hardcodes corpus facts carried over from an earlier report. No Line may require a quotation or book fact to be answered — that belongs to the book Objectives. |
+| Backstory | One memory-led Backstory, one person, one evaluation account (`evals/synthetic_journals/models.py:56-62`, `Backstory`). Corpus-backed for the retrieval pair (revised after review, 2026-09-18): the relevant Prop and the target Line **must** reference a book the person is reading, and several distractor Props mention the same book, so memory retrieval is evaluated alongside the book corpus. The generator discovers the work, immutable version, and structure under `data/corpus/` at invocation time and never hardcodes corpus facts. Props recall events already read, without chapter numbers, so reading progress is inferable. No Line may require a quotation or book fact to be answered — that belongs to the book Objectives. A chapter-clarification release stays a hard failure in the runner. |
 | Prop | The two continuity Scenes carry zero Props (their `generation_brief` avoids Props, which could mask a session-state failure). The two retrieval Scenes share one 11-record Prop bank (`models.py:72-88`, `Prop`), sized by the resolved `longitudinal-memory-retrieval-10-to-1` run configuration: 1 relevant + 10 distractor Props in the target Scene, 0 relevant in the comparison Scene, all 11 present and `active` in both. |
 | Scene | Four Scenes, each the graded unit (`models.py:124-144`): a multi-Line continuity Scene paired via `ScenePairing` (`models.py:511-527`) with a single-Line fresh comparison Scene; a fresh retrieval target Scene and a fresh retrieval comparison Scene sharing the Prop bank. Every Scene selects exactly one Objective, which is how the runner dispatches it. |
 | Line | Continuity: ordered Lines that build one detail and a later correction, plus one matched comparison Line that repeats the continuity Scene's final Line verbatim. Retrieval: exactly one natural Line per Scene testing selective use of stored history. Neither Objective uses offline inputs. |
@@ -144,11 +144,11 @@ writing anything, read:
   Backstory and Lines stay plausible.
 - synthetic-journal-evaluation/generation-presets/longitudinal-memory-retrieval-10-to-1.json
   — the resolved run configuration for this run.
-- data/corpus/ — only if you choose to let this person mention a book they are
-  reading. This is permitted but optional. If you use it, discover the
-  available work, its immutable version identifier, and its structure there at
-  invocation time; never carry a book fact in from anywhere else. No Line may
-  require a quotation or any book fact to be answered.
+- data/corpus/ — required. The person is reading one book from this
+  directory. Discover the available work, its immutable version identifier,
+  and its ordered structure there at invocation time; never carry a book fact
+  in from anywhere else. Every event you mention must exist in that text. No
+  Line may require a quotation or any book fact to be answered.
 
 You are not shown any report, the evaluation catalog, or any grading rubric.
 Do not name internal agents, routes, thresholds, or expected system decisions
@@ -179,6 +179,15 @@ all 11 Props:
      vocabulary of the relevant Prop — the same everyday nouns a person would
      reuse when returning to that subject — while phrasing the thought
      differently. Do not copy a phrase from the Prop.
+   - Book reference (required): the relevant Prop records the person's own
+     reaction to events they had already read in the chosen book, recalled
+     naturally and specifically enough that how far they have read is clear,
+     without chapter numbers, page numbers, or quotations. The target Line
+     returns to that personal reaction while naming the book or those events.
+     It must stay a personal reflection and mention nothing later in the book
+     than the Props already cover. At least three distractor Props mention the
+     same book, about other events or other reactions, none later than the
+     relevant Prop's events.
    - The comparison Scene's Line raises a nearby but genuinely unrelated
      question. In the comparison Scene, none of the 11 Props is relevant.
    Both Scenes must share the same 11 active Props — do not add or drop a
