@@ -40,6 +40,10 @@ _CONNECTION = ReplaySupport(
     name="connection and restraint",
     module="evals.synthetic_journals.connection_replay",
 )
+_RETRIEVAL = ReplaySupport(
+    name="longitudinal retrieval",
+    module="evals.synthetic_journals.retrieval_replay",
+)
 
 _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection"}): _CONNECTION,
@@ -50,6 +54,10 @@ _SUPPORTED_REPLAYS = {
     frozenset({"bounded_memory_curation"}): _CURATION,
     frozenset({"reviewed_automatic_memory_capture", "bounded_memory_curation"}): _CAPTURE_CURATION,
     frozenset({"session_scoped_conversation_continuity"}): _CONTINUITY,
+    frozenset({"longitudinal_memory_retrieval"}): _RETRIEVAL,
+    frozenset(
+        {"session_scoped_conversation_continuity", "longitudinal_memory_retrieval"}
+    ): _RETRIEVAL,
     frozenset({"grounded_book_reflection"}): _BOOK,
     frozenset({"spoiler_boundary_clarification"}): _BOOK,
     frozenset(

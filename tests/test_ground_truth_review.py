@@ -581,6 +581,18 @@ def test_connection_review_shows_complete_source_setup_and_labels(
             ("session_scoped_conversation_continuity",),
             "evals.synthetic_journals.continuity_replay",
         ),
+        (
+            ("longitudinal_memory_retrieval",),
+            "evals.synthetic_journals.retrieval_replay",
+        ),
+        (
+            ("session_scoped_conversation_continuity", "longitudinal_memory_retrieval"),
+            "evals.synthetic_journals.retrieval_replay",
+        ),
+        (
+            ("longitudinal_memory_retrieval", "session_scoped_conversation_continuity"),
+            "evals.synthetic_journals.retrieval_replay",
+        ),
         (("grounded_book_reflection",), "evals.synthetic_journals.book_replay"),
         (
             ("spoiler_boundary_clarification",),
