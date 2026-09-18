@@ -5,6 +5,7 @@ from __future__ import annotations
 from src.linger.contracts.reading import ReadingScope
 
 from enum import StrEnum
+from functools import cached_property
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, model_validator
@@ -319,19 +320,25 @@ class ProvenanceInput(StrictModel):
             raise ValueError(
                 "finding_resolutions must account for every previous response finding exactly once"
             )
-        payload = self.model_dump(mode="json")
         for finding in review.findings:
             location = finding.location
-            value = _resolve_json_pointer(
-                _source_value(payload, location.source_field),
-                location.path,
-            )
+            value = self.finding_source(location)
             if not isinstance(location, TextSpanLocation):
                 continue
             if not isinstance(value, str):
                 raise ValueError("a text-span finding must resolve to a string")
             if location.quote not in value:
                 raise ValueError("a finding quote does not match its declared source")
+
+    @cached_property
+    def _payload(self) -> dict[str, JsonValue]:
+        return self.model_dump(mode="json")
+
+    def finding_source(self, location: FindingLocation) -> JsonValue:
+        """Resolve one finding location against this input, rejecting missing sources."""
+        return _resolve_json_pointer(
+            _source_value(self._payload, location.source_field), location.path
+        )
 
 
 def _resolve_json_pointer(value: JsonValue, path: str) -> JsonValue:

@@ -8,8 +8,6 @@ from src.linger.agents.provenance.models import (
     ProvenanceInput,
     ProvenanceReview,
     TextSpanLocation,
-    _resolve_json_pointer,
-    _source_value,
 )
 from src.linger.agents.provenance.review_context import review_input
 
@@ -20,16 +18,13 @@ ANCHOR_LENGTH = 40
 def _mismatched_spans(
     task: ProvenanceInput, review: ProvenanceReview
 ) -> list[dict[str, object]]:
-    payload = task.model_dump(mode="json")
     mismatches: list[dict[str, object]] = []
     for index, finding in enumerate(review.findings):
         location = finding.location
         if not isinstance(location, TextSpanLocation):
             continue
         try:
-            value = _resolve_json_pointer(
-                _source_value(payload, location.source_field), location.path
-            )
+            value = task.finding_source(location)
         except ValueError:
             value = None
         if isinstance(value, str) and location.quote in value:

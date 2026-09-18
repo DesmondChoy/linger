@@ -15,6 +15,7 @@ from src.linger.agents.provenance.models import (
     FindingResolution,
     ProvenanceReview,
     RiskFinding,
+    StructuralLocation,
     TextSpanLocation,
 )
 from src.linger.agents.provenance.review_context import (
@@ -96,6 +97,30 @@ class ProvenanceReviewValidatorTests(unittest.TestCase):
         with self.assertRaises(ModelRetry) as caught:
             validate_provenance_review(self.context, review)
         self.assertIn("finding_resolutions", str(caught.exception))
+
+
+class FindingSourceTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.review_input = provenance_input(RESPONSE)
+
+    def test_resolves_the_candidate_response(self) -> None:
+        location = StructuralLocation(
+            kind="structural", source_field="candidate.response", path="",
+        )
+        self.assertEqual(RESPONSE, self.review_input.finding_source(location))
+
+    def test_rejects_a_missing_path(self) -> None:
+        for source_field, path in (
+            ("canonical_book_evidence", "/0"),
+            ("candidate.response", "/text"),
+            ("candidate.memory", "/missing"),
+        ):
+            with self.subTest(source_field=source_field, path=path):
+                location = StructuralLocation(
+                    kind="structural", source_field=source_field, path=path,
+                )
+                with self.assertRaises(ValueError):
+                    self.review_input.finding_source(location)
 
 
 class CandidateReviewOutputToolTests(unittest.IsolatedAsyncioTestCase):

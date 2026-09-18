@@ -38,9 +38,10 @@ class RuntimeSkill(Generic[InputT, OutputT]):
     instructions: str
     input_type: type[InputT]
     output_type: OutputSpec[OutputT]
-    # Registered output validators require the agent's fixed output contract.
+    # Agent-registered validators need the agent's fixed output contract; a
+    # per-run skill validates through `output_validator` instead.
     override_output: bool = True
-    output_validator: Callable[..., Any] | None = None
+    output_validator: Callable[..., OutputT] | None = None
     tools: tuple[str, ...] = ()
     capabilities: tuple[str, ...] = ()
     validators: tuple[str, ...] = ()
