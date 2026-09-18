@@ -230,6 +230,45 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual((), active_memories())
 
+    async def _connection_policy(self, message: str) -> dict:
+        seen: dict[str, object] = {}
+
+        async def capture_policy(*args, **kwargs) -> ReflectionRelease:
+            seen["policy"] = json.loads(args[0])["muse_turn"]["policy"]
+            return released()
+
+        with patch.object(chat_turn, "reflection_reply", AsyncMock(side_effect=capture_policy)):
+            await self.call_chat(ChatRequest(session_id=self.session_id, message=message))
+        return seen["policy"]
+
+    async def test_active_memories_grant_connection_without_a_book(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="I rushed to fill the silence at dinner again.",
+                source_event_id="fixture-recall",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
+        self.service.set_capture_enabled(self.account, False)
+
+        policy = await self._connection_policy(
+            "I filled the silence again. Does that connect to anything before?"
+        )
+
+        self.assertTrue(policy["allow_connection"])
+        self.assertFalse(policy["allow_retrieval"])
+
+    async def test_no_active_memories_leaves_connection_ungranted(self) -> None:
+        policy = await self._connection_policy(
+            "I filled the silence again. Does that connect to anything before?"
+        )
+
+        self.assertFalse(policy["allow_connection"])
+        self.assertFalse(policy["allow_retrieval"])
+
     async def test_uncertain_message_exposes_no_retrieval_scope(self) -> None:
         # Librarian routing no longer runs pre-Muse: a catalog-cue message with
         # no explicit reader confirmation resolves to "unknown" here. Whether

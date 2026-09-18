@@ -32,6 +32,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
     InternalSearchResult,
+    MemorySearchResult,
 )
 from src.linger.services.memory import AccountContext, MemoryPolicyService, AutomaticMemoryCandidate
 from src.linger.agents.serendipity.tools import GuardedExaSearch
@@ -336,6 +337,114 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(self.service.list_active(self.account)))
         self.assertIn(url, events[-1].released_evidence_ids)
         self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
+
+    async def test_stored_memories_alone_reach_real_memory_search_and_release(self) -> None:
+        memory_text = "My piano routine changed after moving home."
+        self.service.set_capture_enabled(self.account, True)
+        saved = self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text=memory_text, source_event_id="fixture-prior-reflection",
+            review_allows_capture=True, contains_sensitive_content=False,
+        )).record
+        self.service.set_capture_enabled(self.account, False)
+        events = []
+        policies = []
+
+        class Sink:
+            def begin_agent_exchange(self, **kwargs):
+                return None
+            def complete_agent_exchange(self, *args, **kwargs):
+                pass
+            def record_connection_event(self, event):
+                events.append(event)
+
+        def discover(messages, info):
+            returns = {
+                part.tool_name: part.content
+                for message in messages for part in getattr(message, "parts", ())
+                if isinstance(part, ToolReturnPart)
+            }
+            if "search_memories" not in returns:
+                return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "piano routine"})])
+            found = MemorySearchResult.model_validate(returns["search_memories"])
+            assert found.outcome == "evidence_found"
+            ids = [item.evidence_id for item in found.evidence]
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+                "status": "proposal",
+                "shortlist": [
+                    {
+                        "candidate_id": "candidate-routine",
+                        "tentative_claim": "The routine changed with the move, not with the practice.",
+                        "evidence_ids": ids,
+                        "shared_structure": "Both notice a habit reshaped by a change of place.",
+                        "meaningful_difference": "One is about the move; today's is about the habit itself.",
+                        "interpretation": "The habit may be tracking the move rather than the playing.",
+                        "rubric": {"cue_fit": "direct", "reflective_value": "high",
+                                   "safety": "clear", "disqualifiers": []},
+                        "comparison_note": "This is the most direct link to the stored reflection.",
+                    },
+                    {
+                        "candidate_id": "candidate-time",
+                        "tentative_claim": "The available hours may simply have shifted.",
+                        "evidence_ids": ids,
+                        "shared_structure": "Both describe a routine under pressure.",
+                        "meaningful_difference": "This focuses on scheduling rather than place.",
+                        "interpretation": "Time pressure could explain the same change.",
+                        "rubric": {"cue_fit": "partial", "reflective_value": "medium",
+                                   "safety": "clear", "disqualifiers": []},
+                        "comparison_note": "Plausible but less directly supported.",
+                    },
+                ],
+                "selected_candidate_id": "candidate-routine",
+                "uncertainty": "medium",
+                "presentation": "ask_before_showing",
+                "suggested_follow_up": "Does the move still shape how you sit down to play?",
+                "policy_flags": [],
+            })])
+
+        def muse(messages, info):
+            for message in messages:
+                for part in getattr(message, "parts", ()):
+                    text = getattr(part, "content", None)
+                    if isinstance(text, str) and text.lstrip().startswith("{"):
+                        payload = json.loads(text)
+                        if "muse_turn" in payload:
+                            policies.append(payload["muse_turn"]["policy"])
+            results = [part.content for message in messages for part in getattr(message, "parts", ())
+                       if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"]
+            if not results:
+                assert policies[-1]["allow_connection"], "memory-only turn was not granted connection"
+                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
+            exploration = ConnectionExplorationResult.model_validate(results[-1])
+            assert isinstance(exploration.decision, ConnectionProposal)
+            reply = "Something you noted before may still be shaping the routine."
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+                "reply": reply,
+                "evidence_uses": [
+                    {"source_kind": item.source_kind, "evidence_id": item.evidence_id,
+                     "exact_quote": None, "supported_claims": [reply]}
+                    for item in exploration.evidence
+                ],
+                "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+            })])
+
+        with bind_evaluation_transcript_sink(Sink()):
+            with muse_chat_agent.override(model=FunctionModel(muse)):
+                with serendipity_agent.override(model=FunctionModel(discover)):
+                    with provenance_agent.override(model=FunctionModel(_provenance_pass)):
+                        response = await main.chat(
+                            ChatRequest(
+                                session_id=self.session_id,
+                                message="Has my piano routine come up in what I've told you before?",
+                            ),
+                            self.service, self.account,
+                        )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIsNone(response.inspection.release.failure_stage)
+        self.assertTrue(policies[0]["allow_connection"])
+        self.assertFalse(policies[0]["allow_retrieval"])
+        self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
+        self.assertNotIn(memory_text, response.model_dump_json())
 
     async def test_trusted_initial_reading_reaches_real_discovery_without_extra_line(self) -> None:
         captured: list = []
