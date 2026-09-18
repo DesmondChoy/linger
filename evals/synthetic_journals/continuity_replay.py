@@ -36,6 +36,7 @@ from .models import (
     GroundTruthAdoption,
     Line,
     ProposedGroundTruth,
+    Scene,
     StrictModel,
     SyntheticBackstory,
 )
@@ -568,8 +569,21 @@ def _continuity_scenes(
     if backstory.props or backstory.offline_inputs:
         raise ValueError("continuity replay does not accept Props or offline inputs")
 
+    return _continuity_scenes_from(
+        sorted(backstory.scenes, key=lambda item: item.order),
+        backstory,
+        ground_truth,
+    )
+
+
+def _continuity_scenes_from(
+    ordered: Sequence[Scene],
+    backstory: SyntheticBackstory,
+    ground_truth: ProposedGroundTruth,
+) -> tuple[_ContinuityScene, ...]:
+    """Guard and role-resolve an already ordered, pre-filtered continuity Scene list."""
+
     lines = {line.line_id: line for line in backstory.lines}
-    ordered = sorted(backstory.scenes, key=lambda item: item.order)
     scene_lines: dict[str, tuple[Line, ...]] = {}
     for scene in ordered:
         if scene.objective_ids != (CONTINUITY_OBJECTIVE_ID,):
