@@ -25,21 +25,36 @@ report's scenario, adoption, model, and prompt identity determine its evidence
 scope.
 
 The `identity-theme` case expects sufficient evidence for a **qualified literary
-interpretation**. Either Chapter 5 lines 966–981 (Alice cannot explain herself)
-or lines 1026–1032 (her changing memory and size) satisfies its required
+interpretation**. Either Chapter 5 lines 979–981 (changing sizes confuse Alice)
+or lines 1026–1027 (her changing memory and size) satisfies its required
 dialogue anchor. Both together count as one required fact. Chapter 4 lines
-762–770 and Chapter 2 lines 327–360 remain optional support; neither alone
+762–766 and Chapter 2 lines 330–333 or 337–341 remain optional support; neither alone
 replaces the dialogue. An unrelated Chapter 5 passage also does not qualify. The query
 and Chapter 5 ceiling are unchanged. These retrieval labels do not establish
 that uncertain identity causes physical growth: manual semantic review must
 still distinguish a supported thematic relationship from an unsupported
-reciprocal causal claim. Historical reports retain their original grades.
+reciprocal causal claim.
 
 Required evidence uses `required_range_groups`: every group must be satisfied,
-and any one listed range can satisfy a group. Cases without explicit groups
+and any one listed range can satisfy a group. A returned passage must contain
+the full required source-line range in the same chapter. Partial overlap does
+not satisfy that range. Cases without explicit groups
 require every relevant range separately. The benchmark, manual notebook,
-direct evaluation and release validation share this recall calculation;
-precision still uses the complete relevant-range list.
+direct evaluation and release validation share this recall calculation.
+Precision counts returned passages containing at least one complete span
+from `relevant_ranges`, including optional support.
+
+The `pigeon-serpent` case requires both the unusual neck and the belief that
+Alice eats eggs. One passage can support both facts, or separate passages can
+support each. The `drink-me-mechanism` case expects `weak` evidence. Chapter 1
+lines 191–192 establish the bottle's label, but the text gives no chemical
+reaction that explains shrinking. Retrieving all available supporting spans
+can earn full recall while the model must still acknowledge missing support
+for part of the question.
+
+Historical reports retain their original grades. Earlier reports used partial
+overlap and a strength proxy derived from the expected label. Their scores are
+not directly comparable with results from the current scorer.
 
 ## Manual notebook
 
@@ -89,8 +104,10 @@ The benchmark options are:
 
 The generated `report.json` records every model and threshold, per-case evidence
 IDs, safety and citation gates, evidence recall, citation precision,
-evidence-strength support accuracy, p95 latency, evidence-token volume, local
-model-token use, incremental monetary cost, and the predeclared selection rule.
+p95 latency, evidence-token volume, local model-token use, incremental monetary
+cost, and the predeclared selection rule. `quality_score` weights evidence
+recall and citation precision 2:1: `(2 * recall + precision) / 3`. The live
+validator measures the model's evidence-strength decisions separately.
 
 The retrieval-only precision value describes the candidate passages sent to the
 Librarian's set-level evidence judge. It is intentionally reported separately

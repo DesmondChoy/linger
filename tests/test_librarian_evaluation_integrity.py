@@ -6,10 +6,10 @@ import json
 
 import pytest
 from pydantic_ai import Agent
-from pydantic_ai.messages import ModelResponse, ToolCallPart, UserPromptPart
+from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart, UserPromptPart
 from pydantic_ai.models.function import FunctionModel
 
-from evals.librarian.benchmark import Hit, _citation_resolves
+from evals.librarian.benchmark import Hit, _citation_resolves, load_cases
 from evals.librarian.live_validation import _usage
 from apps.backend import sessions
 from apps.backend.chat_turn import resolve_reading_context
@@ -97,3 +97,57 @@ def test_release_component_delivers_the_reader_request_to_independent_review(mon
     assert case.query in reader_message
     assert "completed chapter 5" in reader_message
     assert review_requests[0].current_line.text == reader_message
+
+
+@pytest.mark.parametrize("case_id,record_id,strength,coverage", [
+    ("identity-theme", "pg11-v01b38ea4-ch05-ln0977-0977", "sufficient", 0.0),
+    ("identity-theme", "pg11-v01b38ea4-ch05-ln1029-1029", "sufficient", 0.0),
+    ("drink-me-mechanism", "pg11-v01b38ea4-ch01-ln0186-0192", "weak", 1.0),
+    ("drink-me-mechanism", "pg11-v01b38ea4-ch01-ln0186-0192", "sufficient", 1.0),
+])
+def test_live_grades_source_coverage_and_the_observed_strength(
+    monkeypatch, case_id, record_id, strength, coverage,
+):
+    from apps.backend.librarian import Librarian
+    from evals.librarian import live_validation
+    from src.linger.contracts.librarian import RetrievalResult, SearchedScope
+
+    case = next(case for case in load_cases().cases if case.case_id == case_id)
+    record = Librarian().fetch_by_id(record_id)
+    retrieval = RetrievalResult(
+        kind="result", request_id="grading-test", outcome="evidence_found",
+        evidence_strength=strength, strength_reason="Controlled judgment for grader testing.",
+        searched_scope=SearchedScope(
+            work_id=record.work_id, book_version_id=record.book_version_id,
+            max_chapter_inclusive=case.chapter_max,
+        ),
+        evidence=(record,),
+    )
+    candidate = MuseCandidate.model_validate({
+        "reply": record.text,
+        "evidence_uses": [{
+            "source_kind": "book_corpus", "evidence_id": record.evidence_id,
+            "source_location": record.location, "exact_quote": record.text,
+            "supported_claims": [record.text],
+        }],
+        "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+    })
+    messages = (
+        ModelResponse(parts=[ToolCallPart("librarian_search", {}, tool_call_id="search")]),
+        ModelRequest(parts=[ToolReturnPart("librarian_search", retrieval, tool_call_id="search")]),
+    )
+
+    async def release(*args, muse, **kwargs):
+        muse.results.append(SimpleNamespace(output=candidate, new_messages=lambda: messages))
+        return SimpleNamespace(
+            reply=candidate.reply, release_source="muse_candidate",
+            provenance_verdicts=("pass",), finding_codes=(), failure_stage=None,
+        )
+
+    monkeypatch.setattr(live_validation, "reflection_reply", release)
+    for expected in ("weak", "sufficient"):
+        result = asyncio.run(live_validation._run_case(case.model_copy(update={"expected_strength": expected})))
+        assert result["predicted_strength"] == strength
+        assert result["strength_correct"] is (strength == expected)
+        assert result["final_evidence_recall"] == coverage
+        assert result["final_citation_precision"] == coverage

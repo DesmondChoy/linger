@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 from pydantic import ValidationError
-from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import FunctionModel
 
 from apps.backend.librarian import Librarian
@@ -18,6 +18,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     ConnectionScope,
     MemoryRecall,
+    MemorySearchResult,
 )
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
 from src.linger.agents.serendipity.tools import SerendipityDependencies
@@ -29,7 +30,7 @@ TEA = CuratedMemory(
 )
 
 
-def dependencies(intent):
+def dependencies(intent, memories=(TEA,)):
     return SerendipityDependencies(
         task=ConnectionDiscoveryInput(
             cue="What is my favourite tea?",
@@ -38,7 +39,7 @@ def dependencies(intent):
             scope=ConnectionScope(allowed_sources=("memory",)),
         ),
         librarian=Librarian(),
-        memories=(TEA,),
+        memories=memories,
     )
 
 
@@ -70,7 +71,7 @@ def proposal():
     )
 
 
-def run(skill, deps, outputs):
+def run(skill, deps, outputs, *, expected_search=None):
     """Search once, then return each scripted output until one is accepted."""
     retries = []
     remaining = list(outputs)
@@ -78,6 +79,13 @@ def run(skill, deps, outputs):
     async def model(messages, info):
         if len(messages) == 1:
             return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "favourite tea"})])
+        if expected_search is not None:
+            returned = next(
+                part.content
+                for message in messages for part in message.parts
+                if isinstance(part, ToolReturnPart) and part.tool_name == "search_memories"
+            )
+            assert MemorySearchResult.model_validate(returned) == expected_search
         retries.extend(
             str(part.content) for part in messages[-1].parts if isinstance(part, RetryPromptPart)
         )
@@ -129,8 +137,15 @@ def test_recall_retries_an_id_this_run_did_not_return():
 
 
 def test_recall_task_may_decline_without_a_matching_record():
+    unrelated = CuratedMemory(
+        memory_id="memory-piano", text="I practise piano every evening.", kind="original",
+        source_memory_ids=("memory-piano",), created_at="2026-09-07T00:00:00Z",
+    )
     decline = ConnectionDecline(reason="no_matching_memory", safe_next_step="Reply plainly.")
-    output, retries = run(MEMORY_RECALL, dependencies("recall_memory"), [decline])
+    output, retries = run(
+        MEMORY_RECALL, dependencies("recall_memory", memories=(unrelated,)), [decline],
+        expected_search=MemorySearchResult(outcome="no_evidence", evidence=()),
+    )
 
     assert output == decline
     assert retries == []

@@ -49,6 +49,7 @@ from evals.librarian.benchmark import (
     MIN_CITATION_PRECISION,
     MIN_EVIDENCE_RECALL,
     BenchmarkCase,
+    covers_range,
     load_cases,
 )
 
@@ -83,16 +84,6 @@ def _book_corpus_evidence_uses(candidate: MuseCandidate) -> list[Any]:
 def _p95(values: list[float]) -> float:
     ordered = sorted(values)
     return ordered[max(0, math.ceil(0.95 * len(ordered)) - 1)]
-
-
-def _overlaps(
-    chapter: int,
-    source_lines: tuple[int, int],
-    gold: tuple[int, int, int],
-) -> bool:
-    gold_chapter, gold_start, gold_end = gold
-    start, end = source_lines
-    return chapter == gold_chapter and start <= gold_end and gold_start <= end
 
 
 def _usage(results: list[Any]) -> dict[str, int | bool | None]:
@@ -249,7 +240,7 @@ async def _run_case(case: BenchmarkCase) -> dict[str, object]:
         record
         for record in cited_records
         if any(
-            _overlaps(record.chapter_number, record.source_lines, gold)
+            covers_range((record.chapter_number, *record.source_lines), gold)
             for gold in case.relevant_ranges
         )
     ]

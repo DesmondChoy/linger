@@ -452,10 +452,13 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
         self.assertNotIn(memory_text, response.model_dump_json())
 
-    async def _recall_turn(self, serendipity_output, reply, *, cite):
+    async def _recall_turn(
+        self, serendipity_output, reply, *, cite,
+        memory_text="My favourite tea is peppermint.", expected_search_outcome="evidence_found",
+    ):
         self.service.set_capture_enabled(self.account, True)
         saved = self.service.save_automatic(self.account, AutomaticMemoryCandidate(
-            text="My favourite tea is peppermint.", source_event_id="fixture-prior-reflection",
+            text=memory_text, source_event_id="fixture-prior-reflection",
             review_allows_capture=True, contains_sensitive_content=False,
         )).record
         self.service.set_capture_enabled(self.account, False)
@@ -488,7 +491,9 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             if not returns:
                 return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "favourite tea"})])
             found = MemorySearchResult.model_validate(returns[-1])
-            assert [item.evidence_id for item in found.evidence] == [saved.memory_id]
+            assert found.outcome == expected_search_outcome
+            expected_ids = [saved.memory_id] if expected_search_outcome == "evidence_found" else []
+            assert [item.evidence_id for item in found.evidence] == expected_ids
             name, args = serendipity_output(saved.memory_id)
             tool = next(tool for tool in info.output_tools if tool.name.endswith(name))
             return ModelResponse(parts=[ToolCallPart(tool.name, args)])
@@ -579,6 +584,8 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             }),
             "I do not have an earlier note about your favourite tea.",
             cite=False,
+            memory_text="I practise piano every evening.",
+            expected_search_outcome="no_evidence",
         )
 
         self.assertEqual("muse_candidate", response.inspection.release.release_source)

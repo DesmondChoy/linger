@@ -56,6 +56,12 @@ class RelevantRange(StrictModel):
         return self
 
 
+def covers_range(actual: tuple[int, int, int], gold: tuple[int, int, int]) -> bool:
+    chapter, start, end = actual
+    gold_chapter, gold_start, gold_end = gold
+    return chapter == gold_chapter and start <= gold_start and end >= gold_end
+
+
 class BenchmarkCase(StrictModel):
     case_id: str
     query: str = Field(min_length=1)
@@ -100,9 +106,9 @@ class BenchmarkCase(StrictModel):
         if not groups:
             return float(not ranges)
         matched = sum(any(
-            chapter == gold_chapter and start <= gold_end and gold_start <= end
-            for gold_chapter, gold_start, gold_end in group
-            for chapter, start, end in ranges
+            covers_range(actual, gold)
+            for gold in group
+            for actual in ranges
         ) for group in groups)
         return matched / len(groups)
 
@@ -134,7 +140,6 @@ class Hit:
 class CaseMeasurement:
     recall: float
     precision: float
-    strength_correct: bool
     forbidden_exposure: bool
     citations_resolve: bool
     evidence_tokens: int
@@ -316,11 +321,6 @@ class BenchmarkRunner:
         raise ValueError(f"unknown strategy: {strategy}")
 
 
-def _overlaps(hit: Hit, gold: tuple[int, int, int]) -> bool:
-    chapter, start, end = gold
-    return hit.chapter == chapter and hit.source_lines[0] <= end and start <= hit.source_lines[1]
-
-
 def _citation_resolves(hit: Hit, source_lines: list[str]) -> bool:
     start, end = hit.source_lines
     original = "\n".join(source_lines[start - 1 : end])
@@ -328,19 +328,14 @@ def _citation_resolves(hit: Hit, source_lines: list[str]) -> bool:
 
 
 def measure(case: BenchmarkCase, hits: list[Hit], source_lines: list[str]) -> CaseMeasurement:
-    relevant_hits = [hit for hit in hits if any(_overlaps(hit, gold) for gold in case.relevant_ranges)]
+    relevant_hits = [hit for hit in hits if any(
+        covers_range((hit.chapter, *hit.source_lines), gold) for gold in case.relevant_ranges
+    )]
     recall = case.evidence_recall([(hit.chapter, *hit.source_lines) for hit in hits])
     precision = len(relevant_hits) / len(hits) if hits else 1.0
-    if not relevant_hits:
-        predicted_strength = "none"
-    elif case.expected_strength == "weak" or recall < 1:
-        predicted_strength = "weak"
-    else:
-        predicted_strength = "sufficient"
     return CaseMeasurement(
         recall=recall,
         precision=precision,
-        strength_correct=predicted_strength == case.expected_strength,
         forbidden_exposure=any(hit.chapter > case.chapter_max for hit in hits),
         citations_resolve=all(_citation_resolves(hit, source_lines) for hit in hits),
         evidence_tokens=sum(_word_count(hit.text) for hit in hits),
@@ -384,15 +379,13 @@ def run_benchmark(
                 latencies.append((time.perf_counter() - started) * 1000)
             result = measure(case, hits, source_lines)
             measurements.append(result)
-            details.append({"case_id": case.case_id, "evidence_ids": [hit.evidence_id for hit in hits], "recall": result.recall, "precision": result.precision, "strength_correct": result.strength_correct})
+            details.append({"case_id": case.case_id, "evidence_ids": [hit.evidence_id for hit in hits], "recall": result.recall, "precision": result.precision})
         recall = statistics.fmean(result.recall for result in measurements)
         precision = statistics.fmean(result.precision for result in measurements)
-        strength_accuracy = statistics.fmean(float(result.strength_correct) for result in measurements)
         metrics[strategy] = {
             "evidence_recall": recall,
             "citation_precision": precision,
-            "evidence_strength_accuracy": strength_accuracy,
-            "quality_score": 0.6 * recall + 0.3 * precision + 0.1 * strength_accuracy,
+            "quality_score": (2 * recall + precision) / 3,
             "safety_pass": not any(result.forbidden_exposure for result in measurements),
             "citation_pass": all(result.citations_resolve for result in measurements),
             "p95_latency_ms": percentile_95(latencies),
@@ -418,7 +411,7 @@ def run_benchmark(
             "repetitions": repetitions,
         },
         "metric_notes": {
-            "evidence_strength_accuracy": "Whether the retrieved gold coverage supports the expected sufficient, weak, or none label; the common Librarian judge is evaluated end to end separately.",
+            "quality_score": "Evidence recall and citation precision weighted 2:1. Each supporting span must be fully contained in a returned passage. Model strength decisions are evaluated by live_validation.",
             "mean_evidence_tokens": "Whitespace-token count of evidence passed downstream; local retrieval itself consumes zero model tokens.",
             "monetary_cost_usd": "Incremental retrieval cost for local models; excludes shared hardware and the common downstream Librarian judgment call.",
             "p95_latency_ms": "Warm query latency after the immutable revision's derived windows and embeddings are built; one-time local model and index initialization is excluded.",
