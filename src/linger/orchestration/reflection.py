@@ -50,6 +50,7 @@ from src.linger.agents.provenance.prompt import (
     PROMPT_FINGERPRINT as PROVENANCE_PROMPT_FINGERPRINT,
 )
 from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
+from src.linger.agents.provenance.review_context import reset_review_input, set_review_input
 from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
@@ -757,21 +758,25 @@ async def _review(
         review_input.model_dump(mode="json"),
         ensure_ascii=False,
     )
-    result = await run_agent_traced(
-        provenance,
-        payload,
-        span_name="provenance.review",
-        role="Provenance",
-        stage="review",
-        input_contract="src.linger.agents.provenance.models.ProvenanceInput",
-        output_contract="src.linger.agents.provenance.models.ProvenanceReview",
-        input_origin="Muse",
-        prompt_template_id=PROVENANCE_PROMPT_FINGERPRINT.template_id,
-        prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
-        failure_code="provenance_model_failed",
-        result_attrs=lambda run_result: review_attrs(run_result.output),
-        **CANDIDATE_REVIEW.run_options(),
-    )
+    review_token = set_review_input(review_input)
+    try:
+        result = await run_agent_traced(
+            provenance,
+            payload,
+            span_name="provenance.review",
+            role="Provenance",
+            stage="review",
+            input_contract="src.linger.agents.provenance.models.ProvenanceInput",
+            output_contract="src.linger.agents.provenance.models.ProvenanceReview",
+            input_origin="Muse",
+            prompt_template_id=PROVENANCE_PROMPT_FINGERPRINT.template_id,
+            prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
+            failure_code="provenance_model_failed",
+            result_attrs=lambda run_result: review_attrs(run_result.output),
+            **CANDIDATE_REVIEW.run_options(),
+        )
+    finally:
+        reset_review_input(review_token)
     try:
         review = ProvenanceReview.model_validate(result.output)
         review_input.validate_review(review)

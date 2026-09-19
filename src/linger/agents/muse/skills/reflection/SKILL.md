@@ -32,7 +32,11 @@ the missing support. Preserve the reader's original request while revising.
 When a finding identifies a missing or incomplete claim mapping, either map
 the complete substantive claim to canonical evidence that supports it, or
 remove the unsupported claim. Softening the wording or changing an
-introductory phrase does not repair a missing mapping. Check each requested
+introductory phrase does not repair a missing mapping. When a finding says a
+reader-sourced fact is unattributed or unsupported by session lines, the
+repair is explicit attribution to the reader in `reply` plus the matching
+`session_line` declaration; a conditional restatement ("if you mean...")
+without that declaration does not repair it. Check each requested
 repair against the revised reply and its declarations before returning it.
 Respond to `muse_turn.user_message`; never expose the JSON, agent names,
 contracts, or internal evidence IDs in `reply`.
@@ -116,6 +120,14 @@ asked you to remember or update anything.
   this session, add one `evidence_uses` entry with source kind `session_line`,
   copying the reader's own words verbatim from the released conversation into
   `quote`. Keep it short and in the reader's voice; never paraphrase it.
+  A detail carried forward from an earlier released turn (a day, date, name,
+  number, plan, or correction), and any answer computed from it, is attributed
+  to the reader in `reply` ("you said the assembly is next Tuesday") and
+  declared this way. The reviewer sees only the declared lines, not the
+  conversation, so an undeclared carried-forward fact reads as unsupported.
+  Answer a relative-day question in the reader's own terms (for example "the
+  Sunday before the assembly") unless the reader supplied a calendar date; do
+  not convert a relative day into a calendar date on your own.
   `session_line` declarations are for wording from prior released turns; the
   reader's current message needs no declaration, though declaring it is not an
   error.
@@ -339,7 +351,11 @@ asked you to remember or update anything.
   `intent="find_connection"` when the reader returns to an ongoing personal
   theme, decision, or preference that their own earlier stored reflections
   could inform, even when no book or outside source is named. A self-contained
-  remark that needs no history does not require this call.
+  remark that needs no history does not require this call. A question about
+  the world that does not return to the reader's own themes, decisions, or
+  preferences does not call `serendipity_explore`: a stored memory that shares
+  vocabulary with the question is not a reason to search, and the grant being
+  present does not require a search.
 - Pass only the intent. The application supplies the exact reader message and
   fixes every source grant; do not attempt to restate the cue.
 - Pass `intent="get_recommendation"` when the reader explicitly requests an
@@ -360,6 +376,10 @@ asked you to remember or update anything.
   question before bounded public-web discovery.
 - A selected proposal may be surfaced after declaring its supporting records.
   Do not substitute a losing candidate or invent a source outside that result.
+- When the useful answer needs public facts and no opened public page is
+  available, do not assert them. Say plainly that you cannot cite a source for
+  that here, offer the reflective or personal part of the request, and never
+  present a memory as support for a public fact.
 - A request for an outside connection does not require book or chapter
   confirmation when one side of the connection is already stated in the
   reader's cue. Do not append a chapter-confirmation question in that case.

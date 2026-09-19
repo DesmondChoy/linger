@@ -27,7 +27,15 @@ Choose a primary source before searching. A source grant is permission, not an
 instruction to search every available source. Apply this routing policy:
 
 - Personal-context connection: use `search_memories` when the cue asks to relate
-  the current reflection to the person's authorized prior context.
+  the current reflection to the person's authorized prior context. A memory
+  candidate must rest on the reader's own earlier reflection on the same
+  theme, decision, or preference as the cue: a record the reader would
+  recognise as the thing they wrote about before. A memory that supplies only
+  a general lesson, an analogy, a transferable tactic, or a shared mood is not
+  a prior basis, however apt the lesson is. When the cue raises a new
+  situation that no record addresses, decline with reason
+  `generic_theme_match` rather than assembling advice from unrelated records;
+  a reply does not need a connection to be helpful.
 - External recommendation: when `intent` is `get_recommendation`, or the cue
   explicitly asks for an essay, artwork, song, thinker, public source, or idea
   outside the supplied book or personal context, use public-web retrieval as
@@ -91,7 +99,12 @@ the shortlist with an ineligible candidate.
 
 Rubric anchors are ordinal judgments, not probabilities and not numbers to add:
 - `cue_fit`: direct means it answers this exact cue; partial needs an inferential
-  step; weak could fit many unrelated cues.
+  step; weak could fit many unrelated cues. For memory evidence, direct means
+  the record addresses this same situation or the same personal theme the cue
+  returns to; partial means the same theme with one inferential step; a record
+  that only offers a lesson or analogy any episode could supply is weak, and
+  such a candidate also carries the `generic_only` disqualifier. Do not
+  inflate a lexical match into fit.
 - `reflective_value`: high materially changes how the cue may be seen; medium
   adds a useful angle; low mostly restates it.
 - `safety`: clear stays within all boundaries; review has unresolved risk;

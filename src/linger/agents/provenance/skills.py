@@ -5,6 +5,7 @@ from src.linger.agents.provenance.curation_models import (
     CurationReviewInput,
 )
 from src.linger.agents.provenance.models import ProvenanceInput, ProvenanceReview
+from src.linger.agents.provenance.review_validation import validate_provenance_review
 from src.linger.agents.skills import RuntimeSkill, load_instructions
 from src.linger.contracts.emotional import (
     EmotionalBoundaryAssessment,
@@ -32,10 +33,8 @@ CANDIDATE_REVIEW = RuntimeSkill(
     instructions=load_instructions(PACKAGE, "skills/candidate-review/SKILL.md"),
     input_type=ProvenanceInput,
     output_type=ProvenanceReview,
-    validators=(
-        "ProvenanceReview.require_decision_specific_justification",
-        "ProvenanceInput.validate_review",
-    ),
+    output_validator=validate_provenance_review,
+    validators=("validate_provenance_review",),
     output_retries=2,
 )
 
