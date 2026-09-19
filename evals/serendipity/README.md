@@ -60,6 +60,15 @@ The current component cases cover book and web sources. The memory scenario in
 `cases/future/` remains outside that baseline until executable memory cases and
 their grading are added.
 
+Personal recall uses the separate `memory-recall` skill with
+`intent="recall_memory"`. It searches only authorized memories and returns one
+`MemoryRecall` containing one to three relevant records, or a decline. The
+connection-discovery component suite does not grade this skill. The
+[longitudinal retrieval replay](../synthetic_journals/README.md#longitudinal-retrieval-replay)
+checks recorded retrieval, final citations, lookup failures, and storage
+preservation through production chat. Its semantic usefulness still requires
+review.
+
 ## Case contract
 
 Each current JSON case contains:

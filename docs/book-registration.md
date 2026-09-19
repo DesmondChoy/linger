@@ -32,9 +32,12 @@ Books with the same title can be distinguished by their registered authors.
 
 Explicit declarations and title-only answers use exact name matching, with an
 optional `by Author` suffix. This also covers a title following a chapter number,
-such as "I've finished Chapter 2 of The Orchard Notebook". Free-form Librarian
-requests use the same resolver
-to find reviewed names within the reader's original message. If there is no
+such as "I've finished Chapter 2 of The Orchard Notebook". Completion declarations
+can include a chapter title, place the book before the chapter, or end with a
+reflection, such as "I have finished Chapter 5 of Animal Farm and it stayed with
+me." The parser confines the title to the declaration; a book mentioned only
+in a later sentence does not inherit its chapter. Free-form Librarian requests
+use the same resolver to find reviewed names within the reader's original message. If there is no
 name signal, Librarian can still use its existing catalogue cues. Multiple
 qualifying catalogue candidates require clarification, even if their scores
 differ. Candidate aliases never become strong memory-identity evidence.
@@ -50,6 +53,12 @@ session's active selection if its revision remains allowed and no strong cue
 contradicts it. A routed result records its deterministic `selection_basis` as
 `resolved_book_identity`, `distinctive_cue`, or `session_selection`. This field
 explains book selection; it does not establish reading progress.
+
+Session state also records whether the reader stated or confirmed the selection,
+or application routing inferred it. Tool uncertainty preserves a reader-stated
+book and any pending clarification. An inferred selection remains retractable.
+A reader declaration naming a different unresolved book, or a revision that
+leaves the allowed scope, clears the old selection and pending question.
 
 An unresolved book declaration clears the previous selection, chapter
 candidate, and pending chapter question. A typed identity clarification from `librarian_route` occurs before

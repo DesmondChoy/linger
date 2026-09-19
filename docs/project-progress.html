@@ -1163,7 +1163,7 @@
         <div>
           <p class="eyebrow">Project progress · Specification-led</p>
           <h1>Five agents with <em>explicit runtime skills.</em></h1>
-          <p class="hero-copy">Each logical role owns one reusable PydanticAI Agent. Application code selects one of nine assigned skills before each run and retains authority over evidence, release, and storage. Five literary corpora are registered, with request-scoped reading boundaries. Evaluation includes role packs, shared book replay contracts, capture outcomes, and bounded surfacing decisions. The conversational capture-to-curation-and-surfacing demonstration remains a target.</p>
+          <p class="hero-copy">Each logical role owns one reusable PydanticAI Agent. Application code selects an assigned runtime skill before each run and retains authority over evidence, release, and storage. Five literary corpora are registered, with request-scoped reading boundaries. Evaluation includes role packs, shared book replay contracts, capture outcomes, and bounded surfacing decisions. The conversational capture-to-curation-and-surfacing demonstration remains a target.</p>
         </div>
         <aside class="hero-status" aria-label="Current delivery state">
           <div class="status-kicker"><span class="pulse" aria-hidden="true"></span> Current stage</div>
@@ -1199,10 +1199,10 @@
         <div class="journey">
           <article class="journey-step" data-step="01 / REFLECT">
             <div class="journey-body"><h3>Reflect</h3><p>Every Line receives a request-local emotional preflight; Muse then produces one typed candidate whose specialist evidence survives through isolated Provenance review and deterministic release.</p></div>
-            <div class="journey-footer"><span class="status-tag working">Instrumented slice</span><p class="remaining">Still needed: photograph input and complete authority declarations for image, web, and private-memory claims.</p></div>
+            <div class="journey-footer"><span class="status-tag working">Instrumented slice</span><p class="remaining">Photograph input and image evidence authority remain outside the prototype. Book, memory, web, and earlier-reader claims have source-specific review and release checks.</p></div>
           </article>
           <article class="journey-step" data-step="02 / GROUND">
-            <div class="journey-body"><h3>Ground</h3><p>Librarian's boundary-inference and evidence-assessment skills guide application-owned retrieval and exact citation validation. The recorded retrieval benchmark uses Alice.</p></div>
+            <div class="journey-body"><h3>Ground</h3><p>Librarian plans focused book requests, identifies stopping events, infers reading boundaries, and assesses evidence. Application code enforces chapter or exact-passage permission and validates citations.</p></div>
             <div class="journey-footer"><span class="status-tag partial">Bounded retrieval</span><p class="remaining">Private inference validates memory-backed chapter ceilings or exact session-supported paragraphs before evidence retrieval. Shared Scene facts govern book replay. Broader corpus evaluation and approved operating budgets remain open.</p></div>
           </article>
           <article class="journey-step" data-step="03 / PRESERVE">
@@ -1210,7 +1210,7 @@
             <div class="journey-footer"><span class="status-tag partial">Evaluation slice</span><p class="remaining">Blank nominations fail before storage. Server-owned durable event identity remains open. Public memory management and the versioned schema remain deferred.</p></div>
           </article>
           <article class="journey-step" data-step="04 / RECONNECT">
-            <div class="journey-body"><h3>Reconnect</h3><p>Serendipity's connection-discovery skill can search the active account memory view, granted book scope, or policy-enabled Exa. Selected book, memory, and web evidence passes through Provenance and deterministic release validation.</p></div>
+            <div class="journey-body"><h3>Reconnect</h3><p>Serendipity recalls one or more matching account memories through memory-recall. Connection-discovery can search the active account memory view, granted book scope, or policy-enabled Exa. Selected book, memory, and web evidence passes through Provenance and deterministic release validation.</p></div>
             <div class="journey-footer"><span class="status-tag partial">Reviewed connection path</span><p class="remaining">Image evidence remains unsupported. Component evaluations and adopted cross-source replay establish different evidence.</p></div>
           </article>
         </div>
@@ -1220,7 +1220,7 @@
         <header class="section-head"><div><span class="section-index">02 · Shared verification</span><h2 id="verification-title">Evidence across the implementation</h2></div><p class="section-summary">Repository checks cover runtime contracts, corpus integrity, and frontend behavior. Saved evaluation reports describe their recorded configuration and cases; they do not establish current whole-system readiness.</p></header>
         <div class="proof-strip" aria-label="Verification commands">
           <div class="proof-stat"><span>Python suite</span><strong>pytest</strong><small><code>uv run pytest -q</code></small></div>
-          <div class="proof-stat"><span>Frontend</span><strong>npm</strong><small>test, lint, and build in <code>apps/frontend</code></small></div>
+          <div class="proof-stat"><span>Frontend</span><strong>pnpm</strong><small>test, lint, and build in <code>apps/frontend</code></small></div>
           <div class="proof-stat"><span>Role evaluations</span><strong>evals/</strong><small>fixed cases, component runners, and saved reports</small></div>
           <div class="proof-stat"><span>Corpus integrity</span><strong>check</strong><small>shared lifecycle with each source adapter</small></div>
         </div>
@@ -1229,9 +1229,9 @@
       <section class="section" aria-labelledby="evaluation-program-title">
         <header class="section-head"><div><span class="section-index">03 · Evaluation programme</span><h2 id="evaluation-program-title">Evaluate each authority boundary.</h2></div><p class="section-summary">The canonical catalog defines eleven Objectives. Strict Backstory, Prop, Scene, Line, and proposed Ground truth contracts preserve the separation between runtime inputs and evaluator-only judgments.</p></header>
         <div class="evaluation-overview">
-          <article class="evaluation-spotlight"><span class="section-index">Synthetic scenario evaluation</span><h3>Objective-specific contracts and replay.</h3><p>Capture replay checks nomination, exact spans, independent review, binding, storage outcomes, and record counts. Continuity replay keeps related Lines in one session. Book replay compiles shared Scene facts and Objective-owned expectations into one validated plan. Bounded curation replay examines Sculptor proposals and source preservation.</p><p>The surfacing runner evaluates a supplied memory batch and a typed decision. It does not retrieve, deliver, schedule, or run the planned conversational capture-to-curation demonstration.</p><ul class="evaluation-links"><li><a href="../evals/synthetic_journals/README.md">Package validation and replay commands</a></li><li><a href="design/synthetic-book-replay-contract.md">Shared book replay contract</a></li><li><a href="../synthetic-journal-evaluation/evaluation-objectives.yaml">Canonical Objective catalog</a></li><li><a href="telemetry.md">Evaluation telemetry boundary</a></li></ul></article>
+          <article class="evaluation-spotlight"><span class="section-index">Synthetic scenario evaluation</span><h3>Objective-specific contracts and replay.</h3><p>Capture replay checks nomination, exact spans, independent review, binding, storage outcomes, and record counts. Continuity replay keeps related Lines in one session. Longitudinal retrieval replay checks completed searches, evidence use, and release across sessions. Book replay compiles shared Scene facts and Objective-owned expectations into one validated plan. Standalone bounded curation replay runs Sculptor, Provenance review, approved application, and source auditing.</p><p>The surfacing runner evaluates a supplied memory batch and a typed decision. It does not retrieve, deliver, schedule, or run the planned conversational capture-to-curation demonstration.</p><ul class="evaluation-links"><li><a href="../evals/synthetic_journals/README.md">Package validation and replay commands</a></li><li><a href="design/synthetic-book-replay-contract.md">Shared book replay contract</a></li><li><a href="../synthetic-journal-evaluation/evaluation-objectives.yaml">Canonical Objective catalog</a></li><li><a href="telemetry.md">Evaluation telemetry boundary</a></li></ul></article>
           <div class="evaluation-assets" aria-label="Evaluation evidence">
-            <article class="evaluation-asset"><span>Role packs</span><strong>Fixed cases</strong><p>Muse, Librarian, Provenance, Serendipity, and Sculptor have dedicated cases. Provenance separates emotional preflight from candidate risk codes.</p><a href="../evals/">Open evaluation packs</a></article>
+            <article class="evaluation-asset"><span>Role packs</span><strong>Fixed cases</strong><p>Muse, Librarian, Provenance, Serendipity, and Sculptor have dedicated cases. Provenance has emotional-preflight, candidate risk-code, curation risk-code, and claim-mapping suites.</p><a href="../evals/">Open evaluation packs</a></article>
             <article class="evaluation-asset"><span>Saved live report</span><strong>12 cases</strong><p>The recorded Alice Librarian → Muse → Provenance run measures recall, citations, strength, spoilers, and latency.</p><a href="../evals/librarian/live-report.json">Open saved report</a></article>
             <article class="evaluation-asset"><span>Book authority</span><strong>Scene facts</strong><p>Exact corpus excerpts compile to canonical evidence fingerprints. Private route and search attempts remain observable after a failed release.</p><a href="design/synthetic-book-replay-contract.md">Read book replay contracts</a></article>
             <article class="evaluation-asset"><span>Surfacing scope</span><strong>Decision only</strong><p>Independent adoption gates hard grades for a supplied memory batch. Conversational retrieval and delivery need their own implemented evidence.</p><a href="../evals/synthetic_journals/surfacing_replay.py">Inspect surfacing replay</a></article>
@@ -1265,7 +1265,7 @@
       </div>
       <ul class="source-list">
         <li><a href="specification.md">Canonical system specification</a></li>
-        <li><a href="agent-skills.md">Five reusable Agents and nine runtime skills</a></li>
+        <li><a href="agent-skills.md">Five reusable Agents and assigned runtime skills</a></li>
         <li><a href="design/librarian-design.md">Librarian subsystem design</a></li>
         <li><a href="design/memory-format.md">Deferred memory-management design</a></li>
         <li><a href="telemetry.md">Synthetic evaluation telemetry boundary</a></li>
@@ -1297,19 +1297,19 @@
           </article>
           <article class="role-progress">
             <div class="role-lead"><div class="role-code" aria-hidden="true">Li</div><div><h3 class="role-name">Librarian</h3><span class="status-tag partial">Bounded retrieval</span><br><a class="role-link" href="design/librarian-design.html">View detailed progress</a></div></div>
-            <div class="role-built"><h3>Assigned skills</h3><p>Updated 16 Sep: boundary inference, book-request planning, and evidence assessment share one Agent without tools. A frozen request plan governs answerability across five registered corpora. Application code validates chapter, reading-unit, and exact-passage access.</p></div>
+            <div class="role-built"><h3>Assigned skills</h3><p>Boundary inference, event identification, book-request planning, and evidence assessment share one Agent without tools. A frozen request plan governs answerability across five registered corpora. Application code validates chapter, reading-unit, and exact-passage access.</p></div>
             <div class="role-proof"><strong>Suite + 12</strong><span>focused tests · frozen cases</span></div>
             <div class="role-next"><h3>Next gate</h3><p>Adversarial authorization, passage-grant grading, broader evaluation, and approved operating budgets. Session fallback exists; reconcile open issue linger-3yyi with current routing.</p></div>
           </article>
           <article class="role-progress">
             <div class="role-lead"><div class="role-code" aria-hidden="true">Pr</div><div><h3 class="role-name">Provenance</h3><span class="status-tag working">Mandatory gate</span><br><a class="role-link" href="design/provenance-design.html">View detailed progress</a></div></div>
             <div class="role-built"><h3>Assigned skills</h3><p>Emotional preflight, candidate review, and digest-bound curation review use one Agent with fresh task input, selected output schemas, and no tools or shared history.</p></div>
-            <div class="role-proof"><strong>Suite + 32</strong><span>focused tests · fixed eval cases</span></div>
+            <div class="role-proof"><strong>Suite + 4 packs</strong><span>focused tests · semantic evaluations</span></div>
             <div class="role-next"><h3>Next gate</h3><p>Broaden target declarations and semantic evaluation. Image authority remains unsupported.</p></div>
           </article>
           <article class="role-progress">
             <div class="role-lead"><div class="role-code" aria-hidden="true">Se</div><div><h3 class="role-name">Serendipity</h3><span class="status-tag partial">Reviewed connections</span><br><a class="role-link" href="design/serendipity-design.html">View detailed progress</a></div></div>
-            <div class="role-built"><h3>Assigned skill</h3><p>Connection discovery retains request-scoped dependencies, granted memory, Librarian and Exa searches, collected evidence, and validated proposal or decline output.</p></div>
+            <div class="role-built"><h3>Assigned skills</h3><p>Memory recall returns matching account records without a shortlist. Connection discovery uses granted memory, Librarian, and Exa searches with a ranked proposal or decline. Both skills validate evidence before Muse can use it.</p></div>
             <div class="role-proof"><strong>Suite + cases</strong><span>focused tests · fixed component cases</span></div>
             <div class="role-next"><h3>Next gate</h3><p>Extend adopted evaluation evidence; photograph evidence remains unsupported.</p></div>
           </article>
@@ -1339,7 +1339,7 @@
             <tbody>
               <tr><td data-label="Role">Muse</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">5</td><td data-label="Runtime / live evidence">11-Scene replay</td><td data-label="Maturity">Typed hand-offs, release coverage, and traces</td></tr>
               <tr><td data-label="Role">Librarian</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">12</td><td data-label="Runtime / live evidence">12-case live report</td><td data-label="Maturity">Saved Alice report with known ceilings; predates current request planning</td></tr>
-              <tr><td data-label="Role">Provenance</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">8 + 24</td><td data-label="Runtime / live evidence">Saved risk-code report and replay</td><td data-label="Maturity">Preflight, candidate review, curation review, and release validation</td></tr>
+              <tr><td data-label="Role">Provenance</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">Preflight, candidate risks, curation risks, and claim mapping</td><td data-label="Runtime / live evidence">Saved risk-code report and replay</td><td data-label="Maturity">Preflight, candidate review, curation review, and release validation</td></tr>
               <tr><td data-label="Role">Serendipity</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">Component pack</td><td data-label="Runtime / live evidence">Component evaluation runner</td><td data-label="Maturity">Book, memory, and web discovery with reviewed release</td></tr>
               <tr><td data-label="Role">Sculptor</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases">5</td><td data-label="Runtime / live evidence">Two five-Scene package replays</td><td data-label="Maturity">Hard gates, semantic criteria, immutable sources, and dual identities</td></tr>
               <tr><td data-label="Role">Memory &amp; Policy</td><td data-label="Focused tests">Suite</td><td data-label="Fixed eval cases" class="none">None dedicated</td><td data-label="Runtime / live evidence">11-Scene replay</td><td data-label="Maturity">Policy, storage, capture, and trace coverage</td></tr>

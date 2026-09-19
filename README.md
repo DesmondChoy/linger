@@ -16,7 +16,8 @@ a small literary corpus.
 
 **Muse** conducts the conversation and requests specialist assistance.
 **Librarian** assesses reading boundaries and book evidence. **Serendipity**
-explores connections across memories, books, and authorised web sources.
+recalls saved memories and explores connections across memories, books, and
+authorised web sources.
 **Sculptor** proposes memory curation and surfacing decisions in separate
 controlled workflows. **Provenance** reviews emotional boundaries, reply
 candidates, and curation proposals.
@@ -48,11 +49,24 @@ retain their own tools and context rules, including Muse's session history.
 
 ## Current prototype
 
-The local app supports chat, book-grounded reflection, and connections to
-available memories and optional public-web sources. Interactive memory capture
-is disabled, and the app exposes no memory-management actions. Controlled
-workflows support capture and curation; the full conversational capture,
-curation, and later surfacing sequence remains a target.
+The local app places chat, a live agent map, and turn inspection on one page.
+It supports book-grounded reflection, recall from available account memories,
+and connections to memories, books, and optional public-web sources. A recall
+request can return one matching memory without requiring alternative candidates.
+General factual questions do not use private memories as reference material.
+
+Librarian breaks book questions into focused searches and assesses the evidence
+against the full request. Reading permission comes from explicit progress or
+validated inference from reader statements and eligible memories. Provenance
+reviews the complete reply, including quotations, attribution, and claim
+support. Bounded repairs check quotation text and retain source mappings for
+unchanged accepted claims before the application checks release.
+
+Interactive memory capture is disabled by default, and the app exposes no
+memory-management actions. Controlled workflows support reviewed capture,
+Sculptor curation, Provenance review, and application of approved derived
+changes while preserving original records. The full conversational capture,
+curation, and later proactive surfacing sequence remains a target.
 
 This is a single-user prototype with no end-user authentication. Conversation
 history lives in the backend process and disappears on restart. Chat content
@@ -133,14 +147,19 @@ The default configuration enables these books:
 - *Narrative of the Life of Frederick Douglass, an American Slave*
 - *The Story of My Life*
 
-The local frontend also includes two developer tools:
+The local frontend includes developer tools alongside the conversation:
 
-- **Reader** browses canonical books by chapter or named section. Its navigation
-  does not set reading progress for chat.
-- **Inspect** shows a turn's context, agent outcomes, release decisions, and
-  Logfire trace ID. Its diagnostics grant no runtime authority.
+- The live map follows agent activity. Select a component or completed turn to
+  inspect its context, outcomes, findings, release decision, and trace reference.
+- **Library** opens the canonical Reader by chapter or named section. Browsing
+  a book does not set reading progress for chat.
+- The prompt tray supplies example messages. Saved evaluation playback shows
+  exported scenario records and grades without invoking agents.
 
-Both tools are for local development and should be omitted from a product frontend.
+These diagnostics are for local development and grant no runtime authority.
+See the [frontend guide](apps/frontend/README.md) for the controls and the
+[evaluation explorer](apps/evaluation-explorer/README.md) for standalone
+architecture walkthroughs and snapshot refresh commands.
 
 ## Skills
 
@@ -169,13 +188,31 @@ pnpm --dir apps/frontend lint
 pnpm --dir apps/frontend build
 ```
 
+GitHub Actions runs the backend and frontend unit suites for pull requests and
+pushes to `main`. Backend tests block model-provider requests; tests marked
+`embeddings` use real local embedding and reranker models. To exclude those
+tests, run `uv run pytest -m "not embeddings"`.
+
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported
-Objectives, and replay. Use the Skills above to follow those workflows.
+Objectives, and replay. Supported workflows include combined capture and
+curation, multi-turn continuity, longitudinal retrieval, and book grounding
+across the five registered corpora. Grades distinguish completed retrieval,
+evidence use, review, and final release. Use the Skills above to follow those
+workflows.
+
+List saved scenarios and inspect replay options from the repository root:
+
+```bash
+uv run python -m evals.synthetic_journals.run_scenario menu
+uv run python -m evals.synthetic_journals.replay --help
+```
 
 Individual agent evaluation guides cover [Muse](evals/muse/README.md),
 [Librarian](evals/librarian/README.md), [Provenance](evals/provenance/README.md),
 [Serendipity](evals/serendipity/README.md), and [Sculptor](evals/sculptor/README.md).
+The Provenance guide includes candidate risk-code, curation risk-code, and claim
+mapping commands. Live evaluation commands use the configured model provider.
 
 ## Documentation
 

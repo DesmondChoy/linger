@@ -5,9 +5,10 @@ evaluation Scenes, and the detail drawer. Two applications render it.
 
 - [`apps/evaluation-explorer`](../../apps/evaluation-explorer) is the standalone
   explorer. It supplies its own page header, footer, and chrome.
-- [`apps/frontend`](../../apps/frontend) embeds it in the chat Architecture
-  panel, in a *Live turn* mode that maps one real chat turn and an *Explore
-  scenarios* mode that reuses the curated explanations unchanged.
+- [`apps/frontend`](../../apps/frontend) embeds the graph beside chat, maps live
+  turn activity, and uses exported evaluation records for saved playback. Its
+  inspector retains every completed turn and opens components in that turn's
+  context.
 
 ## Consuming it
 
@@ -44,18 +45,27 @@ through.
 - `types.ts` — component, graph, Scene, and walkthrough contracts.
 - `scenarios.ts` — the component registry and every curated Objective route.
 - `catalog.json` — generated snapshot of catalog text and archived evaluation
-  records, read from `synthetic-journal-evaluation/scenarios`. Refresh it with
-  `pnpm --dir ../../apps/evaluation-explorer refresh-data` and verify with
-  `.venv/bin/python apps/evaluation-explorer/scripts/export_catalog.py --check`.
+  metadata, read from `synthetic-journal-evaluation/scenarios`.
+- `evaluations.json` and `evaluations.ts` — exported evaluation transcripts,
+  grades, and playback selection. Available playback depends on this snapshot.
 - `layout.ts` — places existing Scene nodes in labelled regions without changing
   their semantics.
 - `Graph.tsx`, `Icon.tsx`, `Inspector.tsx`, `ScenarioExplorer.tsx`, `map.css`.
 
 ## Validation
 
-Its tests and lint run from the standalone explorer, which owns the toolchain:
+Run these commands from the repository root. The standalone explorer owns the
+toolchain for this source package:
 
 ```sh
-pnpm --dir ../../apps/evaluation-explorer test
-pnpm --dir ../../apps/evaluation-explorer lint
+pnpm --dir apps/evaluation-explorer test
+pnpm --dir apps/evaluation-explorer lint
+```
+
+Refresh both data snapshots and check that they match the available source files:
+
+```sh
+pnpm --dir apps/evaluation-explorer refresh-data
+uv run python apps/evaluation-explorer/scripts/export_catalog.py --check
+uv run python apps/evaluation-explorer/scripts/export_evaluations.py --check
 ```

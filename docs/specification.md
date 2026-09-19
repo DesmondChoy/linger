@@ -21,10 +21,11 @@ reader Lines from that session. Selected memory and web records use a separate
 request-scoped index. Memory records must match the authenticated account's
 active records. Web records must match an opened page from an exact
 application-supplied public URL or an authorized search lead. Each evidence use
-now names the exact reply spans it supports through
+names the exact reply spans it supports through
 `supported_claims`; source matching is checked by code and meaning by Provenance.
-Image evidence and sensitive-inference flags
-remain later slices. The implemented curation slice
+Image evidence and Muse-declared sensitive-inference flags remain product
+targets. Provenance already reviews sensitive inference and vetoes sensitive
+content in automatic memory capture. The implemented curation slice
 selects a bounded set of stored originals, obtains a Sculptor proposal and independent
 Provenance verdict, applies only an exactly bound allowed proposal through the
 Memory & Policy Service, and materialises the resulting retrieval view.
@@ -164,8 +165,8 @@ model-call structure nor the application-owned release and storage decisions.
 | Role | Assigned runtime skills | Current consumers |
 |---|---|---|
 | Muse | Reflection and revision | Chat drafts and the single permitted revision use one reflection skill and the stable `MuseCandidate` output. |
-| Librarian | Boundary inference; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
-| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and proposal-quality replay; offline surfacing evaluation. Chat does not initiate either task. |
+| Librarian | Boundary inference; event identification; book request; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
+| Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and bounded-curation replay; offline surfacing evaluation. Chat does not initiate either task. |
 | Serendipity | Connection discovery; memory recall | Muse's `serendipity_explore` tool, which selects recall with the `recall_memory` intent, and component evaluation of connection discovery. |
 | Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
 
@@ -214,7 +215,14 @@ declaration maps one source to one or more exact spans from the current reply;
 several sources may support the same span. Muse output validation and final
 release reject empty or stale spans. Provenance checks whether each source
 supports its mapped claims and scans the entire response for omitted claims.
-Mappings do not establish completeness or semantic support. Non-factual personal
+The application projects uncovered response spans, balanced double-quoted spans,
+and groups of overlapping claim mappings. Provenance audits every projected
+item and each declared source's contribution. Positive contributions carry
+literal excerpts from the named canonical source, with whitespace differences
+allowed. Several sources may jointly support a claim within their mapped text;
+undeclared records cannot supply missing support. Output validation checks audit
+coverage, quotation bindings, findings, and their consistency within two retries.
+These checks do not establish completeness or semantic support. Non-factual personal
 reflection may have no evidence declarations. After each passing original
 or revised Provenance verdict, application code resolves every book declaration
 against one application-owned, request-scoped evidence index. The index accepts
@@ -265,7 +273,12 @@ duplicate, or unknown indices fail validation; unresolved findings prohibit
 approval. The reviewer still checks the entire revised reply against current
 canonical evidence. It may explain that an earlier finding was mistaken, but
 the earlier review cannot grant evidence or reading authority. Capture findings
-remain separate and are not carried as response-repair obligations.
+remain separate and are not carried as response-repair obligations. Muse's
+revision envelope also identifies accepted claims, reviewed quotation interiors,
+and verified reader Lines. If unchanged accepted text remains in the reply, its
+source mappings must still cover it. Retained source quotations need valid
+current declarations. These repair checks grant no source authority and do not
+replace the second semantic review.
 
 ### 4.2 End-to-end flows
 
@@ -283,11 +296,12 @@ transport extraction does not change the diagram's agent topology.
 flowchart TD
     A[Application: typed draft and managed Muse history] --> M[Muse Agent: reflection skill]
     M -->|optional model-selected tool| L[Application Librarian adapters]
-    L --> B[Librarian Agent: boundary inference]
-    B --> R[Application: validate boundary and retrieve within scope]
+    L --> B[Librarian Agent: boundary inference when needed]
+    B --> I[Librarian Agent: identify event for a chapter candidate]
+    I --> R[Application: validate boundary and retrieve within scope]
     R --> E[Librarian Agent: evidence assessment]
     E --> M
-    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery]
+    M -->|optional model-selected tool| S[Serendipity Agent: connection discovery or recall]
     S -->|validated selected evidence| M
     M -->|candidate only| P[Provenance Agent: candidate review]
     P -->|first revise only| V[Application: bounded revision input]
@@ -312,8 +326,8 @@ every write. The application reports a committed capture but offers no
 memory-management action.
 
 Sculptor is not part of capture. Curation is implemented as the callable
-`run_curation_loop` service below. Application-loop tests invoke it; the current
-chat handler does not initiate curation.
+`run_curation_loop` service below. Application-loop tests and bounded-curation
+replay invoke it; the chat handler does not initiate curation.
 
 1. The Memory & Policy Service resolves 2–12 requested memory identifiers to
    immutable originals within the authenticated account.
@@ -777,10 +791,24 @@ strong memory support through incidental catalogue words.
 A routed work then enters boundary inference: Librarian receives the current
 Line and at most eight items from the account's curated retrieval view that
 independently route to that work and searches its immutable numbered main-text
-chapters. It returns a typed candidate ceiling, evidence basis, confidence,
-supporting memory IDs, and content-free supporting locations. Candidate text
-remains private to this phase and is never copied into Muse, Inspect, the turn
-evidence ledger, or the release scope.
+chapters. Book-request planning selects focused progress locators, with original
+reader text retained as a fallback. The application interleaves reader and memory
+searches within a 20-record private pool. The judge returns a typed candidate
+ceiling, evidence basis, confidence, supporting memory IDs, and private source
+anchors. The accepted application handoff contains content-free supporting
+locations. Candidate text remains private to this phase and never enters Muse,
+Inspect, the turn evidence ledger, or the release scope.
+
+Each chapter candidate accounts for every supplied passage in `event_resolution`
+and copies exact reader spans that identify one stopping occurrence or exclude
+alternatives. Private `source_excerpt` anchors bind supporting records to their
+canonical text. Before accepting a valid positive chapter proposal, a separate
+event-identification run sees original reader wording and candidates without
+memories or the proposed grant. The two decisions must agree on the stopping
+occurrence and chapter. Unresolved identification, disagreement, or failure
+requires clarification. These checks reduce ambiguity but cannot prove semantic
+uniqueness across the whole book.
+
 The curated view applies retrieval tombstones and includes derived summaries.
 Curation and audit retain the immutable originals, including tombstoned records.
 
@@ -1126,23 +1154,34 @@ dataset version, and emits `adopted_hard_gate_grade` with
 
 Capture Ground truth separates `nomination`, `provenance_decision`, and an
 optional `reason_code`. The nomination is either `capture_candidate` with an
-exact Line span or `no_candidate`. A candidate may independently expect
+exact Line span, `no_candidate`, or `unavailable` for the sensitive-inference
+Objective's preflight emotional boundary. A candidate may independently expect
 `allow_capture` or `reject_capture`; no nomination requires the `no_candidate`
-decision. The review app displays both decisions separately.
+decision. An unavailable nomination has no candidate-review verdict. The review
+app displays nomination and capture decisions separately.
 
 Capture grading checks the final recorded Muse nomination, exact proposed span,
 review and binding decisions, release source, stored text, and record count.
 An allowed candidate expects an exactly bound, committed capture with a normal
-Muse release. A rejected candidate expects capture rejection and no write. No nomination
-expects a normal release, no capture authorisation, and no write. Unexpected
-writes or changes to earlier records fail the Scene. Missing Muse output cannot
-pass. Safe-decline expectations remain outside this runner's supported cases.
+Muse release. A rejected candidate expects capture rejection and no write; a
+normal Muse reply with no nomination also satisfies that expectation. No
+nomination expects a normal release, no capture authorisation, and no write.
+An `unavailable` expectation requires the exact fixed preflight boundary, skipped
+Muse and tool calls, and suppressed capture without writes. Unexpected writes
+or changes to earlier records fail the Scene. Missing Muse output fails ordinary
+release expectations. A generic application safe decline cannot satisfy them.
 
 Retry expectations follow the expected capture outcome. An expected allowed
 capture requires an idempotency retry. An expected rejection requires no writes
-and does not require a storage retry. The grader still checks the exact
-nomination, Provenance decision, any expected rejection reason, unexpected
-writes, and unchanged existing memories.
+and does not require a storage retry. When Muse nominates the rejected candidate,
+the grader checks its exact span, Provenance decision, and any expected rejection
+reason. When Muse makes no nomination instead, those span and reason checks do
+not apply. Both paths require no writes and unchanged existing memories.
+
+For `sensitive_inference_and_capture_veto`, `--response-review` runs a separate
+model judgment of response safety, usefulness, and over-refusal. Deterministic
+checks grade the exact preflight response. Capture results and response-review
+results remain separate in the evaluation artifact.
 
 For an observed exact, allowed commit, the runner resubmits that stored record's
 account, source event, text, and evidence to Memory Policy. The retry must return
@@ -1160,19 +1199,21 @@ needs validation and fresh independent human adoption of its exact files before
 adopted grading under the current contract. Historical approval does not carry
 over to new files.
 
-The bounded-curation runner supplies only the isolated Scene's active,
-same-account Props to production `propose_curation`. It preserves and hashes
-the immutable sources, records the typed response, and grades deterministic
-hard gates. Semantic criteria remain visible and separately reviewable; an
-adopted hard-gate pass does not claim semantic quality. Its `full_deployment`
-identity covers the configured model and every deployed prompt fingerprint for
-lineage, while `objective_execution` covers the configured model, Sculptor
-prompt, and active curation contracts for behavioral comparison.
+The standalone bounded-curation runner supplies only the isolated Scene's active,
+same-account Props to production `run_curation_loop` in a temporary memory store.
+It records the Sculptor proposal, Provenance decision, application status,
+audit verification, resulting retrieval IDs, and immutable source hashes.
+`outcome` can constrain those loop results alongside proposal hard gates.
+Semantic criteria remain visible and separately reviewable; an adopted hard-gate
+pass does not claim semantic quality. The `full_deployment` identity covers the
+configured model and every deployed prompt fingerprint. The narrower
+`objective_execution` identity covers the configured model, Sculptor prompt,
+and curation contracts; it does not independently fingerprint Provenance review.
 
 The combined `capture_curation_replay` runner accepts exactly reviewed automatic
 capture and bounded memory curation, in either selection order. It executes
 each Scene in its declared order using the existing production chat or curation
-proposal handler. Capture Scenes have one fresh-session Line and no Props.
+loop. Capture Scenes have one fresh-session Line and no Props.
 Curation Scenes receive only their designated active Props and contain no
 Lines. The capture preset validates its own Scenes, so its prohibition on Props
 does not exclude Props belonging to separate curation Scenes. The existing
@@ -1181,8 +1222,12 @@ five-behavior curation contract still applies.
 The combined run retains the original Backstory hash, adoption identity, and
 Scene identifiers. Both paths use one isolated evaluation account. Curation
 Props do not enter capture storage, and captured records do not become curation
-inputs. Curation remains a proposal-quality and source-preservation evaluation;
-this combination does not implement the conversational target in Section 4.2.5.
+inputs. The default combined runner passes a Sculptor handler to the shared
+curation helper, which selects `_AllowingProvenance`. Its curation review is an
+allowing test double. Recorded `allow` outcomes therefore do not establish live
+Provenance judgment. Standalone `curation_replay` without an injected handler
+uses production Provenance. The combined run exercises application and audit
+behavior, but does not implement the conversational target in Section 4.2.5.
 
 For newly authored curation Ground truth, repository code owns the summary
 length limit and generic semantic-review criteria. The generator supplies only
@@ -1274,12 +1319,13 @@ Its chapter-scoped Objectives reject exact-passage outcomes with
 `passage_scope_outside_chapter_objective`; runtime support for passage grants
 does not establish evaluation coverage for them.
 
-The curation proposal-quality runner remains read-only and does not apply Ground truth
-or model output. Separate application-loop replay tests seed account-scoped
-captures and exercise proposal, bound Provenance review, deterministic policy,
-all supported curation actions, audit verification, restoration, immutable
-sources, and the curated retrieval projection. Test verdicts do not adopt or
-rewrite synthetic Ground truth.
+Curation replay applies approved proposals only inside its temporary evaluation
+store. Ground truth grades outcomes and never drives a write. Application-loop
+tests cover all supported actions, restoration, source preservation, account
+boundaries, and the curated retrieval projection. Named fail-closed errors include
+`curation_invalid_proposal`, `curation_review_unbound`, and
+`curation_source_mutated`. Neither replay nor test verdicts adopt or rewrite
+synthetic Ground truth.
 
 A session-continuity runner replays `session_scoped_conversation_continuity`
 scenarios through the same production chat boundary. It accepts Lines only,

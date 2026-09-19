@@ -89,7 +89,16 @@ response can suppress capture even when Provenance allows it.
 
 Provenance findings use the closed `RiskCode` taxonomy. Findings identify the
 affected object, use exact evidence spans where required, and cannot cite
-capture evidence against the response. `contains_sensitive_content` is derived
+capture evidence against the response. The input projects exact quote checks,
+quoted spans, undeclared response spans, and claim support groups. The reviewer
+audits all of them, checks each declared source's contribution, and judges
+collective support within the mapped text. Literal source excerpts bind private
+proof to named records; they do not establish semantic support by themselves.
+Output validation retries incomplete audits, invalid bindings, and inconsistent
+findings within the two-retry budget. A revision also requires a resolution for
+every earlier response finding.
+
+`contains_sensitive_content` is derived
 from capture findings, so callers cannot set it inconsistently.
 
 ### Curation review
@@ -155,21 +164,27 @@ Chat consumes preflight and candidate review. The application curation loop
 consumes curation review outside chat.
 
 The [Provenance evaluation guide](../../evals/provenance/README.md) describes an
-eight-case emotional pack and a 24-case candidate-review pack. Twelve candidate
-cases cover release and twelve cover capture, including nominated memories that
-Provenance vetoes. Saved reports remain evidence for their recorded provider
-run and prompt fingerprint.
+eight-case emotional pack and a 28-case candidate-review pack. Twelve cases
+cover release, twelve cover capture, and four exercise omitted claim mappings
+and revision repair. Saved reports remain evidence for their recorded case sets, providers,
+and prompt fingerprints; the saved 24-case report has the earlier case set.
 
-Synthetic capture expectations now represent nomination and independent
+Synthetic capture expectations represent nomination and independent
 Provenance decisions. Replay grades review, exact binding, storage, record
 preservation, and the supported capture retry behavior. These capabilities do
 not establish new live-model results or adoption of a synthetic Scenario.
 
-Synthetic curation replay still calls `propose_curation`, not
-`run_curation_loop`. It measures Sculptor proposal quality and source
-preservation. A curation-review semantic pack and a full curation-loop synthetic
-evaluation remain unimplemented targets. Historical submission PDFs and prior
-reports retain their original evidence scope.
+Standalone curation replay calls `run_curation_loop` with production Provenance
+in an isolated temporary store when no handler is injected. It observes the proposal, Provenance decision, application outcome, audit
+verification, retrieval IDs, and source preservation. Ground truth can constrain
+each outcome. The default combined capture-and-curation runner injects an
+allowing review double, so its `allow` results do not measure semantic curation
+review. The dedicated [curation risk-code pack](../../evals/provenance/curation_risk_codes.py)
+contains a positive case and a supported near miss for each of the six codes.
+Its prompt-injection case accepts either blocking verdict, so it does not prove
+the runtime skill's specific rejection rule. These checks do not establish the
+conversational capture-to-curation-and-surfacing target. Historical submission
+PDFs and prior reports retain their original evidence scope.
 
 ## Source of truth
 

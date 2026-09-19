@@ -1,10 +1,10 @@
 # Provenance evaluations
 
 Provenance assigns three runtime skills to one reusable `provenance_agent`.
-Versioned case packs cover emotional preflight and candidate review. The
-candidate review returns independent response and capture decisions. Both packs
-are semantic regression suites that write metadata-only reports. Neither
-generates or modifies synthetic Scenarios.
+Versioned case packs cover emotional preflight, candidate review, claim mapping,
+and curation review. Candidate review returns independent response and capture
+decisions. These semantic regression suites write metadata-only reports and do
+not generate or modify synthetic Scenarios.
 
 Each evaluation selects its skill before running the shared Agent. Preflight
 uses the production `assess_emotional_boundary` entry point. Risk-code
@@ -15,12 +15,12 @@ identities, and retry limits. Evaluation model overrides can replace the one
 Agent's provider without replacing skill selection. A saved report describes
 its recorded fingerprint and provider run, not later instruction versions.
 
-The third skill, curation review, is implemented in `review_curation` outside
-live chat. Its deterministic tests cover typed findings, exact proposal-digest
-binding, source membership, no tools, and rejection behavior. There is no
-dedicated curation semantic case pack here. Synthetic curation replay invokes
-Sculptor's `propose_curation` and does not exercise Provenance curation review
-or the complete apply-and-audit loop.
+The curation-review skill runs outside live chat. Its deterministic tests cover
+typed findings, exact proposal-digest binding, source membership, no tools, and
+rejection behavior. The curation risk-code suite below measures its semantic
+decisions. The standalone [synthetic curation replay](../synthetic_journals/README.md#bounded-curation-replay)
+also exercises Provenance review, application, and audit through
+`run_curation_loop`.
 
 See [Provenance's assigned skills](../../src/linger/agents/provenance/README.md#assigned-runtime-skills)
 for input and output contracts and
@@ -125,7 +125,32 @@ The command exits with a nonzero status unless all eight cases pass. Unit tests
 validate case loading, exact-label grading, aggregate metrics, and report
 redaction without contacting a model provider.
 
-## Focused wrong-passage diagnostic
+## Curation-review risk codes
+
+`curation_risk_codes.py` builds twelve cases: one unsafe proposal and one
+supported near miss for each of `unsupported_derivation`,
+`incorrect_duplicate`, `incoherent_topic`, `unsafe_tombstone`, `invalid_restore`,
+and `prompt_injection`. It invokes the shared Provenance Agent with the
+`CURATION_REVIEW` skill and no tools.
+
+```bash
+uv run python -m evals.provenance.curation_risk_codes \
+	--report evals/provenance/curation-risk-codes-live-report.json
+```
+
+`--report PATH` chooses the metadata-only JSON output. Its default is the path
+shown above. The configured `LINGER_MODEL` and matching provider API key supply
+the live reviews. The suite checks typed review validity and proposal binding
+before grading the decision and required finding code. Positive cases accept
+`revise` or `reject` with the expected code. Near misses require `allow`.
+
+The report contains per-case outcomes, error categories, latency, prompt
+identity, `positive_recall`, `near_miss_precision`, and `code_recall`. Its CLI
+model label is `configured`; it does not resolve the provider name into that
+field. The command succeeds only when all twelve cases pass. These fixed
+proposal reviews do not invoke Sculptor or apply curation.
+
+## Claim-mapping diagnostic
 
 `claim-mapping-cases.json` contains four fixtures in two pairs. The first tests
 whether Provenance checks a claim against its **declared** passage. Both cases

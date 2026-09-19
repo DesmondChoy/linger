@@ -28,6 +28,13 @@ under application-owned source grants. The model chooses whether and how to
 use those tools. Deterministic code controls identity, reading progress,
 retrieval scope, and storage.
 
+`serendipity_explore(intent="recall_memory")` retrieves one to three matching
+stored records for a request about the reader's earlier words. A single record
+can answer that request. `find_connection` asks Serendipity to compare possible
+connections, and `get_recommendation` requests a direct recommendation. Ordinary
+public facts do not justify searching personal memories. Memory evidence
+supports attributed personal context and cannot establish public or book facts.
+
 `MuseCandidate` contains the complete proposed reply, typed evidence
 declarations, and either one exact current-reader-text memory nomination or a
 typed decision not to nominate. Memory nominations carry no account scope or
@@ -39,7 +46,11 @@ validator. The reflection skill does not override `output_type` per run.
 Book evidence IDs, locations, and quotations are checked against the
 application's request-scoped evidence map. The output validator can request
 three repairs; tool calls retain one retry. These repairs do not count as the
-application's single reviewed revision.
+application's single reviewed revision. Structured repair feedback identifies
+all detected citation errors together and supplies exact authorized source IDs,
+locations, and literal copy aids. `supported_claims` must remain exact spans of
+the final reply, including punctuation and capitalization. A requested quotation
+must retain its canonical words, Markdown, line breaks, and edge punctuation.
 
 ## Review and release
 
@@ -48,6 +59,14 @@ candidate with its isolated evidence and policy context. If the review requests
 a revision, Muse receives the same reflection skill, released history, draft
 messages, and response-scoped findings. The application allows one such rewrite
 and reviews the rewritten candidate again.
+
+The revision envelope includes the earlier review's accepted claims, reviewed
+quotation interiors, and verified reader Lines. If Muse retains an accepted
+claim unchanged, validation requires source mappings to cover its retained text.
+A retained, quoted source span also needs a valid current declaration. Muse may
+remove or rewrite text, but cannot retain an unchanged accepted claim while
+dropping its source mapping. The second review independently checks every
+current source assignment and resolves each earlier response finding.
 
 After semantic approval, deterministic validation resolves every declared source
 against the exact authorized record. Book quotations must match their source and

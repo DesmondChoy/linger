@@ -13,7 +13,7 @@ calls or transfer application authority to a model.
 |---|---|---|---|
 | [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md), including revision | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
 | [Librarian](../src/linger/agents/librarian/README.md) · [assignment](../src/linger/agents/librarian/skills.py) | [Boundary inference](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary`; deterministic grant validation follows |
-| Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | Original reader wording and private canonical candidates → identified occurrence or unresolved | Independent precondition before accepting a proposed chapter boundary; receives no proposed grant or memories |
+| Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` checks a proposed chapter boundary independently; receives no proposed grant or memories |
 | Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks the original request for omitted needs and validates support across planned and recovered parts, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
@@ -39,6 +39,7 @@ flowchart LR
     App --> Provenance[Provenance Agent]
     Muse --> Reflection[Reflection and bounded revision]
     Librarian --> Boundary[Boundary inference]
+    Librarian --> Identify[Event identification]
     Librarian --> Request[Book request]
     Librarian --> Strength[Evidence assessment]
     Sculptor --> Curation[Memory curation]
@@ -67,8 +68,8 @@ returns `MemoryRecall` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
 schemas per run. The Provenance candidate-review run also binds its typed input
 in a request-scoped context so its skill-selected output validator can retry
-finding-location mismatches within the skill's output retries. No run modifies
-a shared Agent's configuration. Requests keep their existing dependencies,
+finding-location, quotation-binding, and coverage-audit errors within the
+skill's two output retries. No run modifies a shared Agent's configuration. Requests keep their existing dependencies,
 bounded context, evidence, and histories.
 
 Instructions load through `importlib.resources`, independently of the working
@@ -122,9 +123,13 @@ supplied memory. Each assessment names canonical passages and explains whether
 they establish earlier knowledge, provide no support, or conflict with the
 current report. `BoundaryMemoryValidation` checks coverage and source IDs within
 the existing single output retry. The decision must agree with its assessments;
-the application rechecks them before granting a boundary. This adds no model
-invocation and never promotes a memory merely because it exists. Uncertain
-current progress still grants nothing. Session-supported passage decisions keep
+the application rechecks them before granting a boundary. These assessments
+share the boundary-inference run and never promote a memory merely because it
+exists. A chapter candidate also accounts for every supplied passage in
+`event_resolution`, identifies one occurrence from exact reader wording, and
+copies a source excerpt for every supporting record. Candidate details cannot
+fill gaps in the reader's event description. Uncertain current progress still
+grants nothing. Session-supported passage decisions keep
 their separate statement-based contract. Without earlier reader statements,
 the application offers only the chapter-candidate and uncertainty output types;
 it does not offer a passage result that cannot grant permission. Both output
@@ -136,7 +141,7 @@ sees original reader wording and private canonical candidates, without the
 first decision, its proposed chapter, or memories. Exact reader/source bindings
 and agreement with the proposed occurrence and chapter are required. Unresolved
 identification, disagreement, invalid output, or execution failure grants
-nothing. This adds one bounded call for an otherwise valid positive chapter
+nothing. This check uses one bounded call for an otherwise valid positive chapter
 proposal. It does not replace the existing memory proof or authorize passage
 access. Two model judgments can still share errors; the extra check is a
 conservative precondition, not a deterministic proof of semantic uniqueness.
@@ -151,7 +156,16 @@ They are recomputed when the input is serialized or revalidated; supplied flags
 cannot override the source text. These checks do not establish attribution or
 semantic support, which remain Provenance judgments. Skill fingerprints include
 the serialized input schema so these derived fields are part of the recorded
-model contract.
+model contract. The input also projects quoted response spans, uncovered text,
+and groups of overlapping claim mappings. Provenance returns `quotation_audit`,
+`coverage_audit`, and `claim_audit` entries for all projected items. Each claim
+source has a separate contribution judgment and a literal supporting excerpt;
+collective support cannot borrow from undeclared sources or other occurrences.
+The validator checks completeness and consistency while semantic support remains
+Provenance's responsibility. Muse revision validation preserves mappings for
+unchanged accepted claims and retained source quotations. The next review still
+checks the whole candidate independently.
+
 When validated routing requires clarification, the application also supplies
 the exact question in `context.required_clarification`. Provenance can review
 that question's catalog metadata without demanding book passages. This field
@@ -242,8 +256,9 @@ candidate or stored curation, and deterministic application checks still apply.
 
 ## Runtime, evaluation, and targets
 
-Chat currently uses Muse reflection, Librarian boundary inference, book-request
-planning, and evidence assessment when needed, optional Serendipity connection discovery, and the two
+Chat uses Muse reflection, Librarian boundary inference, independent event
+identification, book-request planning, and evidence assessment when needed,
+optional Serendipity connection discovery or memory recall, and the two
 Provenance conversation skills. Plain personal recall is Serendipity's separate
 memory-recall skill: when Muse passes `intent="recall_memory"` and the account
 has active memories, it searches only the curated retrieval view and returns
@@ -253,10 +268,14 @@ Provenance and release path. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 
 `run_curation_loop` implements reviewed curation as a callable application
-workflow. The chat handler does not initiate it. Bounded-curation synthetic
-replay invokes the proposal task and verifies source preservation; it does
-not apply proposals or prove a retrieval benefit. Surfacing has an offline
-supplied-batch execution and grading path. It does not retrieve memories,
+workflow. The chat handler does not initiate it. Standalone bounded-curation
+replay without an injected handler runs production proposal, review, application,
+and audit verification in an isolated
+temporary store. It records retrieval-state outcomes and verifies source
+preservation. A passing replay does not establish later conversational retrieval
+quality. The default combined capture-and-curation runner uses an allowing
+Provenance test double, so it does not measure that review's semantics. Surfacing
+has an offline supplied-batch execution and grading path. It does not retrieve memories,
 schedule future contact, or deliver a response. The conversational
 capture-to-curation-and-surfacing demonstration and system-playbook proposals
 remain product targets. They have no additional implemented runtime skill.

@@ -61,7 +61,7 @@ Application orchestration creates one `ConnectionDiscoveryInput` containing:
 
 - the active reader cue;
 - the connection intent and presentation policy; and
-- a trusted `ConnectionScope` granting selected sources and any book ceilings.
+- a trusted `ConnectionScope` granting selected sources and any book scopes.
 
 The initial input contains authority, not prefetched search results. A typical
 grant is:
@@ -80,13 +80,14 @@ grant is:
 ```
 
 Serendipity cannot add a source, enable web access, change a book revision,
-raise a chapter ceiling, or change presentation policy. The canonical Librarian
+widen a reading scope, or change presentation policy. The canonical Librarian
 service is supplied through `SerendipityDependencies`, which tool code can
 access but the model cannot see or supply.
 
 The application grants `memory` only when its active account-scoped curated
 retrieval view contains records. It grants `book_corpus` only with confirmed
-chapter context; an exact-passage grant does not permit Serendipity book search.
+chapter or named-unit context; an exact-passage grant does not permit Serendipity
+book search.
 Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 `get_recommendation` uses `presentation=direct`, while `find_connection` uses
 `ask_before_showing`. `recall_memory` grants memory only, never the book corpus
@@ -273,8 +274,8 @@ returns, orchestration verifies that:
 - web flags match the winner's actual cited sources; and
 - presentation policy is unchanged.
 
-Only the exact records cited by the selected candidate leave this ledger. If
-they include book-corpus records, orchestration converts those records to the
+Only the exact records cited by the selected candidate or memory recall leave
+this ledger. If they include book-corpus records, orchestration converts those records to the
 canonical `EvidenceRecord` contract and adds them to the request-scoped book
 evidence index. Selected memory and web records use the separate request-scoped
 connection evidence registry. Their declarations must resolve to those exact
@@ -283,11 +284,15 @@ records before deterministic release.
 Exa URLs are their web evidence IDs. Search-result metadata supplies
 request-local page leads, while only a successfully opened `get_page` result is
 stored as Serendipity-citable web evidence. A guarded wrapper bounds each web
-query and
-requires it to use a general concept rather than personal data or any
-multi-character term copied verbatim from the reader's cue. It also rejects any page URL that was not returned by the
-current run's search. Web tools are absent entirely when web access or
-credentials are not granted.
+query and rejects private data and copied reader or memory wording. For source
+text of at most eight tokens, any shared multi-character token blocks the query.
+For longer source text, the guard rejects three consecutive copied tokens, or
+the whole query if shorter. Page URLs undergo the same checks in raw and decoded
+form. The exact public URL being opened is excluded from reader-wording
+comparisons, while memory text and private-data checks remain in scope. An
+application-supplied URL allowlist permits direct opens of those exact URLs;
+otherwise the URL must come from the current run's search leads. Web tools are
+absent when web access or credentials are not granted.
 
 ## Shared book-evidence boundary
 
@@ -310,11 +315,11 @@ spoiler boundary. Web, stored-memory, and image evidence never enter this map.
 ## Where authority ends
 
 A proposal is untrusted material for Muse, not a user-facing response. The
-Serendipity agent still returns only `ConnectionProposal | ConnectionDecline`.
-After deterministic validation, application orchestration wraps that decision
-with the exact evidence records cited by the selected candidate for the Muse
-tool handshake; losing-candidate evidence stays inside the Serendipity run and
-is discarded instead of being added to Muse's tool result or Inspect. Muse may
+selected skill returns a connection proposal or decline, or a memory recall.
+After deterministic validation, application orchestration wraps the decision
+with the exact evidence cited by the selected candidate or recall for the Muse
+tool handshake. Losing-candidate evidence stays inside the Serendipity run and
+is excluded from Muse's tool result and Inspect. Muse may
 surface a selected proposal only by declaring every record it uses with its
 actual source kind. Provenance receives the complete Muse candidate, validated
 tool result, exact book and connection evidence, and release policy, then checks attribution,

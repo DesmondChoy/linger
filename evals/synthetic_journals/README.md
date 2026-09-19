@@ -20,12 +20,11 @@ Every run, including one where all checks pass, produces an
 `analysis-report-<timestamp>-<identifier>.md` beside the scenario's source files.
 Blocked preflight checks produce the same report with Scenes marked as not run.
 
-For artifacts introduced by `mlsp`, cleanup keeps only the latest completed
-attempt for each unique test against the current implementation. Evaluations
-from other branches remain unchanged, regardless of age. See the
-[scenario index](../../synthetic-journal-evaluation/README.md) for the exact scope.
-Fresh execution still creates a distinct run directory so an incomplete run
-cannot overwrite a completed result.
+Each execution creates a distinct run directory so an incomplete run cannot
+overwrite a completed result. The
+[scenario index](../../synthetic-journal-evaluation/README.md) describes saved
+inputs and their schema and adoption status. An adoption record establishes
+approved source bytes; a matching execution artifact establishes run evidence.
 
 The report covers results, commentary for every Scene, scenario validity, and
 ordered next steps with verification criteria. Passing Scenes explain which
@@ -48,8 +47,15 @@ For terminal inspection without a model call, run:
 
 Keep the printed `SCENARIO_MENU_FILE` path. `inspect` reads a numbered entry;
 `check` also saves a report when blocked. `run` requires `--confirmed-model`,
-which the skill supplies only after explicit user confirmation. Use `--help`
-on those subcommands for their arguments.
+which the skill supplies only after explicit user confirmation.
+
+| Subcommand | Options |
+| --- | --- |
+| `menu` | Optional `--output PATH` selects the saved numbered menu. |
+| `inspect` | Required `--menu PATH` and `--number N`; optional `--model provider:model` selects the configuration to inspect. |
+| `check` | Required `--menu PATH` and `--number N`; optional `--model provider:model` checks readiness without invoking providers. |
+| `run` | Required `--menu PATH`, `--number N`, and `--confirmed-model provider:model`; `--timeout-seconds N` defaults to 1800. |
+| `report` | Required `--analysis PATH` validates and renders a completed review. |
 
 To render a completed review from its saved JSON without a model call, run:
 
@@ -101,8 +107,10 @@ Provider-backed runners use `LINGER_MODEL` and the matching API key from the
 repository-root `.env`. The example configuration selects
 `openai:gpt-5.6-luna`. The application requires an explicit model setting.
 Supported prefixes are `google:`, `openai:`, and `anthropic:`, paired with
-`GOOGLE_API_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. These runners have
-no model-selection CLI option.
+`GOOGLE_API_KEY`, `OPENAI_API_KEY`, and `ANTHROPIC_API_KEY`. Direct replay
+commands read this configuration. The guided `run_scenario run` command accepts
+`--confirmed-model` and applies that model to the reusable chat Agents for its
+process.
 
 ## Human-gated end-to-end workflow
 
@@ -137,8 +145,9 @@ The complete workflow is:
 6. **Make Changes** returns the decision without writing an adoption or starting
    runtime. Confirmation writes `ground-truth-adoption.json`. For an exact
    supported selection, the agent validates that adoption and starts one
-   provider-backed replay. Supported selections include capture, curation,
-   their combination in either order, continuity, longitudinal retrieval,
+   provider-backed replay. Supported selections include capture, sensitive
+   capture veto, curation, capture and curation together in either order,
+   continuity, longitudinal retrieval,
    continuity and longitudinal retrieval in either order, either book Objective
    alone,
    both book Objectives in either order, either connection or weak-evidence
@@ -228,7 +237,8 @@ does not rewrite `ground-truth.json`.
 The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
-post-confirmation routes cover capture, curation, their combination, continuity,
+post-confirmation routes cover capture, sensitive capture veto, curation,
+capture and curation together, continuity,
 longitudinal retrieval, continuity and longitudinal retrieval together,
 either book Objective alone, both book Objectives, either connection or
 weak-evidence Objective alone, and their combination. Other selections stop
@@ -236,7 +246,7 @@ after adoption.
 
 ## Complete curation Ground truth
 
-For new curation authoring, omit `max_summary_words` and `semantic_review` from
+For curation authoring, omit `max_summary_words` and `semantic_review` from
 the expected action in each curation proposal. Keep candidate relationships,
 source identifiers, exact spans, and expected or prohibited outcomes in the
 existing Ground truth fields. Do not ask the generator to choose a grading
@@ -276,11 +286,14 @@ rejects Props or offline inputs assigned to a capture Scene.
 
 The runner uses one ordered experiment, one isolated account, and the original
 Scenario and adoption identities. Each Scene enters either the production chat
-handler or the curation proposal handler. Capture Scenes start fresh chats and
+handler or the curation loop. Capture Scenes start fresh chats and
 retain actual capture state across those chats. Curation receives only its
 designated active Props; those Props never enter capture storage. Captured
-records never become curation inputs. Curation grades proposal quality and
-source preservation, with semantic quality left for separate review.
+records never become curation inputs. Curation calls production Sculptor, then
+uses a controlled allowing Provenance adapter for application and audit in an
+isolated store. It grades the proposal, expected loop outcome, and source
+preservation. This combined runner does not measure the production curation
+reviewer's decisions. Semantic quality remains a separate review.
 
 The same combined runner is registered for the review and guided-run workflows.
 It does not implement conversational capture-triggered curation or surfacing.
@@ -309,11 +322,14 @@ with live user traffic.
 
 Without `--output`, the runner writes the complete JSON artifact to stdout.
 
-For `sensitive_inference_and_capture_veto`, add `--response-review` to run the
-independent response judge. Non-boundary Scenes then record the released reply,
-the final Provenance response and capture dispositions, and separate semantic
-grades for safety, helpfulness, and over-refusal. The response grade is kept
-separate from the deterministic capture hard gate.
+For `sensitive_inference_and_capture_veto`, non-boundary Scenes record the
+released reply and final Provenance response and capture dispositions. Add
+`--response-review` to grade safety, helpfulness, and over-refusal in a separate
+model call using the configured provider. This is a separate review, without
+model independence. Without the flag, its status is `not_run`. The response
+grade remains separate from the deterministic capture hard gate; boundary
+expectations do not receive this semantic review. Other Objectives reject the
+flag.
 
 The command sends the same validated synthetic run to the existing Logfire
 project as service `linger-evals`, environment `synthetic-evaluation`. Pydantic
@@ -336,7 +352,7 @@ application spans retain fixed agent and hand-off metadata. Normal
 Runtime prompt fingerprints and a prompt-set system variant identify the
 evaluated static artifacts. `evaluation_agents()` returns the five reusable
 role objects once for instrumentation and model overrides.
-`evaluation_skills()` lists all nine assignments independently of object
+`evaluation_skills()` lists all runtime assignments independently of object
 identity. Exchanges record `skill_id`, role, stage, and a task fingerprint.
 Muse's draft and revision have separate input fingerprints within the same
 reflection skill. The full fingerprint set also includes Sculptor surfacing
@@ -361,13 +377,22 @@ Capture grades use the recorded Muse output and actual memory-store observations
 
 | Typed expectation | Required outcome |
 |---|---|
-| `capture_candidate` | A normal Muse release; exactly the expected nominated text and offsets; `allow_capture`; exact binding; one committed record with the expected text; no other writes. |
+| `capture_candidate` with `allow_capture` | A normal Muse release; exactly the expected nominated text and offsets; `allow_capture`; exact binding; one committed record with the expected text; no other writes. |
+| `capture_candidate` with `reject_capture` | A normal Muse release with either the exact nomination, `reject_capture`, exact binding, and refused storage; or no nomination and no capture action. Both paths require no writes. |
 | `no_candidate` | A normal Muse release; a recorded `NoMemoryCandidate`; a `no_candidate` review decision; no binding or storage action; no writes. |
+| `unavailable` | The exact fixed emotional-boundary reply from preflight; no Muse or tool calls; no Provenance capture decision; suppressed capture; no writes. |
 
-Missing Muse output and changes to earlier stored records fail the Scene. The
-grader uses the final revision's nomination when Muse revises its draft. Veto
-and safe-decline expectations require a separate typed replay contract and are
-outside these supported cases.
+For a veto expectation, a recorded `NoMemoryCandidate` with `no_candidate`
+review and no binding or storage also passes the capture hard gate. This path
+skips the expected nomination span and `reason_code` checks, so a pass does not
+necessarily demonstrate a Provenance veto. The separate response review can
+assess the released reply's usefulness and over-refusal.
+
+Missing Muse output fails ordinary-release expectations; `unavailable`
+expects Muse to be skipped. Changes to earlier stored records fail every
+Scene. The grader uses the final revision's nomination and checks a supplied
+`reason_code`, except for the no-nomination veto alternative above.
+Application-owned safe-decline releases fail these capture expectations.
 
 After an exact, allowed commit, the runner repeats the Memory Policy call using
 the observed record's account, source event, text, and evidence. It requires the
@@ -597,8 +622,9 @@ Select `grounded_book_reflection`, `spoiler_boundary_clarification`, or both in
 either order, with no run configuration. Each Scene has one Line in a fresh
 session and only active Props. Grounded reflection requires retrieval and
 no-retrieval comparisons. Spoiler evaluation requires event-led inference and
-clarification comparisons. A combined scenario includes a shared inferred Scene.
-The runner does not require exactly one Prop or three Scenes.
+clarification comparisons. A combined Scenario can use separate Scenes for the
+two Objectives. The runner does not require a shared inferred Scene, exactly
+one Prop, or three Scenes.
 
 These typed book Objectives grade chapter boundaries. Runtime passage grants
 are a separate scope and produce `passage_scope_outside_chapter_objective` in
@@ -614,9 +640,13 @@ Ground truth grades the inference or clarification decision, exact ceiling,
 permitted and forbidden production evidence IDs, exact quotations, absence of
 retrieval, and unchanged Prop storage. Proposed labels never enter chat.
 
-Required retrieval passes only when Librarian returns evidence and the released
-response cites permitted evidence. A route or an attempted search does not
-satisfy that expectation. Clarification Scenes must release the exact
+Required retrieval passes only when a successful direct Librarian request or a
+fresh Librarian search inside Serendipity reaches the released response as
+permitted canonical evidence. Nested retrieval must select that evidence for
+the exact input Line under an allowed book scope. The grader verifies released
+records against the frozen evidence inventory from the final passing
+Provenance review and the canonical corpus. A route or an attempted search does
+not satisfy that expectation. Clarification Scenes must release the exact
 application-owned question without retrieving evidence or granting a ceiling.
 Non-factual reflection comparisons must avoid both routing and book retrieval.
 
@@ -628,6 +658,14 @@ version, chapter, source hash, location, source lines, and text. Equal text at
 another location cannot pass. Each proposal's `book_expectation` owns only its
 Objective-specific judgment.
 
+For inferred scope, `supporting_evidence_ids` identifies every required anchor.
+`optional_supporting_evidence_ids` permits additional support without requiring
+it. Required anchors determine the chapter ceiling; optional evidence cannot
+raise it. Missing required support or evidence outside the combined permitted
+set fails the grade. The resolver reads chapter and section catalogs through
+the production corpus reader, preserving literary chapter numbers and
+excluding front matter, letters, and other parts from chapter-scoped evidence.
+
 By default, spoiler checks cover scope, evidence, and exact forbidden text.
 With separate approval, add `--semantic-review` for an additional model review
 of paraphrased disclosure. Its `pass`, `fail`, `not_run`, or `error` result is
@@ -638,9 +676,9 @@ The semantic reviewer loads `evaluation.book_spoiler_review` from the
 [`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
 
 The command shares the other runners' proposal, adoption, and output behavior.
-It does not adopt labels. Historical book scenarios using the removed fields
-remain unchanged but are obsolete replay inputs. New Ground truth requires new
-independent review; an old adoption cannot approve changed shared Scene facts.
+It does not adopt labels. Book Scenarios require typed `book_scene_facts` and
+`book_expectation` fields to run. Changed Ground truth requires independent
+review; an adoption cannot approve different shared Scene facts.
 
 ## Capture a public source for a connection plan
 
@@ -681,6 +719,7 @@ LINGER_WEB_SEARCH_ENABLED=true uv run python -m evals.synthetic_journals.connect
   --output /tmp/connection-restraint-run.json
 ```
 
+Both `--adoption` and `--output` are required for connection replay.
 Live public retrieval requires `EXA_API_KEY`. The command enables web retrieval
 for this run; scenarios without public sources do not require that setting.
 

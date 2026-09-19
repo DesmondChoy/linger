@@ -33,9 +33,10 @@ uv run pytest tests/test_sculptor_evals.py
 
 ## Provider-backed bounded-curation replay
 
-The synthetic scenario runner converts each isolated Scene's active,
-same-account Props into `AccountScopedMemories` and calls production
-`propose_curation`:
+The standalone synthetic scenario runner resolves each isolated Scene's active,
+same-account Props and calls production `run_curation_loop`. Sculptor proposes
+an action, Provenance reviews the exact bound proposal, and the Memory & Policy
+Service applies an allowed action and verifies its audit record:
 
 ```bash
 uv run python -m evals.synthetic_journals.curation_replay \
@@ -45,8 +46,10 @@ uv run python -m evals.synthetic_journals.curation_replay \
 ```
 
 The command records source hashes before and after every call, the complete
-observable Sculptor exchange, typed output, hard-gate result, separate semantic
-criteria, and correlated Logfire trace IDs. Proposal mode compares against
+observable Sculptor and Provenance exchanges, typed output, curation-loop
+status, hard-gate result, separate semantic criteria, and correlated Logfire
+trace IDs. Hard gates include the expected review decision, application, audit,
+and source preservation. Proposal mode compares against
 proposed Ground truth. Supplying a hash-valid `--adoption` grades the same hard
 gates against independently adopted Ground truth; semantic quality remains a
 separate review and cannot override a hard failure.
@@ -57,6 +60,12 @@ configured model, Sculptor prompt, and active curation contracts for behavioral
 comparison. See
 [`evals/synthetic_journals/README.md`](../synthetic_journals/README.md) for the
 scenario topology, review command, and replay options.
+
+The [combined capture and curation runner](../synthetic_journals/README.md#combined-capture-and-curation-replay)
+uses production Sculptor with a controlled allowing Provenance adapter. Its
+application and audit checks therefore do not measure production curation
+review. Curation receives designated Props in isolated storage; captured
+records do not become curation inputs.
 
 ## Offline memory-surfacing decisions
 

@@ -195,10 +195,11 @@ footer p{margin:0 0 6px;max-width:70ch}
     <h1>Serendipity</h1>
     <p class="subtitle">The agent that looks for a connection &mdash; and is allowed to say no</p>
     <p class="standfirst">Linger is a personal reflection companion built from five specialised AI agents. This report explains Serendipity's role, how it chooses a connection, what the other agents receive, and what the evaluation evidence establishes. Implementation reviewed on 19 September 2026.</p>
+    <p class="standfirst">The connection-discovery path compares candidates across granted sources. The separate memory-recall skill searches only active account memories and can answer from one matching record. Its result returns through Muse, Provenance, and application release checks. See the <a href="../src/linger/agents/serendipity/README.md">role reference</a> for both contracts.</p>
     <dl class="facts">
       <div><dt>Role type</dt><dd>Optional reasoning specialist</dd></div>
-      <div><dt>Runtime skill</dt><dd>connection&#8209;discovery</dd></div>
-      <div><dt>Returns</dt><dd>One proposal or one decline</dd></div>
+      <div><dt>Runtime skills</dt><dd>connection&#8209;discovery and memory&#8209;recall</dd></div>
+      <div><dt>Returns</dt><dd>Connection proposal, memory recall, or decline</dd></div>
       <div><dt>Invoked by</dt><dd>Muse only, as a tool</dd></div>
       <div><dt>Write authority</dt><dd>None</dd></div>
     </dl>
@@ -728,11 +729,11 @@ footer p{margin:0 0 6px;max-width:70ch}
         <table>
           <thead><tr><th>Limitation</th><th>Why it matters</th></tr></thead>
           <tbody>
-            <tr><td class="who">Current live coverage is unestablished</td><td>Component retrieval is simulated. The direct production replay defines one case, and the <a href="../synthetic-journal-evaluation/README.md">scenario index</a> records no current-implementation run for the adopted connection scenarios. Saved historical results do not establish current search coverage.</td></tr>
-            <tr><td class="who">Memory component coverage is missing</td><td>The memory case remains outside the component baseline in <code>cases/future/</code>. Historical Roses replays do exercise <code>search_memories</code>; this is a narrower component-coverage gap, not an absence of all memory-search evaluation.</td></tr>
-            <tr><td class="who">Saved runs need historical context</td><td>The committed <a href="../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/connection-run-1.json">Roses run 1</a> and <a href="../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/connection-run-2.json">run 2</a> record memory retrieval and failed hard gates in Scenes S1 and S2. They preserve evidence of earlier failures, not a verdict on the current implementation.</td></tr>
+            <tr><td class="who">Current live coverage is unestablished</td><td>Component retrieval is simulated. The direct production replay defines one case, and the <a href="../synthetic-journal-evaluation/README.md">scenario index</a> describes input validation and replay support without claiming a current live pass. Saved historical results do not establish current search coverage.</td></tr>
+            <tr><td class="who">Memory component coverage is missing</td><td>The memory case remains outside the component baseline in <code>cases/future/</code>. Memory recall and retrieval have deterministic tests and a longitudinal scenario runner; those checks establish different behavior from this component baseline.</td></tr>
+            <tr><td class="who">Saved results require their recorded context</td><td>The <a href="iteration-18-checkpoint.md">Librarian checkpoint</a> links the retained batch and its known failures. A recorded result applies to its source revision, adopted inputs, and model configuration. The <a href="../synthetic-journal-evaluation/README.md">scenario index</a> describes available inputs and replay support.</td></tr>
             <tr><td class="who">Reader value remains unvalidated</td><td>An optional model reviewer can assess prose against semantic criteria. Whether the connection helps a person reflect still requires human evaluation.</td></tr>
-            <tr><td class="who">Images unsupported</td><td>Photographs reach Muse but have no retrieval, citation or release path through Serendipity.</td></tr>
+            <tr><td class="who">Images unsupported</td><td>The chat API accepts text. Image input has no retrieval, citation, or release path through Serendipity.</td></tr>
           </tbody>
         </table>
       </div>

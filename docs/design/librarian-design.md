@@ -34,11 +34,12 @@ evidence recall, 100% citation precision, and zero spoiler exposure.
 
 The Librarian subsystem contains one reusable production PydanticAI object,
 `librarian_agent`. Its explicit assignment in
-[`skills.py`](../../src/linger/agents/librarian/skills.py) contains three skills:
+[`skills.py`](../../src/linger/agents/librarian/skills.py) contains four skills:
 
 | Skill | Contract | Current consumer |
 |---|---|---|
 | [Boundary inference](../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | Production book routing and synthetic book replay call private inference when explicit progress is unavailable. |
+| [Event identification](../../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | An independent run checks the stopping occurrence before the application accepts a proposed chapter grant. |
 | [Book request](../../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | Muse and Serendipity supply reader context without candidate passages to identify the requested book parts. |
 | [Evidence assessment](../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | A frozen request plan and scoped canonical evidence support selection and answerability judgment. Application checks return `EvidenceStrengthDecision`. |
 
@@ -46,8 +47,7 @@ Application code selects one skill before each model run. All runs use the
 same Agent object with shared trust rules, task-specific instructions, and a
 per-run output schema. They receive no tools or retained conversation history.
 Original reader statements are explicit boundary-inference input data.
-Sharing the object does not combine boundary inference, request planning, and
-evidence assessment into one model call.
+Sharing the object does not combine these tasks into one model call.
 
 Work resolution, scoped search, fusion, deduplication, reranking, canonical
 resolution, and permission validation remain application operations. They are
@@ -479,12 +479,14 @@ request and never enters this phase. Once a work is routed, application code
 hands off to the private boundary phase. It receives the current Line,
 a bounded set of strongly routed account-scoped memories, original earlier
 reader statements from the same session, and full-work retrieval candidates.
-The current Line, with any earlier session statements, is searched separately
-from each selected saved memory. An empty current-query result returns
-`insufficient_context` before memory searches or model inference. Otherwise,
-application code interleaves results by rank and deduplicates evidence IDs
-under one ten-window limit. This prevents current-question matches from
-crowding out memory anchors. The searches remain private and grant no reading
+The book-request skill plans focused reading-progress locators. The application
+searches each locator, the original Line, and earlier reader statements before
+searching the selected memories. If every reader-context search is empty, the
+application returns `insufficient_context` before memory searches or boundary
+judgment. Planning failure falls back to the original reader text. Each search
+returns at most five records. Application code interleaves results by rank and
+deduplicates evidence IDs under one 20-record private candidate limit. This
+prevents current-question matches from crowding out memory anchors. The searches remain private and grant no reading
 permission. Search errors or conflicting text for one ID fail closed.
 With earlier reader statements, candidates are narrowed to canonical paragraphs
 and the phase can grant exact passages without a completed chapter. See
@@ -528,9 +530,23 @@ one itself. An ambiguous current event can still produce `uncertain` despite
 grounded earlier knowledge. These assessments do not change session-supported
 exact-passage grants.
 
-Only the private Librarian boundary invocation sees the memory and candidate
-text. The application's accepted handoff contains no passage text or assessment
-rationales:
+A chapter candidate also contains an `event_resolution` inventory covering every
+supplied passage exactly once. It identifies one selected occurrence and rules
+out alternatives using exact reader spans. Every supporting record carries a
+literal `source_excerpt` from its own canonical text. Unresolved alternatives
+require uncertainty, even when the memories establish earlier knowledge.
+
+Before accepting an otherwise valid chapter candidate, the application runs
+`identify_reader_event` with the original reader wording and private canonical
+candidates. This run receives no memories, proposed chapter, or first decision.
+Its selected stopping occurrence must agree with the candidate's chapter and
+overlap its canonical source range. Unresolved identification, disagreement,
+invalid output, or execution failure grants nothing. This check does not apply
+to the separate session-supported passage path.
+
+Private Librarian runs retain the candidate text, and only boundary inference
+receives the memories. The application's accepted handoff contains no passage
+text or assessment rationales:
 
 ```json
 {
@@ -1043,8 +1059,9 @@ it can proceed independently and does not block the initial Librarian path.
    - the same hybrid candidates with reranking.
 3. Require zero forbidden-chapter exposure and exact canonical evidence
    resolution from every qualifying approach.
-4. Measure evidence recall, citation precision, evidence-strength accuracy,
-   p95 latency, token use, and monetary cost with versioned configurations.
+4. Measure retrieval recall, citation precision, p95 latency, token use, and
+   monetary cost with versioned configurations. Measure the model's
+   evidence-strength decisions in live release validation.
 5. Select the configuration with the strongest evidence quality. When results
    fall within a predeclared quality-equivalence margin, prefer lower p95
    latency, then lower token use and monetary cost. Report every metric rather
@@ -1056,6 +1073,12 @@ The frozen 12-case Alice set produced these five-repeat warm-query results. The
 reported precision is retrieval-candidate precision before the common
 Librarian evidence-strength judge; final user-visible citation precision is
 measured in the end-to-end evaluation.
+
+These figures describe the saved benchmark report and its recorded grader.
+Its strength-support accuracy is a coverage-derived label, not a model judgment.
+The executable benchmark requires full containment of each gold source range
+and weights recall and precision 2:1 for selection. Reproduce that command for
+results under the current grading contract.
 
 | Strategy | Recall | Candidate precision | Strength-support accuracy | p95 latency | Mean evidence words |
 |---|---:|---:|---:|---:|---:|

@@ -17,17 +17,34 @@ They are separate calls with separate contracts, but they share the same
 authority boundary. Provenance can veto, while deterministic application code
 and the Memory & Policy Service alone commit state.
 
-## Status at a glance
+## Current implementation and evidence
 
-Both gates are implemented and their contracts and deterministic safeguards are
-sound. The material gap is measurement, not runtime design:
+Capture review returns independent response and capture decisions. Exact-span
+binding, policy checks, source preservation, and retry idempotency constrain
+storage. Curation runs through `run_curation_loop`, including a digest-bound
+Provenance review, policy application, and audit verification. Chat does not
+initiate curation. Bounded-curation replay uses an isolated temporary store and
+grades proposal and loop outcomes without changing Scenario files. Standalone
+replay uses production Provenance when no handler is injected. The default
+combined capture-and-curation runner uses `_AllowingProvenance`, so its recorded
+`allow` decisions do not measure semantic curation review.
 
-| Gate | Built | Missing | Evaluation consequence |
-|---|---|---|---|
-| Capture | Review contract, independent capture veto, deterministic suppression and capture replay, **capture-axis eval pack (Stage 1)** | A live run of the new pack, and Ground truth for vetoed nominations | The combined Scenario provides one live positive capture measurement, but the dedicated veto pack has not run |
-| Curation | Typed review, digest-bound approval, immutable-source checks, policy application and verification, reviewed-loop replay, loop-outcome grading, curation risk-code pack, named fail-closed errors | A live run of the new pack, retrieval-specific expectations, and fail-closed Scenario coverage | The combined Scenario grades the reviewed decision and application path, but does not yet measure every action outcome or fail-closed case |
+The [candidate-review pack](../../evals/provenance/risk_codes.py) covers release
+and capture. Its [saved 24-case report](../../evals/provenance/risk-codes-live-report.json)
+is dated 12 September 2026 and records `targets_pass=false`, capture-veto recall
+of 1.0, and capture over-refusal of 0.1667. The
+[curation risk-code pack](../../evals/provenance/curation_risk_codes.py) has twelve
+cases covering all six codes and their supported near misses. Its
+[saved report](../../evals/provenance/curation-risk-codes-live-report.json), dated
+15 September 2026, records `targets_pass=false`, positive recall of 1.0, and
+near-miss precision of 0.6667. These reports describe their recorded fingerprints,
+not a validation of every current prompt.
 
-## TODO
+The [Provenance evaluation guide](../../evals/provenance/README.md) describes
+current commands and coverage. The dated investigation below retains earlier
+measurements and proposals; its uncompleted items are not the live task tracker.
+
+## Historical implementation record
 
 The capture runtime is **more complete than §4.2.1's was**: its review
 contract, binding module, policy service, replay runner, and scenario models all
@@ -140,7 +157,8 @@ and deterministically verified, not yet measured against a model.
       Scenario was generated, validated, independently adopted, and replayed
       with `capture_curation_replay.py --adoption` on 15 September 2026. The
       replay completed all 11 capture Scenes and preserved the recorded source
-      hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
+      hashes and adoption identity. The evaluation artifact for that historical run
+      is not retained in the repository.
 - [x] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
       capture runner and scenario validator now support this Objective's
       isolated Line topology, including candidate, vetoed-candidate, and
@@ -592,7 +610,7 @@ types.
 - [`src/linger/agents/provenance/curation_prompt.py`](../../src/linger/agents/provenance/curation_prompt.py): gate prompt fingerprint
 - [`src/linger/contracts/curation.py`](../../src/linger/contracts/curation.py) — plan, approval, audit, and curated-view contracts
 - [`src/linger/orchestration/curation.py`](../../src/linger/orchestration/curation.py) — `run_curation_loop`
-- [`evals/synthetic_journals/curation_replay.py`](../../evals/synthetic_journals/curation_replay.py) — the runner still bound to `propose_curation`
+- [`evals/synthetic_journals/curation_replay.py`](../../evals/synthetic_journals/curation_replay.py) — reviewed curation-loop replay in an isolated evaluation store
 - [`docs/specification.md`](../specification.md) §4.1, §4.2.2, §5.2, §5.5, §6.3, §6.6
 - [`src/linger/agents/provenance/README.md`](../../src/linger/agents/provenance/README.md) §4.2.2 — fixed agent design
 - [`src/linger/orchestration/capture.py`](../../src/linger/orchestration/capture.py) — sole origin of capture flags

@@ -1,6 +1,6 @@
 # Librarian
 
-Librarian owns one reusable PydanticAI object, `librarian_agent`, with three
+Librarian owns one reusable PydanticAI object, `librarian_agent`, with four
 application-selected skills. Each invocation is a model run with the selected
 instructions and output contract. The assignment is explicit in
 [`skills.py`](skills.py).
@@ -8,6 +8,7 @@ instructions and output contract. The assignment is explicit in
 | Skill | Typed input and output | Entry point and current consumer |
 |---|---|---|
 | [Boundary inference](skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary` supports private inference during production book routing and book replay. |
+| [Event identification](skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` independently checks the stopping event before application code accepts a chapter candidate. |
 | [Book request](skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts separate book needs or reading-progress locators, selected by the application. |
 | [Evidence assessment](skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` checks scoped records against the plan and original reader context. Application checks return `EvidenceStrengthDecision`. |
 
@@ -17,6 +18,16 @@ memory-supported chapter progress from exact already-read passages supported
 by earlier reader statements. Application code validates IDs, work identity,
 confidence, and canonical scope before granting retrieval. Private candidates
 do not enter Muse's context through this judgment.
+
+A chapter candidate accounts for every supplied passage in `event_resolution`,
+selects one occurrence using exact reader wording, and binds each supporting
+record to a literal `source_excerpt`. The application validates that inventory
+and the memory assessments. A separate event-identification run then receives
+only the original reader wording and canonical candidates. It sees neither the
+proposed grant nor the memories. The identified stopping occurrence must agree
+with the candidate's chapter and source range. Unresolved identification,
+disagreement, or failure grants no chapter access. Exact-passage decisions use
+their separate reader-statement checks.
 
 Book-request planning receives reader context without candidate passages.
 Application code validates exact reader spans and the selected search target.
@@ -41,13 +52,13 @@ Progress search uses focused event locators plus the original progress query,
 then interleaves those candidates with memory searches under a private
 20-record boundary budget. The boundary judge receives the original reader
 and memory text. Planning never grants progress or resolves an ambiguous event.
-This adds one planning model run before boundary retrieval and can perform
-several local searches per request.
+One planning model run precedes boundary retrieval, and each request can
+perform several local searches.
 
 Omission remains a model-quality risk: both planning and assessment can overlook
 a need. Exact-span checks prevent invented wording, not semantic omissions.
 The recall fallback and coverage check reduce that risk without claiming to
-eliminate it. Reranking now splits oversized query/passage pairs into overlapping
+eliminate it. Reranking splits oversized query/passage pairs into overlapping
 token windows and retains the highest score for each unchanged canonical record.
 This prevents silent token truncation; it does not prove semantic relevance or
 authorize a reading boundary. Incorrect semantic boundary grants still require
@@ -55,7 +66,7 @@ separate validation; a high retrieval score does not establish safety.
 An irrelevant passage can also score highly, so evidence assessment must check
 what it actually supports instead of relying on the score to reject it.
 
-All three skills have no tools and retain one output retry. Shared instructions in
+All four skills have no tools and retain one output retry. Shared instructions in
 `agents.librarian` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain only common trust and authority rules. Each run adds its selected
 `SKILL.md`; no run adds another task's instructions or conversation history.

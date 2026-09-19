@@ -8,9 +8,9 @@ application telemetry; FastAPI only supplies trusted dependencies and maps the
 result to HTTP.
 
 The prototype has no end-user authentication or database. Conversation sessions
-live in the backend process and disappear on restart. Automatic evaluation
-captures use account-scoped Markdown storage under `memories/`; the public API
-exposes no memory CRUD operations.
+live in the backend process and disappear on restart. Automatic memory captures
+use account-scoped Markdown storage under `memories/`. The public API exposes
+no memory CRUD operations.
 
 ## Setup
 
@@ -65,32 +65,41 @@ The Vite development server proxies `/api` to the backend. Set `VITE_API_URL`
 when the frontend should call another API origin. Interactive API documentation
 is available at <http://127.0.0.1:8000/docs>.
 
-## Surfaces
+## Chat and developer tools
 
-- **Chat** sends one Line through the emotional-boundary preflight, Muse,
-  optional Librarian or Serendipity calls, Provenance, and deterministic release
-  validation.
+- **Chat** shares one page with the live collaboration map and turn records. It
+  sends one Line through the emotional-boundary preflight, Muse, optional
+  Librarian or Serendipity calls, Provenance, and deterministic release
+  validation. The **Try a line** tray groups editable prompts by book. Selecting
+  a prompt fills the composer. **Send** submits it.
 - **New chat** clears backend conversation and reading-candidate state and mints
-  a fresh frontend session ID.
+  a fresh frontend session ID. Account-scoped memories persist across sessions.
 
-Architecture, Reader, and Inspect are developer-only tools mounted in the local
-frontend for convenience. They support corpus interaction and backend debugging and are not
-part of the user-facing frontend contract. A product frontend should omit them.
+The collaboration map, saved evaluations, Reader, and Inspect are local
+developer tools for corpus interaction and backend debugging. They are outside
+the user-facing frontend contract.
 
-- **Architecture** shows the agent collaboration map. *Live turn* rebuilds the
-  turn you just sent from the server's content-free progress stream, marking
-  which agents ran, which sources they were permitted to reach, and where the
-  reply was released; components and connections open their role and bounded
-  handoff. *Explore scenarios* embeds the evaluation explorer's curated
-  explanations of the expected architecture. The panel reads released
-  diagnostics only and cannot authorize retrieval, release, capture, or storage.
-- **Reader** opens enabled canonical books by chapter or named section so a
-  developer can exercise corpus behavior. Navigation and summary reveal remain
-  local diagnostic state and never authorize book retrieval in chat.
-- **Inspect** records each released turn's input contract, context resolution,
-  agent status, direct Librarian calls, fixed Serendipity outcome, release and
-  capture decisions, and server-generated trace ID. These diagnostics cannot
-  authorize retrieval, release, capture, or storage.
+- The **collaboration map** follows the server's content-free progress stream
+  while a turn runs. A completed turn combines that stream with released
+  diagnostics. Selecting a component or connection opens the contract it
+  carried on that turn. The turn selector changes the mapped turn while every
+  completed turn remains in the record below it.
+- **Open a saved evaluation** displays recorded synthetic runs from the shared
+  generated snapshot. Select a scenario, run, and Scene to inspect the fixed
+  reader message, seeded memories, recorded route, expected outcomes, grades,
+  and reply. These records do not execute agents. The separate
+  [evaluation explorer](evaluation-explorer/README.md) describes expected
+  architecture and maintains the shared snapshots.
+- **Library** opens the Reader drawer with enabled canonical books by chapter
+  or named section. Navigation and summary reveal remain local diagnostic
+  state and never authorize book retrieval in chat.
+- **Inspect** shows each completed turn's input contract, context resolution,
+  agent timing and handoffs, direct Librarian calls, fixed Serendipity outcome,
+  release and capture decisions, and server-generated trace ID. Provenance
+  findings include explanations and the review path. **Copy trace query**
+  copies a Logfire filter for that turn.
+
+These developer tools cannot authorize retrieval, release, capture, or storage.
 
 Muse invokes `librarian_route` when the reader's words depend on a book. An
 active book can resolve an indirect follow-up, but does not require a lookup
@@ -98,21 +107,35 @@ for an unrelated personal reflection. Routing returns a chapter ceiling,
 permission for exact passages, a clarification, or no match. A subsequent
 `librarian_search` supplies source text. Exact passage permission requires
 earlier reader statements that support having read the scene and does not
-authorize its whole chapter or Serendipity book search.
+authorize its whole chapter or Serendipity book search. A book the reader names
+or confirms remains active when a routing tool is uncertain. Naming a different
+book or removing its revision from the permitted scope clears that selection.
 
 Serendipity can search active account-scoped curated memories, a permitted
 chapter range, and optional public-web sources. Its search grants do not widen
-the release contract. Only proposals supported entirely by canonical book
-records can pass deterministic release validation.
+the release contract. Selected book, memory, and opened public-page records
+must satisfy their source-specific attribution and citation checks before a
+reply can be released.
 
-The application returns whole replies only after release approval. Distressing
-first-person disclosures receive the fixed application-owned emotional boundary.
-Rejected, failed, or deterministically invalid candidates receive the generic
-application safe decline. Neither application-owned response can commit an
-automatic memory or display a save notice.
+For a question about the reader's earlier reflections, decisions, or
+preferences, Muse can request `recall_memory`. Serendipity searches only the
+account's authorized memories and returns one to three matching records. One
+matching record is a complete recall. Muse attributes those records to the
+reader's earlier words. Memories do not support claims about the world. A
+`no_matching_memory` decline lets Muse answer without inventing a prior record.
+Recall needs neither a book selection nor public-web access.
 
-Muse returns a typed candidate with a complete reply, book or session-Line
-evidence declarations, and one memory nomination or no-nomination reason.
+The application returns whole replies only after release approval. Clear
+first-person disclosures of intense distress receive the fixed application-owned
+emotional boundary.
+When the preflight requires that boundary, the pipeline skips memory loading
+and downstream agent calls. Rejected, failed, or deterministically invalid
+candidates receive the generic application safe decline. Neither
+application-owned response can commit an automatic memory or display a save
+notice.
+
+Muse returns a typed candidate with a complete reply, source-specific evidence
+declarations, and one memory nomination or no-nomination reason.
 Application code verifies declared source locations, quotations, and exact
 reader wording after Provenance review. A validated routing clarification is
 released as the application's own question after safety review. Such a turn
@@ -125,13 +148,27 @@ It also suppresses automatic capture and displays no save notice.
 |---|---|---|
 | `GET` | `/api/health` | Liveness and configured model |
 | `POST` | `/api/chat` | Released reply, developer diagnostics, trace correlation, and optional capture notice |
-| `DELETE` | `/api/sessions/{id}` | Clear one in-process conversation and reading state |
+| `POST` | `/api/chat/stream` | Content-free progress events followed by the released chat result or an error |
+| `DELETE` | `/api/sessions/{session_id}` | Clear one in-process conversation and reading state |
+| `GET` | `/api/library` | Registered and granted books, their reading locations, and starting locations |
+| `GET` | `/api/library/{work_id}/{book_version_id}/units/{unit_id}` | Canonical text for a granted Reader location |
 
-`POST /api/chat` accepts `session_id`, optional `turn_id`, and `message`.
-Unexpected fields fail validation. The server supplies account identity and all
-authority-bearing policy state. Synthetic replay calls the same
-`run_chat_turn` application boundary directly, without constructing an HTTP
-request or translating a FastAPI exception.
+Both chat endpoints accept `session_id`, optional `turn_id`, and `message`.
+Session and turn IDs contain 1 to 200 characters. Messages contain 1 to 8000
+characters. The API strips surrounding whitespace and rejects unexpected
+fields. The server supplies account identity and all authority-bearing policy
+state.
+
+The frontend uses `/api/chat/stream`, which returns server-sent events.
+`progress` events contain stage, status, timing, and handoff metadata.
+The final `result` contains the same complete response as `/api/chat`.
+An `error` event contains a safe error message and trace reference when one is
+available. Reply text appears only after release approval. Progress events
+contain no draft tokens, prompts, queries, or evidence. Completed local
+inspection records can contain request and source content.
+
+Synthetic replay calls the same `run_chat_turn` application boundary directly,
+without constructing an HTTP request or translating a FastAPI exception.
 
 ## Validation
 

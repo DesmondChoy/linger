@@ -17,7 +17,11 @@ Strict schemas and application validation reject malformed proposals and IDs
 outside the supplied batch. The callable `run_curation_loop` asks Provenance
 to review a digest-bound plan before the Memory & Policy Service can apply it.
 The service checks account scope, source hashes, and current curation state.
-This workflow is separate from conversation turns.
+This workflow is separate from conversation turns. Standalone bounded-curation
+replay without an injected handler runs the same loop in an isolated temporary store and records the review decision,
+application result, audit verification, and resulting retrieval IDs. Ground
+truth can grade these outcomes alongside proposal quality and source preservation.
+A replay does not establish later conversational retrieval quality.
 
 Surfacing receives bounded memories, an explicit current time, current context,
 and prior suggestions. It returns `surface_now`, `defer`, or `do_not_surface`.

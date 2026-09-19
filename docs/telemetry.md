@@ -106,9 +106,9 @@ Configure that project before beginning the human-gated synthetic evaluation
 workflow. Objective selection and `pre-generation-report.md` approval emit no
 evaluation telemetry. Scenario generation and independent Ground truth review
 also emit no replay result. After the human confirms every review row, the
-review skill writes `ground-truth-adoption.json` and routes a supported single
-Objective to one provider-backed runner; that runner publishes the Pydantic
-Evals experiment and `linger-evals` traces. Without local `logfire projects use`
+review skill writes `ground-truth-adoption.json` and routes a supported Objective
+or Objective combination to a provider-backed runner. That runner publishes the
+Pydantic Evals experiment and `linger-evals` traces. Without local `logfire projects use`
 credentials or `LOGFIRE_TOKEN`, the runner retains its durable JSON output but
 exports nothing to Logfire.
 
@@ -126,10 +126,11 @@ The durable capture artifact records the synthetic Line, exact agent input,
 model-visible messages, typed output, tool calls and results, usage, released
 reply, capture outcome, and matching Logfire trace and span IDs. The durable
 curation artifact records the supplied Props, source hashes before and after
-the call, typed Sculptor response, deterministic failures, separate semantic
-criteria, full-deployment and objective-execution identities, and correlated
-trace IDs. Both artifacts omit thinking parts. Logfire may display only
-thinking content that the provider actually returned; absence does not
+the call, typed Sculptor response, Provenance review, application and audit
+outcomes, deterministic failures, separate semantic criteria, full-deployment
+and objective-execution identities, and correlated trace IDs. Both artifacts
+omit thinking parts. Logfire may display only thinking content that the
+provider actually returned; absence does not
 establish that a model performed no internal reasoning.
 
 When an agent invocation fails or is cancelled, `run_agent_traced` retains
@@ -138,6 +139,12 @@ The durable `AgentExchange` records the fixed `failure_category` alongside the
 existing failure code. Calls that end without a result have no typed output or
 completed usage result. Their partial messages can still show attempted tool
 calls, returned tool results, and retry feedback; thinking parts remain omitted.
+
+Synthetic exchanges also record `provider_error_kind` as `http`, `timeout`,
+`connection`, or `other` for recognised provider errors. `provider_status_code`
+is retained only for integer HTTP status codes from 400 to 599. These fields
+belong to the evaluation transcript; backend spans retain the fixed failure
+category without provider payloads.
 
 `model_messages_include_history` is true when a failed call retains a nonempty
 attempted conversation, which may include the supplied message history.
@@ -153,6 +160,12 @@ chapter-based Objective rejects passage-only authorization as
 `passage_scope_outside_chapter_objective`. Safe-decline reflection replay also
 retains failure stage, owner type, and retryability for each turn. Successful
 intermediate retrieval does not establish a successful final release.
+
+Longitudinal retrieval replay records each selected Line, session resets,
+completed book and memory searches, connection or recall outcomes, reviewed
+evidence use, and the final release. Failed lookups remain failures even if
+another search succeeds. Synthetic Props seed the account memory store without
+entering Muse's conversation history.
 
 Offline proactive-memory component replay records source and input hashes,
 full agent exchanges, deployment and execution identities, and separate
@@ -176,7 +189,8 @@ Logfire project:
   evaluator labels, operational metrics, and run comparison.
 - **Agents** groups invocations by fixed agent name. It shows only agents
   exercised by the selected workflow and time range: capture normally shows
-  Muse and Provenance, bounded curation shows Sculptor, and connection discovery
+  Muse and Provenance, bounded curation shows Sculptor and any required
+  Provenance review, and connection discovery
   shows Serendipity with any invoked Librarian calls.
 - **LLMs and providers** aggregates model calls, latency, tokens, cost, and
   provider reliability data.
@@ -219,13 +233,25 @@ outcome metadata. `chat.turn` owns session rollback, agent sequencing, release,
 capture, and application failure metadata. Both spans share one trace for HTTP
 traffic; synthetic replay starts at `chat.turn` beneath the evaluation case.
 
-An isolated bounded-curation Scene is:
+A bounded-curation Scene with a proposal is:
 
 ```text
 case
   -> sculptor.curation -> Sculptor run -> model call
+  -> provenance.curation_review -> Provenance run -> model call
+  -> application validation, approved curation, and source audit
   -> proposal_comparison or adopted_hard_gate_grade evaluator
 ```
+
+A no-change decision ends after Sculptor. A Provenance `revise` or `reject`
+verdict prevents application. Memory recall uses `serendipity.recall` with
+`agent.skill=memory-recall`; connection discovery uses `serendipity.discovery`
+with `agent.skill=connection-discovery`.
+
+The combined capture-and-curation runner injects Sculptor's proposal handler
+and an approving curation-review adapter. Its curation Scenes exercise
+application and source auditing, but have no live Provenance curation-review
+span. The standalone curation runner uses the production reviewer by default.
 
 If emotional preflight returns `apply_boundary`, the trace stops before Muse
 and the application releases the fixed boundary response. Otherwise Muse
@@ -242,9 +268,10 @@ identity as the dataset version.
 
 Bounded-curation experiment metadata also records
 `full_deployment_identity` for complete deployed-prompt lineage and
-`objective_execution_identity` for behavioral comparison of the configured
-model, Sculptor prompt, and active curation contracts. An inactive prompt may
-change the former without changing the latter.
+`objective_execution_identity` for comparison of the configured model,
+Sculptor prompt, and active curation contracts. The latter omits the Provenance
+review prompt even when the runner invokes it. Use the full-deployment identity
+and recorded exchanges when comparing changes to curation review.
 
 The application-owned parent spans carry
 `handoff.input.origin`, `handoff.input.receiver`,

@@ -38,6 +38,7 @@ The default map explains expected architecture. A target badge and dashed connec
 
 - `packages/architecture-map/src/scenarios.ts` owns the curated visual explanations and walkthroughs. It covers all catalog Objectives and cites implementation limits in each Scene. These illustrative inputs are separate from generated package data.
 - `packages/architecture-map/src/catalog.json` is a generated snapshot of catalog text and minimal package/run metadata. It includes recorded failure codes without inferring a pass from missing failures. It does not bundle private credentials, raw application memory, or complete transcripts.
+- `packages/architecture-map/src/evaluations.json` projects saved Scenario inputs and evaluation records for the chat application's Saved evaluation view. It includes synthetic Props, Lines, expected outcomes, observed routes, grades, and replies limited to 900 characters. A missing grade remains an unknown result.
 - `packages/architecture-map/src/layout.ts` positions existing Scene nodes within labeled regions without changing their
   semantics. `Graph.tsx` renders the map and `Inspector.tsx` handles progressive disclosure. `ScenarioExplorer.tsx` owns
   selection and walkthrough state, so this app's `src/App.tsx` supplies only the page header, footer, and layout.
@@ -47,7 +48,15 @@ Refresh the snapshot after the catalog or package records change, using the repo
 ```sh
 pnpm refresh-data
 ../../.venv/bin/python scripts/export_catalog.py --check
+../../.venv/bin/python scripts/export_evaluations.py --check
 ../../.venv/bin/python -m pytest -q scripts/test_export_catalog.py
 ```
 
 Review affected Scene routes against `docs/specification.md` and the maintained implementation after contract changes. The exporter updates catalog text and recorded evidence; it does not infer architecture from telemetry or silently revise the explanations.
+
+Both exporters accept `--check` to compare their checked-in snapshot with current
+repository inputs without writing files. `pnpm refresh-data` regenerates both.
+They read JSON artifacts directly beside a Scenario's source files; nested
+`runs/` directories and reports elsewhere are outside their export scope.
+The checked-in snapshots can retain historical records absent from the Scenario
+directories. Treat displayed History as a snapshot until both checks pass.
