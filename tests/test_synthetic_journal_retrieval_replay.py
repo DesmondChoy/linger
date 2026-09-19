@@ -538,9 +538,7 @@ def _serendipity_raises(messages: object, info: AgentInfo) -> ModelResponse:
 
 def test_comparison_scene_fails_when_real_discovery_raises() -> None:
     from apps.backend import chat_turn
-    from src.linger.agents.muse.agent import muse_chat_agent
-    from src.linger.agents.provenance.agent import provenance_agent
-    from src.linger.agents.serendipity.agent import serendipity_agent
+    from src.linger.orchestration import connection
 
     backstory, ground_truth = _retrieval_scenario()
 
@@ -552,9 +550,11 @@ def test_comparison_scene_fails_when_real_discovery_raises() -> None:
                 return_value=EmotionalBoundaryAssessment(decision="continue_reflection")
             ),
         ),
-        muse_chat_agent.override(model=FunctionModel(_muse_looks_up_then_replies_plainly)),
-        serendipity_agent.override(model=FunctionModel(_serendipity_raises)),
-        provenance_agent.override(model=FunctionModel(_provenance_passes)),
+        chat_turn.muse_chat_agent.override(
+            model=FunctionModel(_muse_looks_up_then_replies_plainly)
+        ),
+        connection.serendipity_agent.override(model=FunctionModel(_serendipity_raises)),
+        chat_turn.provenance_agent.override(model=FunctionModel(_provenance_passes)),
     ):
         result = _run(backstory, ground_truth, chat_turn.run_chat_turn)
 
