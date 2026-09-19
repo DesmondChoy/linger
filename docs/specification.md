@@ -166,7 +166,7 @@ model-call structure nor the application-owned release and storage decisions.
 | Muse | Reflection and revision | Chat drafts and the single permitted revision use one reflection skill and the stable `MuseCandidate` output. |
 | Librarian | Boundary inference; evidence assessment | Chat routing and bounded retrieval orchestration; retrieval benchmarks and replay. |
 | Sculptor | Memory curation; memory surfacing | The callable reviewed curation loop and proposal-quality replay; offline surfacing evaluation. Chat does not initiate either task. |
-| Serendipity | Connection discovery | Muse's `serendipity_explore` tool and component evaluation. |
+| Serendipity | Connection discovery; memory recall | Muse's `serendipity_explore` tool, which selects recall with the `recall_memory` intent, and component evaluation of connection discovery. |
 | Provenance | Emotional preflight; candidate review; curation review | Chat preflight and candidate review; independent review in the callable curation loop. |
 
 The maintained [agent runtime skills architecture](agent-skills.md) links each
@@ -182,9 +182,9 @@ The five roles separate conversation and optional memory nomination, retrieval,
 memory curation and usefulness decisions, connection generation, and independent
 verification. Librarian and application services select authorised evidence.
 Sculptor judges the supplied memories' usefulness, timing, and repetition.
-Serendipity searches the authorised sources and proposes broader connections,
-including plain recall of the reader's own stored reflections when Muse asks for
-it. Muse retains the application's
+Serendipity searches the authorised sources and proposes broader connections.
+Its separate memory-recall skill returns the reader's own stored reflections
+when Muse asks for them. Muse retains the application's
 intentionally managed session history and bounded revision context. Other
 roles receive only their task-specific projections. Deterministic application code
 enforces access, capture, writes, and output release.
@@ -357,7 +357,7 @@ search the curated memory retrieval view supplied by the authenticated
 application, an application-granted book corpus, or application-granted Exa web
 sources. Its memory search compares the cue with each authorised record by
 lexical token overlap and drops records that share no token, so a heavily
-paraphrased cue can miss a relevant record. It returns a typed proposal or decline with request-local evidence for deterministic
+paraphrased cue can miss a relevant record. Connection discovery returns a typed proposal or decline, and a proposal needs two distinct supported connections. Personal recall uses the `recall_memory` intent instead: it searches memories only and returns a typed recall of one to three exact records, or a `no_matching_memory` decline, so a single stored answer can be recalled. Each result carries request-local evidence for deterministic
 validation. The application, not Muse, supplies the exact current reader message
 as the cue. Each run is limited to eight model requests and six total tool calls.
 Muse may relay a typed decline. Application code validates the selected book,

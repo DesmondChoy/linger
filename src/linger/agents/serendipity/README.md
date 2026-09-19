@@ -3,7 +3,9 @@
 Serendipity is Linger's optional search-and-connection specialist. It searches
 permitted sources, removes ineligible evidence, constructs possible
 connections, compares the strongest two or three with an anchored rubric, and
-returns exactly one `ConnectionProposal` or one `ConnectionDecline`.
+returns exactly one `ConnectionProposal` or one `ConnectionDecline`. A separate
+recall skill returns the reader's own earlier records as one `MemoryRecall`, or
+declines.
 
 Serendipity can search active account-scoped curated memories, spoiler-bounded
 book evidence, and optional public-web sources. Selected evidence may enter
@@ -14,17 +16,26 @@ Serendipity has no write or release authority. Muse owns the conversation,
 Librarian owns internal retrieval, Exa supplies public-web search, application
 code owns access grants, and Provenance reviews every complete Muse draft.
 
-## Assigned runtime skill
+## Assigned runtime skills
 
-One reusable PydanticAI Agent, `serendipity_agent`, owns one runtime skill,
-[`connection-discovery`](skills/connection-discovery/SKILL.md). Application code
-selects it before a model run; the model then chooses permitted searches and
+One reusable PydanticAI Agent, `serendipity_agent`, owns two runtime skills,
+[`connection-discovery`](skills/connection-discovery/SKILL.md) and
+[`memory-recall`](skills/memory-recall/SKILL.md). Application code
+selects one from the brief's intent before a model run; the model then chooses permitted searches and
 domain decisions within that skill. An Agent object is reusable configuration.
 A model run is an invocation that can include several searches and retries.
 
 | Assigned skill | Typed input | Typed output | Current consumers |
 | --- | --- | --- | --- |
 | `connection-discovery` | `ConnectionDiscoveryInput` | `ConnectionProposal` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat; `evals.serendipity.runner.run_case` with controlled tool evidence |
+| `memory-recall` | `ConnectionDiscoveryInput` with `intent="recall_memory"` and a memory-only scope | `MemoryRecall` or `ConnectionDecline` | `orchestration.connection._agent_explorer` in production chat |
+
+`memory-recall` searches only `search_memories` and returns the one to three
+records that are the reader's own earlier words on what the cue asks about;
+one record is a complete recall. A record that only shares vocabulary or
+offers a transferable lesson is not a match, and no match is a decline with
+reason `no_matching_memory`. Recall never interprets, ranks interpretations, or
+drafts the reply.
 
 [`skills.py`](skills.py) binds the instructions, contracts, tools, optional Exa
 capability, validator, and retry limits. `agents.serendipity` in the
@@ -34,9 +45,11 @@ the selected skill. Both resources load from the package without a
 working-directory dependency. See the
 [runtime skills architecture](../../../../docs/agent-skills.md).
 
-The Agent keeps its fixed proposal-or-decline output schema and registered
-`validate_serendipity_output` validator. The skill does not override
-`output_type`. It preserves two output retries, the existing default tool retry
+The Agent keeps one fixed output schema (proposal, decline, or recall) and its
+registered `validate_serendipity_output` validator. Neither skill overrides
+`output_type`; the validator retries a proposal on a `recall_memory` task, a
+recall on any other intent, and a recall citing a record this run's
+`search_memories` did not return. It preserves two output retries, the existing default tool retry
 budget of two, and the bounded internal tools' individual limit of one retry.
 `build_serendipity_agent(model)` preserves model injection for tests and
 evaluation. No account, search ledger, or capability instance is stored on the
@@ -76,7 +89,8 @@ retrieval view contains records. It grants `book_corpus` only with confirmed
 chapter context; an exact-passage grant does not permit Serendipity book search.
 Web tools require both `LINGER_WEB_SEARCH_ENABLED=true` and `EXA_API_KEY`.
 `get_recommendation` uses `presentation=direct`, while `find_connection` uses
-`ask_before_showing`. Presentation policy does not bypass release checks.
+`ask_before_showing`. `recall_memory` grants memory only, never the book corpus
+or the web, and its result carries no presentation policy. Presentation policy does not bypass release checks.
 
 ## Search ownership
 
@@ -338,7 +352,8 @@ a component pass does not establish a product objective result.
 - `src/linger/agents/serendipity/tools.py` — bounded Librarian tool and guarded
   maintained Exa capability.
 - `src/linger/agents/serendipity/agent.py` — reusable Agent and output validator.
-- `src/linger/agents/serendipity/skills.py` — assigned connection-discovery task.
+- `src/linger/agents/serendipity/skills.py` — assigned connection-discovery and
+  memory-recall tasks.
 - `src/linger/agents/serendipity/prompt.py` — effective instruction and contract
   fingerprint exports.
 - `src/linger/orchestration/connection.py` — trusted dependency construction,

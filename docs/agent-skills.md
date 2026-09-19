@@ -17,7 +17,8 @@ calls or transfer application authority to a model.
 | Librarian | [Evidence assessment](../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md) | `LibrarianEvidenceStrengthInput` → `BookEvidenceAssessment` | `assess_book_evidence` validates requested-part support and selected IDs, then returns `EvidenceStrengthDecision` |
 | [Sculptor](../src/linger/agents/sculptor/README.md) · [assignment](../src/linger/agents/sculptor/skills.py) | [Memory curation](../src/linger/agents/sculptor/skills/memory-curation/SKILL.md) | `AccountScopedMemories` → `CurationProposal` or `NoCurationProposal` | `propose_curation`; account identity is excluded from model input |
 | Sculptor | [Memory surfacing](../src/linger/agents/sculptor/skills/memory-surfacing/SKILL.md) | `SurfacingInput` → `SurfaceNow`, `Defer`, or `DoNotSurface` | `propose_surfacing`; account identity is excluded and decision validation follows |
-| [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `discover_connection`; fresh request dependencies collect evidence |
+| [Serendipity](../src/linger/agents/serendipity/README.md) · [assignment](../src/linger/agents/serendipity/skills.py) | [Connection discovery](../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md) | `ConnectionDiscoveryInput` → `ConnectionProposal` or `ConnectionDecline` | `connection_exploration`; fresh request dependencies collect evidence |
+| Serendipity | [Memory recall](../src/linger/agents/serendipity/skills/memory-recall/SKILL.md) | `ConnectionDiscoveryInput` → `MemoryRecall` or `ConnectionDecline` | `connection_exploration` with the `recall_memory` intent; memory-only scope, and one matching record is a complete recall |
 | [Provenance](../src/linger/agents/provenance/README.md) · [assignment](../src/linger/agents/provenance/skills.py) | [Emotional preflight](../src/linger/agents/provenance/skills/emotional-preflight/SKILL.md) | `EmotionalBoundaryInput` → `EmotionalBoundaryAssessment` | `assess_emotional_boundary` before Muse or its tools |
 | Provenance | [Candidate review](../src/linger/agents/provenance/skills/candidate-review/SKILL.md) | `ProvenanceInput` → `ProvenanceReview` | `reflection_reply` supplies canonical evidence and, on revision, the original candidate and findings to recheck |
 | Provenance | [Curation review](../src/linger/agents/provenance/skills/curation-review/SKILL.md) | `CurationReviewInput` → `CurationProvenanceReview` | `review_curation` binds the verdict to the exact proposal and source snapshot |
@@ -42,6 +43,7 @@ flowchart LR
     Sculptor --> Curation[Memory curation]
     Sculptor --> Surfacing[Memory surfacing]
     Serendipity --> Connection[Connection discovery]
+    Serendipity --> Recall[Memory recall]
     Provenance --> Preflight[Emotional preflight]
     Provenance --> Candidate[Candidate review]
     Provenance --> CurationReview[Curation review]
@@ -58,7 +60,10 @@ output contract. Typed task entry points project trusted input, select the
 constant, invoke the role's Agent, and apply existing domain checks.
 
 Muse and Serendipity retain fixed output schemas and registered output
-validators. Librarian, Sculptor, and Provenance select task-specific output
+validators. Serendipity's fixed schema covers both of its skills, and its
+validator pairs each result with the task's intent: a `recall_memory` task
+returns `MemoryRecall` or a decline, and every other intent returns
+`ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
 schemas per run. The Provenance candidate-review run also binds its typed input
 in a request-scoped context so its skill-selected output validator can retry
 finding-location mismatches within the skill's output retries. No run modifies
@@ -217,9 +222,11 @@ candidate or stored curation, and deterministic application checks still apply.
 
 Chat currently uses Muse reflection, Librarian boundary inference, book-request
 planning, and evidence assessment when needed, optional Serendipity connection discovery, and the two
-Provenance conversation skills. The same Serendipity skill also serves plain
-personal recall: when Muse asks and the account has active memories, it searches
-the curated retrieval view and returns memory evidence for the ordinary
+Provenance conversation skills. Plain personal recall is Serendipity's separate
+memory-recall skill: when Muse passes `intent="recall_memory"` and the account
+has active memories, it searches only the curated retrieval view and returns
+the one to three records that are the reader's own earlier words on the cue,
+or a `no_matching_memory` decline. Recalled records take the ordinary
 Provenance and release path. Reviewed automatic capture stays under the
 existing server-controlled evaluation policy.
 

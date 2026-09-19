@@ -526,11 +526,17 @@ Retrieval and citation come from the recorded connection events, not from the
 reply text. Memory `search` events supply the retrieved record identifiers and
 the last `release` event supplies the cited ones. A Scene fails its hard gates
 on `missing_release_observation`, `unexpected_release_source` (the normal
-source is `muse_candidate`), `invalid_evidence_observation`,
+source is `muse_candidate`), `provider_failure`, `retrieval_failure`,
+`discovery_failure`, `invalid_evidence_observation`,
 `relevant_prop_not_retrieved`, `relevant_prop_not_cited`,
 `distractor_prop_cited`, `props_changed`, `unexpected_memory_writes`, or
-`capture_enabled_after_scene`. A distractor that was retrieved but not cited is
-recorded as an observation, not a failure.
+`capture_enabled_after_scene`. The three lookup failures use the same
+conditions as connection replay: a model failure on the release, a failed or
+unavailable search, and a failed discovery or recall run. A comparison Scene in
+which Muse never looks anything up still passes; only a failed lookup fails. A
+successful personal recall records a `discovery` event with status `recall`. A
+distractor that was retrieved but not cited is recorded as an observation, not
+a failure.
 
 Semantic quality is not graded. Whether the reply separates recalled words from
 generated interpretation, and whether the recall was useful, remain review
