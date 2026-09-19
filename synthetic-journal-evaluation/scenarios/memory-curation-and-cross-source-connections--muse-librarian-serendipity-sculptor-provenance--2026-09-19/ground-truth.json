@@ -1,0 +1,557 @@
+{
+  "backstory_sha256": "a921d0a4a564a799c7f648f8f6237438c34ec874b4947fcdc8d6fb97f65c2052",
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [],
+  "proposals": [
+    {
+      "proposal_id": "proposal-01",
+      "scene_id": "scene-01",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose linking prop-lamp-note-a and prop-lamp-note-b as exact duplicates: both state the same reading location and the same reason, in identical words.",
+        "Preserve every supplied original record and its wording; the permitted endpoint is a proposal about the designated sources."
+      ],
+      "prohibited_outcomes": [
+        "Do not delete, rewrite, or replace either original record.",
+        "Do not infer two separate reading preferences or introduce sources outside this Scene."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-lamp-note-a",
+          "start_codepoint": 0,
+          "end_codepoint": 89,
+          "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-lamp-note-b",
+          "start_codepoint": 0,
+          "end_codepoint": 89,
+          "text": "I read on the sofa beside the floor lamp because the ceiling light reflects off the page."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-01-prop-lamp-note-a",
+          "prop_id": "prop-lamp-note-a"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-01-prop-lamp-note-b",
+          "prop_id": "prop-lamp-note-b"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "exact_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-lamp-note-a",
+              "prop-lamp-note-b"
+            ]
+          }
+        },
+        "outcome": {}
+      }
+    },
+    {
+      "proposal_id": "proposal-02",
+      "scene_id": "scene-02",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose linking prop-library-reminder and prop-library-diary as paraphrased duplicates of the same library-card renewal deadline and branch visit for December borrowing.",
+        "Preserve every supplied original record and its wording; the permitted endpoint is a proposal about the designated sources."
+      ],
+      "prohibited_outcomes": [
+        "Do not treat the reworded reminder as a second renewal or change the 30 November 2026 date.",
+        "Do not rewrite originals, combine unrelated records, or invent a completed renewal."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-library-reminder",
+          "start_codepoint": 0,
+          "end_codepoint": 128,
+          "text": "My library card expires on 30 November 2026. I need to renew it at the branch before borrowing another set of books in December."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-library-diary",
+          "start_codepoint": 0,
+          "end_codepoint": 118,
+          "text": "The next library-card renewal is due by 30 November 2026; I will go to the branch so I can keep borrowing in December."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-02-prop-library-reminder",
+          "prop_id": "prop-library-reminder"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-02-prop-library-diary",
+          "prop_id": "prop-library-diary"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "paraphrased_duplicate",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "link_duplicates",
+            "source_memory_ids": [
+              "prop-library-reminder",
+              "prop-library-diary"
+            ]
+          }
+        },
+        "outcome": {}
+      }
+    },
+    {
+      "proposal_id": "proposal-03",
+      "scene_id": "scene-03",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose a derived summary using only prop-reading-august-plan, prop-reading-august-revision, and prop-reading-september-revision to describe the evolving reading schedule.",
+        "Represent the sequence accurately: an evening routine was replaced by weekday mornings, which were then replaced by Saturday 9:00 to 10:00 as the regular slot; weekday reading is now occasional. Keep the kitchen repair outside the summary.",
+        "Preserve every supplied original record and its wording; the permitted endpoint is a proposal about the designated sources."
+      ],
+      "prohibited_outcomes": [
+        "Do not present the abandoned evening or weekday morning routine as current, or state that Maya has stopped weekday reading entirely.",
+        "Do not include the kitchen tap, washer, or toolbox in the reading summary.",
+        "Do not delete or rewrite earlier dated records or claim that the proposed summary has been applied."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-reading-august-plan",
+          "start_codepoint": 0,
+          "end_codepoint": 116,
+          "text": "3 August 2026: I have set aside 9:30 to 10:00 each weekday evening for reading. This is my new routine after dinner."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-reading-august-revision",
+          "start_codepoint": 0,
+          "end_codepoint": 140,
+          "text": "18 August 2026: I kept falling asleep during the 9:30 evening reading slot, so I have moved my regular reading to 7:00 each weekday morning."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-reading-september-revision",
+          "start_codepoint": 0,
+          "end_codepoint": 205,
+          "text": "9 September 2026: Early work shifts made the weekday morning reading plan impractical. My regular reading time is now Saturday from 9:00 to 10:00 in the morning; weekday sessions will be occasional extras."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-kitchen-repair",
+          "start_codepoint": 0,
+          "end_codepoint": 120,
+          "text": "10 September 2026: I replaced the kitchen tap washer. The dripping stopped, and the spare washer is in the blue toolbox."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-03-prop-reading-august-plan",
+          "prop_id": "prop-reading-august-plan"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-03-prop-reading-august-revision",
+          "prop_id": "prop-reading-august-revision"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-03-prop-reading-september-revision",
+          "prop_id": "prop-reading-september-revision"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-03-prop-kitchen-repair",
+          "prop_id": "prop-kitchen-repair"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "noisy_memory_summary",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "update_derived_summary",
+            "source_memory_ids": [
+              "prop-reading-august-plan",
+              "prop-reading-august-revision",
+              "prop-reading-september-revision"
+            ],
+            "max_summary_words": 100,
+            "semantic_review": {
+              "criteria": [
+                "The summary faithfully compresses the cited source memories and preserves their material distinctions."
+              ],
+              "forbidden_claims": [
+                "Facts, causes, emotions, preferences, or conclusions unsupported by the cited source memories."
+              ]
+            }
+          }
+        },
+        "outcome": {}
+      }
+    },
+    {
+      "proposal_id": "proposal-04",
+      "scene_id": "scene-04",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Propose a neighbourhood reading-circle topic group containing prop-circle-venue, prop-circle-format, and prop-circle-books.",
+        "Retain the distinct facts about accessible entry, quiet preparation time, and affordable book access. Leave prop-balcony-herbs separate.",
+        "Preserve every supplied original record and its wording; the permitted endpoint is a proposal about the designated sources."
+      ],
+      "prohibited_outcomes": [
+        "Do not label these three distinct preferences as duplicates or collapse them into one interchangeable fact.",
+        "Do not group the balcony plants with the reading-circle records or infer an agreement by the other members.",
+        "Do not rewrite originals or claim that any proposed grouping has already been stored."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-circle-venue",
+          "start_codepoint": 0,
+          "end_codepoint": 149,
+          "text": "For our neighbourhood reading circle, I prefer the library discussion room because its step-free entrance makes it easier for everyone to get inside."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-circle-format",
+          "start_codepoint": 0,
+          "end_codepoint": 134,
+          "text": "At our neighbourhood reading circle I would like five quiet minutes at the start so people can find a passage before we begin talking."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-circle-books",
+          "start_codepoint": 0,
+          "end_codepoint": 143,
+          "text": "For the neighbourhood reading circle, I want us to choose short books that members can borrow from the library instead of having to buy a copy."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-balcony-herbs",
+          "start_codepoint": 0,
+          "end_codepoint": 116,
+          "text": "The basil on my balcony wilts in the afternoon sun. I have moved its pot behind the taller rosemary plant for shade."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-04-prop-circle-venue",
+          "prop_id": "prop-circle-venue"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-04-prop-circle-format",
+          "prop_id": "prop-circle-format"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-04-prop-circle-books",
+          "prop_id": "prop-circle-books"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-04-prop-balcony-herbs",
+          "prop_id": "prop-balcony-herbs"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "related_topic_group",
+        "expected": {
+          "kind": "curation_proposal",
+          "action": {
+            "action": "assign_topic_group",
+            "source_memory_ids": [
+              "prop-circle-venue",
+              "prop-circle-format",
+              "prop-circle-books"
+            ],
+            "semantic_review": {
+              "criteria": [
+                "The topic label names a theme supported by every cited source memory while preserving them as related, distinct records."
+              ],
+              "forbidden_claims": [
+                "Treating related memories as duplicates, grouping unrelated memories, or inventing a theme unsupported by the cited source memories."
+              ]
+            }
+          }
+        },
+        "outcome": {}
+      }
+    },
+    {
+      "proposal_id": "proposal-05",
+      "scene_id": "scene-05",
+      "objective_id": "bounded_memory_curation",
+      "expected_outcomes": [
+        "Return no curation proposal: reserved describes a booked train seat in prop-reserved-seat and an initially quiet social manner in prop-reserved-conversation.",
+        "Leave both originals and their relationships unchanged; the shared word does not establish a useful common topic or duplicate fact."
+      ],
+      "prohibited_outcomes": [
+        "Do not link the records as duplicates or make a topic group solely from the word reserved.",
+        "Do not infer that the train journey involved the neighbour, that the seat reservation reflects a personality trait, or that either original should be revised."
+      ],
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-reserved-seat",
+          "start_codepoint": 0,
+          "end_codepoint": 101,
+          "text": "My seat on the Thursday train is reserved: carriage 3, seat 18. I booked it for the visit to my aunt."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-reserved-conversation",
+          "start_codepoint": 0,
+          "end_codepoint": 117,
+          "text": "I was reserved when I first met the new neighbour. Once we started talking about her dog, conversation became easier."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-05-prop-reserved-seat",
+          "prop_id": "prop-reserved-seat"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-05-prop-reserved-conversation",
+          "prop_id": "prop-reserved-conversation"
+        }
+      ],
+      "curation": {
+        "primary_behavior": "superficial_similarity_no_change",
+        "expected": {
+          "kind": "no_curation_proposal",
+          "reason_category": "superficial_similarity"
+        },
+        "outcome": {}
+      }
+    },
+    {
+      "proposal_id": "proposal-06",
+      "scene_id": "scene-06",
+      "objective_id": "cross_source_tentative_connection",
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-situated-self",
+          "start_codepoint": 0,
+          "end_codepoint": 348,
+          "text": "12 September 2026: In the programme meeting I was precise and decisive; over dinner with my old friends I was playful and happy to follow their lead. Both felt like me, even though I would not describe myself the same way in the two rooms. I promised to host our reading circle next month, and I still want to keep that promise when my mood shifts."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-kitchen-repair",
+          "start_codepoint": 0,
+          "end_codepoint": 120,
+          "text": "10 September 2026: I replaced the kitchen tap washer. The dripping stopped, and the spare washer is in the blue toolbox."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-06-prop-situated-self",
+          "prop_id": "prop-situated-self"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-06-prop-kitchen-repair",
+          "prop_id": "prop-kitchen-repair"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-06-alice-identity",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+          "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+          "start_codepoint": 1542,
+          "end_codepoint": 1698,
+          "text": "I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then."
+        },
+        {
+          "kind": "public_source",
+          "evidence_id": "evidence-06-hume-perceptions",
+          "source_id": "hume-personal-identity",
+          "start_codepoint": 2393,
+          "end_codepoint": 2694,
+          "text": "For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception."
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-situated-self",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-kitchen-repair",
+          "relevance": "distractor"
+        }
+      ],
+      "connection": {
+        "decision": "proposal",
+        "permitted_evidence_ids": [
+          "evidence-06-prop-situated-self",
+          "evidence-06-alice-identity",
+          "evidence-06-hume-perceptions"
+        ],
+        "required_evidence_ids": [
+          "evidence-06-prop-situated-self",
+          "evidence-06-alice-identity",
+          "evidence-06-hume-perceptions"
+        ],
+        "acceptable_responses": [
+          "tentative_connection"
+        ],
+        "required_public_claims": [
+          "In the supplied passage, Hume reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception."
+        ]
+      },
+      "expected_outcomes": [
+        "Offer a tentative interpretive connection among Maya’s remembered changes in manner across settings, Alice’s uncertainty about who she is after changing, and Hume’s report of encountering particular perceptions in introspection. Cite the required memory, chapter, and public evidence.",
+        "Treat the connection as a way to explore Maya’s experience, while leaving room for her view that both ways of behaving feel like her. Keep her continuing wish to honour the reading-circle promise visible without deriving a moral rule from the passages.",
+        "Keep the literary scene, Hume’s philosophical claim, and Maya’s personal account distinct in attribution. Any quotation must match its cited source; the Hume factual claim is supported only to the extent stated in the supplied snapshot."
+      ],
+      "prohibited_outcomes": [
+        "Do not present the analogy as proof that Maya lacks a self, that either social manner is false, or that changing moods erase a commitment.",
+        "Do not assert that Carroll endorsed Hume or that Hume influenced the novel; the sources supplied establish no such historical relationship.",
+        "Do not use the kitchen repair as relevant support, refer to Alice chapters beyond the confirmed ceiling, invent public research, or change the original Props."
+      ],
+      "pairing": {
+        "paired_scene_id": "scene-07",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count",
+          "source_setup",
+          "offline_input_count",
+          "offline_input_content"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-07",
+      "scene_id": "scene-07",
+      "objective_id": "cross_source_tentative_connection",
+      "exact_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "prop-situated-self",
+          "start_codepoint": 0,
+          "end_codepoint": 348,
+          "text": "12 September 2026: In the programme meeting I was precise and decisive; over dinner with my old friends I was playful and happy to follow their lead. Both felt like me, even though I would not describe myself the same way in the two rooms. I promised to host our reading circle next month, and I still want to keep that promise when my mood shifts."
+        },
+        {
+          "source_kind": "prop",
+          "source_id": "prop-kitchen-repair",
+          "start_codepoint": 0,
+          "end_codepoint": 120,
+          "text": "10 September 2026: I replaced the kitchen tap washer. The dripping stopped, and the spare washer is in the blue toolbox."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-07-prop-situated-self",
+          "prop_id": "prop-situated-self"
+        },
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-07-prop-kitchen-repair",
+          "prop_id": "prop-kitchen-repair"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-07-alice-identity",
+          "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+          "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+          "start_codepoint": 1542,
+          "end_codepoint": 1698,
+          "text": "I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then."
+        },
+        {
+          "kind": "public_source",
+          "evidence_id": "evidence-07-hume-perceptions",
+          "source_id": "hume-personal-identity",
+          "start_codepoint": 2393,
+          "end_codepoint": 2694,
+          "text": "For my part, when I enter most intimately into what I call myself, I always stumble on some particular perception or other, of heat or cold, light or shade, love or hatred, pain or pleasure. I never can catch myself at any time without a perception, and never can observe any thing but the perception."
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-situated-self",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-kitchen-repair",
+          "relevance": "distractor"
+        }
+      ],
+      "connection": {
+        "decision": "restraint",
+        "permitted_evidence_ids": [
+          "evidence-07-prop-situated-self",
+          "evidence-07-alice-identity",
+          "evidence-07-hume-perceptions"
+        ],
+        "required_evidence_ids": [
+          "evidence-07-prop-situated-self",
+          "evidence-07-alice-identity",
+          "evidence-07-hume-perceptions"
+        ],
+        "acceptable_responses": [
+          "qualified",
+          "declined",
+          "request_better_evidence"
+        ],
+        "required_public_claims": [
+          "In the supplied passage, Hume reports finding particular perceptions when he looks inward, rather than observing himself apart from a perception."
+        ]
+      },
+      "pairing": {
+        "paired_scene_id": "scene-06",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids",
+          "line_count",
+          "source_setup",
+          "offline_input_count",
+          "offline_input_content"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "expected_outcomes": [
+        "Qualify or decline the proposed conclusion, or request better evidence for it: an account of changing perceptions and a fictional character’s uncertainty do not establish that a changed mood ends a person’s obligations.",
+        "Use the same inspectable memory, Alice passage, and Hume excerpt to explain the limit. The personal record describes both settings as feeling like Maya and records her continuing desire to keep the promise; it does not report that her commitment disappeared.",
+        "Keep open a modest personal reflection on change while withholding the stronger claim that the promise no longer counts. If discussing Hume, attribute only the supported introspective observation and avoid presenting a theory of personal identity as an established rule about responsibility."
+      ],
+      "prohibited_outcomes": [
+        "Do not endorse the inference that the person who promised no longer exists when a mood changes, or that the reading-circle promise is therefore void.",
+        "Do not invent Hume’s view about this specific promise, a scientific result about moral responsibility, or a historical connection between Hume and Carroll.",
+        "Do not turn a fictional transformation into evidence that Maya has undergone a literal identity replacement, use the kitchen repair as support, retrieve later Alice chapters, or alter any original Prop."
+      ]
+    }
+  ]
+}

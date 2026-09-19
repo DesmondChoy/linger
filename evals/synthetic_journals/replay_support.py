@@ -40,6 +40,10 @@ _CONNECTION = ReplaySupport(
     name="connection and restraint",
     module="evals.synthetic_journals.connection_replay",
 )
+_CONNECTION_CURATION = ReplaySupport(
+    name="bounded curation and cross-source connection",
+    module="evals.synthetic_journals.connection_curation_replay",
+)
 _RETRIEVAL = ReplaySupport(
     name="longitudinal retrieval",
     module="evals.synthetic_journals.retrieval_replay",
@@ -49,6 +53,7 @@ _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection"}): _CONNECTION,
     frozenset({"weak_evidence_safe_decline"}): _CONNECTION,
     frozenset({"cross_source_tentative_connection", "weak_evidence_safe_decline"}): _CONNECTION,
+    frozenset({"bounded_memory_curation", "cross_source_tentative_connection"}): _CONNECTION_CURATION,
     frozenset({"reviewed_automatic_memory_capture"}): _CAPTURE,
     frozenset({"sensitive_inference_and_capture_veto"}): _CAPTURE,
     frozenset({"bounded_memory_curation"}): _CURATION,

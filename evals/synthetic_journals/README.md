@@ -147,9 +147,9 @@ The complete workflow is:
    supported selection, the agent validates that adoption and starts one
    provider-backed replay. Supported selections include capture, sensitive
    capture veto, curation, capture and curation together in either order,
-   continuity, longitudinal retrieval,
-   continuity and longitudinal retrieval in either order, either book Objective
-   alone,
+   bounded curation and cross-source connection together in either order,
+   continuity, longitudinal retrieval, continuity and longitudinal retrieval
+   in either order, either book Objective alone,
    both book Objectives in either order, either connection or weak-evidence
    Objective alone, and their combined selection. Other selections stop after
    adoption.
@@ -238,7 +238,8 @@ The loopback server only returns the decision. The agent validates the result
 and chooses the registered runner for the exact Objective selection. The
 browser never receives runtime authority or provider credentials. Automatic
 post-confirmation routes cover capture, sensitive capture veto, curation,
-capture and curation together, continuity,
+capture and curation together, bounded curation and cross-source connection
+together, continuity,
 longitudinal retrieval, continuity and longitudinal retrieval together,
 either book Objective alone, both book Objectives, either connection or
 weak-evidence Objective alone, and their combination. Other selections stop
@@ -297,6 +298,40 @@ reviewer's decisions. Semantic quality remains a separate review.
 
 The same combined runner is registered for the review and guided-run workflows.
 It does not implement conversational capture-triggered curation or surfacing.
+
+## Combined curation and connection replay
+
+Select exactly `bounded_memory_curation` and
+`cross_source_tentative_connection`, in either order. The Scenario contains
+the five required Props-only curation Scenes and fresh-session connection
+Scenes, each with one Line. [Complete curation Ground truth](#complete-curation-ground-truth)
+before independent human adoption.
+
+```bash
+LINGER_WEB_SEARCH_ENABLED=true .venv/bin/python -m evals.synthetic_journals.connection_curation_replay \
+	path/to/backstory.json path/to/ground-truth.json \
+	--adoption path/to/ground-truth-adoption.json \
+	--output /tmp/connection-curation-run.json
+```
+
+Both `--adoption` and `--output` are required. The runner validates the original
+files against the adoption and retains their hashes, adoption identity, and
+Scene identifiers. One experiment executes the declared Scene order under one
+evaluation account. Each Scene has an isolated memory snapshot: curation
+receives its designated active Props, and its results do not seed connection
+Scenes.
+
+The default runner uses production chat and passes no injected curation handler,
+so the reviewed curation loop invokes both Sculptor and Provenance. Connection
+replay uses the [adopted public snapshots and source checks](#connection-and-restraint-replay).
+Each component retains its existing grades. Curation preserves the adopted
+`curation.outcome` constraints, including an empty outcome, and records loop
+results separately in `actual_outcome`. Semantic quality remains separately
+reviewable. The combined runner is registered for review and guided runs.
+
+If a Scene raises an execution error, the artifact records its safe error code
+and exception type, and the remaining independent Scenes still run. The command
+writes all Scene results before returning a failing exit status.
 
 ## Capture replay
 
@@ -436,6 +471,12 @@ the curation-loop status, deterministic hard-gate comparison, and separate
 semantic criteria. Proposal mode remains an exploratory comparison. Adopted mode
 grades deterministic hard gates while continuing to expose semantic criteria for
 separate review; a hard-gate pass is not a semantic-quality claim.
+
+Artifact schema 2 preserves the supplied `curation.outcome` expectation and
+records observed review, application, audit, and retrieval results in
+`actual_outcome`. An omitted or empty outcome adds no downstream requirement;
+explicit adopted outcome fields constrain grading alongside proposal and source
+preservation checks.
 
 The curation command uses the same `--adoption` and `--output` behavior. It
 accepts exactly the `bounded_memory_curation` Objective, no run configuration,

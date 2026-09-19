@@ -108,6 +108,16 @@ explains the provider-backed side effect.
   the connection, tentativeness, honest restraint, and public claims. Legacy
   weak-evidence-only scenarios with `grounding` expectations use the existing
   reflection replay through this command and retain its narrower hard checks.
+- For exactly `bounded_memory_curation` and
+  `cross_source_tentative_connection`, in either order, run
+  `evals.synthetic_journals.connection_curation_replay` with `--adoption` and
+  a fresh temporary output path. Review every curation proposal, connection
+  source setup, and connection expectation before confirmation. The runner
+  preserves the original hashes and adoption identity, executes every Scene in
+  order under one account, and isolates each Scene's source snapshot. Production
+  curation uses Sculptor and real Provenance review. Stored optional outcome
+  expectations remain unchanged; additional loop results are observations.
+  Connection hard gates remain separate from human semantic judgments.
 - For any other or mixed Objective set, preserve the adoption but stop: no
   generic replay path is implemented.
 

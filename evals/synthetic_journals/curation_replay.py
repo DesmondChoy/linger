@@ -72,6 +72,7 @@ OBJECTIVE_COMPONENTS = (
     "src.linger.agents.sculptor.models.SculptorResponse",
     "evals.sculptor.harness.CurationExpectation",
     "evals.sculptor.harness.grade_curation_expectation:v1",
+    "evals.synthetic_journals.curation_replay.curation_scene_input:v2",
 )
 
 CurationHandler = Callable[[AccountScopedMemories], Awaitable[SculptorResponse]]
@@ -151,6 +152,7 @@ class CurationSceneObservation(StrictModel):
     source_hashes_before: tuple[SourceHash, ...]
     source_hashes_after: tuple[SourceHash, ...]
     source_immutable: Literal[True]
+    actual_outcome: CurationOutcomeExpectation
     curation_status: Literal[
         "no_change", "provenance_revise", "provenance_reject", "applied"
     ]
@@ -160,7 +162,7 @@ class CurationSceneObservation(StrictModel):
 class CurationEvaluationRun(StrictModel):
     """One provider-backed run of ordered bounded-curation Scenes."""
 
-    artifact_schema_version: Literal["1"] = "1"
+    artifact_schema_version: Literal["2"] = "2"
     content_classification: Literal["synthetic"] = "synthetic"
     run_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
@@ -487,27 +489,28 @@ async def replay_curation_scene(
     if after != before:
         raise RuntimeError(f"Scene {scene_id} changed supplied source content")
 
+    actual_outcome = CurationOutcomeExpectation(
+        provenance_decision=(
+            loop.provenance_review.decision
+            if loop.provenance_review is not None
+            else "not_reviewed"
+        ),
+        status=loop.status,
+        application_created=(
+            loop.application.created if loop.application is not None else False
+        ),
+        audit_verified=(
+            loop.application.verification.verified
+            if loop.application is not None
+            else False
+        ),
+        retrieval_memory_ids=retrieval_memory_ids,
+    )
     grade = grade_curation_expectation(
         expectation,
         tuple(memory.memory_id for memory in batch.memories),
         response,
-        outcome=CurationOutcomeExpectation(
-            provenance_decision=(
-                loop.provenance_review.decision
-                if loop.provenance_review is not None
-                else "not_reviewed"
-            ),
-            status=loop.status,
-            application_created=(
-                loop.application.created if loop.application is not None else False
-            ),
-            audit_verified=(
-                loop.application.verification.verified
-                if loop.application is not None
-                else False
-            ),
-            retrieval_memory_ids=retrieval_memory_ids,
-        ),
+        outcome=actual_outcome,
     )
     ground_truth_result = _ground_truth_result(
         matches=grade.hard_pass,
@@ -528,6 +531,7 @@ async def replay_curation_scene(
         source_hashes_before=before,
         source_hashes_after=after,
         source_immutable=True,
+        actual_outcome=actual_outcome,
         curation_status=loop.status,
         agent_exchanges=recorder.exchanges,
     )
@@ -597,21 +601,6 @@ def curation_scene_input(
     if len(proposals) != 1 or proposals[0].curation is None:
         raise ValueError(f"Scene {scene.scene_id} lacks typed curation Ground truth")
     curation = proposals[0].curation
-    expected_outcome = CurationOutcomeExpectation(
-        provenance_decision=(
-            "not_reviewed"
-            if curation.expected.kind == "no_curation_proposal"
-            else "allow"
-        ),
-        status=(
-            "no_change"
-            if curation.expected.kind == "no_curation_proposal"
-            else "applied"
-        ),
-        application_created=(curation.expected.kind != "no_curation_proposal"),
-        audit_verified=(curation.expected.kind != "no_curation_proposal"),
-    )
-    curation = curation.model_copy(update={"outcome": expected_outcome})
     return (
         scene.scene_id,
         AccountScopedMemories(

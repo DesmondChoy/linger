@@ -23,6 +23,7 @@ from .models import (
 CONNECTION_OBJECTIVE_ID = "cross_source_tentative_connection"
 WEAK_EVIDENCE_OBJECTIVE_ID = "weak_evidence_safe_decline"
 CONNECTION_OBJECTIVE_IDS = frozenset({CONNECTION_OBJECTIVE_ID, WEAK_EVIDENCE_OBJECTIVE_ID})
+CONNECTION_CURATION_OBJECTIVE_IDS = frozenset({CONNECTION_OBJECTIVE_ID, "bounded_memory_curation"})
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -62,8 +63,15 @@ def compile_connection_replay_plan(
     from .validate_scenario import _pair_field, _validate_evidence, _validate_pairing, _validate_span
 
     selected = frozenset(backstory.objective_ids)
-    if not selected or not selected <= CONNECTION_OBJECTIVE_IDS:
-        raise ConnectionContractError(["connection replay accepts connection, weak evidence, or both Objectives"])
+    with_curation = selected == CONNECTION_CURATION_OBJECTIVE_IDS
+    if not selected or not (selected <= CONNECTION_OBJECTIVE_IDS or with_curation):
+        raise ConnectionContractError([
+            "connection compilation accepts connection, weak evidence, their pair, "
+            "or exactly connection with bounded curation"
+        ])
+    if with_curation and any(len(scene.objective_ids) != 1 for scene in backstory.scenes):
+        raise ConnectionContractError(["combined connection and curation Scenes must select exactly one Objective"])
+    connection_objectives = selected & CONNECTION_OBJECTIVE_IDS
     failures: list[str] = []
     if backstory.run_configuration_ids or backstory.offline_inputs:
         failures.append("connection replay accepts no run configuration or offline inputs")
@@ -79,8 +87,10 @@ def compile_connection_replay_plan(
     lines = {line.line_id: line for line in backstory.lines}
     resolver = BookEvidenceResolver(repository_root)
     compiled: list[ValidatedConnectionScene] = []
-    decisions: dict[str, set[str]] = {objective: set() for objective in selected}
+    decisions: dict[str, set[str]] = {objective: set() for objective in connection_objectives}
     for scene in sorted(backstory.scenes, key=lambda item: item.order):
+        if not connection_objectives.intersection(scene.objective_ids):
+            continue
         if not scene.fresh_session or len(scene.line_ids) != 1 or scene.offline_input_ids:
             failures.append(f"connection Scene {scene.scene_id} requires a fresh session, one Line, and no offline input")
             continue
@@ -170,7 +180,7 @@ def compile_connection_replay_plan(
         CONNECTION_OBJECTIVE_ID: {"proposal", "restraint"},
         WEAK_EVIDENCE_OBJECTIVE_ID: {"restraint", "not_requested"},
     }
-    for objective in selected:
+    for objective in connection_objectives:
         if not required_decisions[objective] <= decisions[objective]:
             failures.append(f"{objective} requires contrasting Scenes covering {sorted(required_decisions[objective])}")
     if failures:

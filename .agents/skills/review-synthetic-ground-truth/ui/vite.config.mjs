@@ -23,7 +23,14 @@ export default {
     alias: [
       { find: /^react$/, replacement: path.join(frontendModules, 'react/index.js') },
       { find: /^react\/jsx-runtime$/, replacement: path.join(frontendModules, 'react/jsx-runtime.js') },
+      { find: /^react\/jsx-dev-runtime$/, replacement: path.join(frontendModules, 'react/jsx-dev-runtime.js') },
       { find: /^react-dom\/client$/, replacement: path.join(frontendModules, 'react-dom/client.js') },
+      { find: /^react-dom\/server$/, replacement: path.join(frontendModules, 'react-dom/server.node.js') },
+      { find: /^react-markdown$/, replacement: path.join(frontendModules, 'react-markdown/index.js') },
+      { find: /^remark-gfm$/, replacement: path.join(frontendModules, 'remark-gfm/index.js') },
     ],
+  },
+  test: {
+    include: ['src/**/*.test.jsx'],
   },
 }

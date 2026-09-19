@@ -10,12 +10,15 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from evals.synthetic_journals.complete_curation_ground_truth import complete_curation_ground_truth
 from evals.synthetic_journals.connection_contract import compile_connection_replay_plan
 from evals.synthetic_journals.models import ProposedGroundTruth, SyntheticBackstory
 from evals.synthetic_journals.validate_scenario import ScenarioValidationError, validate_scenario
+from tests.test_synthetic_curation_replay import _curation_documents
 
 CROSS = "cross_source_tentative_connection"
 WEAK = "weak_evidence_safe_decline"
+CURATION = "bounded_memory_curation"
 CHAPTER = "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/01-down-the-rabbit-hole.md"
 
 
@@ -118,6 +121,106 @@ def validate_documents(content: dict, labels: dict, root: Path):
     ground_truth = ProposedGroundTruth.model_validate_json(json.dumps(labels))
     validate_scenario(backstory, ground_truth, backstory_bytes=raw, run_configurations={}, repository_root=root)
     return compile_connection_replay_plan(backstory, ground_truth, repository_root=root)
+
+
+def connection_curation_documents(repository_root: Path) -> tuple[dict, dict]:
+    """Compose existing contract fixtures under one account without writing data."""
+    content, labels = connection_documents(repository_root)
+    curation, curation_labels, _ = _curation_documents()
+    content["objective_ids"] = [CURATION, CROSS]
+    content["scenes"] = content["scenes"][:2]
+    content["lines"] = content["lines"][:2]
+    for scene in content["scenes"]:
+        scene["objective_ids"] = [CROSS]
+        scene["order"] += len(curation["scenes"])
+    for prop in curation["props"]:
+        for field in ("backstory_id", "person_id", "evaluation_account_id"):
+            prop[field] = content["backstory"][field]
+    for scene in curation["scenes"]:
+        scene["backstory_id"] = content["backstory"]["backstory_id"]
+    content["props"] = [*curation["props"], *content["props"]]
+    content["scenes"] = [*curation["scenes"], *content["scenes"]]
+    labels["proposals"] = [
+        *curation_labels["proposals"],
+        *(proposal for proposal in labels["proposals"] if proposal["objective_id"] == CROSS),
+    ]
+    raw = json.dumps(content, sort_keys=True).encode()
+    labels["backstory_sha256"] = hashlib.sha256(raw).hexdigest()
+    return content, labels
+
+
+@pytest.mark.parametrize("reverse_objectives", [False, True])
+def test_connection_curation_compiles_original_scenario_and_only_connection_scenes(reverse_objectives):
+    root = Path(__file__).resolve().parents[1]
+    content, labels = connection_curation_documents(root)
+    if reverse_objectives:
+        content["objective_ids"].reverse()
+    raw = json.dumps(content, sort_keys=True).encode()
+    labels["backstory_sha256"] = hashlib.sha256(raw).hexdigest()
+    backstory = SyntheticBackstory.model_validate_json(raw)
+    ground_truth = ProposedGroundTruth.model_validate_json(json.dumps(labels))
+
+    validate_scenario(backstory, ground_truth, backstory_bytes=raw, run_configurations={}, repository_root=root)
+    plan = compile_connection_replay_plan(backstory, ground_truth, repository_root=root)
+
+    assert plan.backstory is backstory
+    assert plan.ground_truth is ground_truth
+    assert plan.objective_ids == {CURATION, CROSS}
+    assert len(plan.backstory.scenes) == len(plan.ground_truth.proposals) == 7
+    assert plan.ground_truth.backstory_sha256 == hashlib.sha256(raw).hexdigest()
+    assert [scene.scene.scene_id for scene in plan.scenes] == ["s1", "s2"]
+    assert [scene.scene.order for scene in plan.scenes] == [6, 7]
+    assert {prop.evaluation_account_id for prop in plan.backstory.props} == {"account"}
+
+
+def test_connection_curation_completion_preserves_both_objectives_and_candidate_labels():
+    root = Path(__file__).resolve().parents[1]
+    content, labels = connection_curation_documents(root)
+    for proposal in labels["proposals"]:
+        action = proposal.get("curation", {}).get("expected", {}).get("action", {})
+        action.pop("max_summary_words", None)
+        action.pop("semantic_review", None)
+    raw = json.dumps(content, sort_keys=True).encode()
+    completed = json.loads(complete_curation_ground_truth(
+        raw, json.dumps(labels).encode(), run_configurations={}, repository_root=root,
+    ))
+    plan = validate_documents(content, completed, root)
+    assert len(plan.backstory.scenes) == len(plan.ground_truth.proposals) == 7
+    for proposal in completed["proposals"]:
+        action = proposal.get("curation", {}).get("expected", {}).get("action", {})
+        action.pop("max_summary_words", None)
+        action.pop("semantic_review", None)
+    assert completed == labels
+
+
+@pytest.mark.parametrize("mutation,message", [
+    ("curation_behavior", "exactly one Scene for each accepted Sculptor behavior"),
+    ("curation_evidence", "must cite every Scene Prop exactly once"),
+    ("connection_evidence", "unavailable to Scene"),
+    ("missing_curation_label", "proposal coverage must exactly match Scene Objectives"),
+    ("extra_objective", "or exactly connection with bounded curation"),
+    ("shared_scene", "Scenes must select exactly one Objective"),
+])
+def test_connection_curation_preserves_validation_boundaries(mutation, message):
+    root = Path(__file__).resolve().parents[1]
+    content, labels = connection_curation_documents(root)
+    if mutation == "curation_behavior":
+        labels["proposals"][0]["curation"]["primary_behavior"] = "paraphrased_duplicate"
+    elif mutation == "curation_evidence":
+        labels["proposals"][0]["evidence"].pop()
+    elif mutation == "connection_evidence":
+        labels["proposals"][-1]["evidence"][-1]["source_id"] = "unavailable"
+    elif mutation == "missing_curation_label":
+        labels["proposals"].pop(0)
+    elif mutation == "extra_objective":
+        content["objective_ids"].append(WEAK)
+        content["scenes"][-1]["objective_ids"].append(WEAK)
+        _, connection_labels = connection_documents(root)
+        labels["proposals"].append(connection_labels["proposals"][2])
+    elif mutation == "shared_scene":
+        content["scenes"][-1]["objective_ids"].append(CURATION)
+    with pytest.raises(ScenarioValidationError, match=message):
+        validate_documents(content, labels, root)
 
 
 @pytest.fixture

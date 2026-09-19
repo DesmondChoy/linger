@@ -522,3 +522,25 @@ def test_report_command_rejects_pending_review_without_rerunning(scenario_repo, 
 
     assert len(calls) == 1
     assert Path(result["analysis_report"]).read_bytes() == before
+
+
+def test_analysis_preserves_observed_curation_outcome_mismatch():
+    from evals.synthetic_journals.scenario_analysis import _scene_facts
+
+    expected_outcome = {"provenance_decision": "reject", "retrieval_memory_ids": ["original"]}
+    actual_outcome = {"provenance_decision": "allow", "retrieval_memory_ids": ["summary"]}
+    facts, summary, errors = _scene_facts(
+        {"scenes": [{"scene_id": "curation", "order": 1}]},
+        {"proposals": [{"scene_id": "curation", "curation": {"outcome": expected_outcome}}]},
+        {"scenes": [{
+            "scene_id": "curation", "curation_status": "applied", "actual_outcome": actual_outcome,
+            "grade": {"hard_pass": False, "failures": ["provenance_decision_mismatch"]},
+        }]},
+        "completed",
+    )
+
+    assert not errors
+    assert summary["scenes_failed"] == 1
+    assert facts[0]["expected"][0]["curation"]["outcome"] == expected_outcome
+    assert facts[0]["observed"]["actual_outcome"] == actual_outcome
+    assert facts[0]["observed"]["curation_status"] == "applied"

@@ -103,6 +103,7 @@ developer_workflow:
       - weak_evidence_safe_decline
     supported_replay_combinations:
       - [reviewed_automatic_memory_capture, bounded_memory_curation]
+      - [bounded_memory_curation, cross_source_tentative_connection]
       - [session_scoped_conversation_continuity, longitudinal_memory_retrieval]
       - [grounded_book_reflection, spoiler_boundary_clarification]
       - [cross_source_tentative_connection, weak_evidence_safe_decline]

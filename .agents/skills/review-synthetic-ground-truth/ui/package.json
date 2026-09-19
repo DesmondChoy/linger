@@ -1,5 +1,9 @@
 {
   "name": "linger-ground-truth-reviewer",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/review.test.mjs && node ../../../../apps/frontend/node_modules/vitest/vitest.mjs run --config vite.config.mjs",
+    "build": "node ../../../../apps/frontend/node_modules/vite/bin/vite.js build --config vite.config.mjs"
+  }
 }

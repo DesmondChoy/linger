@@ -568,6 +568,14 @@ def test_connection_review_shows_complete_source_setup_and_labels(
             "evals.synthetic_journals.capture_curation_replay",
         ),
         (("cross_source_tentative_connection",), "evals.synthetic_journals.connection_replay"),
+        (
+            ("bounded_memory_curation", "cross_source_tentative_connection"),
+            "evals.synthetic_journals.connection_curation_replay",
+        ),
+        (
+            ("cross_source_tentative_connection", "bounded_memory_curation"),
+            "evals.synthetic_journals.connection_curation_replay",
+        ),
         (("weak_evidence_safe_decline",), "evals.synthetic_journals.connection_replay"),
         (
             ("cross_source_tentative_connection", "weak_evidence_safe_decline"),

@@ -13,11 +13,16 @@ import pytest
 from logfire.testing import TestExporter
 from pydantic_ai.models.test import TestModel
 
-from evals.sculptor.harness import ExpectedCurationProposal
+from evals.sculptor.harness import (
+    CurationOutcomeExpectation,
+    ExpectedCurationProposal,
+    grade_curation_expectation,
+)
 from evals.synthetic_journals.adoption import build_ground_truth_adoption
 from evals.synthetic_journals.curation_replay import (
     CURATION_OBJECTIVE_ID,
     build_curation_identities,
+    curation_scene_input,
     main as curation_main,
     replay_curation_scenes,
 )
@@ -294,6 +299,57 @@ def test_validates_exactly_one_scene_per_accepted_curation_behavior() -> None:
     }
 
 
+def test_scene_input_keeps_outcome_unconstrained() -> None:
+    backstory, ground_truth, _ = _curation_models()
+
+    for scene, proposal in zip(backstory.scenes, ground_truth.proposals, strict=True):
+        assert proposal.curation is not None
+        assert proposal.curation.outcome == CurationOutcomeExpectation()
+        _, _, expectation = curation_scene_input(backstory, ground_truth, scene)
+        assert expectation == proposal.curation
+
+
+def test_unconstrained_outcome_does_not_grade_downstream_rejection() -> None:
+    backstory, ground_truth, _ = _curation_models()
+    _, batch, expectation = curation_scene_input(backstory, ground_truth, backstory.scenes[0])
+    grade = grade_curation_expectation(
+        expectation,
+        tuple(memory.memory_id for memory in batch.memories),
+        _response_for(batch, ground_truth),
+        outcome=CurationOutcomeExpectation(
+            provenance_decision="reject", status="provenance_reject",
+            application_created=False, audit_verified=False,
+            retrieval_memory_ids=backstory.scenes[0].prop_ids,
+        ),
+    )
+
+    assert grade.hard_pass
+
+
+@pytest.mark.parametrize("outcome", [
+    CurationOutcomeExpectation(
+        provenance_decision="reject",
+        status="provenance_reject",
+        application_created=False,
+        audit_verified=False,
+    ),
+    CurationOutcomeExpectation(retrieval_memory_ids=("prop-exact-1", "prop-exact-2")),
+], ids=["rejection", "retrieval"])
+def test_scene_input_preserves_explicit_outcome(outcome: CurationOutcomeExpectation) -> None:
+    _, document, backstory_bytes = _curation_documents()
+    document["proposals"][0]["curation"]["outcome"] = outcome.model_dump(mode="json")
+    backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
+    ground_truth = ProposedGroundTruth.model_validate_json(_json_bytes(document))
+    validate_scenario(
+        backstory, ground_truth, backstory_bytes=backstory_bytes, run_configurations={}
+    )
+
+    _, _, expectation = curation_scene_input(backstory, ground_truth, backstory.scenes[0])
+
+    assert expectation == ground_truth.proposals[0].curation
+    assert expectation.outcome == outcome
+
+
 def test_rejects_missing_ground_truth_inactive_props_and_duplicate_evidence() -> None:
     backstory, ground_truth, backstory_bytes = _curation_models()
 
@@ -432,8 +488,66 @@ def test_replay_resolves_active_same_account_props_and_all_outcomes() -> None:
         for scene in result.scenes
     )
     assert all(scene.source_immutable for scene in result.scenes)
+    for scene, proposal in zip(result.scenes, ground_truth.proposals, strict=True):
+        assert scene.expected == proposal.curation
+        assert scene.actual_outcome.status == scene.curation_status
+        assert scene.actual_outcome.retrieval_memory_ids
+        if scene.response.kind == "no_curation_proposal":
+            assert scene.actual_outcome.provenance_decision == "not_reviewed"
+            assert scene.actual_outcome.application_created is False
+            assert scene.actual_outcome.audit_verified is False
+        else:
+            assert scene.actual_outcome.provenance_decision == "allow"
+            assert scene.actual_outcome.application_created is True
+            assert scene.actual_outcome.audit_verified is True
+    assert result.artifact_schema_version == "2"
     assert result.ground_truth_status == "proposed"
     assert result.content_classification == "synthetic"
+
+
+@pytest.mark.parametrize("outcome,failures", [
+    (
+        CurationOutcomeExpectation(
+            provenance_decision="reject", status="provenance_reject",
+            application_created=False, audit_verified=False,
+        ),
+        {
+            "provenance_decision_mismatch", "status_mismatch",
+            "application_created_mismatch", "audit_verified_mismatch",
+        },
+    ),
+    (
+        CurationOutcomeExpectation(retrieval_memory_ids=("prop-exact-1",)),
+        {"retrieval_memory_ids_mismatch"},
+    ),
+], ids=["rejection", "retrieval"])
+def test_replay_grades_adopted_explicit_outcome(
+    outcome: CurationOutcomeExpectation, failures: set[str]
+) -> None:
+    _, document, backstory_bytes = _curation_documents()
+    document["proposals"][0]["curation"]["outcome"] = outcome.model_dump(mode="json")
+    ground_truth_bytes = _json_bytes(document)
+    backstory = SyntheticBackstory.model_validate_json(backstory_bytes)
+    ground_truth = ProposedGroundTruth.model_validate_json(ground_truth_bytes)
+    adoption = build_ground_truth_adoption(
+        ground_truth, ground_truth_bytes, reviewer_id="independent.developer@example.com"
+    )
+
+    async def handler(batch: AccountScopedMemories) -> SculptorResponse:
+        return _response_for(batch, ground_truth)
+
+    result = asyncio.run(replay_curation_scenes(
+        backstory, ground_truth, adoption=adoption, curation_handler=handler,
+        configured_model="test:curation-model",
+    ))
+
+    observed = result.scenes[0]
+    assert observed.expected == ground_truth.proposals[0].curation
+    assert set(observed.grade.failures) == failures
+    assert observed.ground_truth_result == "fails_hard_gates"
+    assert observed.actual_outcome.status == "applied"
+    assert observed.actual_outcome.retrieval_memory_ids == backstory.scenes[0].prop_ids
+    assert all(scene.grade.hard_pass for scene in result.scenes[1:])
 
 
 def test_replay_grades_adopted_curation_hard_gates() -> None:

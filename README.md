@@ -196,10 +196,10 @@ tests, run `uv run pytest -m "not embeddings"`.
 The [synthetic evaluation guide](evals/synthetic_journals/README.md) covers
 scenario generation, independent human Ground truth adoption, supported
 Objectives, and replay. Supported workflows include combined capture and
-curation, multi-turn continuity, longitudinal retrieval, and book grounding
-across the five registered corpora. Grades distinguish completed retrieval,
-evidence use, review, and final release. Use the Skills above to follow those
-workflows.
+curation, bounded curation with cross-source connections, multi-turn continuity,
+longitudinal retrieval, and book grounding across the five registered corpora.
+Grades distinguish completed retrieval, evidence use, review, and final release.
+Use the Skills above to follow those workflows.
 
 List saved scenarios and inspect replay options from the repository root:
 

@@ -128,6 +128,7 @@ _OBSERVED_KEYS = (
     "routed_book_version_id", "routed_passage_ids", "boundary_support_memory_ids",
     "boundary_support_evidence", "grounding_calls", "released_evidence_ids", "provenance_verdicts",
     "semantic_spoiler_results", "source_immutable", "input_immutable", "turns",
+    "actual_outcome", "curation_status", "source_hashes_before", "source_hashes_after",
     "session_turn_release_sources", "existing_memories_unchanged", "retry", "trace_id", "events",
 )
 

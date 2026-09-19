@@ -28,7 +28,9 @@ from src.linger.evaluation_transcript import (
 from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate, MemoryPolicyService
 
 from .adoption import validate_ground_truth_adoption, validate_ground_truth_adoption_files
-from .connection_contract import ValidatedConnectionScene, compile_connection_replay_plan
+from .connection_contract import (
+    CONNECTION_OBJECTIVE_IDS, ValidatedConnectionScene, compile_connection_replay_plan,
+)
 from .evaluation_link import emit_evaluation_link
 from .frozen_public_sources import bind_frozen_public_sources
 from .models import (
@@ -301,6 +303,57 @@ def grade_connection_scene(
     return tuple(grades)
 
 
+async def replay_connection_scene(
+    scene: ValidatedConnectionScene, *, run_id: str,
+    handler: ConnectionChatHandler, service: MemoryPolicyService, account: AccountContext,
+) -> ConnectionSceneObservation:
+    """Replay one compiled Scene in its caller-owned, isolated memory store."""
+    prop_ids: dict[str, str] = {}
+    service.set_capture_enabled(account, True)
+    try:
+        for prop in scene.props:
+            saved = service.save_automatic(account, AutomaticMemoryCandidate(
+                text=prop.source_text, source_event_id=f"prop:{prop.prop_id}",
+                review_allows_capture=True, contains_sensitive_content=False,
+            ))
+            prop_ids[prop.prop_id] = saved.record.memory_id
+    finally:
+        service.set_capture_enabled(account, False)
+    before = tuple(service.list_active(account))
+    setup = scene.source_setup
+    scope = setup.book_scope if setup else None
+    reading = ReleaseScope(
+        work_id=scope.work_id, book_version_id=scope.book_version_id,
+        chapter_max=scope.safe_ceiling_chapter,
+    ) if scope else None
+    urls = tuple(source.url for source in setup.public_sources) if setup else ()
+    recorder = SceneTranscriptRecorder()
+    session_id = f"{run_id}:{scene.scene.order}"
+    try:
+        with (
+            bind_evaluation_transcript_sink(recorder),
+            bind_frozen_public_sources(tuple(setup.public_sources) if setup else ()),
+        ):
+            response = await handler(
+                ChatRequest(session_id=session_id, turn_id=f"{run_id}:{scene.line.line_id}", message=scene.line.text),
+                service, account, initial_reading=reading, public_source_urls=urls,
+            )
+    finally:
+        sessions.clear(session_id)
+    if tuple(service.list_active(account)) != before or service.capture_enabled(account):
+        raise RuntimeError("connection replay changed its source snapshot or capture policy")
+    grades = grade_connection_scene(scene, response, recorder.connection_events, prop_ids)
+    release = response.inspection.release
+    observation = ConnectionSceneObservation(
+        scene_id=scene.scene.scene_id, line_id=scene.line.line_id, reply=response.reply,
+        release_source=release.release_source if release else "unavailable",
+        released_evidence_ids=next((event.released_evidence_ids for event in reversed(recorder.connection_events) if event.kind == "release"), ()),
+        events=recorder.connection_events, agent_exchanges=recorder.exchanges,
+        grades=grades, hard_gate_pass=not any(grade.failures for grade in grades),
+    )
+    return observation
+
+
 async def replay_connection_scenes(
     backstory: SyntheticBackstory, ground_truth: ProposedGroundTruth, *,
     adoption: GroundTruthAdoption, ground_truth_bytes: bytes, backstory_bytes: bytes,
@@ -311,6 +364,8 @@ async def replay_connection_scenes(
         or hashlib.sha256(backstory_bytes).hexdigest() != ground_truth.backstory_sha256):
         raise ValueError("replay objects do not match the independently adopted scenario bytes")
     validate_ground_truth_adoption(ground_truth, adoption, ground_truth_bytes=ground_truth_bytes)
+    if not set(backstory.objective_ids) <= CONNECTION_OBJECTIVE_IDS:
+        raise ValueError("standalone connection replay accepts only connection Objectives")
     plan = compile_connection_replay_plan(backstory, ground_truth)
     production_handler = chat_handler is None
     if production_handler:
@@ -328,48 +383,8 @@ async def replay_connection_scenes(
             if scene.scene.order != len(observations) + 1:
                 raise RuntimeError("connection Scenes executed out of order")
             service = MemoryPolicyService(Path(directory) / str(scene.scene.order))
-            prop_ids: dict[str, str] = {}
-            service.set_capture_enabled(account, True)
-            try:
-                for prop in scene.props:
-                    saved = service.save_automatic(account, AutomaticMemoryCandidate(
-                        text=prop.source_text, source_event_id=f"prop:{prop.prop_id}",
-                        review_allows_capture=True, contains_sensitive_content=False,
-                    ))
-                    prop_ids[prop.prop_id] = saved.record.memory_id
-            finally:
-                service.set_capture_enabled(account, False)
-            before = tuple(service.list_active(account))
-            setup = scene.source_setup
-            scope = setup.book_scope if setup else None
-            reading = ReleaseScope(
-                work_id=scope.work_id, book_version_id=scope.book_version_id,
-                chapter_max=scope.safe_ceiling_chapter,
-            ) if scope else None
-            urls = tuple(source.url for source in setup.public_sources) if setup else ()
-            recorder = SceneTranscriptRecorder()
-            session_id = f"{run_id}:{scene.scene.order}"
-            try:
-                with (
-                    bind_evaluation_transcript_sink(recorder),
-                    bind_frozen_public_sources(tuple(setup.public_sources) if setup else ()),
-                ):
-                    response = await handler(
-                        ChatRequest(session_id=session_id, turn_id=f"{run_id}:{scene.line.line_id}", message=scene.line.text),
-                        service, account, initial_reading=reading, public_source_urls=urls,
-                    )
-            finally:
-                sessions.clear(session_id)
-            if tuple(service.list_active(account)) != before or service.capture_enabled(account):
-                raise RuntimeError("connection replay changed its source snapshot or capture policy")
-            grades = grade_connection_scene(scene, response, recorder.connection_events, prop_ids)
-            release = response.inspection.release
-            observation = ConnectionSceneObservation(
-                scene_id=scene_id, line_id=scene.line.line_id, reply=response.reply,
-                release_source=release.release_source if release else "unavailable",
-                released_evidence_ids=next((event.released_evidence_ids for event in reversed(recorder.connection_events) if event.kind == "release"), ()),
-                events=recorder.connection_events, agent_exchanges=recorder.exchanges,
-                grades=grades, hard_gate_pass=not any(grade.failures for grade in grades),
+            observation = await replay_connection_scene(
+                scene, run_id=run_id, handler=handler, service=service, account=account,
             )
             observations.append(observation)
             return observation

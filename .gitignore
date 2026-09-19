@@ -2,6 +2,7 @@
 
 apps/evaluation-explorer/node_modules/
 apps/evaluation-explorer/dist/
+.agents/skills/review-synthetic-ground-truth/ui/node_modules/
 
 # Secrets — `.env.example` stays tracked
 .env

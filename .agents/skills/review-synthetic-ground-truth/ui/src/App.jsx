@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { decisionPayload, reviewProgress, toggleId } from './review.js'
+import { MarkdownContent, publicSourceReadingText, SourceDocument } from './SourceDocument.jsx'
 
 function tokenFromLocation() {
   return new URLSearchParams(window.location.hash.slice(1)).get('token') ?? ''
@@ -125,15 +126,20 @@ function SceneSourceSetup({ value }) {
         </article>
       ) : <p>No book scope is supplied.</p>}
       <h5>Public source snapshots</h5>
-      {value.public_sources.length ? <p>Replay retrieves these public URLs again and checks the returned evidence against these snapshots.</p> : null}
+      {value.public_sources.length ? <p className="constraint">Read the captured source in formatted view, or check its exact text.</p> : null}
       {value.public_sources.length ? value.public_sources.map((source) => (
-        <article className="input-record" key={source.source_id}>
+        <article className="input-record public-source" key={source.source_id}>
           <header><span className="record-kind">Public source</span><code>{source.source_id}</code></header>
-          <h5>{source.title}</h5>
-          <p>{source.url}</p>
-          <div className="field-pair"><span>Retrieved at</span><strong>{source.retrieved_at}</strong></div>
-          <div className="field-pair"><span>Content SHA-256</span><code>{source.source_sha256}</code></div>
-          <blockquote>{source.text}</blockquote>
+          <h5 className="public-source-title">{source.title}</h5>
+          <p className="source-url"><a href={source.url} rel="noreferrer noopener" target="_blank">{source.url}</a></p>
+          <details className="source-metadata">
+            <summary>Capture details</summary>
+            <dl>
+              <div><dt>Retrieved at</dt><dd><time dateTime={source.retrieved_at}>{source.retrieved_at}</time></dd></div>
+              <div><dt>Content SHA-256</dt><dd><code>{source.source_sha256}</code></dd></div>
+            </dl>
+          </details>
+          <SourceDocument label={`${source.title} captured source`} text={source.text} formattedText={publicSourceReadingText(source)} />
         </article>
       )) : <p>No public sources are supplied.</p>}
     </section>
@@ -453,12 +459,12 @@ function App() {
       </header>
 
       <section className="context-band">
-        <div><span>Backstory</span><strong>{review.scenario.backstoryId}</strong><p>{review.scenario.backstoryContext}</p></div>
-        <div><span>Objectives</span><strong>{review.scenario.objectiveIds.join(', ')}</strong><p>{review.replay.note}</p></div>
+        <div><span>Backstory</span><strong>{review.scenario.backstoryId}</strong><MarkdownContent text={review.scenario.backstoryContext} /></div>
+        <div><span>Objectives</span><ul className="objective-list">{review.scenario.objectiveIds.map((id) => <li key={id}>{id.replaceAll('_', ' ')}</li>)}</ul><p>{review.replay.note}</p></div>
         {review.report.text ? (
           <details>
             <summary>Pre-generation report and generator prompt</summary>
-            <pre>{review.report.text}</pre>
+            <SourceDocument label="Pre-generation report and generator prompt" text={review.report.text} />
           </details>
         ) : null}
       </section>

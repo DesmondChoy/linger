@@ -995,6 +995,8 @@ either order. The book runner accepts either
 book Objective alone or both in either order. The connection runner accepts
 either connection or weak-evidence Objective alone or both in either order;
 legacy weak-evidence scenarios delegate to the narrower reflection runner.
+The combined `connection_curation_replay` runner accepts exactly bounded memory
+curation and cross-source tentative connection, in either selection order.
 Existing offline proactive-memory-surfacing replay provides component evidence
 only; it does not execute the adopted conversational Objective. Registration
 does not make historical scenarios compatible with current schemas or establish
@@ -1115,7 +1117,8 @@ The end-to-end workflow has distinct human gates:
    writes sibling `ground-truth-adoption.json`. For an exact supported selection,
    the agent validates the adoption and starts one provider-backed replay. The
    supported complete selections are reviewed automatic capture, bounded memory
-   curation, their combined selection in either order, session continuity,
+   curation, their combined selection in either order, bounded memory curation
+   with cross-source tentative connection in either order, session continuity,
    longitudinal memory retrieval, session continuity and longitudinal memory
    retrieval in either order,
    either book Objective alone, both book
@@ -1203,7 +1206,10 @@ The standalone bounded-curation runner supplies only the isolated Scene's active
 same-account Props to production `run_curation_loop` in a temporary memory store.
 It records the Sculptor proposal, Provenance decision, application status,
 audit verification, resulting retrieval IDs, and immutable source hashes.
-`outcome` can constrain those loop results alongside proposal hard gates.
+The adopted `curation.outcome` remains unchanged: explicit fields constrain
+those loop results alongside proposal hard gates, while an omitted or empty
+outcome adds no downstream requirement. The observation records actual loop
+results separately in `actual_outcome`.
 Semantic criteria remain visible and separately reviewable; an adopted hard-gate
 pass does not claim semantic quality. The `full_deployment` identity covers the
 configured model and every deployed prompt fingerprint. The narrower
@@ -1228,6 +1234,22 @@ allowing test double. Recorded `allow` outcomes therefore do not establish live
 Provenance judgment. Standalone `curation_replay` without an injected handler
 uses production Provenance. The combined run exercises application and audit
 behavior, but does not implement the conversational target in Section 4.2.5.
+
+The combined `connection_curation_replay` runner accepts exactly bounded memory
+curation and cross-source tentative connection. It retains the original
+Backstory and Ground truth hashes, adoption identity, Scene identifiers, and
+declared Scene order. Both components use the same evaluation account with an
+isolated memory snapshot for each Scene. The five curation Scenes contain only
+their designated active Props; connection Scenes each contain one Line in a
+fresh session. Curation results do not become connection inputs.
+
+The default combined runner uses production chat and supplies no injected
+curation handler, so `run_curation_loop` invokes production Sculptor and
+Provenance. Connection replay binds public content to the adopted snapshots.
+The runner uses each component's existing grades, preserves optional curation
+outcome constraints, and records actual loop outcomes separately. Its command
+requires both `--adoption` and `--output`, and the exact Objective pair is
+registered for review and guided runs.
 
 For newly authored curation Ground truth, repository code owns the summary
 length limit and generic semantic-review criteria. The generator supplies only

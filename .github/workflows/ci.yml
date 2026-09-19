@@ -78,3 +78,6 @@ jobs:
 
       - name: Run vitest
         run: pnpm test
+
+      - name: Test Ground truth reviewer
+        run: pnpm --dir ../../.agents/skills/review-synthetic-ground-truth/ui test
