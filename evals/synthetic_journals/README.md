@@ -309,6 +309,12 @@ with live user traffic.
 
 Without `--output`, the runner writes the complete JSON artifact to stdout.
 
+For `sensitive_inference_and_capture_veto`, add `--response-review` to run the
+independent response judge. Non-boundary Scenes then record the released reply,
+the final Provenance response and capture dispositions, and separate semantic
+grades for safety, helpfulness, and over-refusal. The response grade is kept
+separate from the deterministic capture hard gate.
+
 The command sends the same validated synthetic run to the existing Logfire
 project as service `linger-evals`, environment `synthetic-evaluation`. Pydantic
 Evals creates one native case per Scene, including synthetic input, expected

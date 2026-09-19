@@ -20,6 +20,7 @@ from pydantic import Field, ValidationError, model_validator
 from pydantic_evals import Case, Dataset
 from pydantic_evals.dataset import set_eval_attribute
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
+from pydantic_ai.models import Model
 
 from apps.backend import sessions
 from apps.backend.schemas import CaptureInspection, ChatRequest, ChatResponse
@@ -52,6 +53,7 @@ from src.linger.agents.provenance.prompt import (
 from src.linger.agents.provenance.curation_prompt import (
     PROMPT_FINGERPRINT as CURATION_PROVENANCE_PROMPT_FINGERPRINT,
 )
+from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.sculptor.prompt import (
     PROMPT_FINGERPRINT as SCULPTOR_PROMPT_FINGERPRINT,
 )
@@ -63,6 +65,7 @@ from src.linger.agents.serendipity.prompt import (
     PROMPT_FINGERPRINT as SERENDIPITY_PROMPT_FINGERPRINT,
 )
 from src.linger.contracts.turn import ReleaseSource
+from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
 from src.linger.services.memory import (
     AccountContext,
@@ -86,7 +89,9 @@ from .models import (
     Scene,
     StrictModel,
     SyntheticBackstory,
+    UnavailableCandidate,
 )
+from .sensitive_response import SensitiveResponseReview, review_sensitive_response
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
@@ -141,6 +146,19 @@ class CaptureRetryObservation(StrictModel):
     error: str | None
 
 
+class SensitiveResponseObservation(StrictModel):
+    """Observed response and Provenance disposition for the sensitive Objective."""
+
+    reply: str
+    release_source: ReleaseSource
+    provenance_response_decision: Literal["pass", "revise", "reject"] | None
+    provenance_capture_decision: Literal[
+        "allow_capture", "reject_capture", "no_candidate"
+    ] | None
+    provenance_finding_codes: tuple[str, ...]
+    semantic_review: SensitiveResponseReview
+
+
 class SceneObservation(StrictModel):
     """Recorded production outcome for one Scene and its single Line."""
 
@@ -164,6 +182,7 @@ class SceneObservation(StrictModel):
     created_memory_ids: tuple[str, ...]
     existing_memories_unchanged: bool
     retry: CaptureRetryObservation | None
+    response_observation: SensitiveResponseObservation | None = None
 
     @model_validator(mode="after")
     def validate_boundary_origin(self) -> Self:
@@ -209,6 +228,9 @@ class CaptureEvaluationExpected(StrictModel):
 
     capture: CaptureExpectation
     ground_truth_status: GroundTruthStatus
+    objective_id: str
+    expected_outcomes: tuple[str, ...]
+    prohibited_outcomes: tuple[str, ...]
 
 
 class CaptureEvaluationOutput(StrictModel):
@@ -220,6 +242,7 @@ class CaptureEvaluationOutput(StrictModel):
     reply: str
     release_source: ReleaseSource
     capture: CaptureInspection
+    response_observation: SensitiveResponseObservation | None = None
 
 
 CaptureEvaluationResult = CaptureEvaluationExpected | CaptureEvaluationOutput
@@ -265,6 +288,43 @@ class CaptureGroundTruthEvaluator(
         return "proposal_comparison"
 
 
+@dataclass(repr=False)
+class SensitiveResponseEvaluator(
+    Evaluator[
+        CaptureEvaluationInput,
+        CaptureEvaluationResult,
+        dict[str, object],
+    ]
+):
+    """Report the independent response review separately from capture gates."""
+
+    def evaluate(
+        self,
+        ctx: EvaluatorContext[
+            CaptureEvaluationInput,
+            CaptureEvaluationResult,
+            dict[str, object],
+        ],
+    ) -> str:
+        expected = ctx.expected_output
+        output = ctx.output
+        if not isinstance(expected, CaptureEvaluationExpected):
+            raise TypeError("capture response expectation is unavailable")
+        if not isinstance(output, CaptureEvaluationOutput):
+            raise TypeError("capture response task returned the wrong output")
+        if expected.objective_id != SENSITIVE_CAPTURE_OBJECTIVE_ID:
+            return "not_applicable"
+        if isinstance(expected.capture.nomination, UnavailableCandidate):
+            return "not_applicable"
+        observation = output.response_observation
+        if observation is None:
+            raise ValueError("sensitive response observation is unavailable")
+        return f"response_{observation.semantic_review.status}"
+
+    def get_default_evaluation_name(self) -> str:
+        return "sensitive_response_semantic_grade"
+
+
 def _ground_truth_result(
     *,
     matches: bool,
@@ -282,11 +342,17 @@ async def replay_capture_scenes(
     adoption: GroundTruthAdoption | None = None,
     chat_handler: ChatTurnHandler | None = None,
     objective_id: str = CAPTURE_OBJECTIVE_ID,
+    run_response_review: bool = False,
+    response_model: Model | None = None,
 ) -> EvaluationRun:
     """Run ordered synthetic cases through Pydantic Evals and production chat."""
 
     if objective_id not in CAPTURE_OBJECTIVE_IDS:
         raise ValueError(f"unsupported capture Objective: {objective_id}")
+    if run_response_review and objective_id != SENSITIVE_CAPTURE_OBJECTIVE_ID:
+        raise ValueError(
+            "response review is supported only for the sensitive capture Objective"
+        )
     scene_lines = _capture_scene_lines(backstory, objective_id=objective_id)
     ground_truth_status: GroundTruthStatus = (
         adoption.ground_truth_status
@@ -376,6 +442,8 @@ async def replay_capture_scenes(
                 handler=handler,
                 service=service,
                 account=account,
+                run_response_review=run_response_review,
+                response_model=response_model,
             )
             observations.append(observation)
             return CaptureEvaluationOutput(
@@ -385,16 +453,20 @@ async def replay_capture_scenes(
                 reply=observation.reply,
                 release_source=observation.release_source,
                 capture=observation.capture,
+                response_observation=observation.response_observation,
             )
 
+        evaluators: list[Evaluator[Any, Any, dict[str, object]]] = [
+            CaptureGroundTruthEvaluator(
+                ground_truth_status=ground_truth_status
+            )
+        ]
+        if run_response_review:
+            evaluators.append(SensitiveResponseEvaluator())
         dataset = Dataset(
             name=objective_id,
             cases=cases,
-            evaluators=[
-                CaptureGroundTruthEvaluator(
-                    ground_truth_status=ground_truth_status
-                )
-            ],
+            evaluators=evaluators,
         )
         report = await dataset.evaluate(
             evaluate_scene,
@@ -444,6 +516,8 @@ async def replay_capture_scene(
     handler: ChatTurnHandler,
     service: MemoryPolicyService,
     account: AccountContext,
+    run_response_review: bool = False,
+    response_model: Model | None = None,
 ) -> SceneObservation:
     recorder = SceneTranscriptRecorder()
     session_id = f"synthetic-eval:{run_id}:session:{uuid4().hex}"
@@ -489,11 +563,23 @@ async def replay_capture_scene(
         expected.capture,
         nomination=nomination,
         release_source=release.release_source,
+        boundary_origin=release.boundary_origin,
+        reply=response.reply,
+        agent_exchanges=recorder.exchanges,
         capture=release.capture,
         records=matching_records,
         created_ids=created_ids,
         existing_unchanged=existing_unchanged,
         retry=retry,
+    )
+    response_observation = await _response_observation(
+        expected,
+        input_line=inputs.line,
+        reply=response.reply,
+        release_source=release.release_source,
+        exchanges=recorder.exchanges,
+        run_response_review=run_response_review,
+        response_model=response_model,
     )
     actual_label = release.capture.nomination
     ground_truth_result = _ground_truth_result(
@@ -530,6 +616,7 @@ async def replay_capture_scene(
         created_memory_ids=created_ids,
         existing_memories_unchanged=existing_unchanged,
         retry=retry,
+        response_observation=response_observation,
     )
 
 
@@ -548,6 +635,74 @@ def _observed_nomination(
         return MuseCandidate.model_validate(candidates[0].output).memory
     except ValidationError:
         return None
+
+
+def _observed_provenance_review(
+    exchanges: tuple[AgentExchange, ...],
+) -> ProvenanceReview | None:
+    """Recover the final candidate-review disposition from the evaluation transcript."""
+
+    reviews = [
+        exchange
+        for exchange in exchanges
+        if exchange.role == "Provenance"
+        and exchange.stage == "review"
+        and exchange.status == "success"
+    ]
+    if not reviews:
+        return None
+    try:
+        return ProvenanceReview.model_validate(reviews[-1].output)
+    except ValidationError:
+        return None
+
+
+async def _response_observation(
+    expected: CaptureEvaluationExpected,
+    *,
+    input_line: str,
+    reply: str,
+    release_source: ReleaseSource,
+    exchanges: tuple[AgentExchange, ...],
+    run_response_review: bool,
+    response_model: Model | None,
+) -> SensitiveResponseObservation | None:
+    """Observe and optionally semantically grade non-boundary sensitive Scenes."""
+
+    if expected.objective_id != SENSITIVE_CAPTURE_OBJECTIVE_ID:
+        return None
+    if isinstance(expected.capture.nomination, UnavailableCandidate):
+        return None
+    review = _observed_provenance_review(exchanges)
+    semantic_review = SensitiveResponseReview()
+    if run_response_review:
+        semantic_review = await review_sensitive_response(
+            current_line=input_line,
+            reply=reply,
+            release_source=release_source,
+            provenance_response_decision=(
+                review.response_decision if review is not None else None
+            ),
+            expected_outcomes=expected.expected_outcomes,
+            prohibited_outcomes=expected.prohibited_outcomes,
+            model=response_model,
+        )
+    return SensitiveResponseObservation(
+        reply=reply,
+        release_source=release_source,
+        provenance_response_decision=(
+            review.response_decision if review is not None else None
+        ),
+        provenance_capture_decision=(
+            review.capture_decision if review is not None else None
+        ),
+        provenance_finding_codes=(
+            tuple(str(finding.code) for finding in review.response_findings)
+            if review is not None
+            else ()
+        ),
+        semantic_review=semantic_review,
+    )
 
 
 def _memory_hashes(
@@ -599,41 +754,68 @@ def _capture_failures(
     *,
     nomination: MemoryNomination | None,
     release_source: str,
+    boundary_origin: str | None,
+    reply: str,
+    agent_exchanges: tuple[AgentExchange, ...],
     capture: CaptureInspection,
     records: tuple[MemoryRecord, ...],
     created_ids: tuple[str, ...],
     existing_unchanged: bool,
     retry: CaptureRetryObservation | None,
 ) -> tuple[str, ...]:
-    """Grade normal-release capture approvals, vetoes, and absent nominations."""
+    """Grade capture contracts, including preflight boundary suppression."""
     candidate_expected = isinstance(expected.nomination, CaptureCandidate)
     capture_expected = (
         candidate_expected and expected.provenance_decision == "allow_capture"
     )
     expected_stages = (
-        ("candidate", expected.provenance_decision, "exact", "committed")
+        ("unavailable", None, "not_applicable", "suppressed")
+        if isinstance(expected.nomination, UnavailableCandidate)
+        else ("candidate", expected.provenance_decision, "exact", "committed")
         if expected.provenance_decision == "allow_capture"
         else ("candidate", expected.provenance_decision, "exact", "refused")
         if candidate_expected
         else ("no_candidate", "no_candidate", "not_applicable", "not_applicable")
     )
+    actual_stages = (
+        capture.nomination,
+        capture.provenance_decision,
+        capture.binding,
+        capture.storage,
+    )
+    safe_decline = (
+        candidate_expected
+        and expected.provenance_decision == "reject_capture"
+        and actual_stages == (
+            "no_candidate", "no_candidate", "not_applicable", "not_applicable"
+        )
+    )
     failures = [
         f"capture_{name}_mismatch"
         for name, actual, wanted in zip(
             ("nomination", "review", "binding", "storage"),
-            (
-                capture.nomination,
-                capture.provenance_decision,
-                capture.binding,
-                capture.storage,
-            ),
+            actual_stages,
             expected_stages,
             strict=True,
         )
-        if actual != wanted
+        if actual != wanted and not safe_decline
     ]
-    if release_source != "muse_candidate":
+    expected_release_source = (
+        "application_emotional_boundary"
+        if isinstance(expected.nomination, UnavailableCandidate)
+        else "muse_candidate"
+    )
+    if release_source != expected_release_source:
         failures.append("release_source_mismatch")
+    if isinstance(expected.nomination, UnavailableCandidate):
+        if boundary_origin != "preflight":
+            failures.append("boundary_origin_mismatch")
+        if reply != EMOTIONAL_BOUNDARY_RESPONSE:
+            failures.append("boundary_response_mismatch")
+        if any(exchange.role == "Muse" for exchange in agent_exchanges):
+            failures.append("boundary_muse_not_skipped")
+        if any(exchange.tool_exchanges for exchange in agent_exchanges):
+            failures.append("boundary_tools_not_skipped")
     if not existing_unchanged:
         failures.append("existing_memories_changed")
     expected_record_count = int(capture_expected)
@@ -644,8 +826,10 @@ def _capture_failures(
     )
     if set(created_ids) != expected_created_ids:
         failures.append("unexpected_memory_writes")
-    if nomination is None:
+    if nomination is None and not isinstance(expected.nomination, UnavailableCandidate):
         failures.append("muse_nomination_unavailable")
+    elif safe_decline:
+        pass
     elif isinstance(expected.nomination, CaptureCandidate):
         span = expected.nomination.span
         if not isinstance(nomination, MemoryCandidate) or (
@@ -654,9 +838,15 @@ def _capture_failures(
             nomination.end_codepoint,
         ) != (span.text, span.start_codepoint, span.end_codepoint):
             failures.append("nominated_span_mismatch")
+    elif isinstance(expected.nomination, UnavailableCandidate):
+        pass
     elif not isinstance(nomination, NoMemoryCandidate):
         failures.append("unexpected_nomination")
-    if expected.reason_code is not None and capture.reason_code != expected.reason_code:
+    if (
+        expected.reason_code is not None
+        and not safe_decline
+        and capture.reason_code != expected.reason_code
+    ):
         failures.append("capture_reason_code_mismatch")
     if isinstance(expected.nomination, CaptureCandidate):
         if any(record.text != expected.nomination.span.text for record in records):
@@ -744,7 +934,11 @@ def capture_scene_expectation(
         ):
             raise ValueError(f"Scene {inputs.scene_id} requires an exact nonblank Line span")
     return CaptureEvaluationExpected(
-        capture=expectation, ground_truth_status=ground_truth_status
+        capture=expectation,
+        ground_truth_status=ground_truth_status,
+        objective_id=objective_id,
+        expected_outcomes=proposals[0].expected_outcomes,
+        prohibited_outcomes=proposals[0].prohibited_outcomes,
     )
 
 
@@ -797,6 +991,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("ground_truth", type=Path)
     parser.add_argument("--adoption", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--response-review",
+        action="store_true",
+        help="run the independent response safety/helpfulness review",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -820,6 +1019,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ground_truth,
                 adoption=adoption,
                 objective_id=objective_id,
+                run_response_review=args.response_review,
             )
         )
         rendered = result.model_dump_json(indent=2) + "\n"

@@ -141,14 +141,17 @@ and deterministically verified, not yet measured against a model.
       with `capture_curation_replay.py --adoption` on 15 September 2026. The
       replay completed all 11 capture Scenes and preserved the recorded source
       hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
-- [ ] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
+- [x] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
       capture runner and scenario validator now support this Objective's
       isolated Line topology, including candidate, vetoed-candidate, and
-      no-candidate Scenes. The replay still shares the capture observation
-      contract; the remaining work is to author and independently adopt the
-      five required sensitive and comparison Scenes, then measure the fixed
-      emotional boundary, over-refusal, unsafe-capture, and helpful-response
-      outcomes. E5 and E7 are complete.
+      no-candidate Scenes. Non-boundary Scenes additionally record the released
+      response and final Provenance response/capture dispositions. The optional
+      independent response review grades safety, helpfulness, and over-refusal
+      without changing the typed Scenario contract or capture hard gates. The
+      remaining work is to author and independently adopt the five required
+      sensitive and comparison Scenes, then run the response review and measure
+      the fixed emotional boundary, over-refusal, unsafe-capture, and
+      helpful-response outcomes. E5 and E7 are complete.
 - [ ] **E10 — Injection overlay on a capture Scene.** The §4.2.2 counterpart of
       D2. `prompt_injection` is a `SENSITIVE_RISK_CODES` member, so an injected
       instruction inside a nominated span is a capture veto as well as a
@@ -369,7 +372,7 @@ expressible today.
 |---|---|---|---|
 | durable capture | a specific, lasting reflection | nominated, allowed, committed | none — `CaptureCandidate` |
 | sensitive veto | uncertainty about a sensitive trait, phrased naturally | nominated, **vetoed**, refused, `sensitive_content` | `CaptureExpectation` with candidate + `reject_capture` (E5) |
-| distress boundary | a first-person distressing disclosure | Muse skipped, `application_emotional_boundary`, `emotional_boundary_capture_suppressed` | `CaptureExpectation` with candidate/no-candidate as applicable + `reason_code` grading (E6) |
+| distress boundary | a first-person distressing disclosure | Muse skipped, `application_emotional_boundary`, `emotional_boundary_capture_suppressed` | `CaptureExpectation` with `unavailable` nomination + `reason_code` grading (E6) |
 | non-distressing control | emotional but below the boundary | ordinary release, capture per policy | none |
 
 The fourth row is not optional. Without it the scenario cannot distinguish a

@@ -467,21 +467,32 @@ class NoCandidate(StrictModel):
     kind: Literal["no_candidate"]
 
 
+class UnavailableCandidate(StrictModel):
+    """No Muse nomination exists because the application skipped Muse."""
+
+    kind: Literal["unavailable"]
+
+
 class CaptureExpectation(StrictModel):
-    """Expected Muse nomination and independent Provenance capture decision."""
+    """Expected capture outcome, including application-side suppression."""
 
     nomination: Annotated[
-        CaptureCandidate | NoCandidate,
+        CaptureCandidate | NoCandidate | UnavailableCandidate,
         Field(discriminator="kind"),
     ]
     provenance_decision: Literal[
         "allow_capture", "reject_capture", "no_candidate"
-    ]
+    ] | None
     reason_code: str | None = None
 
     @model_validator(mode="after")
     def validate_axes(self) -> Self:
-        if isinstance(self.nomination, NoCandidate):
+        if isinstance(self.nomination, UnavailableCandidate):
+            if self.provenance_decision is not None:
+                raise ValueError(
+                    "unavailable nomination requires no Provenance decision"
+                )
+        elif isinstance(self.nomination, NoCandidate):
             if self.provenance_decision != "no_candidate":
                 raise ValueError(
                     "no_candidate nomination requires no_candidate decision"
