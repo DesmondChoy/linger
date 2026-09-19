@@ -39,7 +39,11 @@ with patch.dict(
         PIPELINE_FAILURE_DECLINE,
         ReflectionRelease,
     )
-    from src.linger.services.memory import AccountContext, MemoryPolicyService
+    from src.linger.services.memory import (
+        AccountContext,
+        AutomaticMemoryCandidate,
+        MemoryPolicyService,
+    )
 
 from src.linger.agents.provenance.agent import build_provenance_agent
 from src.linger.agents.provenance.emotional_prompt import INSTRUCTIONS
@@ -398,12 +402,98 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(emotional_policy["suppress_tools_after_distress"])
         self.assertTrue(emotional_policy["suppress_capture_after_distress"])
         self.assertEqual("2", emotional_policy["version"])
+
         self.assertEqual(
             emotional_policy,
             reflection.await_args.kwargs["review_context"]["policy_constraints"][
                 "emotional_content"
             ],
         )
+
+    def _store_memory(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text="I keep returning to the garden door.",
+            source_event_id="fixture-prior-reflection",
+            review_allows_capture=True,
+            contains_sensitive_content=False,
+        ))
+        self.service.set_capture_enabled(self.account, False)
+
+    async def test_boundary_never_reads_the_memory_store(self) -> None:
+        self._store_memory()
+        reflection = AsyncMock()
+        with (
+            patch.object(
+                chat_turn,
+                "assess_emotional_boundary",
+                AsyncMock(
+                    return_value=EmotionalBoundaryAssessment(decision="apply_boundary")
+                ),
+            ),
+            patch.object(chat_turn, "reflection_reply", reflection),
+            patch.object(
+                self.service,
+                "list_for_retrieval",
+                wraps=self.service.list_for_retrieval,
+            ) as retrieval,
+        ):
+            response = await chat_turn.run_chat_turn(
+                ChatRequest(
+                    session_id=self.session_id,
+                    message="I cannot cope anymore.",
+                ),
+                self.service,
+                self.account,
+            )
+
+        retrieval.assert_not_called()
+        reflection.assert_not_awaited()
+        self.assertEqual(EMOTIONAL_BOUNDARY_RESPONSE, response.reply)
+        self.assertEqual(
+            "application_emotional_boundary",
+            response.inspection.release.release_source,
+        )
+        self.assertFalse(response.inspection.muse_turn["policy"]["allow_connection"])
+
+    async def test_continuing_turn_reads_the_memory_store(self) -> None:
+        self._store_memory()
+        reflection = AsyncMock(
+            return_value=ReflectionRelease(
+                reply="A normal reviewed reflection.",
+                release_source="muse_candidate",
+                provenance_verdicts=("pass",),
+            )
+        )
+        with (
+            patch.object(
+                chat_turn,
+                "assess_emotional_boundary",
+                AsyncMock(
+                    return_value=EmotionalBoundaryAssessment(
+                        decision="continue_reflection"
+                    )
+                ),
+            ),
+            patch.object(chat_turn, "reflection_reply", reflection),
+            patch.object(
+                self.service,
+                "list_for_retrieval",
+                wraps=self.service.list_for_retrieval,
+            ) as retrieval,
+        ):
+            response = await chat_turn.run_chat_turn(
+                ChatRequest(
+                    session_id=self.session_id,
+                    message="I am frustrated about the delay.",
+                ),
+                self.service,
+                self.account,
+            )
+
+        retrieval.assert_called_once_with(self.account)
+        self.assertEqual("A normal reviewed reflection.", response.reply)
+        self.assertTrue(response.inspection.muse_turn["policy"]["allow_connection"])
 
     async def test_preflight_cancellation_restores_state_and_writes_nothing(self) -> None:
         with patch.object(

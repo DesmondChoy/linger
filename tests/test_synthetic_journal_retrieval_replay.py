@@ -6,9 +6,11 @@ import asyncio
 import json
 from collections.abc import Callable
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
+from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from apps.backend.schemas import ChatRequest, ChatResponse
 from evals.synthetic_journals import retrieval_replay
@@ -38,6 +40,7 @@ from evals.synthetic_journals.validate_scenario import (
     validate_scenario,
 )
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
+from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ReleaseSource
 from src.linger.evaluation_transcript import (
     ConnectionEvaluationEvent,
@@ -498,6 +501,123 @@ def test_a_committed_memory_fails_the_hard_gates() -> None:
 
     target = _retrieval_scenes(result)[0]
     assert "unexpected_memory_writes" in target.hard_failures
+
+
+def _provenance_passes(messages: object, info: AgentInfo) -> ModelResponse:
+    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+        "findings": [],
+        "response_decision": "pass",
+        "emotional_boundary_decision": "not_required",
+        "capture_decision": "no_candidate",
+    })])
+
+
+def _muse_looks_up_then_replies_plainly(messages: list, info: AgentInfo) -> ModelResponse:
+    looked_up = any(
+        isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"
+        for message in messages
+        for part in getattr(message, "parts", ())
+    )
+    if not looked_up:
+        return ModelResponse(parts=[
+            ToolCallPart("serendipity_explore", {"intent": "find_connection"})
+        ])
+    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+        "reply": "I do not have an earlier note that answers that.",
+        "evidence_uses": [],
+        "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled",
+        },
+    })])
+
+
+def _serendipity_raises(messages: object, info: AgentInfo) -> ModelResponse:
+    raise RuntimeError("discovery provider unavailable")
+
+
+def test_comparison_scene_fails_when_real_discovery_raises() -> None:
+    from apps.backend import chat_turn
+    from src.linger.orchestration import connection
+
+    backstory, ground_truth = _retrieval_scenario()
+
+    with (
+        patch.object(
+            chat_turn,
+            "assess_emotional_boundary",
+            AsyncMock(
+                return_value=EmotionalBoundaryAssessment(decision="continue_reflection")
+            ),
+        ),
+        chat_turn.muse_chat_agent.override(
+            model=FunctionModel(_muse_looks_up_then_replies_plainly)
+        ),
+        connection.serendipity_agent.override(model=FunctionModel(_serendipity_raises)),
+        chat_turn.provenance_agent.override(model=FunctionModel(_provenance_passes)),
+    ):
+        result = _run(backstory, ground_truth, chat_turn.run_chat_turn)
+
+    comparison = _retrieval_scenes(result)[1]
+    assert comparison.release_source == "muse_candidate"
+    assert any(
+        event.kind == "discovery" and event.status == "failed"
+        for event in comparison.events
+    )
+    assert comparison.hard_failures == ("discovery_failure",)
+    assert comparison.ground_truth_result == "differs_from_proposal"
+
+
+def test_comparison_scene_fails_when_the_memory_search_fails() -> None:
+    backstory, ground_truth = _retrieval_scenario()
+    clean = _handler(_clean_plan())
+
+    async def handler(
+        request: ChatRequest, service: MemoryPolicyService, account: AccountContext
+    ) -> ChatResponse:
+        if request.message == COMPARISON_RETRIEVAL_TEXT:
+            record_connection_event(
+                ConnectionEvaluationEvent(
+                    kind="search",
+                    status="retrieval_unavailable",
+                    source="memory",
+                    operation="search_memories",
+                )
+            )
+        return await clean(request, service, account)
+
+    result = _run(backstory, ground_truth, handler)
+
+    target, comparison = _retrieval_scenes(result)
+    assert target.hard_failures == ()
+    assert comparison.hard_failures == ("retrieval_failure",)
+    assert comparison.ground_truth_result == "differs_from_proposal"
+
+
+def test_comparison_scene_passes_without_any_lookup() -> None:
+    backstory, ground_truth = _retrieval_scenario()
+    clean = _handler(_clean_plan())
+
+    async def handler(
+        request: ChatRequest, service: MemoryPolicyService, account: AccountContext
+    ) -> ChatResponse:
+        if request.message != COMPARISON_RETRIEVAL_TEXT:
+            return await clean(request, service, account)
+        record_connection_event(
+            ConnectionEvaluationEvent(
+                kind="release", status="released", release_source="muse_candidate"
+            )
+        )
+        response = _released_response()
+        _append(request, response)
+        return response
+
+    result = _run(backstory, ground_truth, handler)
+
+    comparison = _retrieval_scenes(result)[1]
+    assert not [event for event in comparison.events if event.kind != "release"]
+    assert comparison.hard_failures == ()
+    assert comparison.ground_truth_result == "matches_proposal"
 
 
 def test_a_missing_release_observation_fails_the_hard_gates() -> None:

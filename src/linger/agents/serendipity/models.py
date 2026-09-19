@@ -12,7 +12,7 @@ from src.linger.agents.librarian.models import EvidenceStrengthDecision
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 
 
-ConnectionIntent = Literal["find_connection", "get_recommendation"]
+ConnectionIntent = Literal["find_connection", "get_recommendation", "recall_memory"]
 PresentationMode = Literal["direct", "ask_before_showing"]
 SearchSourceKind = Literal["memory", "book_corpus", "web"]
 DeclineReason = Literal[
@@ -20,6 +20,7 @@ DeclineReason = Literal[
     "insufficient_evidence",
     "unsupported_cue",
     "generic_theme_match",
+    "no_matching_memory",
     "no_clear_winner",
     "spoiler_boundary",
     "source_scope_violation",
@@ -234,7 +235,23 @@ class ConnectionDecline(StrictModel):
     safe_next_step: str = Field(min_length=1, max_length=500)
 
 
-SerendipityResponse = ConnectionProposal | ConnectionDecline
+class MemoryRecall(StrictModel):
+    """The reader's own earlier records on what the cue asks about."""
+
+    status: Literal["recall"] = "recall"
+    evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=3)
+    relevance_note: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def require_unique_evidence(self) -> Self:
+        if any(not evidence_id or len(evidence_id) > 200 for evidence_id in self.evidence_ids):
+            raise ValueError("recalled evidence IDs must be non-empty and bounded")
+        if len(self.evidence_ids) != len(set(self.evidence_ids)):
+            raise ValueError("recalled evidence IDs must be unique")
+        return self
+
+
+SerendipityResponse = ConnectionProposal | ConnectionDecline | MemoryRecall
 SERENDIPITY_RESPONSE_ADAPTER = TypeAdapter(
     Annotated[SerendipityResponse, Field(discriminator="status")]
 )

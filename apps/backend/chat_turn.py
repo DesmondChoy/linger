@@ -14,6 +14,7 @@ from opentelemetry.trace import format_trace_id
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -670,7 +671,7 @@ def _apply_connection_inspection(
     """Project one nested Serendipity run as fixed metadata only."""
     book_outcomes = run.book_search_outcomes
 
-    if run.status != "proposal":
+    if run.status == "decline":
         inspection.connection_decline = ConnectionDeclineInspection(
             reason=run.reason or "retrieval_unavailable",
             failure_code=(
@@ -694,7 +695,7 @@ def _apply_connection_inspection(
         "Serendipity",
         status="complete",
         detail=(
-            "Serendipity returned a validated proposal; release still depends "
+            f"Serendipity returned a validated {run.status}; release still depends "
             "on the shared evidence and Provenance gates."
         ),
     )
@@ -886,10 +887,12 @@ async def _run_chat_pipeline(
         if boundary.decision == "apply_boundary":
             release = emotional_boundary_release(origin="preflight")
 
-    try:
-        active_memories = tuple(service.list_for_retrieval(account))
-    except MemoryServiceError:
-        active_memories = ()
+    active_memories: tuple[CuratedMemory, ...] = ()
+    if release is None:
+        try:
+            active_memories = tuple(service.list_for_retrieval(account))
+        except MemoryServiceError:
+            pass
 
     inspection, muse_input, review_context = prepare_reflection_turn(
         request,

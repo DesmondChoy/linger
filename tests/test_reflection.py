@@ -36,6 +36,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionCandidate,
     ConnectionExplorationResult,
     ConnectionProposal,
+    MemoryRecall,
     WebConnectionEvidence,
 )
 from src.linger.contracts.librarian import EvidenceRecord
@@ -656,6 +657,55 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     reset_active_memories(token)
                 self.assertEqual(expected, release.release_source)
+
+    async def test_memory_recall_evidence_must_equal_its_recalled_ids(self) -> None:
+        text = "My favourite tea is peppermint."
+        source = MemoryConnectionEvidence(evidence_id="memory-tea", excerpt=text)
+        other = MemoryConnectionEvidence(evidence_id="memory-other", excerpt="I walk at dawn.")
+        register_connection_evidence((source, other))
+        memories = tuple(
+            CuratedMemory(
+                memory_id=item.evidence_id, text=item.excerpt, kind="original",
+                source_memory_ids=(item.evidence_id,), created_at="2026-09-07T00:00:00Z",
+            )
+            for item in (source, other)
+        )
+        decision = MemoryRecall(
+            evidence_ids=(source.evidence_id,),
+            relevance_note="The reader's own earlier statement of their favourite tea.",
+        )
+        reply = "You wrote that your favourite tea is peppermint."
+        draft = candidate(reply).model_copy(update={"evidence_uses": (
+            MemoryEvidenceUse(
+                source_kind="memory", evidence_id=source.evidence_id,
+                supported_claims=(reply,),
+            ),
+        )})
+        for evidence, active, expected in (
+            ((source,), memories, "muse_candidate"),
+            ((), memories, "application_safe_decline"),
+            ((other,), memories, "application_safe_decline"),
+            ((source, other), memories, "application_safe_decline"),
+            ((source,), memories[1:], "application_safe_decline"),
+        ):
+            with self.subTest(evidence=[item.evidence_id for item in evidence], active=len(active)):
+                exploration = ConnectionExplorationResult(decision=decision, evidence=evidence)
+                token = set_active_memories(active)
+                try:
+                    muse = AsyncMock()
+                    muse.run.return_value = result(
+                        draft, ToolReturnPart("serendipity_explore", exploration),
+                    )
+                    provenance = AsyncMock()
+                    provenance.run.return_value = result(review("pass"))
+                    release = await reflection_reply(
+                        "What is my favourite tea?", [], muse=muse, provenance=provenance,
+                    )
+                finally:
+                    reset_active_memories(token)
+                self.assertEqual(expected, release.release_source)
+                if expected != "muse_candidate":
+                    self.assertEqual("deterministic_validation", release.failure_stage)
 
     async def test_book_serendipity_proposal_can_authorize_release(self) -> None:
         self.register_evidence()

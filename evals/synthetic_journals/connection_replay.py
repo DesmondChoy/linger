@@ -173,6 +173,28 @@ def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str,
     return result
 
 
+def lookup_failures(
+    response: ChatResponse, events: Sequence[ConnectionEvaluationEvent],
+) -> tuple[str, ...]:
+    """Name the provider, search, and discovery failures observed in one turn."""
+    failures: list[str] = []
+    release = response.inspection.release
+    if release is not None and release.failure_type == "model":
+        failures.append("provider_failure")
+    if any(
+        event.kind == "search"
+        and (event.failure_code or event.status == "retrieval_unavailable")
+        for event in events
+    ):
+        failures.append("retrieval_failure")
+    if any(
+        event.kind == "discovery" and (event.failure_code or event.status == "failed")
+        for event in events
+    ):
+        failures.append("discovery_failure")
+    return tuple(failures)
+
+
 def grade_connection_scene(
     scene: ValidatedConnectionScene, response: ChatResponse,
     events: Sequence[ConnectionEvaluationEvent], prop_ids: dict[str, str],
@@ -187,12 +209,7 @@ def grade_connection_scene(
         common.append("missing_release_observation")
     if release is None:
         common.append("missing_release")
-    elif release.failure_type == "model":
-        common.append("provider_failure")
-    if any(event.failure_code or event.status == "retrieval_unavailable" for event in searches):
-        common.append("retrieval_failure")
-    if any(event.failure_code or event.status == "failed" for event in discoveries):
-        common.append("discovery_failure")
+    common.extend(lookup_failures(response, events))
     try:
         ledger = _evidence_ledger(events)
     except (ValueError, KeyError, TypeError):

@@ -52,8 +52,9 @@ from src.linger.agents.provenance.prompt import (
 from src.linger.agents.provenance.skills import CANDIDATE_REVIEW
 from src.linger.agents.provenance.review_context import reset_review_input, set_review_input
 from src.linger.agents.serendipity.models import (
+    ConnectionDecline,
     ConnectionExplorationResult,
-    ConnectionProposal,
+    MemoryRecall,
 )
 from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
@@ -525,18 +526,24 @@ def _validated_book_evidence(
             raise ReleaseValidationError(
                 "Serendipity returned an invalid response"
             ) from None
-        if not isinstance(exploration.decision, ConnectionProposal):
+        decision = exploration.decision
+        if isinstance(decision, ConnectionDecline):
             if exploration.evidence:
                 raise ReleaseValidationError(
                     "A Serendipity decline returned unexpected evidence"
                 )
             continue
 
-        selected_ids = set(exploration.decision.selected_candidate.evidence_ids)
+        if isinstance(decision, MemoryRecall):
+            selected_ids = set(decision.evidence_ids)
+            if any(item.source_kind != "memory" for item in exploration.evidence):
+                raise ReleaseValidationError("A Serendipity recall returned non-memory evidence")
+        else:
+            selected_ids = set(decision.selected_candidate.evidence_ids)
         returned_ids = {item.evidence_id for item in exploration.evidence}
         if selected_ids != returned_ids:
             raise ReleaseValidationError(
-                "Serendipity proposal evidence does not match its selected candidate"
+                "Serendipity evidence does not match its selected records"
             )
         for item in exploration.evidence:
             if not isinstance(item, EvidenceItem):

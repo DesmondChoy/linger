@@ -4,6 +4,7 @@ export type ConnectionDecline = {
     | 'insufficient_evidence'
     | 'unsupported_cue'
     | 'generic_theme_match'
+    | 'no_matching_memory'
     | 'no_clear_winner'
     | 'spoiler_boundary'
     | 'source_scope_violation'

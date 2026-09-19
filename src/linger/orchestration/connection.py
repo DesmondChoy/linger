@@ -32,10 +32,14 @@ from src.linger.agents.serendipity.models import (
     ConnectionProposal,
     ConnectionScope,
     DeclineReason,
+    MemoryRecall,
     SerendipityResponse,
 )
-from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
+from src.linger.agents.serendipity.prompt import (
+    MEMORY_RECALL_PROMPT_FINGERPRINT,
+    PROMPT_FINGERPRINT,
+)
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, WebConnectionEvidence
 from src.linger.agents.serendipity.tools import (
@@ -117,7 +121,8 @@ def _build_task(
     if active_memories():
         allowed_sources.append("memory")
 
-    if reading is not None:
+    recalling = brief.intent == "recall_memory"
+    if reading is not None and not recalling:
         book_version_id = librarian.version_for(reading.work_id)
         if book_version_id is not None:
             allowed_sources.append("book_corpus")
@@ -129,7 +134,7 @@ def _build_task(
                 ),
             )
 
-    if web_reach_permitted() and public_source_urls() != ():
+    if not recalling and web_reach_permitted() and public_source_urls() != ():
         allowed_sources.append("web")
 
     return ConnectionDiscoveryInput(
@@ -166,7 +171,10 @@ async def _agent_explorer(
     *,
     librarian: Librarian,
 ) -> ExplorationResult:
-    """Let Serendipity choose bounded Librarian and optional Exa searches."""
+    """Run the skill the intent selects over its bounded, granted searches."""
+    recalling = task.intent == "recall_memory"
+    skill = MEMORY_RECALL if recalling else CONNECTION_DISCOVERY
+    fingerprint = MEMORY_RECALL_PROMPT_FINGERPRINT if recalling else PROMPT_FINGERPRINT
     deps = SerendipityDependencies(
         task=task,
         librarian=librarian,
@@ -177,15 +185,15 @@ async def _agent_explorer(
     result = await run_agent_traced(
         serendipity_agent,
         task.model_dump_json(),
-        span_name="serendipity.discovery",
+        span_name="serendipity.recall" if recalling else "serendipity.discovery",
         role="Serendipity",
-        stage="search_rank_select",
+        stage="memory_recall" if recalling else "search_rank_select",
         input_contract=(
             "src.linger.agents.serendipity.models.ConnectionDiscoveryInput"
         ),
         output_contract="src.linger.agents.serendipity.models.SerendipityResponse",
-        prompt_template_id=PROMPT_FINGERPRINT.template_id,
-        prompt_digest=PROMPT_FINGERPRINT.digest,
+        prompt_template_id=fingerprint.template_id,
+        prompt_digest=fingerprint.digest,
         failure_code="serendipity_model_failed",
         retryable=False,
         deps=deps,
@@ -194,7 +202,7 @@ async def _agent_explorer(
             request_limit=SERENDIPITY_REQUEST_LIMIT,
             tool_calls_limit=SERENDIPITY_TOOL_CALL_LIMIT,
         ),
-        **CONNECTION_DISCOVERY.run_options(),
+        **skill.run_options(),
     )
     try:
         response = SERENDIPITY_RESPONSE_ADAPTER.validate_python(result.output)
@@ -227,7 +235,7 @@ def _validate_response(
     run: ExplorationResult,
     task: ConnectionDiscoveryInput,
 ) -> SerendipityResponse:
-    """Validate search provenance, shortlist citations, and winner flags."""
+    """Validate search provenance, cited records, and winner flags."""
     evidence = {item.evidence_id: item for item in run.evidence}
     if len(evidence) != len(run.evidence):
         raise InvalidConnectionResponse("search tools returned duplicate evidence IDs")
@@ -246,8 +254,23 @@ def _validate_response(
     if isinstance(response, ConnectionDecline):
         return _decline(
             response.reason,
-            "No connection cleared the current evidence and safety checks.",
+            "No stored reflection answers this; reply without claiming memory."
+            if task.intent == "recall_memory"
+            else "No connection cleared the current evidence and safety checks.",
         )
+    if (task.intent == "recall_memory") != isinstance(response, MemoryRecall):
+        raise InvalidConnectionResponse("Serendipity's result does not match the intent")
+    if isinstance(response, MemoryRecall):
+        if not run.searches:
+            raise InvalidConnectionResponse(
+                "Serendipity recalled without searching the permitted memories"
+            )
+        unknown_ids = set(response.evidence_ids) - set(evidence)
+        if unknown_ids:
+            raise InvalidConnectionResponse(
+                f"Serendipity recalled unknown evidence: {sorted(unknown_ids)}"
+            )
+        return response
     candidates = response.shortlist
     cited_ids = {
         evidence_id
@@ -327,11 +350,12 @@ async def connection_exploration(
             else:
                 run = await _agent_explorer(task, librarian=librarian)
             result = _validate_response(run, task)
-            selected_evidence_ids = (
-                set(result.selected_candidate.evidence_ids)
-                if isinstance(result, ConnectionProposal)
-                else set()
-            )
+            if isinstance(result, ConnectionProposal):
+                selected_evidence_ids = set(result.selected_candidate.evidence_ids)
+            elif isinstance(result, MemoryRecall):
+                selected_evidence_ids = set(result.evidence_ids)
+            else:
+                selected_evidence_ids = set()
             selected_evidence = tuple(
                 item
                 for item in run.evidence
@@ -391,8 +415,8 @@ async def connection_exploration(
             set_span_attrs(
                 span,
                 {
-                    "status": "success" if result.status == "proposal" else "decline",
-                    "tool.status": "success" if result.status == "proposal" else "decline",
+                    "status": "decline" if result.status == "decline" else "success",
+                    "tool.status": "decline" if result.status == "decline" else "success",
                     "retrieval.outcome": result.status,
                     "retrieval.item_count": len(run.evidence),
                     "search.source_kinds": sorted(

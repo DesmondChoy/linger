@@ -32,14 +32,17 @@ from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     ConnectionProposal,
     InternalSearchResult,
+    MemoryRecall,
     MemorySearchResult,
 )
 from src.linger.services.memory import AccountContext, MemoryPolicyService, AutomaticMemoryCandidate
 from src.linger.agents.serendipity.tools import GuardedExaSearch
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.corpus.alice import BOOK
 from src.linger.evaluation_transcript import bind_evaluation_transcript_sink
+from src.linger.orchestration.progress_context import begin_progress, reset_progress
 
 
 def _librarian_strength(messages, info: AgentInfo) -> ModelResponse:
@@ -445,6 +448,148 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(policies[0]["allow_retrieval"])
         self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
         self.assertNotIn(memory_text, response.model_dump_json())
+
+    async def _recall_turn(self, serendipity_output, reply, *, cite):
+        self.service.set_capture_enabled(self.account, True)
+        saved = self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text="My favourite tea is peppermint.", source_event_id="fixture-prior-reflection",
+            review_allows_capture=True, contains_sensitive_content=False,
+        )).record
+        self.service.set_capture_enabled(self.account, False)
+        events = []
+        provenance_inputs = []
+        explorations = []
+
+        class Sink:
+            def begin_agent_exchange(self, **kwargs):
+                return None
+            def complete_agent_exchange(self, *args, **kwargs):
+                pass
+            def record_connection_event(self, event):
+                events.append(event)
+
+        def recall(messages, info):
+            tasks = [
+                json.loads(part.content)
+                for message in messages for part in getattr(message, "parts", ())
+                if isinstance(getattr(part, "content", None), str)
+                and part.content.lstrip().startswith("{")
+            ]
+            assert tasks[0]["intent"] == "recall_memory"
+            assert tasks[0]["scope"]["allowed_sources"] == ["memory"]
+            returns = [
+                part.content
+                for message in messages for part in getattr(message, "parts", ())
+                if isinstance(part, ToolReturnPart) and part.tool_name == "search_memories"
+            ]
+            if not returns:
+                return ModelResponse(parts=[ToolCallPart("search_memories", {"query": "favourite tea"})])
+            found = MemorySearchResult.model_validate(returns[-1])
+            assert [item.evidence_id for item in found.evidence] == [saved.memory_id]
+            name, args = serendipity_output(saved.memory_id)
+            tool = next(tool for tool in info.output_tools if tool.name.endswith(name))
+            return ModelResponse(parts=[ToolCallPart(tool.name, args)])
+
+        def muse(messages, info):
+            results = [part.content for message in messages for part in getattr(message, "parts", ())
+                       if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"]
+            if not results:
+                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {"intent": "recall_memory"})])
+            exploration = ConnectionExplorationResult.model_validate(results[-1])
+            explorations.append(exploration)
+            return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+                "reply": reply,
+                "evidence_uses": [
+                    {"source_kind": "memory", "evidence_id": item.evidence_id,
+                     "exact_quote": None, "supported_claims": [reply]}
+                    for item in exploration.evidence
+                ] if cite else [],
+                "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
+            })])
+
+        def provenance(messages, info):
+            for message in messages:
+                for part in getattr(message, "parts", ()):
+                    text = getattr(part, "content", None)
+                    if isinstance(text, str) and text.startswith("{"):
+                        payload = json.loads(text)
+                        if "canonical_connection_evidence" in payload:
+                            provenance_inputs.append(payload)
+            return _provenance_pass(messages, info)
+
+        progress = []
+        progress_token = begin_progress(progress.append)
+        try:
+            with bind_evaluation_transcript_sink(Sink()):
+                with muse_chat_agent.override(model=FunctionModel(muse)):
+                    with serendipity_agent.override(model=FunctionModel(recall)):
+                        with provenance_agent.override(model=FunctionModel(provenance)):
+                            response = await chat_turn.run_chat_turn(
+                                ChatRequest(session_id=self.session_id, message="What is my favourite tea?"),
+                                self.service, self.account,
+                            )
+        finally:
+            reset_progress(progress_token)
+        self.assertIn(
+            ("Serendipity", "memory_recall", "complete"),
+            [(event.agent, event.stage, event.status) for event in progress],
+        )
+        return saved, response, events, provenance_inputs, explorations
+
+    async def test_one_stored_answer_is_recalled_and_released(self) -> None:
+        saved, response, events, provenance_inputs, explorations = await self._recall_turn(
+            lambda memory_id: ("MemoryRecall", {
+                "status": "recall",
+                "evidence_ids": [memory_id],
+                "relevance_note": "The reader's own earlier statement of their favourite tea.",
+            }),
+            "You wrote that your favourite tea is peppermint.",
+            cite=True,
+        )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIsNone(response.inspection.release.failure_stage)
+        self.assertEqual("You wrote that your favourite tea is peppermint.", response.reply)
+        self.assertIsInstance(explorations[-1].decision, MemoryRecall)
+        self.assertEqual(
+            [MemoryConnectionEvidence(
+                evidence_id=saved.memory_id, excerpt="My favourite tea is peppermint.",
+            ).model_dump(mode="json")],
+            provenance_inputs[-1]["canonical_connection_evidence"],
+        )
+        self.assertEqual((saved.memory_id,), events[-1].released_evidence_ids)
+        self.assertEqual(
+            ["recall"], [event.status for event in events if event.kind == "discovery"],
+        )
+        self.assertIsNone(response.inspection.connection_decline)
+        serendipity_trace = next(
+            trace for trace in response.inspection.traces if trace["agent"] == "Serendipity"
+        )
+        self.assertEqual("complete", serendipity_trace["status"])
+
+    async def test_recall_without_a_matching_record_releases_a_plain_reply(self) -> None:
+        _, response, events, provenance_inputs, explorations = await self._recall_turn(
+            lambda memory_id: ("ConnectionDecline", {
+                "status": "decline",
+                "reason": "no_matching_memory",
+                "safe_next_step": "Answer without an earlier record.",
+            }),
+            "I do not have an earlier note about your favourite tea.",
+            cite=False,
+        )
+
+        self.assertEqual("muse_candidate", response.inspection.release.release_source)
+        self.assertIsNone(response.inspection.release.failure_stage)
+        self.assertEqual("no_matching_memory", explorations[-1].decision.reason)
+        self.assertEqual((), explorations[-1].evidence)
+        self.assertEqual([], provenance_inputs[-1]["canonical_connection_evidence"])
+        self.assertEqual((), events[-1].released_evidence_ids)
+        self.assertEqual(
+            [("decline", None)],
+            [(event.status, event.failure_code) for event in events if event.kind == "discovery"],
+        )
+        self.assertEqual("no_matching_memory", response.inspection.connection_decline.reason)
+        self.assertIsNone(response.inspection.connection_decline.failure_code)
 
     async def test_trusted_initial_reading_reaches_real_discovery_without_extra_line(self) -> None:
         captured: list = []
