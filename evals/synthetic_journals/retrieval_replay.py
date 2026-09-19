@@ -34,7 +34,7 @@ from src.linger.services.memory import (
 )
 
 from .adoption import GroundTruthAdoptionError, validate_ground_truth_adoption_files
-from .connection_replay import _evidence_ledger
+from .connection_replay import _evidence_ledger, lookup_failures
 from .continuity_replay import (
     CONTINUITY_OBJECTIVE_ID,
     ContinuityEvaluationExpected,
@@ -568,6 +568,7 @@ async def _replay_retrieval_scene(
         failures.append("missing_release_observation")
     if release_source != NORMAL_RELEASE_SOURCE:
         failures.append("unexpected_release_source")
+    failures.extend(lookup_failures(response, events))
     if any(prop_id not in retrieved for prop_id in expected.relevant_prop_ids):
         failures.append("relevant_prop_not_retrieved")
     if any(prop_id not in cited for prop_id in expected.relevant_prop_ids):
