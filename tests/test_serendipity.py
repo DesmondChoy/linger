@@ -411,7 +411,10 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
             ["search_librarian"],
             [tool.name for tool in parameters.function_tools],
         )
-        self.assertEqual(2, len(parameters.output_tools))
+        self.assertEqual(
+            ["ConnectionProposal", "ConnectionDecline", "MemoryRecall"],
+            [tool.name.removeprefix("final_result_") for tool in parameters.output_tools],
+        )
         self.assertEqual("canonical", deps.evidence["chapter-4"].trust_level)
 
     async def test_agent_round_trips_a_first_class_decline(self) -> None:

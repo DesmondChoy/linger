@@ -671,7 +671,7 @@ def _apply_connection_inspection(
     """Project one nested Serendipity run as fixed metadata only."""
     book_outcomes = run.book_search_outcomes
 
-    if run.status != "proposal":
+    if run.status == "decline":
         inspection.connection_decline = ConnectionDeclineInspection(
             reason=run.reason or "retrieval_unavailable",
             failure_code=(
@@ -695,7 +695,7 @@ def _apply_connection_inspection(
         "Serendipity",
         status="complete",
         detail=(
-            "Serendipity returned a validated proposal; release still depends "
+            f"Serendipity returned a validated {run.status}; release still depends "
             "on the shared evidence and Provenance gates."
         ),
     )

@@ -132,13 +132,14 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "sculptor.memory-curation",
         "sculptor.memory-surfacing",
         "serendipity.connection-discovery",
+        "serendipity.memory-recall",
         "provenance.emotional-preflight",
         "provenance.candidate-review",
         "provenance.curation-review",
     }
     # Muse has two input-specific fingerprints within its one reflection skill.
-    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 10
-    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 10
+    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 11
+    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 11
 
 
 def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, monkeypatch):
@@ -156,7 +157,8 @@ def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, mo
 
 def test_validator_roles_keep_fixed_output_contracts() -> None:
     from src.linger.agents.muse.skills import REFLECTION
-    from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
+    from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
 
     assert "output_type" not in REFLECTION.run_options()
     assert "output_type" not in CONNECTION_DISCOVERY.run_options()
+    assert "output_type" not in MEMORY_RECALL.run_options()

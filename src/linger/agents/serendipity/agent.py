@@ -8,6 +8,7 @@ from src.linger.agents.build import build_model
 from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionProposal,
+    MemoryRecall,
     SerendipityResponse,
 )
 from src.linger.agents.serendipity.skills import SHARED_INSTRUCTIONS
@@ -30,8 +31,28 @@ def validate_serendipity_output(
     ctx: RunContext[SerendipityDependencies],
     output: SerendipityResponse,
 ) -> SerendipityResponse:
-    """Retry unresolved citations and flags that misdescribe the selected evidence."""
+    """Retry results that mismatch the task, its evidence, or the winner's flags."""
     if isinstance(output, ConnectionDecline):
+        return output
+    recalling = ctx.deps.task.intent == "recall_memory"
+    if recalling != isinstance(output, MemoryRecall):
+        raise ModelRetry(
+            "A recall_memory task returns a recall or a decline; every other "
+            "intent returns a proposal or a decline."
+        )
+    if isinstance(output, MemoryRecall):
+        returned_ids = {
+            item.evidence_id
+            for item in ctx.deps.evidence.values()
+            if item.source_kind == "memory"
+        }
+        unreturned_ids = sorted(set(output.evidence_ids) - returned_ids)
+        if unreturned_ids:
+            raise ModelRetry(
+                "Every recalled evidence_id must exactly match a memory returned "
+                "by search_memories in this run. Remove or replace these "
+                f"unresolved IDs: {unreturned_ids}."
+            )
         return output
     cited_ids = {
         evidence_id
@@ -78,7 +99,7 @@ def build_serendipity_agent(
         model if model is not None else build_model(),
         name="Serendipity",
         deps_type=SerendipityDependencies,
-        output_type=[ConnectionProposal, ConnectionDecline],
+        output_type=[ConnectionProposal, ConnectionDecline, MemoryRecall],
         instructions=SHARED_INSTRUCTIONS,
         tools=[
             Tool(search_librarian, max_retries=1),

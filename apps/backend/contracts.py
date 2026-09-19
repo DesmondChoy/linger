@@ -131,7 +131,9 @@ class ConnectionBrief(BaseModel):
     """Muse's connection request before application-owned scope is attached."""
 
     cue: str = Field(min_length=1, max_length=8000)
-    intent: Literal["find_connection", "get_recommendation"] = "find_connection"
+    intent: Literal[
+        "find_connection", "get_recommendation", "recall_memory"
+    ] = "find_connection"
 
 
 class BookScope(ReadingScope):

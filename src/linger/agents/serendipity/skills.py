@@ -1,9 +1,10 @@
-"""Serendipity's explicitly assigned runtime skill."""
+"""Serendipity's explicitly assigned runtime skills."""
 
 from src.linger.agents.serendipity.models import (
     ConnectionDecline,
     ConnectionDiscoveryInput,
     ConnectionProposal,
+    MemoryRecall,
     SerendipityResponse,
 )
 from src.linger.agents.skills import RuntimeSkill, load_instructions
@@ -28,4 +29,20 @@ CONNECTION_DISCOVERY: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse
     tool_retries=2,
 )
 
-SKILLS = (CONNECTION_DISCOVERY,)
+MEMORY_RECALL: RuntimeSkill[ConnectionDiscoveryInput, SerendipityResponse] = RuntimeSkill(
+    role="Serendipity",
+    name="memory-recall",
+    shared_instructions=SHARED_INSTRUCTIONS,
+    instructions=load_instructions(
+        "src.linger.agents.serendipity", "skills/memory-recall/SKILL.md"
+    ),
+    input_type=ConnectionDiscoveryInput,
+    output_type=(MemoryRecall, ConnectionDecline),
+    override_output=False,
+    tools=("search_memories",),
+    validators=("validate_serendipity_output",),
+    output_retries=2,
+    tool_retries=2,
+)
+
+SKILLS = (CONNECTION_DISCOVERY, MEMORY_RECALL)

@@ -30,6 +30,7 @@ SAFE_STAGE_LABELS = {
     "revision": "Muse candidate revision",
     "review": "Provenance release review",
     "search_rank_select": "Serendipity search and comparison",
+    "memory_recall": "Serendipity memory recall",
     "evidence_strength": "Librarian evidence review",
     "curation": "Memory curation proposal",
     "curation_review": "Memory curation review",
