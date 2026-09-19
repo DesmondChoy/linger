@@ -14,6 +14,7 @@ from opentelemetry.trace import format_trace_id
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
@@ -886,10 +887,12 @@ async def _run_chat_pipeline(
         if boundary.decision == "apply_boundary":
             release = emotional_boundary_release(origin="preflight")
 
-    try:
-        active_memories = tuple(service.list_for_retrieval(account))
-    except MemoryServiceError:
-        active_memories = ()
+    active_memories: tuple[CuratedMemory, ...] = ()
+    if release is None:
+        try:
+            active_memories = tuple(service.list_for_retrieval(account))
+        except MemoryServiceError:
+            pass
 
     inspection, muse_input, review_context = prepare_reflection_turn(
         request,
