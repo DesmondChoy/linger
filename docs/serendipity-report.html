@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Serendipity's connection discovery, authority boundaries, evidence handoffs, and evaluation limits in Linger.">
 <title>Linger's Serendipity Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,13 +186,15 @@ footer{border-top:2px solid var(--ink);padding:26px 0 60px;
   font-family:var(--sans);font-size:.8rem;color:var(--muted)}
 footer p{margin:0 0 6px;max-width:70ch}
 </style>
+</head>
+<body>
 
 <div class="shell">
   <header class="masthead">
     <p class="kicker">Linger &middot; Multi-agent architecture &middot; Role report</p>
     <h1>Serendipity</h1>
     <p class="subtitle">The agent that looks for a connection &mdash; and is allowed to say no</p>
-    <p class="standfirst">Linger is a personal reflection companion built from five specialised AI agents. This report explains the fourth of them: what Serendipity does, why it was separated from the agent that talks to the reader, how it decides between possible connections, and exactly what crosses the boundary between it and each of the other agents.</p>
+    <p class="standfirst">Linger is a personal reflection companion built from five specialised AI agents. This report explains Serendipity's role, how it chooses a connection, what the other agents receive, and what the evaluation evidence establishes. Implementation reviewed on 19 September 2026.</p>
     <dl class="facts">
       <div><dt>Role type</dt><dd>Optional reasoning specialist</dd></div>
       <div><dt>Runtime skill</dt><dd>connection&#8209;discovery</dd></div>
@@ -238,7 +247,7 @@ footer p{margin:0 0 6px;max-width:70ch}
       <p>Muse could in principle search for connections itself. Separating the job addresses three specific failure modes.</p>
       <p><strong>An agent that must reply will always find something.</strong> Muse's job is to produce a reply, so an instruction to "look for an interesting connection" biases it toward producing one whether or not the evidence supports it. Serendipity's job is to return a <em>judgment</em>, and a refusal is a valid judgment. Declining costs it nothing, so restraint is cheap.</p>
       <p><strong>Searching the open web is a different risk surface from conversation.</strong> Reaching a third-party search service means text can leave the system. That deserves its own boundary, its own privacy gate, and its own audit trail &mdash; not a branch inside the conversational agent.</p>
-      <p><strong>Comparison needs material that the reader must never see.</strong> To choose well you have to consider options you will reject. Those rejected candidates, and the evidence behind them, stay inside Serendipity's run. Only the winner crosses the boundary, so losing material cannot leak into the draft.</p>
+      <p><strong>Comparison and evidence access need separate checks.</strong> Serendipity considers two or three possible connections and selects one. For example, it might select a link between a character hiding a mistake and the reader's earlier reflection about concealing an error at work. The selected connection is a suggestion Muse may use in its reply. Muse receives the full ranked shortlist, but the application attaches and registers only the evidence records cited by the selected candidate. Candidate text remains untrusted and can still influence the draft, so review and release checks remain necessary.</p>
       <div class="note">
         <b>The core design bet</b>
         <p>An agent that is permitted to fail is safer than one that is obliged to succeed. Every contract in the rest of this report exists to make declining structurally easy and manufacturing structurally hard.</p>
@@ -285,8 +294,8 @@ footer p{margin:0 0 6px;max-width:70ch}
           <line x1="262" y1="286" x2="262" y2="214" class="svg-line" marker-end="url(#ar)"></line>
           <text x="252" y="256" class="svg-l" text-anchor="end">serendipity_explore</text>
           <line x1="338" y1="214" x2="338" y2="286" class="svg-line" marker-end="url(#ar)"></line>
-          <text x="348" y="248" class="svg-l">validated decision</text>
-          <text x="348" y="262" class="svg-l">+ winner's evidence</text>
+          <text x="348" y="248" class="svg-l">decision + full shortlist</text>
+          <text x="348" y="262" class="svg-l">+ selected evidence records</text>
 
           <line x1="420" y1="180" x2="742" y2="180" class="svg-line" stroke="var(--stop)" stroke-dasharray="5 4"></line>
           <line x1="742" y1="180" x2="742" y2="282" class="svg-line" stroke="var(--stop)" stroke-dasharray="5 4" marker-end="url(#arx)"></line>
@@ -325,23 +334,23 @@ footer p{margin:0 0 6px;max-width:70ch}
       <div class="head" id="s4"><span class="secnum">4</span><h2>What it may and may not decide</h2></div>
       <p>The boundary is deliberately lopsided. Serendipity has broad freedom over <em>judgment</em> and none at all over <em>permission</em>. A model can narrow what reaches the reader; it can never widen it.</p>
       <div class="grid3">
-        <div class="card may"><h3>May decide</h3><p>Which permitted source to search first, what to search for, whether the evidence it got back is good enough, whether one further source is justified, what the candidate connections are, how they rank, and whether declining is wiser than forcing novelty.</p></div>
+        <div class="card may"><h3>May decide</h3><p>Which permitted source to inspect first, memory and web queries, whether evidence supports a connection, whether an optional source expansion is justified, candidate interpretations, their ranking, and whether to decline.</p></div>
         <div class="card must"><h3>Must preserve</h3><p>The reader's exact words as the search cue, the requested intent, the presentation mode the application derived, the list of permitted sources, the frozen book revision and chapter ceiling, and every evidence identifier exactly as returned.</p></div>
         <div class="card never"><h3>May never decide</h3><p>Who the account holder is, whether a new source may be opened, where the spoiler boundary falls, whether anything is published, whether memory is written, or whether web content may skip review.</p></div>
       </div>
-      <p>Two consequences follow. Because the source grant is fixed before the model runs, an ungranted source has <strong>no tool at all</strong> &mdash; memory search is withheld from the tool list and the web capability is never attached, so there is nothing to misuse. And because the presentation mode is derived by application code (<code>get_recommendation</code> becomes <code>direct</code>; anything else becomes <code>ask_before_showing</code>), Serendipity cannot decide to show the reader something unbidden.</p>
+      <p>Application code fixes the source grant before the model runs. It withholds memory search and the web capability when those sources are ungranted. The book-search tool remains available but rejects calls without a book grant. Application code also derives presentation mode: <code>get_recommendation</code> becomes <code>direct</code>, and <code>find_connection</code> becomes <code>ask_before_showing</code>. Serendipity must preserve that value; Muse still drafts the reader-facing response.</p>
 
       <div class="head" id="s5"><span class="secnum">5</span><h2>One request, end to end</h2></div>
-      <p>A connection request passes through eight stages. Only stages 3 to 6 are the model; the rest is ordinary code.</p>
+      <p>A connection request passes through eight stages. Application code controls permissions and validates evidence. Models choose searches, assess support, compare candidates, draft the reply, and review it.</p>
       <ol class="stages">
         <li><b>1</b><div><span class="actor">Muse → Application</span><h3>The request is raised</h3><p>Muse decides a connection might deepen the reflection and calls its tool, supplying only the <em>intent</em>. Application code supplies the reader's exact message as the cue &mdash; the model cannot substitute its own paraphrase.</p><code>ConnectionBrief → ConnectionDiscoveryInput</code></div></li>
         <li><b>2</b><div><span class="actor">Application</span><h3>Permissions are sealed</h3><p>Confirmed reading progress grants a specific book revision and a chapter ceiling. Existing memories grant memory search. Web access requires both a policy flag and credentials, and may be narrowed to an explicit list of allowed URLs.</p><code>ConnectionScope { allowed_sources, book_scopes, web_source_urls }</code></div></li>
-        <li><b>3</b><div><span class="actor">Serendipity</span><h3>Route and search</h3><p>It identifies which kind of relationship the cue is asking for, searches that source first, assesses what came back, and expands to a second source at most once &mdash; and only when the routing policy allows it.</p><code>at most 8 model requests, 6 tool calls, 5 results per source</code></div></li>
+        <li><b>3</b><div><span class="actor">Serendipity</span><h3>Route and search</h3><p>It identifies the requested relationship and inspects every explicitly requested, permitted source. Other discovery requests allow at most one optional expansion beyond the primary source. Librarian plans book retrieval from the original reader cue and prior reader statements.</p><code>at most 8 Serendipity model requests, 6 tool calls, 5 results per source</code></div></li>
         <li><b>4</b><div><span class="actor">Tools</span><h3>An evidence ledger accumulates</h3><p>Every record a search returns is recorded in a ledger the model cannot see or edit. A web search result is only a <em>lead</em>; the page has to be opened before it counts as evidence.</p><code>SerendipityDependencies.evidence</code></div></li>
-        <li><b>5</b><div><span class="actor">Serendipity</span><h3>Filter before ranking</h3><p>Candidates that are generic, unsupported, out of scope, past the spoiler ceiling, privacy-risky, or carrying injected instructions are removed. This happens <em>before</em> comparison, so nothing unsafe can win on other merits.</p><code>eligible = no rejecting anchor, no disqualifier</code></div></li>
+        <li><b>5</b><div><span class="actor">Serendipity</span><h3>Filter before ranking</h3><p>The model must exclude candidates it identifies as generic, unsupported, out of scope, past the spoiler ceiling, privacy-risky, or carrying injected instructions. The schema rejects shortlisted candidates with disqualifying ratings; detecting those problems remains a model judgment.</p><code>eligible = no rejecting anchor, no disqualifier</code></div></li>
         <li><b>6</b><div><span class="actor">Serendipity</span><h3>Compare two or three</h3><p>Surviving candidates are ranked against anchored categories. If the top two tie, there is no winner and the result is a decline.</p><code>ConnectionProposal | ConnectionDecline</code></div></li>
         <li><b>7</b><div><span class="actor">Application</span><h3>Verify against the ledger</h3><p>Every cited identifier must resolve to a record this run actually retrieved, from a granted source, inside the book ceiling. The web-claim flag must match the winner's real sources. Presentation must be unchanged. Any mismatch fails the run closed.</p><code>rejected → safe decline, never a partial result</code></div></li>
-        <li><b>8</b><div><span class="actor">Muse + Provenance</span><h3>Draft, review, release</h3><p>Only the winner's exact records reach Muse. Muse writes the reply and declares what it used; Provenance reviews the whole draft; application code re-resolves every declaration before the reader sees anything.</p><code>independent review → deterministic release</code></div></li>
+        <li><b>8</b><div><span class="actor">Muse + Provenance</span><h3>Draft, review, release</h3><p>Muse receives the full shortlist and the selected candidate's evidence records. It writes the reply and declares what it used. Provenance reviews the draft, canonical evidence, and untrusted tool outcomes, including the shortlist. Application code validates each declaration before release.</p><code>independent review → deterministic release</code></div></li>
       </ol>
       <div class="note">
         <b>One run per turn</b>
@@ -356,13 +365,13 @@ footer p{margin:0 0 6px;max-width:70ch}
           <tbody>
             <tr><td>A link to something they reflected on before</td><td><span class="tag t-mem">memory</span></td><td>Only if the requested relationship genuinely needs a second domain.</td></tr>
             <tr><td>Another passage, character or pattern inside the book they are reading</td><td><span class="tag t-book">book</span></td><td>Web, only on explicit request or when the book evidence cannot answer alone.</td></tr>
-            <tr><td>An essay, artwork, song, thinker or idea from outside the book and their own history</td><td><span class="tag t-web">web</span></td><td>The book, only for an explicit comparison or to make the outside result usable.</td></tr>
+            <tr><td>An essay, artwork, song, thinker or idea from outside the book and their own history</td><td><span class="tag t-web">web</span> Open an application-granted URL directly, or search for a lead.</td><td>The book, only for an explicit comparison or to make the outside result usable.</td></tr>
             <tr><td>An explicit comparison across named domains</td><td>each named, permitted source</td><td>Never adds a domain the reader did not name.</td></tr>
             <tr><td>An open reflection with no specific evidence relationship</td><td><span class="tag t-no">decline</span></td><td>Never searches the web merely to manufacture novelty.</td></tr>
           </tbody>
         </table>
       </div>
-      <p>Two rules give this policy teeth. If the reader explicitly asks for a source that was not granted, Serendipity <strong>declines rather than quietly substituting a different one</strong> &mdash; the reader is never silently given a book answer to a question about the wider world. And it must stop searching once it holds enough evidence for two distinct eligible candidates, which removes the option of trawling every source until something turns up.</p>
+      <p>The skill instructs Serendipity to decline when an explicitly requested source is unavailable, and to stop once it has inspected the requested sources and can compare two eligible candidates. Inspecting all explicitly requested sources takes priority over the optional expansion limit. These are model instructions; deterministic source grants and tool budgets separately limit what it can access.</p>
 
             <div class="head" id="s7"><span class="secnum">7</span><h2>Choosing between candidates</h2></div>
       <p class="lede">This is the most consequential piece of design in the role, and the easiest to get wrong. It runs in two stages that are often conflated: first a <em>filter</em> that removes candidates entirely, then a <em>comparison</em> among whatever survived. Nothing that fails the filter can be rescued by comparing well.</p>
@@ -402,7 +411,7 @@ footer p{margin:0 0 6px;max-width:70ch}
       <h3>Stage two: comparison, and its surprising consequence</h3>
       <p>Survivors are ranked by comparing cue fit first; only if that ties does reflective value matter; only if that also ties does safety. No total is ever formed.</p>
       <figure>
-        <svg viewBox="0 0 880 300" role="img" aria-label="Comparison of two ranking methods. On the left, a rejected weighted-score approach where three criteria are multiplied by weights and summed into a single number, allowing a safety concern to be offset by a strong score elsewhere. On the right, the method used: cue fit is compared first, then reflective value, then safety, and if candidates remain equal the result is a decline.">
+        <svg viewBox="0 0 880 300" role="img" aria-label="On the left, an unused weighted-score illustration without an eligibility filter, where a high total can hide a low safety rating. On the right, Linger first requires eligible ratings, then compares cue fit and reflective value. Safety is already clear for every eligible candidate and cannot break a tie. Equal top ratings require a decline.">
           <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="var(--rule)"></path></marker></defs>
           <line x1="440" y1="24" x2="440" y2="278" stroke="var(--line)" stroke-width="1"></line>
 
@@ -418,11 +427,11 @@ footer p{margin:0 0 6px;max-width:70ch}
           <text x="264" y="103" class="svg-t" text-anchor="middle">Σ = 0.67</text>
           <text x="264" y="119" class="svg-s" text-anchor="middle">&quot;winner&quot;</text>
           <line x1="230" y1="150" x2="298" y2="150" stroke="var(--stop)" stroke-width="2"></line>
-          <text x="34" y="184" class="svg-s" fill="var(--stop)">A safety concern is silently bought off by a</text>
-          <text x="34" y="200" class="svg-s" fill="var(--stop)">strong score elsewhere, and the total hides</text>
-          <text x="34" y="216" class="svg-s" fill="var(--stop)">which criterion actually decided.</text>
+          <text x="34" y="184" class="svg-s" fill="var(--stop)">Without an eligibility filter, a high total</text>
+          <text x="34" y="200" class="svg-s" fill="var(--stop)">can hide a low safety rating. Filtering is</text>
+          <text x="34" y="216" class="svg-s" fill="var(--stop)">a separate requirement from ranking.</text>
 
-          <text x="474" y="34" class="svg-l" fill="var(--book)">USED — LEXICAL ORDINAL</text>
+          <text x="474" y="34" class="svg-l" fill="var(--book)">USED — FILTER, THEN COMPARE</text>
           <rect x="474" y="52" width="164" height="34" rx="2" class="svg-sub"></rect>
           <text x="488" y="74" class="svg-t">1. cue_fit</text>
           <text x="656" y="74" class="svg-s">differs → decided</text>
@@ -439,9 +448,9 @@ footer p{margin:0 0 6px;max-width:70ch}
           <line x1="556" y1="190" x2="556" y2="206" class="svg-line" marker-end="url(#ar2)"></line>
           <rect x="474" y="210" width="164" height="36" rx="2" fill="var(--caution-wash)" stroke="var(--caution)" stroke-width="1.4"></rect>
           <text x="556" y="233" class="svg-t" text-anchor="middle">still equal → decline</text>
-          <text x="474" y="270" class="svg-s">No total is formed, so nothing can be traded away.</text>
+          <text x="474" y="270" class="svg-s">Only declared eligible candidates enter this ranking.</text>
         </svg>
-        <figcaption><b>Figure 2</b> Why the rubric is compared rather than summed. A weighted total lets a strong cue fit purchase a weak safety rating; comparing in fixed order means safety is never offset, and an unbroken tie produces a decline rather than an arbitrary winner.</figcaption>
+        <figcaption><b>Figure 2</b> The eligibility filter excludes unsafe ratings before comparison. The remaining candidates are ordered by cue fit and then reflective value. An unbroken tie requires a decline; the ranking itself does not establish safety.</figcaption>
       </figure>
 
       <p>Now the consequence that makes this design work. Because eligibility already requires safety to be <code>clear</code>, <strong>every candidate that reaches the comparison has identical safety</strong> — so the third key can never break a tie. The ranking effectively collapses to two dimensions with two usable values each, which means an eligible candidate can occupy exactly <strong>four</strong> distinct strength positions.</p>
@@ -500,21 +509,21 @@ footer p{margin:0 0 6px;max-width:70ch}
           <text x="726" y="202" class="svg-s">breaks a tie.</text>
 
           <text x="30" y="252" class="svg-t">A proposal requires the top two candidates to land in different buckets.</text>
-          <text x="30" y="274" class="svg-s">Same bucket → no clear winner → decline. With only four positions available, that happens often — by design.</text>
+          <text x="30" y="274" class="svg-s">Same position → no clear winner → decline. The model still supplies the ratings.</text>
         </svg>
-        <figcaption><b>Figure 3</b> The rubric is coarse on purpose. Filtering happens before ranking, and because safety is constant among survivors there are only four possible strength positions — so two plausible candidates frequently tie, and a tie is a decline.</figcaption>
+        <figcaption><b>Figure 3</b> Safety is constant among eligible candidates, leaving four possible strength positions. Equal top ratings require a decline. This is a rule about declared ratings; it does not establish how often real connections tie.</figcaption>
       </figure>
-      <p>This is the mechanism behind the restraint described in section 2. The system does not ask the model to be modest. It gives it a measuring instrument too blunt to separate candidates that are genuinely close, and defines an unbroken tie as a decline. Restraint is a structural consequence, not a behaviour to be coaxed.</p>
+      <p>The contract rejects proposals whose top two ratings tie. The model still decides which ratings to assign, so this structural rule cannot guarantee that it recognises weak or closely matched connections. The skill also instructs the model not to inflate ratings to force a selection.</p>
 
       <h3>What the contract enforces</h3>
       <p>A proposal is rejected before it leaves the agent unless all of the following hold:</p>
       <ul>
         <li>the shortlist holds <strong>two or three</strong> candidates — never one, never four;</li>
-        <li>their claims are genuinely distinct, compared after normalising case and spacing, so restating one connection in two ways is caught;</li>
+        <li>their claim strings differ after normalising case and spacing; this catches repeated wording but does not detect semantic paraphrases;</li>
         <li>they are listed in non-increasing rubric order;</li>
         <li>the first <strong>strictly outranks</strong> the second — second and third may tie, the top two may not;</li>
         <li>the selected identifier is the first candidate, so the agent cannot rank one thing and pick another;</li>
-        <li>every candidate in the shortlist is eligible, which makes padding impossible;</li>
+        <li>every candidate's declared ratings and disqualifiers satisfy the eligibility rules;</li>
         <li>every cited identifier resolves to a record this run actually retrieved.</li>
       </ul>
       <div class="note stop">
@@ -523,14 +532,14 @@ footer p{margin:0 0 6px;max-width:70ch}
       </div>
 
 <div class="head" id="s8"><span class="secnum">8</span><h2>Safety and provenance</h2></div>
-      <p>Five independent layers sit between a search result and a sentence the reader reads. Each is enforced somewhere different, so defeating one does not defeat the others.</p>
+      <p>Five checks constrain source access, proposal structure, and evidence identity at different points in the flow. They complement model review but do not prove semantic correctness.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>Layer</th><th>Enforced by</th><th>What it guarantees</th></tr></thead>
           <tbody>
-            <tr><td class="who">Sealed grant</td><td>Application code</td><td>Only existing memories, the current book scope, and explicitly enabled web access become sources. An ungranted source has no tool.</td></tr>
+            <tr><td class="who">Sealed grant</td><td>Application code</td><td>Memory and web tools are withheld without grants. The book tool rejects ungranted calls and uses the application-owned reading scope.</td></tr>
             <tr><td class="who">Guarded retrieval</td><td>Tool wrappers</td><td>Book queries are clamped to the granted revision and chapter. Web queries are length-bounded and screened for personal data and for the reader's own wording.</td></tr>
-            <tr><td class="who">Lead-to-page chain</td><td>Tool wrapper</td><td><code>get_page</code> may open only a URL this run's own search returned. An unopened search result can never be cited.</td></tr>
+            <tr><td class="who">Public page access</td><td>Tool wrapper</td><td>When the application supplies exact public URLs, <code>get_page</code> may open them directly. Otherwise it requires a URL returned by this run's search. Both paths check privacy; only an opened page becomes citable evidence.</td></tr>
             <tr><td class="who">Typed invariants</td><td>Schema contracts</td><td>Shortlist size, distinctness, ordering, a strict winner, eligibility, and unchanged presentation.</td></tr>
             <tr><td class="who">Ledger validation</td><td>Orchestration</td><td>Every cited identifier must resolve to an in-scope record this run actually retrieved. Anything else fails closed.</td></tr>
           </tbody>
@@ -540,18 +549,18 @@ footer p{margin:0 0 6px;max-width:70ch}
       <p>The most delicate moment is the one where text leaves the system. The gate scales with how much the reader wrote, which is a more subtle rule than it first appears. A very short message &mdash; <em>"Li and I divorced"</em> &mdash; is almost entirely private, so reusing <em>any</em> substantial word from it in a public query could name a real person; short text is therefore protected word by word. A long passage about a book is mostly public vocabulary, and blocking every shared word there would block ordinary terms like "why" or "error"; longer text is protected instead against runs of consecutive words, which is how copied phrasing actually escapes.</p>
       <div class="note stop">
         <b>Treated as untrusted throughout</b>
-        <p>Everything a tool returns &mdash; book passages, stored memories, web pages &mdash; is data, never instruction. A retrieved page that contains text telling the model what to do is a prompt-injection attempt, and carries the <code>prompt_injection</code> disqualifier that makes a candidate ineligible before ranking.</p>
+        <p>Everything a tool returns &mdash; book passages, stored memories, web pages &mdash; must be treated as data, never instruction. The model must identify attempts to redirect it through retrieved text and assign the <code>prompt_injection</code> disqualifier, which makes a candidate ineligible. The schema enforces the declared disqualifier; it does not detect injected instructions itself.</p>
       </div>
 
       <div class="head" id="s9"><span class="secnum">9</span><h2>Working with the other agents</h2></div>
-      <p>Serendipity speaks to exactly one agent directly. Its relationships with the other three are real but indirect, which is the point of the design.</p>
+      <p>Application code mediates each exchange. Muse requests discovery, the book tool invokes Librarian, and Provenance later reviews the draft and tool outcomes. Sculptor shapes stored memory in a separate workflow.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>Agent</th><th>Direction</th><th>What crosses the boundary</th><th>What never does</th></tr></thead>
           <tbody>
-            <tr><td class="who">Muse</td><td>Calls Serendipity</td><td>An intent, and later one validated decision plus the exact records the winner cited.</td><td>Conversation history, rejected candidates, losing evidence.</td></tr>
-            <tr><td class="who">Librarian</td><td>Serendipity calls it</td><td>A book query, clamped to the granted revision and chapter ceiling; permitted passages come back.</td><td>Librarian's own spoiler and evidence judgments &mdash; those serve Muse, not Serendipity.</td></tr>
-            <tr><td class="who">Provenance</td><td>No contact</td><td>Nothing directly. It reviews the finished Muse draft that may contain the connection.</td><td>Serendipity's shortlist, rubric, or reasoning.</td></tr>
+            <tr><td class="who">Muse</td><td>Calls Serendipity</td><td>An intent, and later the validated decision with the full shortlist and the selected candidate's evidence records.</td><td>Authority to treat candidate text as verified evidence. Records cited only by unselected candidates are omitted from the evidence bundle.</td></tr>
+            <tr><td class="who">Librarian</td><td>Called through the book tool</td><td>The application supplies the original cue, prior reader statements, and granted book scope. Librarian returns selected passages with its evidence-strength judgment and limitations.</td><td>Authority to widen the book scope or replace the reader's request with a Serendipity-authored query.</td></tr>
+            <tr><td class="who">Provenance</td><td>Application-mediated review</td><td>The finished Muse draft, canonical evidence, and untrusted tool outcomes, including Serendipity's full shortlist and comparison notes.</td><td>Release authority or permission to treat model-authored ratings as trusted evidence.</td></tr>
             <tr><td class="who">Sculptor</td><td>No contact</td><td>Nothing directly. Sculptor's approved curation shapes the memory view that Serendipity later searches.</td><td>Any live interaction; the two never run in the same workflow.</td></tr>
             <tr><td class="who">Memory &amp; Policy</td><td>Supplies data</td><td>The account-scoped view of existing memories that memory search reads.</td><td>Account identity &mdash; Serendipity cannot see or widen it.</td></tr>
           </tbody>
@@ -559,10 +568,10 @@ footer p{margin:0 0 6px;max-width:70ch}
       </div>
       <h3>Muse &mdash; the only caller</h3>
       <p>Muse decides whether a connection is worth looking for, and supplies only the intent; the cue is the reader's actual message, inserted by application code. When a proposal comes back, Muse is free to ignore it. If it uses the connection, it must declare every record it relies on with that record's true source kind &mdash; a book passage cannot be passed off as a memory. When the answer is a decline, Muse relays a fixed safe next step rather than inventing a connection to fill the gap.</p>
-      <h3>Librarian &mdash; a shared retrieval service</h3>
-      <p>Both agents read the same book corpus, but for different purposes and through different doors. Librarian's own reasoning skills judge where the reader's spoiler boundary falls and whether evidence is strong enough to answer; Serendipity does not use those judgments. It uses the retrieval service beneath them, already clamped to the ceiling Librarian's boundary work established. The spoiler ceiling therefore constrains Serendipity without Serendipity ever being asked to respect it &mdash; it simply cannot see past it.</p>
-      <h3>Provenance &mdash; reviews the consequence, not the cause</h3>
-      <p>Provenance never sees Serendipity's shortlist or its reasoning, and this is deliberate: an independent reviewer that saw the justification could be persuaded by it. It sees the finished reply, the evidence declared, and the policy in force, and judges attribution, privacy, spoilers, unsupported claims and injection on that basis alone. A connection that Serendipity rated highly and Muse used well can still be rejected here.</p>
+      <h3>Librarian supplies passages and a judgment</h3>
+      <p>Serendipity calls the shared book-evidence workflow through <code>search_librarian</code>. Application code supplies the original reader cue, prior reader statements, and the permitted revision and chapter ceiling. Librarian plans the retrieval, selects relevant passages, and returns its evidence-strength judgment, reason, and limitations alongside those passages. Serendipity uses this judgment when comparing connections. It cannot replace the reader's question with its own book query or widen the reading scope.</p>
+      <h3>Provenance reviews the draft and its supporting material</h3>
+      <p>The application sends Provenance the finished reply, declared evidence, policy, and Serendipity's tool result in <code>untrusted_tool_outcomes</code>. That result includes the full shortlist, ratings, and comparison notes. Provenance must assess those claims against the canonical evidence rather than accept the ratings as authority. Its review is a separate model decision, but the shortlist is not hidden from it. Application code retains the final release decision.</p>
       <h3>Sculptor &mdash; adjacent, never concurrent</h3>
       <p>Sculptor proposes tidying of stored memories in a workflow that runs outside conversation. Its approved results change which memories appear in the retrieval view, so Sculptor shapes what Serendipity can later find &mdash; but the two never interact at runtime, and a curation proposal is itself reviewed by Provenance before any change is committed.</p>
 
@@ -581,7 +590,7 @@ footer p{margin:0 0 6px;max-width:70ch}
       <p>The repository treats blurring these as a defect in its own right: a passing component run <em>"must never be aggregated or labeled as an objective pass."</em> The three layers below are built so that each answers one question and visibly declines to answer the others.</p>
 
       <h3>Layer one — component evaluation: isolating the decision</h3>
-      <p><strong>What runs.</strong> The real production agent, with its real skill instructions, real contracts and real tool adapters. The only substitution is the evidence: each case supplies fixed, fabricated records that the adapters return.</p>
+      <p><strong>What runs.</strong> The production Serendipity agent, its selected skill, contracts, and tool adapters. Retrieval dependencies return fixed case evidence, and the book dependency supplies a simulated Librarian judgment. This isolates Serendipity's choices from live retrieval and Librarian's model judgment.</p>
       <p><strong>Why fabricate the evidence.</strong> This is the key methodological choice. If retrieval quality varied between runs you could never tell a bad decision from bad material — an agent handed three irrelevant passages and declining is behaving <em>correctly</em>, and looks identical to one that declines out of timidity. Fixing the evidence holds everything constant except the thing being measured, so a failure localises to routing, filtering, comparison or selection.</p>
       <p><strong>What it is graded on.</strong> Eight named behaviours, each phrased as a question about observable conduct rather than about output text:</p>
       <div class="scroll">
@@ -590,7 +599,7 @@ footer p{margin:0 0 6px;max-width:70ch}
           <tbody>
             <tr><td class="who">route_book_relationship_to_librarian</td><td>When the cue is about the book, does it start with the book?</td></tr>
             <tr><td class="who">route_external_recommendation_to_web</td><td>When the cue asks for an outside work, does it search the web and open a page before citing it?</td></tr>
-            <tr><td class="who">expand_source_only_when_justified</td><td>Does it add a second source only when the first genuinely cannot answer?</td></tr>
+            <tr><td class="who">expand_source_only_when_justified</td><td>Does it add another source only when the requested comparison or insufficient support justifies it?</td></tr>
             <tr><td class="who">stop_when_primary_source_is_sufficient</td><td>When the first source is enough, does it stop rather than searching on?</td></tr>
             <tr><td class="who">select_evidence_with_a_real_semantic_bridge</td><td>Does the winner rest on a specific shared structure and difference, not a topic match?</td></tr>
             <tr><td class="who">rank_the_strongest_supported_connection</td><td>Does it pick the uniquely strongest candidate — and decline when the top two tie?</td></tr>
@@ -617,8 +626,8 @@ footer p{margin:0 0 6px;max-width:70ch}
       </div>
 
       <h3>Layer two — scenario replay: testing the handoffs</h3>
-      <p>Component evidence says nothing about coordination, and coordination is where multi-agent systems usually fail. Scenario replay runs human-authored synthetic material through the entire production path — Muse, Librarian, Serendipity, Provenance and release validation together — in an isolated account with its own memory store.</p>
-      <p>The material is authored before anyone sees how the system responds, and an independent reviewer adopts the expected outcomes; the generator cannot grade its own work. Public evidence is pinned to adopted snapshots, so a page that changed or vanished cannot be quietly counted as successful restraint. Two scenarios are currently adopted, both built around connection and restraint.</p>
+      <p>Scenario replay feeds scripted reader messages through the production chat path, including Muse, Librarian, Serendipity, Provenance, and release validation. Each run uses an isolated account and memory store. Synthetic inputs and expected outcomes are authored before replay; an independent human reviewer must adopt the expected outcomes before they become grading authority.</p>
+      <p>The runner permits only the supplied public URLs. Web searches remain live when invoked, while <code>get_page</code> returns the adopted page snapshot after the production URL and privacy checks. This makes page contents repeatable, but does not test whether the live page is available or unchanged. The <a href="../synthetic-journal-evaluation/README.md">scenario index</a> records adopted Roses and Cross-source scenarios, with neither replayed against the current implementation. Adoption establishes reviewed expectations, not a passing result.</p>
 
       <h3>Layer three — production replay: the live path</h3>
       <p>The narrowest and most realistic layer: one case driven through real chat with real web retrieval. It grades six stages <em>in order</em> and stops at the first failure, marking everything after it as not reached.</p>
@@ -626,18 +635,18 @@ footer p{margin:0 0 6px;max-width:70ch}
         <table>
           <thead><tr><th>#</th><th>Stage</th><th>What a failure here means</th></tr></thead>
           <tbody>
-            <tr><td class="num">1</td><td class="who">invocation</td><td>Muse never asked. The connection path was not exercised at all.</td></tr>
-            <tr><td class="num">2</td><td class="who">retrieval</td><td>Searching failed or returned nothing usable — a source problem, not a judgement problem.</td></tr>
-            <tr><td class="num">3</td><td class="who">serendipity_selection</td><td>It searched fine but chose wrongly. This is the agent's own failure.</td></tr>
-            <tr><td class="num">4</td><td class="who">muse_presentation</td><td>Serendipity was right; Muse mishandled the result.</td></tr>
-            <tr><td class="num">5</td><td class="who">provenance_review</td><td>The draft was written but the reviewer rejected it.</td></tr>
-            <tr><td class="num">6</td><td class="who">deterministic_release</td><td>Review passed but a cited record would not re-resolve — the last gate held.</td></tr>
+            <tr><td class="num">1</td><td class="who">invocation</td><td>No discovery event was recorded.</td></tr>
+            <tr><td class="num">2</td><td class="who">retrieval</td><td>Search observations are missing or record a retrieval failure.</td></tr>
+            <tr><td class="num">3</td><td class="who">serendipity_selection</td><td>Discovery failed or the proposal-or-decline decision differs from the expected decision.</td></tr>
+            <tr><td class="num">4</td><td class="who">muse_presentation</td><td>Release inspection is missing or records a Muse draft or revision failure.</td></tr>
+            <tr><td class="num">5</td><td class="who">provenance_review</td><td>The final Provenance verdict is not <code>pass</code>.</td></tr>
+            <tr><td class="num">6</td><td class="who">deterministic_release</td><td>The release source differs from the expected source or deterministic validation failed.</td></tr>
           </tbody>
         </table>
       </div>
-      <p>The ordering is the point. A single pass/fail would say only "the feature didn't work"; a first-failing stage distinguishes <em>searched badly</em> from <em>chose badly</em> from <em>was correctly blocked</em> — and the last of those is a success for the safety design even though the reader saw no connection.</p>
+      <p>The first failing stage identifies where to investigate. These checks do not judge the semantic quality of the selected connection or reply, the correctness of Provenance's verdict, or every earlier turn. A blocked response may demonstrate a working safeguard, but a structural failure alone does not establish that the block was correct.</p>
       <figure>
-        <svg viewBox="0 0 880 300" role="img" aria-label="Matrix of three evaluation layers against five system components. Component evaluation runs only Serendipity with fixed evidence and does not exercise Muse, Provenance or release. Scenario replay runs every component for real with evidence pinned to adopted snapshots. Production replay runs everything for real with a live external web call.">
+        <svg viewBox="0 0 880 300" role="img" aria-label="Matrix of three evaluation layers. Component evaluation runs Serendipity with fixed evidence and a simulated Librarian judgment. Scenario replay uses the production chat path with live searches and saved page contents. Direct production replay uses live web retrieval. Every provider-backed layer also makes model API calls.">
           <text x="258" y="44" class="svg-l" text-anchor="middle">MUSE</text>
           <text x="390" y="44" class="svg-l" text-anchor="middle">SERENDIPITY</text>
           <text x="522" y="44" class="svg-l" text-anchor="middle">SOURCES</text>
@@ -664,8 +673,8 @@ footer p{margin:0 0 6px;max-width:70ch}
           <rect x="328" y="124" width="124" height="52" rx="2" class="svg-box"></rect>
           <text x="390" y="156" class="svg-t" text-anchor="middle">real</text>
           <rect x="460" y="124" width="124" height="52" rx="2" fill="var(--caution-wash)" stroke="var(--caution)" stroke-width="1.4"></rect>
-          <text x="522" y="150" class="svg-t" text-anchor="middle" fill="var(--caution)">pinned</text>
-          <text x="522" y="166" class="svg-s" text-anchor="middle">adopted snapshots</text>
+          <text x="522" y="146" class="svg-t" text-anchor="middle" fill="var(--web)">live search</text>
+          <text x="522" y="163" class="svg-s" text-anchor="middle">saved page text</text>
           <rect x="592" y="124" width="124" height="52" rx="2" class="svg-box"></rect>
           <text x="654" y="156" class="svg-t" text-anchor="middle">real</text>
           <rect x="724" y="124" width="124" height="52" rx="2" class="svg-box"></rect>
@@ -693,17 +702,17 @@ footer p{margin:0 0 6px;max-width:70ch}
           <rect x="490" y="266" width="12" height="12" rx="2" fill="var(--web-wash)" stroke="var(--web)" stroke-width="1.6"></rect>
           <text x="510" y="276" class="svg-s">live external call</text>
         </svg>
-        <figcaption><b>Figure 4</b> What each layer actually exercises. Reading down the Sources column shows the trade being made: isolation and repeatability at the top, realism at the bottom — and only the bottom row leaves the system.</figcaption>
+        <figcaption><b>Figure 4</b> Component retrieval is simulated. Scenario replay can make live web searches but returns saved page text. Direct production replay uses live web retrieval. All provider-backed runs also make external model calls; the figure distinguishes retrieval dependencies, not offline execution.</figcaption>
       </figure>
 
       <h3>Why the layers cannot substitute for each other</h3>
-      <p>Each layer buys a different thing, and the currency is the same: what you hold fixed is what you can no longer test.</p>
+      <p>Each layer tests a different set of dependencies. Fixed inputs improve repeatability while leaving the replaced behaviour untested.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>Layer</th><th>Can establish</th><th>Cannot establish</th></tr></thead>
           <tbody>
             <tr><td class="who">Component</td><td>The right local decision under controlled evidence; repeatable and cheap.</td><td>Anything about real retrieval, the other agents, or what the reader saw.</td></tr>
-            <tr><td class="who">Scenario replay</td><td>Correct coordination and safeguards across the full path.</td><td>General search coverage — the evidence was pinned, so breadth is untested.</td></tr>
+            <tr><td class="who">Scenario replay</td><td>Coordination and safeguards for adopted cases using live searches and saved page contents.</td><td>General search coverage or the freshness and availability of live page contents.</td></tr>
             <tr><td class="who">Production replay</td><td>That the live path works end to end for the case that ran.</td><td>Generality from one case; and structural passes still leave semantics unreviewed.</td></tr>
           </tbody>
         </table>
@@ -711,7 +720,7 @@ footer p{margin:0 0 6px;max-width:70ch}
       <p>The repository makes the mapping explicit rather than implied: the behaviour <code>route_external_recommendation_to_web</code> supports the product objective <em>cross-source tentative connection</em>, but that objective additionally requires Muse invocation, real retrieval, Muse presentation, Provenance review, deterministic release and the reader-visible response — none of which the component layer touches.</p>
       <div class="note">
         <b>What none of this establishes</b>
-        <p>Every automated check in all three layers is structural. Whether a surfaced connection genuinely deepened someone's reflection — the entire reason the feature exists — has no automated measure and is explicitly reserved for human judgement. A run that passes every gate can still have produced something not worth saying.</p>
+        <p>Hard gates establish structural behaviour. The optional model reviewer assesses semantic criteria separately, but neither establishes that a connection helped a real reader reflect. That requires human evaluation. A run can pass its structural checks and still produce an unhelpful suggestion.</p>
       </div>
 
 <div class="head" id="s11"><span class="secnum">11</span><h2>Limitations and open work</h2></div>
@@ -719,19 +728,30 @@ footer p{margin:0 0 6px;max-width:70ch}
         <table>
           <thead><tr><th>Limitation</th><th>Why it matters</th></tr></thead>
           <tbody>
-            <tr><td class="who">Live web evidence is thin</td><td>Serendipity is the only agent whose production path calls an external service, yet its component tools are entirely fixture-backed and only one live case exists. It carries the most external risk with the least automated evidence.</td></tr>
-            <tr><td class="who">Memory discovery is unexercised</td><td>The runtime supports searching memories, but the memory evaluation case sits parked outside the tested baseline &mdash; the only such case in the project.</td></tr>
-            <tr><td class="who">No published report artefact</td><td>Two sibling agents keep a committed evaluation report that others can inspect. Serendipity's runs are not preserved that way, so its claims rest on re-running rather than on a record.</td></tr>
-            <tr><td class="who">Prose quality is unmeasured</td><td>Every automated check is structural. Whether a surfaced connection actually deepens a reflection &mdash; the thing the feature exists for &mdash; has no automated measure.</td></tr>
+            <tr><td class="who">Current live coverage is unestablished</td><td>Component retrieval is simulated. The direct production replay defines one case, and the <a href="../synthetic-journal-evaluation/README.md">scenario index</a> records no current-implementation run for the adopted connection scenarios. Saved historical results do not establish current search coverage.</td></tr>
+            <tr><td class="who">Memory component coverage is missing</td><td>The memory case remains outside the component baseline in <code>cases/future/</code>. Historical Roses replays do exercise <code>search_memories</code>; this is a narrower component-coverage gap, not an absence of all memory-search evaluation.</td></tr>
+            <tr><td class="who">Saved runs need historical context</td><td>The committed <a href="../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/connection-run-1.json">Roses run 1</a> and <a href="../synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/connection-run-2.json">run 2</a> record memory retrieval and failed hard gates in Scenes S1 and S2. They preserve evidence of earlier failures, not a verdict on the current implementation.</td></tr>
+            <tr><td class="who">Reader value remains unvalidated</td><td>An optional model reviewer can assess prose against semantic criteria. Whether the connection helps a person reflect still requires human evaluation.</td></tr>
             <tr><td class="who">Images unsupported</td><td>Photographs reach Muse but have no retrieval, citation or release path through Serendipity.</td></tr>
           </tbody>
         </table>
       </div>
-      <p>The honest summary is that Serendipity's <em>boundaries</em> are well evidenced and its <em>usefulness</em> is not yet. That is the right order to build in &mdash; a connection engine that cannot be trusted is worse than none &mdash; but the second half of the claim remains open.</p>
+      <p>Contract tests check structural boundaries. Historical replay artifacts preserve both exercised paths and failures. Current production behaviour needs fresh replay evidence, and reader usefulness needs human evaluation.</p>
 
       <div class="head" id="s12"><span class="secnum">12</span><h2>Sources</h2></div>
-      <p>Every claim in this report traces to code or documentation in the Linger repository rather than to description. The primary references are the Serendipity subsystem notes and its typed contracts, the <code>connection-discovery</code> skill instructions, the orchestration module that owns grants and validation, the guarded search tools, the component evaluation guide, and the canonical system specification.</p>
-      <p>The companion role pages for Muse, Librarian, Provenance and Sculptor cover the agents referenced in section 9.</p>
+      <p>The <a href="design/serendipity-design.html">Serendipity design page</a> summarises the implementation. These repository sources support the detailed claims and distinguish current code from historical evaluation results:</p>
+      <ul>
+        <li><a href="../src/linger/agents/serendipity/models.py">Candidate ratings, shortlist validation, and output contracts</a></li>
+        <li><a href="../src/linger/agents/serendipity/skills/connection-discovery/SKILL.md">Connection-discovery routing and comparison instructions</a></li>
+        <li><a href="../src/linger/agents/serendipity/tools.py">Book evidence, source grants, and web privacy checks</a></li>
+        <li><a href="../src/linger/orchestration/connection.py">Selected evidence registration and full decision handoff</a></li>
+        <li><a href="../src/linger/orchestration/reflection.py">Muse drafting, Provenance inputs, and release validation</a></li>
+        <li><a href="../evals/serendipity/README.md">Component evaluation and direct production replay</a></li>
+        <li><a href="../evals/serendipity/runner.py">Fixed component evidence and simulated Librarian judgment</a></li>
+        <li><a href="../evals/synthetic_journals/README.md#connection-and-restraint-replay">Adopted connection scenario replay</a> and <a href="../evals/synthetic_journals/frozen_public_sources.py">saved page implementation</a></li>
+        <li><a href="../synthetic-journal-evaluation/README.md">Scenario adoption, historical artifacts, and current-run status</a></li>
+        <li><a href="specification.md">Canonical system specification</a> and <a href="project-progress.html#roles">role overview</a></li>
+      </ul>
 
     </main>
   </div>
@@ -741,3 +761,5 @@ footer p{margin:0 0 6px;max-width:70ch}
     <p>Linger &mdash; NUS-ISS Graduate Certificate in Architecting AI Systems.</p>
   </footer>
 </div>
+</body>
+</html>

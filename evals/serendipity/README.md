@@ -120,11 +120,13 @@ an objective pass.
 [`evals.synthetic_journals.connection_replay`](../synthetic_journals/README.md#connection-and-restraint-replay)
 supports independently adopted scenarios for `cross_source_tentative_connection`,
 `weak_evidence_safe_decline`, or both. The typed path runs production chat with
-isolated memory storage, registered corpus retrieval, and live public retrieval
-bounded to the supplied URLs. Adopted public snapshots define the exact evidence
-expected from live pages. Changed or unavailable evidence cannot count as
-successful restraint. This controlled test does not establish general search
-coverage.
+isolated memory storage and registered corpus retrieval. Public page access is
+bounded to supplied URLs. Web searches remain live when invoked, while
+`get_page` returns the adopted page snapshot after production URL and privacy
+checks. This evaluates handling of the supplied evidence, not live page
+freshness, availability, or general search coverage. The
+[scenario index](../../synthetic-journal-evaluation/README.md) distinguishes
+historical replay artifacts from current-implementation results.
 
 The release gate checks selected memory and public evidence against the exact
 current-run records reviewed by Provenance. Unknown or changed evidence fails
