@@ -141,7 +141,7 @@ and deterministically verified, not yet measured against a model.
       with `capture_curation_replay.py --adoption` on 15 September 2026. The
       replay completed all 11 capture Scenes and preserved the recorded source
       hashes and adoption identity. See the saved [evaluation artifact](../../synthetic-journal-evaluation/scenarios/reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13/scenario-run-2026-09-15T090319+0800-dhh6rg24/evaluation.json).
-- [ ] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
+- [x] **E9 — Run the skill for `sensitive_inference_and_capture_veto`.** The
       capture runner and scenario validator now support this Objective's
       isolated Line topology, including candidate, vetoed-candidate, and
       no-candidate Scenes. Non-boundary Scenes additionally record the released
