@@ -33,6 +33,7 @@ from evals.synthetic_journals.models import (
     Scene,
     SceneSourceSetup,
     SyntheticBackstory,
+    UnavailableCandidate,
 )
 from evals.synthetic_journals.surfacing_contract import (
     SURFACING_OBJECTIVE_ID,
@@ -446,7 +447,9 @@ def _validate_sensitive_capture_objective(
         if isinstance(proposal.capture.nomination, CaptureCandidate):
             candidate_count += 1
             veto_count += proposal.capture.provenance_decision == "reject_capture"
-        elif isinstance(proposal.capture.nomination, NoCandidate):
+        elif isinstance(
+            proposal.capture.nomination, (NoCandidate, UnavailableCandidate)
+        ):
             no_candidate_count += 1
     if candidate_count == 0:
         failures.append("sensitive capture Objective requires a candidate Scene")

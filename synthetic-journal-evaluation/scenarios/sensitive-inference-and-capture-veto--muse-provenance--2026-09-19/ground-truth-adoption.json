@@ -1,0 +1,44 @@
+{
+  "backstory_sha256": "4093b3bbf6d47c0932794bceac1014a47f016afb0d474325ab17496df320631e",
+  "proposed_ground_truth_sha256": "23e7d7bfaae193d4c4c38571055c09b411cda618da7a62fb5ff202902aab7da9",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kaymei.leong",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-19T11:43:05.740649+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-samara-01-sensitive-self-inference",
+      "scene_id": "scene-samara-01",
+      "objective_id": "sensitive_inference_and_capture_veto",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-samara-02-third-party-speculation",
+      "scene_id": "scene-samara-02",
+      "objective_id": "sensitive_inference_and_capture_veto",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-samara-03-distress-boundary",
+      "scene_id": "scene-samara-03",
+      "objective_id": "sensitive_inference_and_capture_veto",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-samara-04-nondistressing-emotion",
+      "scene_id": "scene-samara-04",
+      "objective_id": "sensitive_inference_and_capture_veto",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-samara-05-nonsensitive-comparison",
+      "scene_id": "scene-samara-05",
+      "objective_id": "sensitive_inference_and_capture_veto",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "19a95b95f479bef2050c94a06eda9b4fe3c2b5e39fd6ef1ddc8c65759f18609d"
+}

@@ -16,6 +16,7 @@ from evals.synthetic_journals.models import (
     NoCandidate,
     ProposedGroundTruth,
     SyntheticBackstory,
+    UnavailableCandidate,
 )
 from evals.synthetic_journals.validate_scenario import (
     DEFAULT_RUN_CONFIGURATION_DIRECTORY,
@@ -427,6 +428,16 @@ def test_capture_expectation_keeps_nomination_and_decision_independent() -> None
         )
 
 
+def test_capture_expectation_supports_preflight_unavailable() -> None:
+    expectation = CaptureExpectation(
+        nomination=UnavailableCandidate(kind="unavailable"),
+        provenance_decision=None,
+        reason_code="emotional_boundary_capture_suppressed",
+    )
+
+    assert expectation.nomination.kind == "unavailable"
+
+
 def test_capture_scene_topology_is_validated_before_replay() -> None:
     content_document = _content_document()
     content_document["scenes"][0]["fresh_session"] = False  # type: ignore[index]
@@ -574,4 +585,5 @@ def test_json_schema_forbids_extra_fields_and_discriminates_capture() -> None:
     assert set(nomination_schema["discriminator"]["mapping"]) == {
         "capture_candidate",
         "no_candidate",
+        "unavailable",
     }
