@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "7fb6d9ac4ab7449cb9cfaf03bfe4a579",
+  "generated_at": "2026-09-15T14:36:27.445178Z",
+  "model": "openai:gpt-5.6-luna",
+  "skill_id": "serendipity.connection-discovery",
+  "prompt_template_id": "serendipity.search-rank-select",
+  "prompt_digest": "1fd06b841bc05b03b8a32c5f46f06782fa2fcf82413d3a43d330a90ed074eb39",
+  "dataset_digest": "e3794acde595f742b5076139626d8d8139edbaef0ca15790aa57830abe38ff2b",
+  "concurrency": 1,
+  "summary": {
+    "case_count": 1,
+    "repeats": 5,
+    "total_runs": 5,
+    "total_passes": 5,
+    "run_pass_rate": 1.0,
+    "cases_pass_pow_k": 1,
+    "cases_unstable": 0,
+    "cases_never_passed": 0,
+    "cases_with_unstable_decision": 0,
+    "suite_pass_pow_k": true
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 10.235,
+      "mean_model_requests": 2.2,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 9.069301042007282,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [],
+          "latency_seconds": 16.031653042009566,
+          "model_requests": 3,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 10.378270708024502,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 7.759708208031952,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 7.937146041018423,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    }
+  ]
+}
