@@ -99,6 +99,8 @@ class TurnInspection(BaseModel):
     traces: list[dict[str, str]]
     connection_decline: ConnectionDeclineInspection | None = None
     librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)
+    # Turn triage result, the tools Muse was offered, and any pinned intent.
+    tool_exposure: dict[str, Any] | None = None
     prompt: str
     release: ReleaseInspection | None = None
 

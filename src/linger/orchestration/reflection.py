@@ -128,6 +128,8 @@ class ReflectionRelease:
     evidence_ids: tuple[str, ...] = ()
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
     released_evidence_ids: tuple[str, ...] = ()
+    # Muse tools that actually ran in a released turn; a declined turn records none.
+    tool_names: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:
@@ -338,6 +340,10 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
         if isinstance(part, ToolReturnPart)
         and part.tool_name in {"librarian_search", "librarian_route", "serendipity_explore"}
     ]
+
+
+def _tool_names(tool_results: list[dict[str, object]]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(str(result["tool_name"]) for result in tool_results))
 
 
 def _routing_responses(
@@ -1114,6 +1120,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
                 released_evidence_ids=_candidate_citation_ids(candidate) if draft_clarification is None else (),
+                tool_names=_tool_names(draft_tool_results),
             ),
         )
     if review.response_decision != "revise":
@@ -1362,6 +1369,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(revised_candidate),
                 review_finding_codes=_review_codes(review, revised_review),
                 released_evidence_ids=_candidate_citation_ids(revised_candidate) if revised_clarification is None else (),
+                tool_names=_tool_names(revised_tool_results),
             ),
         )
     return _record_release(

@@ -43,6 +43,17 @@ def offline_model_requests():
         yield
 
 
+@pytest.fixture(autouse=True)
+def unsure_turn_triage(monkeypatch):
+    """Chat turns triage as unsure, offering every tool unpinned, unless a test scripts triage."""
+    from src.linger.contracts.triage import TurnNeeds
+
+    async def triage(current_line, **_):
+        return TurnNeeds(book_content="unsure", memory="unsure")
+
+    monkeypatch.setattr("apps.backend.chat_turn.triage_turn", triage)
+
+
 # Loads the real models once and keeps their indexes apart from fake-built ones.
 REAL_MODELS = HybridLibrarian()
 
