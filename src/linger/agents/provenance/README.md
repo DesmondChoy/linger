@@ -37,7 +37,9 @@ policy in `agents.provenance` in the
 the selected skill's instructions, output contract, and retry limit before invoking the
 model. Candidate review permits two output retries. Preflight and curation
 review each permit one. Pydantic model validators and deterministic checks
-remain task-specific.
+remain task-specific. The two live-chat skills also carry an explicit request
+budget sized to their own output retries, so a model answering with calls to
+tools it was never given fails closed rather than looping on retry prompts.
 
 No skill receives tools or PydanticAI dependencies. Every run starts without
 message history. Request data stays in the typed input. Concurrent runs and evaluation

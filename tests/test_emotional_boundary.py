@@ -13,7 +13,8 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from pydantic import ValidationError
-from pydantic_ai.messages import ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
+from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from apps.backend.config import get_settings
@@ -47,7 +48,7 @@ with patch.dict(
         MemoryPolicyService,
     )
 
-from src.linger.agents.provenance.agent import build_provenance_agent
+from src.linger.agents.provenance.agent import build_provenance_agent, provenance_agent
 from src.linger.agents.provenance.emotional_prompt import INSTRUCTIONS
 from src.linger.agents.provenance.skills import EMOTIONAL_PREFLIGHT
 from src.linger.contracts.emotional import (
@@ -57,6 +58,7 @@ from src.linger.contracts.emotional import (
     EmotionalBoundaryInput,
     EmotionalContentPolicy,
 )
+from src.linger.orchestration import emotional as emotional_module
 from src.linger.orchestration.emotional import (
     EmotionalBoundaryValidationError,
     assess_emotional_boundary,
@@ -449,6 +451,42 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         reflection.assert_not_awaited()
         self.assertEqual([], self.service.list_active(self.account))
         self.assertIsNone(sessions.reading_candidate(self.session_id))
+
+    async def test_preflight_usage_limit_exceeded_fails_closed_before_muse(self) -> None:
+        # A budget of zero must block this request before the model ever
+        # answers; if it did not, this otherwise-valid response would let the
+        # turn continue into (mocked) reflection instead of declining.
+        def continue_reflection(messages, info: AgentInfo) -> ModelResponse:
+            return ModelResponse(parts=[ToolCallPart(
+                info.output_tools[0].name, {"decision": "continue_reflection"},
+            )])
+
+        reflection = AsyncMock()
+        with (
+            patch.object(emotional_module, "EMOTIONAL_PREFLIGHT_REQUEST_LIMIT", 0),
+            provenance_agent.override(model=FunctionModel(continue_reflection)),
+            patch.object(chat_turn, "reflection_reply", reflection),
+        ):
+            response = await main.chat(
+                ChatRequest(
+                    session_id=self.session_id,
+                    message="The Caterpillar makes me wonder who I am.",
+                ),
+                self.service,
+                self.account,
+            )
+
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, response.reply)
+        self.assertEqual(
+            "application_safe_decline",
+            response.inspection.release.release_source,
+        )
+        self.assertEqual(
+            "emotional_boundary_preflight",
+            response.inspection.release.failure_stage,
+        )
+        self.assertEqual("model", response.inspection.release.failure_type)
+        reflection.assert_not_awaited()
 
     async def test_preflight_contract_failure_is_non_retryable_validation(
         self,

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal, Protocol
 
 import logfire
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 
 from apps.backend.telemetry import run_agent_traced
 from src.linger.agents.librarian.models import (
@@ -20,6 +20,12 @@ from src.linger.agents.librarian.prompt import PROMPT_FINGERPRINT
 from src.linger.agents.librarian.skills import BOOK_REQUEST, EVIDENCE_ASSESSMENT
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.session import ReaderStatement
+
+# No tools reach either judgment; these bound their own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+BOOK_REQUEST_REQUEST_LIMIT = BOOK_REQUEST.output_retries + 1
+EVIDENCE_ASSESSMENT_REQUEST_LIMIT = EVIDENCE_ASSESSMENT.output_retries + 1
 
 
 class StrengthJudge(Protocol):
@@ -63,6 +69,7 @@ async def plan_book_request(
         prompt_template_id=fingerprint.template_id,
         prompt_digest=fingerprint.digest,
         failure_code="book_request_model_failed",
+        usage_limits=UsageLimits(request_limit=BOOK_REQUEST_REQUEST_LIMIT),
         **BOOK_REQUEST.run_options(),
     )
     plan = planned.output
@@ -102,6 +109,7 @@ async def assess_book_evidence(
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
         prompt_digest=PROMPT_FINGERPRINT.digest,
         failure_code="evidence_strength_model_failed",
+        usage_limits=UsageLimits(request_limit=EVIDENCE_ASSESSMENT_REQUEST_LIMIT),
         **EVIDENCE_ASSESSMENT.run_options(),
     )
     assessment: BookEvidenceAssessment = result.output

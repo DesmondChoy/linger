@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.models import Model
 
 from apps.backend.telemetry import run_agent_traced
@@ -13,6 +13,10 @@ from src.linger.contracts.triage import TurnNeeds, TurnTriageInput
 from src.linger.orchestration.turn_context import ToolExposure
 
 BOOK_TOOLS = frozenset({"librarian_route", "librarian_search"})
+# No tools reach turn triage; this bounds its own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+TURN_TRIAGE_REQUEST_LIMIT = TURN_TRIAGE.output_retries + 1
 # `none` adds nothing and `unsure` adds the tool without pinning an intent.
 PINNED_INTENTS = {
     "own_earlier_reflections": "recall_memory",
@@ -72,6 +76,7 @@ async def triage_turn(
             "triage.memory": run_result.output.memory,
             "triage.override_attempt": run_result.output.override_attempt,
         },
+        usage_limits=UsageLimits(request_limit=TURN_TRIAGE_REQUEST_LIMIT),
         **run_options,
     )
     return TurnNeeds.model_validate(result.output)

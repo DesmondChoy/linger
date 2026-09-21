@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
 import logfire
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -79,6 +79,26 @@ from src.linger.orchestration.instruction_leak_detection import detect_instructi
 from src.linger.orchestration.turn_context import turn_evidence, active_memories
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
+
+# A grounded turn routes once, searches once per book the reader named, and
+# explores one connection; a two-book comparison is the longest ordinary shape,
+# at four calls. Double that for headroom: PydanticAI refuses a whole batch of
+# parallel tool calls that would cross this line, and a cap that declines a real
+# turn is worse than one that lets a looping model waste a few more calls first.
+MUSE_TOOL_CALL_LIMIT = 8
+# The tool-call budget above is what stops a tool loop; this one only has to be
+# loose enough never to pre-empt it. Each successful call costs one model
+# request, and a failed one — the pinned-intent check, or invalid tool arguments
+# — costs a request without consuming tool-call budget, its per-tool retry count
+# resetting after each success. So allow one failure per permitted call plus one
+# per tool, on top of the opening request and Muse's own output repairs.
+MUSE_REQUEST_LIMIT = (
+    1 + 2 * MUSE_TOOL_CALL_LIMIT + len(REFLECTION.tools) + REFLECTION.output_retries
+)
+# No tools reach candidate review; this bounds its own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+PROVENANCE_REVIEW_REQUEST_LIMIT = CANDIDATE_REVIEW.output_retries + 1
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
@@ -795,6 +815,7 @@ async def _review(
             prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
             failure_code="provenance_model_failed",
             result_attrs=lambda run_result: review_attrs(run_result.output),
+            usage_limits=UsageLimits(request_limit=PROVENANCE_REVIEW_REQUEST_LIMIT),
             **CANDIDATE_REVIEW.run_options(),
         )
     finally:
@@ -988,6 +1009,10 @@ async def _reflection_reply(
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
             message_history=history,
+            usage_limits=UsageLimits(
+                request_limit=MUSE_REQUEST_LIMIT,
+                tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
+            ),
             **REFLECTION.run_options(),
         )
     except Exception:
@@ -1195,6 +1220,10 @@ async def _reflection_reply(
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
             message_history=[*history, *draft_result.new_messages()],
+            usage_limits=UsageLimits(
+                request_limit=MUSE_REQUEST_LIMIT,
+                tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
+            ),
             **REFLECTION.run_options(),
         )
     except Exception:

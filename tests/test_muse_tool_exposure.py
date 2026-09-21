@@ -278,6 +278,35 @@ def test_failed_triage_offers_every_tool_and_still_releases(turns, failure) -> N
     ]
 
 
+def test_triage_usage_limit_exceeded_offers_every_tool_and_still_releases(turns) -> None:
+    """Exhausting triage's own request budget fails open, exactly like any other
+    triage fault. Without the budget this model answers triage with no needs at
+    all, which would withhold every tool instead."""
+    from src.linger.orchestration import triage as triage_module
+    from src.linger.orchestration.triage import triage_turn as real_triage_turn
+
+    draft = turns.muse()
+
+    def respond(messages, info: AgentInfo) -> ModelResponse:
+        payload = json.loads(next(
+            part.content for message in reversed(messages) for part in reversed(message.parts)
+            if isinstance(part, UserPromptPart)
+        ))
+        if "mode" not in payload:  # the turn-triage prompt, not a Muse draft
+            return ModelResponse(parts=[ToolCallPart(
+                info.output_tools[0].name, NOTHING.model_dump(mode="json"),
+            )])
+        return draft(messages, info)
+
+    turns.monkeypatch.setattr(chat_turn, "triage_turn", real_triage_turn)
+    turns.monkeypatch.setattr(triage_module, "TURN_TRIAGE_REQUEST_LIMIT", 0)
+    response = turns.run(respond)
+
+    assert turns.offered == [{"tools": ALL_TOOLS, "intents": ALL_INTENTS}]
+    assert response.inspection.release.release_source == "muse_candidate"
+    assert response.inspection.tool_exposure["triage_failed"] is True
+
+
 def test_emotional_boundary_stops_the_turn_before_triage(turns) -> None:
     turns.boundary = "apply_boundary"
     turns.triage(NOTHING)
