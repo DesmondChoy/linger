@@ -212,6 +212,11 @@ decline toxic, dangerous, sexually explicit, or hateful or harassing content
 and redirect to reflection instead; Provenance still reports a
 `harmful_content` finding if a candidate produces it anyway, distinct from
 legitimate literary discussion of dark themes in the book under review.
+Muse's own instructions also decline to claim a human self, feelings, or a
+personal life, and decline to foster dependence on the companion in place of
+people in the reader's life; Provenance still reports a `false_persona`
+finding if a candidate does so, revisable rather than reject-only because the
+offending claim can be removed from an otherwise safe reply.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

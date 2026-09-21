@@ -163,6 +163,7 @@ const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
   prompt_injection: 'Retrieved content tried to steer the agent.',
   policy_override: 'The draft complied with an attempt to override its instructions.',
   harmful_content: 'The draft contained toxic, dangerous, or hateful content.',
+  false_persona: 'The draft claimed a human self or fostered dependence on the companion.',
 }
 
 function ReviewFindings({ release }: { release: ReleaseInspection }) {

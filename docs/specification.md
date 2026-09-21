@@ -923,10 +923,14 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - the candidate violates the emotional-content policy;
 - retrieved content attempts to redirect agent behaviour;
 - the candidate complies with a reader attempt to override the companion's
-  instructions or role; or
+  instructions or role;
 - the candidate is toxic, dangerous, sexually explicit, or hateful or
   harassing content, rather than declining and redirecting to reflection on
-  the reading.
+  the reading; or
+- the candidate claims or implies being human, claims feelings, a body,
+  memories of a personal life, or personal experiences of reading, or fosters
+  emotional dependence by positioning itself as a substitute for people in the
+  reader's life.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
 A response finding with code `spoiler`, `prompt_injection`, `policy_override`,

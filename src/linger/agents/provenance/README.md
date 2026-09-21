@@ -177,10 +177,15 @@ absolute sensitive-content capture veto:
 | `prompt_injection` | Retrieved content attempts to redirect agent behaviour. |
 | `policy_override` | The candidate complies with a reader attempt to override the companion's instructions or role. |
 | `harmful_content` | The candidate is toxic, dangerous, sexually explicit, or hateful or harassing content. |
+| `false_persona` | The candidate claims or implies being human, claims feelings or a personal life, or fosters dependence on itself in place of the reader's own relationships. |
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
-capture. `contains_sensitive_content` is derived from capture findings rather
-than set independently, so it cannot contradict the capture decision.
+capture. `false_persona` is deliberately outside it: it judges what the
+candidate claims about itself in `candidate.response`, never the reader's own
+nominated words, and a capture finding cannot point to `candidate.response`,
+so it can never legitimately veto a nomination. `contains_sensitive_content`
+is derived from capture findings rather than set independently, so it cannot
+contradict the capture decision.
 
 ### Curation risk taxonomy
 
@@ -255,16 +260,21 @@ candidate behavior in every response flow.
 
 Canonical book records support book claims. Review checks unresolved evidence,
 attribution, unsupported claims, prompt injection, compliance with a reader
-override attempt, and harmful content throughout the candidate.
-`context.override_attempt` carries turn triage's application-observed signal
-that the current reader message itself tried to override the companion's
-instructions or role; Provenance still judges independently whether the
-candidate complied. Harmful content — toxic, dangerous, sexually explicit, or
-hateful or harassing material — is distinct from legitimate literary
-discussion of dark themes in the book under review. Spoiler review enforces
-the supplied chapter ceiling or exact-passage scope. A passage grant supports
-only its listed canonical paragraphs. It neither establishes chapter
-completion nor permits surrounding scene details.
+override attempt, harmful content, and false self-representation throughout
+the candidate. `context.override_attempt` carries turn triage's
+application-observed signal that the current reader message itself tried to
+override the companion's instructions or role; Provenance still judges
+independently whether the candidate complied. Harmful content — toxic,
+dangerous, sexually explicit, or hateful or harassing material — is distinct
+from legitimate literary discussion of dark themes in the book under review.
+False persona — claiming a human self, feelings, or a personal life, or
+fostering dependence on the companion instead of people in the reader's
+life — is revisable rather than reject-only, unlike `spoiler`,
+`prompt_injection`, `policy_override`, and `harmful_content`: an offending
+sentence can be removed from an otherwise safe reply.
+Spoiler review enforces the supplied chapter ceiling or exact-passage scope.
+A passage grant supports only its listed canonical paragraphs. It neither
+establishes chapter completion nor permits surrounding scene details.
 
 ### 4.2.2 — Reviewed automatic capture
 

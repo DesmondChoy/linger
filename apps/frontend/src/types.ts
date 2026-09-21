@@ -106,6 +106,7 @@ export type RiskCode =
   | 'prompt_injection'
   | 'policy_override'
   | 'harmful_content'
+  | 'false_persona'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'

@@ -35,6 +35,7 @@ class RiskCode(StrEnum):
     PROMPT_INJECTION = "prompt_injection"
     POLICY_OVERRIDE = "policy_override"
     HARMFUL_CONTENT = "harmful_content"
+    FALSE_PERSONA = "false_persona"
 
 # Grounds that make content ineligible for automatic capture.
 SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(

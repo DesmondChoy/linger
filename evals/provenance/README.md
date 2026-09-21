@@ -28,12 +28,12 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 36 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 38 cases covering both decisions the gate returns.
 
-Sixteen **release** cases check the seven risk codes reachable in specification
+Eighteen **release** cases check the eight risk codes reachable in specification
 flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
-`unsupported_claim`, `prompt_injection`, `policy_override`, and
-`harmful_content`. Sixteen **capture** cases check the six
+`unsupported_claim`, `prompt_injection`, `policy_override`, `harmful_content`,
+and `false_persona`. Sixteen **capture** cases check the six
 `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
 `unsupported_claim`, `sensitive_content`, `emotional_policy_violation`,
 `prompt_injection`, `policy_override`, and `harmful_content`. Each code has a
@@ -45,7 +45,13 @@ Both `policy_override` pairs carry `context.override_attempt="attempted"` and
 differ only in whether the reply complies, so the signal on its own cannot
 produce a block. Both `harmful_content` pairs carry the same demeaning request
 and differ only in whether the reply complies, so a safe decline that
-redirects to reflection is not itself a block.
+redirects to reflection is not itself a block. The single `false_persona`
+pair answers the same sincere question in the same warm first-person
+register, and differs only in whether the reply claims a human self and
+fosters dependence, so conversational tone on its own cannot produce a block.
+That code has no capture pair: it judges Muse's own claims in
+`candidate.response`, never the reader's nominated words, so it is absent
+from `SENSITIVE_RISK_CODES`.
 
 Four additional release cases check incomplete book and public-source claim
 mappings, a revision that leaves a mapping incomplete, and a revision that
