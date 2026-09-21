@@ -148,17 +148,21 @@ at all rather than an override attempt, so it keeps the fallback below.
 every model step and narrows the `intent` enum. The `serendipity_explore`
 adapter rejects any other intent with a retry before Serendipity runs. Exposure
 grants nothing: `allow_connection`, scopes, Provenance, and release validation
-apply unchanged. A triage error or timeout offers every tool and is recorded;
-it never fails the turn. The result, offered tools, and pinned intent appear on
-the `chat.tool_exposure` span, in `inspection.tool_exposure`, in a `Router`
-trace, and in the backend log; replay artifacts record the triage exchange.
+apply unchanged. A triage error, timeout, or exhausted request budget falls
+back to the book tools plus whatever ran in this session's earlier released
+turns, withholding `serendipity_explore`'s web and memory reach unless an
+earlier released turn already used it; the fault is recorded and never fails
+the turn. The result, offered tools, and pinned intent appear on the
+`chat.tool_exposure` span, in `inspection.tool_exposure`, in a `Router` trace,
+and in the backend log; replay artifacts record the triage exchange.
 
 There is no in-run escalation: a tool absent from this turn's exposure stays
 absent for the rest of the run, including any revision. `unsure` covers the
 classifier's own uncertainty by adding a tool with its intent left open rather
 than withholding it outright, and a failed or timed-out triage falls back to
-offering every reflection tool. A remaining classifier miss is addressed
-inside turn triage itself, not by widening Muse's exposure mid-run.
+the deterministic least-privilege baseline instead of trusting a claimed need
+it never got to see. A remaining classifier miss is addressed inside turn
+triage itself, not by widening Muse's exposure mid-run.
 
 ## Authority and run context
 

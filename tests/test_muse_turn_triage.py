@@ -40,6 +40,22 @@ def test_contract_accepts_independent_needs_and_rejects_anything_else() -> None:
         TurnTriageInput.model_validate({"current_line": "hi", "message_history": []})
 
 
+def test_a_failed_triage_falls_back_to_the_book_tools_only() -> None:
+    exposure = expose_tools(None, previously_called=frozenset(), book_override=False)
+    assert exposure.tools == frozenset({"librarian_route", "librarian_search"})
+    assert exposure.pinned_intent is None
+
+
+def test_a_failed_triage_keeps_previously_called_reach_but_grants_nothing_new() -> None:
+    exposure = expose_tools(
+        None, previously_called=frozenset({"serendipity_explore"}), book_override=False,
+    )
+    assert exposure.tools == frozenset(
+        {"librarian_route", "librarian_search", "serendipity_explore"}
+    )
+    assert exposure.pinned_intent is None
+
+
 def test_an_override_attempt_withholds_every_triage_derived_tool() -> None:
     needs = TurnNeeds(
         book_content="yes", memory="own_earlier_reflections", override_attempt="attempted",

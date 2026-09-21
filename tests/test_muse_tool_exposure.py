@@ -262,26 +262,50 @@ def test_override_attempt_still_reaches_provenance_as_context(turns) -> None:
 
 
 @pytest.mark.parametrize("failure", ("error", "timeout"))
-def test_failed_triage_offers_every_tool_and_still_releases(turns, failure) -> None:
+def test_failed_triage_falls_back_to_book_tools_and_still_releases(turns, failure) -> None:
     if failure == "timeout":
         turns.monkeypatch.setattr(chat_turn, "TRIAGE_TIMEOUT_SECONDS", 0.01)
         turns.triage(NOTHING, delay=5)
     else:
         turns.triage(RuntimeError("provider down"))
-    response = turns.run(turns.muse())
+    response = turns.run(
+        turns.muse(ToolCallPart("serendipity_explore", {"intent": "recall_memory"})),
+        message="What did I say last time about leaving that job?",
+    )
 
-    assert turns.offered[0] == {"tools": ALL_TOOLS, "intents": ALL_INTENTS}
+    assert turns.offered[0] == {"tools": BOOK_TOOLS, "intents": None}
+    # The recall the reader asked for has no tool, so Muse replies without one.
+    assert turns.explored == [] and "serendipity_explore" in turns.retries[0]
     assert response.inspection.release.release_source == "muse_candidate"
+    assert response.reply == REPLY
     assert response.inspection.tool_exposure["triage_failed"] is True
+    assert response.inspection.tool_exposure["pinned_intent"] is None
     assert [t["status"] for t in response.inspection.traces if t["agent"] == "Router"] == [
         "complete", "failed",
     ]
 
 
-def test_triage_usage_limit_exceeded_offers_every_tool_and_still_releases(turns) -> None:
-    """Exhausting triage's own request budget fails open, exactly like any other
-    triage fault. Without the budget this model answers triage with no needs at
-    all, which would withhold every tool instead."""
+def test_failed_triage_keeps_previously_called_reach_but_grants_nothing_new(turns) -> None:
+    """A triage fault must not hand out `serendipity_explore` (web/memory reach)
+    on its own, but must not strip access an earlier released turn already used."""
+    turns.triage(RECALL)
+    turns.run(turns.muse(ToolCallPart("serendipity_explore", {"intent": "recall_memory"})))
+    assert sessions.called_tools("tool-exposure") == {"serendipity_explore"}
+
+    turns.triage(RuntimeError("provider down"))
+    turns.offered.clear()
+    response = turns.run(turns.muse())
+
+    assert turns.offered[0] == {"tools": ALL_TOOLS, "intents": ALL_INTENTS}
+    assert response.inspection.tool_exposure["triage_failed"] is True
+    assert response.inspection.tool_exposure["pinned_intent"] is None
+
+
+def test_triage_usage_limit_exceeded_falls_back_to_book_tools_and_still_releases(turns) -> None:
+    """Exhausting triage's own request budget is a triage fault like any other:
+    exposure falls back to the deterministic baseline, not to every tool.
+    Without the budget this model answers triage with no needs at all, which
+    would withhold every tool instead."""
     from src.linger.orchestration import triage as triage_module
     from src.linger.orchestration.triage import triage_turn as real_triage_turn
 
@@ -302,7 +326,7 @@ def test_triage_usage_limit_exceeded_offers_every_tool_and_still_releases(turns)
     turns.monkeypatch.setattr(triage_module, "TURN_TRIAGE_REQUEST_LIMIT", 0)
     response = turns.run(respond)
 
-    assert turns.offered == [{"tools": ALL_TOOLS, "intents": ALL_INTENTS}]
+    assert turns.offered == [{"tools": BOOK_TOOLS, "intents": None}]
     assert response.inspection.release.release_source == "muse_candidate"
     assert response.inspection.tool_exposure["triage_failed"] is True
 

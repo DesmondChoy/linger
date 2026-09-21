@@ -872,7 +872,8 @@ async def _turn_tool_exposure(
                 timeout=TRIAGE_TIMEOUT_SECONDS,
             )
         except Exception:
-            # Fail open: a triage fault must never fail the reader's turn.
+            # A triage fault must never fail the reader's turn; `expose_tools`
+            # narrows rather than widens exposure when it has no needs.
             needs = None
         exposure = expose_tools(
             needs,
@@ -906,7 +907,10 @@ async def _turn_tool_exposure(
                 f"Turn triage: book_content={needs.book_content}, "
                 f"memory={needs.memory}, override_attempt={needs.override_attempt}."
                 if needs
-                else "Turn triage failed, so every tool is offered."
+                else (
+                    "Turn triage failed, so exposure falls back to the book tools "
+                    "and this session's earlier tools."
+                )
             )
             + f" Tools offered to Muse: {', '.join(tools) or 'none'}"
             + (f" (intent {exposure.pinned_intent})." if exposure.pinned_intent else ".")

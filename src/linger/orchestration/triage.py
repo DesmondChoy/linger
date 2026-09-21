@@ -31,10 +31,13 @@ def expose_tools(
     previously_called: frozenset[str],
     book_override: bool,
 ) -> ToolExposure:
-    """Add this turn's needs to the session's earlier tools; a failed triage offers all."""
-    if needs is None:
-        return ToolExposure(tools=frozenset(REFLECTION.tools))
+    """Add this turn's needs to the session's earlier tools; a failed triage adds book tools only."""
     tools = set(previously_called) & set(REFLECTION.tools)
+    if needs is None:
+        # Nothing was classified, so add only the book tools, which reach
+        # neither the web nor the account's memories. `serendipity_explore`
+        # stays out unless an earlier released turn already used it.
+        return ToolExposure(tools=frozenset(tools | BOOK_TOOLS))
     if needs.override_attempt == "attempted":
         # Least privilege: grant nothing this message's claimed needs unlock.
         if book_override:
