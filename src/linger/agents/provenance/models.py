@@ -34,6 +34,7 @@ class RiskCode(StrEnum):
     EMOTIONAL_POLICY_VIOLATION = "emotional_policy_violation"
     PROMPT_INJECTION = "prompt_injection"
     POLICY_OVERRIDE = "policy_override"
+    HARMFUL_CONTENT = "harmful_content"
 
 # Grounds that make content ineligible for automatic capture.
 SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
@@ -43,6 +44,7 @@ SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
         RiskCode.EMOTIONAL_POLICY_VIOLATION,
         RiskCode.PROMPT_INJECTION,
         RiskCode.POLICY_OVERRIDE,
+        RiskCode.HARMFUL_CONTENT,
     }
 )
 

@@ -207,7 +207,11 @@ including `context.override_attempt`, turn triage's application-observed
 signal for whether the current reader message itself tried to override the
 companion's instructions or role. This is context, not a verdict: Provenance
 still judges independently whether the candidate complies with it, and reports
-a `policy_override` finding when it does.
+a `policy_override` finding when it does. Muse's own instructions already
+decline toxic, dangerous, sexually explicit, or hateful or harassing content
+and redirect to reflection instead; Provenance still reports a
+`harmful_content` finding if a candidate produces it anyway, distinct from
+legitimate literary discussion of dark themes in the book under review.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

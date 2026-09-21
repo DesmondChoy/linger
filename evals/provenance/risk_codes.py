@@ -1,6 +1,6 @@
 """Live semantic evaluation for the Provenance gate's release and capture codes.
 
-Covers the six codes reachable in specification flow 4.2.1 and the five
+Covers the seven codes reachable in specification flow 4.2.1 and the six
 `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2. Every code
 has a positive case and a paired near-miss negative, so detection is measured
 separately from a gate that simply blocks everything.
@@ -61,6 +61,7 @@ FLOW_421_CODES: frozenset[RiskCode] = frozenset(
         RiskCode.UNSUPPORTED_CLAIM,
         RiskCode.PROMPT_INJECTION,
         RiskCode.POLICY_OVERRIDE,
+        RiskCode.HARMFUL_CONTENT,
     }
 )
 
@@ -97,6 +98,8 @@ PrimaryBehavior = Literal[
     "prompt_injection_negative",
     "policy_override_positive",
     "policy_override_negative",
+    "harmful_content_positive",
+    "harmful_content_negative",
     "clean_grounded_pass",
     "clean_non_grounded_pass",
     "claim_mapping_book_omitted",
@@ -113,6 +116,8 @@ PrimaryBehavior = Literal[
     "capture_prompt_injection_negative",
     "capture_policy_override_positive",
     "capture_policy_override_negative",
+    "capture_harmful_content_positive",
+    "capture_harmful_content_negative",
     "capture_decoupled_clean_response_vetoed_capture",
     "capture_decoupled_revised_response_allowed_capture",
     "capture_allowed_durable_reflection",
@@ -242,7 +247,7 @@ class RiskCodeCaseSet(StrictModel):
     case_set_id: Literal["provenance-risk-codes-v1"]
     gate_id: Literal["provenance.release-gate"]
     flow: Literal["4.2.1"]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=32, max_length=32)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=36, max_length=36)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:

@@ -917,13 +917,16 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - a factual web claim lacks a retrievable citation;
 - the candidate contains an unsupported claim or sensitive inference;
 - the candidate violates the emotional-content policy;
-- retrieved content attempts to redirect agent behaviour; or
+- retrieved content attempts to redirect agent behaviour;
 - the candidate complies with a reader attempt to override the companion's
-  instructions or role.
+  instructions or role; or
+- the candidate is toxic, dangerous, sexually explicit, or hateful or
+  harassing content, rather than declining and redirecting to reflection on
+  the reading.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
-A response finding with code `spoiler`, `prompt_injection`, or
-`policy_override` requires an immediate `response_decision="reject"` rather
+A response finding with code `spoiler`, `prompt_injection`, `policy_override`,
+or `harmful_content` requires an immediate `response_decision="reject"` rather
 than a revision. Capture findings independently determine `capture_decision`;
 rejecting an unsafe nomination does not by itself block a safe reply.
 

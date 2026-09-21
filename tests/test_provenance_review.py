@@ -35,6 +35,7 @@ SPEC_RISK_CODES = (
     RiskCode.EMOTIONAL_POLICY_VIOLATION,
     RiskCode.PROMPT_INJECTION,
     RiskCode.POLICY_OVERRIDE,
+    RiskCode.HARMFUL_CONTENT,
 )
 
 
@@ -173,6 +174,15 @@ class ProvenanceReviewTests(unittest.TestCase):
     def test_policy_override_capture_finding_marks_content_sensitive(self) -> None:
         review = ProvenanceReview(
             findings=(finding("policy_override", applies_to="capture"),),
+            response_decision="pass",
+            emotional_boundary_decision="not_required",
+            capture_decision="reject_capture",
+        )
+        self.assertTrue(review.contains_sensitive_content)
+
+    def test_harmful_content_capture_finding_marks_content_sensitive(self) -> None:
+        review = ProvenanceReview(
+            findings=(finding("harmful_content", applies_to="capture"),),
             response_decision="pass",
             emotional_boundary_decision="not_required",
             capture_decision="reject_capture",
