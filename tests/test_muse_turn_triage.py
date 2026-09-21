@@ -18,17 +18,19 @@ from src.linger.agents.muse.agent import build_muse_agent
 from src.linger.agents.muse.models import MuseCandidate
 from src.linger.agents.muse.skills import REFLECTION, TURN_TRIAGE
 from src.linger.contracts.triage import TurnNeeds, TurnTriageInput
-from src.linger.orchestration.triage import triage_turn
+from src.linger.orchestration.triage import expose_tools, triage_turn
 
 
 def test_contract_accepts_independent_needs_and_rejects_anything_else() -> None:
     both = TurnNeeds(book_content="yes", memory="own_earlier_reflections")
     assert (both.book_content, both.memory) == ("yes", "own_earlier_reflections")
+    assert both.override_attempt == "no_attempt"
     for invalid in (
         {"book_content": "maybe", "memory": "none"},
         {"book_content": "no", "memory": "recall_memory"},
         {"book_content": "no"},
         {"book_content": "no", "memory": "none", "tool": "librarian_route"},
+        {"book_content": "no", "memory": "none", "override_attempt": "yes"},
     ):
         with pytest.raises(ValidationError):
             TurnNeeds.model_validate(invalid)
@@ -36,6 +38,28 @@ def test_contract_accepts_independent_needs_and_rejects_anything_else() -> None:
         TurnTriageInput(current_line="")
     with pytest.raises(ValidationError):
         TurnTriageInput.model_validate({"current_line": "hi", "message_history": []})
+
+
+def test_an_override_attempt_withholds_every_triage_derived_tool() -> None:
+    needs = TurnNeeds(
+        book_content="yes", memory="own_earlier_reflections", override_attempt="attempted",
+    )
+    exposure = expose_tools(needs, previously_called=frozenset(), book_override=False)
+    assert exposure.tools == frozenset()
+    assert exposure.pinned_intent is None
+
+
+def test_an_override_attempt_keeps_the_session_and_deterministic_baseline() -> None:
+    needs = TurnNeeds(
+        book_content="yes", memory="own_earlier_reflections", override_attempt="attempted",
+    )
+    exposure = expose_tools(
+        needs, previously_called=frozenset({"serendipity_explore"}), book_override=True,
+    )
+    assert exposure.tools == frozenset(
+        {"serendipity_explore", "librarian_route", "librarian_search"}
+    )
+    assert exposure.pinned_intent is None
 
 
 @pytest.mark.parametrize(

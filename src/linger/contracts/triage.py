@@ -14,6 +14,7 @@ MemoryNeed = Literal[
     "none",
     "unsure",
 ]
+OverrideAttempt = Literal["no_attempt", "attempted"]
 
 
 class TurnTriageInput(StrictModel):
@@ -23,7 +24,8 @@ class TurnTriageInput(StrictModel):
 
 
 class TurnNeeds(StrictModel):
-    """Two independent needs of the answer; never a tool name or a grant."""
+    """Independent needs of the answer and its override signal; never a tool name or a grant."""
 
     book_content: BookContentNeed
     memory: MemoryNeed
+    override_attempt: OverrideAttempt = "no_attempt"

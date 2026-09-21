@@ -887,6 +887,7 @@ async def _turn_tool_exposure(
             "triage.failed": needs is None,
             "triage.book_content": needs.book_content if needs else None,
             "triage.memory": needs.memory if needs else None,
+            "triage.override_attempt": needs.override_attempt if needs else None,
             "triage.exposed_tools": tools,
             "triage.pinned_intent": exposure.pinned_intent,
         })
@@ -902,7 +903,8 @@ async def _turn_tool_exposure(
         "status": "complete" if needs else "failed",
         "detail": (
             (
-                f"Turn triage: book_content={needs.book_content}, memory={needs.memory}."
+                f"Turn triage: book_content={needs.book_content}, "
+                f"memory={needs.memory}, override_attempt={needs.override_attempt}."
                 if needs
                 else "Turn triage failed, so every tool is offered."
             )
@@ -912,11 +914,12 @@ async def _turn_tool_exposure(
     })
     logger.info(
         "Turn triage elapsed=%.2fs failed=%s book_content=%s memory=%s "
-        "exposed_tools=%s pinned_intent=%s",
+        "override_attempt=%s exposed_tools=%s pinned_intent=%s",
         elapsed,
         str(needs is None).lower(),
         needs.book_content if needs else "none",
         needs.memory if needs else "none",
+        needs.override_attempt if needs else "none",
         ",".join(tools) or "none",
         exposure.pinned_intent or "none",
     )
@@ -991,6 +994,7 @@ async def _run_chat_pipeline(
     if release is None:
         # The revision reuses the draft's exposure: triage runs once per reader turn.
         exposure = await _turn_tool_exposure(request, inspection)
+        review_context["override_attempt"] = exposure.override_attempt
         token = set_confirmed_reading(
             ConfirmedReading(
                 work_id=context["work_id"], chapter_max=context["chapter_max"],

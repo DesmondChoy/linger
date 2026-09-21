@@ -31,6 +31,11 @@ def expose_tools(
     if needs is None:
         return ToolExposure(tools=frozenset(REFLECTION.tools))
     tools = set(previously_called) & set(REFLECTION.tools)
+    if needs.override_attempt == "attempted":
+        # Least privilege: grant nothing this message's claimed needs unlock.
+        if book_override:
+            tools |= BOOK_TOOLS
+        return ToolExposure(tools=frozenset(tools), override_attempt="attempted")
     if book_override or needs.book_content != "no":
         tools |= BOOK_TOOLS
     if needs.memory != "none":
@@ -65,6 +70,7 @@ async def triage_turn(
         result_attrs=lambda run_result: {
             "triage.book_content": run_result.output.book_content,
             "triage.memory": run_result.output.memory,
+            "triage.override_attempt": run_result.output.override_attempt,
         },
         **run_options,
     )

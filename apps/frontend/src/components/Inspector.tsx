@@ -161,6 +161,7 @@ const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
   sensitive_content: 'The draft handled sensitive material outside policy.',
   emotional_policy_violation: 'The draft breached the emotional boundary contract.',
   prompt_injection: 'Retrieved content tried to steer the agent.',
+  policy_override: 'The draft complied with an attempt to override its instructions.',
 }
 
 function ReviewFindings({ release }: { release: ReleaseInspection }) {

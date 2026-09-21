@@ -21,6 +21,7 @@ from src.linger.agents.provenance.quotation_audit import (
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from src.linger.contracts.librarian import EvidenceRecord, PassageScope
+from src.linger.contracts.triage import OverrideAttempt
 
 # Closed release and capture risk taxonomy.
 class RiskCode(StrEnum):
@@ -32,6 +33,7 @@ class RiskCode(StrEnum):
     SENSITIVE_CONTENT = "sensitive_content"
     EMOTIONAL_POLICY_VIOLATION = "emotional_policy_violation"
     PROMPT_INJECTION = "prompt_injection"
+    POLICY_OVERRIDE = "policy_override"
 
 # Grounds that make content ineligible for automatic capture.
 SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
@@ -40,6 +42,7 @@ SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
         RiskCode.SENSITIVE_CONTENT,
         RiskCode.EMOTIONAL_POLICY_VIOLATION,
         RiskCode.PROMPT_INJECTION,
+        RiskCode.POLICY_OVERRIDE,
     }
 )
 
@@ -311,6 +314,15 @@ class ProvenanceContext(StrictModel):
             "Exact application-selected question from validated routing. Its book "
             "identity and reading-boundary alternatives may be repeated without "
             "corpus evidence; this grants no authority for an additional book claim."
+        ),
+    )
+    override_attempt: OverrideAttempt = Field(
+        default="no_attempt",
+        description=(
+            "Application-observed turn-triage signal: whether current_line.text "
+            "itself tried to override the companion's instructions or role. This "
+            "is context, not a verdict; judge independently whether the candidate "
+            "actually complies with it."
         ),
     )
 

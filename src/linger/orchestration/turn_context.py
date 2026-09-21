@@ -11,6 +11,7 @@ from types import MappingProxyType
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
+from src.linger.contracts.triage import OverrideAttempt
 from src.linger.contracts.turn import ConfirmedReading
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
@@ -203,10 +204,11 @@ def reset_turn_evidence(
 
 @dataclass(frozen=True)
 class ToolExposure:
-    """Muse tools offered for one turn, and any pinned `serendipity_explore` intent."""
+    """Muse tools offered for one turn, a pinned `serendipity_explore` intent, and the triage signal."""
 
     tools: frozenset[str]
     pinned_intent: str | None = None
+    override_attempt: OverrideAttempt = "no_attempt"
 
 
 # Unset means no turn-level gating: every tool of the selected skill is offered.

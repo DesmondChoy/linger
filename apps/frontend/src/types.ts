@@ -103,6 +103,7 @@ export type RiskCode =
   | 'sensitive_content'
   | 'emotional_policy_violation'
   | 'prompt_injection'
+  | 'policy_override'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'

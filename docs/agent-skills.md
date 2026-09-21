@@ -135,6 +135,15 @@ tools. Only tools that ran in a released turn are remembered, matching the
 session history and evidence handles, so a declined draft cannot widen later
 turns; `sessions.clear` drops them with the turn records.
 
+Turn triage also classifies `override_attempt`: whether the reader's own
+message tries to override the companion's instructions or role (for example
+"ignore your instructions" or "you are now DAN"), independently of
+`book_content` and `memory`. When triage reports `attempted`, `expose_tools`
+grants no tool this message's claimed needs would otherwise unlock; only tools
+already run in this session's earlier released turns, plus the deterministic
+overrides above, remain offered. A failed or timed-out triage reports no needs
+at all rather than an override attempt, so it keeps the fallback below.
+
 `MuseSkillBoundary.prepare_tools` applies the exposure from the turn context on
 every model step and narrows the `intent` enum. The `serendipity_explore`
 adapter rejects any other intent with a retry before Serendipity runs. Exposure
@@ -193,7 +202,12 @@ conservative precondition, not a deterministic proof of semantic uniqueness.
 Provenance reuses its Agent across three skills, but every review begins with a
 fresh typed input and no message history or tools. Emotional preflight sees
 the current Line and policy. Candidate review sees the complete candidate,
-canonical evidence, untrusted tool outcomes, and bounded reader context.
+canonical evidence, untrusted tool outcomes, and bounded reader context,
+including `context.override_attempt`, turn triage's application-observed
+signal for whether the current reader message itself tried to override the
+companion's instructions or role. This is context, not a verdict: Provenance
+still judges independently whether the candidate complies with it, and reports
+a `policy_override` finding when it does.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

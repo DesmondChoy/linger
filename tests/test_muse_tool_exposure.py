@@ -1,6 +1,7 @@
 """Turn triage gates the tools Muse is offered during a real chat turn."""
 
 import asyncio
+import json
 import os
 from pathlib import Path
 from unittest.mock import patch
@@ -44,6 +45,9 @@ ALL_INTENTS = ["find_connection", "get_recommendation", "recall_memory"]
 NO_MEMORY = {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"}
 NOTHING = TurnNeeds(book_content="no", memory="none")
 RECALL = TurnNeeds(book_content="no", memory="own_earlier_reflections")
+OVERRIDE_ATTEMPT = TurnNeeds(
+    book_content="yes", memory="own_earlier_reflections", override_attempt="attempted",
+)
 REPLY = "That sounds worth staying with."
 FINDING = {
     "code": "unsupported_claim",
@@ -161,7 +165,7 @@ def test_no_book_need_withholds_the_book_tools_and_blocks_a_call_to_them(turns) 
     assert routed == [] and "librarian_route" in turns.retries[0]
     assert response.inspection.release.release_source == "muse_candidate"
     assert response.inspection.tool_exposure == {
-        "triage": {"book_content": "no", "memory": "none"},
+        "triage": {"book_content": "no", "memory": "none", "override_attempt": "no_attempt"},
         "triage_failed": False, "tools": [], "pinned_intent": None,
     }
 
@@ -223,6 +227,38 @@ def test_a_declined_turn_does_not_widen_later_exposure(turns) -> None:
     )
     assert response.inspection.release.provenance_verdicts == ("reject",)
     assert sessions.called_tools("tool-exposure") == frozenset()
+
+
+def test_override_attempt_withholds_book_and_memory_tools_for_the_turn(turns) -> None:
+    turns.triage(OVERRIDE_ATTEMPT)
+    response = turns.run(turns.muse(
+        ToolCallPart("librarian_route", {}),
+        ToolCallPart("serendipity_explore", {"intent": "recall_memory"}),
+    ))
+
+    assert turns.offered[0] == {"tools": [], "intents": None}
+    assert "librarian_route" in turns.retries[0]
+    assert "serendipity_explore" in turns.retries[1]
+    assert response.inspection.release.release_source == "muse_candidate"
+    assert response.inspection.tool_exposure["triage"]["override_attempt"] == "attempted"
+    assert response.inspection.tool_exposure["pinned_intent"] is None
+
+
+def test_override_attempt_still_reaches_provenance_as_context(turns) -> None:
+    contexts: list[dict] = []
+
+    def provenance(messages, info: AgentInfo) -> ModelResponse:
+        payload = next(
+            part.content for message in messages for part in message.parts
+            if isinstance(part, UserPromptPart)
+        )
+        contexts.append(json.loads(payload)["context"])
+        return _review("pass")(messages, info)
+
+    turns.triage(OVERRIDE_ATTEMPT)
+    turns.run(turns.muse(), provenance=provenance)
+
+    assert contexts[0]["override_attempt"] == "attempted"
 
 
 @pytest.mark.parametrize("failure", ("error", "timeout"))

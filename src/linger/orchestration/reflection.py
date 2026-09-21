@@ -649,7 +649,9 @@ def _provenance_context(
             reading_context=None,
             required_clarification=required_clarification,
         )
-    unexpected = set(review_context) - {"policy_constraints", "reading_context", "passage_scope"}
+    unexpected = set(review_context) - {
+        "policy_constraints", "reading_context", "passage_scope", "override_attempt",
+    }
     if unexpected:
         raise ReleaseValidationError("Provenance context contains unknown fields")
     try:
@@ -659,6 +661,7 @@ def _provenance_context(
                 "reading_context": review_context.get("reading_context"),
                 "passage_scope": review_context.get("passage_scope"),
                 "required_clarification": required_clarification,
+                "override_attempt": review_context.get("override_attempt", "no_attempt"),
             }
         )
     except Exception:
