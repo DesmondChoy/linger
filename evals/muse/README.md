@@ -7,11 +7,14 @@ grounding answers in retrieved evidence, and relaying a Serendipity decline
 honestly. The owner identifier in every case is `muse`; Sculptor, Provenance,
 and the Memory & Policy Service retain their separate responsibilities.
 
-Muse has one reusable Agent and one
-[reflection skill](../../src/linger/agents/muse/skills/reflection/SKILL.md) for
-drafts and bounded revisions. The baseline harness grades supplied outputs;
+Muse has one reusable Agent and two explicitly assigned skills: a
+[reflection skill](../../src/linger/agents/muse/skills/reflection/SKILL.md)
+for drafts and bounded revisions, and a
+[turn-triage skill](../../src/linger/agents/muse/skills/turn-triage/SKILL.md)
+that classifies one reader message before a draft is attempted (see Turn
+triage measurement below). The baseline harness grades supplied outputs;
 production chat and synthetic replay select the same skill before invoking
-Muse. Its fixed `MuseCandidate` schema and registered output validator remain
+Muse. Its fixed `MuseCandidate` schema and candidate output checks remain
 active under model overrides. Draft and revision fingerprints identify their
 different input contracts.
 
@@ -43,3 +46,15 @@ The current case schema is version 1. Every case declares `schema_version: 1`
 and uses a `-v1` case ID. Bump the schema version only for an incompatible
 format change. Do not silently weaken or replace an accepted baseline case;
 add a reviewed successor when its intended behaviour must change.
+
+## Turn triage measurement
+
+`turn_triage_cases.json` labels single reader messages by what their answer
+needs; each field lists its acceptable labels, primary first. `turn_triage.py`
+runs the `muse.turn-triage` skill over them with the provider-derived triage
+model and reports confusion, run-to-run stability, latency, and token use
+without retaining the messages. It makes paid provider calls:
+
+```bash
+uv run python -m evals.muse.turn_triage --runs 3
+```
