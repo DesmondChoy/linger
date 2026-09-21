@@ -113,7 +113,9 @@ approval. Content about sensitive traits is never captured.
 - continuous monitoring or unsolicited resurfacing outside an active user
   conversation, including notifications;
 - end-user memory-management settings and explicit save, review, correction, or deletion controls;
-- mental-health profiling, diagnosis, or crisis-resource routing;
+- mental-health profiling, diagnosis, or risk assessment — the fixed
+  crisis-resource pointer in Section 6.6 is a narrow exception, not general
+  crisis-resource routing;
 - autonomous prompt or skill self-modification — the self-improvement loops in Section 9 produce human-reviewed proposals only and never apply changes themselves;
 - production scale, availability, compliance, or regulatory claims; and
 - any claim that prototype telemetry measurably improved the system.
@@ -197,13 +199,15 @@ Provenance shares no model working context with the other agents and has no tool
 ### 4.1 Output release contract
 
 Before Muse or any Muse-accessible tool runs, Provenance classifies the current
-Line against the versioned emotional-content policy. `continue_reflection`
-enters the ordinary Muse flow. `apply_boundary` skips Muse, Librarian,
-Serendipity, target conversational Sculptor work, ordinary candidate review,
-and memory nomination; application code
-releases the canonical response from Section 6.6 and records
-`application_emotional_boundary`. A preflight failure fails closed to the
-application safe decline before Muse runs. This narrow application-owned path
+Line against the versioned emotional-content policy, backstopped by a
+deterministic first-person self-harm pattern match described in Section 6.6.
+`continue_reflection` enters the ordinary Muse flow. `apply_boundary` and
+`apply_self_harm_boundary` skip Muse, Librarian, Serendipity, target
+conversational Sculptor work, ordinary candidate review, and memory
+nomination; application code releases the matching canonical response from
+Section 6.6 and records `application_emotional_boundary`. A preflight failure
+fails closed to the application safe decline before Muse runs. This narrow
+application-owned path
 does not create a Muse candidate; every candidate that Muse does produce still
 requires the ordinary Provenance gate.
 
@@ -948,20 +952,38 @@ the application stops the ordinary reflection path and returns exactly:
 > to assess your wellbeing. Please consider reaching out to someone you trust or
 > a qualified professional for support.
 
-On this path Muse, Librarian, and Serendipity do not run. No candidate, evidence
-declaration, or memory nomination exists. Inspection records
-`application_emotional_boundary` and suppressed capture; no write or save notice
-occurs. A preflight failure returns the generic application safe decline and
-also skips Muse and its tools. The ordinary Muse prompt and candidate Provenance
-gate remain defence in depth: Muse must not diagnose or continue probing, and a
-missed current-Line boundary is reported through the explicit
-`emotional_boundary_decision=required` disposition and a current-Line
-`emotional_policy_violation`, so the application can substitute the canonical
-response without a revision. Inspection records whether the boundary originated
-in the preflight or the candidate review and never claims that Muse was skipped
-on the fallback path. A candidate-response-only diagnosis follows the normal
-revise-or-reject path.
-Crisis assessment and resource routing remain out of scope.
+A first-person disclosure that the reader wants to kill themselves, end their
+life, or harm themselves is a distinct decision, `apply_self_harm_boundary`,
+carrying its own fixed response instead:
+
+> Thank you for telling me. I’m not able to assess your safety or support you
+> through this, so please reach out to someone who can: a person you trust, a
+> doctor, or a crisis line. If you’re in immediate danger, contact your local
+> emergency services. You can find a crisis line for your country at
+> https://findahelpline.com.
+
+A small deterministic pattern set over the current Line backstops this
+decision: a matched first-person self-harm or suicide statement applies the
+self-harm boundary without depending on the model preflight, whatever it
+would have returned. It is scoped to first-person disclosures and does not
+fire on literary or third-person discussion of self-harm or suicide.
+
+On either boundary path Muse, Librarian, and Serendipity do not run. No
+candidate, evidence declaration, or memory nomination exists. Inspection
+records `application_emotional_boundary` and suppressed capture; no write or
+save notice occurs. A preflight failure returns the generic application safe
+decline and also skips Muse and its tools. The ordinary Muse prompt and
+candidate Provenance gate remain defence in depth: Muse must not diagnose or
+continue probing, and a missed current-Line boundary is reported through the
+explicit `emotional_boundary_decision=required` disposition and a
+current-Line `emotional_policy_violation`, so the application can substitute
+the canonical distressing-disclosure response without a revision. Inspection
+records whether the boundary originated in the preflight or the candidate
+review and never claims that Muse was skipped on the fallback path. A
+candidate-response-only diagnosis follows the normal revise-or-reject path.
+Mental-health profiling, diagnosis, and risk assessment remain out of scope;
+surfacing the fixed crisis-resource pointer above on a self-harm disclosure is
+the sole exception.
 
 ## 7. Evaluation and acceptance
 
@@ -1516,9 +1538,9 @@ origin, receiver, and contract attributes.
 For the ordinary reviewed-capture Scene, the trace sequence is application to
 Provenance emotional preflight, application to Muse draft, application to
 Provenance candidate review, deterministic Memory & Policy processing, and
-release. An `apply_boundary` preflight terminates before Muse exactly as
-specified in Section 4.1. These are application-mediated transitions, not
-agent-selected delegation.
+release. An `apply_boundary` or `apply_self_harm_boundary` preflight
+terminates before Muse exactly as specified in Section 4.1. These are
+application-mediated transitions, not agent-selected delegation.
 
 ## 9. Recursive self-improvement
 

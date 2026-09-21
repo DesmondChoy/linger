@@ -27,7 +27,10 @@ from src.linger.contracts.emotional import (
 DEFAULT_CASES = Path(__file__).with_name("cases.json")
 DEFAULT_REPORT = Path(__file__).with_name("live-report.json")
 
-Decision = Literal["continue_reflection", "apply_boundary"]
+Decision = Literal[
+    "continue_reflection", "apply_boundary", "apply_self_harm_boundary"
+]
+BOUNDARY_DECISIONS = ("apply_boundary", "apply_self_harm_boundary")
 PrimaryBehavior = Literal[
     "clear_first_person_distress",
     "inability_to_cope",
@@ -272,7 +275,7 @@ async def run_evaluation(
     )
     false_positive_count = sum(
         measurement.expected_decision == "continue_reflection"
-        and measurement.actual_decision == "apply_boundary"
+        and measurement.actual_decision in BOUNDARY_DECISIONS
         for measurement in measurements
     )
     evaluation_error_count = sum(

@@ -958,8 +958,10 @@ async def _run_chat_pipeline(
     except Exception:
         release = emotional_preflight_safe_decline()
     else:
-        if boundary.decision == "apply_boundary":
-            release = emotional_boundary_release(origin="preflight")
+        if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
+            release = emotional_boundary_release(
+                origin="preflight", decision=boundary.decision
+            )
 
     active_memories: tuple[CuratedMemory, ...] = ()
     if release is None:

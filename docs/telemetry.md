@@ -253,8 +253,9 @@ and an approving curation-review adapter. Its curation Scenes exercise
 application and source auditing, but have no live Provenance curation-review
 span. The standalone curation runner uses the production reviewer by default.
 
-If emotional preflight returns `apply_boundary`, the trace stops before Muse
-and the application releases the fixed boundary response. Otherwise Muse
+If emotional preflight returns `apply_boundary` or `apply_self_harm_boundary`,
+the trace stops before Muse and the application releases the matching fixed
+boundary response. Otherwise Muse
 receives a discriminated draft envelope whose `muse_turn.user_message` contains
 the synthetic Line, and Provenance later receives a separate candidate-review
 envelope. A revision adds another Muse and Provenance cycle within the same

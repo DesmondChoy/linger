@@ -56,8 +56,9 @@ export type MuseTurnContract = {
     allow_connection: boolean
     allow_memory_capture: boolean
     emotional_content: {
-      version: '2'
+      version: '3'
       boundary_response_id: 'distressing_disclosure_v1'
+      self_harm_response_id: 'self_harm_disclosure_v1'
       prohibit_diagnosis: true
       stop_probing_after_distress: true
       suppress_tools_after_distress: true

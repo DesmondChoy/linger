@@ -15,6 +15,7 @@ from src.linger.contracts.emotional import (
     EmotionalBoundaryInput,
     EmotionalContentPolicy,
 )
+from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
 
 
 class EmotionalBoundaryValidationError(ValueError):
@@ -28,6 +29,9 @@ async def assess_emotional_boundary(
     provenance: Agent[None, Any],
 ) -> EmotionalBoundaryAssessment:
     """Classify one Line before Muse or any Muse-accessible tool can run."""
+    if detect_first_person_self_harm(current_line):
+        # A match is final: the boundary applies without a preflight model call.
+        return EmotionalBoundaryAssessment(decision="apply_self_harm_boundary")
     preflight_input = EmotionalBoundaryInput(
         current_line=current_line,
         policy=policy,

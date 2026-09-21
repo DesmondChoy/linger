@@ -58,7 +58,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     MemoryRecall,
 )
-from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
+from src.linger.contracts.emotional import BoundaryDecision, boundary_response
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
@@ -267,6 +267,7 @@ def _safe_decline(
 def emotional_boundary_release(
     *,
     origin: BoundaryOrigin,
+    decision: BoundaryDecision = "apply_boundary",
     review_path: tuple[ProvenanceReview, ...] = (),
     candidate: MuseCandidate | None = None,
     tool_results: list[dict[str, object]] | None = None,
@@ -282,7 +283,7 @@ def emotional_boundary_release(
         raise ValueError("an emotional boundary can follow at most one revision")
     tool_results = tool_results or []
     return ReflectionRelease(
-        reply=EMOTIONAL_BOUNDARY_RESPONSE,
+        reply=boundary_response(decision),
         release_source="application_emotional_boundary",
         boundary_origin=origin,
         provenance_verdicts=tuple(

@@ -219,14 +219,18 @@ outside the conversation turn entirely and shares no context with the other two.
 
 The no-tool emotional-boundary preflight evaluates only the current Line and the
 versioned emotional-content policy (specification sections 4.1 and 6.6). It
-returns `continue_reflection` or `apply_boundary`.
+returns `continue_reflection`, `apply_boundary`, or `apply_self_harm_boundary`.
+A deterministic first-person self-harm pattern match backstops the last
+decision regardless of what the model preflight returns, without a model call
+when it matches.
 
-`apply_boundary` stops the ordinary path: Muse, Librarian, and Serendipity do not
-run, so no candidate, evidence declaration, or memory nomination exists. The application
-also skips loading account memories when preflight stops the turn. **No risk
-code applies to this path** — application code releases the canonical section 6.6
-response and records `application_emotional_boundary` with suppressed capture. A
-preflight failure returns the generic safe decline, also before Muse runs.
+`apply_boundary` and `apply_self_harm_boundary` stop the ordinary path: Muse,
+Librarian, and Serendipity do not run, so no candidate, evidence declaration, or
+memory nomination exists. The application also skips loading account memories
+when preflight stops the turn. **No risk code applies to this path** —
+application code releases the matching canonical section 6.6 response and
+records `application_emotional_boundary` with suppressed capture. A preflight
+failure returns the generic safe decline, also before Muse runs.
 
 Both are application-to-user paths that skip Muse. They are not a Muse-to-user
 bypass; every candidate Muse does produce still requires the candidate gate.
