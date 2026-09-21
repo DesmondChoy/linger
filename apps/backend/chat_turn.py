@@ -536,7 +536,12 @@ def prepare_reflection_turn(
         ),
         ensure_ascii=False,
     )
-    muse_input = muse_payload.model_dump_json()
+    # Keep the optional hand-off out of ordinary turns while preserving the
+    # established null-bearing shape of the other Muse input fields.
+    muse_input_payload = muse_payload.model_dump(mode="json")
+    if memory_surfacing is None:
+        muse_input_payload.pop("memory_surfacing", None)
+    muse_input = json.dumps(muse_input_payload, ensure_ascii=False)
     review_context: dict[str, object] = {
         "policy_constraints": muse_turn.policy.model_dump(mode="json"),
         "reading_context": context.model_dump(mode="json") if context else None,
