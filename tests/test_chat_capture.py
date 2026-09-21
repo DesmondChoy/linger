@@ -385,6 +385,25 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             response.inspection.release.capture.reason_code,
         )
 
+    async def test_shaped_personal_data_is_vetoed_without_suppressing_reply(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.addCleanup(sessions.clear, "capture-personal-data")
+        source = "Email me at jane.doe@example.com about the ending."
+        response, _ = await self.run_chat(
+            ChatRequest(session_id="capture-personal-data", message=source),
+            muse_candidate(source, nominated=source),
+            review("allow_capture"),
+        )
+
+        self.assertEqual("A reviewed reply.", response.reply)
+        self.assertEqual([], self.service.list_active(self.account))
+        self.assertEqual("refused", response.inspection.release.capture.storage)
+        self.assertEqual(
+            "personal_data_or_secret_not_allowed",
+            response.inspection.release.capture.reason_code,
+        )
+        self.assertIsNone(response.memory_capture)
+
     async def test_inspection_keeps_muse_nomination_separate_from_bad_review(self) -> None:
         self.service.set_capture_enabled(self.account, True)
         source = "I want to pause before I answer next time."

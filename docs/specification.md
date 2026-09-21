@@ -326,8 +326,11 @@ During controlled evaluation, Muse may nominate one typed `MemoryCandidate`;
 Provenance may veto it for privacy, sensitive inference, unsupported provenance,
 or injection risk. The Memory & Policy Service derives account scope, checks the
 server-side evaluation policy and idempotency, validates the request, and owns
-every write. The application reports a committed capture but offers no
-memory-management action.
+every write. Independent of Provenance's judgement, the service also runs a
+deterministic pattern screen over the exact candidate text and refuses storage
+outright when it detects a shaped personal-data or credential pattern, without
+altering the stored text; the reply to the reader is unaffected. The application
+reports a committed capture but offers no memory-management action.
 
 Sculptor is not part of capture. Curation is implemented as the callable
 `run_curation_loop` service below. Application-loop tests and bounded-curation
@@ -347,8 +350,9 @@ replay invoke it; the chat handler does not initiate curation.
    malformed, revised, rejected, or differently bound verdict stops the flow.
 5. Application code constructs `ApprovedCuration` only from an exact `allow`.
    The Memory & Policy Service re-reads the originals and fails closed on stale,
-   unknown, cross-account, stale-state, or structurally invalid sources before
-   appending one immutable, idempotent audit event.
+   unknown, cross-account, stale-state, or structurally invalid sources, and
+   applies the same deterministic pattern screen to a proposed summary or topic
+   label, before appending one immutable, idempotent audit event.
 6. The service verifies the stored event and source hashes. Retrieval reads the
    materialised curated view rather than the raw capture list.
 

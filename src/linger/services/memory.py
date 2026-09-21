@@ -30,6 +30,7 @@ from src.linger.contracts.curation import (
     CurationVerification,
     canonical_digest,
 )
+from src.linger.contracts.privacy import contains_personal_data_or_secret
 
 CaptureType = Literal["automatic"]
 
@@ -165,6 +166,8 @@ class MemoryPolicyService:
                 raise MemoryPolicyError("upstream_review_rejected_capture")
             if candidate.contains_sensitive_content:
                 raise MemoryPolicyError("sensitive_content_not_allowed")
+            if contains_personal_data_or_secret(candidate.text):
+                raise MemoryPolicyError("personal_data_or_secret_not_allowed")
             return self._save(
                 context,
                 text=candidate.text,
@@ -208,6 +211,11 @@ class MemoryPolicyService:
 
         with self._lock:
             self._validate_approved_sources(context, approved)
+            curated = _curated_text(approved.plan.proposal.action)
+            if curated is not None and contains_personal_data_or_secret(curated):
+                raise CurationPolicyError(
+                    "curation_personal_data_or_secret_not_allowed"
+                )
             curation_dir = self._ensure_curation_dir(context)
             current_events = self._curation_events(context)
             event_id = f"cur_{approved.plan.digest}"
@@ -502,6 +510,16 @@ class _CuratedState:
     summaries: dict[tuple[str, ...], AppliedCuration]
     topics: dict[tuple[str, ...], AppliedCuration]
     tombstones: dict[str, str]
+
+
+def _curated_text(action: object) -> str | None:
+    """The reader-visible text a curation action would add to the retrieval view."""
+
+    if isinstance(action, DerivedSummary):
+        return action.summary
+    if isinstance(action, TopicGroup):
+        return action.topic_label
+    return None
 
 
 def memory_record_sha256(record: MemoryRecord) -> str:

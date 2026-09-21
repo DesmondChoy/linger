@@ -186,6 +186,24 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
             self.service.save_automatic(self.account, candidate)
         self.assertEqual([], self.service.list_active(self.account))
 
+    def test_deterministic_screen_vetoes_shaped_personal_data(self) -> None:
+        text = "Email me at jane.doe@example.com about the ending."
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination(text),
+            source_text=text,
+            source_event_id="turn-personal-data",
+        )
+        assert candidate is not None
+        self.assertTrue(candidate.review_allows_capture)
+
+        with self.assertRaises(MemoryPolicyError) as caught:
+            self.service.save_automatic(self.account, candidate)
+        self.assertEqual(
+            "personal_data_or_secret_not_allowed", caught.exception.reason
+        )
+        self.assertEqual([], self.service.list_active(self.account))
+
     def test_opt_in_still_gates_an_allowed_review(self) -> None:
         self.service.set_capture_enabled(self.account, False)
         with self.assertRaises(MemoryPolicyError) as caught:

@@ -12,10 +12,6 @@ from pydantic_ai import ModelRetry, RunContext
 from pydantic_ai.messages import ToolReturn
 from pydantic_ai.toolsets import AbstractToolset, ToolsetTool, WrapperToolset
 from pydantic_ai_harness.exa import ExaSearch
-from pydantic_ai_harness.guardrails.detectors import (
-    redact_personal_data,
-    redact_secrets,
-)
 
 from apps.backend.librarian import Librarian
 from src.linger.agents.serendipity.models import (
@@ -28,6 +24,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.curation import CuratedMemory
+from src.linger.contracts.privacy import contains_personal_data_or_secret
 from src.linger.contracts.session import ReaderStatement
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.book_evidence import retrieve_book_evidence
@@ -115,14 +112,6 @@ def _query_copies_reader_terms(
     if len(source_tokens) < size:
         return False
     return bool(_phrases(query_tokens, size) & _phrases(source_tokens, size))
-
-
-def _query_contains_private_data(query: str) -> bool:
-    """Use maintained detectors for shaped personal data and credentials."""
-    return any(
-        detector(query).action != "allow"
-        for detector in (redact_personal_data, redact_secrets)
-    )
 
 
 @dataclass(frozen=True)
@@ -303,7 +292,7 @@ def _private_web_input(
 ) -> bool:
     reader_texts = (deps.task.cue, *(statement.text for statement in deps.prior_reader_statements))
     return (
-        _query_contains_private_data(text)
+        contains_personal_data_or_secret(text)
         or any(_query_copies_reader_terms(text, source, page_url=page_url) for source in reader_texts)
         or any(_query_copies_reader_terms(text, record.text) for record in deps.memories)
     )
