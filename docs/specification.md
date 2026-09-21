@@ -1019,6 +1019,48 @@ live in the serving process, like session state. Each Muse, Provenance, and
 Librarian model run separately carries its own fixed per-run usage cap as
 defence against a looping model, independent of this request-level limit.
 
+### 6.8 Message normalisation
+
+The reader's message is normalised once, at ingestion, before session history,
+prompts, capture offsets, the self-harm and instruction-leak detectors, or
+inspection read it. HTTP is the only reader-facing entry point and both `POST
+/api/chat` and `POST /api/chat/stream` take the same request body, so one
+normalisation at that boundary covers every consumer, and capture's
+codepoint offsets index the normalised string.
+
+Line endings collapse to `\n`, and three classes of character are removed:
+C0/C1 control characters other than tab and newline; every character Unicode
+defines as rendering as nothing, which covers the zero-width space, word
+joiner, byte order mark, soft hyphen, bidirectional override and isolate
+controls, Unicode tag characters, and also the invisible characters outside
+the format category that an enumerated deny-list misses, such as the combining
+grapheme joiner, the Hangul fillers, and the variation selector supplement;
+and lone surrogates, which JSON parsing accepts but which cannot be encoded
+back out. None of these has a legitimate role in a reader's plain-text
+message, and each is otherwise usable to hide instructions from a human
+reviewer while a model still reads them, or to split a keyword past a
+deterministic detector. Variation selectors 1-16 are kept, because an emoji's
+text or emoji presentation is something the reader can see. Unicode tag
+characters are removed unconditionally, which costs the subdivision flags
+(England, Scotland, Wales) their subdivision; closing a smuggling channel is
+worth more than those three flags in a message about reading.
+
+The zero-width joiner and non-joiner are kept when both neighbouring
+characters are non-ASCII, since scripts such as Persian, Arabic, and Indic
+languages and emoji sequences require them; they are removed when adjacent to
+an ASCII letter, where they only split a word. Those neighbours are read after
+the other invisible characters are already gone, so padding a joiner with
+zero-width spaces cannot lend it a non-ASCII neighbourhood.
+
+Text is NFC-, not NFKC-normalised, so combining sequences canonicalise without
+rewriting compatibility forms the reader actually typed (ligatures, full-width
+characters, "…"), which memory capture's exact-substring quoting depends on.
+NFC is applied last, after removal, so that a base character and its combining
+marks compose even when an invisible character had been inserted between them.
+Normalising an already-normalised message leaves it unchanged. The length cap
+and emptiness check apply after normalisation, so a message consisting only of
+invisible characters is refused exactly like an empty one.
+
 ## 7. Evaluation and acceptance
 
 ### 7.1 Product evaluation requirements

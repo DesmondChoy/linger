@@ -323,6 +323,28 @@ class EmotionalBoundaryChatTests(unittest.IsolatedAsyncioTestCase):
         traces = {trace["agent"]: trace for trace in response.inspection.traces}
         self.assertEqual("skipped", traces["Muse"]["status"])
 
+    async def test_zero_width_split_disclosure_is_still_caught_after_normalization(
+        self,
+    ) -> None:
+        # Nothing patches assess_emotional_boundary here: the real deterministic
+        # backstop must fire from the request's normalised message alone, with
+        # no preflight model call, proving the ordering normalise -> detector.
+        self.service.set_capture_enabled(self.account, True)
+        request = ChatRequest(
+            session_id=self.session_id,
+            turn_id="turn-zwsp-self-harm",
+            # A zero-width space inside one keyword and a zero-width joiner
+            # padded with them inside the other.
+            message="I want to k\u200bill mys\u200b\u200d\u200belf.",
+        )
+
+        response = await main.chat(request, self.service, self.account)
+
+        self.assertEqual(EMOTIONAL_SELF_HARM_RESPONSE, response.reply)
+        release = response.inspection.release
+        self.assertEqual("application_emotional_boundary", release.release_source)
+        self.assertEqual("preflight", release.boundary_origin)
+
     async def test_candidate_gate_fallback_reports_that_muse_ran(self) -> None:
         message = "I cannot cope anymore."
         muse = AsyncMock()
