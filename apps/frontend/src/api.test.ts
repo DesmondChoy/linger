@@ -162,6 +162,20 @@ describe('chat API', () => {
     } satisfies Partial<ChatRequestError>)
   })
 
+  it('surfaces a rate-limit refusal with a fixed reader-facing message', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(
+      { detail: 'Too many requests. Please wait a moment and try again.' },
+      429,
+    )))
+
+    await expect(
+      sendMessage('session-1', 'Hello', 'turn-1', () => {}),
+    ).rejects.toMatchObject({
+      name: 'ChatRequestError',
+      message: 'Too many requests. Please wait a moment and try again.',
+    } satisfies Partial<ChatRequestError>)
+  })
+
   it('fails when the stream ends without a reply', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       sseResponse([['progress', progressEvent]]),

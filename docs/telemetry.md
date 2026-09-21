@@ -231,7 +231,10 @@ chat.request
 `chat.request` owns only route-template, method, response-status, and HTTP
 outcome metadata. `chat.turn` owns session rollback, agent sequencing, release,
 capture, and application failure metadata. Both spans share one trace for HTTP
-traffic; synthetic replay starts at `chat.turn` beneath the evaluation case.
+traffic; synthetic replay starts at `chat.turn` beneath the evaluation case. A
+rate-limited request produces neither span: it emits one `chat.rate_limit`
+record carrying fixed failure metadata and the `429` status, never the client
+address.
 
 A bounded-curation Scene with a proposal is:
 

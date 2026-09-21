@@ -998,6 +998,27 @@ Mental-health profiling, diagnosis, and risk assessment remain out of scope;
 surfacing the fixed crisis-resource pointer above on a self-harm disclosure is
 the sole exception.
 
+### 6.7 Request rate limiting
+
+`session_id` is reader-chosen and unauthenticated, so it cannot anchor a
+request budget; a caller can rotate it freely. The application instead limits
+at most 10 chat requests per rolling 60 seconds per client network address
+(`request.client.host`, with a fixed fallback key when it is absent),
+enforced before emotional preflight, triage, or any agent runs. `POST
+/api/chat` and `POST /api/chat/stream` share one budget. `X-Forwarded-For` is
+never trusted for this key: no proxy sits in front of this deployment, and the
+header is reader-supplied. A refused request receives `429` with a
+`Retry-After` header giving the whole seconds until the oldest request leaves
+the window, and a fixed, content-free message; the streaming endpoint returns
+this as an ordinary HTTP error before opening a stream. A refusal is not itself
+recorded, so a caller that keeps trying cannot extend its own wait. The
+refusal emits only fixed failure metadata; the address is never recorded in
+telemetry. Two limitations are accepted for the prototype: readers sharing one
+network address, including the fallback key, share one budget, and the counters
+live in the serving process, like session state. Each Muse, Provenance, and
+Librarian model run separately carries its own fixed per-run usage cap as
+defence against a looping model, independent of this request-level limit.
+
 ## 7. Evaluation and acceptance
 
 ### 7.1 Product evaluation requirements
