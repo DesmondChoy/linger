@@ -37,6 +37,7 @@ SPEC_RISK_CODES = (
     RiskCode.POLICY_OVERRIDE,
     RiskCode.HARMFUL_CONTENT,
     RiskCode.FALSE_PERSONA,
+    RiskCode.PROFESSIONAL_ADVICE,
 )
 
 
@@ -190,14 +191,16 @@ class ProvenanceReviewTests(unittest.TestCase):
         )
         self.assertTrue(review.contains_sensitive_content)
 
-    def test_false_persona_capture_finding_does_not_mark_content_sensitive(self) -> None:
-        review = ProvenanceReview(
-            findings=(finding("false_persona", applies_to="capture"),),
-            response_decision="pass",
-            emotional_boundary_decision="not_required",
-            capture_decision="reject_capture",
-        )
-        self.assertFalse(review.contains_sensitive_content)
+    def test_self_directed_capture_findings_do_not_mark_content_sensitive(self) -> None:
+        for code in (RiskCode.FALSE_PERSONA, RiskCode.PROFESSIONAL_ADVICE):
+            with self.subTest(code=code):
+                review = ProvenanceReview(
+                    findings=(finding(code, applies_to="capture"),),
+                    response_decision="pass",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="reject_capture",
+                )
+                self.assertFalse(review.contains_sensitive_content)
 
     def test_critique_names_each_ground(self) -> None:
         review = ProvenanceReview(

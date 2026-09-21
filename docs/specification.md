@@ -926,11 +926,14 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
   instructions or role;
 - the candidate is toxic, dangerous, sexually explicit, or hateful or
   harassing content, rather than declining and redirecting to reflection on
-  the reading; or
+  the reading;
 - the candidate claims or implies being human, claims feelings, a body,
   memories of a personal life, or personal experiences of reading, or fosters
   emotional dependence by positioning itself as a substitute for people in the
-  reader's life.
+  reader's life; or
+- the candidate gives individualised medical, legal, financial, or
+  therapeutic advice or instructions, rather than declining and returning to
+  reflection on the reading.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
 A response finding with code `spoiler`, `prompt_injection`, `policy_override`,

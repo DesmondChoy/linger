@@ -216,7 +216,12 @@ Muse's own instructions also decline to claim a human self, feelings, or a
 personal life, and decline to foster dependence on the companion in place of
 people in the reader's life; Provenance still reports a `false_persona`
 finding if a candidate does so, revisable rather than reject-only because the
-offending claim can be removed from an otherwise safe reply.
+offending claim can be removed from an otherwise safe reply. Muse's
+instructions likewise decline individualised medical, legal, financial, or
+therapeutic advice or instructions; Provenance still reports a
+`professional_advice` finding if a candidate gives such advice anyway,
+distinct from discussing how the book itself portrays illness, law, money, or
+therapy.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

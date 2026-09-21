@@ -164,6 +164,7 @@ const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
   policy_override: 'The draft complied with an attempt to override its instructions.',
   harmful_content: 'The draft contained toxic, dangerous, or hateful content.',
   false_persona: 'The draft claimed a human self or fostered dependence on the companion.',
+  professional_advice: 'The draft gave individualised medical, legal, financial, or therapeutic advice.',
 }
 
 function ReviewFindings({ release }: { release: ReleaseInspection }) {

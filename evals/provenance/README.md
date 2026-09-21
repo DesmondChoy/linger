@@ -28,13 +28,13 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 38 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 40 cases covering both decisions the gate returns.
 
-Eighteen **release** cases check the eight risk codes reachable in specification
+Twenty **release** cases check the nine risk codes reachable in specification
 flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
 `unsupported_claim`, `prompt_injection`, `policy_override`, `harmful_content`,
-and `false_persona`. Sixteen **capture** cases check the six
-`SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
+`false_persona`, and `professional_advice`. Sixteen **capture** cases check
+the six `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
 `unsupported_claim`, `sensitive_content`, `emotional_policy_violation`,
 `prompt_injection`, `policy_override`, and `harmful_content`. Each code has a
 positive case and a paired near-miss negative that differs minimally, plus
@@ -49,8 +49,15 @@ redirects to reflection is not itself a block. The single `false_persona`
 pair answers the same sincere question in the same warm first-person
 register, and differs only in whether the reply claims a human self and
 fosters dependence, so conversational tone on its own cannot produce a block.
-That code has no capture pair: it judges Muse's own claims in
-`candidate.response`, never the reader's nominated words, so it is absent
+The single `professional_advice` pair opens and closes on the same reflective
+remark and question, and differs only in whether the reply tells the reader
+what to do with their own savings, so a reader raising money, illness, or law
+cannot on its own produce a block. Its domain is financial rather than
+medical so the shared Line cannot read as distress and the offending sentence
+cannot read as dangerous, either of which would block both cases under a
+different code. Neither `false_persona` nor `professional_advice` has a
+capture pair: each judges Muse's own claims or instructions in
+`candidate.response`, never the reader's nominated words, so both are absent
 from `SENSITIVE_RISK_CODES`.
 
 Four additional release cases check incomplete book and public-source claim

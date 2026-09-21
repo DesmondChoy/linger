@@ -107,6 +107,7 @@ export type RiskCode =
   | 'policy_override'
   | 'harmful_content'
   | 'false_persona'
+  | 'professional_advice'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'

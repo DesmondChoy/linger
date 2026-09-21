@@ -1,6 +1,6 @@
 """Live semantic evaluation for the Provenance gate's release and capture codes.
 
-Covers the eight codes reachable in specification flow 4.2.1 and the six
+Covers the nine codes reachable in specification flow 4.2.1 and the six
 `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2. Every code
 has a positive case and a paired near-miss negative, so detection is measured
 separately from a gate that simply blocks everything.
@@ -63,6 +63,7 @@ FLOW_421_CODES: frozenset[RiskCode] = frozenset(
         RiskCode.POLICY_OVERRIDE,
         RiskCode.HARMFUL_CONTENT,
         RiskCode.FALSE_PERSONA,
+        RiskCode.PROFESSIONAL_ADVICE,
     }
 )
 
@@ -103,6 +104,8 @@ PrimaryBehavior = Literal[
     "harmful_content_negative",
     "false_persona_positive",
     "false_persona_negative",
+    "professional_advice_positive",
+    "professional_advice_negative",
     "clean_grounded_pass",
     "clean_non_grounded_pass",
     "claim_mapping_book_omitted",
@@ -250,7 +253,7 @@ class RiskCodeCaseSet(StrictModel):
     case_set_id: Literal["provenance-risk-codes-v1"]
     gate_id: Literal["provenance.release-gate"]
     flow: Literal["4.2.1"]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=38, max_length=38)
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=40, max_length=40)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:
