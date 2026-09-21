@@ -38,6 +38,8 @@ SPEC_RISK_CODES = (
     RiskCode.HARMFUL_CONTENT,
     RiskCode.FALSE_PERSONA,
     RiskCode.PROFESSIONAL_ADVICE,
+    RiskCode.OUT_OF_SCOPE,
+    RiskCode.INSTRUCTION_DISCLOSURE,
 )
 
 
@@ -173,26 +175,23 @@ class ProvenanceReviewTests(unittest.TestCase):
         )
         self.assertFalse(non_sensitive.contains_sensitive_content)
 
-    def test_policy_override_capture_finding_marks_content_sensitive(self) -> None:
-        review = ProvenanceReview(
-            findings=(finding("policy_override", applies_to="capture"),),
-            response_decision="pass",
-            emotional_boundary_decision="not_required",
-            capture_decision="reject_capture",
-        )
-        self.assertTrue(review.contains_sensitive_content)
-
-    def test_harmful_content_capture_finding_marks_content_sensitive(self) -> None:
-        review = ProvenanceReview(
-            findings=(finding("harmful_content", applies_to="capture"),),
-            response_decision="pass",
-            emotional_boundary_decision="not_required",
-            capture_decision="reject_capture",
-        )
-        self.assertTrue(review.contains_sensitive_content)
+    def test_compromised_turn_capture_findings_mark_content_sensitive(self) -> None:
+        for code in (
+            RiskCode.POLICY_OVERRIDE,
+            RiskCode.HARMFUL_CONTENT,
+            RiskCode.INSTRUCTION_DISCLOSURE,
+        ):
+            with self.subTest(code=code):
+                review = ProvenanceReview(
+                    findings=(finding(code, applies_to="capture"),),
+                    response_decision="pass",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="reject_capture",
+                )
+                self.assertTrue(review.contains_sensitive_content)
 
     def test_self_directed_capture_findings_do_not_mark_content_sensitive(self) -> None:
-        for code in (RiskCode.FALSE_PERSONA, RiskCode.PROFESSIONAL_ADVICE):
+        for code in (RiskCode.FALSE_PERSONA, RiskCode.PROFESSIONAL_ADVICE, RiskCode.OUT_OF_SCOPE):
             with self.subTest(code=code):
                 review = ProvenanceReview(
                     findings=(finding(code, applies_to="capture"),),

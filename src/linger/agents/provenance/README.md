@@ -179,13 +179,23 @@ absolute sensitive-content capture veto:
 | `harmful_content` | The candidate is toxic, dangerous, sexually explicit, or hateful or harassing content. |
 | `false_persona` | The candidate claims or implies being human, claims feelings or a personal life, or fosters dependence on itself in place of the reader's own relationships. |
 | `professional_advice` | The candidate gives individualised medical, legal, financial, or therapeutic advice or instructions instead of declining and returning to the reading. |
+| `out_of_scope` | The candidate performs a task unconnected to reflection on the reader's reading instead of declining and returning to it. |
+| `instruction_disclosure` | The candidate reveals, quotes, or paraphrases its own instructions, loaded skills, tool names or schemas, or internal review process. |
 
 `SENSITIVE_RISK_CODES` marks the subset that bars content from automatic
-capture. `false_persona` and `professional_advice` are deliberately outside
-it: each judges what the candidate itself asserts or instructs in
-`candidate.response`, never the reader's own nominated words, and a capture
-finding cannot point to `candidate.response`, so neither can legitimately veto
-a nomination. `contains_sensitive_content` is derived from capture findings
+capture. `false_persona`, `professional_advice`, and `out_of_scope` are
+deliberately outside it: each judges what the candidate itself asserts, does,
+or instructs in `candidate.response`, never the reader's own nominated words,
+and a capture finding cannot point to `candidate.response`, so none of the
+three can legitimately veto a nomination. `instruction_disclosure` is inside
+it on the same ground as `policy_override` and `harmful_content`: what the
+candidate disclosed answers something the reader asked about the companion
+itself, so a capture finding points at `current_line.text`, and words
+nominated on a turn the reader spent probing the system are not trustworthy
+material to keep. Reject-only severity is not the criterion — `spoiler` is
+also reject-only and stays outside, because a boundary breach says nothing
+about the reader's own nominated words.
+`contains_sensitive_content` is derived from capture findings
 rather than set independently, so it cannot contradict the capture decision.
 
 ### Curation risk taxonomy
@@ -261,8 +271,9 @@ candidate behavior in every response flow.
 
 Canonical book records support book claims. Review checks unresolved evidence,
 attribution, unsupported claims, prompt injection, compliance with a reader
-override attempt, harmful content, false self-representation, and
-professional-advice scope throughout the candidate. `context.override_attempt`
+override attempt, harmful content, false self-representation, professional-advice
+scope, companion scope, and instruction confidentiality throughout the
+candidate. `context.override_attempt`
 carries turn triage's application-observed signal that the current reader
 message itself tried to override the companion's instructions or role;
 Provenance still judges independently whether the candidate complied. Harmful
@@ -271,11 +282,20 @@ material — is distinct from legitimate literary discussion of dark themes in
 the book under review.
 False persona — claiming a human self, feelings, or a personal life, or
 fostering dependence on the companion instead of people in the reader's
-life — and professional advice — individualised medical, legal, financial, or
-therapeutic instructions — are each revisable rather than reject-only, unlike
-`spoiler`, `prompt_injection`, `policy_override`, and `harmful_content`: an
-offending sentence can be removed from an otherwise safe reply. Discussing how
-the book portrays illness, law, money, or therapy is not `professional_advice`.
+life —, professional advice — individualised medical, legal, financial, or
+therapeutic instructions —, and out-of-scope replies — performing a task
+unrelated to reflection on the reading — are each revisable rather than
+reject-only, unlike `spoiler`, `prompt_injection`, `policy_override`,
+`harmful_content`, and `instruction_disclosure`: an offending sentence (or, for
+out-of-scope, the whole task) can be removed from an otherwise safe reply,
+while a reply that has already disclosed its instructions is untrustworthy as
+a whole. Discussing how the book portrays illness, law, money, or therapy is
+not `professional_advice`. `instruction_disclosure` judges only what the
+candidate reveals about its own setup: unlike `policy_override`, it does not
+require an adopted replacement instruction or role, and unlike
+`prompt_injection`, it does not require retrieved content that tried to
+redirect the candidate — a reply can disclose instructions after a merely
+curious question with no override attempt.
 Spoiler review enforces the supplied chapter ceiling or exact-passage scope.
 A passage grant supports only its listed canonical paragraphs. It neither
 establishes chapter completion nor permits surrounding scene details.
@@ -284,7 +304,8 @@ establishes chapter completion nor permits surrounding scene details.
 
 The capture veto grounds are `SENSITIVE_RISK_CODES` in [`models.py`](models.py):
 `unsupported_claim`, `sensitive_content`, `emotional_policy_violation`,
-`prompt_injection`, `policy_override`, and `harmful_content`. These cover the
+`prompt_injection`, `policy_override`, `harmful_content`, and
+`instruction_disclosure`. These cover the
 section 4.2.2 grounds — sensitive inference, unsupported provenance, and
 injection risk — plus content that reached the emotional boundary.
 `contains_sensitive_content` reports this subset to the deterministic policy
@@ -389,7 +410,11 @@ identifier fail closed, and a re-resolved session record authorises only that
 exact previously released passage. Stored-memory, web, and image evidence never
 enter this book citation authority. Registered memory and opened-web evidence
 use a separate request-local authority with active-memory and visible-URL
-checks. Image evidence has no implemented release contract. Regular expressions
+checks. Image evidence has no implemented release contract. A deterministic
+backstop separately rejects a candidate whose reply contains a long verbatim,
+whitespace- and case-normalised run of Muse's own effective instructions
+(`orchestration/instruction_leak_detection.py`), regardless of a semantic pass,
+so an `instruction_disclosure` miss still fails closed. Regular expressions
 and structural checks are
 defence in depth, not the security boundary.
 

@@ -37,6 +37,8 @@ class RiskCode(StrEnum):
     HARMFUL_CONTENT = "harmful_content"
     FALSE_PERSONA = "false_persona"
     PROFESSIONAL_ADVICE = "professional_advice"
+    OUT_OF_SCOPE = "out_of_scope"
+    INSTRUCTION_DISCLOSURE = "instruction_disclosure"
 
 # Grounds that make content ineligible for automatic capture.
 SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
@@ -47,6 +49,7 @@ SENSITIVE_RISK_CODES: frozenset[RiskCode] = frozenset(
         RiskCode.PROMPT_INJECTION,
         RiskCode.POLICY_OVERRIDE,
         RiskCode.HARMFUL_CONTENT,
+        RiskCode.INSTRUCTION_DISCLOSURE,
     }
 )
 

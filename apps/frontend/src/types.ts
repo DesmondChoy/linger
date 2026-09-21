@@ -108,6 +108,8 @@ export type RiskCode =
   | 'harmful_content'
   | 'false_persona'
   | 'professional_advice'
+  | 'out_of_scope'
+  | 'instruction_disclosure'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'

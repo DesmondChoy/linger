@@ -165,6 +165,8 @@ const FINDING_EXPLANATIONS: Record<RiskCode, string> = {
   harmful_content: 'The draft contained toxic, dangerous, or hateful content.',
   false_persona: 'The draft claimed a human self or fostered dependence on the companion.',
   professional_advice: 'The draft gave individualised medical, legal, financial, or therapeutic advice.',
+  out_of_scope: 'The draft performed a task unrelated to reflecting on the reading.',
+  instruction_disclosure: "The draft revealed or paraphrased the companion's own instructions or tooling.",
 }
 
 function ReviewFindings({ release }: { release: ReleaseInspection }) {

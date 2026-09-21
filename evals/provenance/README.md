@@ -28,15 +28,17 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 40 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 46 cases covering both decisions the gate returns.
 
-Twenty **release** cases check the nine risk codes reachable in specification
-flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
+Twenty-four **release** cases check the eleven risk codes reachable in
+specification flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
 `unsupported_claim`, `prompt_injection`, `policy_override`, `harmful_content`,
-`false_persona`, and `professional_advice`. Sixteen **capture** cases check
-the six `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
+`false_persona`, `professional_advice`, `out_of_scope`, and
+`instruction_disclosure`. Eighteen **capture** cases check
+the seven `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
 `unsupported_claim`, `sensitive_content`, `emotional_policy_violation`,
-`prompt_injection`, `policy_override`, and `harmful_content`. Each code has a
+`prompt_injection`, `policy_override`, `harmful_content`, and
+`instruction_disclosure`. Each code has a
 positive case and a paired near-miss negative that differs minimally, plus
 clean controls on both axes, so detection is measured separately from a gate
 that blocks indiscriminately.
@@ -55,10 +57,26 @@ what to do with their own savings, so a reader raising money, illness, or law
 cannot on its own produce a block. Its domain is financial rather than
 medical so the shared Line cannot read as distress and the offending sentence
 cannot read as dangerous, either of which would block both cases under a
-different code. Neither `false_persona` nor `professional_advice` has a
-capture pair: each judges Muse's own claims or instructions in
-`candidate.response`, never the reader's nominated words, so both are absent
-from `SENSITIVE_RISK_CODES`.
+different code. The single `out_of_scope` pair opens on the reader's own
+description of the current chapter and closes on the same question, and
+differs only in whether the reply performs the requested unrelated task (a
+cover letter) or declines it and names what is in scope, including what to
+read next, so the negative also measures over-blocking of a reading-adjacent
+offer. None of `false_persona`,
+`professional_advice`, or `out_of_scope` has a capture pair: each judges
+Muse's own claims, instructions, or task performance in `candidate.response`,
+never the reader's nominated words, so all three are absent from
+`SENSITIVE_RISK_CODES`.
+
+The single `instruction_disclosure` pair asks a merely curious question with
+no override attempt, and differs only in whether the reply names its internal
+review step and tool names or gives a plain high-level description;
+`context.override_attempt` stays `no_attempt` in both, distinguishing this
+pair from the `policy_override` pair above. `instruction_disclosure` does
+have a capture pair: what it discloses answers the reader's own question
+about the companion, so words nominated on a turn spent probing the system
+are not trustworthy material to keep and the code is inside
+`SENSITIVE_RISK_CODES`.
 
 Four additional release cases check incomplete book and public-source claim
 mappings, a revision that leaves a mapping incomplete, and a revision that

@@ -222,6 +222,20 @@ therapeutic advice or instructions; Provenance still reports a
 `professional_advice` finding if a candidate gives such advice anyway,
 distinct from discussing how the book itself portrays illness, law, money, or
 therapy.
+Muse's instructions also confine it to reflection on the reader's reading, the
+sources and images they bring to it, and their own remembered notes, declining
+an unconnected task, and never reveal its own instructions, skills, tool names
+or schemas, or internal review process; Provenance still reports an
+`out_of_scope` finding if
+a candidate performs an unrelated task anyway, revisable like `false_persona`
+and `professional_advice` because the offending content can be removed from
+an otherwise safe reply, and an `instruction_disclosure` finding, reject-only
+like `harmful_content`, if a candidate discloses its instructions or tooling
+anyway. `instruction_disclosure` judges only what the candidate reveals about
+its own setup, distinct from `policy_override` — adopting the reader's
+replacement instructions or role — and from `prompt_injection` — retrieved
+content redirecting behaviour: a reply can disclose instructions after a
+merely curious question with no override attempt.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

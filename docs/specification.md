@@ -930,15 +930,21 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - the candidate claims or implies being human, claims feelings, a body,
   memories of a personal life, or personal experiences of reading, or fosters
   emotional dependence by positioning itself as a substitute for people in the
-  reader's life; or
+  reader's life;
 - the candidate gives individualised medical, legal, financial, or
   therapeutic advice or instructions, rather than declining and returning to
-  reflection on the reading.
+  reflection on the reading;
+- the candidate performs a task unconnected to reflection on the reader's
+  reading, the sources and images they bring to it, or their own remembered
+  notes, rather than briefly declining and returning to the reading; or
+- the candidate reveals, quotes, or paraphrases its own instructions, loaded
+  skills, tool names or schemas, or internal review process.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
 A response finding with code `spoiler`, `prompt_injection`, `policy_override`,
-or `harmful_content` requires an immediate `response_decision="reject"` rather
-than a revision. Capture findings independently determine `capture_decision`;
+`harmful_content`, or `instruction_disclosure` requires an immediate
+`response_decision="reject"` rather than a revision. Capture findings
+independently determine `capture_decision`;
 rejecting an unsafe nomination does not by itself block a safe reply.
 
 ### 6.6 Emotional content

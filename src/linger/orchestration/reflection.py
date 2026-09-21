@@ -35,6 +35,7 @@ from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.muse.claim_repair import accepted_claims_for_revision
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
+    INSTRUCTIONS as MUSE_INSTRUCTIONS,
     REVISION_PROMPT_FINGERPRINT,
 )
 from src.linger.agents.provenance.models import (
@@ -74,6 +75,7 @@ from src.linger.contracts.librarian import (
 from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
+from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
 from src.linger.orchestration.turn_context import turn_evidence, active_memories
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
@@ -581,6 +583,8 @@ def _validate_release(
     released_user_lines: tuple[str, ...] = (),
 ) -> None:
     """Validate claim mappings and source declarations after semantic approval."""
+    if detect_instruction_leak(candidate.reply, MUSE_INSTRUCTIONS):
+        raise ReleaseValidationError("Candidate quotes Muse's own instructions")
     try:
         validate_supported_claims(candidate.reply, candidate.evidence_uses)
     except ValueError as error:
