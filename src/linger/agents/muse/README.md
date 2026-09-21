@@ -46,11 +46,7 @@ validator. The reflection skill does not override `output_type` per run.
 Book evidence IDs, locations, and quotations are checked against the
 application's request-scoped evidence map. The output validator can request
 three repairs; tool calls retain one retry. These repairs do not count as the
-application's single reviewed revision. Each draft or revision run also carries
-an explicit tool-call budget, sized with headroom above the longest ordinary
-grounded turn, and a request budget loose enough never to pre-empt it, so a
-looping model fails closed instead of round-tripping tool calls indefinitely
-without declining a legitimate turn. Structured repair feedback identifies
+application's single reviewed revision. Structured repair feedback identifies
 all detected citation errors together and supplies exact authorized source IDs,
 locations, and literal copy aids. `supported_claims` must remain exact spans of
 the final reply, including punctuation and capitalization. A requested quotation

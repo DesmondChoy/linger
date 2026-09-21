@@ -66,10 +66,7 @@ separate validation; a high retrieval score does not establish safety.
 An irrelevant passage can also score highly, so evidence assessment must check
 what it actually supports instead of relying on the score to reject it.
 
-All four skills have no tools and retain one output retry, with an explicit
-request budget sized to that retry so a model answering with calls to tools it
-was never given fails to the caller's existing fallback rather than looping on
-retry prompts. Shared instructions in
+All four skills have no tools and retain one output retry. Shared instructions in
 `agents.librarian` in the [`prompt catalogue`](../../prompts/prompt_catalog.yaml)
 contain only common trust and authority rules. Each run adds its selected
 `SKILL.md`; no run adds another task's instructions or conversation history.
