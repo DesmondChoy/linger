@@ -211,8 +211,10 @@ def prepare_curation_plan(
 def curation_review_input(
     plan: CurationPlan,
     records: tuple[MemoryRecord, ...],
+    *,
+    active_memory_ids: frozenset[str],
 ) -> CurationReviewInput:
-    """Expose only proposal sources and their text to Provenance."""
+    """Expose only proposal sources, text, and current retrieval state."""
 
     by_id = {record.memory_id: record for record in records}
     snapshots = {item.memory_id: item for item in plan.source_snapshots}
@@ -224,6 +226,9 @@ def curation_review_input(
                 memory_id=memory_id,
                 text=by_id[memory_id].text,
                 record_sha256=snapshots[memory_id].record_sha256,
+                retrieval_state=(
+                    "active" if memory_id in active_memory_ids else "tombstoned"
+                ),
             )
             for memory_id in plan.proposal.action.source_memory_ids
         ),
@@ -265,7 +270,16 @@ async def run_curation_loop(
         response,
         base_state_sha256=service.curation_state_sha256(context),
     )
-    review_input = curation_review_input(plan, records)
+    active_memory_ids = frozenset(
+        item.memory_id
+        for item in service.list_for_retrieval(context)
+        if item.kind == "original"
+    )
+    review_input = curation_review_input(
+        plan,
+        records,
+        active_memory_ids=active_memory_ids,
+    )
     review = await review_curation(review_input, agent=provenance)
     after_review = _record_snapshots(service.select_for_curation(context, memory_ids))
     _require_immutable_sources(before, after_review)

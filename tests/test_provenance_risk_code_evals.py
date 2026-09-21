@@ -11,6 +11,7 @@ from evals.provenance.risk_codes import (
     CAPTURE_BEHAVIORS,
     FLOW_421_CODES,
     FLOW_422_CODES,
+    FLOW_423_CODES,
     REQUIRED_BEHAVIORS,
     RiskCodeCaseSet,
     grade_review,
@@ -107,11 +108,11 @@ class RiskCodeCaseSetTests(unittest.TestCase):
 
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
-        self.assertEqual("4.2.1", self.case_set.flow)
-        self.assertEqual(28, len(self.case_set.cases))
+        self.assertEqual(("4.2.1", "4.2.2", "4.2.3"), self.case_set.flows)
+        self.assertEqual(34, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
-        self.assertEqual(8, len(self.case_set.positives))
-        self.assertEqual(8, len(self.case_set.negatives))
+        self.assertEqual(11, len(self.case_set.positives))
+        self.assertEqual(11, len(self.case_set.negatives))
         self.assertEqual(5, len(self.case_set.capture_positives))
         self.assertEqual(6, len(self.case_set.capture_negatives))
 
@@ -123,6 +124,26 @@ class RiskCodeCaseSetTests(unittest.TestCase):
             negative = self.by_behavior[f"{code}_negative"]
             self.assertEqual("pass", negative.expected_response_decision)
             self.assertEqual((), negative.expected_response_codes)
+
+    def test_flow_423_has_paired_web_and_memory_semantic_cases(self) -> None:
+        web_positive = self.by_behavior["uncited_web_claim_positive"]
+        web_negative = self.by_behavior["uncited_web_claim_negative"]
+        self.assertEqual(("uncited_web_claim",), web_positive.expected_response_codes)
+        self.assertEqual("pass", web_negative.expected_response_decision)
+
+        public_misuse = self.by_behavior["connection_memory_public_misuse"]
+        attributed_memory = self.by_behavior["connection_memory_attributed"]
+        self.assertEqual(("unsupported_claim",), public_misuse.expected_response_codes)
+        self.assertEqual("pass", attributed_memory.expected_response_decision)
+
+        book_misuse = self.by_behavior["connection_memory_book_misuse"]
+        canonical_book = self.by_behavior["connection_book_canonical"]
+        self.assertEqual(("unsupported_claim",), book_misuse.expected_response_codes)
+        self.assertEqual("pass", canonical_book.expected_response_decision)
+        self.assertEqual(
+            FLOW_423_CODES,
+            {"uncited_web_claim", "unsupported_claim", "misattribution"},
+        )
 
     def test_mapping_cases_separate_missing_declarations_from_missing_support(self) -> None:
         for behavior, source in (
@@ -515,7 +536,8 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1.0, report.summary.sensitive_content_accuracy)
         self.assertEqual(1.0, report.summary.decoupling_accuracy)
         self.assertEqual(
-            FLOW_421_CODES, {item.code for item in report.summary.per_code_result}
+            FLOW_421_CODES | FLOW_423_CODES,
+            {item.code for item in report.summary.per_code_result},
         )
         self.assertEqual(
             FLOW_422_CODES,
@@ -638,7 +660,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(report.summary.targets_pass)
         self.assertEqual(1.0, report.summary.block_recall)
-        self.assertEqual(0.5, report.summary.code_precision)
+        self.assertEqual(0.5455, report.summary.code_precision)
         self.assertEqual(1.0, report.summary.capture_veto_recall)
         self.assertEqual(0.2, report.summary.capture_code_precision)
 
@@ -649,7 +671,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(28, report.summary.evaluation_error_count)
+        self.assertEqual(34, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 

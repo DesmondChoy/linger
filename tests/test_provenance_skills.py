@@ -85,7 +85,10 @@ def task_input(skill: RuntimeSkill[Any, Any], marker: str) -> Any:
         ),
         sources=tuple(
             CurationSourceEvidence(
-                memory_id=f"memory-{index}", text=marker, record_sha256=str(index) * 64
+                memory_id=f"memory-{index}",
+                text=marker,
+                record_sha256=str(index) * 64,
+                retrieval_state="active",
             )
             for index in (1, 2)
         ),

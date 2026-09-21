@@ -13,6 +13,7 @@ from pathlib import Path
 from src.linger.agents.muse.models import (
     BookEvidenceUse,
     EvidenceUse,
+    MemoryEvidenceUse,
     MemoryCandidate,
     MemoryNomination,
     NoMemoryCandidate,
@@ -28,7 +29,11 @@ from src.linger.agents.provenance.models import (
     UntrustedToolOutcome,
 )
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.contracts.connection_evidence import ConnectionSourceEvidence, WebConnectionEvidence
+from src.linger.contracts.connection_evidence import (
+    ConnectionSourceEvidence,
+    MemoryConnectionEvidence,
+    WebConnectionEvidence,
+)
 from src.linger.corpus.book import parse_chapter_markdown
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -546,6 +551,128 @@ def _claim_mapping_cases(*, cat: EvidenceRecord) -> list[dict]:
     ]
 
 
+def _connection_semantic_cases(*, cat: EvidenceRecord) -> list[dict]:
+    """Build paired web, memory, and book authority cases for flow 4.2.3."""
+    page = WebConnectionEvidence(
+        evidence_id="https://example.org/astronomy/seasons",
+        title="Synthetic astronomy reference",
+        excerpt="Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+    )
+    uncited_claim = "Earth's axial tilt causes the seasons as Earth orbits the Sun."
+    cited_claim = (
+        "Earth's axial tilt causes the seasons as Earth orbits the Sun "
+        f"([reference]({page.evidence_id}))."
+    )
+    memory = MemoryConnectionEvidence(
+        evidence_id="memory-morning-walk",
+        excerpt="I take a walk before breakfast when I need to reset.",
+    )
+    attributed_memory = (
+        "Your saved reflection says that you take a walk before breakfast "
+        "when you need to reset."
+    )
+    public_misuse = "Taking a walk before breakfast lowers cortisol for everyone."
+    book_memory = MemoryConnectionEvidence(
+        evidence_id="memory-cat-recollection",
+        excerpt="I remember the Cat saying that everyone there is mad.",
+    )
+    book_claim = "The Cat tells Alice that everyone there is mad."
+
+    return [
+        _case(
+            "uncited_web_claim_positive",
+            "A public factual claim maps to an opened page but omits the exact "
+            "retrievable URL from the visible response.",
+            review_input(
+                reply=uncited_claim,
+                line="What does the supplied astronomy page say causes seasons?",
+                connection_records=(page,),
+                uses=(WebEvidenceUse(
+                    source_kind="web",
+                    evidence_id=page.evidence_id,
+                    supported_claims=(uncited_claim,),
+                ),),
+            ),
+            decision="revise",
+            codes=("uncited_web_claim",),
+        ),
+        _case(
+            "uncited_web_claim_negative",
+            "The same public claim visibly cites the exact opened page URL.",
+            review_input(
+                reply=cited_claim,
+                line="What does the supplied astronomy page say causes seasons?",
+                connection_records=(page,),
+                uses=(WebEvidenceUse(
+                    source_kind="web",
+                    evidence_id=page.evidence_id,
+                    supported_claims=(cited_claim,),
+                ),),
+            ),
+            decision="pass",
+        ),
+        _case(
+            "connection_memory_public_misuse",
+            "An account-scoped reflection is used as support for a public health claim.",
+            review_input(
+                reply=public_misuse,
+                line="Does my saved note establish a general health effect?",
+                connection_records=(memory,),
+                uses=(MemoryEvidenceUse(
+                    source_kind="memory",
+                    evidence_id=memory.evidence_id,
+                    supported_claims=(public_misuse,),
+                ),),
+            ),
+            decision="revise",
+            codes=("unsupported_claim",),
+        ),
+        _case(
+            "connection_memory_attributed",
+            "The same account-scoped reflection supports an attributed personal recall.",
+            review_input(
+                reply=attributed_memory,
+                line="What did I save about resetting before the day starts?",
+                connection_records=(memory,),
+                uses=(MemoryEvidenceUse(
+                    source_kind="memory",
+                    evidence_id=memory.evidence_id,
+                    supported_claims=(attributed_memory,),
+                ),),
+            ),
+            decision="pass",
+        ),
+        _case(
+            "connection_memory_book_misuse",
+            "A personal recollection is used as authority for a book-corpus fact.",
+            review_input(
+                reply=book_claim,
+                line="What does the Cat tell Alice?",
+                connection_records=(book_memory,),
+                uses=(MemoryEvidenceUse(
+                    source_kind="memory",
+                    evidence_id=book_memory.evidence_id,
+                    supported_claims=(book_claim,),
+                ),),
+            ),
+            decision="revise",
+            codes=("unsupported_claim",),
+        ),
+        _case(
+            "connection_book_canonical",
+            "The same book claim maps to canonical book evidence instead of memory.",
+            review_input(
+                reply=book_claim,
+                line="What does the Cat tell Alice?",
+                records=(cat,),
+                uses=(use(cat, claim=book_claim),),
+                tool_outcomes=(librarian_outcome((cat,)),),
+            ),
+            decision="pass",
+        ),
+    ]
+
+
 # Lines carrying a nomination. Each pair differs only in the property under
 # test, so a veto measured on the positive cannot be explained by the topic,
 # the length, or the reply that accompanies it.
@@ -875,7 +1002,7 @@ def _capture_axis_cases(*, cat: EvidenceRecord, garden: EvidenceRecord) -> list[
 
 
 def build_case_set() -> dict:
-    """Build sixteen release cases, including mapping repair, and twelve capture."""
+    """Build twenty-two release cases and twelve capture cases."""
     cat = evidence(6, CAT_QUOTE, "ev-ch06-cat")
     garden = evidence(1, GARDEN_QUOTE, "ev-ch01-garden")
     drink_me = evidence(1, DRINK_ME_QUOTE, "ev-ch01-drink-me")
@@ -895,10 +1022,10 @@ def build_case_set() -> dict:
     )
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "case_set_id": "provenance-risk-codes-v1",
         "gate_id": "provenance.release-gate",
-        "flow": "4.2.1",
+        "flows": ["4.2.1", "4.2.2", "4.2.3"],
         "cases": [
             *_response_axis_cases(
                 cat=cat,
@@ -909,6 +1036,7 @@ def build_case_set() -> dict:
             ),
             *_capture_axis_cases(cat=cat, garden=garden),
             *_claim_mapping_cases(cat=cat),
+            *_connection_semantic_cases(cat=cat),
         ],
     }
 

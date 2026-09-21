@@ -18,6 +18,11 @@ from evals.synthetic_journals.book_contract import (
     BookContractError,
     compile_book_replay_plan,
 )
+from evals.synthetic_journals.conversational_surfacing_contract import (
+    CONVERSATIONAL_CONTRACT,
+    ConversationalContractError,
+    compile_conversational_scenes,
+)
 from evals.synthetic_journals.models import (
     CaptureCandidate,
     CaptureExpectation,
@@ -254,10 +259,16 @@ def validate_scenario(
     )
     failures.extend(_validate_sensitive_capture_objective(backstory, ground_truth))
     if SURFACING_OBJECTIVE_ID in backstory.objective_ids:
-        try:
-            compile_surfacing_scenes(backstory, ground_truth)
-        except SurfacingContractError as error:
-            failures.append(str(error))
+        if backstory.scenario_contract == CONVERSATIONAL_CONTRACT:
+            try:
+                compile_conversational_scenes(backstory, ground_truth)
+            except ConversationalContractError as error:
+                failures.append(str(error))
+        else:
+            try:
+                compile_surfacing_scenes(backstory, ground_truth)
+            except SurfacingContractError as error:
+                failures.append(str(error))
     failures.extend(
         _validate_run_configurations(backstory, ground_truth, run_configurations)
     )

@@ -1269,9 +1269,9 @@ and curation transitions, grounded conversational release, and appropriate
 silence. It ends at the released response, with no notification or scheduler.
 
 The existing [`surfacing runner`](../evals/synthetic_journals/surfacing_replay.py)
-evaluates only Sculptor's offline decision component over supplied, bounded,
-account-scoped Props. Its accepted Scenes contain exactly one offline input and
-no Lines. The input supplies a timezone-aware decision time,
+evaluates only the `component_v1` Sculptor offline decision contract over
+supplied, bounded, account-scoped Props. Its accepted Scenes contain exactly
+one offline input and no Lines. The input supplies a timezone-aware decision time,
 the current context, and any prior surfaced or dismissed suggestions. Sculptor
 returns `surface_now`, `defer`, or `do_not_surface`. A suggestion cites supplied
 source identifiers. A deferral includes a future time or condition for
@@ -1542,9 +1542,12 @@ Two loops are in scope.
 **Product direction.** Section 4.2.5 adopts a bounded conversational target:
 Sculptor curates after a successful durable capture and judges relevant memories
 during a later user conversation. Muse produces user-facing wording; Provenance
-and deterministic application checks retain the release boundary. The expanded
-`proactive_memory_surfacing` Objective evaluates that complete path. Its existing
-offline runner remains component evidence while the integration is unimplemented.
+and deterministic application checks retain the release boundary. The versioned
+`conversational_v1` contract validates the ordered Lines, prerequisites, and
+symbolic runtime-outcome references for the expanded
+`proactive_memory_surfacing` Objective. Its production replay remains a separate
+runner; the existing offline runner remains component evidence and does not
+establish the complete path.
 Sculptor's product work need not run offline, and it gains no write or release
 authority. The scheduled operational playbook remains a separate task. Continuous
 monitoring and unsolicited out-of-conversation resurfacing remain excluded by

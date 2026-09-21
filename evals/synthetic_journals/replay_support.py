@@ -48,6 +48,10 @@ _RETRIEVAL = ReplaySupport(
     name="longitudinal retrieval",
     module="evals.synthetic_journals.retrieval_replay",
 )
+_CONVERSATIONAL_SURFACING = ReplaySupport(
+    name="conversational memory surfacing",
+    module="evals.synthetic_journals.conversational_surfacing_replay",
+)
 
 _SUPPORTED_REPLAYS = {
     frozenset({"cross_source_tentative_connection"}): _CONNECTION,
@@ -71,8 +75,18 @@ _SUPPORTED_REPLAYS = {
 }
 
 
-def replay_support_for(objective_ids: Iterable[str]) -> ReplaySupport | None:
-    """Return the runner for one exact, order-independent selection."""
+def replay_support_for(
+    objective_ids: Iterable[str],
+    *,
+    scenario_contract: str = "component_v1",
+) -> ReplaySupport | None:
+    """Return the runner for one exact selection and scenario contract."""
+
+    if (
+        scenario_contract == "conversational_v1"
+        and frozenset(objective_ids) == frozenset({"proactive_memory_surfacing"})
+    ):
+        return _CONVERSATIONAL_SURFACING
 
     return _SUPPORTED_REPLAYS.get(frozenset(objective_ids))
 

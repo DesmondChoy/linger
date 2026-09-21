@@ -41,6 +41,12 @@ def compile_surfacing_scenes(
         raise SurfacingContractError("invalid surfacing scenario graph") from error
     if set(backstory.objective_ids) != {SURFACING_OBJECTIVE_ID}:
         raise SurfacingContractError("surfacing replay requires its sole Objective")
+    if backstory.scenario_contract != "component_v1":
+        raise SurfacingContractError("offline surfacing replay requires component_v1")
+    if ground_truth.scenario_contract != "component_v1":
+        raise SurfacingContractError(
+            "offline surfacing Ground truth requires component_v1"
+        )
     props = {item.prop_id: item for item in backstory.props}
     offline = {item.offline_input_id: item for item in backstory.offline_inputs}
     proposals = {item.scene_id: item for item in ground_truth.proposals}
