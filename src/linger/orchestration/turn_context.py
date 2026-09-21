@@ -201,6 +201,32 @@ def reset_turn_evidence(
     _turn_evidence.reset(token)
 
 
+@dataclass(frozen=True)
+class ToolExposure:
+    """Muse tools offered for one turn, and any pinned `serendipity_explore` intent."""
+
+    tools: frozenset[str]
+    pinned_intent: str | None = None
+
+
+# Unset means no turn-level gating: every tool of the selected skill is offered.
+_tool_exposure: contextvars.ContextVar[ToolExposure | None] = contextvars.ContextVar(
+    "tool_exposure", default=None
+)
+
+
+def set_tool_exposure(value: ToolExposure) -> contextvars.Token:
+    return _tool_exposure.set(value)
+
+
+def tool_exposure() -> ToolExposure | None:
+    return _tool_exposure.get()
+
+
+def reset_tool_exposure(token: contextvars.Token) -> None:
+    _tool_exposure.reset(token)
+
+
 _public_source_urls: contextvars.ContextVar[tuple[str, ...] | None] = contextvars.ContextVar(
     "public_source_urls", default=None,
 )

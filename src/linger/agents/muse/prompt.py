@@ -1,7 +1,7 @@
 """Effective runtime instructions and contract-aware Muse fingerprints."""
 
 from apps.backend.contracts import MuseDraftInput, MuseRevisionInput
-from src.linger.agents.muse.skills import REFLECTION
+from src.linger.agents.muse.skills import REFLECTION, TURN_TRIAGE
 
 INSTRUCTIONS = REFLECTION.effective_instructions
 
@@ -11,3 +11,4 @@ DRAFT_PROMPT_FINGERPRINT = REFLECTION.fingerprint(
 REVISION_PROMPT_FINGERPRINT = REFLECTION.fingerprint(
     template_id="muse.revision", input_type=MuseRevisionInput
 )
+TURN_TRIAGE_PROMPT_FINGERPRINT = TURN_TRIAGE.fingerprint()

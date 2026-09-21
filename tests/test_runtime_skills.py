@@ -146,6 +146,7 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
     assignments = evaluation_skills()
     assert {assignment.skill_id for assignment in assignments} == {
         "muse.reflection",
+        "muse.turn-triage",
         "librarian.boundary-inference",
         "librarian.event-identification",
         "librarian.book-request",
@@ -159,8 +160,8 @@ def test_role_registry_retains_every_skill_without_duplicate_agents() -> None:
         "provenance.curation-review",
     }
     # Muse and boundary inference each retain their input-specific fingerprints.
-    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 13
-    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 13
+    assert len({item.template_id for item in RUNTIME_PROMPT_FINGERPRINTS}) == 14
+    assert len({item.digest for item in RUNTIME_PROMPT_FINGERPRINTS}) == 14
 
 
 def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, monkeypatch):

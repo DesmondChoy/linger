@@ -16,6 +16,9 @@ from apps.backend.config import get_settings
 
 SUPPORTED_PROVIDERS = ("google", "openai", "anthropic")
 LUNA_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort="medium")
+# Small, fast tier for Muse turn triage. A provider without an entry uses
+# `LINGER_MODEL` itself, so triage never needs its own configuration.
+TRIAGE_MODEL_NAMES = {"openai": "gpt-5.4-mini", "google": "gemini-2.5-flash"}
 
 
 def build_model() -> Model:
@@ -28,7 +31,20 @@ def build_model() -> Model:
             f"Choose one of: {', '.join(SUPPORTED_PROVIDERS)}."
         )
 
-    api_key = settings.api_key_for(provider_name)
+    return _provider_model(provider_name, model_name)
+
+
+def build_triage_model() -> Model:
+    """Build the configured provider's small model, else the configured model."""
+    provider_name = get_settings().linger_model.partition(":")[0]
+    triage_name = TRIAGE_MODEL_NAMES.get(provider_name)
+    if triage_name is None:
+        return build_model()
+    return _provider_model(provider_name, triage_name)
+
+
+def _provider_model(provider_name: str, model_name: str) -> Model:
+    api_key = get_settings().api_key_for(provider_name)
     match provider_name:
         case "google":
             model = GoogleModel(
