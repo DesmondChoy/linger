@@ -18,8 +18,15 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
     get_settings()
 
-from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import (
+    ModelResponse,
+    RetryPromptPart,
+    ToolCallPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
 from pydantic_ai.models.function import AgentInfo, FunctionModel
+from provenance_fixtures import review_with_audits
 
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
@@ -48,13 +55,15 @@ FINDING = {
 
 def _review(decision: str, findings=(), **fields):
     def respond(messages, info: AgentInfo) -> ModelResponse:
-        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
+        payload = next(part.content for message in messages for part in message.parts
+                       if isinstance(part, UserPromptPart))
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, review_with_audits(payload, {
             "findings": list(findings),
             "response_decision": decision,
             "emotional_boundary_decision": "not_required",
             "capture_decision": "no_candidate",
             **fields,
-        })])
+        }).model_dump(mode="json"))])
     return respond
 
 
