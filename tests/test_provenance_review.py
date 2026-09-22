@@ -34,6 +34,12 @@ SPEC_RISK_CODES = (
     RiskCode.SENSITIVE_CONTENT,
     RiskCode.EMOTIONAL_POLICY_VIOLATION,
     RiskCode.PROMPT_INJECTION,
+    RiskCode.POLICY_OVERRIDE,
+    RiskCode.HARMFUL_CONTENT,
+    RiskCode.FALSE_PERSONA,
+    RiskCode.PROFESSIONAL_ADVICE,
+    RiskCode.OUT_OF_SCOPE,
+    RiskCode.INSTRUCTION_DISCLOSURE,
 )
 
 
@@ -168,6 +174,32 @@ class ProvenanceReviewTests(unittest.TestCase):
             capture_decision="no_candidate",
         )
         self.assertFalse(non_sensitive.contains_sensitive_content)
+
+    def test_compromised_turn_capture_findings_mark_content_sensitive(self) -> None:
+        for code in (
+            RiskCode.POLICY_OVERRIDE,
+            RiskCode.HARMFUL_CONTENT,
+            RiskCode.INSTRUCTION_DISCLOSURE,
+        ):
+            with self.subTest(code=code):
+                review = ProvenanceReview(
+                    findings=(finding(code, applies_to="capture"),),
+                    response_decision="pass",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="reject_capture",
+                )
+                self.assertTrue(review.contains_sensitive_content)
+
+    def test_self_directed_capture_findings_do_not_mark_content_sensitive(self) -> None:
+        for code in (RiskCode.FALSE_PERSONA, RiskCode.PROFESSIONAL_ADVICE, RiskCode.OUT_OF_SCOPE):
+            with self.subTest(code=code):
+                review = ProvenanceReview(
+                    findings=(finding(code, applies_to="capture"),),
+                    response_decision="pass",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="reject_capture",
+                )
+                self.assertFalse(review.contains_sensitive_content)
 
     def test_critique_names_each_ground(self) -> None:
         review = ProvenanceReview(

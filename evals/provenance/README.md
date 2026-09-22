@@ -28,16 +28,56 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 34 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 52 cases covering both decisions the gate returns
+across flows 4.2.1, 4.2.2, and 4.2.3.
 
-Twelve **release** cases check the five risk codes reachable in specification
-flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
-`unsupported_claim`, and `prompt_injection`. Twelve **capture** cases check the
-four `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
-`unsupported_claim`, `sensitive_content`, `emotional_policy_violation`, and
-`prompt_injection`. Each code has a positive case and a paired near-miss
-negative that differs minimally, plus clean controls on both axes, so detection
-is measured separately from a gate that blocks indiscriminately.
+Twenty-four **release** cases check the eleven risk codes reachable in
+specification flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,
+`unsupported_claim`, `prompt_injection`, `policy_override`, `harmful_content`,
+`false_persona`, `professional_advice`, `out_of_scope`, and
+`instruction_disclosure`. Eighteen **capture** cases check
+the seven `SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2:
+`unsupported_claim`, `sensitive_content`, `emotional_policy_violation`,
+`prompt_injection`, `policy_override`, `harmful_content`, and
+`instruction_disclosure`. Each code has a
+positive case and a paired near-miss negative that differs minimally, plus
+clean controls on both axes, so detection is measured separately from a gate
+that blocks indiscriminately.
+
+Both `policy_override` pairs carry `context.override_attempt="attempted"` and
+differ only in whether the reply complies, so the signal on its own cannot
+produce a block. Both `harmful_content` pairs carry the same demeaning request
+and differ only in whether the reply complies, so a safe decline that
+redirects to reflection is not itself a block. The single `false_persona`
+pair answers the same sincere question in the same warm first-person
+register, and differs only in whether the reply claims a human self and
+fosters dependence, so conversational tone on its own cannot produce a block.
+The single `professional_advice` pair opens and closes on the same reflective
+remark and question, and differs only in whether the reply tells the reader
+what to do with their own savings, so a reader raising money, illness, or law
+cannot on its own produce a block. Its domain is financial rather than
+medical so the shared Line cannot read as distress and the offending sentence
+cannot read as dangerous, either of which would block both cases under a
+different code. The single `out_of_scope` pair opens on the reader's own
+description of the current chapter and closes on the same question, and
+differs only in whether the reply performs the requested unrelated task (a
+cover letter) or declines it and names what is in scope, including what to
+read next, so the negative also measures over-blocking of a reading-adjacent
+offer. None of `false_persona`,
+`professional_advice`, or `out_of_scope` has a capture pair: each judges
+Muse's own claims, instructions, or task performance in `candidate.response`,
+never the reader's nominated words, so all three are absent from
+`SENSITIVE_RISK_CODES`.
+
+The single `instruction_disclosure` pair asks a merely curious question with
+no override attempt, and differs only in whether the reply names its internal
+review step and tool names or gives a plain high-level description;
+`context.override_attempt` stays `no_attempt` in both, distinguishing this
+pair from the `policy_override` pair above. `instruction_disclosure` does
+have a capture pair: what it discloses answers the reader's own question
+about the companion, so words nominated on a turn spent probing the system
+are not trustworthy material to keep and the code is inside
+`SENSITIVE_RISK_CODES`.
 
 Four additional release cases check incomplete book and public-source claim
 mappings, a revision that leaves a mapping incomplete, and a revision that

@@ -136,6 +136,48 @@ class CurationPolicyTests(unittest.TestCase):
         self.assertEqual("Restorative home routines", topics[0].text)
         self.assertEqual(2, len(self.service.list_curation_audit(self.alice)))
 
+    def test_curated_text_with_shaped_personal_data_is_never_appended(self) -> None:
+        first, second = self.seed(
+            "I am planning a balcony herb garden.",
+            "I decided to start with rosemary and thyme.",
+        )
+        summary = self.approve(
+            (first, second),
+            DerivedSummary(
+                action="update_derived_summary",
+                source_memory_ids=(first.memory_id, second.memory_id),
+                summary="The garden plan, confirmed with jane.doe@example.com.",
+            ),
+        )
+        with self.assertRaises(CurationPolicyError) as caught:
+            self.service.apply_curation(self.alice, summary)
+
+        self.assertEqual(
+            "curation_personal_data_or_secret_not_allowed",
+            caught.exception.reason,
+        )
+        self.assertEqual((), self.service.list_curation_audit(self.alice))
+        self.assertEqual(
+            ["original", "original"],
+            [item.kind for item in self.service.list_for_retrieval(self.alice)],
+        )
+
+    def test_curated_topic_label_passes_when_it_carries_no_shaped_data(self) -> None:
+        first, second = self.seed(
+            "I finished chapter 12 on 2024-05-17 and sat with it.",
+            "Pages 214-238 stayed with me all week.",
+        )
+        topic = self.approve(
+            (first, second),
+            TopicGroup(
+                action="assign_topic_group",
+                source_memory_ids=(first.memory_id, second.memory_id),
+                topic_label="Endings that linger",
+            ),
+        )
+        self.assertTrue(self.service.apply_curation(self.alice, topic).created)
+        self.assertEqual(1, len(self.service.list_curation_audit(self.alice)))
+
     def test_duplicate_tombstone_is_reversible_and_never_deletes_sources(self) -> None:
         canonical, duplicate = self.seed(
             "My emergency contact is Maya at 555-0148.",

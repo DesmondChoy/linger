@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
 import logfire
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.messages import (
     ModelMessage,
     ModelRequest,
@@ -35,6 +35,7 @@ from src.linger.agents.muse.skills import REFLECTION
 from src.linger.agents.muse.claim_repair import accepted_claims_for_revision
 from src.linger.agents.muse.prompt import (
     DRAFT_PROMPT_FINGERPRINT,
+    INSTRUCTIONS as MUSE_INSTRUCTIONS,
     REVISION_PROMPT_FINGERPRINT,
 )
 from src.linger.agents.provenance.models import (
@@ -58,7 +59,8 @@ from src.linger.agents.serendipity.models import (
     ConnectionExplorationResult,
     MemoryRecall,
 )
-from src.linger.contracts.emotional import EMOTIONAL_BOUNDARY_RESPONSE
+from src.linger.contracts.emotional import BoundaryDecision, boundary_response
+from src.linger.contracts.language import LANGUAGE_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
@@ -74,9 +76,30 @@ from src.linger.contracts.librarian import (
 from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
+from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
 from src.linger.orchestration.turn_context import turn_evidence, active_memories
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
+
+# A grounded turn routes once, searches once per book the reader named, and
+# explores one connection; a two-book comparison is the longest ordinary shape,
+# at four calls. Double that for headroom: PydanticAI refuses a whole batch of
+# parallel tool calls that would cross this line, and a cap that declines a real
+# turn is worse than one that lets a looping model waste a few more calls first.
+MUSE_TOOL_CALL_LIMIT = 8
+# The tool-call budget above is what stops a tool loop; this one only has to be
+# loose enough never to pre-empt it. Each successful call costs one model
+# request, and a failed one — the pinned-intent check, or invalid tool arguments
+# — costs a request without consuming tool-call budget, its per-tool retry count
+# resetting after each success. So allow one failure per permitted call plus one
+# per tool, on top of the opening request and Muse's own output repairs.
+MUSE_REQUEST_LIMIT = (
+    1 + 2 * MUSE_TOOL_CALL_LIMIT + len(REFLECTION.tools) + REFLECTION.output_retries
+)
+# No tools reach candidate review; this bounds its own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+PROVENANCE_REVIEW_REQUEST_LIMIT = CANDIDATE_REVIEW.output_retries + 1
 
 SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that right now."
 SPOILER_DECLINE = (
@@ -128,6 +151,8 @@ class ReflectionRelease:
     evidence_ids: tuple[str, ...] = ()
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
     released_evidence_ids: tuple[str, ...] = ()
+    # Muse tools that actually ran in a released turn; a declined turn records none.
+    tool_names: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:
@@ -265,6 +290,7 @@ def _safe_decline(
 def emotional_boundary_release(
     *,
     origin: BoundaryOrigin,
+    decision: BoundaryDecision = "apply_boundary",
     review_path: tuple[ProvenanceReview, ...] = (),
     candidate: MuseCandidate | None = None,
     tool_results: list[dict[str, object]] | None = None,
@@ -280,7 +306,7 @@ def emotional_boundary_release(
         raise ValueError("an emotional boundary can follow at most one revision")
     tool_results = tool_results or []
     return ReflectionRelease(
-        reply=EMOTIONAL_BOUNDARY_RESPONSE,
+        reply=boundary_response(decision),
         release_source="application_emotional_boundary",
         boundary_origin=origin,
         provenance_verdicts=tuple(
@@ -293,6 +319,14 @@ def emotional_boundary_release(
         librarian_grounding_calls=_librarian_grounding(tool_results),
         evidence_ids=_evidence_ids(candidate) if candidate is not None else (),
         review_finding_codes=_review_codes(*review_path),
+    )
+
+
+def language_boundary_release() -> ReflectionRelease:
+    """Return the fixed English-only notice; no model ever saw this Line."""
+    return ReflectionRelease(
+        reply=LANGUAGE_BOUNDARY_RESPONSE,
+        release_source="application_language_boundary",
     )
 
 
@@ -338,6 +372,10 @@ def _tool_results(run_result: Any) -> list[dict[str, object]]:
         if isinstance(part, ToolReturnPart)
         and part.tool_name in {"librarian_search", "librarian_route", "serendipity_explore"}
     ]
+
+
+def _tool_names(tool_results: list[dict[str, object]]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(str(result["tool_name"]) for result in tool_results))
 
 
 def _routing_responses(
@@ -574,6 +612,8 @@ def _validate_release(
     released_user_lines: tuple[str, ...] = (),
 ) -> None:
     """Validate claim mappings and source declarations after semantic approval."""
+    if detect_instruction_leak(candidate.reply, MUSE_INSTRUCTIONS):
+        raise ReleaseValidationError("Candidate quotes Muse's own instructions")
     try:
         validate_supported_claims(candidate.reply, candidate.evidence_uses)
     except ValueError as error:
@@ -643,7 +683,9 @@ def _provenance_context(
             reading_context=None,
             required_clarification=required_clarification,
         )
-    unexpected = set(review_context) - {"policy_constraints", "reading_context", "passage_scope"}
+    unexpected = set(review_context) - {
+        "policy_constraints", "reading_context", "passage_scope", "override_attempt",
+    }
     if unexpected:
         raise ReleaseValidationError("Provenance context contains unknown fields")
     try:
@@ -653,6 +695,7 @@ def _provenance_context(
                 "reading_context": review_context.get("reading_context"),
                 "passage_scope": review_context.get("passage_scope"),
                 "required_clarification": required_clarification,
+                "override_attempt": review_context.get("override_attempt", "no_attempt"),
             }
         )
     except Exception:
@@ -781,6 +824,7 @@ async def _review(
             prompt_digest=PROVENANCE_PROMPT_FINGERPRINT.digest,
             failure_code="provenance_model_failed",
             result_attrs=lambda run_result: review_attrs(run_result.output),
+            usage_limits=UsageLimits(request_limit=PROVENANCE_REVIEW_REQUEST_LIMIT),
             **CANDIDATE_REVIEW.run_options(),
         )
     finally:
@@ -974,6 +1018,10 @@ async def _reflection_reply(
             prompt_digest=DRAFT_PROMPT_FINGERPRINT.digest,
             failure_code="muse_model_failed",
             message_history=history,
+            usage_limits=UsageLimits(
+                request_limit=MUSE_REQUEST_LIMIT,
+                tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
+            ),
             **REFLECTION.run_options(),
         )
     except Exception:
@@ -1114,6 +1162,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
                 released_evidence_ids=_candidate_citation_ids(candidate) if draft_clarification is None else (),
+                tool_names=_tool_names(draft_tool_results),
             ),
         )
     if review.response_decision != "revise":
@@ -1180,6 +1229,10 @@ async def _reflection_reply(
             prompt_digest=REVISION_PROMPT_FINGERPRINT.digest,
             failure_code="muse_revision_model_failed",
             message_history=[*history, *draft_result.new_messages()],
+            usage_limits=UsageLimits(
+                request_limit=MUSE_REQUEST_LIMIT,
+                tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
+            ),
             **REFLECTION.run_options(),
         )
     except Exception:
@@ -1362,6 +1415,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(revised_candidate),
                 review_finding_codes=_review_codes(review, revised_review),
                 released_evidence_ids=_candidate_citation_ids(revised_candidate) if revised_clarification is None else (),
+                tool_names=_tool_names(revised_tool_results),
             ),
         )
     return _record_release(

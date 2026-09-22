@@ -113,7 +113,9 @@ approval. Content about sensitive traits is never captured.
 - continuous monitoring or unsolicited resurfacing outside an active user
   conversation, including notifications;
 - end-user memory-management settings and explicit save, review, correction, or deletion controls;
-- mental-health profiling, diagnosis, or crisis-resource routing;
+- mental-health profiling, diagnosis, or risk assessment — the fixed
+  crisis-resource pointer in Section 6.6 is a narrow exception, not general
+  crisis-resource routing;
 - autonomous prompt or skill self-modification — the self-improvement loops in Section 9 produce human-reviewed proposals only and never apply changes themselves;
 - production scale, availability, compliance, or regulatory claims; and
 - any claim that prototype telemetry measurably improved the system.
@@ -197,13 +199,15 @@ Provenance shares no model working context with the other agents and has no tool
 ### 4.1 Output release contract
 
 Before Muse or any Muse-accessible tool runs, Provenance classifies the current
-Line against the versioned emotional-content policy. `continue_reflection`
-enters the ordinary Muse flow. `apply_boundary` skips Muse, Librarian,
-Serendipity, target conversational Sculptor work, ordinary candidate review,
-and memory nomination; application code
-releases the canonical response from Section 6.6 and records
-`application_emotional_boundary`. A preflight failure fails closed to the
-application safe decline before Muse runs. This narrow application-owned path
+Line against the versioned emotional-content policy, backstopped by a
+deterministic first-person self-harm pattern match described in Section 6.6.
+`continue_reflection` enters the ordinary Muse flow. `apply_boundary` and
+`apply_self_harm_boundary` skip Muse, Librarian, Serendipity, target
+conversational Sculptor work, ordinary candidate review, and memory
+nomination; application code releases the matching canonical response from
+Section 6.6 and records `application_emotional_boundary`. A preflight failure
+fails closed to the application safe decline before Muse runs. This narrow
+application-owned path
 does not create a Muse candidate; every candidate that Muse does produce still
 requires the ordinary Provenance gate.
 
@@ -322,8 +326,11 @@ During controlled evaluation, Muse may nominate one typed `MemoryCandidate`;
 Provenance may veto it for privacy, sensitive inference, unsupported provenance,
 or injection risk. The Memory & Policy Service derives account scope, checks the
 server-side evaluation policy and idempotency, validates the request, and owns
-every write. The application reports a committed capture but offers no
-memory-management action.
+every write. Independent of Provenance's judgement, the service also runs a
+deterministic pattern screen over the exact candidate text and refuses storage
+outright when it detects a shaped personal-data or credential pattern, without
+altering the stored text; the reply to the reader is unaffected. The application
+reports a committed capture but offers no memory-management action.
 
 Sculptor is not part of capture. Curation is implemented as the callable
 `run_curation_loop` service below. Application-loop tests and bounded-curation
@@ -343,8 +350,9 @@ replay invoke it; the chat handler does not initiate curation.
    malformed, revised, rejected, or differently bound verdict stops the flow.
 5. Application code constructs `ApprovedCuration` only from an exact `allow`.
    The Memory & Policy Service re-reads the originals and fails closed on stale,
-   unknown, cross-account, stale-state, or structurally invalid sources before
-   appending one immutable, idempotent audit event.
+   unknown, cross-account, stale-state, or structurally invalid sources, and
+   applies the same deterministic pattern screen to a proposed summary or topic
+   label, before appending one immutable, idempotent audit event.
 6. The service verifies the stored event and source hashes. Retrieval reads the
    materialised curated view rather than the raw capture list.
 
@@ -916,14 +924,32 @@ Every Muse candidate requires a recorded approving Provenance verdict before rel
 - evidence crosses account boundaries;
 - a factual web claim lacks a retrievable citation;
 - the candidate contains an unsupported claim or sensitive inference;
-- the candidate violates the emotional-content policy; or
-- retrieved content attempts to redirect agent behaviour.
+- the candidate violates the emotional-content policy;
+- retrieved content attempts to redirect agent behaviour;
+- the candidate complies with a reader attempt to override the companion's
+  instructions or role;
+- the candidate is toxic, dangerous, sexually explicit, or hateful or
+  harassing content, rather than declining and redirecting to reflection on
+  the reading;
+- the candidate claims or implies being human, claims feelings, a body,
+  memories of a personal life, or personal experiences of reading, or fosters
+  emotional dependence by positioning itself as a substitute for people in the
+  reader's life;
+- the candidate gives individualised medical, legal, financial, or
+  therapeutic advice or instructions, rather than declining and returning to
+  reflection on the reading;
+- the candidate performs a task unconnected to reflection on the reader's
+  reading, the sources and images they bring to it, or their own remembered
+  notes, rather than briefly declining and returning to the reading; or
+- the candidate reveals, quotes, or paraphrases its own instructions, loaded
+  skills, tool names or schemas, or internal review process.
 
 Rejected and superseded drafts are never displayed. Deterministic validation runs after semantic approval and fails closed to the application-authored safe decline.
-A response finding with code `spoiler` or `prompt_injection` requires an
-immediate `response_decision="reject"` rather than a revision. Capture findings
-independently determine `capture_decision`; rejecting an unsafe nomination does
-not by itself block a safe reply.
+A response finding with code `spoiler`, `prompt_injection`, `policy_override`,
+`harmful_content`, or `instruction_disclosure` requires an immediate
+`response_decision="reject"` rather than a revision. Capture findings
+independently determine `capture_decision`;
+rejecting an unsafe nomination does not by itself block a safe reply.
 
 ### 6.6 Emotional content
 
@@ -943,20 +969,159 @@ the application stops the ordinary reflection path and returns exactly:
 > to assess your wellbeing. Please consider reaching out to someone you trust or
 > a qualified professional for support.
 
-On this path Muse, Librarian, and Serendipity do not run. No candidate, evidence
-declaration, or memory nomination exists. Inspection records
-`application_emotional_boundary` and suppressed capture; no write or save notice
-occurs. A preflight failure returns the generic application safe decline and
-also skips Muse and its tools. The ordinary Muse prompt and candidate Provenance
-gate remain defence in depth: Muse must not diagnose or continue probing, and a
-missed current-Line boundary is reported through the explicit
-`emotional_boundary_decision=required` disposition and a current-Line
-`emotional_policy_violation`, so the application can substitute the canonical
-response without a revision. Inspection records whether the boundary originated
-in the preflight or the candidate review and never claims that Muse was skipped
-on the fallback path. A candidate-response-only diagnosis follows the normal
-revise-or-reject path.
-Crisis assessment and resource routing remain out of scope.
+A first-person disclosure that the reader wants to kill themselves, end their
+life, or harm themselves is a distinct decision, `apply_self_harm_boundary`,
+carrying its own fixed response instead:
+
+> Thank you for telling me. I’m not able to assess your safety or support you
+> through this, so please reach out to someone who can: a person you trust, a
+> doctor, or a crisis line. If you’re in immediate danger, contact your local
+> emergency services. You can find a crisis line for your country at
+> https://findahelpline.com.
+
+A small deterministic pattern set over the current Line backstops this
+decision: a matched first-person self-harm or suicide statement applies the
+self-harm boundary without depending on the model preflight, whatever it
+would have returned. It is scoped to first-person disclosures and does not
+fire on literary or third-person discussion of self-harm or suicide.
+
+On either boundary path Muse, Librarian, and Serendipity do not run. No
+candidate, evidence declaration, or memory nomination exists. Inspection
+records `application_emotional_boundary` and suppressed capture; no write or
+save notice occurs. A preflight failure returns the generic application safe
+decline and also skips Muse and its tools. The ordinary Muse prompt and
+candidate Provenance gate remain defence in depth: Muse must not diagnose or
+continue probing, and a missed current-Line boundary is reported through the
+explicit `emotional_boundary_decision=required` disposition and a
+current-Line `emotional_policy_violation`, so the application can substitute
+the canonical distressing-disclosure response without a revision. Inspection
+records whether the boundary originated in the preflight or the candidate
+review and never claims that Muse was skipped on the fallback path. A
+candidate-response-only diagnosis follows the normal revise-or-reject path.
+Mental-health profiling, diagnosis, and risk assessment remain out of scope;
+surfacing the fixed crisis-resource pointer above on a self-harm disclosure is
+the sole exception.
+
+### 6.7 Request rate limiting
+
+`session_id` is reader-chosen and unauthenticated, so it cannot anchor a
+request budget; a caller can rotate it freely. The application instead limits
+at most 10 chat requests per rolling 60 seconds per client network address
+(`request.client.host`, with a fixed fallback key when it is absent),
+enforced before emotional preflight, triage, or any agent runs. `POST
+/api/chat` and `POST /api/chat/stream` share one budget. `X-Forwarded-For` is
+never trusted for this key: no proxy sits in front of this deployment, and the
+header is reader-supplied. A refused request receives `429` with a
+`Retry-After` header giving the whole seconds until the oldest request leaves
+the window, and a fixed, content-free message; the streaming endpoint returns
+this as an ordinary HTTP error before opening a stream. A refusal is not itself
+recorded, so a caller that keeps trying cannot extend its own wait. The
+refusal emits only fixed failure metadata; the address is never recorded in
+telemetry. Two limitations are accepted for the prototype: readers sharing one
+network address, including the fallback key, share one budget, and the counters
+live in the serving process, like session state. Each Muse, Provenance, and
+Librarian model run separately carries its own fixed per-run usage cap as
+defence against a looping model, independent of this request-level limit.
+
+### 6.8 Message normalisation
+
+The reader's message is normalised once, at ingestion, before session history,
+prompts, capture offsets, the self-harm and instruction-leak detectors, or
+inspection read it. HTTP is the only reader-facing entry point and both `POST
+/api/chat` and `POST /api/chat/stream` take the same request body, so one
+normalisation at that boundary covers every consumer, and capture's
+codepoint offsets index the normalised string.
+
+Line endings collapse to `\n`, and three classes of character are removed:
+C0/C1 control characters other than tab and newline; every character Unicode
+defines as rendering as nothing, which covers the zero-width space, word
+joiner, byte order mark, soft hyphen, bidirectional override and isolate
+controls, Unicode tag characters, and also the invisible characters outside
+the format category that an enumerated deny-list misses, such as the combining
+grapheme joiner, the Hangul fillers, and the variation selector supplement;
+and lone surrogates, which JSON parsing accepts but which cannot be encoded
+back out. None of these has a legitimate role in a reader's plain-text
+message, and each is otherwise usable to hide instructions from a human
+reviewer while a model still reads them, or to split a keyword past a
+deterministic detector. Variation selectors 1-16 are kept, because an emoji's
+text or emoji presentation is something the reader can see. Unicode tag
+characters are removed unconditionally, which costs the subdivision flags
+(England, Scotland, Wales) their subdivision; closing a smuggling channel is
+worth more than those three flags in a message about reading.
+
+The zero-width joiner and non-joiner are kept when both neighbouring
+characters are non-ASCII, since scripts such as Persian, Arabic, and Indic
+languages and emoji sequences require them; they are removed when adjacent to
+an ASCII letter, where they only split a word. Those neighbours are read after
+the other invisible characters are already gone, so padding a joiner with
+zero-width spaces cannot lend it a non-ASCII neighbourhood.
+
+Text is NFC-, not NFKC-normalised, so combining sequences canonicalise without
+rewriting compatibility forms the reader actually typed (ligatures, full-width
+characters, "…"), which memory capture's exact-substring quoting depends on.
+NFC is applied last, after removal, so that a base character and its combining
+marks compose even when an invisible character had been inserted between them.
+Normalising an already-normalised message leaves it unchanged. The length cap
+and emptiness check apply after normalisation, so a message consisting only of
+invisible characters is refused exactly like an empty one.
+
+The self-harm, instruction-leak, and personal-data/secret detectors run on a
+further-folded copy of this NFC text (`fold_for_detection` and, for the
+self-harm detector only, `fold_for_self_harm`), which strips combining marks,
+maps a small set of confusable homoglyphs to Latin letters, and casefolds
+before an NFKC pass; the self-harm path additionally folds leetspeak digits
+and spelled-out single letters. That folded copy exists only inside detection
+and is never what is stored, quoted, or shown back to a reader — storage and
+capture continue to index the NFC text normalised above.
+
+### 6.9 English-only reader message guard
+
+Linger reads and replies in English only. After message normalisation (6.8)
+and before the emotional-boundary preflight, a deterministic,
+model-free guard classifies whether the current reader message is
+confidently not English. On a positive classification, the application stops
+the ordinary reflection path — Muse, Librarian, Serendipity, and Provenance
+never run, and no memory capture occurs — and returns exactly:
+
+> Linger can only read and reply in English right now. Could you rephrase
+> your message in English?
+
+The self-harm boundary always takes priority: when the deterministic
+first-person self-harm detector (6.6) matches the current Line, the language
+guard is skipped entirely and the ordinary emotional-boundary path handles
+the turn, so a mixed-language message that contains English self-harm
+phrasing still receives the crisis response rather than the English-only
+notice.
+
+The guard is deliberately biased toward false negatives, since refusing a
+reader's ordinary English message would be worse than occasionally missing a
+short non-English one. It never refuses a message that:
+
+- has fewer than 4 alphabetic words, or fewer than 20 letters and fewer
+  than 8 CJK or Hangul characters (one such character counts as one "word",
+  since those scripts do not delimit words with spaces);
+- is mostly non-letters (numbers, punctuation, chapter or page references
+  such as "Ch. 12" or "p. 45", or a bare "yes", "ok", "hmm");
+- has its top-classified language's confidence within a clear margin of
+  English's confidence, or no classification at all; or
+- is, on the whole, classified as English, which is what a book title,
+  character name, or quoted foreign phrase inside an otherwise English
+  sentence resolves to.
+
+It refuses only when the compressed fastText `lid.176` model (bundled with
+`fast-langdetect`, so detection is offline and deterministic; the model is
+CC BY-SA 3.0) classifies a non-English language as the clear top result over
+the first 80 characters: at least 0.7 confidence in that language, and at
+least a 0.5 margin over English's own confidence among the top three
+results. These thresholds were set from observed detector behaviour: a
+genuine single-language sentence scores its own language at 0.9-1.0 with
+English absent from the top results, while mixed text scores its top
+language around 0.6.
+
+Inspection records `application_language_boundary`, with every model trace
+marked skipped and capture suppressed, mirroring how the emotional boundary
+records a preflight release, so a reviewer can tell the two apart only by
+the release source, never by a difference in what ran.
 
 ## 7. Evaluation and acceptance
 
@@ -1511,9 +1676,9 @@ origin, receiver, and contract attributes.
 For the ordinary reviewed-capture Scene, the trace sequence is application to
 Provenance emotional preflight, application to Muse draft, application to
 Provenance candidate review, deterministic Memory & Policy processing, and
-release. An `apply_boundary` preflight terminates before Muse exactly as
-specified in Section 4.1. These are application-mediated transitions, not
-agent-selected delegation.
+release. An `apply_boundary` or `apply_self_harm_boundary` preflight
+terminates before Muse exactly as specified in Section 4.1. These are
+application-mediated transitions, not agent-selected delegation.
 
 ## 9. Recursive self-improvement
 

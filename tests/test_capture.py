@@ -186,6 +186,64 @@ class CapturePolicyIntegrationTests(unittest.TestCase):
             self.service.save_automatic(self.account, candidate)
         self.assertEqual([], self.service.list_active(self.account))
 
+    def test_deterministic_screen_vetoes_shaped_personal_data(self) -> None:
+        text = "Email me at jane.doe@example.com about the ending."
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination(text),
+            source_text=text,
+            source_event_id="turn-personal-data",
+        )
+        assert candidate is not None
+        self.assertTrue(candidate.review_allows_capture)
+
+        with self.assertRaises(MemoryPolicyError) as caught:
+            self.service.save_automatic(self.account, candidate)
+        self.assertEqual(
+            "personal_data_or_secret_not_allowed", caught.exception.reason
+        )
+        self.assertEqual([], self.service.list_active(self.account))
+
+    def test_deterministic_screen_vetoes_an_email_split_by_a_combining_mark(
+        self,
+    ) -> None:
+        # A combining mark threaded through the address splits the substring
+        # an unfolded regex needs, without changing what a reader sees.
+        text = "Email me at jane.doe@e̴xample.com about the ending."
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination(text),
+            source_text=text,
+            source_event_id="turn-personal-data-combining-mark",
+        )
+        assert candidate is not None
+
+        with self.assertRaises(MemoryPolicyError) as caught:
+            self.service.save_automatic(self.account, candidate)
+        self.assertEqual(
+            "personal_data_or_secret_not_allowed", caught.exception.reason
+        )
+        self.assertEqual([], self.service.list_active(self.account))
+
+    def test_deterministic_screen_vetoes_a_secret_key_split_by_a_combining_mark(
+        self,
+    ) -> None:
+        text = "Here is the key: sk-l̴ive1234567890abcdefghij for the account."
+        candidate = candidate_from_review(
+            review("allow_capture"),
+            nomination=nomination(text),
+            source_text=text,
+            source_event_id="turn-secret-combining-mark",
+        )
+        assert candidate is not None
+
+        with self.assertRaises(MemoryPolicyError) as caught:
+            self.service.save_automatic(self.account, candidate)
+        self.assertEqual(
+            "personal_data_or_secret_not_allowed", caught.exception.reason
+        )
+        self.assertEqual([], self.service.list_active(self.account))
+
     def test_opt_in_still_gates_an_allowed_review(self) -> None:
         self.service.set_capture_enabled(self.account, False)
         with self.assertRaises(MemoryPolicyError) as caught:

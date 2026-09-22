@@ -13,7 +13,7 @@ export const components: Record<ComponentId, ComponentDefinition> = {
     id: 'preflight', label: 'Provenance', role: 'Emotional preflight', kind: 'agent',
     summary: 'A no-tool check of the current Line runs before Muse. A distress boundary ends the ordinary drafting path.',
     receives: ['Current Line only', 'Versioned emotional-boundary policy'],
-    returns: ['Continue or apply_boundary'],
+    returns: ['Continue, apply_boundary, or apply_self_harm_boundary'],
     authority: 'May stop the Muse path. The application owns the fixed boundary response.',
   },
   muse: {

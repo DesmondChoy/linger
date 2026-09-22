@@ -56,8 +56,9 @@ export type MuseTurnContract = {
     allow_connection: boolean
     allow_memory_capture: boolean
     emotional_content: {
-      version: '2'
+      version: '3'
       boundary_response_id: 'distressing_disclosure_v1'
+      self_harm_response_id: 'self_harm_disclosure_v1'
       prohibit_diagnosis: true
       stop_probing_after_distress: true
       suppress_tools_after_distress: true
@@ -103,6 +104,12 @@ export type RiskCode =
   | 'sensitive_content'
   | 'emotional_policy_violation'
   | 'prompt_injection'
+  | 'policy_override'
+  | 'harmful_content'
+  | 'false_persona'
+  | 'professional_advice'
+  | 'out_of_scope'
+  | 'instruction_disclosure'
 
 export type CaptureInspection = {
   nomination: 'candidate' | 'no_candidate' | 'unavailable'
@@ -113,7 +120,7 @@ export type CaptureInspection = {
 }
 
 export type ReleaseInspection = {
-  release_source: 'muse_candidate' | 'application_clarification' | 'application_emotional_boundary' | 'application_safe_decline'
+  release_source: 'muse_candidate' | 'application_clarification' | 'application_emotional_boundary' | 'application_language_boundary' | 'application_safe_decline'
   boundary_origin: 'preflight' | 'candidate_review' | null
   provenance_verdicts: ('pass' | 'revise' | 'reject')[]
   finding_codes: RiskCode[]

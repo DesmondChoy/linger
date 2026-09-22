@@ -972,7 +972,7 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
                 "src.linger.agents.muse.tools.connection_exploration",
                 explorer,
             ):
-                result = await serendipity_explore()
+                result = await serendipity_explore("find_connection")
         finally:
             reset_reader_message(token)
 

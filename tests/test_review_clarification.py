@@ -14,6 +14,12 @@ QUESTION = (
     'Which book do you mean: "Alice\'s Adventures in Wonderland" by Lewis Carroll; '
     '"The Adventures of Pinocchio" by Carlo Collodi?'
 )
+POLICY = {
+    "policy_constraints": {
+        "spoiler_ceiling": None, "allow_retrieval": False,
+        "allow_connection": False, "allow_memory_capture": False,
+    },
+}
 
 
 def test_review_receives_the_validated_question_without_needing_book_passages():
@@ -78,3 +84,19 @@ def test_existing_review_context_cannot_bypass_the_validated_routing_channel():
         _provenance_input(
             candidate(QUESTION), {"required_clarification": QUESTION}, [], "Help me", (),
         )
+
+
+def test_a_caller_that_never_triaged_the_turn_gets_no_attempt():
+    empty = _provenance_input(candidate(QUESTION), {}, [], "Help me", ())
+    untriaged = _provenance_input(candidate(QUESTION), POLICY, [], "Help me", ())
+
+    assert empty.context.override_attempt == "no_attempt"
+    assert untriaged.context.override_attempt == "no_attempt"
+
+
+def test_override_attempt_reaches_the_provenance_context():
+    payload = _provenance_input(
+        candidate(QUESTION), {**POLICY, "override_attempt": "attempted"},
+        [], "Help me", (),
+    )
+    assert payload.context.override_attempt == "attempted"

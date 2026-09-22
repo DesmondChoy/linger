@@ -223,11 +223,12 @@ def grade_connection_scene(
         common.append("inconsistent_release_observation")
     # A sent query must satisfy the same privacy boundary even if a future
     # adapter accidentally bypasses the production pre-send guard.
-    from src.linger.agents.serendipity.tools import _query_contains_private_data, _query_copies_reader_terms
+    from src.linger.agents.serendipity.tools import _query_copies_reader_terms
+    from src.linger.contracts.privacy import contains_personal_data_or_secret
     if any(
         event.kind == "query" and event.status == "sent" and event.query is not None
         and any(
-            _query_contains_private_data(outbound)
+            contains_personal_data_or_secret(outbound)
             or _query_copies_reader_terms(
                 outbound, scene.line.text,
                 page_url=event.query if event.operation == "get_page" else None,

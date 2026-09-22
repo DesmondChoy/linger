@@ -8,7 +8,7 @@ import logging
 from typing import Any, Literal, Protocol
 
 from pydantic import ValidationError
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 
 from apps.backend.contracts import BookScope, LibrarianRequest as SearchRequest
 from apps.backend.librarian import Librarian, RegisteredCorpusScope
@@ -51,6 +51,11 @@ MAX_BOUNDARY_MEMORIES = 8
 MAX_BOUNDARY_SEARCH_RESULTS = 5
 MAX_BOUNDARY_CANDIDATES = 20
 MAX_BOUNDARY_QUERY_CHARACTERS = 2000
+# No tools reach either judgment; these bound their own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+BOUNDARY_INFERENCE_REQUEST_LIMIT = BOUNDARY_INFERENCE.output_retries + 1
+EVENT_IDENTIFICATION_REQUEST_LIMIT = EVENT_IDENTIFICATION.output_retries + 1
 logger = logging.getLogger(__name__)
 
 RetrievalMemory = MemoryRecord | CuratedMemory
@@ -189,6 +194,7 @@ async def judge_spoiler_boundary(
         prompt_template_id=fingerprint.template_id,
         prompt_digest=fingerprint.digest,
         failure_code="boundary_inference_model_failed",
+        usage_limits=UsageLimits(request_limit=BOUNDARY_INFERENCE_REQUEST_LIMIT),
         **skill.run_options(),
     )
     return result.output
@@ -209,7 +215,9 @@ async def identify_reader_event(
         input_contract="LibrarianEventIdentificationInput.v1",
         output_contract="src.linger.agents.librarian.models.LibrarianEventIdentification",
         prompt_template_id=fingerprint.template_id, prompt_digest=fingerprint.digest,
-        failure_code="event_identification_model_failed", **EVENT_IDENTIFICATION.run_options(),
+        failure_code="event_identification_model_failed",
+        usage_limits=UsageLimits(request_limit=EVENT_IDENTIFICATION_REQUEST_LIMIT),
+        **EVENT_IDENTIFICATION.run_options(),
     )
     return result.output
 

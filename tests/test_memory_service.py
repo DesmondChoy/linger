@@ -108,6 +108,79 @@ class MemoryPolicyServiceTests(unittest.TestCase):
         self.assertTrue(saved.created)
         self.assertEqual([saved.record], self.service.list_active(self.alice))
 
+    def test_automatic_capture_vetoes_shaped_personal_data_or_secrets(self) -> None:
+        self.service.set_capture_enabled(self.alice, True)
+        for index, text in enumerate((
+            "Reach me at jane.doe@example.com if you want to talk.",
+            "My SSN is 123-45-6789 just so you know.",
+            "Here's my key: sk-ant-abcdefghijklmnopqrstuvwx1234",
+            "Ring me on +44 20 7946 0958 once you finish it.",
+            "My number is 415-555-0132 if you want to talk it over.",
+            "She left a card reading (415) 555-0132 inside the cover.",
+            "Text +1-800-273-8255 when the ending lands badly.",
+        )):
+            with self.subTest(text=text):
+                with self.assertRaises(MemoryPolicyError) as caught:
+                    self.service.save_automatic(
+                        self.alice,
+                        candidate(text, f"private-{index}"),
+                    )
+                self.assertEqual(
+                    "personal_data_or_secret_not_allowed", caught.exception.reason
+                )
+        self.assertEqual([], self.service.list_active(self.alice))
+
+    def test_automatic_capture_allows_ordinary_numeric_reflective_text(self) -> None:
+        self.service.set_capture_enabled(self.alice, True)
+        for index, text in enumerate((
+            "I loved the scene on p. 214 where she finally speaks her mind.",
+            "This reminded me of 1984 and how bleak that ending felt.",
+            "Chapter 12 was where everything changed for me.",
+            "We talked at 10:30 about the ending.",
+            "The war ran from 1914-1918 and the whole book sits inside it.",
+            "I own ISBN 0-306-40615-2, the edition with the blue spine.",
+            "The reprint is ISBN 978-0-306-40615-7 and ISBN 9780306406157.",
+            "I finished it on 2024-05-17 after a very long week.",
+            "I finished it on 17/05/2024 after a very long week.",
+            "John 3:16 gets quoted twice, and section 12.4.2 explains why.",
+            "Pages 214-238 are the strongest, and pp. 100-1000 drag.",
+            "Volume 3, pages 301-4500 in the collected edition.",
+            "Smith (1997) 100-200 is the citation I keep returning to.",
+            "The 1999 edition and the 2014 reprint end differently.",
+            "The hardback cost 12.99 and still felt worth it.",
+        )):
+            with self.subTest(text=text):
+                saved = self.service.save_automatic(
+                    self.alice,
+                    candidate(text, f"ordinary-{index}"),
+                )
+                self.assertEqual(text, saved.record.text)
+
+    def test_upstream_refusals_take_precedence_over_the_pattern_screen(self) -> None:
+        self.service.set_capture_enabled(self.alice, True)
+        private = "Reach me at jane.doe@example.com about the ending."
+        cases = (
+            ("upstream_review_rejected_capture", {"review_allows_capture": False}),
+            ("sensitive_content_not_allowed", {"contains_sensitive_content": True}),
+        )
+        for expected, flags in cases:
+            with self.subTest(expected=expected):
+                with self.assertRaises(MemoryPolicyError) as caught:
+                    self.service.save_automatic(
+                        self.alice,
+                        candidate(private, f"precedence-{expected}", **flags),
+                    )
+                self.assertEqual(expected, caught.exception.reason)
+
+        self.service.set_capture_enabled(self.alice, False)
+        with self.assertRaises(MemoryPolicyError) as caught:
+            self.service.save_automatic(
+                self.alice,
+                candidate(private, "precedence-disabled"),
+            )
+        self.assertEqual("automatic_capture_disabled", caught.exception.reason)
+        self.assertEqual([], self.service.list_active(self.alice))
+
     def test_capture_policy_and_reads_are_account_scoped(self) -> None:
         self.service.set_capture_enabled(self.alice, True)
         saved = self.service.save_automatic(

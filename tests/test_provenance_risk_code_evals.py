@@ -109,12 +109,12 @@ class RiskCodeCaseSetTests(unittest.TestCase):
     def test_loads_complete_versioned_gate_baseline(self) -> None:
         self.assertEqual("provenance-risk-codes-v1", self.case_set.case_set_id)
         self.assertEqual(("4.2.1", "4.2.2", "4.2.3"), self.case_set.flows)
-        self.assertEqual(34, len(self.case_set.cases))
+        self.assertEqual(52, len(self.case_set.cases))
         self.assertEqual(REQUIRED_BEHAVIORS, set(self.by_behavior))
-        self.assertEqual(11, len(self.case_set.positives))
-        self.assertEqual(11, len(self.case_set.negatives))
-        self.assertEqual(5, len(self.case_set.capture_positives))
-        self.assertEqual(6, len(self.case_set.capture_negatives))
+        self.assertEqual(17, len(self.case_set.positives))
+        self.assertEqual(17, len(self.case_set.negatives))
+        self.assertEqual(8, len(self.case_set.capture_positives))
+        self.assertEqual(9, len(self.case_set.capture_negatives))
 
     def test_every_flow_421_code_has_a_positive_and_a_paired_negative(self) -> None:
         for code in FLOW_421_CODES:
@@ -660,9 +660,9 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(report.summary.targets_pass)
         self.assertEqual(1.0, report.summary.block_recall)
-        self.assertEqual(0.5455, report.summary.code_precision)
+        self.assertEqual(0.3529, report.summary.code_precision)
         self.assertEqual(1.0, report.summary.capture_veto_recall)
-        self.assertEqual(0.2, report.summary.capture_code_precision)
+        self.assertEqual(0.125, report.summary.capture_code_precision)
 
     async def test_gate_errors_are_redacted_and_fail_the_target(self) -> None:
         async def broken_gate(_case):
@@ -671,7 +671,7 @@ class RiskCodeEvaluationTests(unittest.IsolatedAsyncioTestCase):
         report = await run_evaluation(gate=broken_gate)
 
         self.assertFalse(report.summary.targets_pass)
-        self.assertEqual(34, report.summary.evaluation_error_count)
+        self.assertEqual(52, report.summary.evaluation_error_count)
         self.assertTrue(all(case.failure_code == "gate_error" for case in report.cases))
         self.assertNotIn("provider failure", report.model_dump_json())
 

@@ -1,0 +1,335 @@
+{
+  "objective_ids": [
+    "session_scoped_conversation_continuity",
+    "longitudinal_memory_retrieval"
+  ],
+  "run_configuration_ids": [
+    "longitudinal-memory-retrieval-10-to-1"
+  ],
+  "backstory": {
+    "backstory_id": "backstory-hana-rahim",
+    "person_id": "person-hana-rahim",
+    "evaluation_account_id": "eval-account-hana-rahim",
+    "context": "Hana Rahim is a 41-year-old secondary school music teacher in Singapore who runs her school's concert band. She began learning the cello as an adult about a year and a half ago with a private teacher, Mrs. Ferreira, and practises early in the morning before school. She lives near her widowed father, whom she calls Abah, and visits him most weekends. She uses a reflection companion as a private journal about teaching, her own late-start musicianship, and family. In one session she talks through a farewell speech for a retiring senior colleague, Mr. Goh, and partway through realises she had the day of the farewell assembly wrong. She reads on her commute and at bedtime, a few pages at a time, and this year she borrowed Helen Keller's The Story of My Life from the school library on the librarian's recommendation; as a teacher of beginners she is drawn to the account of a child being taught. She is reading it slowly from the beginning and has got as far as the day at the well-house, soon after the teacher's arrival, and no further. Over earlier months she recorded eleven separate episodes about the cello, the band, her father, and her reactions to what she had read so far. One of them records how the well-house scene changed the way she thinks about her slowest beginners; later, after a Sec 1 student's sudden breakthrough, she returns to that thought. Separately she worries about a new arrangement to share the band room with the dance CCA and how to raise it with a colleague, which none of her recorded episodes bears on."
+  },
+  "props": [
+    {
+      "prop_id": "prop-book-fever-garden",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Borrowed The Story of My Life from the school library because the librarian said every teacher should read it once. I've only read the opening, where Helen Keller describes the rose-covered little house and the garden she was born into, and then the fever that took her sight and hearing when she was a baby of nineteen months. The part that stayed with me is that the fever broke one morning and the whole family was rejoicing, and nobody, not even the doctor, knew yet what it had cost her. It made me think of Mak sitting up with me through dengue when I was nine, and how relief and loss can arrive in the same morning without anyone noticing.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-book-pantry-key",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Laughed out loud at the chapter in The Story of My Life where little Helen, before any teacher has come, discovers what a key is for and locks her mother in the pantry for three hours, then sits on the porch steps enjoying the thump of the pounding on the door. Her parents took it as the sign that she had to be taught soon. It reminded me of Darren in percussion, who unscrews the cymbal stands when he's bored. He isn't a bad kid, he's an under-occupied one, and I should give him the timpani part before he dismantles the band room.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-morning-practice",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "I finally found a practice time that sticks: twenty minutes at 6.15 in the morning, before I leave for school. Evenings never worked because I'm drained after band rehearsals. It's short, but I've done eleven days in a row now and scales no longer feel like starting from zero each time.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-recital-freeze",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "The studio recital was last night and I froze. Eight bars into the minuet my hands went cold and started shaking, the bow skittered, and I stopped dead in front of everyone's families. I restarted and got through it, but what stays with me is what Mrs. Ferreira said afterwards: next time, pick one friendly face in the room and play the whole piece just to that person, and let the first note be slower than feels safe. I want to remember that, because I spent the whole week before trying to play it perfectly for a crowd that wasn't even there yet.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-book-train-doll",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Tonight's bit of The Story of My Life was the train journey to the eye doctor in Baltimore, when Helen was about six. A lady gives her a box of shells and her father bores holes in them so she can string them, the conductor lets her play with his ticket punch, and her aunt makes her a doll out of towels with no face at all, so Helen pulls two beads off the aunt's cape to be its eyes. She says she didn't have a single tantrum the whole trip because her fingers were kept busy. It took me back to Abah and the overnight train to KL when I was small, and the pack of cards he produced somewhere past Segamat. Note to self for the festival bus: bring something for the students' hands.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-book-well-house-water",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "I read the well-house part of The Story of My Life on the MRT this morning and had to close the book for a minute. Miss Sullivan had been spelling words into Helen's palm for weeks, and Helen only copied the finger shapes like a game, with no idea they stood for anything. Then the teacher holds one of the child's hands under the spout while the water pours over it and spells the word into the other hand, and all at once Helen understands that every thing around her is called something. What got to me wasn't the breakthrough itself but the weeks before it, all that patient spelling that must have looked like it was going nowhere. I thought of my Sec 1 beginners who can't yet connect the dots on the page to the sound coming out of the instrument, and how quickly I decide, around week six, that a child just isn't getting it. I want to remember that the repetition that seems pointless may be exactly what makes the sudden click possible.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-drone-intonation",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Started practising with a drone note from the tuner app and it's humbling. My third finger in first position is consistently flat, and I never heard it until there was a steady pitch underneath. Ten minutes of slow scales against the drone does more than half an hour of playing through pieces.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-student-quit-band",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Wei Jie handed in his clarinet today and said he's leaving the band to focus on his exams. He was my most promising Sec 3 player. I keep wondering whether I pushed the sectionals too hard this term, or whether it really is just the exams. I told him the door stays open, and I meant it.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-book-dog-lessons",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "A small thing from The Story of My Life that I keep smiling about: before her teacher arrives, Helen tries to teach her home-made signs to Belle, the family's lazy old setter, who would rather sleep by the fire. The dog wanders off to the other side of the hearth every time, and Helen gives up in a huff and goes looking for her playmate Martha instead. That was me on Sunday trying to show Abah how to send a voice note. He nodded very politely and then phoned me from the next room.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-band-bus-late",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "The band's concert at the community club nearly fell apart before it started: the lorry with the percussion and the tubas arrived fifty minutes late, and we set up with the audience already walking in. The students were wonderful about it. Lesson for me: next year I book the transport myself and build in a full hour of slack.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "prop-father-cassettes",
+      "backstory_id": "backstory-hana-rahim",
+      "person_id": "person-hana-rahim",
+      "evaluation_account_id": "eval-account-hana-rahim",
+      "source_text": "Helped Abah sort the cupboard and we found his box of keroncong cassettes from the eighties. He hummed along to every one and told me he used to play them while marking papers. I hadn't realised how much of my ear for melody probably came from those evenings. I want to digitise them before the tapes give out.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-well-house-return-target",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-band-room-comparison",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-farewell-speech-continuity",
+      "backstory_id": "backstory-hana-rahim",
+      "objective_ids": [
+        "session_scoped_conversation_continuity"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-farewell-1",
+        "line-farewell-2",
+        "line-farewell-3",
+        "line-farewell-4"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-farewell-speech-comparison",
+      "backstory_id": "backstory-hana-rahim",
+      "objective_ids": [
+        "session_scoped_conversation_continuity"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-farewell-comparison-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-well-house-return-target",
+      "backstory_id": "backstory-hana-rahim",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-book-fever-garden",
+        "prop-book-pantry-key",
+        "prop-morning-practice",
+        "prop-recital-freeze",
+        "prop-book-train-doll",
+        "prop-book-well-house-water",
+        "prop-drone-intonation",
+        "prop-student-quit-band",
+        "prop-book-dog-lessons",
+        "prop-band-bus-late",
+        "prop-father-cassettes"
+      ],
+      "line_ids": [
+        "line-well-house-return-1"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-band-room-comparison",
+      "backstory_id": "backstory-hana-rahim",
+      "objective_ids": [
+        "longitudinal_memory_retrieval"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-book-fever-garden",
+        "prop-book-pantry-key",
+        "prop-morning-practice",
+        "prop-recital-freeze",
+        "prop-book-train-doll",
+        "prop-book-well-house-water",
+        "prop-drone-intonation",
+        "prop-student-quit-band",
+        "prop-book-dog-lessons",
+        "prop-band-bus-late",
+        "prop-father-cassettes"
+      ],
+      "line_ids": [
+        "line-band-room-1"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-farewell-1",
+      "scene_id": "scene-farewell-speech-continuity",
+      "order": 1,
+      "text": "I've been asked to give the farewell speech for Mr. Goh, who is retiring after twenty-six years of running the school band. The farewell assembly is this Thursday and I haven't written a single word yet."
+    },
+    {
+      "line_id": "line-farewell-2",
+      "scene_id": "scene-farewell-speech-continuity",
+      "order": 2,
+      "text": "What keeps stopping me is that every draft sounds like a plaque. He's the one who handed me the baton for my first concert when I was terrified, and I can't find a way to say that without making it sound small."
+    },
+    {
+      "line_id": "line-farewell-3",
+      "scene_id": "scene-farewell-speech-continuity",
+      "order": 3,
+      "text": "Oh, I just looked at the staff bulletin again and I had it wrong. The farewell assembly is next Tuesday. Thursday is only the band's run-through in the hall."
+    },
+    {
+      "line_id": "line-farewell-4",
+      "scene_id": "scene-farewell-speech-continuity",
+      "order": 4,
+      "text": "I'd like the final draft finished two days before the assembly. Which day does that make my deadline?"
+    },
+    {
+      "line_id": "line-farewell-comparison-1",
+      "scene_id": "scene-farewell-speech-comparison",
+      "order": 1,
+      "text": "I'd like the final draft finished two days before the assembly. Which day does that make my deadline?"
+    },
+    {
+      "line_id": "line-well-house-return-1",
+      "scene_id": "scene-well-house-return-target",
+      "order": 1,
+      "text": "Something in sectionals today sent me straight back to The Story of My Life, to Helen at the well-house with the water running over her hand. Aina, one of my Sec 1 flautists, has been miscounting the same rhythms since January, and this afternoon she suddenly clapped a dotted pattern perfectly and looked up at me as if a light had come on. I had more or less filed her under slow, and I'm a bit ashamed of that now. How do I keep faith with the beginners who haven't had their moment yet, on the days when the repetition feels like it's doing nothing?"
+    },
+    {
+      "line_id": "line-band-room-1",
+      "scene_id": "scene-band-room-comparison",
+      "order": 1,
+      "text": "The dance CCA is moving into the band room two afternoons a week from next term, and I found out from the timetable rather than from anyone asking me. I'm already imagining the arguments over the shared cupboard and who gets to leave the drum kit set up. How do I raise this with the dance teacher without coming across as territorial about a room that isn't really mine?"
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}
