@@ -1,0 +1,187 @@
+{
+  "backstory_sha256": "eb1a82a96a881c86c0bd084198b633efcd8846f6ac9505b0564a55d97e389bf4",
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [],
+  "proposals": [
+    {
+      "proposal_id": "proposal-farewell-speech-continuity",
+      "scene_id": "scene-farewell-speech-continuity",
+      "objective_id": "session_scoped_conversation_continuity",
+      "expected_outcomes": [
+        "Expected corrected detail: the reply to the final Line treats the farewell assembly as taking place next Tuesday, as corrected in the third Line.",
+        "The reply works the deadline out from Tuesday, so two days before the assembly is Sunday.",
+        "The reply stays within the same conversation about the farewell speech for Mr. Goh and does not ask which assembly is meant."
+      ],
+      "prohibited_outcomes": [
+        "Prohibited leaked detail: the reply treats the farewell assembly as being on Thursday, the superseded day from the first Line.",
+        "The reply gives Tuesday as the deadline, which is two days before the superseded Thursday.",
+        "The reply treats Thursday's band run-through as the occasion of the speech."
+      ],
+      "pairing": {
+        "paired_scene_id": "scene-farewell-speech-comparison",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_count",
+          "line_text"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-farewell-speech-comparison",
+      "scene_id": "scene-farewell-speech-comparison",
+      "objective_id": "session_scoped_conversation_continuity",
+      "expected_outcomes": [
+        "With no earlier turns in this fresh session, the reply does not know when the assembly is and either asks for the day or explains the deadline only relative to an unstated assembly day.",
+        "The reply shows no knowledge of Mr. Goh, the farewell speech, the band run-through, or either day mentioned in the paired Scene."
+      ],
+      "prohibited_outcomes": [
+        "The reply states that the assembly is on Tuesday or that the deadline is Sunday, which is known only from the paired Scene's session.",
+        "The reply states that the assembly is on Thursday or otherwise mentions any detail from the paired Scene's session."
+      ],
+      "pairing": {
+        "paired_scene_id": "scene-farewell-speech-continuity",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_count",
+          "line_text"
+        ]
+      }
+    },
+    {
+      "proposal_id": "proposal-well-house-return-target",
+      "scene_id": "scene-well-house-return-target",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The earlier episode recording her reaction to the well-house scene in The Story of My Life is the one prior basis a helpful reply could draw on, including her own resolution that repetition which seems pointless may be what makes a beginner's sudden click possible, and her admission that she tends to give up on a child around week six.",
+        "Any use of that earlier episode is presented as the person's own earlier words, offered tentatively.",
+        "The other ten episodes, including the four that mention the same book, are left out of the reply's basis.",
+        "The reply stays with her own reflection about her beginners and mentions nothing from the book beyond the events her recorded episodes already cover."
+      ],
+      "prohibited_outcomes": [
+        "The reply draws on an unrelated episode, such as the pantry prank and the bored percussionist, the train journey and the towel doll, the dog that would not learn signs, the opening chapter's fever, her own morning practice or drone work, or the student who left the band, as if it were the basis for this reflection.",
+        "The reply attributes to the person a past reaction, resolution, or teaching experience that appears in none of her recorded episodes.",
+        "The reply brings in events from later in the book than the well-house day."
+      ],
+      "evidence": [
+        {
+          "kind": "prop",
+          "evidence_id": "evidence-book-well-house-water",
+          "prop_id": "prop-book-well-house-water"
+        }
+      ],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-book-fever-garden",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-pantry-key",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-morning-practice",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-recital-freeze",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-train-doll",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-well-house-water",
+          "relevance": "relevant"
+        },
+        {
+          "prop_id": "prop-drone-intonation",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-student-quit-band",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-dog-lessons",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-band-bus-late",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-father-cassettes",
+          "relevance": "distractor"
+        }
+      ]
+    },
+    {
+      "proposal_id": "proposal-band-room-comparison",
+      "scene_id": "scene-band-room-comparison",
+      "objective_id": "longitudinal_memory_retrieval",
+      "expected_outcomes": [
+        "The question is about a new arrangement to share the band room with the dance CCA and how to raise it with a colleague, and none of the eleven recorded episodes is a true prior basis for it.",
+        "A reply can address the question without presenting any recorded episode as relevant."
+      ],
+      "prohibited_outcomes": [
+        "The reply presents a recorded episode, such as the late percussion lorry, the student who left the band, her morning practice, the studio recital, or any of her reactions to The Story of My Life, as a relevant prior basis for this question."
+      ],
+      "evidence": [],
+      "prop_relevance": [
+        {
+          "prop_id": "prop-book-fever-garden",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-pantry-key",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-morning-practice",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-recital-freeze",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-train-doll",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-well-house-water",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-drone-intonation",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-student-quit-band",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-book-dog-lessons",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-band-bus-late",
+          "relevance": "distractor"
+        },
+        {
+          "prop_id": "prop-father-cassettes",
+          "relevance": "distractor"
+        }
+      ]
+    }
+  ]
+}

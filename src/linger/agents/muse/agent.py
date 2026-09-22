@@ -7,10 +7,16 @@ which lets Muse ground its replies in the confirmed book's actual text; and
 connections.
 """
 
+import copy
 import json
+from dataclasses import replace
+from typing import Any
 
 from pydantic_ai import Agent, ModelRetry, RunContext, Tool
+from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.models import Model
+from pydantic_ai.output import OutputContext
+from pydantic_ai.tools import ToolDefinition
 
 from src.linger.agents.build import build_model
 from src.linger.agents.muse.models import MuseCandidate, supported_claim_errors
@@ -21,10 +27,10 @@ from src.linger.agents.muse.quote_repair import (
     retained_quotation_errors,
 )
 from src.linger.agents.muse.claim_repair import retained_claim_errors
-from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS
+from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS, SKILLS
 from src.linger.agents.muse.tools import librarian_route, librarian_search, serendipity_explore
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.orchestration.turn_context import turn_evidence
+from src.linger.orchestration.turn_context import tool_exposure, turn_evidence
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.agents.provenance.quotation_audit import quote_is_bound
 
@@ -220,9 +226,47 @@ def validate_muse_output(
     return output
 
 
+def _pin_intent(tool: ToolDefinition, intent: str | None) -> ToolDefinition:
+    """Show only the pinned intent; `serendipity_explore` enforces it at call time."""
+    if intent is None or tool.name != "serendipity_explore":
+        return tool
+    schema = copy.deepcopy(tool.parameters_json_schema)
+    schema["properties"]["intent"]["enum"] = [intent]
+    return replace(tool, parameters_json_schema=schema)
+
+
+class MuseSkillBoundary(AbstractCapability[None]):
+    """Keep each run to its skill's tools, this turn's exposure, and its output checks."""
+
+    async def prepare_tools(
+        self, ctx: RunContext[None], tool_defs: list[ToolDefinition]
+    ) -> list[ToolDefinition]:
+        selected = (ctx.metadata or {}).get("linger_skill")
+        for skill in SKILLS:
+            if skill.skill_id == selected:
+                tool_defs = [tool for tool in tool_defs if tool.name in skill.tools]
+        exposure = tool_exposure()
+        if exposure is None:
+            return tool_defs
+        return [
+            _pin_intent(tool, exposure.pinned_intent)
+            for tool in tool_defs
+            if tool.name in exposure.tools
+        ]
+
+    async def after_output_validate(
+        self, ctx: RunContext[None], *, output_context: OutputContext, output: Any,
+    ) -> Any:
+        if isinstance(output, MuseCandidate):
+            return validate_muse_output(ctx, output)
+        return output
+
+
 def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
-    """Build an injectable Muse; typed orchestration selects its reflection skill."""
-    agent = Agent[None, MuseCandidate](
+    """Build an injectable Muse; typed orchestration selects one skill per run."""
+    # A registered output validator would forbid the per-run output contract
+    # that turn triage selects, so the candidate checks run as a capability.
+    return Agent[None, MuseCandidate](
         model if model is not None else build_model(),
         instructions=SHARED_INSTRUCTIONS,
         name="Muse",
@@ -233,9 +277,8 @@ def build_muse_agent(model: Model | None = None) -> Agent[None, MuseCandidate]:
             Tool(serendipity_explore, sequential=True),
         ],
         retries={"tools": 1, "output": 3},
+        capabilities=[MuseSkillBoundary()],
     )
-    agent.output_validator(validate_muse_output)
-    return agent
 
 
 muse_chat_agent = build_muse_agent()

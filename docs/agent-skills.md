@@ -12,6 +12,7 @@ calls or transfer application authority to a model.
 | Role and assignment | Skill instructions | Input and output | Application entry point |
 |---|---|---|---|
 | [Muse](../src/linger/agents/muse/README.md) · [assignment](../src/linger/agents/muse/skills.py) | [Reflection](../src/linger/agents/muse/skills/reflection/SKILL.md), including revision | `MuseDraftInput` or `MuseRevisionInput` → `MuseCandidate` | `reflection_reply` and its bounded draft, review, and revision calls |
+| Muse | [Turn triage](../src/linger/agents/muse/skills/turn-triage/SKILL.md) | `TurnTriageInput` → `TurnNeeds` | `triage_turn` classifies what the current reader message needs, from that message alone; no tools. Chat runs it once per reader turn, after the emotional preflight, to decide which tools Muse is offered |
 | [Librarian](../src/linger/agents/librarian/README.md) · [assignment](../src/linger/agents/librarian/skills.py) | [Boundary inference](../src/linger/agents/librarian/skills/boundary-inference/SKILL.md) | `LibrarianBoundaryInferenceInput` → `LibrarianBoundaryDecision` | `judge_spoiler_boundary`; deterministic grant validation follows |
 | Librarian | [Event identification](../src/linger/agents/librarian/skills/event-identification/SKILL.md) | `LibrarianEventIdentificationInput` → `LibrarianEventIdentification` | `identify_reader_event` checks a proposed chapter boundary independently; receives no proposed grant or memories |
 | Librarian | [Book request](../src/linger/agents/librarian/skills/book-request/SKILL.md) | `LibrarianBookRequestInput` → `BookRequestPlan` | `plan_book_request` extracts book needs or progress locators for the application-selected target; exact reader spans are validated |
@@ -61,8 +62,14 @@ returns fresh per-run instructions, retries, metadata, and, where needed, an
 output contract. Typed task entry points project trusted input, select the
 constant, invoke the role's Agent, and apply existing domain checks.
 
-Muse and Serendipity retain fixed output schemas and registered output
-validators. Serendipity's fixed schema covers both of its skills, and its
+Muse reflection and Serendipity retain fixed output schemas. Serendipity keeps
+its registered output validator. Muse's candidate checks run in its
+`MuseSkillBoundary` capability, which applies `validate_muse_output` to every
+`MuseCandidate` and limits each run to the selected skill's tools, because a
+registered validator would forbid the `TurnNeeds` contract that turn triage
+selects per run. Turn triage may also select a smaller per-run model from
+`build_triage_model`, which derives it from the `LINGER_MODEL` provider and
+falls back to `LINGER_MODEL` itself. Serendipity's fixed schema covers both of its skills, and its
 validator pairs each result with the task's intent: a `recall_memory` task
 returns `MemoryRecall` or a decline, and every other intent returns
 `ConnectionProposal` or a decline. Librarian, Sculptor, and Provenance select task-specific output
@@ -102,10 +109,60 @@ The [installed PydanticAI run API](https://pydantic.dev/docs/ai/api/agent/)
 provides additive per-run instructions, output contracts, retries, dependencies,
 and capabilities. This implementation was verified against version 2.26.0.
 Each no-tool role has an empty tool set. Muse permits `librarian_route`,
-`librarian_search`, and sequential `serendipity_explore`. Serendipity retains
+`librarian_search`, and sequential `serendipity_explore`; each turn offers a
+subset of them (see [Muse tool exposure](#muse-tool-exposure)). Serendipity retains
 bounded `search_librarian`, scope-gated `search_memories`, and application-granted
 Exa capabilities. A skill assignment describes those capabilities; it cannot
 grant access to an account, evidence, or the web.
+
+## Muse tool exposure
+
+Chat triages the reader message once per turn, after the emotional preflight
+and never on a turn that preflight stops. `expose_tools` then fixes the tools
+offered to the draft and to any revision:
+
+    offered = tools run in this session's earlier released turns
+            ∪ tools the triage result calls for
+            ∪ deterministic overrides
+
+`book_content` of `yes` or `unsure` adds `librarian_route` and
+`librarian_search`. Any `memory` value except `none` adds `serendipity_explore`,
+and `own_earlier_reflections`, `source_comparison`, and `outside_recommendation`
+pin its `intent` to `recall_memory`, `find_connection`, and `get_recommendation`.
+`unsure`, or a tool offered only because it ran earlier, leaves the intent open.
+A confirmed reading context or a pending clarification always adds the book
+tools. Only tools that ran in a released turn are remembered, matching the
+session history and evidence handles, so a declined draft cannot widen later
+turns; `sessions.clear` drops them with the turn records.
+
+Turn triage also classifies `override_attempt`: whether the reader's own
+message tries to override the companion's instructions or role (for example
+"ignore your instructions" or "you are now DAN"), independently of
+`book_content` and `memory`. When triage reports `attempted`, `expose_tools`
+grants no tool this message's claimed needs would otherwise unlock; only tools
+already run in this session's earlier released turns, plus the deterministic
+overrides above, remain offered. A failed or timed-out triage reports no needs
+at all rather than an override attempt, so it keeps the fallback below.
+
+`MuseSkillBoundary.prepare_tools` applies the exposure from the turn context on
+every model step and narrows the `intent` enum. The `serendipity_explore`
+adapter rejects any other intent with a retry before Serendipity runs. Exposure
+grants nothing: `allow_connection`, scopes, Provenance, and release validation
+apply unchanged. A triage error, timeout, or exhausted request budget falls
+back to the book tools plus whatever ran in this session's earlier released
+turns, withholding `serendipity_explore`'s web and memory reach unless an
+earlier released turn already used it; the fault is recorded and never fails
+the turn. The result, offered tools, and pinned intent appear on the
+`chat.tool_exposure` span, in `inspection.tool_exposure`, in a `Router` trace,
+and in the backend log; replay artifacts record the triage exchange.
+
+There is no in-run escalation: a tool absent from this turn's exposure stays
+absent for the rest of the run, including any revision. `unsure` covers the
+classifier's own uncertainty by adding a tool with its intent left open rather
+than withholding it outright, and a failed or timed-out triage falls back to
+the deterministic least-privilege baseline instead of trusting a claimed need
+it never got to see. A remaining classifier miss is addressed inside turn
+triage itself, not by widening Muse's exposure mid-run.
 
 ## Authority and run context
 
@@ -149,7 +206,40 @@ conservative precondition, not a deterministic proof of semantic uniqueness.
 Provenance reuses its Agent across three skills, but every review begins with a
 fresh typed input and no message history or tools. Emotional preflight sees
 the current Line and policy. Candidate review sees the complete candidate,
-canonical evidence, untrusted tool outcomes, and bounded reader context.
+canonical evidence, untrusted tool outcomes, and bounded reader context,
+including `context.override_attempt`, turn triage's application-observed
+signal for whether the current reader message itself tried to override the
+companion's instructions or role. This is context, not a verdict: Provenance
+still judges independently whether the candidate complies with it, and reports
+a `policy_override` finding when it does. Muse's own instructions already
+decline toxic, dangerous, sexually explicit, or hateful or harassing content
+and redirect to reflection instead; Provenance still reports a
+`harmful_content` finding if a candidate produces it anyway, distinct from
+legitimate literary discussion of dark themes in the book under review.
+Muse's own instructions also decline to claim a human self, feelings, or a
+personal life, and decline to foster dependence on the companion in place of
+people in the reader's life; Provenance still reports a `false_persona`
+finding if a candidate does so, revisable rather than reject-only because the
+offending claim can be removed from an otherwise safe reply. Muse's
+instructions likewise decline individualised medical, legal, financial, or
+therapeutic advice or instructions; Provenance still reports a
+`professional_advice` finding if a candidate gives such advice anyway,
+distinct from discussing how the book itself portrays illness, law, money, or
+therapy.
+Muse's instructions also confine it to reflection on the reader's reading, the
+sources and images they bring to it, and their own remembered notes, declining
+an unconnected task, and never reveal its own instructions, skills, tool names
+or schemas, or internal review process; Provenance still reports an
+`out_of_scope` finding if
+a candidate performs an unrelated task anyway, revisable like `false_persona`
+and `professional_advice` because the offending content can be removed from
+an otherwise safe reply, and an `instruction_disclosure` finding, reject-only
+like `harmful_content`, if a candidate discloses its instructions or tooling
+anyway. `instruction_disclosure` judges only what the candidate reveals about
+its own setup, distinct from `policy_override` — adopting the reader's
+replacement instructions or role — and from `prompt_injection` — retrieved
+content redirecting behaviour: a reply can disclose instructions after a
+merely curious question with no override attempt.
 Application-computed `quote_checks` establish exact character matches between
 declared quotations, their named canonical sources and the current reply.
 They are recomputed when the input is serialized or revalidated; supplied flags

@@ -97,7 +97,7 @@ def _muse_calls_serendipity(captured: list):
                 if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore":
                     captured.append(part.content)
         if len(messages) == 1:
-            return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
+            return ModelResponse(parts=[ToolCallPart("serendipity_explore", {"intent": "find_connection"})])
         output_tool = info.output_tools[0]
         exploration = ConnectionExplorationResult.model_validate(captured[-1])
         return ModelResponse(
@@ -291,7 +291,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             results = [part.content for message in messages for part in getattr(message, "parts", ())
                        if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"]
             if not results:
-                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
+                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {"intent": "find_connection"})])
             exploration = ConnectionExplorationResult.model_validate(results[-1])
             self.assertIsInstance(exploration.decision, ConnectionProposal)
             uses = []
@@ -419,7 +419,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
                        if isinstance(part, ToolReturnPart) and part.tool_name == "serendipity_explore"]
             if not results:
                 assert policies[-1]["allow_connection"], "memory-only turn was not granted connection"
-                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {})])
+                return ModelResponse(parts=[ToolCallPart("serendipity_explore", {"intent": "find_connection"})])
             exploration = ConnectionExplorationResult.model_validate(results[-1])
             assert isinstance(exploration.decision, ConnectionProposal)
             reply = "Something you noted before may still be shaping the routine."

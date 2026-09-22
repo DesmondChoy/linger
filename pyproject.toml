@@ -17,6 +17,7 @@ dependencies = [
     "requests>=2.34.2",
     "urllib3>=2.7.0",
     "uvicorn[standard]>=0.52.1",
+    "fast-langdetect>=1.0.1",
 ]
 
 [dependency-groups]

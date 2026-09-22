@@ -11,6 +11,7 @@ from types import MappingProxyType
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
+from src.linger.contracts.triage import OverrideAttempt
 from src.linger.contracts.turn import ConfirmedReading
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
@@ -199,6 +200,33 @@ def reset_turn_evidence(
 ) -> None:
     """Restore the previous evidence index after the request finishes."""
     _turn_evidence.reset(token)
+
+
+@dataclass(frozen=True)
+class ToolExposure:
+    """Muse tools offered for one turn, a pinned `serendipity_explore` intent, and the triage signal."""
+
+    tools: frozenset[str]
+    pinned_intent: str | None = None
+    override_attempt: OverrideAttempt = "no_attempt"
+
+
+# Unset means no turn-level gating: every tool of the selected skill is offered.
+_tool_exposure: contextvars.ContextVar[ToolExposure | None] = contextvars.ContextVar(
+    "tool_exposure", default=None
+)
+
+
+def set_tool_exposure(value: ToolExposure) -> contextvars.Token:
+    return _tool_exposure.set(value)
+
+
+def tool_exposure() -> ToolExposure | None:
+    return _tool_exposure.get()
+
+
+def reset_tool_exposure(token: contextvars.Token) -> None:
+    _tool_exposure.reset(token)
 
 
 _public_source_urls: contextvars.ContextVar[tuple[str, ...] | None] = contextvars.ContextVar(

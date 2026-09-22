@@ -11,13 +11,15 @@ from __future__ import annotations
 
 from typing import Literal
 
+from pydantic_ai import ModelRetry
+
 from apps.backend.contracts import ConnectionBrief
 from src.linger.agents.serendipity.models import ConnectionExplorationResult
 from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse
 from src.linger.orchestration.connection import connection_exploration
 from src.linger.orchestration.grounding import build_request, grounding_evidence
 from src.linger.orchestration.routing import route_reader_message
-from src.linger.orchestration.turn_context import reader_message
+from src.linger.orchestration.turn_context import reader_message, tool_exposure
 
 
 async def librarian_search(
@@ -51,13 +53,13 @@ async def librarian_search(
 
 
 async def librarian_route() -> LibrarianRoutingResponse:
-    """Identify whether the reader's message depends on a specific confirmed book.
+    """Resolve the book and spoiler boundary for a request answered from a book's text.
 
-    Call this only when the request appears to depend on a specific book — an
-    explicit title, a character, or an evident continuation of a book already
-    in progress. Never call it for an incidental word inside otherwise
-    personal reflection, and never call it solely because a book is active
-    in the session: the reader's own words must carry the book cue. The
+    Call this only when the answer the reader asked for needs a book fact,
+    plot point, quotation, or interpretation, or the reader asks to resume
+    their reading. Do not call it when a title, character, or scene is only
+    the occasion for a personal reflection, for an incidental word, or solely
+    because a book is active in the session. The
     application supplies the exact current reader message and earlier reader
     statements; the model cannot replace them.
     Returns a chapter-scoped `routed` work, exact `passages` permission,
@@ -78,21 +80,20 @@ async def librarian_route() -> LibrarianRoutingResponse:
 
 
 async def serendipity_explore(
-    intent: Literal[
-        "find_connection", "get_recommendation", "recall_memory"
-    ] = "find_connection",
+    intent: Literal["find_connection", "get_recommendation", "recall_memory"],
 ) -> ConnectionExplorationResult:
-    """Explore a reader's cue for a tentative, evidence-backed connection worth surfacing.
+    """Recall the reader's own stored reflections or explore an evidence-backed connection.
 
-    Use this when answering requires comparing named sources or assessing
-    whether those sources support the reader's proposed conclusion, including
-    when the supported answer may be a decline. Also use it when a connection
-    to a confirmed book or wider public resonance could deepen reflection.
     Use `recall_memory` to recall the reader's own stored reflections when they
     return to an ongoing personal theme, decision, or preference. It searches
     only the account's authorized memories and returns a recall carrying the
     reader's exact earlier records, or a `no_matching_memory` decline; one
     matching record is a complete recall.
+    Use `find_connection` when answering requires comparing named sources or
+    assessing whether those sources support the reader's proposed conclusion,
+    including when the supported answer may be a decline. Also use it when a
+    connection to a confirmed book or wider public resonance could deepen
+    reflection.
     Routine book grounding uses `librarian_search`. Personal wording requests
     without source comparison or source support do not require exploration.
     The application supplies the exact current reader message as the cue;
@@ -111,4 +112,11 @@ async def serendipity_explore(
     cue = reader_message()
     if cue is None:
         raise RuntimeError("serendipity_explore requires an active reader turn")
+    exposure = tool_exposure()
+    # Narrowing the offered enum does not stop a call with another value.
+    if exposure is not None and exposure.pinned_intent not in (None, intent):
+        raise ModelRetry(
+            f"This turn permits only intent={exposure.pinned_intent!r}. "
+            "Call serendipity_explore again with that intent."
+        )
     return await connection_exploration(ConnectionBrief(cue=cue, intent=intent))

@@ -24,7 +24,8 @@ function exampleTurn(): TurnRecord {
         policy: {
           spoiler_ceiling: null, allow_retrieval: false, allow_connection: false, allow_memory_capture: false,
           emotional_content: {
-            version: '2', boundary_response_id: 'distressing_disclosure_v1', prohibit_diagnosis: true,
+            version: '3', boundary_response_id: 'distressing_disclosure_v1',
+            self_harm_response_id: 'self_harm_disclosure_v1', prohibit_diagnosis: true,
             stop_probing_after_distress: true,
             suppress_tools_after_distress: true, suppress_capture_after_distress: true,
           },

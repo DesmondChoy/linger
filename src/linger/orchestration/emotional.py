@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 
 from apps.backend.telemetry import emotional_boundary_attrs, run_agent_traced
 from src.linger.agents.provenance.emotional_prompt import (
@@ -15,6 +15,12 @@ from src.linger.contracts.emotional import (
     EmotionalBoundaryInput,
     EmotionalContentPolicy,
 )
+from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
+
+# No tools reach the preflight; this bounds its own structured-output repair
+# attempts. A model that answers with calls to tools it was never given would
+# otherwise keep earning fresh retry prompts.
+EMOTIONAL_PREFLIGHT_REQUEST_LIMIT = EMOTIONAL_PREFLIGHT.output_retries + 1
 
 
 class EmotionalBoundaryValidationError(ValueError):
@@ -28,6 +34,9 @@ async def assess_emotional_boundary(
     provenance: Agent[None, Any],
 ) -> EmotionalBoundaryAssessment:
     """Classify one Line before Muse or any Muse-accessible tool can run."""
+    if detect_first_person_self_harm(current_line):
+        # A match is final: the boundary applies without a preflight model call.
+        return EmotionalBoundaryAssessment(decision="apply_self_harm_boundary")
     preflight_input = EmotionalBoundaryInput(
         current_line=current_line,
         policy=policy,
@@ -46,6 +55,7 @@ async def assess_emotional_boundary(
         prompt_digest=EMOTIONAL_BOUNDARY_PROMPT_FINGERPRINT.digest,
         failure_code="emotional_boundary_preflight_failed",
         result_attrs=lambda run_result: emotional_boundary_attrs(run_result.output),
+        usage_limits=UsageLimits(request_limit=EMOTIONAL_PREFLIGHT_REQUEST_LIMIT),
         **EMOTIONAL_PREFLIGHT.run_options(),
     )
     try:

@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 import logfire
 from opentelemetry.trace import format_trace_id
 
+from src.linger.agents.build import build_triage_model
 from src.linger.agents.muse.agent import muse_chat_agent
 from src.linger.agents.provenance.agent import provenance_agent
 from src.linger.contracts.curation import CuratedMemory
@@ -27,6 +28,8 @@ from src.linger.orchestration.emotional import (
     assess_emotional_boundary,
 )
 from src.linger.orchestration.grounding import librarian_service
+from src.linger.orchestration.language_guard import detect_non_english
+from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
@@ -38,9 +41,12 @@ from src.linger.orchestration.reflection import (
     ReflectionRelease,
     emotional_boundary_release,
     emotional_preflight_safe_decline,
+    language_boundary_release,
     reflection_reply,
 )
+from src.linger.orchestration.triage import expose_tools, triage_turn
 from src.linger.orchestration.turn_context import (
+    ToolExposure,
     reset_active_memories,
     reset_public_source_urls,
     reset_confirmed_reading,
@@ -48,6 +54,7 @@ from src.linger.orchestration.turn_context import (
     reset_reader_statements,
     reset_routing_context,
     reset_session_id,
+    reset_tool_exposure,
     reset_turn_evidence,
     set_active_memories,
     set_public_source_urls,
@@ -56,6 +63,7 @@ from src.linger.orchestration.turn_context import (
     set_reader_statements,
     set_routing_context,
     set_session_id,
+    set_tool_exposure,
     set_turn_evidence,
 )
 from src.linger.services.memory import (
@@ -93,6 +101,9 @@ from .telemetry import record_failure, set_span_attrs
 logger = logging.getLogger(f"{ROOT_NAME}.backend")
 
 settings = get_settings()
+triage_model = build_triage_model()
+# Triage only narrows Muse's tools, so a slow or failed call is abandoned.
+TRIAGE_TIMEOUT_SECONDS = 10.0
 
 CHAPTER_PATTERN = re.compile(r"\b(?:chapter|ch\.?)\s*[:#]?\s*([1-9]\d*)\b", re.IGNORECASE)
 BARE_CHAPTER_ANSWER_PATTERN = re.compile(
@@ -461,9 +472,8 @@ def resolve_reading_context(request: ChatRequest) -> ContextResolution:
     return ContextResolution(
         status="unknown",
         explanation=(
-            "No confirmed book or reading boundary yet; Muse will call "
-            "librarian_route during its own turn if the request appears to "
-            "depend on a specific book."
+            "No confirmed book or reading boundary. This describes reading "
+            "state only; many messages need no book."
         ),
     )
 
@@ -556,6 +566,16 @@ def _commit_automatic_capture(
     """Apply deterministic policy without changing the response decision."""
     decision = release.capture_decision
     nomination = release.capture_nomination or "unavailable"
+    if release.release_source == "application_language_boundary":
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="unavailable",
+                provenance_decision=None,
+                binding="not_applicable",
+                storage="suppressed",
+                reason_code="language_boundary_capture_suppressed",
+            )
+        )
     if release.release_source == "application_emotional_boundary":
         preflight = release.boundary_origin == "preflight"
         return AutomaticCaptureExecution(
@@ -852,6 +872,77 @@ def _apply_initial_reading(
     )
 
 
+async def _turn_tool_exposure(
+    request: ChatRequest,
+    inspection: TurnInspection,
+) -> ToolExposure:
+    """Triage the reader message once and fix the tools Muse is offered this turn."""
+    started = perf_counter()
+    with logfire.span("chat.tool_exposure") as span:
+        try:
+            needs = await asyncio.wait_for(
+                triage_turn(request.message, muse=muse_chat_agent, model=triage_model),
+                timeout=TRIAGE_TIMEOUT_SECONDS,
+            )
+        except Exception:
+            # A triage fault must never fail the reader's turn; `expose_tools`
+            # narrows rather than widens exposure when it has no needs.
+            needs = None
+        exposure = expose_tools(
+            needs,
+            previously_called=sessions.called_tools(request.session_id),
+            book_override=(
+                inspection.muse_turn.get("reading_context") is not None
+                or sessions.pending_clarification(request.session_id) is not None
+            ),
+        )
+        tools = sorted(exposure.tools)
+        set_span_attrs(span, {
+            "triage.failed": needs is None,
+            "triage.book_content": needs.book_content if needs else None,
+            "triage.memory": needs.memory if needs else None,
+            "triage.override_attempt": needs.override_attempt if needs else None,
+            "triage.exposed_tools": tools,
+            "triage.pinned_intent": exposure.pinned_intent,
+        })
+    elapsed = perf_counter() - started
+    inspection.tool_exposure = {
+        "triage": needs.model_dump(mode="json") if needs else None,
+        "triage_failed": needs is None,
+        "tools": tools,
+        "pinned_intent": exposure.pinned_intent,
+    }
+    inspection.traces.insert(1, {
+        "agent": "Router",
+        "status": "complete" if needs else "failed",
+        "detail": (
+            (
+                f"Turn triage: book_content={needs.book_content}, "
+                f"memory={needs.memory}, override_attempt={needs.override_attempt}."
+                if needs
+                else (
+                    "Turn triage failed, so exposure falls back to the book tools "
+                    "and this session's earlier tools."
+                )
+            )
+            + f" Tools offered to Muse: {', '.join(tools) or 'none'}"
+            + (f" (intent {exposure.pinned_intent})." if exposure.pinned_intent else ".")
+        ),
+    })
+    logger.info(
+        "Turn triage elapsed=%.2fs failed=%s book_content=%s memory=%s "
+        "override_attempt=%s exposed_tools=%s pinned_intent=%s",
+        elapsed,
+        str(needs is None).lower(),
+        needs.book_content if needs else "none",
+        needs.memory if needs else "none",
+        needs.override_attempt if needs else "none",
+        ",".join(tools) or "none",
+        exposure.pinned_intent or "none",
+    )
+    return exposure
+
+
 async def _run_chat_pipeline(
     request: ChatRequest,
     reading_state: sessions.ReadingStateSnapshot,
@@ -868,24 +959,36 @@ async def _run_chat_pipeline(
         if initial_reading is not None else resolve_reading_context(request)
     )
     release: ReflectionRelease | None = None
-    try:
-        boundary = await assess_emotional_boundary(
-            request.message,
-            EmotionalContentPolicy(),
-            provenance=provenance_agent,
-        )
-    except asyncio.CancelledError:
-        raise
-    except EmotionalBoundaryValidationError:
-        release = emotional_preflight_safe_decline(
-            failure_type="validation",
-            retryable=False,
-        )
-    except Exception:
-        release = emotional_preflight_safe_decline()
+    # Self-harm always wins: a first-person self-harm phrase skips the
+    # language guard so the emotional-boundary preflight below still applies.
+    language_verdict = (
+        None
+        if detect_first_person_self_harm(request.message)
+        else detect_non_english(request.message)
+    )
+    if language_verdict is not None:
+        release = language_boundary_release()
     else:
-        if boundary.decision == "apply_boundary":
-            release = emotional_boundary_release(origin="preflight")
+        try:
+            boundary = await assess_emotional_boundary(
+                request.message,
+                EmotionalContentPolicy(),
+                provenance=provenance_agent,
+            )
+        except asyncio.CancelledError:
+            raise
+        except EmotionalBoundaryValidationError:
+            release = emotional_preflight_safe_decline(
+                failure_type="validation",
+                retryable=False,
+            )
+        except Exception:
+            release = emotional_preflight_safe_decline()
+        else:
+            if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
+                release = emotional_boundary_release(
+                    origin="preflight", decision=boundary.decision
+                )
 
     active_memories: tuple[CuratedMemory, ...] = ()
     if release is None:
@@ -918,6 +1021,9 @@ async def _run_chat_pipeline(
     )
     nested_connections: tuple[ConnectionRunInspection, ...] = ()
     if release is None:
+        # The revision reuses the draft's exposure: triage runs once per reader turn.
+        exposure = await _turn_tool_exposure(request, inspection)
+        review_context["override_attempt"] = exposure.override_attempt
         token = set_confirmed_reading(
             ConfirmedReading(
                 work_id=context["work_id"], chapter_max=context["chapter_max"],
@@ -934,6 +1040,7 @@ async def _run_chat_pipeline(
         memories_token = set_active_memories(active_memories)
         connection_token = begin_connection_inspection()
         public_sources_token = set_public_source_urls(public_source_urls)
+        exposure_token = set_tool_exposure(exposure)
         try:
             release = await reflection_reply(
                 muse_input,
@@ -951,6 +1058,7 @@ async def _run_chat_pipeline(
         finally:
             nested_connections = connection_inspections()
             reset_connection_inspection(connection_token)
+            reset_tool_exposure(exposure_token)
             reset_public_source_urls(public_sources_token)
             reset_active_memories(memories_token)
             reset_reader_message(reader_message_token)
@@ -991,6 +1099,7 @@ async def _run_chat_pipeline(
         release_source=release.release_source,
         evidence_ids=release.evidence_ids,
         review_finding_codes=release.review_finding_codes,
+        tool_names=release.tool_names,
     )
     return inspection, release, capture
 
@@ -1188,6 +1297,20 @@ async def run_chat_turn(
                 f"boundary; recorded review path: {verdict_path}."
             )
         provenance_status = "complete"
+    elif release.release_source == "application_language_boundary":
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "skipped",
+            "detail": (
+                "The English-only language guard released the fixed notice "
+                "before Muse, Librarian, Serendipity, or Provenance ran."
+            ),
+        }
+        provenance_status = "skipped"
+        provenance_detail = (
+            "The language guard applied before any model ran; Provenance was "
+            "not invoked."
+        )
     else:
         inspection.traces[-1] = {
             "agent": "Muse",

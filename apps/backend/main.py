@@ -34,6 +34,7 @@ from src.linger.orchestration.progress_context import (  # noqa: E402
     reset_progress,
 )
 from .library import router as library_router  # noqa: E402
+from .rate_limit import enforce_chat_rate_limit  # noqa: E402
 from .schemas import ChatRequest, ChatResponse  # noqa: E402
 
 configure_logging()
@@ -71,7 +72,11 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "model": settings.linger_model}
 
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post(
+    "/api/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(enforce_chat_rate_limit)],
+)
 async def chat(
     request: ChatRequest,
     service: MemoryServiceDependency,
@@ -171,7 +176,10 @@ def _error_payload(detail: object) -> dict[str, object]:
     return {"detail": "The request failed.", "trace": None}
 
 
-@app.post("/api/chat/stream")
+@app.post(
+    "/api/chat/stream",
+    dependencies=[Depends(enforce_chat_rate_limit)],
+)
 async def chat_stream(
     request: ChatRequest,
     service: MemoryServiceDependency,

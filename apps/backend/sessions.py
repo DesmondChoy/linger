@@ -67,6 +67,7 @@ class TurnRecord:
     release_source: ReleaseSource
     evidence_ids: tuple[str, ...]
     review_finding_codes: tuple[tuple[str, ...], ...]
+    tool_names: tuple[str, ...] = ()
 
 
 def history(session_id: str) -> list[ModelMessage]:
@@ -102,6 +103,7 @@ def append_turn(
     release_source: ReleaseSource,
     evidence_ids: tuple[str, ...] = (),
     review_finding_codes: tuple[tuple[str, ...], ...] = (),
+    tool_names: tuple[str, ...] = (),
 ) -> None:
     """Store content-free evidence and review handles; store chat only if released."""
     if release_source in {"muse_candidate", "application_clarification"}:
@@ -116,6 +118,7 @@ def append_turn(
             release_source=release_source,
             evidence_ids=tuple(dict.fromkeys(evidence_ids)),
             review_finding_codes=review_finding_codes,
+            tool_names=tool_names,
         )
     )
 
@@ -134,6 +137,16 @@ def released_evidence_ids(session_id: str) -> tuple[str, ...]:
         for evidence_id in record.evidence_ids:
             seen.setdefault(evidence_id, None)
     return tuple(seen)
+
+
+def called_tools(session_id: str) -> frozenset[str]:
+    """Return the Muse tools that ran in this session's released turns."""
+    return frozenset(
+        name
+        for record in _turn_records.get(session_id, ())
+        if record.release_source in {"muse_candidate", "application_clarification"}
+        for name in record.tool_names
+    )
 
 
 def clear(session_id: str) -> bool:

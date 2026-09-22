@@ -2,11 +2,12 @@
 
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.linger.agents.provenance.models import RiskCode
 from src.linger.agents.serendipity.models import DeclineReason
 from src.linger.contracts.turn import ReleaseSource
+from .message_normalization import normalize_reader_message
 
 
 class RequestBody(BaseModel):
@@ -15,10 +16,29 @@ class RequestBody(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+_NO_CONTROL_CHARACTERS = r"^[^\x00-\x1f\x7f-\x9f]+$"
+
+
 class ChatRequest(RequestBody):
-    session_id: str = Field(min_length=1, max_length=200)
-    turn_id: str | None = Field(default=None, min_length=1, max_length=200)
+    # Identifiers are dict keys and are echoed back, not model input, so a
+    # no-control-character charset is enough short of the reader message's
+    # full normalisation.
+    session_id: str = Field(
+        min_length=1, max_length=200, pattern=_NO_CONTROL_CHARACTERS
+    )
+    turn_id: str | None = Field(
+        default=None, min_length=1, max_length=200, pattern=_NO_CONTROL_CHARACTERS
+    )
     message: str = Field(min_length=1, max_length=8000)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def _normalize_message(cls, value: object) -> object:
+        # Runs before the length and emptiness constraints, so every downstream
+        # consumer (session history, prompts, capture offsets, detectors,
+        # inspection) sees one normalised string. A non-string is passed
+        # through for the usual type error rather than failing here.
+        return normalize_reader_message(value) if isinstance(value, str) else value
 
 
 class CaptureInspection(BaseModel):
@@ -99,6 +119,8 @@ class TurnInspection(BaseModel):
     traces: list[dict[str, str]]
     connection_decline: ConnectionDeclineInspection | None = None
     librarian_grounding: list[dict[str, Any]] = Field(default_factory=list)
+    # Turn triage result, the tools Muse was offered, and any pinned intent.
+    tool_exposure: dict[str, Any] | None = None
     prompt: str
     release: ReleaseInspection | None = None
 

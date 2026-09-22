@@ -43,6 +43,25 @@ def offline_model_requests():
         yield
 
 
+@pytest.fixture(autouse=True)
+def reset_chat_rate_limit():
+    """Give each test its own request-rate budget instead of a shared one."""
+    from apps.backend.rate_limit import reset_rate_limit
+
+    reset_rate_limit()
+
+
+@pytest.fixture(autouse=True)
+def unsure_turn_triage(monkeypatch):
+    """Chat turns triage as unsure, offering every tool unpinned, unless a test scripts triage."""
+    from src.linger.contracts.triage import TurnNeeds
+
+    async def triage(current_line, **_):
+        return TurnNeeds(book_content="unsure", memory="unsure")
+
+    monkeypatch.setattr("apps.backend.chat_turn.triage_turn", triage)
+
+
 # Loads the real models once and keeps their indexes apart from fake-built ones.
 REAL_MODELS = HybridLibrarian()
 
