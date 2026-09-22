@@ -1065,6 +1065,15 @@ Normalising an already-normalised message leaves it unchanged. The length cap
 and emptiness check apply after normalisation, so a message consisting only of
 invisible characters is refused exactly like an empty one.
 
+The self-harm, instruction-leak, and personal-data/secret detectors run on a
+further-folded copy of this NFC text (`fold_for_detection` and, for the
+self-harm detector only, `fold_for_self_harm`), which strips combining marks,
+maps a small set of confusable homoglyphs to Latin letters, and casefolds
+before an NFKC pass; the self-harm path additionally folds leetspeak digits
+and spelled-out single letters. That folded copy exists only inside detection
+and is never what is stored, quoted, or shown back to a reader — storage and
+capture continue to index the NFC text normalised above.
+
 ## 7. Evaluation and acceptance
 
 ### 7.1 Product evaluation requirements

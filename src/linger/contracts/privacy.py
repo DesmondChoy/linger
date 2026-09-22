@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic_ai_harness.guardrails.detectors import personal_data, redact_secrets
 
+from src.linger.contracts.text_folding import fold_for_detection
+
 _PHONE_NUMBER = (
     # International: "+" then 8 to 15 digits, at most one separator between any two.
     r"\+\d(?:[ .()-]?\d){7,14}(?!\d)"
@@ -17,8 +19,10 @@ _redact_personal_data = personal_data(extra={"phone": _PHONE_NUMBER})
 
 
 def contains_personal_data_or_secret(text: str) -> bool:
-    """Whether maintained detectors would rewrite `text` as private or a credential."""
+    """Whether maintained detectors would rewrite `text` or its folded copy."""
+    candidates = (text, fold_for_detection(text))
     return any(
-        detector(text).action != "allow"
+        detector(candidate).action != "allow"
         for detector in (_redact_personal_data, redact_secrets)
+        for candidate in candidates
     )

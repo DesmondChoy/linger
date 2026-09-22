@@ -2,7 +2,13 @@
 
 import unittest
 
+from apps.backend.message_normalization import normalize_reader_message
 from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
+
+
+def detect_as_ingested(raw: str) -> bool:
+    """Run `raw` through the same normalisation production applies before detection."""
+    return detect_first_person_self_harm(normalize_reader_message(raw))
 
 
 class FirstPersonSelfHarmDetectionTests(unittest.TestCase):
@@ -84,6 +90,78 @@ class FirstPersonSelfHarmDetectionTests(unittest.TestCase):
                 "The character says 'I want to die' in chapter three."
             )
         )
+
+
+class ObfuscationBypassTests(unittest.TestCase):
+    """Each case is run through `normalize_reader_message` first, as production does."""
+
+    def test_combining_mark_threaded_through_a_flagged_word(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to ki̴ll myself"))
+
+    def test_fullwidth_letters(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to ｋｉｌｌ myself"))
+
+    def test_leetspeak(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to k1ll myself"))
+
+    def test_spaced_letters(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to k i l l myself"))
+
+    def test_hyphenated_letters(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to k-i-l-l myself"))
+
+    def test_dotted_letters(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to k.i.l.l myself"))
+
+    def test_cyrillic_homoglyphs(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to kіll myself"))
+
+    def test_wanna_contraction(self) -> None:
+        self.assertTrue(detect_as_ingested("i wanna kill myself"))
+
+    def test_gonna_contraction(self) -> None:
+        self.assertTrue(detect_as_ingested("i'm gonna kill myself"))
+
+    def test_unalive_myself(self) -> None:
+        self.assertTrue(detect_as_ingested("i wanna unalive myself"))
+        self.assertTrue(detect_as_ingested("i am going to unalive myself"))
+
+    def test_unalive_me(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to unalive me"))
+
+    def test_not_want_to_be_here_anymore(self) -> None:
+        self.assertTrue(detect_as_ingested("i don't want to be here anymore"))
+        self.assertTrue(detect_as_ingested("i do not want to be here any more"))
+
+    def test_end_it_all(self) -> None:
+        self.assertTrue(detect_as_ingested("i want to end it all"))
+
+    def test_typo_wnat(self) -> None:
+        self.assertTrue(detect_as_ingested("i wnat to kill myself"))
+
+    def test_dont_want_to_live_bare(self) -> None:
+        self.assertTrue(detect_as_ingested("i don't want to live"))
+        self.assertTrue(detect_as_ingested("i don't want to live anymore"))
+
+    def test_no_reason_to_live_or_go_on(self) -> None:
+        self.assertTrue(detect_as_ingested("i have no reason to live"))
+        self.assertTrue(detect_as_ingested("i have no reason to go on"))
+
+    def test_better_off_without_me(self) -> None:
+        self.assertTrue(detect_as_ingested("everyone would be better off without me"))
+        self.assertTrue(detect_as_ingested("i think i'm better off without me"))
+
+    def test_still_ignores_third_person_and_idioms_after_folding(self) -> None:
+        for message in (
+            "I'd kill myself laughing at that scene",
+            "This commute makes me want to die",
+            "I want to die of embarrassment",
+            "She takes her own life at the end.",
+            "I don't want to live in this city anymore",
+            "I don't want to be here at this meeting.",
+        ):
+            with self.subTest(message=message):
+                self.assertFalse(detect_as_ingested(message))
 
 
 if __name__ == "__main__":
