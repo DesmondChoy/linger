@@ -28,7 +28,8 @@ for input and output contracts and
 
 ## Candidate-gate risk codes
 
-`risk-codes-cases.json` holds 46 cases covering both decisions the gate returns.
+`risk-codes-cases.json` holds 52 cases covering both decisions the gate returns
+across flows 4.2.1, 4.2.2, and 4.2.3.
 
 Twenty-four **release** cases check the eleven risk codes reachable in
 specification flow 4.2.1: `unresolved_evidence`, `misattribution`, `spoiler`,

@@ -33,6 +33,7 @@ from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from provenance_fixtures import review_with_audits
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.services.memory import AccountContext, AutomaticMemoryCandidate, MemoryPolicyService
+from src.linger.orchestration.conversational_memory import ConversationalCurationOutcome
 from src.linger.orchestration.reflection import ReflectionRelease
 
 
@@ -122,6 +123,7 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
             "capture-safe-4",
             "capture-safe-5",
             "capture-safe-6",
+            "capture-curation-trigger",
         ):
             sessions.clear(session_id)
 
@@ -234,6 +236,49 @@ class ChatCaptureTests(unittest.IsolatedAsyncioTestCase):
         payload = provenance.run.await_args.args[0]
         self.assertIn(nominated, payload)
         self.assertIn(source, payload)
+
+    async def test_new_capture_invokes_application_owned_curation_trigger(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="I prefer mint tea while reading.",
+                source_event_id="earlier-preference",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        )
+        source = "I now prefer jasmine tea while reading."
+        trigger = AsyncMock()
+        trigger.return_value = ConversationalCurationOutcome(
+            status="no_change", memory_ids=()
+        )
+
+        with (
+            patch.object(
+                chat_turn,
+                "prepare_surfacing_handoff",
+                AsyncMock(return_value=None),
+            ),
+            patch.object(chat_turn, "curate_after_capture", trigger),
+        ):
+            await self.run_chat(
+                ChatRequest(
+                    session_id="capture-curation-trigger",
+                    turn_id="turn-capture-curation-trigger",
+                    message=source,
+                ),
+                muse_candidate(source, nominated=source),
+                review("allow_capture"),
+            )
+
+        captured = self.service.list_active(self.account)[-1]
+        trigger.assert_awaited_once_with(
+            self.account,
+            captured,
+            created=True,
+            service=self.service,
+        )
 
     async def test_no_nomination_never_reaches_storage(self) -> None:
         self.service.set_capture_enabled(self.account, True)

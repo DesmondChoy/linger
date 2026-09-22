@@ -32,6 +32,7 @@ def review_input() -> CurationReviewInput:
                 memory_id=memory_id,
                 text="The same durable memory.",
                 record_sha256=str(index) * 64,
+                retrieval_state="active",
             )
             for index, memory_id in enumerate(source_ids, start=1)
         ),

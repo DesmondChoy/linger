@@ -121,6 +121,27 @@ class OfflineInput(StrictModel):
         return self
 
 
+ScenarioContract = Literal["component_v1", "conversational_v1"]
+
+
+class ConversationalSceneSpec(StrictModel):
+    """Workflow metadata for one production-chat Scene."""
+
+    scene_id: Identifier
+    kind: Literal["capture", "surfacing"]
+    prerequisite_scene_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_prerequisites(self) -> Self:
+        _require_unique(
+            "ConversationalSceneSpec prerequisite Scene IDs",
+            self.prerequisite_scene_ids,
+        )
+        if self.scene_id in self.prerequisite_scene_ids:
+            raise ValueError("a conversational Scene cannot depend on itself")
+        return self
+
+
 class Scene(StrictModel):
     """One bounded evaluation unit in a fresh or continued session."""
 
@@ -193,12 +214,14 @@ class SyntheticBackstory(StrictModel):
     """Generated Backstory and Scene inputs for one Scenario, person, and account."""
 
     objective_ids: tuple[Identifier, ...] = Field(min_length=1)
+    scenario_contract: ScenarioContract = "component_v1"
     run_configuration_ids: tuple[Identifier, ...] = ()
     backstory: Backstory
     props: tuple[Prop, ...] = ()
     scenes: tuple[Scene, ...] = Field(min_length=1)
     lines: tuple[Line, ...] = ()
     offline_inputs: tuple[OfflineInput, ...] = ()
+    conversational_scenes: tuple[ConversationalSceneSpec, ...] = ()
     source_setups: tuple[SceneSourceSetup, ...] = ()
 
     @model_validator(mode="after")
@@ -230,6 +253,30 @@ class SyntheticBackstory(StrictModel):
         offline_inputs = {
             item.offline_input_id: item for item in self.offline_inputs
         }
+        conversational_scenes = {
+            item.scene_id: item for item in self.conversational_scenes
+        }
+        _require_unique(
+            "conversational Scene IDs",
+            tuple(conversational_scenes),
+        )
+        _require_known_ids(
+            "Scene",
+            "conversational contract",
+            tuple(conversational_scenes),
+            scenes,
+        )
+        if self.scenario_contract == "component_v1" and conversational_scenes:
+            raise ValueError("component_v1 cannot declare conversational Scenes")
+        if self.scenario_contract == "conversational_v1":
+            if set(conversational_scenes) != set(scenes):
+                raise ValueError(
+                    "conversational_v1 requires one workflow spec per Scene"
+                )
+            if self.offline_inputs:
+                raise ValueError("conversational_v1 cannot declare OfflineInputs")
+            if any(scene.offline_input_ids for scene in scenes.values()):
+                raise ValueError("conversational_v1 Scenes cannot use OfflineInputs")
         _require_unique("source setup Scene IDs", tuple(setup.scene_id for setup in self.source_setups))
         _require_known_ids("Scene", "source setup", tuple(setup.scene_id for setup in self.source_setups), scenes)
         for setup in self.source_setups:
@@ -504,6 +551,61 @@ class CaptureExpectation(StrictModel):
             )
         return self
 
+
+class ConversationalSourceReference(StrictModel):
+    """A symbolic source lineage reference resolved from runtime outcomes."""
+
+    kind: Literal["source_prop", "captured_memory", "curated_memory"]
+    reference: Identifier
+
+
+class ConversationalCaptureExpectation(StrictModel):
+    """Answer-key labels for the capture and post-capture curation Scene."""
+
+    kind: Literal["capture"] = "capture"
+    capture: CaptureExpectation
+    curation_status: Literal[
+        "not_triggered",
+        "no_relevant_prior_memory",
+        "no_change",
+        "provenance_revise",
+        "provenance_reject",
+        "applied",
+        "failed",
+    ]
+    curation_source_references: tuple[ConversationalSourceReference, ...] = ()
+    originals_immutable: Literal[True] = True
+
+
+class ConversationalSurfacingExpectation(StrictModel):
+    """Answer-key labels for a later fresh-chat Scene."""
+
+    kind: Literal["surfacing"] = "surfacing"
+    decision: Literal["surface_now", "defer", "do_not_surface"]
+    required_source_references: tuple[ConversationalSourceReference, ...] = ()
+    allowed_source_references: tuple[ConversationalSourceReference, ...] = ()
+    semantic_criteria: tuple[Text, ...] = Field(min_length=1)
+    forbidden_claims: tuple[Text, ...] = ()
+    release: Literal["released", "safe_decline", "clarification"]
+
+    @model_validator(mode="after")
+    def validate_source_sets(self) -> Self:
+        required = {
+            (item.kind, item.reference) for item in self.required_source_references
+        }
+        allowed = {
+            (item.kind, item.reference) for item in self.allowed_source_references
+        }
+        if not required <= allowed:
+            raise ValueError("required surfacing sources must be allowed sources")
+        return self
+
+
+ConversationalSceneExpectation = Annotated[
+    ConversationalCaptureExpectation | ConversationalSurfacingExpectation,
+    Field(discriminator="kind"),
+]
+
 PairField = Literal[
     "backstory_id",
     "fresh_session",
@@ -728,6 +830,7 @@ class GroundTruthProposal(StrictModel):
     grounding: GroundingExpectation | None = None
     connection: ConnectionExpectation | None = None
     book_expectation: BookObjectiveExpectation | None = None
+    conversational: ConversationalSceneExpectation | None = None
 
     @model_validator(mode="after")
     def validate_local_uniqueness(self) -> Self:
@@ -770,10 +873,13 @@ class GroundTruthProposal(StrictModel):
         if self.objective_id == "cross_source_tentative_connection" and self.connection is None:
             raise ValueError("cross-source Objective requires typed connection expectation")
         if self.objective_id == "proactive_memory_surfacing":
-            if self.surfacing is None:
-                raise ValueError("surfacing Objective requires typed surfacing expectation")
-            if any((self.capture, self.curation, self.grounding, self.book_expectation)) or self.prop_relevance:
-                raise ValueError("surfacing proposal contains unrelated Ground truth")
+            if self.conversational is None:
+                if self.surfacing is None:
+                    raise ValueError("surfacing Objective requires typed surfacing expectation")
+                if any((self.capture, self.curation, self.grounding, self.book_expectation)) or self.prop_relevance:
+                    raise ValueError("surfacing proposal contains unrelated Ground truth")
+            elif any((self.capture, self.curation, self.surfacing, self.grounding, self.book_expectation)) or self.prop_relevance:
+                raise ValueError("conversational proposal contains unrelated Ground truth")
         elif self.surfacing is not None:
             raise ValueError("surfacing expectation requires proactive_memory_surfacing Objective")
         book_objectives = {
@@ -805,6 +911,7 @@ class ProposedGroundTruth(StrictModel):
 
     backstory_sha256: Sha256
     ground_truth_status: Literal["proposed"]
+    scenario_contract: ScenarioContract = "component_v1"
     book_scene_facts: tuple[BookSceneFacts, ...] = ()
     proposals: tuple[GroundTruthProposal, ...] = Field(min_length=1)
 
@@ -823,6 +930,20 @@ class ProposedGroundTruth(StrictModel):
             "BookSceneFacts Scene IDs",
             tuple(facts.scene_id for facts in self.book_scene_facts),
         )
+        if self.scenario_contract == "component_v1":
+            if any(proposal.conversational is not None for proposal in self.proposals):
+                raise ValueError("component_v1 cannot contain conversational expectations")
+        elif any(
+            proposal.objective_id != "proactive_memory_surfacing"
+            or proposal.conversational is None
+            or proposal.surfacing is not None
+            or proposal.capture is not None
+            or proposal.curation is not None
+            for proposal in self.proposals
+        ):
+            raise ValueError(
+                "conversational_v1 proposals must use only conversational expectations"
+            )
         return self
 
 

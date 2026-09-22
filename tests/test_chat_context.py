@@ -23,6 +23,8 @@ with patch.dict(
     from apps.backend.schemas import ChatRequest
 
 from src.linger.contracts.librarian import EvidenceRecord
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
+from src.linger.contracts.surfacing import MemorySurfacingHandoff
 from src.linger.contracts.emotional import EmotionalBoundaryAssessment
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.orchestration.reflection import ReflectionRelease
@@ -43,6 +45,7 @@ from src.linger.orchestration.turn_context import (
     confirmed_reading,
     turn_evidence,
 )
+from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import (
     AccountContext,
     AutomaticMemoryCandidate,
@@ -229,6 +232,56 @@ class ChatContextVarTests(unittest.IsolatedAsyncioTestCase):
             {record.memory_id: record for record in self.service.list_active(self.account)},
         )
         self.assertEqual((), active_memories())
+
+    async def test_validated_surfacing_reaches_muse_and_canonical_evidence(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        record = self.service.save_automatic(
+            self.account,
+            AutomaticMemoryCandidate(
+                text="I prefer mint tea while reading.",
+                source_event_id="saved-preference",
+                review_allows_capture=True,
+                contains_sensitive_content=False,
+            ),
+        ).record
+        handoff = MemorySurfacingHandoff(
+            suggestion="Mint tea may suit this reading session.",
+            source_memory_ids=(record.memory_id,),
+            sources=(
+                MemoryConnectionEvidence(
+                    evidence_id=record.memory_id,
+                    excerpt=record.text,
+                ),
+            ),
+        )
+        seen: dict[str, object] = {}
+
+        async def inspect_handoff(payload: str, *args, **kwargs):
+            seen["payload"] = json.loads(payload)["memory_surfacing"]
+            seen["evidence"] = dict(canonical_connection_evidence())
+            return released()
+
+        with (
+            patch.object(
+                chat_turn,
+                "prepare_surfacing_handoff",
+                AsyncMock(return_value=handoff),
+            ) as prepare,
+            patch.object(chat_turn, "reflection_reply", side_effect=inspect_handoff),
+        ):
+            response = await self.call_chat(
+                ChatRequest(
+                    session_id=self.session_id,
+                    message="What tea should I make while reading?",
+                )
+            )
+
+        prepare.assert_awaited_once()
+        self.assertEqual(handoff.model_dump(mode="json"), seen["payload"])
+        self.assertEqual({record.memory_id: handoff.sources[0]}, seen["evidence"])
+        self.assertNotIn("memory_surfacing", json.loads(response.inspection.prompt))
+        self.assertNotIn(record.text, response.inspection.prompt)
+        self.assertEqual({}, dict(canonical_connection_evidence()))
 
     async def _connection_policy(self, message: str) -> dict:
         seen: dict[str, object] = {}

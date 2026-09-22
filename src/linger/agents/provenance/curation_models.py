@@ -27,6 +27,7 @@ class CurationSourceEvidence(StrictModel):
     memory_id: str = Field(min_length=1)
     text: str = Field(min_length=1)
     record_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    retrieval_state: Literal["active", "tombstoned"]
 
 
 class CurationReviewInput(StrictModel):

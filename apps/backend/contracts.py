@@ -10,6 +10,7 @@ from src.linger.agents.contracts import StrictModel
 from src.linger.agents.provenance.models import RiskFinding
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import BoundarySupportLocation, EvidenceRecord
+from src.linger.contracts.surfacing import MemorySurfacingHandoff
 
 
 class ReadingContext(ReadingScope):
@@ -103,6 +104,7 @@ class MuseDraftInput(StrictModel):
     muse_turn: MuseTurn
     context_resolution: ContextResolution
     prior_evidence: tuple[EvidenceRecord, ...] = ()
+    memory_surfacing: MemorySurfacingHandoff | None = None
 
 
 class MuseRevisionReview(StrictModel):

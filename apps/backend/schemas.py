@@ -53,6 +53,15 @@ class CaptureInspection(BaseModel):
     binding: Literal["exact", "not_applicable", "invalid"]
     storage: Literal["committed", "refused", "suppressed", "not_applicable"]
     reason_code: str | None
+    curation_status: Literal[
+        "not_triggered",
+        "no_relevant_prior_memory",
+        "no_change",
+        "provenance_revise",
+        "provenance_reject",
+        "applied",
+        "failed",
+    ] | None = None
 
 
 class ReleaseInspection(BaseModel):

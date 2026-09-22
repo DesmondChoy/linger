@@ -56,11 +56,14 @@ from .replay import (
     _ground_truth_result,
     evaluation_agents,
 )
-from .surfacing_contract import CompiledSurfacingScene, compile_surfacing_scenes
+from .surfacing_contract import (
+    SURFACING_OBJECTIVE_ID,
+    CompiledSurfacingScene,
+    compile_surfacing_scenes,
+)
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from .validate_scenario import ScenarioValidationError, validate_scenario_files
 
-SURFACING_OBJECTIVE_ID = "proactive_memory_surfacing"
 OBJECTIVE_COMPONENTS = (
     "src.linger.agents.sculptor.surfacing_models.SurfacingInput",
     "src.linger.agents.sculptor.surfacing_models.SurfacingDecision",

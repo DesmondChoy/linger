@@ -1,8 +1,12 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "case_set_id": "provenance-risk-codes-v1",
   "gate_id": "provenance.release-gate",
-  "flow": "4.2.1",
+  "flows": [
+    "4.2.1",
+    "4.2.2",
+    "4.2.3"
+  ],
   "cases": [
     {
       "schema_version": 1,
@@ -5007,6 +5011,690 @@
       "expected_finding_resolutions": [
         "resolved"
       ]
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-uncited-web-claim-positive-v1",
+      "owner": "provenance",
+      "primary_behavior": "uncited_web_claim_positive",
+      "description": "A public factual claim maps to an opened page but omits the exact retrievable URL from the visible response.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [],
+        "canonical_connection_evidence": [
+          {
+            "source_kind": "web",
+            "evidence_id": "https://example.org/astronomy/seasons",
+            "title": "Synthetic astronomy reference",
+            "excerpt": "Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+            "trust_level": "external"
+          }
+        ],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [],
+        "candidate": {
+          "response": "Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "Earth's axial tilt causes the seasons as Earth orbits the Sun."
+              ],
+              "source_kind": "web",
+              "evidence_id": "https://example.org/astronomy/seasons",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "What does the supplied astronomy page say causes seasons?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 62
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "web",
+                "evidence_id": "https://example.org/astronomy/seasons",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 62,
+                    "occurrence_index": 0,
+                    "text": "Earth's axial tilt causes the seasons as Earth orbits the Sun."
+                  }
+                ],
+                "canonical_source_text": "Earth's axial tilt causes the seasons as Earth orbits the Sun."
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "revise",
+      "expected_response_codes": [
+        "uncited_web_claim"
+      ],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-uncited-web-claim-negative-v1",
+      "owner": "provenance",
+      "primary_behavior": "uncited_web_claim_negative",
+      "description": "The same public claim visibly cites the exact opened page URL.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [],
+        "canonical_connection_evidence": [
+          {
+            "source_kind": "web",
+            "evidence_id": "https://example.org/astronomy/seasons",
+            "title": "Synthetic astronomy reference",
+            "excerpt": "Earth's axial tilt causes the seasons as Earth orbits the Sun.",
+            "trust_level": "external"
+          }
+        ],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [],
+        "candidate": {
+          "response": "Earth's axial tilt causes the seasons as Earth orbits the Sun ([reference](https://example.org/astronomy/seasons)).",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "Earth's axial tilt causes the seasons as Earth orbits the Sun ([reference](https://example.org/astronomy/seasons))."
+              ],
+              "source_kind": "web",
+              "evidence_id": "https://example.org/astronomy/seasons",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "What does the supplied astronomy page say causes seasons?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "Earth's axial tilt causes the seasons as Earth orbits the Sun ([reference](https://example.org/astronomy/seasons)).",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 115
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "web",
+                "evidence_id": "https://example.org/astronomy/seasons",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 115,
+                    "occurrence_index": 0,
+                    "text": "Earth's axial tilt causes the seasons as Earth orbits the Sun ([reference](https://example.org/astronomy/seasons))."
+                  }
+                ],
+                "canonical_source_text": "Earth's axial tilt causes the seasons as Earth orbits the Sun."
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "pass",
+      "expected_response_codes": [],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-connection-memory-public-misuse-v1",
+      "owner": "provenance",
+      "primary_behavior": "connection_memory_public_misuse",
+      "description": "An account-scoped reflection is used as support for a public health claim.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [],
+        "canonical_connection_evidence": [
+          {
+            "source_kind": "memory",
+            "evidence_id": "memory-morning-walk",
+            "excerpt": "I take a walk before breakfast when I need to reset.",
+            "trust_level": "account_scoped"
+          }
+        ],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [],
+        "candidate": {
+          "response": "Taking a walk before breakfast lowers cortisol for everyone.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "Taking a walk before breakfast lowers cortisol for everyone."
+              ],
+              "source_kind": "memory",
+              "evidence_id": "memory-morning-walk",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "Does my saved note establish a general health effect?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "Taking a walk before breakfast lowers cortisol for everyone.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 60
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "memory",
+                "evidence_id": "memory-morning-walk",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 60,
+                    "occurrence_index": 0,
+                    "text": "Taking a walk before breakfast lowers cortisol for everyone."
+                  }
+                ],
+                "canonical_source_text": "I take a walk before breakfast when I need to reset."
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "revise",
+      "expected_response_codes": [
+        "unsupported_claim"
+      ],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-connection-memory-attributed-v1",
+      "owner": "provenance",
+      "primary_behavior": "connection_memory_attributed",
+      "description": "The same account-scoped reflection supports an attributed personal recall.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [],
+        "canonical_connection_evidence": [
+          {
+            "source_kind": "memory",
+            "evidence_id": "memory-morning-walk",
+            "excerpt": "I take a walk before breakfast when I need to reset.",
+            "trust_level": "account_scoped"
+          }
+        ],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [],
+        "candidate": {
+          "response": "Your saved reflection says that you take a walk before breakfast when you need to reset.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "Your saved reflection says that you take a walk before breakfast when you need to reset."
+              ],
+              "source_kind": "memory",
+              "evidence_id": "memory-morning-walk",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "What did I save about resetting before the day starts?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "Your saved reflection says that you take a walk before breakfast when you need to reset.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 88
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "memory",
+                "evidence_id": "memory-morning-walk",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 88,
+                    "occurrence_index": 0,
+                    "text": "Your saved reflection says that you take a walk before breakfast when you need to reset."
+                  }
+                ],
+                "canonical_source_text": "I take a walk before breakfast when I need to reset."
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "pass",
+      "expected_response_codes": [],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-connection-memory-book-misuse-v1",
+      "owner": "provenance",
+      "primary_behavior": "connection_memory_book_misuse",
+      "description": "A personal recollection is used as authority for a book-corpus fact.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": true,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [],
+        "canonical_connection_evidence": [
+          {
+            "source_kind": "memory",
+            "evidence_id": "memory-cat-recollection",
+            "excerpt": "I remember the Cat saying that everyone there is mad.",
+            "trust_level": "account_scoped"
+          }
+        ],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [],
+        "candidate": {
+          "response": "The Cat tells Alice that everyone there is mad.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "The Cat tells Alice that everyone there is mad."
+              ],
+              "source_kind": "memory",
+              "evidence_id": "memory-cat-recollection",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "What does the Cat tell Alice?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "The Cat tells Alice that everyone there is mad.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 47
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "memory",
+                "evidence_id": "memory-cat-recollection",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 47,
+                    "occurrence_index": 0,
+                    "text": "The Cat tells Alice that everyone there is mad."
+                  }
+                ],
+                "canonical_source_text": "I remember the Cat saying that everyone there is mad."
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "revise",
+      "expected_response_codes": [
+        "unsupported_claim"
+      ],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
+    },
+    {
+      "schema_version": 1,
+      "case_id": "provenance-risk-connection-book-canonical-v1",
+      "owner": "provenance",
+      "primary_behavior": "connection_book_canonical",
+      "description": "The same book claim maps to canonical book evidence instead of memory.",
+      "review_input": {
+        "context": {
+          "policy": {
+            "spoiler_ceiling": 6,
+            "allow_retrieval": true,
+            "allow_connection": false,
+            "allow_memory_capture": false,
+            "emotional_content": {
+              "version": "3",
+              "boundary_response_id": "distressing_disclosure_v1",
+              "prohibit_diagnosis": true,
+              "stop_probing_after_distress": true,
+              "suppress_tools_after_distress": true,
+              "suppress_capture_after_distress": true
+            }
+          },
+          "reading_context": {
+            "chapter_max": 6,
+            "part_id": "main",
+            "unit_ids": [],
+            "work_id": "pg11",
+            "boundary_source": "reader_confirmed"
+          },
+          "passage_scope": null,
+          "required_clarification": null
+        },
+        "canonical_book_evidence": [
+          {
+            "evidence_id": "ev-ch06-cat",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch06",
+            "chapter_number": 6,
+            "part_id": "main",
+            "location": "Chapter 6",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              1259,
+              1577
+            ],
+            "text": "w round, “lives\na Hatter: and in _that_ direction,” waving the other paw, “lives a\nMarch Hare. Visit either you like: they’re both mad.”\n\n“But I don’t want to go among mad people,” Alice remarked.\n\n“Oh, you can’t help that,” said the Cat: “we’re all mad here. I’m mad.\nYou’re mad.”\n\n“How do you know I’m mad?” said Alice.\n\n“You must be,” said the Cat, “or you wouldn’t have come here.”\n\nAlice didn’t think that proved it at all; however, she went on “And how\ndo you know that you’re mad?”\n\n“To begi"
+          }
+        ],
+        "canonical_connection_evidence": [],
+        "canonical_session_lines": [],
+        "untrusted_tool_outcomes": [
+          {
+            "tool_name": "librarian_search",
+            "outcome": "success",
+            "args": {
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4"
+            },
+            "content": {
+              "kind": "retrieval_result",
+              "request_id": "eval-request",
+              "strength": "sufficient",
+              "searched_scope": {
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "max_chapter_inclusive": 6
+              },
+              "evidence": [
+                {
+                  "evidence_id": "ev-ch06-cat",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "chapter_id": "pg11-v01b38ea4-ch06",
+                  "chapter_number": 6,
+                  "part_id": "main",
+                  "location": "Chapter 6",
+                  "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                  "source_lines": [
+                    1259,
+                    1577
+                  ],
+                  "text": "w round, “lives\na Hatter: and in _that_ direction,” waving the other paw, “lives a\nMarch Hare. Visit either you like: they’re both mad.”\n\n“But I don’t want to go among mad people,” Alice remarked.\n\n“Oh, you can’t help that,” said the Cat: “we’re all mad here. I’m mad.\nYou’re mad.”\n\n“How do you know I’m mad?” said Alice.\n\n“You must be,” said the Cat, “or you wouldn’t have come here.”\n\nAlice didn’t think that proved it at all; however, she went on “And how\ndo you know that you’re mad?”\n\n“To begi"
+                }
+              ]
+            }
+          }
+        ],
+        "candidate": {
+          "response": "The Cat tells Alice that everyone there is mad.",
+          "evidence_uses": [
+            {
+              "supported_claims": [
+                "The Cat tells Alice that everyone there is mad."
+              ],
+              "source_kind": "book_corpus",
+              "evidence_id": "ev-ch06-cat",
+              "source_location": "Chapter 6",
+              "exact_quote": null
+            }
+          ],
+          "memory": {
+            "kind": "no_memory_candidate",
+            "reason_code": "automatic_capture_disabled"
+          }
+        },
+        "current_line": {
+          "text": "What does the Cat tell Alice?"
+        },
+        "previous_response_review": null,
+        "claim_support_groups": [
+          {
+            "group_index": 0,
+            "claim": "The Cat tells Alice that everyone there is mad.",
+            "occurrences": [
+              {
+                "start": 0,
+                "end": 47
+              }
+            ],
+            "declarations": [
+              {
+                "declaration_index": 0,
+                "claim_index": 0,
+                "source_kind": "book_corpus",
+                "evidence_id": "ev-ch06-cat",
+                "session_quote": null,
+                "direct": true,
+                "coverage": [
+                  {
+                    "start": 0,
+                    "end": 47,
+                    "occurrence_index": 0,
+                    "text": "The Cat tells Alice that everyone there is mad."
+                  }
+                ],
+                "canonical_source_text": "w round, “lives\na Hatter: and in _that_ direction,” waving the other paw, “lives a\nMarch Hare. Visit either you like: they’re both mad.”\n\n“But I don’t want to go among mad people,” Alice remarked.\n\n“Oh, you can’t help that,” said the Cat: “we’re all mad here. I’m mad.\nYou’re mad.”\n\n“How do you know I’m mad?” said Alice.\n\n“You must be,” said the Cat, “or you wouldn’t have come here.”\n\nAlice didn’t think that proved it at all; however, she went on “And how\ndo you know that you’re mad?”\n\n“To begi"
+              }
+            ]
+          }
+        ],
+        "uncovered_response_spans": [],
+        "quoted_response_spans": [],
+        "quote_checks": []
+      },
+      "expected_response_decision": "pass",
+      "expected_response_codes": [],
+      "expected_capture_decision": "no_candidate",
+      "expected_capture_codes": [],
+      "expected_finding_resolutions": []
     }
   ]
 }

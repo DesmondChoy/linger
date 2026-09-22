@@ -1,9 +1,10 @@
 """Live semantic evaluation for the Provenance gate's release and capture codes.
 
-Covers the eleven codes reachable in specification flow 4.2.1 and the seven
-`SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2. Every code
-has a positive case and a paired near-miss negative, so detection is measured
-separately from a gate that simply blocks everything.
+Covers the eleven codes reachable in specification flow 4.2.1, the seven
+`SENSITIVE_RISK_CODES` that veto automatic capture under flow 4.2.2, and the
+connection-evidence risks in flow 4.2.3. Every code has a positive case and a
+paired near-miss negative, so detection is measured separately from a gate that
+simply blocks everything.
 
 Grading has four axes: the response decision and its codes, and the capture
 decision and its codes. The two decisions are graded **separately**, because the
@@ -73,6 +74,14 @@ FLOW_421_CODES: frozenset[RiskCode] = frozenset(
 # pack fails loudly if the production taxonomy ever widens.
 FLOW_422_CODES: frozenset[RiskCode] = SENSITIVE_RISK_CODES
 
+FLOW_423_CODES: frozenset[RiskCode] = frozenset(
+    {
+        RiskCode.MISATTRIBUTION,
+        RiskCode.UNCITED_WEB_CLAIM,
+        RiskCode.UNSUPPORTED_CLAIM,
+    }
+)
+
 # Behaviours whose name does not encode a code, keyed to their expected pair of
 # decisions. Anything absent here is a `<code>_positive` or `<code>_negative`
 # and is validated from its own name.
@@ -83,6 +92,10 @@ _UNCODED_BEHAVIORS: dict[str, tuple[ResponseDecision, CaptureDecision]] = {
     "claim_mapping_web_omitted": ("revise", "no_candidate"),
     "claim_mapping_revision_unresolved": ("revise", "no_candidate"),
     "claim_mapping_revision_resolved": ("pass", "no_candidate"),
+    "connection_memory_public_misuse": ("revise", "no_candidate"),
+    "connection_memory_attributed": ("pass", "no_candidate"),
+    "connection_memory_book_misuse": ("revise", "no_candidate"),
+    "connection_book_canonical": ("pass", "no_candidate"),
     "capture_decoupled_clean_response_vetoed_capture": ("pass", "reject_capture"),
     "capture_decoupled_revised_response_allowed_capture": ("revise", "allow_capture"),
     "capture_allowed_durable_reflection": ("pass", "allow_capture"),
@@ -100,6 +113,12 @@ PrimaryBehavior = Literal[
     "unsupported_claim_negative",
     "prompt_injection_positive",
     "prompt_injection_negative",
+    "uncited_web_claim_positive",
+    "uncited_web_claim_negative",
+    "connection_memory_public_misuse",
+    "connection_memory_attributed",
+    "connection_memory_book_misuse",
+    "connection_book_canonical",
     "policy_override_positive",
     "policy_override_negative",
     "harmful_content_positive",
@@ -257,11 +276,11 @@ class RiskCodeEvalCase(StrictModel):
 class RiskCodeCaseSet(StrictModel):
     """The complete versioned baseline for both gate decisions."""
 
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     case_set_id: Literal["provenance-risk-codes-v1"]
     gate_id: Literal["provenance.release-gate"]
-    flow: Literal["4.2.1"]
-    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=46, max_length=46)
+    flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
+    cases: tuple[RiskCodeEvalCase, ...] = Field(min_length=52, max_length=52)
 
     @model_validator(mode="after")
     def validate_topology(self) -> Self:
@@ -289,6 +308,11 @@ class RiskCodeCaseSet(StrictModel):
             raise ValueError(
                 f"baseline must cover every 4.2.2 veto code; missing "
                 f"{sorted(FLOW_422_CODES - capture_codes)}"
+            )
+        if not FLOW_423_CODES <= response_codes:
+            raise ValueError(
+                f"baseline must cover every 4.2.3 code; missing "
+                f"{sorted(FLOW_423_CODES - response_codes)}"
             )
         return self
 
@@ -411,11 +435,11 @@ class EvaluationSummary(StrictModel):
 class EvaluationReport(StrictModel):
     """Versioned metadata-only live-evaluation report."""
 
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     generated_at: datetime
     case_set_id: Literal["provenance-risk-codes-v1"]
     gate_id: Literal["provenance.release-gate"]
-    flow: Literal["4.2.1"]
+    flows: tuple[Literal["4.2.1", "4.2.2", "4.2.3"], ...]
     model: str
     prompt_template_id: str
     prompt_digest: str
@@ -588,7 +612,7 @@ def _summarize(
                 not in (None, "pass"),
                 labelled=code in item.actual_codes,
             )
-            for code in sorted(FLOW_421_CODES)
+            for code in sorted(FLOW_421_CODES | FLOW_423_CODES)
         ),
         per_capture_code_result=tuple(
             CaptureCodeResult(
@@ -654,11 +678,11 @@ async def run_evaluation(
         )
 
     return EvaluationReport(
-        schema_version=1,
+        schema_version=2,
         generated_at=datetime.now(UTC),
         case_set_id=selected_cases.case_set_id,
         gate_id=selected_cases.gate_id,
-        flow=selected_cases.flow,
+        flows=selected_cases.flows,
         model=model_name,
         prompt_template_id=PROMPT_FINGERPRINT.template_id,
         prompt_digest=PROMPT_FINGERPRINT.digest,

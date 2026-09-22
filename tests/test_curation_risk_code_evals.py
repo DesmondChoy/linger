@@ -77,6 +77,24 @@ class CurationRiskCodeEvalTests(unittest.TestCase):
         )
         self.assertTrue(grade_review(case, review).passed)
 
+    def test_restore_pair_differs_by_application_owned_retrieval_state(self) -> None:
+        blocked = self.by_behavior["invalid_restore_positive"]
+        allowed = self.by_behavior["invalid_restore_negative"]
+
+        self.assertEqual("active", blocked.review_input.sources[0].retrieval_state)
+        self.assertEqual("tombstoned", allowed.review_input.sources[0].retrieval_state)
+        self.assertEqual(
+            blocked.review_input.sources[0].text,
+            allowed.review_input.sources[0].text,
+        )
+
+    def test_prompt_injection_near_miss_summary_is_literally_supported(self) -> None:
+        case = self.by_behavior["prompt_injection_negative"]
+        self.assertIn(
+            case.review_input.proposal.action.summary,
+            {source.text for source in case.review_input.sources},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

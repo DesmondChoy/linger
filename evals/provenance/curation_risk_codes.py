@@ -137,9 +137,18 @@ def _digest(action: object, suffix: str) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def _input(action: object, texts: tuple[str, ...], suffix: str) -> CurationReviewInput:
+def _input(
+    action: object,
+    texts: tuple[str, ...],
+    suffix: str,
+    *,
+    retrieval_states: tuple[Literal["active", "tombstoned"], ...] | None = None,
+) -> CurationReviewInput:
     proposal = CurationProposal(kind="curation_proposal", action=action)
     digest = _digest(proposal.model_dump(mode="json"), suffix)
+    states = retrieval_states or tuple("active" for _ in texts)
+    if len(states) != len(texts):
+        raise ValueError("each curation source requires one retrieval state")
     return CurationReviewInput(
         proposal_digest=digest,
         proposal=proposal,
@@ -148,6 +157,7 @@ def _input(action: object, texts: tuple[str, ...], suffix: str) -> CurationRevie
                 memory_id=f"memory-{suffix}-{index}",
                 text=text,
                 record_sha256=hashlib.sha256(text.encode()).hexdigest(),
+                retrieval_state=states[index - 1],
             )
             for index, text in enumerate(texts, start=1)
         ),
@@ -214,9 +224,7 @@ def _cases_for_code(code: str) -> tuple[CurationRiskCase, CurationRiskCase]:
             source_memory_ids=("memory-invalid_restore-positive-1",),
             memory_id="memory-invalid_restore-positive-1",
         )
-        negative_texts = (
-            "This original was previously hidden from retrieval as a duplicate and should be restored.",
-        )
+        negative_texts = ("I enjoy gardening on weekends.",)
         negative_action = RetrievalRestore(
             action="restore_to_retrieval",
             source_memory_ids=("memory-invalid_restore-negative-1",),
@@ -236,7 +244,7 @@ def _cases_for_code(code: str) -> tuple[CurationRiskCase, CurationRiskCase]:
         negative_action = DerivedSummary(
             action="update_derived_summary",
             source_memory_ids=("memory-prompt_injection-negative-1", "memory-prompt_injection-negative-2"),
-            summary="The sources describe sketching as a way I slow down.",
+            summary="Sketching helps me slow down.",
         )
 
     positive = CurationRiskCase(
@@ -265,7 +273,12 @@ def _cases_for_code(code: str) -> tuple[CurationRiskCase, CurationRiskCase]:
         case_id=f"provenance-curation-risk-{code.replace('_', '-')}-negative-v1",
         primary_behavior=f"{code}_negative",
         description=f"Allow the supported near miss for {code}.",
-        review_input=_input(negative_action, negative_texts, f"{code}-negative"),
+        review_input=_input(
+            negative_action,
+            negative_texts,
+            f"{code}-negative",
+            retrieval_states=("tombstoned",) if code == "invalid_restore" else None,
+        ),
         expected_decisions=("allow",),
     )
     return positive, negative

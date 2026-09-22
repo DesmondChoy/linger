@@ -349,15 +349,28 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
             "I decided to add thyme in a self-watering pot.",
         )
 
-        async def apply(action, selected: tuple[str, ...]):
+        async def apply(
+            action,
+            selected: tuple[str, ...],
+            expected_states: dict[str, str],
+        ):
+            provenance = self.allowing_provenance()
             result = await run_curation_loop(
                 self.account,
                 selected,
                 service=self.service,
                 sculptor=self.sculptor_for(action),
-                provenance=self.allowing_provenance(),
+                provenance=provenance,
             )
             self.assertEqual("applied", result.status)
+            payload = json.loads(provenance.run.await_args.args[0])
+            self.assertEqual(
+                expected_states,
+                {
+                    source["memory_id"]: source["retrieval_state"]
+                    for source in payload["sources"]
+                },
+            )
 
         await apply(
             DuplicateLink(
@@ -365,6 +378,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 source_memory_ids=(first.memory_id, second.memory_id),
             ),
             (first.memory_id, second.memory_id),
+            {first.memory_id: "active", second.memory_id: "active"},
         )
         await apply(
             RetrievalTombstone(
@@ -374,6 +388,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 canonical_memory_id=first.memory_id,
             ),
             (first.memory_id, second.memory_id),
+            {first.memory_id: "active", second.memory_id: "active"},
         )
         await apply(
             DerivedSummary(
@@ -382,6 +397,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 summary="The balcony garden will begin with rosemary and thyme.",
             ),
             (first.memory_id, third.memory_id),
+            {first.memory_id: "active", third.memory_id: "active"},
         )
         await apply(
             TopicGroup(
@@ -390,6 +406,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 topic_label="Balcony herb garden planning",
             ),
             (first.memory_id, third.memory_id),
+            {first.memory_id: "active", third.memory_id: "active"},
         )
         await apply(
             RetrievalRestore(
@@ -398,6 +415,7 @@ class CurationApplicationTests(unittest.IsolatedAsyncioTestCase):
                 memory_id=second.memory_id,
             ),
             (first.memory_id, second.memory_id),
+            {second.memory_id: "tombstoned"},
         )
 
         view = self.service.list_for_retrieval(self.account)
