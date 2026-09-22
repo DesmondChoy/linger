@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "eb1a82a96a881c86c0bd084198b633efcd8846f6ac9505b0564a55d97e389bf4",
+  "proposed_ground_truth_sha256": "1dddbcaceac601090203c772a77b392777d6773577a689c7e8a54eb7c2a52263",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "avanqlw",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-22T22:52:17.579637+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-farewell-speech-continuity",
+      "scene_id": "scene-farewell-speech-continuity",
+      "objective_id": "session_scoped_conversation_continuity",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-farewell-speech-comparison",
+      "scene_id": "scene-farewell-speech-comparison",
+      "objective_id": "session_scoped_conversation_continuity",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-well-house-return-target",
+      "scene_id": "scene-well-house-return-target",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-band-room-comparison",
+      "scene_id": "scene-band-room-comparison",
+      "objective_id": "longitudinal_memory_retrieval",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "1d1afad68ea31f9d1d1ee453b7a7b3087b69f304eb666387ef34df3f1f5fc9ea"
+}
