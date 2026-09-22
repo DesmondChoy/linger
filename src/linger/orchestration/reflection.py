@@ -60,6 +60,7 @@ from src.linger.agents.serendipity.models import (
     MemoryRecall,
 )
 from src.linger.contracts.emotional import BoundaryDecision, boundary_response
+from src.linger.contracts.language import LANGUAGE_BOUNDARY_RESPONSE
 from src.linger.contracts.librarian import (
     LIBRARIAN_RESPONSE_ADAPTER,
     LIBRARIAN_ROUTING_RESPONSE_ADAPTER,
@@ -318,6 +319,14 @@ def emotional_boundary_release(
         librarian_grounding_calls=_librarian_grounding(tool_results),
         evidence_ids=_evidence_ids(candidate) if candidate is not None else (),
         review_finding_codes=_review_codes(*review_path),
+    )
+
+
+def language_boundary_release() -> ReflectionRelease:
+    """Return the fixed English-only notice; no model ever saw this Line."""
+    return ReflectionRelease(
+        reply=LANGUAGE_BOUNDARY_RESPONSE,
+        release_source="application_language_boundary",
     )
 
 

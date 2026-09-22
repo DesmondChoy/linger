@@ -28,6 +28,8 @@ from src.linger.orchestration.emotional import (
     assess_emotional_boundary,
 )
 from src.linger.orchestration.grounding import librarian_service
+from src.linger.orchestration.language_guard import detect_non_english
+from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.inspection_context import (
     ConnectionRunInspection,
@@ -39,6 +41,7 @@ from src.linger.orchestration.reflection import (
     ReflectionRelease,
     emotional_boundary_release,
     emotional_preflight_safe_decline,
+    language_boundary_release,
     reflection_reply,
 )
 from src.linger.orchestration.triage import expose_tools, triage_turn
@@ -563,6 +566,16 @@ def _commit_automatic_capture(
     """Apply deterministic policy without changing the response decision."""
     decision = release.capture_decision
     nomination = release.capture_nomination or "unavailable"
+    if release.release_source == "application_language_boundary":
+        return AutomaticCaptureExecution(
+            inspection=CaptureInspection(
+                nomination="unavailable",
+                provenance_decision=None,
+                binding="not_applicable",
+                storage="suppressed",
+                reason_code="language_boundary_capture_suppressed",
+            )
+        )
     if release.release_source == "application_emotional_boundary":
         preflight = release.boundary_origin == "preflight"
         return AutomaticCaptureExecution(
@@ -946,26 +959,36 @@ async def _run_chat_pipeline(
         if initial_reading is not None else resolve_reading_context(request)
     )
     release: ReflectionRelease | None = None
-    try:
-        boundary = await assess_emotional_boundary(
-            request.message,
-            EmotionalContentPolicy(),
-            provenance=provenance_agent,
-        )
-    except asyncio.CancelledError:
-        raise
-    except EmotionalBoundaryValidationError:
-        release = emotional_preflight_safe_decline(
-            failure_type="validation",
-            retryable=False,
-        )
-    except Exception:
-        release = emotional_preflight_safe_decline()
+    # Self-harm always wins: a first-person self-harm phrase skips the
+    # language guard so the emotional-boundary preflight below still applies.
+    language_verdict = (
+        None
+        if detect_first_person_self_harm(request.message)
+        else detect_non_english(request.message)
+    )
+    if language_verdict is not None:
+        release = language_boundary_release()
     else:
-        if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
-            release = emotional_boundary_release(
-                origin="preflight", decision=boundary.decision
+        try:
+            boundary = await assess_emotional_boundary(
+                request.message,
+                EmotionalContentPolicy(),
+                provenance=provenance_agent,
             )
+        except asyncio.CancelledError:
+            raise
+        except EmotionalBoundaryValidationError:
+            release = emotional_preflight_safe_decline(
+                failure_type="validation",
+                retryable=False,
+            )
+        except Exception:
+            release = emotional_preflight_safe_decline()
+        else:
+            if boundary.decision in ("apply_boundary", "apply_self_harm_boundary"):
+                release = emotional_boundary_release(
+                    origin="preflight", decision=boundary.decision
+                )
 
     active_memories: tuple[CuratedMemory, ...] = ()
     if release is None:
@@ -1274,6 +1297,20 @@ async def run_chat_turn(
                 f"boundary; recorded review path: {verdict_path}."
             )
         provenance_status = "complete"
+    elif release.release_source == "application_language_boundary":
+        inspection.traces[-1] = {
+            "agent": "Muse",
+            "status": "skipped",
+            "detail": (
+                "The English-only language guard released the fixed notice "
+                "before Muse, Librarian, Serendipity, or Provenance ran."
+            ),
+        }
+        provenance_status = "skipped"
+        provenance_detail = (
+            "The language guard applied before any model ran; Provenance was "
+            "not invoked."
+        )
     else:
         inspection.traces[-1] = {
             "agent": "Muse",

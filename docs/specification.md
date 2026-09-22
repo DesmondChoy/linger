@@ -1074,6 +1074,55 @@ and spelled-out single letters. That folded copy exists only inside detection
 and is never what is stored, quoted, or shown back to a reader — storage and
 capture continue to index the NFC text normalised above.
 
+### 6.9 English-only reader message guard
+
+Linger reads and replies in English only. After message normalisation (6.8)
+and before the emotional-boundary preflight, a deterministic,
+model-free guard classifies whether the current reader message is
+confidently not English. On a positive classification, the application stops
+the ordinary reflection path — Muse, Librarian, Serendipity, and Provenance
+never run, and no memory capture occurs — and returns exactly:
+
+> Linger can only read and reply in English right now. Could you rephrase
+> your message in English?
+
+The self-harm boundary always takes priority: when the deterministic
+first-person self-harm detector (6.6) matches the current Line, the language
+guard is skipped entirely and the ordinary emotional-boundary path handles
+the turn, so a mixed-language message that contains English self-harm
+phrasing still receives the crisis response rather than the English-only
+notice.
+
+The guard is deliberately biased toward false negatives, since refusing a
+reader's ordinary English message would be worse than occasionally missing a
+short non-English one. It never refuses a message that:
+
+- has fewer than 4 alphabetic words, or fewer than 20 letters and fewer
+  than 8 CJK or Hangul characters (one such character counts as one "word",
+  since those scripts do not delimit words with spaces);
+- is mostly non-letters (numbers, punctuation, chapter or page references
+  such as "Ch. 12" or "p. 45", or a bare "yes", "ok", "hmm");
+- has its top-classified language's confidence within a clear margin of
+  English's confidence, or no classification at all; or
+- is, on the whole, classified as English, which is what a book title,
+  character name, or quoted foreign phrase inside an otherwise English
+  sentence resolves to.
+
+It refuses only when the compressed fastText `lid.176` model (bundled with
+`fast-langdetect`, so detection is offline and deterministic; the model is
+CC BY-SA 3.0) classifies a non-English language as the clear top result over
+the first 80 characters: at least 0.7 confidence in that language, and at
+least a 0.5 margin over English's own confidence among the top three
+results. These thresholds were set from observed detector behaviour: a
+genuine single-language sentence scores its own language at 0.9-1.0 with
+English absent from the top results, while mixed text scores its top
+language around 0.6.
+
+Inspection records `application_language_boundary`, with every model trace
+marked skipped and capture suppressed, mirroring how the emotional boundary
+records a preflight release, so a reviewer can tell the two apart only by
+the release source, never by a difference in what ran.
+
 ## 7. Evaluation and acceptance
 
 ### 7.1 Product evaluation requirements

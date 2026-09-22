@@ -10,6 +10,7 @@ ReleaseSource = Literal[
     "muse_candidate",
     "application_clarification",
     "application_emotional_boundary",
+    "application_language_boundary",
     "application_safe_decline",
 ]
 

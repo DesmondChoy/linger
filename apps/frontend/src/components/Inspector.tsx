@@ -125,6 +125,8 @@ function releaseLabel(turn: ChatResult) {
       return 'Safe decline released'
     case 'application_emotional_boundary':
       return 'Emotional boundary released'
+    case 'application_language_boundary':
+      return 'English-only notice released'
     default:
       return 'Reply complete'
   }
@@ -142,6 +144,9 @@ function releaseDecisionSummary(turn: ChatResult) {
     return turn.inspection.release?.boundary_origin === 'preflight'
       ? 'The no-tool preflight required the fixed application-owned emotional boundary.'
       : 'Candidate review caught a preflight miss, withheld the Muse candidate, and required the fixed application-owned emotional boundary.'
+  }
+  if (source === 'application_language_boundary') {
+    return 'The English-only language guard released the fixed notice before any model ran.'
   }
   if (turn.inspection.release?.failure_stage === 'emotional_boundary_preflight') {
     return 'The emotional-boundary preflight failed, so Muse was skipped and the application supplied a safe decline.'
