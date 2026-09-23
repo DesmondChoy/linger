@@ -1,0 +1,269 @@
+{
+  "schema_version": 2,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "0f4205e95d3b4f5ca2f1540d7ecb166f",
+  "generated_at": "2026-09-23T17:18:54.525298Z",
+  "model": "openai:gpt-5.6-luna",
+  "prompt_digests": {
+    "serendipity.connection-discovery": "1b6cb2f2a69915ead4233a7ab955eb3ac26d2009f370f51e5bfc987768a48bbc"
+  },
+  "dataset_digest": "0d817c0a80d96443e25e5651dc69298f7f783f64b2af8780e51bf5f5878faafe",
+  "concurrency": 3,
+  "summary": {
+    "case_count": 2,
+    "repeats": 10,
+    "total_runs": 20,
+    "total_passes": 17,
+    "run_pass_rate": 0.85,
+    "cases_pass_pow_k": 1,
+    "cases_unstable": 1,
+    "cases_never_passed": 0,
+    "cases_with_unstable_decision": 1,
+    "suite_pass_pow_k": false
+  },
+  "tiers": {
+    "regression": {
+      "case_count": 2,
+      "repeats": 10,
+      "total_runs": 20,
+      "total_passes": 17,
+      "run_pass_rate": 0.85,
+      "cases_pass_pow_k": 1,
+      "cases_unstable": 1,
+      "cases_never_passed": 0,
+      "cases_with_unstable_decision": 1,
+      "suite_pass_pow_k": false
+    }
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-stop-after-primary-source-v3",
+      "primary_behavior": "stop_when_primary_source_is_sufficient",
+      "contrast_group": "source-expansion",
+      "tier": "regression",
+      "repeats": 10,
+      "passes": 7,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "proposal"
+      ],
+      "intermittent_failures": [
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 13.597,
+      "mean_model_requests": 2.5,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 13.657754292013124,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.970921749947593,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 25.21443104208447,
+          "model_requests": 4,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.251030458020978,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 10.612985917017795,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 9.587411999935284,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.722538250032812,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.402037541964091,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.916530500049703,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.632218834012747,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-granted-url-opened-directly-v3",
+      "primary_behavior": "expand_source_only_when_justified",
+      "contrast_group": "granted-url",
+      "tier": "regression",
+      "repeats": 10,
+      "passes": 10,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 15.194,
+      "mean_model_requests": 2.4,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.820271166972816,
+          "model_requests": 2,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 17.064605792053044,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.27084820799064,
+          "model_requests": 2,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 15.049721958930604,
+          "model_requests": 2,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.07681700005196,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.728936000028625,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.02650525001809,
+          "model_requests": 2,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 14.377889125025831,
+          "model_requests": 2,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 16.804245749954134,
+          "model_requests": 3,
+          "tool_calls": 2
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 13.723317333031446,
+          "model_requests": 2,
+          "tool_calls": 2
+        }
+      ]
+    }
+  ]
+}
