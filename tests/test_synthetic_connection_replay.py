@@ -160,7 +160,7 @@ def test_adopted_replay_preserves_account_scope_and_never_passes_labels():
     plan, adoption, raw, truth_raw = scenario()
     accounts, counts, scopes, urls = [], [], [], []
 
-    async def handler(request, service, account, *, initial_reading, public_source_urls):
+    async def handler(request, service, account, *, initial_reading, public_source_urls, connection_book_scopes=None):
         accounts.append(account.account_id)
         counts.append(len(service.list_active(account)))
         scopes.append(initial_reading)

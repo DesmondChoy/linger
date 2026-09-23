@@ -755,7 +755,7 @@ def _pair_field(
 ) -> Any:
     setup = (source_setups or {}).get(scene.scene_id)
     values = {
-        "source_setup": (setup.book_scope, setup.public_sources) if setup else None,
+        "source_setup": (setup.book_scopes, setup.public_sources) if setup else None,
         "backstory_id": scene.backstory_id,
         "fresh_session": scene.fresh_session,
         "prop_ids": scene.prop_ids,

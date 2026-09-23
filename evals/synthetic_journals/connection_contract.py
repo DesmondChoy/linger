@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .book_evidence import BookEvidenceResolver, ResolvedCorpusSpan
 from .models import (
-    CorpusTextEvidence,
     GroundTruthProposal,
     Line,
     Prop,
@@ -104,11 +103,9 @@ def compile_connection_replay_plan(
             proposal for proposal in ground_truth.proposals if proposal.scene_id == scene.scene_id
         )
         evidence_by_id: dict[str, ResolvedCorpusSpan] = {}
-        if setup is not None and setup.book_scope is not None:
-            scope = setup.book_scope
+        for scope in setup.book_scopes if setup else ():
             try:
-                _, catalog = resolver.catalog(scope.work_id, scope.book_version_id)
-                if scope.safe_ceiling_chapter > catalog["chapter_count"]:
+                if scope.safe_ceiling_chapter > resolver.max_chapter(scope.work_id, scope.book_version_id):
                     failures.append(f"Scene {scene.scene_id} book ceiling exceeds corpus")
             except (OSError, ValueError) as error:
                 failures.append(f"Scene {scene.scene_id} corpus integrity: {error}")
@@ -141,12 +138,43 @@ def compile_connection_replay_plan(
                 if isinstance(evidence, RepositoryTextEvidence):
                     try:
                         evidence_by_id[evidence.evidence_id] = _resolve_book_evidence(
-                            evidence, setup, resolver, repository_root
+                            evidence, setup, resolver
                         )
                     except (OSError, ValueError) as error:
                         failures.append(f"evidence {evidence.evidence_id}: {error}")
                 elif not isinstance(evidence, (PropEvidence, PublicSourceEvidence)):
                     failures.append(f"connection proposal {proposal.proposal_id} contains unsupported evidence")
+            available_books = {scope.work_id for scope in setup.book_scopes} if setup else set()
+            selection = expectation.book_retrieval
+            if selection is None and len(available_books) > 1 and expectation.decision != "not_requested":
+                failures.append(f"proposal {proposal.proposal_id} requires book retrieval expectations for multiple books")
+            if selection is not None:
+                required_books = set(selection.required_work_ids)
+                optional_books = set(selection.optional_work_ids)
+                if required_books | optional_books | set(selection.forbidden_work_ids) != available_books:
+                    failures.append(f"proposal {proposal.proposal_id} book retrieval expectations must cover available books")
+                evidence_books = {
+                    item.evidence_id: {
+                        record.work_id for record in evidence_by_id[item.evidence_id].accepted_runtime_records
+                    }
+                    for item in proposal.evidence
+                    if item.evidence_id in evidence_by_id
+                }
+                permitted_books = set().union(*(
+                    works for identity, works in evidence_books.items()
+                    if identity in expectation.permitted_evidence_ids
+                ))
+                if not required_books <= permitted_books:
+                    failures.append(f"proposal {proposal.proposal_id} requires inspectable evidence for every required book")
+                if not optional_books <= permitted_books:
+                    failures.append(f"proposal {proposal.proposal_id} requires inspectable evidence for every optional book")
+                if set().union(*evidence_books.values()) - required_books - optional_books:
+                    failures.append(f"proposal {proposal.proposal_id} cannot permit evidence from forbidden books")
+                if any(
+                    works & optional_books for identity, works in evidence_books.items()
+                    if identity in expectation.required_evidence_ids
+                ):
+                    failures.append(f"proposal {proposal.proposal_id} optional book evidence cannot require citation")
             if expectation.decision == "proposal":
                 required = set(expectation.required_evidence_ids)
                 required_kinds = {item.kind for item in proposal.evidence if item.evidence_id in required}
@@ -192,24 +220,13 @@ def _resolve_book_evidence(
     evidence: RepositoryTextEvidence,
     setup: SceneSourceSetup | None,
     resolver: BookEvidenceResolver,
-    repository_root: Path,
 ) -> ResolvedCorpusSpan:
-    if setup is None or setup.book_scope is None:
+    if setup is None or not setup.book_scopes:
         raise ValueError("book evidence requires trusted Scene book scope")
-    scope = setup.book_scope
-    directory, catalog = resolver.catalog(scope.work_id, scope.book_version_id)
-    path = (repository_root / evidence.repository_path).resolve()
-    chapter = next((item for item in catalog["chapters"] if (directory / item["path"]).resolve() == path), None)
-    if chapter is None:
-        raise ValueError("book evidence is not in the Scene's registered corpus")
-    resolved = resolver.resolve(scope.work_id, scope.book_version_id, CorpusTextEvidence(
-        kind="corpus_text",
-        evidence_id=evidence.evidence_id,
-        chapter_id=chapter["chapter_id"],
-        start_codepoint=evidence.start_codepoint,
-        end_codepoint=evidence.end_codepoint,
-        text=evidence.text,
-    ))
-    if resolved.chapter_number > scope.safe_ceiling_chapter:
-        raise ValueError("book evidence exceeds trusted Scene ceiling")
-    return resolved
+    for scope in setup.book_scopes:
+        resolved = resolver.resolve_repository_evidence(scope.work_id, scope.book_version_id, evidence)
+        if resolved is not None:
+            if resolved.chapter_number > scope.safe_ceiling_chapter:
+                raise ValueError("book evidence exceeds trusted Scene ceiling")
+            return resolved
+    raise ValueError("book evidence is not in the Scene's registered corpus")

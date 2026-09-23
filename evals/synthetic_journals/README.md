@@ -775,7 +775,7 @@ Live public retrieval requires `EXA_API_KEY`. The command enables web retrieval
 for this run; scenarios without public sources do not require that setting.
 
 Each typed Scene has one Line in a fresh session. Its `source_setups` entry in
-`backstory.json` supplies any reader-confirmed book scope and complete public
+`backstory.json` supplies reader-confirmed `book_scopes` and complete public
 snapshots: source identifier, URL, title, text, SHA-256, and retrieval time.
 Active Props supply the account's memory records. These are runtime inputs.
 `GroundTruthProposal.connection` separately declares the expected decision,
@@ -783,6 +783,31 @@ permitted and required evidence, acceptable responses, and required public
 claims. Evidence references resolve exact Prop, corpus, and public-source spans.
 The validator checks source hashes, scope, and references before independent
 review. Neither proposed nor adopted Ground truth enters runtime.
+
+For comparisons among several books, each available work has its own version
+and chapter ceiling in `book_scopes`. The runner supplies all those permissions
+without choosing a primary book. Serendipity selects the requested works by ID
+from a tool description containing their registered titles. The reader's Line
+supplies the comparison request; the permitted library can include other books.
+Persisted single-book `book_scope` documents remain readable without changing
+their adopted bytes.
+
+Multi-book Ground truth declares `connection.book_retrieval.required_work_ids`,
+`optional_work_ids`, and `forbidden_work_ids`. These sets must be disjoint and
+cover the available works. Required and optional books need declared exact
+source evidence. Required books must be searched and retrieved; optional books
+and their passages may be absent. Required citations cannot refer to optional
+books.
+
+The default `search_mode`, `targeted`, grades selection for a request that names
+books. A forbidden-book search or raw result fails even if its evidence never
+appears in the reply. For title-free discovery, `search_mode: "exploratory"`
+allows searches and raw results from every granted book. Only permitted exact
+evidence may enter the selected connection or the final citations. Searches or
+results outside the grants fail in either mode. Private retrieval events record
+requested works and raw returned work IDs before filtering or judging. These
+Ground truth fields never enter runtime; the original Line and source grants
+are the system's only instructions about which books to explore.
 
 The runner bounds public retrieval to the supplied source URLs. Search remains
 live when invoked. The production guard permits `get_page` for an exact
