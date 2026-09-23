@@ -22,6 +22,7 @@ from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from src.linger.contracts.librarian import EvidenceRecord, PassageScope
 from src.linger.contracts.triage import OverrideAttempt
+from src.linger.contracts.turn import ReleaseScope
 
 # Closed release and capture risk taxonomy.
 class RiskCode(StrEnum):
@@ -313,6 +314,7 @@ class ProvenanceContext(StrictModel):
     policy: ProvenancePolicy
     reading_context: ProvenanceReadingContext | None
     passage_scope: PassageScope | None = None
+    connection_book_scopes: tuple[ReleaseScope, ...] = ()
     required_clarification: str | None = Field(
         default=None,
         min_length=1,
@@ -335,6 +337,14 @@ class ProvenanceContext(StrictModel):
 
     @model_validator(mode="after")
     def _one_current_permission(self) -> "ProvenanceContext":
+        if self.connection_book_scopes and (
+            self.reading_context is not None or self.passage_scope is not None
+            or self.policy.spoiler_ceiling is not None or not self.policy.allow_connection
+        ):
+            raise ValueError("connection book scopes require their own unfocused comparison context")
+        works = tuple(scope.work_id for scope in self.connection_book_scopes)
+        if len(works) != len(set(works)):
+            raise ValueError("connection book scopes must identify unique works")
         if self.passage_scope is not None and (
             self.reading_context is not None or self.policy.spoiler_ceiling is not None
         ):

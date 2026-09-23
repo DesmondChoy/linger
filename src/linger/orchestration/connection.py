@@ -60,6 +60,7 @@ from src.linger.orchestration.turn_context import (
     active_memories,
     add_turn_evidence,
     confirmed_reading,
+    connection_book_scopes,
     public_source_urls,
     reader_statements,
 )
@@ -122,7 +123,10 @@ def _build_task(
         allowed_sources.append("memory")
 
     recalling = brief.intent == "recall_memory"
-    if reading is not None and not recalling:
+    if connection_book_scopes() and not recalling:
+        allowed_sources.append("book_corpus")
+        book_scopes = tuple(BookScope(**scope.model_dump()) for scope in connection_book_scopes())
+    elif reading is not None and not recalling:
         book_version_id = librarian.version_for(reading.work_id)
         if book_version_id is not None:
             allowed_sources.append("book_corpus")

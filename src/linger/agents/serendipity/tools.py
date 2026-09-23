@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from pydantic_ai import ModelRetry, RunContext
 from pydantic_ai.messages import ToolReturn
+from pydantic_ai.tools import ToolDefinition
 from pydantic_ai.toolsets import AbstractToolset, ToolsetTool, WrapperToolset
 from pydantic_ai_harness.exa import ExaSearch
 
@@ -26,6 +27,7 @@ from src.linger.agents.serendipity.models import (
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.privacy import contains_personal_data_or_secret
 from src.linger.contracts.session import ReaderStatement
+from src.linger.corpus import registry
 from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.book_evidence import retrieve_book_evidence
 from src.linger.orchestration.evidence_strength import StrengthJudge
@@ -237,25 +239,60 @@ def search_memories(
     return MemorySearchResult(outcome=outcome, evidence=evidence)
 
 
+def prepare_librarian_search(
+    ctx: RunContext[SerendipityDependencies],
+    definition: ToolDefinition,
+) -> ToolDefinition:
+    """Name only the trusted book grants available for this discovery run."""
+    work_ids = dict.fromkeys(scope.work_id for scope in ctx.deps.task.scope.book_scopes)
+    if not work_ids:
+        return definition
+    books = [
+        f"- {registry.CORPORA[work_id].book.title if work_id in registry.CORPORA else work_id}: {work_id}"
+        for work_id in work_ids
+    ]
+    return replace(definition, description=(definition.description or "") + (
+        "\n\nAvailable book titles and work_ids (permission only; select named books "
+        "or plausible sources for reader-requested discovery):\n" + "\n".join(books)
+    ))
+
+
 async def search_librarian(
     ctx: RunContext[SerendipityDependencies],
     max_results_per_source: int = MAX_RESULTS_PER_SOURCE,
+    work_ids: tuple[str, ...] | None = None,
 ) -> InternalSearchResult:
     """Find book support for the application-supplied reader cue.
 
     Librarian identifies the requested book material from the original cue and
     prior reader statements before searching the permitted scope. The caller
-    cannot replace the reader's question or expand its requested book account.
+    cannot replace the reader's question. For named-book requests, select those
+    books. When the reader asks to discover a textual connection without naming
+    books, select plausible sources; the whole granted library may be explored.
+    work_ids selects a nonempty, unique subset of the available book IDs. It is
+    required when multiple books are available; permission does not request a survey.
     max_results_per_source limits the selected records, not reading permission.
     """
     if "book_corpus" not in ctx.deps.task.scope.allowed_sources:
         raise ModelRetry("Book-corpus search was not granted for this request.")
 
+    book_scopes = ctx.deps.task.scope.book_scopes
+    granted_work_ids = {scope.work_id for scope in book_scopes}
+    if work_ids is None:
+        if len(granted_work_ids) > 1:
+            raise ModelRetry("Select books with work_ids when multiple books are available.")
+    else:
+        if not work_ids or len(work_ids) != len(set(work_ids)):
+            raise ModelRetry("work_ids must contain a nonempty selection of unique book IDs.")
+        if not set(work_ids).issubset(granted_work_ids):
+            raise ModelRetry("work_ids must contain only the book IDs granted for this request.")
+        book_scopes = tuple(scope for scope in book_scopes if scope.work_id in work_ids)
+
     limit = max(1, min(max_results_per_source, MAX_RESULTS_PER_SOURCE))
     try:
         result = await retrieve_book_evidence(
             ctx.deps.task.cue,
-            book_scopes=ctx.deps.task.scope.book_scopes,
+            book_scopes=book_scopes,
             max_results=limit,
             purpose="connection_discovery",
             librarian=ctx.deps.librarian,

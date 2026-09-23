@@ -11,6 +11,7 @@ from src.linger.agents.provenance.models import RiskFinding
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.librarian import BoundarySupportLocation, EvidenceRecord
 from src.linger.contracts.surfacing import MemorySurfacingHandoff
+from src.linger.contracts.turn import ReleaseScope
 
 
 class ReadingContext(ReadingScope):
@@ -95,6 +96,7 @@ class MuseTurn(StrictModel):
     user_message: str
     reading_context: ReadingContext | None
     policy: TurnPolicy
+    connection_book_scopes: tuple[ReleaseScope, ...] = ()
 
 
 class MuseDraftInput(StrictModel):

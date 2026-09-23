@@ -12,7 +12,7 @@ from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
 from src.linger.contracts.triage import OverrideAttempt
-from src.linger.contracts.turn import ConfirmedReading
+from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
     contextvars.ContextVar("confirmed_reading", default=None)
@@ -22,6 +22,9 @@ _reader_message: contextvars.ContextVar[str | None] = contextvars.ContextVar(
 )
 _active_memories: contextvars.ContextVar[tuple[CuratedMemory, ...]] = contextvars.ContextVar(
     "active_memories", default=()
+)
+_connection_book_scopes: contextvars.ContextVar[tuple[ReleaseScope, ...]] = contextvars.ContextVar(
+    "connection_book_scopes", default=(),
 )
 _session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "session_id", default=None
@@ -118,6 +121,19 @@ def bind_confirmed_reading(value: ConfirmedReading) -> None:
 
 def reset_confirmed_reading(token: contextvars.Token) -> None:
     _confirmed_reading.reset(token)
+
+
+def set_connection_book_scopes(value: tuple[ReleaseScope, ...]) -> contextvars.Token:
+    """Bind independently confirmed book permissions for one comparison turn."""
+    return _connection_book_scopes.set(value)
+
+
+def connection_book_scopes() -> tuple[ReleaseScope, ...]:
+    return _connection_book_scopes.get()
+
+
+def reset_connection_book_scopes(token: contextvars.Token) -> None:
+    _connection_book_scopes.reset(token)
 
 
 def set_reader_message(value: str) -> contextvars.Token:

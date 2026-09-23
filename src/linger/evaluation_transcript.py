@@ -114,7 +114,7 @@ def bind_evaluation_correlation_id(correlation_id: str) -> Iterator[None]:
 class ConnectionEvaluationEvent:
     """Immutable, opt-in private observations; never application API fields."""
 
-    kind: Literal["query", "search", "discovery", "release"]
+    kind: Literal["query", "search", "book_retrieval", "discovery", "release"]
     status: str
     operation: str | None = None
     source: str | None = None
@@ -126,6 +126,8 @@ class ConnectionEvaluationEvent:
     failure_code: str | None = None
     provenance_verdicts: tuple[str, ...] = ()
     released_evidence_ids: tuple[str, ...] = ()
+    requested_work_ids: tuple[str, ...] = ()
+    retrieved_work_ids: tuple[str, ...] = ()
 
 
 def record_connection_event(event: ConnectionEvaluationEvent) -> None:

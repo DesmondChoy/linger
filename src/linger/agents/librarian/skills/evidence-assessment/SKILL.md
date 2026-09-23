@@ -10,7 +10,7 @@ checks. You cannot grant access to other text.
 
 The application fixed `request` in a separate invocation before exposing book
 passages. Each part contains exact scene locators in `context_spans`, the requested
-answer in `reader_spans`, and their `purpose` in the original request: `reference` anchors reflection or a cross-source comparison;
+answer in `reader_spans`, and their `purpose` in the original request: `reference` anchors reflection, a cross-source comparison, or explicit thematic discovery;
 `answer` asks a book question, verifies a book claim, or requests wording.
 Use context_spans to resolve the book, scene and speaker of references such as
 "her reply" before judging a passage's relevance. A similar phrase from a
@@ -36,14 +36,24 @@ does not make every personal detail a book search requirement.
 
 Keep details attached to their source and subject when identifying requested
 parts. A reader's own change in voice, mood, or behaviour does not become a
-request for another character's similar change. In a comparison, use the book
-event the reader actually named; do not invent a second book question from a
-detail in their personal experience or the other source.
+request for another character's similar change. In a comparison that names a
+book event, use that event; do not invent a second book question from a detail
+in their personal experience or the other source.
+
+When the reader explicitly asks to find a connection in anything they have read,
+the action or tension in their own words can be the requested `reference`.
+No title or character name is required. Judge whether a passage supplies a
+specific textual parallel or contrast that helps examine that action or tension.
+Shared mood or vocabulary alone is insufficient. Keep the reader's experience
+separate from the book's events, and treat an analogy as a possible comparison
+rather than proof of a claim about the reader. One useful work can be enough;
+the available library does not require support from every book.
 
 Use the complete set of parts to identify what the reader needs from the book. A named
 scene anchors that question. Do not judge book support weak merely because
 personal or public sources are absent; this assessment covers only the book.
-For a `reference`, select the direct text needed to ground that named moment;
+For a `reference`, select the direct text needed to ground the named moment
+or explicitly requested textual connection;
 do not expand it into an unasked book question. For an `answer`, preserve the
 asked details, including an outcome or quotation boundary when requested.
 
