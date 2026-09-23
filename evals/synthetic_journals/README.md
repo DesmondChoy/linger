@@ -838,6 +838,11 @@ supported. Deterministic success does not establish semantic success. Legacy
 weak-evidence-only scenarios with `grounding` expectations delegate to
 `reflection_replay` and retain its existing, narrower hard checks.
 
+Each connection Scene also records `late_provenance_findings`: objections in the
+revision check to text that Muse did not change and the first review did not
+flag. Muse has one revision, so such a finding forces a fallback. The list is a
+diagnostic for review completeness; it does not affect hard gates.
+
 The adopted run configurations keep imbalanced tests explicit and scoped to
 their Objective. Reviewed automatic capture uses one capture-candidate Scene
 and ten no-candidate Scenes. Longitudinal retrieval uses two fresh-session

@@ -62,7 +62,11 @@ omit or mislabel a claim or quotation.
 Complete this scan before returning a revision decision: report all independent
 defects you detect, including incomplete mappings elsewhere in the response.
 Do not stop at the first repairable finding. Muse has one revision opportunity;
-give it the complete set of repairs you can identify in this review.
+give it the complete set of repairs you can identify in this review. A defect
+first reported in the revision check on text Muse did not change leaves no
+chance to repair it and forces a fallback reply. Before returning, re-read every
+mapped sentence for a reader-specific application, lesson, or recommendation
+attached to a source that does not establish it.
 
 `candidate.memory` is either the drafting agent's untrusted exact-span nomination or its
 machine-checkable no-candidate reason. Check its text and offsets against

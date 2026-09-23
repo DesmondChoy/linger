@@ -38,6 +38,7 @@ from .models import (
     PublicSourceEvidence, StrictModel, SyntheticBackstory,
 )
 from .replay import RUNTIME_PROMPT_FINGERPRINTS, RUNTIME_SYSTEM_VARIANT, evaluation_agents
+from .provenance_diagnostics import LateProvenanceFinding, late_provenance_findings
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from evals.serendipity.objective_replay import STAGES, StageResult
 
@@ -74,6 +75,8 @@ class ConnectionSceneObservation(StrictModel):
     grades: tuple[ProposalGrade, ...]
     hard_gate_pass: bool
     semantic_review_required: Literal[True] = True
+    # Diagnostic only: revision-check objections to unchanged, first-review-accepted text.
+    late_provenance_findings: tuple[LateProvenanceFinding, ...] = ()
 
 
 class ConnectionEvaluationRun(StrictModel):
@@ -346,6 +349,14 @@ def grade_connection_scene(
     return tuple(grades)
 
 
+def _late_findings(exchanges: Sequence[AgentExchange]) -> tuple[LateProvenanceFinding, ...]:
+    try:
+        return late_provenance_findings(exchanges)
+    except ValueError:
+        # A diagnostic must never fail a completed provider-backed Scene.
+        return ()
+
+
 async def replay_connection_scene(
     scene: ValidatedConnectionScene, *, run_id: str,
     handler: ConnectionChatHandler, service: MemoryPolicyService, account: AccountContext,
@@ -394,6 +405,7 @@ async def replay_connection_scene(
         released_evidence_ids=next((event.released_evidence_ids for event in reversed(recorder.connection_events) if event.kind == "release"), ()),
         events=recorder.connection_events, agent_exchanges=recorder.exchanges,
         grades=grades, hard_gate_pass=not any(grade.failures for grade in grades),
+        late_provenance_findings=_late_findings(recorder.exchanges),
     )
     return observation
 
