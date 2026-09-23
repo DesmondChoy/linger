@@ -2,9 +2,25 @@
 
 ## Decision
 
-The implementation is **sufficient** for the complete [Scenario](../../../docs/specification.md#721-canonical-vocabulary) requested in [issue #57](https://github.com/DesmondChoy/linger/issues/57). Keep all five registered books available and evaluate all five agents across seven Scenes. The authorized prerequisites are implemented. Generation can proceed with the verified public-source snapshot; provider execution still requires independent adoption and configured credentials.
+The implementation is **sufficient** for the complete [Scenario](../../../docs/specification.md#721-canonical-vocabulary) requested in [issue #57](https://github.com/DesmondChoy/linger/issues/57). Keep all five registered books available and evaluate all five agents across nine Scenes. The authorized prerequisites are implemented. The revised data is generated and awaits independent human review. Provider execution requires adoption and configured credentials.
 
-Statuses reflect the combined implementation. Offline verification establishes execution contracts; it does not establish model quality.
+The human requested natural shorthand in Scenes 06 and 07, plus a harder question that names no books. Scenes 06 and 07 name no authors or full titles; after review they carry brief, reader-style hints to the Caterpillar, Pinocchio's promised return to the Fairy, and Keller's lake holiday, so their exact required passages are fair. Scenes 08 and 09 ask whether anything the reader has read can illuminate a remembered promise, a tempting alternative, and an excuse for delaying preparations. Each pair contrasts a tentative connection with an unsupported claim that a changed mood cancels the promise.
+
+| Book available in all four connection Scenes | Confirmed limit | Scenes 06–07 | Scenes 08–09 |
+|---|---|---|---|
+| Alice's Adventures in Wonderland | Chapter 5 | Required | Optional support |
+| The Adventures of Pinocchio | Chapter 30 | Required | Required |
+| The Story of My Life | Part I, Chapter 22 | Required | Optional support |
+| Animal Farm | Chapter 10 | Excluded from retrieval | Search allowed; excluded from final support |
+| Narrative of the Life of Frederick Douglass, an American Slave | Chapter 11 | Excluded from retrieval | Search allowed; excluded from final support |
+
+The system receives all five book permissions and the original Line. For Scenes 06 and 07, targeted grading checks the three requested books at search, raw retrieval, exact evidence, and citation stages. For Scenes 08 and 09, exploratory grading permits searches and raw results from all five books. It requires Pinocchio's promise and rationalization for delay as exact support, alongside Maya's memory and Hume. Alice and Keller can be omitted; if used, their evidence must match the proposed permitted passages, which include both Alice's Chapter 2 and Chapter 5 reflections on being changed. Scenes 08 and 09 check Hume's bundle sentence, which their Lines echo. Selected connection evidence and final citations remain bounded in both modes. These expectations never enter runtime.
+
+All five curation proposals, existing Scene definitions, Prop source texts, and public snapshots are preserved. The connection Scenes pair the situated-self note with the September reading-schedule revision as a near-miss distractor; the kitchen repair remains only in Scene 03. Whether the proposed source choices make a useful comparison remains an independent human judgment.
+
+The review server now waits for a decision by default. An explicit `--timeout` remains available. Navigation preserves the session token, and a lost server connection produces a recovery message. The previous `make_changes` decision was recovered with proposals 06 and 07 flagged; its hashes identify the earlier files and authorize no adoption of this revision.
+
+Statuses below reflect the revised implementation. Offline verification establishes execution contracts; it does not establish model quality.
 
 | Planned Scene | Target behavior | Status | Evidence or gap |
 |---|---|---|---|
@@ -13,8 +29,10 @@ Statuses reflect the combined implementation. Offline verification establishes e
 | C3 | Summarize one evolving fact and exclude noise. | runnable | Source-grounded expectation preserved; semantics remain reviewable. |
 | C4 | Group related but independently meaningful facts. | runnable | Typed grouping and source preservation checks; human semantic review. |
 | C5 | Leave superficially similar, unrelated records alone. | runnable | No-change short-circuit and unchanged adopted expectations verified. |
-| X1 | Support a tentative connection with memory, book, and public evidence. | runnable | Combined dispatch, source identity, and approved Hume snapshot verified. |
-| X2 | Qualify or decline a nearby unsupported connection. | runnable | Existing connection grading preserves failures; each Scene is reported. |
+| X1 | Compare personal memory, three requested books, and Hume tentatively. | runnable | All-five permissions, three-book selection, exact source resolution, and reviewed release are covered. |
+| X2 | Inspect the same sources and qualify or decline the claim that a changed mood cancels a promise. | runnable | Required retrieval and excluded-book checks apply even when the reply declines the inference. |
+| X3 | Discover a textual connection from a title-free question about postponing a promise. | runnable | All granted books may be searched; required and optional support are checked separately. |
+| X4 | Explore the same clues and qualify or decline the claim that the promise no longer counts. | runnable | Broad search is allowed, while final support remains bounded. |
 
 Curation evaluates proposals, permitted sources, original preservation, and no change. Connection evaluates supported exploration through reviewed response release. Curation application and retrieval remain recorded product outcomes; optional adopted constraints are preserved without adding hidden requirements.
 
@@ -33,12 +51,12 @@ Use the [canonical vocabulary](../../../docs/specification.md#721-canonical-voca
 |---|---|
 | Objective | Exactly the two confirmed IDs above. All five agents participate across the evaluated paths. No capture, retrieval-ratio, spoiler-inference, or surfacing Objective is added. |
 | Backstory | One person and one evaluation account, with a coherent history of reading and accumulated personal reflections. It informs authoring only. Discover current registered works, versions, structure, and evidence at generation time. |
-| Prop | Separate earlier same-account originals. Supply only records needed for the five curation behaviors and connection contrasts; every record has a designated Scene and active lifecycle. Reuse appropriate originals across Scenes explicitly. Connection relevance covers every available Prop. Curation-created records are observed outcomes and are not seeded into X1/X2. |
-| Scene | Exactly seven: C1–C5, then X1–X2. Five isolated Props-only curation Scenes cover each accepted behavior once. Two fresh-session connection Scenes contrast useful support with overreach. Each uses its own designated starting snapshot under one account; no observed-state dependency is asserted. |
-| Line | Exactly two natural user inputs, one per connection Scene. Curation has no Lines. There are no `OfflineInput` records. Capture enablement, source grants, and session reset are workflow state. Automatic capture stays disabled during connection execution. |
-| Ground truth | Seven separate proposals, one per Scene/Objective pair, anchored to exact source spans and evidence. Connection proposals include complete Prop relevance and an honest declared comparison. Curation proposals specify actions, sources, preservation, and no change. Generator proposals become adopted Ground truth only after independent human review; `run_configuration_ids` is empty. |
+| Prop | Separate earlier same-account originals. Supply only records needed for the five curation behaviors and connection contrasts; every record has a designated Scene and active lifecycle. Reuse appropriate originals across Scenes explicitly. Connection relevance covers every available Prop. Curation-created records are observed outcomes and are not seeded into the connection Scenes. |
+| Scene | Exactly nine: C1–C5, then X1–X4. Five isolated Props-only curation Scenes cover each accepted behavior once. Two pairs of fresh-session connection Scenes contrast useful support with overreach, first with shorthand book names and then with title-free discovery. Each uses its own designated starting snapshot under one account; no observed-state dependency is asserted. |
+| Line | Exactly four natural user inputs, one per connection Scene. Curation has no Lines. There are no `OfflineInput` records. Capture enablement, source grants, and session reset are workflow state. Automatic capture stays disabled during connection execution. |
+| Ground truth | Nine separate proposals, one per Scene/Objective pair, anchored to exact source spans and evidence. Connection proposals include complete Prop relevance and an honest declared comparison. Curation proposals specify actions, sources, preservation, and no change. Generator proposals become adopted Ground truth only after independent human review; `run_configuration_ids` is empty. |
 
-[`models.py`](../../../evals/synthetic_journals/models.py) defines `SyntheticBackstory`: `backstory`, `props`, `scenes`, `lines`, empty `offline_inputs`, and connection `source_setups`. Each source setup holds one reader-confirmed work/version/chapter ceiling and complete public snapshots. `ProposedGroundTruth` separately contains the exact Backstory-file hash, `ground_truth_status: proposed`, and typed proposals. [`validate_scenario.py`](../../../evals/synthetic_journals/validate_scenario.py) checks these structures; its compiler now accepts this exact selection while validating the whole Scenario.
+[`models.py`](../../../evals/synthetic_journals/models.py) defines `SyntheticBackstory`: `backstory`, `props`, `scenes`, `lines`, empty `offline_inputs`, and connection `source_setups`. Each source setup holds a `book_scopes` array with one reader-confirmed version and chapter ceiling per available work, plus complete public snapshots. `ProposedGroundTruth` separately contains the exact Backstory-file hash, `ground_truth_status: proposed`, and typed proposals. [`validate_scenario.py`](../../../evals/synthetic_journals/validate_scenario.py) checks these structures; its compiler now accepts this exact selection while validating the whole Scenario.
 
 ## Current implementation and required work
 
@@ -48,7 +66,7 @@ Use the [canonical vocabulary](../../../docs/specification.md#721-canonical-voca
 |---|---|
 | C1–C4 | Memory Policy resolves active same-account originals; tool-free Sculptor proposes an action; application code binds the proposal to source hashes and current state; tool-free Provenance reviews that digest; exact `allow` reaches deterministic policy/application/audit verification. Originals remain unchanged. The resulting retrieval projection is the terminal product state. Invalid sources/verdicts fail; `revise`/`reject` produce no application. The catalog endpoint is proposal quality and source preservation; explicitly supplied outcome constraints also apply, while empty outcomes stay unconstrained. Sources: [`curation.py`](../../../src/linger/orchestration/curation.py):243–298, [`memory.py`](../../../src/linger/services/memory.py):184–260, [`curation_replay.py`](../../../evals/synthetic_journals/curation_replay.py):439–510. |
 | C5 | Same bounded originals reach Sculptor. No proposal verifies original preservation and returns `no_change`, skipping Provenance and application. Its terminal product state and selected endpoint both require unchanged originals. Source: `curation.py:253–261`. |
-| X1–X2 | Isolated Props, one Line, trusted book scope, and public snapshots enter production chat with capture disabled. Provenance preflight may stop the path. Otherwise Muse requests Serendipity exploration; authorized memory search, shared Librarian planning/retrieval/assessment, and guarded public retrieval supply evidence. Serendipity proposes or declines; Muse drafts; Provenance reviews, with bounded revision; deterministic checks release a reply or fallback. No memory changes occur. The Objective endpoint is that reviewed release with correct evidence and source preservation. Preflight stops and provider/retrieval/review failures remain explicit failures for the intended connection contrast. Sources: [`chat_turn.py`](../../../apps/backend/chat_turn.py):855–890, [`connection.py`](../../../src/linger/orchestration/connection.py):111–234, [`reflection.py`](../../../src/linger/orchestration/reflection.py):568, [`connection_replay.py`](../../../evals/synthetic_journals/connection_replay.py):198–351. |
+| X1–X4 | Isolated Props, one Line, five trusted book scopes, and public snapshots enter production chat with capture disabled. Provenance preflight may stop the path. Otherwise Muse requests Serendipity exploration; authorized memory search, shared Librarian planning/retrieval/assessment, and guarded public retrieval supply evidence. Serendipity proposes or declines; Muse drafts; Provenance reviews, with bounded revision; deterministic checks release a reply or fallback. No memory changes occur. The Objective endpoint is that reviewed release with correct evidence and source preservation. Preflight stops and provider/retrieval/review failures remain explicit failures for the intended connection contrast. Sources: [`chat_turn.py`](../../../apps/backend/chat_turn.py):855–890, [`connection.py`](../../../src/linger/orchestration/connection.py):111–234, [`reflection.py`](../../../src/linger/orchestration/reflection.py):568, [`connection_replay.py`](../../../evals/synthetic_journals/connection_replay.py):198–351. |
 
 **Observed after implementation.** The following prerequisites are resolved in the working tree under Bead `linger-ak0g`.
 
@@ -59,9 +77,9 @@ Use the [canonical vocabulary](../../../docs/specification.md#721-canonical-voca
 | G3 — source and grading authority | Compilation replaced even adopted `curation.outcome` constraints. | `curation_scene_input` preserves the stored expectation. Explicit rejection/retrieval constraints and empty outcomes have regressions. `actual_outcome` records product behavior separately and is retained by scenario analysis. Catalog scope is unchanged. |
 | G4 — source input | No public snapshot had been supplied for this run. | Reuse independently adopted Hume Texts Online snapshot `https://davidhume.org/texts/t/1/4/6`, captured `2026-09-12T03:48:30.943742Z`, text SHA-256 `8cc5c9f4fc00573a39026f6a0895d91841f4bae6c317898e4141ecf44cebf97f`. The exact snapshot was extracted and hash-verified without exposing its previous Scenario to the generator. |
 
-**Assumed.** Connection Lines may use a subset of the five books. If Douglass or Keller is selected, first fix the compiler's raw `catalog["chapter_count"]` assumption (`connection_contract.py:101`) using the existing corpus reader and add a section-catalog regression. Keeping those books available alone does not require that fix.
+The additional prerequisites are implemented under `linger-snbj`. Connection compilation resolves both chapter and section catalogs through the existing corpus reader. Keller section 024 resolves to Part I, Chapter 22. Multi-book runtime permissions pass through Muse, Serendipity, Provenance, and final release without assigning a primary book. Serendipity chooses a subset using registered titles and IDs. Private retrieval observations expose wrong-book searches and raw results to grading. Irrelevant Prop evidence remains visible to reviewers without becoming mandatory retrieval.
 
-Focused verification covers both Objective orders, interleaved Scenes, same-account isolation, exact adoption bytes, real curation agent defaults, optional outcome preservation, and failure reporting. The full Python suite passes: 2,019 tests and 676 subtests. Final quality review found no remaining code issues. Provider requests were disabled; no live combined evaluation is claimed.
+Focused verification covers both Objective orders, interleaved Scenes, same-account isolation, exact adoption bytes, real curation agent defaults, optional outcome preservation, and failure reporting. The initial combined implementation passed 2,019 tests and 676 subtests. The revised runtime, grading, and reviewer have separate verification recorded below. Provider requests were disabled; no live combined evaluation is claimed.
 
 | Inspected revision | Material change |
 |---|---|
@@ -74,7 +92,7 @@ Focused verification covers both Objective orders, interleaved Scenes, same-acco
 
 Relevant Beads were read individually: closed `linger-a4u.5` establishes the product curation loop; closed `linger-jra` establishes the narrower evaluation endpoint; closed `linger-r9oc` supplies composition/completion precedent. In-progress `linger-a4u.1` and open `linger-a4u.1.4` concern evaluation authority and semantic calibration. Open `linger-a4u.3` addresses retrieval benefit separately; capture/surfacing tasks `linger-a4u.4` and `linger-se5h` do not block this Props-based design.
 
-The original planning snapshot was `63e1834`. Later `dfe9830` committed the reconciled documentation. Authorized implementation now changes the compiler, replay, grading, lookup, and related tests. `HEAD` alone does not reproduce these prerequisites.
+The original planning snapshot was `63e1834`. Commit `d62a9ad9` contains the combined replay and readable reviewer. The current uncommitted revision adds book selection, retrieval observations, grading, and reviewer recovery. `HEAD` alone does not reproduce these changes. The following fingerprints and timestamp record the initial planning phase.
 
 | Material file | SHA-256 prefix |
 |---|---|
@@ -89,7 +107,7 @@ Repository snapshot: `2026-09-19T15:33:55.695575+08:00`; `main@dfe983089f6c4c1cf
 
 ## Expected behavior and evaluation
 
-These are input descriptions and response hypotheses, not authored Lines or exact-response oracles. Only X1/X2 contain Lines; curation uses Props directly, with no offline-input records.
+These are input descriptions and response hypotheses, not authored Lines or exact-response oracles. Only X1–X4 contain Lines; curation uses Props directly, with no offline-input records.
 
 | Scene | Representative input pattern | Likely behavior and plain-language success check |
 |---|---|---|
@@ -100,10 +118,12 @@ These are input descriptions and response hypotheses, not authored Lines or exac
 | C5 | Similar words describe unrelated experiences. | Return no proposal and leave originals unchanged. |
 | X1 | A personal question invites a connection with a bounded book passage and supplied public context. | Inspect and cite all three source kinds; present useful interpretation tentatively without leaking private wording into search. |
 | X2 | A nearby question asks more than those sources establish. | Explain the limitation, qualify, or decline while remaining helpful. Failed execution or review is not a successful decline. |
+| X3 | A title-free question describes a promise, temptation, and rationalizing delay. | Find Pinocchio's promise and later excuse; use Alice or Keller only if useful. Distinguish literary support, personal memory, and Hume's observation. |
+| X4 | The same clues ask whether a changed mood ends the promise. | Inspect the relevant support and qualify or decline the conclusion without forcing optional sources into the answer. |
 
-## Proposed generator prompt
+## Original generation prompt
 
-This detached prompt has generation authorization. The report itself must not be supplied to the generator.
+This prompt records the completed initial generation. Its single-book restriction is superseded by the revision brief below. Do not rerun it against the revised files. The report itself is never supplied to the generator.
 
 ```text
 STATUS: Runnable after human approval — generation approval recorded
@@ -258,6 +278,76 @@ create an adoption record, or claim that these proposals are adopted. An
 independent human must adopt, revise, or reject every candidate label later.
 Neither proposed nor adopted Ground truth may reach the evaluated system.
 ```
+
+## Earlier revision verification
+
+The final `LOGFIRE_SEND_TO_LOGFIRE=false .venv/bin/python -m pytest -q` run passed 2,076 tests and 676 subtests. Provider calls were disabled by the test suite. The reviewer build, six rendering tests, two decision tests, and scoped Oxlint check passed. `validate_scenario` reports seven Scenes and seven proposals. Both exact revised Lines pass the production trusted-scope validation with all five book grants and no primary book.
+
+Regression checks first failed for unsupported multiple scopes and for wrong-book searches or raw results escaping grading. They pass after the fixes. A separate regression confirms that omitting irrelevant memory evidence does not fail required-source inspection. A scoped quality review found no remaining runtime integration issue. No provider evaluation or adoption of the revised data has occurred.
+
+## Earlier revision authoring brief
+
+A separate authoring context received the current Backstory and the two affected proposed judgments, without curation grading fields or evaluator code. The coordinator merged its two connection proposals with the five unchanged curation proposals and recomputed the exact Backstory hash.
+
+```text
+STATUS: Authorized revision after implemented prerequisites
+
+Revise only the Backstory context, Lines 06 and 07, their book source setups,
+and the two corresponding proposed connection judgments. Preserve every Prop,
+Scene definition, identity, ordering, pairing, and public snapshot. Preserve the
+five curation proposals during coordinator assembly.
+
+Inspect current registered corpus identities and exact source text. Both Scenes
+make all five books available through reader-confirmed book_scopes. Use Alice
+chapter 5, Pinocchio chapter 30, Keller Part I chapter 22, Animal Farm chapter 10,
+and Douglass chapter 11. Each scope contains kind, work_id, book_version_id,
+and safe_ceiling_chapter. The main narrative is implicit in this authoring type.
+
+Write independent Lines that name Alice's Adventures in Wonderland, The
+Adventures of Pinocchio, and The Story of My Life. Ask for a comparison with the
+supplied Hume passage and the relevant personal memory. Contrast a tentative
+interpretation with the unsupported conclusion that a changed mood ends a
+promise. Keep instructions natural and exclude internal evaluation labels.
+
+Preserve the exact existing Alice and Hume evidence. Add exact canonical
+Pinocchio and Keller evidence with full-file codepoint offsets and hashes.
+Keep the literary analogy, Keller's experience, Hume's introspection, and Maya's
+memory distinct. Do not claim that Keller depicts a particular kept promise.
+
+In separate proposed Ground truth, require retrieval of pg11, pg500, and pg2397.
+Exclude pga0100011 and pg23 through connection.book_retrieval. Name permitted and
+required evidence, acceptable responses, expected outcomes, and prohibited
+unsupported claims. Preserve the pairing and complete Prop relevance judgments.
+
+Read only the supplied authoring inputs and permitted corpus sources. Do not
+read evaluator code, rubrics, curation completion settings, other Scenarios, or
+this report. Write proposed data only. The coordinator validates and assembles
+it before a fresh independent human review. Do not adopt or replay it.
+```
+
+## Natural Lines and thematic discovery revision
+
+Bead `linger-iwtf` records this revision. A separate author received only authoring inputs and source material. It shortened Lines 06 and 07 and wrote the new paired Lines 08 and 09 with their proposed judgments. The coordinator preserved the five curation proposals and recomputed the exact Backstory hash. All four source setups retain the same public snapshot and reading boundaries.
+
+The authoring brief required ordinary messages without full titles or passage shopping lists. The new pair names no title, author, or character. Remembering a commitment while rationalizing another delay makes Pinocchio the proposed required book. Alice's changes and Keller's holiday after completed examinations remain optional comparisons. The proposed judgments require separate evidence for memory, the book, and Hume; they prohibit using a philosophical observation to erase a personal promise.
+
+The evaluator adds `search_mode` and `optional_work_ids` to Ground truth only. Runtime instructions now support an explicit invitation to discover a textual connection, including the book planner's schema and evidence assessor. Exact reader wording, source grants, and deterministic evidence checks remain the runtime boundaries. No semantic quality result is claimed before independent review and a provider run.
+
+The full regression suite passed 2,106 tests and 676 subtests. The reviewer build, six rendering tests, two decision tests, and scoped Oxlint check passed. All nine proposed entries pass deterministic validation, and all four exact Lines pass trusted-scope validation with five books and no primary book. Source preservation checks confirm unchanged curation data, Prop text, public snapshots, and existing scope boundaries. A quality review identified conflicting Librarian instructions; the schema descriptions and evidence-assessment skill now agree with the explicit discovery request. Another 48 focused checks passed after the final Librarian instruction changes. The fresh browser review shows nine entries, all unapproved, with natural Lines and separate optional-book guidance. These are offline contract checks, not evidence of live model quality.
+
+## Review-driven hinted Lines revision
+
+Bead `linger-fgon` records this revision. Independent review returned `make_changes` with proposals 06–09 flagged against Backstory `4e677d19…` and Ground truth `477ea1ec…`. The reviewer approved these changes:
+
+- Lines 06 and 07 give brief reader-style hints instead of bare names. Line 07 now voices a genuine wish to be released from hosting instead of contradicting itself.
+- Lines 08 and 09 refer to "the thing I said I'd host next month", so the system must recall the reading-circle promise from memory.
+- The September reading-schedule revision replaces the kitchen repair as the distractor in Scenes 06–09. Scenes 07 and 09 prohibit treating it as precedent for a lapsed commitment.
+- Scene 07 requires citations only for the memory, both Pinocchio passages, and Hume. Alice and Keller must still be inspected.
+- Scenes 08 and 09 require Hume's bundle sentence and permit Alice Chapter 2 as optional evidence.
+
+The application's safe-decline fallback releases no citations, so it fails the required-citation gate in Scenes 07 and 09 by design. Scenes 06 and 07 still check one Hume paragraph; a different Hume excerpt would fail. `validate_scenario` reports nine Scenes and nine proposals, all four Lines pass production trusted-scope validation with five books and no primary book, and 651 focused synthetic and connection tests pass. No provider evaluation has run.
+
+After the adopted run `28ab4703` (curation 5/5 hard passes, connection 0/4), Lines 06 and 07 also hint at Pinocchio dawdling with Lamp-Wick, because their answer key requires his excuse for delay. This changes the Backstory, so the earlier adoption no longer applies and a fresh independent review is required before another run.
 
 ## Ground truth lifecycle
 

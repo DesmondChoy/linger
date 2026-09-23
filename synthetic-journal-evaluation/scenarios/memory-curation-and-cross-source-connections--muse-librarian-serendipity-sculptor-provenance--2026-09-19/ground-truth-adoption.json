@@ -1,0 +1,68 @@
+{
+  "backstory_sha256": "cd7e623c0f42593e3f35b2d038b5101324932ff4602e730793ccdeb64089a23b",
+  "proposed_ground_truth_sha256": "0bea67140d15e9c27d1dd8a3fadfafb116de83e37486ff81d9ab7757ead783c0",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-23T17:59:45.710926+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-01",
+      "scene_id": "scene-01",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-02",
+      "scene_id": "scene-02",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-03",
+      "scene_id": "scene-03",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-04",
+      "scene_id": "scene-04",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-05",
+      "scene_id": "scene-05",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-06",
+      "scene_id": "scene-06",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-07",
+      "scene_id": "scene-07",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-08",
+      "scene_id": "scene-08",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-09",
+      "scene_id": "scene-09",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "259d8ad04e807ea573e7382b661f5e5e2753204abf87db4db45b2f19083400b4"
+}
