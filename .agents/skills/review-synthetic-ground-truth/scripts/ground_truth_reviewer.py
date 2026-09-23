@@ -155,6 +155,8 @@ def build_review_payload(
     offline_inputs = {
         item.offline_input_id: item for item in backstory.offline_inputs
     }
+    from src.linger.corpus.registry import CORPORA
+
     source_setups = {item.scene_id: item for item in backstory.source_setups}
     proposals = {
         (item.scene_id, item.objective_id): item
@@ -229,6 +231,11 @@ def build_review_payload(
                     "freshSession": scene.fresh_session,
                     "summary": _proposal_summary(proposal),
                     "inputs": inputs,
+                    "bookTitles": {
+                        scope.work_id: CORPORA[scope.work_id].book.title
+                        for scope in source_setups[scene.scene_id].book_scopes
+                        if scope.work_id in CORPORA
+                    } if scene.scene_id in source_setups else {},
                     "sourceSetup": (
                         source_setups[scene.scene_id].model_dump(mode="json")
                         if scene.scene_id in source_setups else None
@@ -600,7 +607,7 @@ def create_review_state(args: argparse.Namespace) -> ReviewState:
     ui_dir = args.ui.resolve()
     if not (ui_dir / "index.html").is_file():
         raise ReviewError(f"The review UI is not built: {ui_dir}")
-    if args.timeout < 1:
+    if args.timeout is not None and args.timeout < 1:
         raise ReviewError("Timeout must be at least one second.")
 
     backstory, ground_truth = validate_scenario_files(
@@ -641,7 +648,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--adoption", type=Path)
     parser.add_argument("--reviewer-id", required=True)
     parser.add_argument("--ui", type=Path, default=DEFAULT_UI)
-    parser.add_argument("--timeout", type=int, default=1800)
+    parser.add_argument(
+        "--timeout", type=int,
+        help="Close after this many seconds; otherwise wait for a human decision.",
+    )
     return parser.parse_args()
 
 
@@ -669,9 +679,11 @@ def main() -> int:
         state.expired = True
         server.shutdown()
 
-    timer = threading.Timer(args.timeout, expire)
-    timer.daemon = True
-    timer.start()
+    timer = None
+    if args.timeout is not None:
+        timer = threading.Timer(args.timeout, expire)
+        timer.daemon = True
+        timer.start()
     port = server.server_address[1]
     print(
         f"GROUND_TRUTH_REVIEW_URL=http://127.0.0.1:{port}/#token={state.token}",
@@ -682,7 +694,8 @@ def main() -> int:
     except KeyboardInterrupt:
         return 130
     finally:
-        timer.cancel()
+        if timer is not None:
+            timer.cancel()
         server.server_close()
 
     if state.result is None:
