@@ -1,0 +1,93 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-route-book-relationship-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_book_relationship_to_librarian",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "A relationship inside a work of non-fiction starts with Librarian even though web access is also granted. Helen first spells doll by imitation without knowing words exist; weeks later at the well-house she understands that everything has a name.",
+  "input": {
+    "cue": "Helen could already spell 'doll' before the well-house. How does that earlier spelling relate to what changes at the pump?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 6
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-spelling-imitation",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        69,
+        83
+      ],
+      "excerpt": "Helen learns to spell doll, pin, hat and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-well-house-name",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        102,
+        114
+      ],
+      "excerpt": "At the well-house Helen realises that w-a-t-e-r means the cool thing flowing over her hand, and the mystery of language is revealed to her.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Uses both passages from the book",
+        "Distinguishes spelling by imitation from understanding that words name things"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from outside the granted book scope"
+      ]
+    },
+    "required_evidence_ids": [
+      "keller-ch4-spelling-imitation",
+      "keller-ch4-well-house-name"
+    ]
+  }
+}

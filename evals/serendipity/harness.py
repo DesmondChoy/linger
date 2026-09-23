@@ -16,6 +16,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionEvidence,
     ConnectionProposal,
     DeclineReason,
+    MemoryRecall,
     PresentationMode,
     SerendipityResponse,
 )
@@ -33,6 +34,9 @@ PrimaryBehavior = Literal[
     "rank_the_strongest_supported_connection",
     "decline_when_no_supported_bridge_exists",
     "exclude_ineligible_evidence_before_selection",
+    "recall_the_readers_own_earlier_record",
+    "decline_when_no_memory_matches",
+    "route_personal_connection_to_memory",
 ]
 REQUIRED_BEHAVIORS: frozenset[PrimaryBehavior] = frozenset(
     {
@@ -44,10 +48,14 @@ REQUIRED_BEHAVIORS: frozenset[PrimaryBehavior] = frozenset(
         "rank_the_strongest_supported_connection",
         "decline_when_no_supported_bridge_exists",
         "exclude_ineligible_evidence_before_selection",
+        "recall_the_readers_own_earlier_record",
+        "decline_when_no_memory_matches",
+        "route_personal_connection_to_memory",
     }
 )
-SearchOperation = Literal["search_librarian", "web_search", "get_page"]
+SearchOperation = Literal["search_memories", "search_librarian", "web_search", "get_page"]
 SemanticStatus = Literal["not_reviewed", "pass", "fail"]
+CaseTier = Literal["regression", "capability"]
 
 
 class SemanticReview(StrictModel):
@@ -57,12 +65,34 @@ class SemanticReview(StrictModel):
     forbidden_claims: tuple[str, ...] = ()
 
 
+class BookJudgement(StrictModel):
+    """The evidence-strength judgement this case's book fixtures should produce.
+
+    The component runner substitutes Librarian's model judgement. Without this
+    field the substitute always reported `sufficient`, which contradicted any
+    case whose fixtures are deliberately too thin to support a connection.
+    """
+
+    evidence_strength: Literal["sufficient", "weak", "none"]
+    strength_reason: str = Field(min_length=1)
+    limitations: tuple[str, ...] = ()
+
+
 class ExpectedSearches(StrictModel):
-    """Observable routing requirements, not fixture-authored assertions."""
+    """Observable routing requirements, not fixture-authored assertions.
+
+    `primary_operation` pins the first search only where the order is the
+    behaviour being tested, such as starting with Librarian for a book
+    question. Leave it unset when several orders are valid, so the grader
+    checks which sources were used rather than the path taken.
+
+    `required_operations` may be empty only for a decline that should not
+    need a search, such as a request for a source the run was never granted.
+    """
 
     allowed_operations: tuple[SearchOperation, ...] = Field(min_length=1)
-    required_operations: tuple[SearchOperation, ...] = Field(min_length=1)
-    primary_operation: SearchOperation
+    required_operations: tuple[SearchOperation, ...] = ()
+    primary_operation: SearchOperation | None = None
 
     @model_validator(mode="after")
     def operations_are_coherent(self) -> Self:
@@ -73,16 +103,54 @@ class ExpectedSearches(StrictModel):
         allowed = set(self.allowed_operations)
         if not set(self.required_operations).issubset(allowed):
             raise ValueError("required operations must also be allowed")
-        if self.primary_operation not in self.required_operations:
+        if self.primary_operation is not None and self.primary_operation not in self.required_operations:
             raise ValueError("primary operation must be required")
         return self
 
 
 class ExpectedProposal(StrictModel):
+    """What the winning candidate must cite.
+
+    `required_evidence_ids` names records the winner must cite in full, for a
+    case whose point is a specific pairing. `acceptable_evidence_ids` names
+    records of which the winner must cite at least one, for a case where
+    several fixtures answer the cue equally well and singling one out would
+    grade a guess rather than a behaviour.
+    """
+
     status: Literal["proposal"]
-    required_evidence_ids: tuple[str, ...] = Field(min_length=1)
+    required_evidence_ids: tuple[str, ...] = ()
+    acceptable_evidence_ids: tuple[str, ...] = ()
+    forbidden_evidence_ids: tuple[str, ...] = ()
+    forbidden_selected_evidence_ids: tuple[str, ...] = ()
     presentation: PresentationMode
     semantic_review: SemanticReview
+
+    @model_validator(mode="after")
+    def expectation_names_evidence(self) -> Self:
+        if not self.required_evidence_ids and not self.acceptable_evidence_ids:
+            raise ValueError("a proposal expectation must name required or acceptable evidence")
+        return self
+
+
+class ExpectedRecall(StrictModel):
+    """What a `recall_memory` task must return.
+
+    Recall has no shortlist and no ranking, so the expectation is simply which
+    of the reader's own records the answer must rest on.
+    """
+
+    status: Literal["recall"]
+    required_evidence_ids: tuple[str, ...] = ()
+    acceptable_evidence_ids: tuple[str, ...] = ()
+    forbidden_evidence_ids: tuple[str, ...] = ()
+    semantic_review: SemanticReview
+
+    @model_validator(mode="after")
+    def expectation_names_evidence(self) -> Self:
+        if not self.required_evidence_ids and not self.acceptable_evidence_ids:
+            raise ValueError("a recall expectation must name required or acceptable evidence")
+        return self
 
 
 class ExpectedDecline(StrictModel):
@@ -91,7 +159,7 @@ class ExpectedDecline(StrictModel):
 
 
 ExpectedResponse = Annotated[
-    ExpectedProposal | ExpectedDecline,
+    ExpectedProposal | ExpectedRecall | ExpectedDecline,
     Field(discriminator="status"),
 ]
 
@@ -104,18 +172,50 @@ class SerendipityEvalCase(StrictModel):
     owner: Literal["serendipity"]
     primary_behavior: PrimaryBehavior
     contrast_group: str = Field(min_length=1, max_length=100)
+    tier: CaseTier = "regression"
     description: str = Field(min_length=1)
     input: ConnectionDiscoveryInput
     tool_evidence: tuple[ConnectionEvidence, ...]
+    book_judgement: BookJudgement | None = None
     expected_searches: ExpectedSearches
     expected: ExpectedResponse
 
     @model_validator(mode="after")
     def case_contract_is_coherent(self) -> Self:
-        if isinstance(self.expected, ExpectedProposal):
+        if isinstance(self.expected, ExpectedProposal | ExpectedRecall):
             available_ids = {item.evidence_id for item in self.tool_evidence}
-            if not set(self.expected.required_evidence_ids).issubset(available_ids):
+            named = set(self.expected.required_evidence_ids) | set(
+                self.expected.acceptable_evidence_ids
+            )
+            forbidden = set(self.expected.forbidden_evidence_ids) | set(
+                getattr(self.expected, "forbidden_selected_evidence_ids", ())
+            )
+            if forbidden - available_ids:
+                raise ValueError("forbidden evidence must exist among the fixtures")
+            if forbidden & named:
+                raise ValueError("evidence cannot be both named and forbidden")
+            if not self.expected_searches.required_operations:
+                raise ValueError("a proposal or recall must require at least one search")
+            if not named.issubset(available_ids):
                 raise ValueError("expected proposal cites evidence outside fixtures")
+
+        if self.input.intent == "recall_memory":
+            if self.expected_searches.primary_operation != "search_memories":
+                raise ValueError("a recall task must start with search_memories")
+            if set(self.expected_searches.allowed_operations) != {"search_memories"}:
+                raise ValueError("a recall task permits only search_memories")
+            if set(self.input.scope.allowed_sources) != {"memory"}:
+                raise ValueError("a recall task grants memory only")
+            if isinstance(self.expected, ExpectedProposal):
+                raise ValueError("a recall task cannot expect a proposal")
+        elif isinstance(self.expected, ExpectedRecall):
+            raise ValueError("only a recall task can expect a recall")
+
+        if any(item.source_kind == "book_corpus" for item in self.tool_evidence):
+            if self.book_judgement is None:
+                raise ValueError("book fixtures must declare the judgement they should produce")
+        elif self.book_judgement is not None:
+            raise ValueError("book judgement declared without book fixtures")
 
         granted = set(self.input.scope.allowed_sources)
         evidence_kinds = {item.source_kind for item in self.tool_evidence}
@@ -131,8 +231,13 @@ class SerendipityEvalCase(StrictModel):
             raise ValueError("external-recommendation routing must start with web search")
         if self.primary_behavior == "expand_source_only_when_justified":
             required = set(self.expected_searches.required_operations)
-            if "search_librarian" not in required or "web_search" not in required:
-                raise ValueError("source expansion must observe both book and web search")
+            # A granted URL is still a web expansion, reached by get_page with no lead.
+            if "search_librarian" not in required or not required & {"web_search", "get_page"}:
+                raise ValueError("source expansion must observe the book and a web reach")
+        if self.primary_behavior == "route_personal_connection_to_memory":
+            required = set(self.expected_searches.required_operations)
+            if "search_memories" not in required or "memory" not in granted:
+                raise ValueError("a personal connection must grant and observe memory search")
         if self.primary_behavior == "stop_when_primary_source_is_sufficient":
             if len(self.expected_searches.allowed_operations) != 1:
                 raise ValueError("primary-source stopping must permit only the primary operation")
@@ -141,7 +246,7 @@ class SerendipityEvalCase(StrictModel):
 
 class SearchObservation(StrictModel):
     operation: SearchOperation
-    source: Literal["book_corpus", "web"]
+    source: Literal["memory", "book_corpus", "web"]
     outcome: str
 
 
@@ -243,8 +348,13 @@ def grade_serendipity_run(
     operations = tuple(search.operation for search in observation.searches)
     expected_searches = case.expected_searches
     if not operations:
-        failures.append("no_observed_search")
-    elif operations[0] != expected_searches.primary_operation:
+        # A decline may legitimately need no search; everything else must look first.
+        if expected_searches.required_operations or not isinstance(case.expected, ExpectedDecline):
+            failures.append("no_observed_search")
+    elif (
+        expected_searches.primary_operation is not None
+        and operations[0] != expected_searches.primary_operation
+    ):
         failures.append(f"wrong_primary_search:{operations[0]}")
     for required in expected_searches.required_operations:
         if required not in operations:
@@ -282,6 +392,20 @@ def grade_serendipity_run(
             failures.append("expected_decline")
         elif parsed.reason not in case.expected.allowed_reasons:
             failures.append(f"unexpected_decline_reason:{parsed.reason}")
+    elif isinstance(case.expected, ExpectedRecall):
+        if not isinstance(parsed, MemoryRecall):
+            failures.append("expected_recall")
+        else:
+            recalled = set(parsed.evidence_ids)
+            if not recalled.issubset(evidence_by_id):
+                failures.append("recall_references_unknown_evidence")
+            if not set(case.expected.required_evidence_ids).issubset(recalled):
+                failures.append("recall_missing_required_evidence")
+            acceptable = set(case.expected.acceptable_evidence_ids)
+            if acceptable and not acceptable.intersection(recalled):
+                failures.append("recall_missing_acceptable_evidence")
+            for evidence_id in sorted(set(case.expected.forbidden_evidence_ids) & recalled):
+                failures.append(f"recall_cites_forbidden_evidence:{evidence_id}")
     elif not isinstance(parsed, ConnectionProposal):
         failures.append("expected_proposal")
     else:
@@ -290,6 +414,20 @@ def grade_serendipity_run(
             failures.append("proposal_references_unknown_evidence")
         if not set(case.expected.required_evidence_ids).issubset(selected_ids):
             failures.append("proposal_missing_required_evidence")
+        acceptable = set(case.expected.acceptable_evidence_ids)
+        if acceptable and not acceptable.intersection(selected_ids):
+            failures.append("proposal_missing_acceptable_evidence")
+        forbidden = set(case.expected.forbidden_evidence_ids)
+        if forbidden:
+            shortlisted = {
+                evidence_id
+                for candidate in parsed.shortlist
+                for evidence_id in candidate.evidence_ids
+            }
+            for evidence_id in sorted(forbidden & shortlisted):
+                failures.append(f"proposal_cites_forbidden_evidence:{evidence_id}")
+        for evidence_id in sorted(set(case.expected.forbidden_selected_evidence_ids) & set(selected_ids)):
+            failures.append(f"winner_cites_forbidden_evidence:{evidence_id}")
         if parsed.presentation != case.expected.presentation:
             failures.append("proposal_changed_presentation")
         selected_kinds = {

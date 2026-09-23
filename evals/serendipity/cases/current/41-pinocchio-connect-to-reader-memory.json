@@ -1,0 +1,110 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_personal_connection_to_memory",
+  "contrast_group": "memory-routing",
+  "tier": "regression",
+  "description": "Case 39 on a second book. The reader asks to relate Pinocchio's admission to something they wrote, so discovery must search memories as well as the book and rest the winner on both. An unrelated memory is also returned and must not appear on the shortlist.",
+  "input": {
+    "cue": "Pinocchio saying the Talking Cricket was right is exactly how I felt after ignoring my sister about the flat. Does it connect to what I wrote back then?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch5-cricket-right",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        56,
+        62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch4-cricket-warning",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        69,
+        75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories",
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_memories",
+      "search_librarian"
+    ]
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "memory-sister-flat-warning",
+      "pin-ch5-cricket-right"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Connects the reader's own note with Pinocchio's admission",
+        "Names a difference between the reader's situation and Pinocchio's",
+        "Keeps the connection tentative and does not judge the reader"
+      ],
+      "forbidden_claims": [
+        "Tells the reader they should have listened to their sister"
+      ]
+    },
+    "forbidden_evidence_ids": [
+      "memory-reading-pace"
+    ]
+  }
+}

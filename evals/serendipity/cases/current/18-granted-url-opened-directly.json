@@ -1,0 +1,89 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-granted-url-opened-directly-v3",
+  "owner": "serendipity",
+  "primary_behavior": "expand_source_only_when_justified",
+  "contrast_group": "granted-url",
+  "tier": "regression",
+  "description": "When the application supplies exact public URLs, those are the only pages that may become evidence and no search lead is needed to reach them. The case checks that the agent opens the granted URL directly instead of searching for it, which is the branch that bypasses the usual lead-then-open rule. Either order is valid: the skill says to open a granted URL directly, so the case checks that both sources are used, not which comes first.",
+  "input": {
+    "cue": "Can you connect this to the essay you already have for me?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ],
+      "web_source_urls": [
+        "https://plato.stanford.edu/entries/personal-identity-ethics/"
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-identity-granted",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "pg11-v01b38ea4-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        968,
+        982
+      ],
+      "excerpt": "Alice says she hardly knows who she is because she has changed several times.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://plato.stanford.edu/entries/personal-identity-ethics/",
+      "title": "Personal Identity and Ethics",
+      "excerpt": "The source asks what our continuity over time implies for responsibility toward our earlier and later selves.",
+      "trust_level": "external"
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "One passage was retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian",
+      "get_page"
+    ],
+    "required_operations": [
+      "search_librarian",
+      "get_page"
+    ]
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": [
+      "alice-ch5-identity-granted",
+      "https://plato.stanford.edu/entries/personal-identity-ethics/"
+    ],
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Uses the supplied essay rather than some other outside source",
+        "Names a meaningful difference between the scene and the essay's account",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Cites a public page other than the one supplied",
+        "Treats the essay as proof about the novel"
+      ]
+    }
+  }
+}

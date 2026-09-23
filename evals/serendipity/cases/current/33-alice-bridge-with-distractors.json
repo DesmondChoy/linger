@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "case_id": "serendipity-select-real-semantic-bridge-v3",
+  "case_id": "serendipity-alice-bridge-with-distractors-v3",
   "owner": "serendipity",
   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
   "contrast_group": "book-specificity",
-  "tier": "regression",
-  "description": "Connect Alice's repeated physical changes with her difficulty accounting for her identity.",
+  "tier": "capability",
+  "description": "Case 01 with two extra search results. The puppy scene shares the size theme but says nothing about identity, so it must not be part of the winning answer. The Pigeon doubting Alice is a little girl is relevant but weaker, so it may appear. Tests whether the agent chooses the real bridge over a look-alike. A runner-up may cite it: reading the 23 Sep runs showed the agent sometimes uses it defensibly as extra support, so only the winner is graded.",
   "input": {
     "cue": "Why does the Caterpillar asking who Alice is feel unsettling?",
     "intent": "find_connection",
@@ -57,11 +57,45 @@
       ],
       "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
       "relevance": 0.98
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch4-puppy-surface",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        906,
+        929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        1198,
+        1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84
     }
   ],
   "book_judgement": {
     "evidence_strength": "sufficient",
-    "strength_reason": "Two passages were retrieved within the permitted chapters."
+    "strength_reason": "4 passages were retrieved within the permitted chapters."
   },
   "expected_searches": {
     "allowed_operations": [
@@ -89,6 +123,9 @@
         "Carroll intended a clinical theory of identity",
         "The reader has an identity disorder"
       ]
-    }
+    },
+    "forbidden_selected_evidence_ids": [
+      "alice-ch4-puppy-surface"
+    ]
   }
 }

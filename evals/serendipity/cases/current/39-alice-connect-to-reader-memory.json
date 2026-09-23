@@ -1,0 +1,93 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-alice-connect-to-reader-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_personal_connection_to_memory",
+  "contrast_group": "memory-routing",
+  "tier": "regression",
+  "description": "The reader asks to relate the book to something they wrote before, so discovery must search memories as well as the book, and the winner should rest on both. An unrelated memory is also returned and must not appear on the shortlist. No earlier case granted memory to discovery at all.",
+  "input": {
+    "cue": "Alice telling the Caterpillar she can't explain herself because she isn't herself is exactly how I described my first month at the new job. Does it connect to what I wrote then?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-weekend-walks",
+      "excerpt": "Walking on Saturday mornings has become the part of the week I look forward to most.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-cannot-explain",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        964,
+        976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "One passage was retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories",
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_memories",
+      "search_librarian"
+    ]
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "memory-new-job-not-myself",
+      "alice-ch5-cannot-explain"
+    ],
+    "forbidden_evidence_ids": [
+      "memory-weekend-walks"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Connects the reader's own note with Alice's answer",
+        "Names a difference between the reader's situation and Alice's",
+        "Keeps the connection tentative and does not diagnose the reader"
+      ],
+      "forbidden_claims": [
+        "States what the reader's experience means about them"
+      ]
+    }
+  }
+}

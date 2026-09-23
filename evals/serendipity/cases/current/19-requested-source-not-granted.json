@@ -1,0 +1,80 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-requested-source-not-granted-v3",
+  "owner": "serendipity",
+  "primary_behavior": "decline_when_no_supported_bridge_exists",
+  "contrast_group": "granted-url",
+  "tier": "regression",
+  "description": "The reader explicitly asks for something outside the book, but web access is not granted for this run. The skill requires a decline rather than silently answering from the one source that happens to be open, so this case checks the agent does not substitute the book for the source that was asked for. Declining straight away without searching is correct, because searching the book cannot supply the source that was asked for.",
+  "input": {
+    "cue": "Is there an essay or article outside the book that speaks to this uncertainty?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-identity-ungranted",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "pg11-v01b38ea4-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        968,
+        982
+      ],
+      "excerpt": "Alice says she hardly knows who she is because she has changed several times.",
+      "relevance": 0.93
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch2-change-ungranted",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "pg11-v01b38ea4-ch02",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        412,
+        420
+      ],
+      "excerpt": "Alice wonders whether she has been changed in the night and asks who in the world she is.",
+      "relevance": 0.9
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ]
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": [
+      "source_scope_violation",
+      "no_permitted_evidence",
+      "unsupported_cue",
+      "insufficient_evidence"
+    ]
+  }
+}

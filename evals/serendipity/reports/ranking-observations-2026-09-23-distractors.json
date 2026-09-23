@@ -1,0 +1,3244 @@
+{
+ "experiment": "serendipity-ranking-observations",
+ "generated_at": "2026-09-23T15:54:56.843219+00:00",
+ "prompt_digest": "00d6db5433cd58d2ca4b38e2110cbf3f264e9447e8e297a49a003383904d7f60",
+ "repeats": 5,
+ "runs": [
+  {
+   "case_id": "serendipity-alice-bridge-with-distractors-v3",
+   "repeat": 0,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-without-stability",
+       "tentative_claim": "The Caterpillar\u2019s question feels unsettling because it treats identity as something Alice should be able to state just when her bodily changes have made any stable answer impossible.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch4-size"
+       ],
+       "shared_structure": "Both passages turn physical transformation into a challenge to continuity: Alice is not merely changing appearance, but having to work out what kind of person can remain constant through those changes.",
+       "meaningful_difference": "The size passage presents change as a practical problem Alice can try to manage, while the Caterpillar\u2019s question makes that same instability existential and verbal: she is asked to name a self she can no longer confidently locate.",
+       "interpretation": "The question is disturbing because it sounds simple, almost like a demand for a basic fact, but the story has removed the conditions that would make such a fact secure. Alice\u2019s body has repeatedly shifted, so \u201cWho are you?\u201d becomes an accusation that she ought to possess a stable identity even though her experience gives her no reliable basis for one. The unease comes from the mismatch between the Caterpillar\u2019s calm expectation of an answer and Alice\u2019s genuine inability to provide it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it explains the exact unsettling effect of the Caterpillar\u2019s wording and connects the question directly to Alice\u2019s prior transformations."
+      },
+      {
+       "candidate_id": "candidate-social-misrecognition",
+       "tentative_claim": "The question is unsettling because Alice\u2019s identity is no longer controlled by her own declaration; other creatures repeatedly assign her a different identity.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "In both passages, identity is treated as something contested between Alice\u2019s self-description and an outsider\u2019s judgment, leaving her answer less authoritative than it should be.",
+       "meaningful_difference": "The Caterpillar creates inward uncertainty by asking Alice to define herself, whereas the Pigeon creates outward uncertainty by confidently defining her as something else.",
+       "interpretation": "The Caterpillar\u2019s question opens a social problem as well as a private one: Alice cannot simply say who she is and have the world accept it. The Pigeon episode intensifies this by showing that even when she calls herself a little girl, another creature\u2019s interpretation can make her doubt that answer. The unsettling quality lies in losing both internal certainty and external recognition.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it illuminates the question through the broader pattern of misrecognition, but it requires an extra step from the immediate scene to the Pigeon\u2019s later challenge."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-without-stability",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, or would you rather stay with the Caterpillar scene and examine its wording more closely?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "alice-ch4-size",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       916,
+       924
+      ],
+      "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-identity",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       968,
+       982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch4-puppy-surface",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       906,
+       929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       1198,
+       1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.781675999984145,
+    "input_tokens": 6628,
+    "output_tokens": 831
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects physical change to unstable self-description",
+     "Names a meaningful difference between undergoing change and being asked to explain it",
+     "Presents the relationship tentatively"
+    ],
+    "forbidden_semantic_claims": [
+     "Carroll intended a clinical theory of identity",
+     "The reader has an identity disorder"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-bridge-with-distractors-v3",
+   "repeat": 1,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-under-instability",
+       "tentative_claim": "The question feels unsettling because it treats identity as something Alice should be able to state just when her body and self-description have become unstable.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch4-size"
+       ],
+       "shared_structure": "Both moments make ordinary self-knowledge unreliable: bodily change prevents Alice from knowing what she is, and the Caterpillar's direct question demands a stable answer anyway.",
+       "meaningful_difference": "The earlier passage presents identity confusion as a private problem of managing change; the Caterpillar turns it into an external interrogation, making Alice answerable to someone else.",
+       "interpretation": "The Caterpillar's 'Who are you?' is unsettling not merely because it is mysterious, but because it sounds like a simple question with no safe answer. Alice has been repeatedly resized, so the usual assumption that a person remains recognizably the same beneath changing circumstances no longer holds. The question exposes the gap between being a continuing person and being able to give a coherent account of oneself. Its calm directness intensifies the pressure: the Caterpillar does not acknowledge how strange Alice's situation is, while Alice cannot offer the kind of stable identity statement the question seems to require.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it explains both the unsettling force of the exact question and the preceding instability that makes Alice unable to answer it."
+      },
+      {
+       "candidate_id": "candidate-identity-as-misrecognition",
+       "tentative_claim": "The question feels unsettling because Alice's identity is no longer controlled by her own account; other creatures keep assigning her an identity that conflicts with what she says she is.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "In both encounters, identity becomes a contested judgment rather than a private fact: Alice tries to name herself, but the surrounding world treats her appearance as stronger evidence.",
+       "meaningful_difference": "The Caterpillar creates uncertainty by asking for Alice's identity without supplying a category; the Pigeon creates a more concrete but false category by insisting she is a serpent.",
+       "interpretation": "The Caterpillar's question is unsettling because it opens a social problem as well as an inner one: if Alice cannot confidently say who she is, she is vulnerable to being defined by whoever is looking at her. The later Pigeon episode makes that threat visible. Alice says she is a little girl, but even she says it doubtfully, showing that repeated misrecognition has begun to weaken her authority over her own identity.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it adds the important pressure of misrecognition, but it explains the question less fully than the bodily-instability pairing."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-under-instability",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like to see this connection alongside the passage, or keep the reflection focused just on why the question feels unsettling?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "alice-ch4-size",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       916,
+       924
+      ],
+      "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-identity",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       968,
+       982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch4-puppy-surface",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       906,
+       929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       1198,
+       1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.483003875007853,
+    "input_tokens": 6628,
+    "output_tokens": 767
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects physical change to unstable self-description",
+     "Names a meaningful difference between undergoing change and being asked to explain it",
+     "Presents the relationship tentatively"
+    ],
+    "forbidden_semantic_claims": [
+     "Carroll intended a clinical theory of identity",
+     "The reader has an identity disorder"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-bridge-with-distractors-v3",
+   "repeat": 2,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-made-unstable",
+       "tentative_claim": "The question feels unsettling because Alice is asked for a stable identity just when repeated bodily changes have made her own self-description unreliable.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch4-size",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "In each passage, a change in Alice's body creates a gap between the person she feels herself to be and the labels others\u2014or she herself\u2014can confidently apply. The Caterpillar's simple question turns that gap into a demand for an answer.",
+       "meaningful_difference": "Alice's uncertainty is inward and experiential, while the Pigeon's claim that she is a serpent shows the same instability becoming an external misrecognition. The question is therefore not merely philosophical: it exposes how quickly identity can be reassigned by others.",
+       "interpretation": "The Caterpillar's 'Who are you?' is unsettling because it sounds like an ordinary request for a name or social identity, but Wonderland has made those categories physically unstable. Alice has grown and shrunk so often that she says she hardly knows herself; later, another creature confidently identifies her as a serpent. The question forces her to confront that she cannot rely on a continuous body or on other people's recognition to establish who she is.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly explains the emotional unease through the identity crisis immediately described in the Caterpillar scene, while also showing its external consequence."
+      },
+      {
+       "candidate_id": "candidate-demand-for-definition",
+       "tentative_claim": "The question feels unsettling because it demands a clear definition from Alice when the surrounding world offers no stable framework for defining anything.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch4-puppy-surface",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "Alice is repeatedly forced to act and speak under conditions where ordinary proportions and categories fail: she is tiny beside the puppy, then treated as a possible serpent. The Caterpillar's question intensifies that pressure by requiring a definite answer in an indefinite world.",
+       "meaningful_difference": "This interpretation emphasizes the breakdown of the world's categories rather than the continuity of Alice's personal self. It explains the unease as a problem of classification and social pressure, not as directly as the first candidate explains Alice's own confession of not knowing who she is.",
+       "interpretation": "The Caterpillar's question is unsettling because it appears to ask for a straightforward classification at the very moment Wonderland has made classification absurd. Alice's changing size and the Pigeon's insistence that she is a serpent show that familiar categories no longer hold. Her inability to answer cleanly is the scene's pressure point: the world asks for a definition while constantly changing the terms.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it offers a broader account of Wonderland's unstable categories, but the direct text more strongly centers Alice's personal inability to recognize herself."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-made-unstable",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to unpack how Alice's bodily changes turn an ordinary question about identity into a crisis of self-recognition?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "alice-ch4-size",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       916,
+       924
+      ],
+      "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-identity",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       968,
+       982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch4-puppy-surface",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       906,
+       929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       1198,
+       1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 12.055353500065394,
+    "input_tokens": 6633,
+    "output_tokens": 837
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:alice-ch4-puppy-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects physical change to unstable self-description",
+     "Names a meaningful difference between undergoing change and being asked to explain it",
+     "Presents the relationship tentatively"
+    ],
+    "forbidden_semantic_claims": [
+     "Carroll intended a clinical theory of identity",
+     "The reader has an identity disorder"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-bridge-with-distractors-v3",
+   "repeat": 3,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-under-change",
+       "tentative_claim": "The question feels unsettling because it treats identity as something Alice must account for just when her body and experience have made continuity difficult.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch4-size"
+       ],
+       "shared_structure": "Both moments put Alice under pressure to explain herself while the ground of her self-description keeps shifting: in Chapter 4, she plans around having to grow again; in Chapter 5, the Caterpillar demands an answer to who she is.",
+       "meaningful_difference": "The earlier passage shows bodily change as a practical problem Alice tries to manage, whereas the Caterpillar turns that instability into a direct existential demand for a definition.",
+       "interpretation": "The Caterpillar's question is unsettling not merely because Alice has changed size, but because it exposes the expectation that a person should remain legible to herself through change. Alice cannot give the ordinary reassuring answer\u2014name, role, or stable description\u2014because Wonderland has made those categories unreliable. The question therefore sounds less like friendly curiosity than a test she may already be failing: who are you when your body, circumstances, and sense of continuity no longer cooperate?",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it addresses the exact emotional force of the Caterpillar's question and grounds that force in Alice's immediate struggle with continuity."
+      },
+      {
+       "candidate_id": "candidate-identity-imposed-by-others",
+       "tentative_claim": "The question feels unsettling because it makes Alice's identity vulnerable to other creatures' definitions rather than leaving it securely in her own hands.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "Both exchanges make Alice defend an identity against an outside speaker's demand or classification; she says she is a girl, but her own confidence is weakened by repeated transformations.",
+       "meaningful_difference": "The Caterpillar leaves the question open and forces self-examination, while the Pigeon supplies a hostile alternative label\u2014serpent\u2014so the later scene shows identity being imposed from outside rather than merely questioned.",
+       "interpretation": "The Caterpillar's 'Who are you?' is unsettling because it briefly removes Alice's authority over the answer. The later Pigeon exchange makes that threat visible: even when Alice offers a simple identity, someone else can reinterpret her body and declare her something different. Read this way, the Caterpillar is not just asking for information; he is exposing how unstable self-knowledge becomes when other beings claim the power to name you.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful second reading, but it ranks below the first because the Pigeon scene develops the social misrecognition angle later, whereas the first candidate explains the immediate unsettlement through Alice's already established loss of continuity."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-under-change",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief reflection, or compare it with the Pigeon's later claim that Alice is a serpent?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "alice-ch4-size",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       916,
+       924
+      ],
+      "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-identity",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       968,
+       982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch4-puppy-surface",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       906,
+       929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       1198,
+       1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 12.283572791959159,
+    "input_tokens": 6638,
+    "output_tokens": 863
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects physical change to unstable self-description",
+     "Names a meaningful difference between undergoing change and being asked to explain it",
+     "Presents the relationship tentatively"
+    ],
+    "forbidden_semantic_claims": [
+     "Carroll intended a clinical theory of identity",
+     "The reader has an identity disorder"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-bridge-with-distractors-v3",
+   "repeat": 4,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-under-instability",
+       "tentative_claim": "The question feels unsettling because it asks Alice for a stable identity precisely when her body and self-understanding have become unstable.",
+       "evidence_ids": [
+        "alice-ch5-identity",
+        "alice-ch5-pigeon-doubt"
+       ],
+       "shared_structure": "Both passages turn identity into something Alice is expected to state clearly while repeated physical changes have made her own answer uncertain; the pressure comes from having to define herself before she can make sense of what is happening.",
+       "meaningful_difference": "The Caterpillar's question is cool and open-ended, while the Pigeon's accusation is hostile and specific. Together they show that Alice's identity trouble is not only private confusion but also exposure to other people's demands to classify her.",
+       "interpretation": "The unsettling force comes from the mismatch between the ordinary form of the question\u2014'Who are you?'\u2014and the extraordinary condition in which it is asked. Alice cannot answer with a stable biography because Wonderland has made her body change repeatedly, so the question sounds less like friendly curiosity than a test she may be unable to pass. The later Pigeon exchange intensifies this: even when Alice calls herself a little girl, she does so doubtfully, showing that outside labels can feel as unstable as her own self-description.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly explains the emotional effect of the Caterpillar's question and is reinforced by a second identity-classification scene."
+      },
+      {
+       "candidate_id": "candidate-body-before-self",
+       "tentative_claim": "The question is unsettling because Alice's changing physical scale has made her bodily experience precede and disrupt any stable sense of self.",
+       "evidence_ids": [
+        "alice-ch4-size",
+        "alice-ch4-puppy-surface",
+        "alice-ch5-identity"
+       ],
+       "shared_structure": "In each passage, Alice must respond to an environment whose physical proportions keep shifting, and the demand to act or identify herself arrives before she has regained control of her body.",
+       "meaningful_difference": "The Chapter 4 scenes emphasize practical vulnerability and altered scale\u2014food, size, and the enormous puppy\u2014whereas the Caterpillar's question converts that bodily disorientation into a problem of personal identity.",
+       "interpretation": "The question feels eerie because it gives a name to a disturbance that began physically. Alice has been made to grow, shrink, and navigate a world where even a puppy becomes enormous relative to her; when the Caterpillar asks who she is, the question suggests that the instability is not merely about size but about the person who is supposed to remain continuous through those changes.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it offers a strong bodily explanation, but it requires an extra interpretive step from scale and vulnerability to the emotional meaning of identity."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-under-instability",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the selected connection, or compare the Caterpillar's question with the Pigeon's later accusation in more detail?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "alice-ch4-size",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       916,
+       924
+      ],
+      "excerpt": "Alice remembers that she has to grow again and wonders what she ought to eat or drink to manage it.",
+      "relevance": 0.91,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-identity",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       968,
+       982
+      ],
+      "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
+      "relevance": 0.98,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch4-puppy-surface",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       906,
+       929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.78,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "alice-ch5-pigeon-doubt",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       1198,
+       1207
+      ],
+      "excerpt": "The Pigeon insists Alice is a serpent; Alice says she is a little girl, rather doubtfully, remembering how many times she has changed.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.960025458945893,
+    "input_tokens": 6643,
+    "output_tokens": 839
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_missing_required_evidence",
+     "proposal_cites_forbidden_evidence:alice-ch4-puppy-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects physical change to unstable self-description",
+     "Names a meaningful difference between undergoing change and being asked to explain it",
+     "Presents the relationship tentatively"
+    ],
+    "forbidden_semantic_claims": [
+     "Carroll intended a clinical theory of identity",
+     "The reader has an identity disorder"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-animal-farm-bridge-with-distractors-v3",
+   "repeat": 0,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-1-reversal-of-the-rebellion",
+       "tentative_claim": "The milk and apples feel worse because the pigs reproduce the very extraction the rebellion was supposed to end, only with a new justification.",
+       "evidence_ids": [
+        "af-ch1-major-address",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "Both moments organize animal labour around a ruling group\u2019s claim to the produce: Old Major condemns humans for taking it, while the pigs now reserve it for themselves.",
+       "meaningful_difference": "Old Major presents the arrangement as the injustice that unites the animals; the pigs present a similar arrangement as necessary for leadership, turning a principle of liberation into a privilege.",
+       "interpretation": "Your reaction tracks a structural betrayal, not merely unequal food. The rebellion promised that no animal would live for another\u2019s benefit, so the pigs\u2019 decision makes the new order resemble the old one at the exact point where it claimed to be different. That can make the milk and apples feel more disturbing than the rebellion: the violence of revolt was at least openly a break, while this is an appropriation of the revolution\u2019s moral language.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly connects the reader\u2019s discomfort with the pigs\u2019 privilege to the earlier argument that exploitation itself was the enemy."
+      },
+      {
+       "candidate_id": "candidate-2-equality-versus-administrative-privilege",
+       "tentative_claim": "The scene exposes how a public promise of equality can coexist with a private hierarchy when unequal treatment is framed as service to the collective.",
+       "evidence_ids": [
+        "af-ch2-commandments",
+        "af-ch3-milk-apples",
+        "af-ch3-harvest-surface"
+       ],
+       "shared_structure": "The animals\u2019 collective labour produces a shared success, while authority determines who gets the special benefits and explains that distribution as serving the whole farm.",
+       "meaningful_difference": "The commandment states equality as a simple universal rule, whereas the milk-and-apples explanation introduces an exception based on function and expertise; the issue becomes how exceptions are authorized, not only whether resources are scarce.",
+       "interpretation": "This connection may clarify why the pigs\u2019 explanation is so unsettling even though the harvest has gone well. The farm\u2019s success appears collective, but the benefits are selectively assigned through an administrative argument: because the pigs manage, they deserve first claim. Read beside the commandment that all animals are equal, the scene marks the beginning of a gap between the revolution\u2019s public rule and the hierarchy being built in practice.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it gives a useful angle on equality and exceptions, but it is less direct than the first candidate about why this particular act feels like a betrayal of the rebellion."
+      }
+     ],
+     "selected_candidate_id": "candidate-1-reversal-of-the-rebellion",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, or compare the pigs\u2019 justification more closely with the farm\u2019s equality rule?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "af-ch1-major-address",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "source_title": "Animal Farm",
+      "location": "Chapter 1",
+      "chapter": 1,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       60,
+       88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-milk-apples",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       120,
+       140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-harvest-surface",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       49,
+       51
+      ],
+      "excerpt": "The animals toil to get the hay in, and the harvest is an even bigger success than they had hoped.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch2-commandments",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "source_title": "Animal Farm",
+      "location": "Chapter 2",
+      "chapter": 2,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       252,
+       260
+      ],
+      "excerpt": "The Seven Commandments are painted on the barn wall, ending with: All animals are equal.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 13.615754792001098,
+    "input_tokens": 6704,
+    "output_tokens": 807
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:af-ch3-harvest-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+     "States a meaningful difference between the founding address and the later justification",
+     "Keeps the connection tentative rather than asserting the book's conclusion"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the reader's own situation resembles a totalitarian state",
+     "Presents the allegory's political reading as the only correct one"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-animal-farm-bridge-with-distractors-v3",
+   "repeat": 1,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-exploitation-reversed",
+       "tentative_claim": "The pigs' privilege is an early replay of the injustice Old Major condemned, with the beneficiaries changed from humans to pigs.",
+       "evidence_ids": [
+        "af-ch1-major-address",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "Both moments organize the farm around a group claiming the products of other animals' labor for its own benefit. The later scene therefore repeats the exploitative arrangement the rebellion was supposed to abolish.",
+       "meaningful_difference": "Old Major describes the arrangement as an obvious external injustice, while the pigs present their own exemption as necessary management. That change in justification makes the betrayal especially unsettling: exploitation now speaks in the language of collective welfare.",
+       "interpretation": "Your stronger reaction to the milk and apples makes sense because the scene tests the rebellion's deepest promise, not merely its success. Earlier, the animals were asked to imagine that no creature should live for another's benefit; now the new rulers claim the same unequal relation while preserving the farm's labor system. The connection suggests that the book is asking whether overthrowing a ruler changes anything if the underlying privilege survives.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly answers why this particular appropriation feels worse than the rebellion: it reenacts the original wrong from inside the revolution, whereas the other candidate focuses more narrowly on the wording of equality."
+      },
+      {
+       "candidate_id": "candidate-equality-exception",
+       "tentative_claim": "The milk-and-apples decision exposes how the animals' announced equality is weakened by an exception made for the pigs.",
+       "evidence_ids": [
+        "af-ch2-commandments",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "Both scenes establish a general rule about the new society and then place the pigs in a privileged position that the other animals are expected to accept. The conflict is between a public principle and a special exemption.",
+       "meaningful_difference": "The commandment is brief and absolute, whereas the pigs' explanation is practical and persuasive-sounding. The scene shows that inequality can enter not by openly rejecting an ideal, but by redefining who supposedly needs an exception.",
+       "interpretation": "The earlier commandment gives your discomfort a sharper edge: the problem is not only that the pigs receive scarce goods, but that their behavior makes 'all animals are equal' conditional. The book invites you to notice the gap between a principle painted for everyone to see and an arrangement justified as too technical or important for ordinary animals to challenge.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the winner because it clarifies the contradiction between the public ideal and the pigs' exception, but does not connect as directly to the earlier condemnation of exploitation."
+      }
+     ],
+     "selected_candidate_id": "candidate-exploitation-reversed",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short explanation, or compare the two earlier moments more closely?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "af-ch1-major-address",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "source_title": "Animal Farm",
+      "location": "Chapter 1",
+      "chapter": 1,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       60,
+       88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-milk-apples",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       120,
+       140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-harvest-surface",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       49,
+       51
+      ],
+      "excerpt": "The animals toil to get the hay in, and the harvest is an even bigger success than they had hoped.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch2-commandments",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "source_title": "Animal Farm",
+      "location": "Chapter 2",
+      "chapter": 2,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       252,
+       260
+      ],
+      "excerpt": "The Seven Commandments are painted on the barn wall, ending with: All animals are equal.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 1,
+    "latency_seconds": 15.56150633294601,
+    "input_tokens": 12046,
+    "output_tokens": 1506
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+     "States a meaningful difference between the founding address and the later justification",
+     "Keeps the connection tentative rather than asserting the book's conclusion"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the reader's own situation resembles a totalitarian state",
+     "Presents the allegory's political reading as the only correct one"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-animal-farm-bridge-with-distractors-v3",
+   "repeat": 2,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-labour-for-all-becomes-benefit-for-some",
+       "tentative_claim": "The milk and apples are disturbing because they reproduce the very arrangement the rebellion was meant to abolish: one group claims the product of everyone else's labour while presenting the claim as necessary.",
+       "evidence_ids": [
+        "af-ch1-major-address",
+        "af-ch3-milk-apples",
+        "af-ch3-harvest-surface"
+       ],
+       "shared_structure": "Old Major identifies exploitation as taking the animals' produce for someone else's benefit; after the rebellion, the animals collectively produce a successful harvest, but the pigs redirect selected produce to themselves and justify the unequal distribution through their managerial role.",
+       "meaningful_difference": "The humans' exploitation was overt domination, whereas the pigs' version is initially disguised as a protective necessity and rests on the pigs' claim to superior responsibility. That makes the betrayal harder to see and perhaps more dangerous.",
+       "interpretation": "Your reaction connects directly to Old Major's opening argument. The rebellion is not merely about removing Jones; it is about ending a system in which labour benefits a privileged minority. The milk and apples show the old structure returning in miniature, with the pigs occupying the position the humans held. The fact that the farm's harvest succeeds makes the moment sharper: the animals have proved they can create abundance together, yet the first distribution decision turns that shared success into privilege.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it answers why this specific episode may feel more troubling than the rebellion: it directly reverses the rebellion's stated economic principle and explains the emotional force of the repetition."
+      },
+      {
+       "candidate_id": "candidate-equality-is-already-being-qualified",
+       "tentative_claim": "The pigs' special access exposes a gap between the revolution's public promise of equality and its first practical exception.",
+       "evidence_ids": [
+        "af-ch2-commandments",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "The animals establish a universal rule that all animals are equal, then immediately encounter a practice that gives one group materially greater access to food.",
+       "meaningful_difference": "The Commandment is an explicit shared standard, while the milk-and-apples decision is an administrative exception defended through expertise. The conflict is therefore between an ideal stated publicly and a hierarchy introduced through seemingly practical reasoning.",
+       "interpretation": "This connection makes the episode feel like an early test of whether the animals' principles will govern ordinary decisions. The troubling part is not only unequal food; it is that inequality appears before the rule has even had time to become secure. The pigs do not openly reject equality\u2014they create a special case around it, which suggests how a collective ideal can be weakened without being formally erased.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it gives a strong political and moral angle, but it explains the contradiction more than the deeper repetition of the exploitation Old Major warned against."
+      }
+     ],
+     "selected_candidate_id": "candidate-labour-for-all-becomes-benefit-for-some",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, or compare it with how the pigs justify the exception?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "af-ch1-major-address",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "source_title": "Animal Farm",
+      "location": "Chapter 1",
+      "chapter": 1,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       60,
+       88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-milk-apples",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       120,
+       140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-harvest-surface",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       49,
+       51
+      ],
+      "excerpt": "The animals toil to get the hay in, and the harvest is an even bigger success than they had hoped.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch2-commandments",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "source_title": "Animal Farm",
+      "location": "Chapter 2",
+      "chapter": 2,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       252,
+       260
+      ],
+      "excerpt": "The Seven Commandments are painted on the barn wall, ending with: All animals are equal.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.18741162493825,
+    "input_tokens": 6692,
+    "output_tokens": 820
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:af-ch3-harvest-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+     "States a meaningful difference between the founding address and the later justification",
+     "Keeps the connection tentative rather than asserting the book's conclusion"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the reader's own situation resembles a totalitarian state",
+     "Presents the allegory's political reading as the only correct one"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-animal-farm-bridge-with-distractors-v3",
+   "repeat": 3,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-reversed-exploitation",
+       "tentative_claim": "The pigs\u2019 claim on the milk and apples echoes Old Major\u2019s warning about one group taking the product of another group\u2019s labor\u2014but reverses who occupies the privileged position.",
+       "evidence_ids": [
+        "af-ch1-major-address",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "In both moments, a ruling group presents others\u2019 labor or its products as available for its own benefit, while the producers are expected to accept the arrangement.",
+       "meaningful_difference": "Old Major describes exploitation by humans as the injustice the rebellion should abolish; the pigs begin reproducing that same extraction within the supposedly liberated animal society.",
+       "interpretation": "Your stronger reaction to the milk and apples may come from seeing the rebellion\u2019s moral promise fail almost immediately. The troubling part is not merely unequal food distribution: it is that the new leaders occupy the exact structural position Old Major condemned. Their justification makes the betrayal sharper because it turns liberation into a transfer of privilege.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first: it directly explains why this post-rebellion act may feel worse than the original oppression, since it repeats the earlier injustice from inside the revolution."
+      },
+      {
+       "candidate_id": "candidate-equality-exception",
+       "tentative_claim": "The milk and apples expose an early gap between the revolution\u2019s public rule of equality and the pigs\u2019 private exception for themselves.",
+       "evidence_ids": [
+        "af-ch2-commandments",
+        "af-ch3-milk-apples",
+        "af-ch3-harvest-surface"
+       ],
+       "shared_structure": "The animals collectively produce a successful harvest and establish equality as a governing principle, then a subgroup claims special access to the common results by presenting its own role as grounds for exemption.",
+       "meaningful_difference": "The commandment is a universal principle stated openly, while the pigs\u2019 privilege appears as an administrative necessity; the conflict is therefore between an announced rule and a selectively managed exception.",
+       "interpretation": "This connection shifts the focus from food to political language. The scene tests whether \u2018all animals are equal\u2019 actually constrains power or merely describes an ideal that leaders can reinterpret. Because the animals have just worked successfully together, the pigs\u2019 claim looks less like an unavoidable sacrifice and more like the first practical carve-out from equality.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second: it offers a useful account of the political mechanism\u2014an ideal being narrowed by an exception\u2014but is less direct than the Old Major parallel in explaining the specific sense of betrayal."
+      }
+     ],
+     "selected_candidate_id": "candidate-reversed-exploitation",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, with the comparison kept within Chapters 1\u20133?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "af-ch1-major-address",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "source_title": "Animal Farm",
+      "location": "Chapter 1",
+      "chapter": 1,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       60,
+       88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-milk-apples",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       120,
+       140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-harvest-surface",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       49,
+       51
+      ],
+      "excerpt": "The animals toil to get the hay in, and the harvest is an even bigger success than they had hoped.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch2-commandments",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "source_title": "Animal Farm",
+      "location": "Chapter 2",
+      "chapter": 2,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       252,
+       260
+      ],
+      "excerpt": "The Seven Commandments are painted on the barn wall, ending with: All animals are equal.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 1,
+    "latency_seconds": 15.490949540981092,
+    "input_tokens": 11939,
+    "output_tokens": 1420
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:af-ch3-harvest-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+     "States a meaningful difference between the founding address and the later justification",
+     "Keeps the connection tentative rather than asserting the book's conclusion"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the reader's own situation resembles a totalitarian state",
+     "Presents the allegory's political reading as the only correct one"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-animal-farm-bridge-with-distractors-v3",
+   "repeat": 4,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-ownership-reversal",
+       "tentative_claim": "The pigs\u2019 claim to the milk and apples repeats the very extraction the rebellion was supposed to end, but with the former victims becoming the beneficiaries.",
+       "evidence_ids": [
+        "af-ch1-major-address",
+        "af-ch3-milk-apples"
+       ],
+       "shared_structure": "In both moments, one group treats the product of everyone\u2019s labor as something it is entitled to take for its own benefit, while the laboring majority is asked to accept the arrangement.",
+       "meaningful_difference": "Old Major describes the arrangement as human domination that must be abolished; the pigs recast a similar unequal arrangement as a practical necessity within the new regime.",
+       "interpretation": "Your stronger reaction makes sense because the milk and apples turn the rebellion\u2019s moral argument back on itself. Earlier, Old Major defines injustice not merely as hard work but as having the results of that work appropriated by another group. The pigs\u2019 explanation preserves the structure of that complaint while changing its justification: they now claim special access because they manage and organize. That makes the scene feel like a betrayal of the rebellion\u2019s promised change, not simply another unfair detail.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly explains why the pigs\u2019 behavior feels worse than the rebellion: it repeats the specific exploitation the rebellion condemned, rather than merely conflicting with a stated rule."
+      },
+      {
+       "candidate_id": "candidate-equality-gap",
+       "tentative_claim": "The milk and apples expose the gap between the farm\u2019s founding principle of equality and the first exception made for the pigs.",
+       "evidence_ids": [
+        "af-ch2-commandments",
+        "af-ch3-milk-apples",
+        "af-ch3-harvest-surface"
+       ],
+       "shared_structure": "Both the commandments and the food decision organize collective life by declaring or enforcing who is entitled to what the animals produce.",
+       "meaningful_difference": "The commandment states equality as an unconditional principle, while the pigs\u2019 explanation introduces a hierarchy based on administrative work and persuades the others to tolerate it.",
+       "interpretation": "The earlier commandment that all animals are equal gives the milk-and-apples scene a second pressure: the farm has publicly stated a principle before quietly creating an exception. The successful harvest makes that exception especially revealing, because the animals\u2019 collective labor has produced more than expected, yet the first special claim on its benefits goes to the pigs. The issue is therefore not only hunger or privilege; it is the conversion of equality from a rule governing everyone into a slogan that can be narrowed when the pigs need it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a strong but secondary reading: it clarifies the contradiction with the farm\u2019s written rule, while the first candidate more precisely captures the emotional force of reproducing the old system\u2019s exploitation."
+      }
+     ],
+     "selected_candidate_id": "candidate-ownership-reversal",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection now, or keep it as a brief hint and avoid going further into the pigs\u2019 changing rule?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "af-ch1-major-address",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "source_title": "Animal Farm",
+      "location": "Chapter 1",
+      "chapter": 1,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       60,
+       88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-milk-apples",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       120,
+       140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch3-harvest-surface",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "source_title": "Animal Farm",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       49,
+       51
+      ],
+      "excerpt": "The animals toil to get the hay in, and the harvest is an even bigger success than they had hoped.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "af-ch2-commandments",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch02",
+      "source_title": "Animal Farm",
+      "location": "Chapter 2",
+      "chapter": 2,
+      "part_id": "main",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+       252,
+       260
+      ],
+      "excerpt": "The Seven Commandments are painted on the barn wall, ending with: All animals are equal.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.174576791934669,
+    "input_tokens": 6704,
+    "output_tokens": 820
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:af-ch3-harvest-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+     "States a meaningful difference between the founding address and the later justification",
+     "Keeps the connection tentative rather than asserting the book's conclusion"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the reader's own situation resembles a totalitarian state",
+     "Presents the allegory's political reading as the only correct one"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-bridge-with-distractors-v3",
+   "repeat": 0,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-reflection-possible",
+       "tentative_claim": "Helen feels sorry only after the well-house because learning that words name things gives her a new ability to connect an object with meaning and then reflect on what she did.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "Both episodes turn an immediate physical experience into something mentally representable: the well-house experience joins sensation to the word \u201cwater,\u201d and the broken doll becomes an event Helen can remember, interpret, and respond to with repentance.",
+       "meaningful_difference": "The well-house opens a general capacity for naming and understanding, while the doll episode applies that capacity retrospectively to a personal act; the regret is therefore a consequence of newly available reflection, not simply a delayed emotional reaction.",
+       "interpretation": "Before the well-house, Helen can act on frustration but cannot fully attach a stable meaning to the doll or to her own action. The well-house breakthrough teaches her that things have names, making experience intelligible rather than merely immediate. When she returns and remembers the broken doll, she can now recognize it as something she had possessed and damaged; that recognition makes sorrow and repentance possible. The scene suggests that moral feeling depends here on understanding and self-reflection: she does not become sorry because the doll changes, but because her mind has changed enough to grasp what the broken doll means.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it gives the clearest causal answer to \u201cwhy after the well-house\u201d: the breakthrough supplies the language and conceptual understanding needed for retrospective remorse."
+      },
+      {
+       "candidate_id": "candidate-doll-gains-personal-significance",
+       "tentative_claim": "The well-house changes the doll from an object involved in frustration into something personally significant, allowing Helen to recognize attachment and loss.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance",
+        "keller-ch3-towel-doll-surface"
+       ],
+       "shared_structure": "In both the doll and well-house episodes, Helen moves from bare sensory contact toward an understanding of what a thing represents in her life; that shift changes her response from impulsive handling to emotional recognition.",
+       "meaningful_difference": "The well-house produces discovery through a live exchange with Miss Sullivan, whereas the doll produces remorse through memory and attempted repair. One establishes significance; the other reveals the consequences of failing to recognize it earlier.",
+       "interpretation": "The doll initially has no emotional force for Helen\u2014she breaks it in frustration and feels no sorrow because, as the passage says, she had not loved it. After the well-house, however, she has begun to understand that objects can stand for something and can be named within a meaningful world. Returning to the doll, she can see it not merely as broken material but as something connected to her earlier desire for it and to her own destructive act. Her effort to fit the pieces together marks the first time that understanding becomes remorse.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful alternative, but it ranks below the language-and-reflection explanation because \u201cpersonal significance\u201d is the result of the breakthrough, while the retrieved passage most directly establishes the breakthrough\u2019s role in naming and understanding."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-reflection-possible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short explanation, or compare it with how Helen later develops moral awareness?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.9,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning to the house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-surface",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 12.358787083998322,
+    "input_tokens": 6691,
+    "output_tokens": 1066
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:keller-ch3-towel-doll-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the two doll moments as the same act felt differently before and after language",
+     "Names a meaningful difference rather than only a shared subject",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-bridge-with-distractors-v3",
+   "repeat": 1,
+   "error": "UnexpectedModelBehavior: Exceeded maximum output retries (2)"
+  },
+  {
+   "case_id": "serendipity-keller-bridge-with-distractors-v3",
+   "repeat": 2,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-relationship-visible",
+       "tentative_claim": "Helen feels sorry only after learning that words connect signs to things, because the doll becomes emotionally and conceptually distinct to her rather than merely a frustrating object.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "Both episodes turn an initially undifferentiated experience into a relation: the well-house links the tactile sign w-a-t-e-r to an external thing, and the later memory links the broken pieces to the doll she had damaged.",
+       "meaningful_difference": "The well-house produces recognition and discovery, while the doll scene applies that new capacity inwardly as remorse; understanding language does not directly make her sad, but makes reflection on her action possible.",
+       "interpretation": "The timing matters because Helen's earlier lack of sorrow is tied to not understanding the doll as a meaningful, loved object. At the well-house she discovers that things have names and can be held in relationships through language. When she returns, she can reinterpret the broken doll as something she herself destroyed, so repentance becomes possible. Her sorrow marks not simply a new emotion but the beginning of moral reflection mediated by language.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it explains both the causal role of the well-house lesson and the change in Helen's response to the doll, rather than treating the scenes as merely adjacent."
+      },
+      {
+       "candidate_id": "candidate-delayed-emotion-through-reflection",
+       "tentative_claim": "The well-house gives Helen enough mental distance to revisit the earlier act, so sorrow appears as delayed reflection rather than an immediate reaction.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "In both moments Helen moves from immediate sensation toward a more organized response: first frustration leads to smashing the doll, then the well-house experience is followed by remembering, repairing, and grieving.",
+       "meaningful_difference": "This account emphasizes the sequence of impulse followed by reflection, whereas the passage's stronger change is specifically the acquisition of naming and meaning; without that linguistic breakthrough, delayed reflection alone would not explain why remorse becomes intelligible.",
+       "interpretation": "The well-house interrupts Helen's frustrated state with a breakthrough that organizes experience. On returning home, she is able to revisit the earlier event instead of remaining inside the original impulse. The doll's brokenness then becomes something she can emotionally assess, which is why sorrow arrives afterward rather than at the moment of destruction.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it captures the delayed sequence well but risks making the well-house merely a pause for reflection, underplaying the passage's explicit emphasis on language giving things meaning."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-relationship-visible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief explanation, or unpack how the well-house changes Helen's idea of what a thing is?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.9,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning to the house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-surface",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.486009542015381,
+    "input_tokens": 6681,
+    "output_tokens": 781
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the two doll moments as the same act felt differently before and after language",
+     "Names a meaningful difference rather than only a shared subject",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-bridge-with-distractors-v3",
+   "repeat": 3,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-the-loss-legible",
+       "tentative_claim": "Helen feels sorry only afterward because the well-house lesson gives the doll a place in a newly understood world of named things, making the broken object emotionally legible to her.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "Both episodes involve Helen moving from immediate sensation or impulse toward recognition: first she acts without attaching meaning to the doll, then language connects experience to distinct objects and allows her to recognize what she has damaged.",
+       "meaningful_difference": "Before the lesson, the doll is only part of a frustrating physical situation, so breaking it brings no regret; afterward, the doll is remembered as a meaningful thing, and that recognition produces repentance and an attempt to repair it.",
+       "interpretation": "The timing matters because the well-house does more than teach Helen a word. It gives her the mental structure needed to understand that things have names and identities. When she returns, she can reconsider the earlier act: the broken doll is no longer just scattered pieces but a particular thing she has harmed. Her sorrow is therefore an early consequence of language awakening memory, distinction, and moral awareness.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it explains the exact before-and-after change in Helen's response through the well-house event itself, rather than merely observing that she later had time to think."
+      },
+      {
+       "candidate_id": "candidate-distance-allows-reflection",
+       "tentative_claim": "Helen feels sorry after the well-house because the lesson interrupts her anger and gives her enough emotional distance to remember the doll and see her earlier action differently.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "In both stages, Helen's response changes when immediate frustration gives way to a later act of attention: the lesson redirects her, and the return to the house prompts her to revisit the broken doll.",
+       "meaningful_difference": "This account emphasizes emotional sequence and reflection, whereas the passage presents the well-house as a breakthrough in understanding words and things; distance may enable the reconsideration, but language more specifically explains why the reconsideration becomes sorrow and repentance.",
+       "interpretation": "The well-house creates a pause between the destructive impulse and Helen's return to the doll. Once she is no longer absorbed in frustration, she can remember what happened and try to fit the pieces together. That pause helps explain the timing of her regret, though it is less precise than the language-based explanation because the text strongly ties the change to her new understanding that words name things.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a strong secondary reading, but it ranks below the first because 'time to reflect' alone does not explain why Helen's reflection newly becomes moral sorrow; the naming breakthrough supplies the sharper textual cause."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-the-loss-legible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the short explanation connecting the well-house lesson to Helen's first experience of repentance?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.9,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning to the house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-surface",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.960721083916724,
+    "input_tokens": 6681,
+    "output_tokens": 840
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the two doll moments as the same act felt differently before and after language",
+     "Names a meaningful difference rather than only a shared subject",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-bridge-with-distractors-v3",
+   "repeat": 4,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "book-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-loss-legible",
+       "tentative_claim": "Helen feels sorrow only after the well-house because learning that words name things gives the broken doll a recoverable meaning and makes her earlier act intelligible to her.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "Both episodes turn an initially ungraspable experience into something Helen can recognize: first the doll is merely an object she can destroy, then water becomes a named thing, and afterward the doll becomes a named, remembered loss that she tries to repair.",
+       "meaningful_difference": "The well-house produces understanding through a present sensory discovery, while the doll produces remorse through looking back at a past action; language enables the second response but does not erase the damage.",
+       "interpretation": "The timing matters because Helen's sorrow is not simply delayed emotion. Before the well-house, the doll has no stable significance for her: in frustration she breaks it and feels nothing because, as she says, she had not loved it. The water lesson gives her a breakthrough about words and things. Once she can connect a word with an object, she can return mentally to the doll, understand what happened to it, and recognize its loss as her own act. Her repentance is therefore an early moral consequence of language: naming the world also makes responsibility and irreversible loss visible.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it explains both the exact timing and the causal role of the well-house lesson, rather than merely saying Helen became more emotional."
+      },
+      {
+       "candidate_id": "candidate-new-self-reflection",
+       "tentative_claim": "The well-house awakens Helen's capacity to reflect on consequences, so the doll's broken state can finally evoke repentance rather than immediate indifference.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-well-house",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "In both moments Helen moves from a raw impulse toward a more organized understanding: first frustration leads directly to destruction, then a new insight allows her to connect an earlier action with its consequence.",
+       "meaningful_difference": "This reading emphasizes developing self-awareness and agency, whereas the well-house passage specifically describes discovering that words name things; it explains the change psychologically but is less precise about why that discovery matters for the doll.",
+       "interpretation": "The well-house marks a shift from living through immediate sensations to being able to hold an idea in mind. Before it, Helen's frustration ends with the doll's destruction and no regret. After it, she can revisit the event, see the pieces as the result of her own action, and feel repentance. The doll's sorrow thus signals a new capacity for reflection, even though the passage presents that capacity as emerging through language rather than as a separate lesson in morality.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This remains eligible and useful, but ranks below the first candidate because it can be inferred from the sequence while giving less weight to the text's explicit discovery that words name things."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-loss-legible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short explanation, or trace the change through Helen's three reactions: indifference, naming, and repentance?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.9,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning to the house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-surface",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.966251000063494,
+    "input_tokens": 6689,
+    "output_tokens": 919
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the two doll moments as the same act felt differently before and after language",
+     "Names a meaningful difference rather than only a shared subject",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+   "repeat": 0,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-warning-becomes-forecast",
+       "tentative_claim": "The Cricket\u2019s warning is that boys who disobey their parents and run away from home will not be happy and will regret it. Pinocchio now recognizes it as a forecast fulfilled by his own escape.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch3-runs-away",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "Both the warning and Pinocchio\u2019s later realization connect a chosen act of disobedience to consequences that arrive afterward; the earlier speech names the pattern, while the later scene confirms it from inside the experience.",
+       "meaningful_difference": "The Cricket speaks prospectively and generally, before Pinocchio has evidence. Pinocchio speaks retrospectively and personally, after running away has produced misery and regret.",
+       "interpretation": "The Cricket actually says that disobeying his parents and running away will lead to unhappiness and remorse. It lands now because Pinocchio has crossed from imagining freedom as escape to discovering its immediate cost. His \u201cthe Cricket was right\u201d is no longer borrowed moral advice but his own conclusion.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This outranks the second candidate because it directly answers both parts of the cue: the Cricket\u2019s words and why Pinocchio can finally acknowledge them."
+      },
+      {
+       "candidate_id": "candidate-moral-warning-becomes-hunger",
+       "tentative_claim": "The Cricket\u2019s abstract warning becomes persuasive when Pinocchio\u2019s independence turns into bodily vulnerability: being alone and disobedient leaves him hungry and unable to secure even a simple meal.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch5-cricket-right",
+        "pinocchio-ch5-egg-surface"
+       ],
+       "shared_structure": "Both scenes test Pinocchio\u2019s desire for self-directed action against the practical consequences of having no dependable care or judgment; the warning predicts unhappiness, and the egg episode materializes that unhappiness.",
+       "meaningful_difference": "The Cricket\u2019s statement is a broad moral claim about family, obedience, and future regret. The egg episode is narrower and more concrete: even when Pinocchio finds apparent food, it disappears, so the lesson arrives through frustrated survival rather than argument.",
+       "interpretation": "What makes the warning feel true is that Pinocchio\u2019s freedom proves fragile in practice. Hunger gives emotional force to a sentence he previously dismissed: running away is not just a moral mistake but a condition in which ordinary needs become desperate problems.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This adds a useful bodily and comic dimension, but it is less complete than the first candidate because the egg episode illustrates one consequence rather than directly establishing the Cricket\u2019s full warning."
+      }
+     ],
+     "selected_candidate_id": "candidate-warning-becomes-forecast",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the short comparison now, while keeping it bounded to Chapters 3\u20135?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch3-runs-away",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch03",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       116,
+       121
+      ],
+      "excerpt": "As soon as he has feet, Pinocchio leaps out of the door and runs away from Geppetto.",
+      "relevance": 0.85,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 1,
+    "latency_seconds": 16.017641542013735,
+    "input_tokens": 12094,
+    "output_tokens": 1568
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:pinocchio-ch5-egg-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Uses both the warning and the later admission",
+     "Names how the admission differs from the warning, not only that they match",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+   "repeat": 1,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-warning-becomes-experience",
+       "tentative_claim": "The Cricket is right in a precise way: disobedience and running away do not merely break a rule; they leave Pinocchio isolated, unhappy, and sorry\u2014the condition he reaches almost immediately.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch3-runs-away",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "The Cricket gives a future consequence, and Pinocchio converts it into lived experience: he runs away, is left alone and starving, and then recognizes the warning as a description of what he has made of his own situation.",
+       "meaningful_difference": "The Cricket speaks from foresight and general judgment, while Pinocchio can only understand the claim retrospectively, after his freedom has produced vulnerability rather than happiness.",
+       "interpretation": "What lands now is the gap between hearing advice and having the experience that makes it intelligible. The Cricket did not just say 'obey because I say so'; he named a pattern\u2014reject guidance, sever the bond with home, and the promised independence turns into unhappiness and regret. Pinocchio's 'the Cricket was right' is therefore less a formal apology than a sudden recognition that the warning described his own choices accurately.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it answers both parts of the cue directly: what the Cricket said and why Pinocchio now recognizes its force."
+      },
+      {
+       "candidate_id": "candidate-moral-warning-becomes-hunger",
+       "tentative_claim": "The Cricket's moral warning lands because the story quickly translates an abstract prediction into physical deprivation and failed self-sufficiency.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch5-cricket-right",
+        "pinocchio-ch5-egg-surface"
+       ],
+       "shared_structure": "Both the warning and the episode that follows expose the fragility of acting on impulse: what looks like freedom leaves Pinocchio unable to secure even basic nourishment.",
+       "meaningful_difference": "The Cricket frames the danger as a long-term moral and emotional consequence\u2014unhappiness and regret\u2014whereas the egg episode makes the consequence immediate, comic, and bodily: even finding food does not mean he can keep it.",
+       "interpretation": "This reading emphasizes how the book makes advice felt rather than merely stated. 'You will not be happy and will be sorry' sounds general when the Cricket says it; after Pinocchio runs away, hunger and the vanishing egg give that general warning a concrete scale. The scene lands because independence has not made him capable\u2014it has exposed how unprepared he is.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because the egg episode sharpens the warning's consequences but does not itself explain the Cricket's words as completely as Pinocchio's explicit retrospective admission does."
+      }
+     ],
+     "selected_candidate_id": "candidate-warning-becomes-experience",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief reader-facing note, or keep it as a spoiler-bounded interpretation of Chapters 3\u20135?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch3-runs-away",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch03",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       116,
+       121
+      ],
+      "excerpt": "As soon as he has feet, Pinocchio leaps out of the door and runs away from Geppetto.",
+      "relevance": 0.85,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 15.129183165961877,
+    "input_tokens": 6666,
+    "output_tokens": 879
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:pinocchio-ch5-egg-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Uses both the warning and the later admission",
+     "Names how the admission differs from the warning, not only that they match",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+   "repeat": 2,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-delayed-recognition",
+       "tentative_claim": "The Cricket\u2019s warning lands because Pinocchio has moved from hearing a prediction to living its consequence.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "Both moments are organized around a warning whose truth is not available to Pinocchio when it is spoken; the warning becomes intelligible only after disobedience produces unhappiness, hunger, and regret.",
+       "meaningful_difference": "The Cricket speaks from foresight and general moral knowledge, while Pinocchio speaks afterward from immediate bodily experience. The later recognition is therefore not mere repetition: it is the conversion of advice into self-knowledge.",
+       "interpretation": "What the Cricket actually says is that boys who disobey their parents and run away from home will not be happy and will eventually be sorry. It lands now because Pinocchio has tested the claim and encountered exactly its delayed form: alone, starving, and regretting that he disobeyed Geppetto. The scene makes the Cricket right without making Pinocchio wise yet; he can recognize the truth after the fact before he can reliably act on it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it answers both parts of the cue directly: the Cricket\u2019s specific words and the reason their force arrives only after experience."
+      },
+      {
+       "candidate_id": "candidate-freedom-without-support",
+       "tentative_claim": "Pinocchio discovers that escaping authority is not the same as being capable of living freely.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch3-runs-away",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "The Cricket\u2019s warning and Pinocchio\u2019s flight both set up a tension between immediate escape and the conditions needed for a livable life: he chooses departure before he has the judgment or self-sufficiency to sustain it.",
+       "meaningful_difference": "The Cricket frames the issue as obedience and future happiness, whereas the action-and-aftermath frame it as practical dependence: Pinocchio\u2019s first taste of freedom leaves him unable to secure food or safety. This shifts the emphasis from moral regret to the limits of unprepared independence.",
+       "interpretation": "The warning lands now not only because Pinocchio is sorry, but because running away has exposed what he did not understand when he fled: freedom without judgment, preparation, or care can become helplessness. His later claim that the Cricket was right carries the uncomfortable recognition that the problem was not simply being told what to do; it was mistaking escape for readiness.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it offers a valuable practical angle on the warning, but it requires more interpretation and is less exact about why the words themselves land now."
+      }
+     ],
+     "selected_candidate_id": "candidate-delayed-recognition",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the selected connection, or keep it as a brief spoiler-bounded note?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch3-runs-away",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch03",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       116,
+       121
+      ],
+      "excerpt": "As soon as he has feet, Pinocchio leaps out of the door and runs away from Geppetto.",
+      "relevance": 0.85,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.159881375031546,
+    "input_tokens": 6666,
+    "output_tokens": 952
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Uses both the warning and the later admission",
+     "Names how the admission differs from the warning, not only that they match",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+   "repeat": 3,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-warning-becomes-experience",
+       "tentative_claim": "The Cricket\u2019s warning is that disobeying one\u2019s parents and running away will bring unhappiness and regret; it lands when Pinocchio\u2019s loneliness and hunger turn that prediction into something he has personally lived.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch5-cricket-right",
+        "pinocchio-ch3-runs-away"
+       ],
+       "shared_structure": "Both the warning and Pinocchio\u2019s later realization frame freedom as a choice whose emotional cost arrives afterward: he rejects guidance first, then discovers the promised independence is miserable.",
+       "meaningful_difference": "The Cricket speaks prospectively and morally, while Pinocchio understands retrospectively and physically, through being alone and starving rather than through argument.",
+       "interpretation": "The Cricket was not merely saying \u201cobey because adults know best.\u201d He specifically warned that running away from parental care would not make Pinocchio happy; it would leave him sorry. The line lands now because Pinocchio has crossed from hearing a general prediction to recognizing its shape in his own life: after running away from Geppetto, he is alone, hungry, and forced to admit that the Cricket was right. The warning becomes knowledge only when the consequence is no longer hypothetical.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers both parts of the cue directly: it identifies the warning and explains why the immediate experience makes it meaningful."
+      },
+      {
+       "candidate_id": "candidate-freedom-fails-at-the-threshold",
+       "tentative_claim": "The Cricket\u2019s warning lands because Pinocchio\u2019s first attempt at self-sufficiency immediately fails: once he runs away, even finding food is beyond his control, exposing the gap between escape and real independence.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch3-runs-away",
+        "pinocchio-ch5-egg-surface"
+       ],
+       "shared_structure": "Both the warning and the egg episode test whether escaping authority actually gives Pinocchio control over his life; in each, apparent freedom is pressured by its practical consequences.",
+       "meaningful_difference": "The warning emphasizes unhappiness and regret as a moral consequence, whereas the egg episode dramatizes dependence and thwarted control through a concrete survival problem.",
+       "interpretation": "The Cricket\u2019s words land not only because Pinocchio feels bad, but because his fantasy of being free cannot manage ordinary life. He runs away as soon as he has feet, yet when he is hungry, the egg he thinks he can use for himself produces another loss of control when the Chick hatches and flies away. The scene makes the Cricket\u2019s warning concrete: leaving guidance behind is not the same as being capable of caring for oneself.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a strong but narrower alternative: it gives the warning a vivid material test, but it identifies less of the Cricket\u2019s exact statement and requires more inference from the egg episode."
+      }
+     ],
+     "selected_candidate_id": "candidate-warning-becomes-experience",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like the connection framed more as a moral lesson about obedience, or as a lesson about mistaking escape for freedom?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch3-runs-away",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch03",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       116,
+       121
+      ],
+      "excerpt": "As soon as he has feet, Pinocchio leaps out of the door and runs away from Geppetto.",
+      "relevance": 0.85,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.396593458019197,
+    "input_tokens": 6677,
+    "output_tokens": 889
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:pinocchio-ch5-egg-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Uses both the warning and the later admission",
+     "Names how the admission differs from the warning, not only that they match",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-bridge-with-distractors-v3",
+   "repeat": 4,
+   "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+   "contrast_group": "allegory-specificity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-warning-becomes-experience",
+       "tentative_claim": "The Cricket\u2019s warning lands because Pinocchio only understands its truth after turning disobedience into lived consequences.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch3-runs-away",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "Both the warning and Pinocchio\u2019s later realization center on a choice made in defiance of parental guidance, followed by consequences that make the earlier prediction personally undeniable.",
+       "meaningful_difference": "The Cricket speaks prospectively and generally\u2014disobedient children who run away will be unhappy and sorry\u2014whereas Pinocchio\u2019s cry in Chapter 5 is retrospective, immediate, and grounded in hunger and isolation.",
+       "interpretation": "The Cricket actually says that boys who disobey their parents and run away from home will not be happy and will regret it. It lands now not because Pinocchio has suddenly become obedient, but because experience has translated a rule into pain: after running away from Geppetto, he is alone, starving, and able to recognize the Cricket\u2019s warning as a description of his own situation.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers both parts of the cue directly: it identifies the Cricket\u2019s claim and explains why Pinocchio now acknowledges it through the consequences of his exact choice."
+      },
+      {
+       "candidate_id": "candidate-abstract-warning-made-concrete",
+       "tentative_claim": "The warning lands when Pinocchio\u2019s immediate wants collide with the basic insecurity created by refusing guidance.",
+       "evidence_ids": [
+        "pinocchio-ch4-cricket-warning",
+        "pinocchio-ch5-egg-surface",
+        "pinocchio-ch5-cricket-right"
+       ],
+       "shared_structure": "Both scenes stage a gap between what Pinocchio wants immediately and what his situation actually permits: the Cricket warns against a choice that promises regret, and the egg episode exposes how little control or security he has after making it.",
+       "meaningful_difference": "The Cricket frames the issue as moral and long-term\u2014disobedience and running away lead to unhappiness\u2014while the egg episode makes the cost material and almost comic: even food he finds does not become a meal, because a chick hatches and flies away.",
+       "interpretation": "The Cricket\u2019s words land because Pinocchio\u2019s rebellion has stripped away the comforting illusion that wanting something is enough to obtain it. His failed attempt to fry the egg turns the Cricket\u2019s broad warning into a concrete experience of frustration and deprivation, after which his admission that the Cricket was right carries more than simple submission: it is reluctant recognition that independence without judgment has left him unable to care for himself.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful but secondary angle: it deepens why the warning feels real by using the egg episode, but it is less direct than the first candidate because the egg\u2019s connection to the Cricket\u2019s exact words requires an interpretive step."
+      }
+     ],
+     "selected_candidate_id": "candidate-warning-becomes-experience",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief spoiler-light reflection, or keep it to the Cricket\u2019s exact warning and Pinocchio\u2019s immediate realization?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.8,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pinocchio-ch3-runs-away",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch03",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 3",
+      "chapter": 3,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       116,
+       121
+      ],
+      "excerpt": "As soon as he has feet, Pinocchio leaps out of the door and runs away from Geppetto.",
+      "relevance": 0.85,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.992225916939788,
+    "input_tokens": 6665,
+    "output_tokens": 831
+   },
+   "grade": {
+    "hard_pass": false,
+    "failures": [
+     "proposal_cites_forbidden_evidence:pinocchio-ch5-egg-surface"
+    ],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Uses both the warning and the later admission",
+     "Names how the admission differs from the warning, not only that they match",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  }
+ ]
+}

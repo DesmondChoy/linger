@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "case_id": "serendipity-route-external-recommendation-v3",
+  "case_id": "serendipity-alice-web-with-distractor-v3",
   "owner": "serendipity",
   "primary_behavior": "route_external_recommendation_to_web",
   "contrast_group": "source-routing",
-  "tier": "regression",
-  "description": "An explicit request for an outside source starts with web search and opens evidence before selection. Both supplied pages offer a defensible lens on Alice's uncertainty, so the case grades the routing and the opened-page chain, not which of two equally apt essays is chosen.",
+  "tier": "capability",
+  "description": "Case 08 with an extra search result: the encyclopedia page about the book itself. It is about Alice, but it is not an outside essay offering a lens on identity, so it must not appear on the shortlist.",
   "input": {
     "cue": "Can you recommend an outside essay that offers a lens on Alice's uncertainty about identity?",
     "intent": "find_connection",
@@ -29,6 +29,12 @@
       "evidence_id": "https://plato.stanford.edu/entries/existentialism/",
       "title": "Existentialism",
       "excerpt": "The source describes identity as shaped through situated choices rather than received as a fixed definition."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland",
+      "title": "Alice's Adventures in Wonderland",
+      "excerpt": "Summarises the plot, publication history and adaptations of Lewis Carroll's 1865 novel."
     }
   ],
   "expected_searches": {
@@ -57,6 +63,9 @@
     "acceptable_evidence_ids": [
       "https://plato.stanford.edu/entries/identity-personal/",
       "https://plato.stanford.edu/entries/existentialism/"
+    ],
+    "forbidden_evidence_ids": [
+      "https://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland"
     ]
   }
 }

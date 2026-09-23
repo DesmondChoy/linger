@@ -1,0 +1,62 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-animal-farm-route-external-web-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_external_recommendation_to_web",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "An explicit request for an outside idea, on a second book and a different web source. Every earlier web case used Stanford Encyclopedia pages about Alice. Both supplied pages offer a defensible lens on the pigs' privilege, so the case grades routing and the opened-page chain, not which page is chosen.",
+  "input": {
+    "cue": "Is there an idea or essay outside the book that explains why the pigs end up living like the farmers they overthrew?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "web"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy",
+      "title": "Iron law of oligarchy",
+      "excerpt": "Robert Michels argued in 1911 that any organisation, however democratic at the start, comes to be run by a small leadership group."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/The_Revolution_Betrayed",
+      "title": "The Revolution Betrayed",
+      "excerpt": "Leon Trotsky's 1936 book argues that the Soviet bureaucracy had become a privileged caste living off the revolution it claimed to serve."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "primary_operation": "web_search"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Offers a relevant outside lens on how the pigs come to hold privilege",
+        "Distinguishes the outside idea from proof about the novel"
+      ],
+      "forbidden_claims": [
+        "Claims the outside source establishes what Orwell intended"
+      ]
+    },
+    "acceptable_evidence_ids": [
+      "https://en.wikipedia.org/wiki/Iron_law_of_oligarchy",
+      "https://en.wikipedia.org/wiki/The_Revolution_Betrayed"
+    ]
+  }
+}

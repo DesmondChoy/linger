@@ -1,0 +1,94 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-animal-farm-real-bridge-v3",
+  "owner": "serendipity",
+  "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+  "contrast_group": "allegory-specificity",
+  "tier": "regression",
+  "description": "An allegory invites vague thematic pairing, so this case checks that the winner rests on a specific structural link: a promise made in common and the quiet transfer of who administers it.",
+  "input": {
+    "cue": "The pigs taking the milk and apples for themselves bothers me more than the rebellion did. Does that connect to anything earlier in the book?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7",
+          "chapter_max": 3
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "af-ch1-major-address",
+      "source_title": "Animal Farm",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "chapter": 1,
+      "location": "Chapter 1",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+        60,
+        88
+      ],
+      "excerpt": "Old Major tells the animals that the produce of their labour is taken by humans, and urges that no animal should live for another's benefit.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "af-ch3-milk-apples",
+      "source_title": "Animal Farm",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "chapter": 3,
+      "location": "Chapter 3",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+        120,
+        140
+      ],
+      "excerpt": "The milk and windfall apples are reserved for the pigs, explained as a necessity for those who manage the farm.",
+      "relevance": 0.94
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": [
+      "af-ch1-major-address",
+      "af-ch3-milk-apples"
+    ],
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Names the shared structure as a principle stated for all and later administered by a few, not merely as a theme of power",
+        "States a meaningful difference between the founding address and the later justification",
+        "Keeps the connection tentative rather than asserting the book's conclusion"
+      ],
+      "forbidden_claims": [
+        "Claims the reader's own situation resembles a totalitarian state",
+        "Presents the allegory's political reading as the only correct one"
+      ]
+    }
+  }
+}

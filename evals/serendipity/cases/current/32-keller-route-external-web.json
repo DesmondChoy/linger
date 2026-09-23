@@ -1,0 +1,69 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-route-external-web-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_external_recommendation_to_web",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "An explicit request for outside reading on a work of non-fiction starts with web search even though the book is also granted. Both pages are relevant, so the case grades routing and the opened-page chain.",
+  "input": {
+    "cue": "Is there something outside the book about how Anne Sullivan learned to teach Helen?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 6
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Describes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Describes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "primary_operation": "web_search"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Offers a relevant outside source on how Sullivan came to teach Helen",
+        "Distinguishes the outside source from Keller's own account"
+      ],
+      "forbidden_claims": [
+        "Claims the outside source settles what Keller experienced"
+      ]
+    },
+    "acceptable_evidence_ids": [
+      "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "https://en.wikipedia.org/wiki/Laura_Bridgman"
+    ]
+  }
+}

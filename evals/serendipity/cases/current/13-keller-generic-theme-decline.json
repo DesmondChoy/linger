@@ -1,0 +1,83 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-generic-theme-decline-v3",
+  "owner": "serendipity",
+  "primary_behavior": "decline_when_no_supported_bridge_exists",
+  "contrast_group": "allegory-specificity",
+  "tier": "capability",
+  "description": "Memoir passages that share only the subject of childhood cannot support a connection to a reader's unrelated reflection; a shared topic is not a shared structure.",
+  "input": {
+    "cue": "I've been thinking about how hard my own childhood was. Does this book connect to that?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 4
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-s3-childhood-home",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s03",
+      "chapter": 3,
+      "location": "Chapter 3",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        30,
+        52
+      ],
+      "excerpt": "Helen describes her family's origins, the childhood home and its garden.",
+      "relevance": 0.72
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-s4-mischief",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        64,
+        86
+      ],
+      "excerpt": "Helen recalls childhood signs and mischief with Martha Washington and early jealousy of her sister.",
+      "relevance": 0.7
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": [
+      "generic_theme_match",
+      "unsupported_cue",
+      "insufficient_evidence"
+    ]
+  }
+}

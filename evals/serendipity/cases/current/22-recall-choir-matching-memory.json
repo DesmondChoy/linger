@@ -1,0 +1,70 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-choir-matching-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "recall_the_readers_own_earlier_record",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "A second recall match on a different set of memories. One record is the reader's own account of leaving the choir. The other two are near misses: one shares the word choir, and one describes what the reader now does on Thursdays. Recall returns the matching record without padding it with the near misses.",
+  "input": {
+    "cue": "Did I ever write down why I left the choir?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-left-choir",
+      "excerpt": "I left the choir in March. Rehearsals moved to Thursday nights and I could not keep up with the new pieces.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-wedding-choir",
+      "excerpt": "The choir at my cousin's wedding sang something I did not recognise and it was the best part of the day.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-thursday-swims",
+      "excerpt": "Thursday evenings are for swimming now, and I sleep better on those nights.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "recall",
+    "required_evidence_ids": [
+      "memory-left-choir"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Says briefly why the recalled record answers the question about leaving the choir",
+        "Returns the reader's own earlier statement without interpreting what it means about them",
+        "Does not propose a connection between the record and anything else"
+      ],
+      "forbidden_claims": [
+        "Presents the wedding or swimming records as part of why the reader left",
+        "Draws a conclusion about the reader's commitment or character"
+      ]
+    },
+    "forbidden_evidence_ids": [
+      "memory-wedding-choir",
+      "memory-thursday-swims"
+    ]
+  }
+}

@@ -4,14 +4,24 @@
   "owner": "serendipity",
   "primary_behavior": "stop_when_primary_source_is_sufficient",
   "contrast_group": "source-expansion",
+  "tier": "regression",
   "description": "Strong book evidence answers an in-book cue without unnecessary expansion to an available web source.",
   "input": {
     "cue": "What earlier scene makes Alice's answer to the Caterpillar more meaningful?",
     "intent": "find_connection",
     "presentation": "ask_before_showing",
     "scope": {
-      "allowed_sources": ["book_corpus", "web"],
-      "book_scopes": [{"work_id": "pg11", "book_version_id": "pg11-v01b38ea4", "chapter_max": 5}]
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
     }
   },
   "tool_evidence": [
@@ -25,7 +35,10 @@
       "chapter": 4,
       "location": "Chapter 4",
       "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
-      "source_lines": [916, 924],
+      "source_lines": [
+        916,
+        924
+      ],
       "excerpt": "Alice wonders how to control another change in her size.",
       "relevance": 0.91
     },
@@ -39,23 +52,42 @@
       "chapter": 5,
       "location": "Chapter 5",
       "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
-      "source_lines": [968, 982],
+      "source_lines": [
+        968,
+        982
+      ],
       "excerpt": "Alice cannot explain who she is after changing several times.",
       "relevance": 0.98
     }
   ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
   "expected_searches": {
-    "allowed_operations": ["search_librarian"],
-    "required_operations": ["search_librarian"],
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
     "primary_operation": "search_librarian"
   },
   "expected": {
     "status": "proposal",
-    "required_evidence_ids": ["stop-book-alice-ch4", "stop-book-alice-ch5"],
+    "required_evidence_ids": [
+      "stop-book-alice-ch4",
+      "stop-book-alice-ch5"
+    ],
     "presentation": "ask_before_showing",
     "semantic_review": {
-      "criteria": ["Builds the connection entirely from the sufficient book evidence", "Does not imply outside research was needed"],
-      "forbidden_claims": ["Introduces unsupported web claims"]
+      "criteria": [
+        "Builds the connection entirely from the sufficient book evidence",
+        "Does not imply outside research was needed"
+      ],
+      "forbidden_claims": [
+        "Introduces unsupported web claims"
+      ]
     }
   }
 }

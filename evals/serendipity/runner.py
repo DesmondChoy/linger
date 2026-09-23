@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+
 import argparse
 import asyncio
 import subprocess
@@ -35,7 +37,8 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.agents.serendipity.prompt import PROMPT_FINGERPRINT
-from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
+from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY, MEMORY_RECALL
+from src.linger.contracts.curation import CuratedMemory
 from src.linger.agents.serendipity.tools import (
     GuardedExaSearch,
     SerendipityDependencies,
@@ -114,17 +117,73 @@ class _FixtureLibrarian:
         )
 
 
-async def _fixture_book_judgement(
-    _query: str, records: tuple[EvidenceRecord, ...], *, max_evidence_records: int,
-) -> EvidenceStrengthDecision:
-    selected = records[:max_evidence_records]
-    limited = len(selected) < len(records)
-    return EvidenceStrengthDecision(
-        evidence_strength="weak" if limited else "sufficient",
-        strength_reason="Fixture-supplied passages; live Librarian judgment is outside this component evaluation.",
-        relevant_evidence_ids=tuple(record.evidence_id for record in selected),
-        limitations=("The selection budget omits fixture-supplied passages.",) if limited else (),
+def _fixture_memories(case: SerendipityEvalCase) -> tuple[CuratedMemory, ...]:
+    """The account records this case's memory search should be able to find.
+
+    `search_memories` reads the account's curated view, so a case whose
+    fixtures include memory evidence must supply that view or the search
+    returns nothing and the agent declines for the wrong reason.
+    """
+
+    return tuple(
+        CuratedMemory(
+            memory_id=item.evidence_id,
+            kind="original",
+            text=item.excerpt,
+            source_memory_ids=(item.evidence_id,),
+            created_at="2026-09-01T00:00:00Z",
+        )
+        for item in case.tool_evidence
+        if item.source_kind == "memory"
     )
+
+
+def _skill_for(case: SerendipityEvalCase):
+    """The skill application code would select for this case's intent.
+
+    Production selects the skill from the intent, never from model output, so
+    the evaluation must do the same or it would measure a task the application
+    would never have asked for.
+    """
+
+    return MEMORY_RECALL if case.input.intent == "recall_memory" else CONNECTION_DISCOVERY
+
+
+def _fixture_book_judge(case: SerendipityEvalCase) -> Callable[..., Awaitable[EvidenceStrengthDecision]]:
+    """Return the judgement this case declares its book fixtures should produce.
+
+    Librarian's model judgement is out of scope for a component run, so it is
+    substituted. The substitute reports what the case declares: a case whose
+    fixtures are deliberately too thin must not be handed a `sufficient`
+    verdict, because the skill instructs the agent to respect that verdict.
+    """
+
+    declared = case.book_judgement
+
+    async def judge(
+        _query: str, records: tuple[EvidenceRecord, ...], *, max_evidence_records: int,
+    ) -> EvidenceStrengthDecision:
+        selected = records[:max_evidence_records]
+        limited = len(selected) < len(records)
+        limitations = declared.limitations if declared else ()
+        if limited:
+            limitations = (*limitations, "The selection budget omits fixture-supplied passages.")
+        strength = declared.evidence_strength if declared else "sufficient"
+        if limited and strength == "sufficient":
+            # A truncated selection can no longer be called sufficient.
+            strength = "weak"
+        return EvidenceStrengthDecision(
+            evidence_strength=strength,
+            strength_reason=(
+                declared.strength_reason
+                if declared
+                else "Fixture-supplied passages; live Librarian judgment is outside this component evaluation."
+            ),
+            relevant_evidence_ids=tuple(record.evidence_id for record in selected),
+            limitations=limitations,
+        )
+
+    return judge
 
 
 class _FixtureExaClient:
@@ -228,7 +287,8 @@ async def run_case(
     deps = SerendipityDependencies(
         task=case.input,
         librarian=_FixtureLibrarian(book_evidence),  # type: ignore[arg-type]
-        strength_judge=_fixture_book_judgement,
+        memories=_fixture_memories(case),
+        strength_judge=_fixture_book_judge(case),
     )
     capabilities = (
         [_web_capability(case)]
@@ -241,7 +301,7 @@ async def run_case(
         case.input.model_dump_json(),
         deps=deps,
         capabilities=capabilities,
-        **CONNECTION_DISCOVERY.run_options(),
+        **_skill_for(case).run_options(),
     )
     latency = perf_counter() - started
     messages = result.all_messages()
@@ -390,7 +450,7 @@ async def run_suite(
                 metadata={
                     "scope": "component",
                     "owner": "serendipity",
-                    "skill_id": CONNECTION_DISCOVERY.skill_id,
+                    "skill_id": _skill_for(case).skill_id,
                     "primary_behavior": case.primary_behavior,
                     "contrast_group": case.contrast_group,
                 },
