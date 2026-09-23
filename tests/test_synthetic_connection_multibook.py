@@ -305,7 +305,9 @@ def _selected_evidence_decision(evidence_ids):
     return ConnectionProposal(
         shortlist=tuple(ConnectionCandidate(
             candidate_id=f"candidate-{index}", tentative_claim=f"A tentative comparison {index}.",
-            evidence_ids=evidence_ids, shared_structure="A common question.",
+            # A shortlist compares two connections, so the runner-up rests on its own record.
+            evidence_ids=evidence_ids if index == 0 else (f"{evidence_ids[-1]}-alt",),
+            shared_structure="A common question.",
             meaningful_difference="Different circumstances.", interpretation="A tentative reading.",
             comparison_note="Compare their support.",
             rubric=CandidateRubric(cue_fit="direct" if index == 0 else "partial", reflective_value="high", safety="clear"),
