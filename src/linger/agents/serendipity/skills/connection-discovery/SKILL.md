@@ -27,7 +27,10 @@ Choose a primary source before searching. A source grant is permission, not an
 instruction to search every available source. Apply this routing policy:
 
 - Personal-context connection: use `search_memories` when the cue asks to relate
-  the current reflection to the person's authorized prior context. A memory
+  the current reflection to the person's authorized prior context. An indirect
+  reference to the reader's own earlier words, plan, or promise ("the thing I
+  said I'd do", "as I mentioned", "what I promised") is such a request: search
+  memories to learn what it refers to. A memory
   candidate must rest on the reader's own earlier reflection on the same
   theme, decision, or preference as the cue: a record the reader would
   recognise as the thing they wrote about before. A memory that supplies only

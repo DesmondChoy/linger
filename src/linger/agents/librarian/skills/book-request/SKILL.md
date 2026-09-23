@@ -76,6 +76,14 @@ When the reader explicitly asks whether anything they have read connects to
 their situation, preserve exact phrases describing the relevant action or
 tension as a `reference` need, even when no book is named. These phrases are
 search concepts, not claims that a character had the reader's experience.
+When no book is named, the reader's own described action, temptation, or excuse
+is the search concept: copy it exactly even though it is about the reader.
+A vague reference such as "that feeling" or "this habit" cannot stand alone;
+include the phrase that describes what it refers to. For example, from "Each
+time a friend calls, I tell myself the letter can wait another week. Does
+anything I've read speak to that?", extract "I tell myself the letter can wait
+another week". An idea the reader attributes to an outside thinker or public
+text is not a book search concept.
 Do not invent titles, characters, plot events, or a more specific book question.
 Exclude personal details that do not help locate the requested textual parallel.
 
