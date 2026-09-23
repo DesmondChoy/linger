@@ -63,7 +63,9 @@ from src.linger.orchestration.turn_context import (
 )
 
 EVIDENCE_ID = "pg11-v01b38ea4-ch02-ln0010-0011"
+SECOND_EVIDENCE_ID = "pg11-v01b38ea4-ch02-ln0012-0013"
 LOCATION = "Chapter 2 — The Pool of Tears, source lines 10-11"
+SECOND_LOCATION = "Chapter 2 — The Pool of Tears, source lines 12-13"
 QUOTE = "Who are you?"
 RELEASE_SCOPE = ReleaseScope(
     work_id="pg11",
@@ -230,6 +232,8 @@ def canonical_record(**updates: object) -> EvidenceRecord:
 
 def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
     evidence_id = "https://example.com/source" if web else EVIDENCE_ID
+    # A shortlist compares two candidates, so each rests on its own record.
+    second_id = "https://example.com/second" if web else SECOND_EVIDENCE_ID
     shortlist = (
         ConnectionCandidate(
             candidate_id="candidate-identity",
@@ -250,7 +254,7 @@ def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
         ConnectionCandidate(
             candidate_id="candidate-authority",
             tentative_claim="The exchange also makes authority feel unsettled.",
-            evidence_ids=(evidence_id,),
+            evidence_ids=(second_id,),
             shared_structure="Both moments involve an uncertain answer.",
             meaningful_difference=(
                 "This reading emphasizes authority rather than identity."

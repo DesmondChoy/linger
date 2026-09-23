@@ -493,27 +493,30 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_exa_search_is_only_citable_after_get_page(self) -> None:
         url = "https://example.com/identity"
+        second_url = "https://example.com/continuity"
 
         class FakeExaClient:
             async def search(self, *_args, **_kwargs):
                 return SimpleNamespace(
                     results=[
                         SimpleNamespace(
-                            url=url,
+                            url=each,
                             title="Identity and change",
                             published_date=None,
                             author=None,
                             highlights=["A short search-result lead."],
                         )
+                        for each in (url, second_url)
                     ],
                     output=None,
                 )
 
-            async def get_contents(self, *_args, **_kwargs):
+            async def get_contents(self, urls, *_args, **_kwargs):
+                requested = urls[0] if isinstance(urls, (list, tuple)) else urls
                 return SimpleNamespace(
                     results=[
                         SimpleNamespace(
-                            url=url,
+                            url=requested,
                             title="Identity and change",
                             published_date=None,
                             author=None,
@@ -533,9 +536,10 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                 return ModelResponse(
                     parts=[ToolCallPart("web_search", {"query": "identity change"})]
                 )
-            if not any(part.tool_name == "get_page" for part in returns):
+            opened = [part for part in returns if part.tool_name == "get_page"]
+            if len(opened) < 2:
                 return ModelResponse(
-                    parts=[ToolCallPart("get_page", {"url": url})]
+                    parts=[ToolCallPart("get_page", {"url": (url, second_url)[len(opened)]})]
                 )
             output_tool = info.output_tools[0]
             return ModelResponse(
@@ -552,7 +556,7 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
                                 candidate(
                                     "candidate-web-authority",
                                     2,
-                                    evidence_ids=(url,),
+                                    evidence_ids=(second_url,),
                                 ),
                             ),
                             selected_candidate_id="candidate-web-identity",
@@ -574,14 +578,14 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertIsInstance(result.output, ConnectionProposal)
-        self.assertEqual((url,), tuple(deps.evidence))
-        self.assertEqual(("web", "web"), tuple(trace.source for trace in deps.searches))
+        self.assertEqual((url, second_url), tuple(deps.evidence))
+        self.assertEqual(("web", "web", "web"), tuple(trace.source for trace in deps.searches))
         self.assertEqual(
-            ("evidence_found", "evidence_found"),
+            ("evidence_found", "evidence_found", "evidence_found"),
             tuple(trace.outcome for trace in deps.searches),
         )
-        self.assertEqual({url}, deps.web_leads)
-        self.assertEqual({url: deps.evidence[url]}, deps.opened_web_evidence)
+        self.assertEqual({url, second_url}, deps.web_leads)
+        self.assertEqual({url: deps.evidence[url], second_url: deps.evidence[second_url]}, deps.opened_web_evidence)
         self.assertIn("complete public page", deps.evidence[url].excerpt)
         self.assertEqual("external", deps.evidence[url].trust_level)
 
@@ -843,12 +847,13 @@ class SerendipityAgentTests(unittest.IsolatedAsyncioTestCase):
 
     def test_output_validator_retries_an_unopened_web_lead(self) -> None:
         url = "https://example.com/unopened-lead"
+        second_url = "https://example.com/unopened-second"
         active_task = task(allowed_sources=("web",))
         deps = self.deps(active_task)
         output = proposal(
             shortlist=(
                 candidate("candidate-web-first", 1, evidence_ids=(url,)),
-                candidate("candidate-web-second", 2, evidence_ids=(url,)),
+                candidate("candidate-web-second", 2, evidence_ids=(second_url,)),
             ),
             selected_candidate_id="candidate-web-first",
             policy_flags=("contains_web_claim",),
@@ -910,18 +915,23 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
         source = WebConnectionEvidence(
             evidence_id="https://example.com/essay", title="An essay", excerpt="A bounded public passage.",
         )
+        other = WebConnectionEvidence(
+            evidence_id="https://example.com/second", title="A second essay",
+            excerpt="Another bounded public passage.",
+        )
         output = proposal(
             shortlist=(candidate("candidate-identity", 1, evidence_ids=(source.evidence_id,)),
-                       candidate("candidate-authority", 2, evidence_ids=(source.evidence_id,))),
+                       candidate("candidate-authority", 2, evidence_ids=(other.evidence_id,))),
             policy_flags=("contains_web_claim",),
         )
         active_task = task(allowed_sources=("web",))
         search = (SearchTrace(source="web", operation="get_page", outcome="evidence_found"),)
-        run = ExplorationResult(response=output, evidence=(source,), searches=search)
+        run = ExplorationResult(response=output, evidence=(source, other), searches=search)
         with self.assertRaisesRegex(InvalidConnectionResponse, "not opened"):
             _validate_response(run, active_task)
         opened = ExplorationResult(
-            response=output, evidence=(source,), searches=search, opened_web_evidence=(source,),
+            response=output, evidence=(source, other), searches=search,
+            opened_web_evidence=(source, other),
         )
         self.assertEqual(output, _validate_response(opened, active_task))
         restricted = active_task.model_copy(update={"scope": ConnectionScope(
@@ -930,20 +940,21 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(InvalidConnectionResponse, "trusted grant"):
             _validate_response(opened, restricted)
         altered = ExplorationResult(
-            response=output, evidence=(source.model_copy(update={"excerpt": "A forged passage."}),),
-            searches=search, opened_web_evidence=(source,),
+            response=output, evidence=(source.model_copy(update={"excerpt": "A forged passage."}), other),
+            searches=search, opened_web_evidence=(source, other),
         )
         with self.assertRaisesRegex(InvalidConnectionResponse, "not opened"):
             _validate_response(altered, active_task)
 
     def test_memory_authority_requires_exact_active_account_snapshot(self) -> None:
         source = MemoryConnectionEvidence(evidence_id="memory-1", excerpt="Change felt familiar to me.")
+        other = MemoryConnectionEvidence(evidence_id="memory-2", excerpt="I wrote about changing before.")
         output = proposal(shortlist=(
             candidate("candidate-identity", 1, evidence_ids=(source.evidence_id,)),
-            candidate("candidate-authority", 2, evidence_ids=(source.evidence_id,)),
+            candidate("candidate-authority", 2, evidence_ids=(other.evidence_id,)),
         ))
         run = ExplorationResult(
-            response=output, evidence=(source,),
+            response=output, evidence=(source, other),
             searches=(SearchTrace(source="memory", operation="search_memories", outcome="evidence_found"),),
         )
         active_task = task(allowed_sources=("memory",))
@@ -951,7 +962,15 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
             memory_id=source.evidence_id, text=source.excerpt, kind="original",
             source_memory_ids=(source.evidence_id,), created_at="2026-09-07T00:00:00Z",
         )
-        for records, valid in (((active,), True), ((), False), ((active.model_copy(update={"text": "Changed"}),), False)):
+        active_other = CuratedMemory(
+            memory_id=other.evidence_id, text=other.excerpt, kind="original",
+            source_memory_ids=(other.evidence_id,), created_at="2026-09-07T00:00:00Z",
+        )
+        for records, valid in (
+            ((active, active_other), True),
+            ((), False),
+            ((active.model_copy(update={"text": "Changed"}), active_other), False),
+        ):
             with self.subTest(valid=valid):
                 token = set_active_memories(records)
                 try:

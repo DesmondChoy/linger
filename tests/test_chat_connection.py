@@ -351,6 +351,12 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             text=memory_text, source_event_id="fixture-prior-reflection",
             review_allows_capture=True, contains_sensitive_content=False,
         )).record
+        # A connection compares two prior reflections; one record cannot ground a shortlist.
+        self.service.save_automatic(self.account, AutomaticMemoryCandidate(
+            text="My piano routine used to start before work, then it slipped.",
+            source_event_id="fixture-second-reflection",
+            review_allows_capture=True, contains_sensitive_content=False,
+        ))
         self.service.set_capture_enabled(self.account, False)
         events = []
         policies = []
@@ -374,13 +380,15 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             found = MemorySearchResult.model_validate(returns["search_memories"])
             assert found.outcome == "evidence_found"
             ids = [item.evidence_id for item in found.evidence]
+            assert len(ids) >= 2, "memory-only connection needs two records to compare"
+            primary_ids, secondary_ids = ids[:1], ids[1:2]
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
                 "status": "proposal",
                 "shortlist": [
                     {
                         "candidate_id": "candidate-routine",
                         "tentative_claim": "The routine changed with the move, not with the practice.",
-                        "evidence_ids": ids,
+                        "evidence_ids": primary_ids,
                         "shared_structure": "Both notice a habit reshaped by a change of place.",
                         "meaningful_difference": "One is about the move; today's is about the habit itself.",
                         "interpretation": "The habit may be tracking the move rather than the playing.",
@@ -391,7 +399,7 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
                     {
                         "candidate_id": "candidate-time",
                         "tentative_claim": "The available hours may simply have shifted.",
-                        "evidence_ids": ids,
+                        "evidence_ids": secondary_ids,
                         "shared_structure": "Both describe a routine under pressure.",
                         "meaningful_difference": "This focuses on scheduling rather than place.",
                         "interpretation": "Time pressure could explain the same change.",
@@ -449,7 +457,13 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(response.inspection.release.failure_stage)
         self.assertTrue(policies[0]["allow_connection"])
         self.assertFalse(policies[0]["allow_retrieval"])
-        self.assertIn(saved.memory_id, events[-1].released_evidence_ids)
+        released = events[-1].released_evidence_ids
+        self.assertEqual(1, len(released), "only the selected candidate's record is released")
+        self.assertIn(
+            released[0],
+            {record.memory_id for record in self.service.list_active(self.account)},
+            "the released record must be an active account memory",
+        )
         self.assertNotIn(memory_text, response.model_dump_json())
 
     async def _recall_turn(

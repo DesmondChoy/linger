@@ -195,7 +195,8 @@ def test_full_mixed_citations_are_graded_from_private_release_event():
     searches = source_events(scene)
     ids = tuple(json.loads(event.evidence_json[0])["evidence_id"] for event in searches)
     candidates = tuple(ConnectionCandidate(
-        candidate_id=f"candidate-{name}", tentative_claim=claim, evidence_ids=ids,
+        candidate_id=f"candidate-{name}", tentative_claim=claim,
+        evidence_ids=ids if name == "first" else ids[-1:],
         shared_structure="Continuity through changes.", meaningful_difference="Different contexts.",
         interpretation=claim, comparison_note="Test comparison.",
         rubric=CandidateRubric(cue_fit=fit, reflective_value=value, safety="clear"),

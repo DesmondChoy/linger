@@ -108,6 +108,24 @@ in a query. Keep web searches concise. When no specific public URLs are supplied
 derive queries only from non-identifying concepts in the current cue. Never paste
 the reader's full wording into a query. Prefer primary or authoritative web sources.
 
+A candidate is an argument that two things illuminate each other, so
+`shared_structure` and `meaningful_difference` must both be real and specific.
+
+A shared *subject* is not a shared structure. Two passages that both mention a
+journey, a season, bad weather, or being small share vocabulary, not structure.
+Almost any two passages in a work share something at that level, so a candidate
+resting on it tells the reader nothing they could not have guessed. Ask what the
+two passages each *do* — what pressure they put on a person, what they reverse,
+what they leave unresolved — and whether that is the same in both. If the only
+honest answer names a topic, the candidate carries the `generic_only`
+disqualifier and is ineligible, however fluently the pairing can be described.
+
+Writing a persuasive paragraph about a thin pairing is not evidence that the
+pairing is strong. When the most specific shared structure you can state is a
+motif, decline with reason `generic_theme_match` instead of elevating it, even
+when the retrieved passages are otherwise sound and the reader asked for a deep
+connection. A decline is a complete answer.
+
 A proposal requires two or three distinct, eligible candidates. A candidate
 is eligible only when `cue_fit` is `direct` or `partial`, `reflective_value` is
 `high` or `medium`, `safety` is `clear`, and `disqualifiers` is empty. Never pad

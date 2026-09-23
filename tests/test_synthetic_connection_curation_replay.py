@@ -65,7 +65,7 @@ def _connection_events(scene, memory_id):
             ConnectionCandidate(
                 candidate_id=f"candidate-{index}",
                 tentative_claim=claim,
-                evidence_ids=evidence_ids,
+                evidence_ids=evidence_ids if index == 1 else evidence_ids[-1:],
                 shared_structure="A familiar image appears in different contexts.",
                 meaningful_difference="The sources concern different experiences.",
                 interpretation=claim,
