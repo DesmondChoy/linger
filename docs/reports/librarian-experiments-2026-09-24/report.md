@@ -6,7 +6,7 @@ The work improved retrieval coverage, chapter handling, and several release chec
 
 The main lesson is that finding a relevant passage is only one part of a correct answer. A source can be authentic but insufficient for a claim. A passage can answer the question but lie beyond the reader's demonstrated progress. A valid answer can also be rejected by a malformed or overstrict review.
 
-The [attempt chronology](chronology.md) records what changed in each iteration. The [measurements](measurements.md) give every saved result, recurring failure counts, and reproduction instructions. The [machine-readable aggregate](aggregate.json) includes individual Scene outcomes and hashes of the 403 source JSON files used for the counts.
+The [design history](design-history.md) explains how and why the August proposal evolved into the retained architecture, using designs, Beads, commits, and experiments. The [attempt chronology](chronology.md) records what changed in each iteration. The [measurements](measurements.md) give every saved result, recurring failure counts, and reproduction instructions. The [machine-readable aggregate](aggregate.json) includes individual Scene outcomes and hashes of the 403 source JSON files used for the counts.
 
 ## Evaluation scope
 
