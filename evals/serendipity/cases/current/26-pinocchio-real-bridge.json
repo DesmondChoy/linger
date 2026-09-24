@@ -1,0 +1,93 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-pinocchio-real-bridge-v3",
+  "owner": "serendipity",
+  "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+  "contrast_group": "allegory-specificity",
+  "tier": "regression",
+  "description": "A real bridge on a second book. The Cricket warns that boys who run away from home will be sorry; a chapter later, starving and alone, Pinocchio says the Cricket was right. The shared structure is a warning and its vindication; the difference is that Pinocchio reaches it through hunger, not persuasion.",
+  "input": {
+    "cue": "Pinocchio keeps saying the Talking Cricket was right. What did the Cricket actually say, and why does it land now?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pinocchio-ch4-cricket-warning",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        69,
+        75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will never be happy and will be sorry for it.",
+      "relevance": 0.96
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pinocchio-ch5-cricket-right",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        56,
+        62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Uses both the warning and the later admission",
+        "Names how the admission differs from the warning, not only that they match",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from beyond the permitted chapters"
+      ]
+    },
+    "required_evidence_ids": [
+      "pinocchio-ch4-cricket-warning",
+      "pinocchio-ch5-cricket-right"
+    ]
+  }
+}

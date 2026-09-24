@@ -200,11 +200,22 @@ class SceneSourceSetup(StrictModel):
     """Trusted, bounded sources available to one Scene; never grading labels."""
 
     scene_id: Identifier
-    book_scope: ReaderConfirmedBookScope | None = None
+    book_scopes: tuple[ReaderConfirmedBookScope, ...] = ()
     public_sources: tuple[PublicSourceSnapshot, ...] = Field(default=(), max_length=12)
+    legacy_book_scope: ReaderConfirmedBookScope | None = Field(
+        default=None, alias="book_scope", exclude=True, repr=False,
+    )
 
     @model_validator(mode="after")
     def validate_sources(self) -> Self:
+        # Adopted files retain their original bytes; normalize legacy input once.
+        if "legacy_book_scope" in self.model_fields_set:
+            if "book_scopes" in self.model_fields_set:
+                raise ValueError("source setup cannot contain both book_scope and book_scopes")
+            if self.legacy_book_scope is not None:
+                object.__setattr__(self, "book_scopes", (self.legacy_book_scope,))
+                object.__setattr__(self, "legacy_book_scope", None)
+        _require_unique("book work IDs", tuple(scope.work_id for scope in self.book_scopes))
         _require_unique("public source IDs", tuple(source.source_id for source in self.public_sources))
         _require_unique("public source URLs", tuple(source.url for source in self.public_sources))
         return self
@@ -777,6 +788,27 @@ BookObjectiveExpectation = Annotated[
 ]
 
 
+class BookRetrievalExpectation(StrictModel):
+    """Expected selection among available books, never a runtime permission."""
+
+    search_mode: Literal["targeted", "exploratory"] = "targeted"
+    required_work_ids: tuple[Identifier, ...] = Field(min_length=1)
+    optional_work_ids: tuple[Identifier, ...] = ()
+    forbidden_work_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_selection(self) -> Self:
+        _require_unique("required book work IDs", self.required_work_ids)
+        _require_unique("optional book work IDs", self.optional_work_ids)
+        _require_unique("forbidden book work IDs", self.forbidden_work_ids)
+        required, optional, forbidden = map(set, (
+            self.required_work_ids, self.optional_work_ids, self.forbidden_work_ids,
+        ))
+        if required & optional or (required | optional) & forbidden:
+            raise ValueError("required, optional, and forbidden book work IDs must be disjoint")
+        return self
+
+
 class ConnectionExpectation(StrictModel):
     """Adoptable connection and restraint labels, kept outside runtime inputs."""
 
@@ -788,6 +820,7 @@ class ConnectionExpectation(StrictModel):
         "request_better_evidence", "personal_reflection",
     ], ...] = Field(min_length=1)
     required_public_claims: tuple[Text, ...] = ()
+    book_retrieval: BookRetrievalExpectation | None = None
 
     @model_validator(mode="after")
     def validate_expectation(self) -> Self:
@@ -807,6 +840,7 @@ class ConnectionExpectation(StrictModel):
             raise ValueError("connection proposal requires cited evidence")
         if self.decision == "not_requested" and (
             self.permitted_evidence_ids or self.required_evidence_ids or self.required_public_claims
+            or self.book_retrieval is not None
         ):
             raise ValueError("personal reflection cannot require factual evidence")
         return self

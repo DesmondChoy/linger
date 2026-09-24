@@ -1,0 +1,55 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-no-matching-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "decline_when_no_memory_matches",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "The reader asks about something they have not written about. The stored records share a mood and some vocabulary but none is the reader's earlier statement on the thing asked about, so the honest answer is that nothing matches. A general lesson from an unrelated record is not a recall.",
+  "input": {
+    "cue": "Have I said anything before about how I feel starting a new job?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-first-rehearsal",
+      "excerpt": "I was nervous before the first rehearsal and it turned out everyone else was too.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": [
+      "no_matching_memory"
+    ]
+  }
+}

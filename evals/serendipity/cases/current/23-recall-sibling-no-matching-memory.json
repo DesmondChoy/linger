@@ -1,0 +1,55 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-sibling-no-matching-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "decline_when_no_memory_matches",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "A second vague-echo decline on a different set of memories. The reader asks about their brother. The records are about family dinners, a friend and a novel about sisters, so they sit near the subject without being about it. The honest answer is that nothing matches.",
+  "input": {
+    "cue": "Have I written anything before about my brother?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-family-dinners",
+      "excerpt": "Sunday dinners at my parents' have got louder since everyone started bringing partners.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-friend-abroad",
+      "excerpt": "My oldest friend moved abroad and I keep drafting messages I never send.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-novel-sisters",
+      "excerpt": "Reading about the two sisters in that novel made me think about how differently people grow up in the same house.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": [
+      "no_matching_memory"
+    ]
+  }
+}

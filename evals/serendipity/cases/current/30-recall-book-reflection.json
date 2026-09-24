@@ -1,0 +1,68 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-book-reflection-v3",
+  "owner": "serendipity",
+  "primary_behavior": "recall_the_readers_own_earlier_record",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "The reader asks for their own earlier note about a scene in a book. One record is exactly that; one is about a different scene in the same book; one is about a different book.",
+  "input": {
+    "cue": "What did I write last time about Alice and the Caterpillar?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-alice-caterpillar",
+      "excerpt": "Alice not being able to tell the Caterpillar who she is reminded me of my first week at the new school.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-alice-tea-party",
+      "excerpt": "The Mad Hatter's tea party is the silliest chapter and I loved it.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-animal-farm-ending",
+      "excerpt": "I finished Animal Farm and the ending made me angry for a whole evening.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "recall",
+    "required_evidence_ids": [
+      "memory-alice-caterpillar"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Returns the note about the Caterpillar scene",
+        "Does not interpret what the note says about the reader"
+      ],
+      "forbidden_claims": [
+        "Presents the tea party or Animal Farm notes as being about the Caterpillar"
+      ]
+    },
+    "forbidden_evidence_ids": [
+      "memory-alice-tea-party",
+      "memory-animal-farm-ending"
+    ]
+  }
+}

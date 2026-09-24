@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "ca4ee85743ef42488c7835af37e145e8",
+  "generated_at": "2026-09-22T16:06:31.110283Z",
+  "model": "openai:gpt-5.6-luna",
+  "skill_id": "serendipity.connection-discovery",
+  "prompt_template_id": "serendipity.search-rank-select",
+  "prompt_digest": "00d6db5433cd58d2ca4b38e2110cbf3f264e9447e8e297a49a003383904d7f60",
+  "dataset_digest": "ddc57701c223fbcd6b0c46401e5796e26ea35036f7dd0f2ea61008a710b7d384",
+  "concurrency": 1,
+  "summary": {
+    "case_count": 2,
+    "repeats": 5,
+    "total_runs": 10,
+    "total_passes": 9,
+    "run_pass_rate": 0.9,
+    "cases_pass_pow_k": 1,
+    "cases_unstable": 1,
+    "cases_never_passed": 0,
+    "cases_with_unstable_decision": 1,
+    "suite_pass_pow_k": false
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-recall-matching-memory-v3",
+      "primary_behavior": "recall_the_readers_own_earlier_record",
+      "contrast_group": "memory-match",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "recall"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 3.944,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 4.82470162503887,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.7936636250233278,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.5437588749919087,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.665835792082362,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 3.89351704204455,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-recall-no-matching-memory-v3",
+      "primary_behavior": "decline_when_no_memory_matches",
+      "contrast_group": "memory-match",
+      "repeats": 5,
+      "passes": 4,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "decline",
+        "recall"
+      ],
+      "intermittent_failures": [
+        "expected_decline"
+      ],
+      "mean_latency_seconds": 3.698,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "no_matching_memory",
+          "failures": [],
+          "latency_seconds": 3.448632000014186,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "recall",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 3.684103584033437,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "no_matching_memory",
+          "failures": [],
+          "latency_seconds": 3.7044209589948878,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "no_matching_memory",
+          "failures": [],
+          "latency_seconds": 4.1456951251020655,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "no_matching_memory",
+          "failures": [],
+          "latency_seconds": 3.508895125007257,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    }
+  ]
+}

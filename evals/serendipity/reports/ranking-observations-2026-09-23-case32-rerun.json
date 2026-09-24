@@ -1,0 +1,605 @@
+{
+ "experiment": "serendipity-ranking-observations",
+ "generated_at": "2026-09-23T14:35:48.196259+00:00",
+ "prompt_digest": "00d6db5433cd58d2ca4b38e2110cbf3f264e9447e8e297a49a003383904d7f60",
+ "repeats": 5,
+ "runs": [
+  {
+   "case_id": "serendipity-keller-route-external-web-v3",
+   "repeat": 0,
+   "primary_behavior": "route_external_recommendation_to_web",
+   "contrast_group": "source-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-sullivan-as-apprentice",
+       "tentative_claim": "Anne Sullivan learned to teach Helen partly by studying an earlier deaf-blind teaching case and adapting that inherited method to Helen.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan"
+       ],
+       "shared_structure": "Teaching is treated as an investigative practice: Sullivan first learned from an existing educational model, then used that preparation to develop a method suited to a particular learner rather than applying a fixed lesson plan.",
+       "meaningful_difference": "The source presents Sullivan's learning process as preparation before Helen, while the book's account can show the live, improvised encounter in which that preparation had to be tested and revised.",
+       "interpretation": "A useful outside connection is to view Sullivan not simply as a naturally gifted teacher but as an apprentice to an emerging field of deaf-blind education. Her study of Samuel Gridley Howe's reports on Laura Bridgman suggests that her work with Helen began with borrowed knowledge, but became effective through adaptation to Helen's individual responses. This can deepen the book's account of teaching as observation, experimentation, and adjustment.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly answers how Sullivan learned to teach Helen and connects historical preparation with the book's scene-level account."
+      },
+      {
+       "candidate_id": "candidate-bridgman-precedent",
+       "tentative_claim": "Laura Bridgman's education supplied the institutional and pedagogical precedent from which Sullivan could learn before working with Helen.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both cases involve making language accessible to a deaf-blind learner through deliberate educational mediation rather than relying on ordinary spoken instruction.",
+       "meaningful_difference": "Bridgman's page primarily establishes the earlier precedent and setting, whereas Sullivan's role with Helen involved transferring and adapting that precedent in a new teacher-learner relationship.",
+       "interpretation": "The Laura Bridgman story offers a historical lens: Sullivan's teaching can be understood as part of a chain of experiments in deaf-blind education. That makes Helen's breakthrough less like an isolated miracle and more like the result of accumulated practice being reworked for a new child.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it explains the background tradition rather than describing Sullivan's own learning process as directly as the Anne Sullivan source does."
+      }
+     ],
+     "selected_candidate_id": "candidate-sullivan-as-apprentice",
+     "uncertainty": "medium",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "If you want, I can show this connection alongside the first six chapters without going beyond the permitted reading boundary.",
+     "policy_flags": [
+      "contains_web_claim"
+     ]
+    },
+    "evidence": [
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Title: Anne Sullivan\nURL: https://en.wikipedia.org/wiki/Anne_Sullivan\n\nDescribes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman.",
+      "trust_level": "external"
+     },
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Title: Laura Bridgman\nURL: https://en.wikipedia.org/wiki/Laura_Bridgman\n\nDescribes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution.",
+      "trust_level": "external"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 4,
+    "tool_calls": 3,
+    "latency_seconds": 18.5677963339258,
+    "input_tokens": 13372,
+    "output_tokens": 976
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Offers a relevant outside source on how Sullivan came to teach Helen",
+     "Distinguishes the outside source from Keller's own account"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the outside source settles what Keller experienced"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-route-external-web-v3",
+   "repeat": 1,
+   "primary_behavior": "route_external_recommendation_to_web",
+   "contrast_group": "source-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-inherited-case-study",
+       "tentative_claim": "Anne Sullivan learned to teach Helen partly by studying an earlier deaf-blind learner\u2019s case: before meeting Helen, she studied Samuel Gridley Howe\u2019s reports on Laura Bridgman and had learned the manual alphabet at Perkins.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both the book\u2019s account of Sullivan teaching Helen and this outside history center on teaching as a deliberate search for a usable language system rather than simply delivering information.",
+       "meaningful_difference": "The outside history adds a concrete prehistory: Sullivan was not inventing her approach from nothing, but entering an existing chain of deaf-blind education associated with Bridgman, Howe, and Perkins.",
+       "interpretation": "A useful outside connection is to view Sullivan as both teacher and apprentice. Her work with Helen can be read as an inherited experiment: she carried forward techniques and lessons from an earlier case, then brought that preparation to a new child and situation. That makes her achievement more\u2014not less\u2014remarkable, because learning from precedent still required turning a recorded method into a living relationship.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers how Sullivan learned to teach by identifying a specific predecessor and training context, rather than offering only a general theory of teaching."
+      },
+      {
+       "candidate_id": "candidate-educational-lineage",
+       "tentative_claim": "Helen Keller\u2019s education belonged to a larger educational lineage: Laura Bridgman had earlier been taught language at Perkins, where Sullivan later learned the manual alphabet.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both accounts show a teacher using communication itself as the central problem to solve, with instruction built around making meaning accessible through touch and signs.",
+       "meaningful_difference": "This connection emphasizes institutional continuity and the transmission of practice, whereas the first emphasizes Sullivan\u2019s personal preparation through studying a prior case.",
+       "interpretation": "You could also place Sullivan within a longer history rather than treating her as an isolated genius. The outside account suggests that Helen\u2019s breakthrough was connected to earlier work with Laura Bridgman and to the Perkins Institution\u2019s accumulated knowledge. The emphasis shifts from one teacher\u2019s intuition to a tradition that preserved and transmitted hard-won methods.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful but broader version of the connection: it explains the lineage around Sullivan, but is less direct about what she herself studied and learned before teaching Helen."
+      }
+     ],
+     "selected_candidate_id": "candidate-inherited-case-study",
+     "uncertainty": "medium",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, with the outside sources, in a short paragraph?",
+     "policy_flags": [
+      "contains_web_claim"
+     ]
+    },
+    "evidence": [
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Title: Anne Sullivan\nURL: https://en.wikipedia.org/wiki/Anne_Sullivan\n\nDescribes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman.",
+      "trust_level": "external"
+     },
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Title: Laura Bridgman\nURL: https://en.wikipedia.org/wiki/Laura_Bridgman\n\nDescribes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution.",
+      "trust_level": "external"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 5,
+    "tool_calls": 4,
+    "latency_seconds": 24.514183041988872,
+    "input_tokens": 17492,
+    "output_tokens": 1435
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Offers a relevant outside source on how Sullivan came to teach Helen",
+     "Distinguishes the outside source from Keller's own account"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the outside source settles what Keller experienced"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-route-external-web-v3",
+   "repeat": 2,
+   "primary_behavior": "route_external_recommendation_to_web",
+   "contrast_group": "source-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-laura-bridgman-lineage",
+       "tentative_claim": "A strong outside connection is Laura Bridgman\u2019s education at the Perkins Institution: Sullivan learned there and studied reports on Howe\u2019s work with Bridgman before teaching Helen.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "In both cases, teaching begins by converting touch and manual signs into a communicative system, rather than assuming that a deaf-blind child can be reached through ordinary classroom methods.",
+       "meaningful_difference": "Bridgman\u2019s education is the earlier institutional experiment; Sullivan adapts that inherited knowledge personally and intensively for Helen in a new setting.",
+       "interpretation": "If you want to understand how Sullivan learned, look at Laura Bridgman as her important predecessor. Sullivan was not inventing the whole approach from nothing: she had Perkins training in the manual alphabet and had studied Samuel Gridley Howe\u2019s reports on teaching Bridgman. That makes Helen\u2019s education part of a developing educational lineage, while Sullivan\u2019s achievement was adapting that lineage to Helen\u2019s particular needs.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers the question historically and names a concrete outside subject to explore, rather than offering only a general discussion of teaching."
+      },
+      {
+       "candidate_id": "candidate-perkins-apprenticeship",
+       "tentative_claim": "Another useful connection is Perkins Institution itself as the place where Sullivan acquired the manual alphabet and encountered earlier deaf-blind education.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both Sullivan\u2019s training and Bridgman\u2019s education treat communication as something patiently built through repeated, tangible signs and close observation.",
+       "meaningful_difference": "The Perkins connection emphasizes Sullivan\u2019s preparation and institutional setting, whereas the Bridgman connection emphasizes the earlier pupil and the precedent Sullivan inherited.",
+       "interpretation": "Reading about Perkins would clarify that Sullivan\u2019s teaching drew on specialized training rather than spontaneous inspiration. The institution supplied techniques and an educational tradition; Sullivan then had to turn those techniques into a flexible, one-to-one practice with Helen.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is slightly below the first candidate because the institution explains where Sullivan trained, but Bridgman more directly explains the prior teaching model she studied."
+      }
+     ],
+     "selected_candidate_id": "candidate-laura-bridgman-lineage",
+     "uncertainty": "medium",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, with a brief explanation of Laura Bridgman\u2019s role and Sullivan\u2019s Perkins training?",
+     "policy_flags": [
+      "contains_web_claim"
+     ]
+    },
+    "evidence": [
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Title: Anne Sullivan\nURL: https://en.wikipedia.org/wiki/Anne_Sullivan\n\nDescribes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman.",
+      "trust_level": "external"
+     },
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Title: Laura Bridgman\nURL: https://en.wikipedia.org/wiki/Laura_Bridgman\n\nDescribes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution.",
+      "trust_level": "external"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 6,
+    "tool_calls": 4,
+    "latency_seconds": 24.866860707988963,
+    "input_tokens": 20696,
+    "output_tokens": 1149
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Offers a relevant outside source on how Sullivan came to teach Helen",
+     "Distinguishes the outside source from Keller's own account"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the outside source settles what Keller experienced"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-route-external-web-v3",
+   "repeat": 3,
+   "primary_behavior": "route_external_recommendation_to_web",
+   "contrast_group": "source-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-sullivan-as-student",
+       "tentative_claim": "Anne Sullivan did not begin with a ready-made method: she drew on Perkins training and Samuel Gridley Howe's reports about Laura Bridgman before teaching Helen Keller.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both accounts show teaching as an adaptive practice built by studying an earlier learner's case, then translating that knowledge into a new relationship.",
+       "meaningful_difference": "Laura Bridgman's education is the earlier institutional precedent, while Sullivan's work with Helen required her to turn inherited ideas into day-to-day experimentation with a particular child.",
+       "interpretation": "A useful outside connection is to see Anne Sullivan not simply as a naturally gifted teacher, but as a learner who researched a precedent, absorbed techniques, and then revised them in practice. The Laura Bridgman story makes Sullivan's teaching look less like a sudden breakthrough and more like a chain of accumulated experiments passed from one difficult case to another.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly answers how Sullivan learned to teach Helen by identifying both her preparation and the earlier model she studied."
+      },
+      {
+       "candidate_id": "candidate-perkins-lineage",
+       "tentative_claim": "The Perkins Institution links Sullivan's own education, Laura Bridgman's instruction, and Sullivan's later work with Helen Keller into a lineage of deaf-blind education.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "In both accounts, communication is developed through sustained, structured teaching rather than assumed to appear spontaneously.",
+       "meaningful_difference": "This is a broader institutional-history lens: it explains the educational environment that shaped Sullivan, but it says less about the specific decisions she made while teaching Helen.",
+       "interpretation": "You could also approach Sullivan through the history of Perkins: she was formed within an emerging educational tradition, and Helen's instruction extended that tradition. This connection is useful for understanding the social and institutional sources of her skill, though it is less specific than the Sullivan-as-student interpretation.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks below the first because it supplies context about the institution and tradition, but does not explain Sullivan's learning process as directly."
+      }
+     ],
+     "selected_candidate_id": "candidate-sullivan-as-student",
+     "uncertainty": "medium",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short historical note, or look for a more detailed public biography or primary source about Sullivan and Bridgman?",
+     "policy_flags": [
+      "contains_web_claim"
+     ]
+    },
+    "evidence": [
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Title: Anne Sullivan\nURL: https://en.wikipedia.org/wiki/Anne_Sullivan\n\nDescribes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman.",
+      "trust_level": "external"
+     },
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Title: Laura Bridgman\nURL: https://en.wikipedia.org/wiki/Laura_Bridgman\n\nDescribes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution.",
+      "trust_level": "external"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 3,
+    "tool_calls": 3,
+    "latency_seconds": 20.196021000039764,
+    "input_tokens": 9916,
+    "output_tokens": 1003
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Offers a relevant outside source on how Sullivan came to teach Helen",
+     "Distinguishes the outside source from Keller's own account"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the outside source settles what Keller experienced"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-route-external-web-v3",
+   "repeat": 4,
+   "primary_behavior": "route_external_recommendation_to_web",
+   "contrast_group": "source-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-bridgman-as-model",
+       "tentative_claim": "Anne Sullivan\u2019s preparation was partly an act of studying an earlier deaf-blind pupil\u2019s education: before meeting Helen, she read Samuel Gridley Howe\u2019s reports on Laura Bridgman, who had been taught at Perkins.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan",
+        "https://en.wikipedia.org/wiki/Laura_Bridgman"
+       ],
+       "shared_structure": "Both accounts frame teaching as learned, deliberate work: Anne did not rely only on goodwill or intuition, but sought an existing case and adapted an earlier educational approach to a new child.",
+       "meaningful_difference": "Laura Bridgman\u2019s education is the prior model being studied, while Helen Keller\u2019s case required Anne to turn that inherited model into a living, highly individualized practice.",
+       "interpretation": "A useful outside-book connection is Laura Bridgman\u2019s story. Anne Sullivan learned partly by examining how Samuel Gridley Howe had taught Bridgman, the earlier deaf-blind pupil at Perkins. That makes Anne\u2019s achievement look less like a sudden gift and more like a chain of experimentation passed from one teacher and pupil to the next\u2014though Anne still had to reinvent the method for Helen.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers the specific question of how Anne learned to teach Helen and supplies a concrete predecessor, not merely a general fact about her training."
+      },
+      {
+       "candidate_id": "candidate-perkins-apprenticeship",
+       "tentative_claim": "Anne\u2019s training at the Perkins Institution gave her practical preparation in the manual alphabet before she went to teach Helen.",
+       "evidence_ids": [
+        "https://en.wikipedia.org/wiki/Anne_Sullivan"
+       ],
+       "shared_structure": "Both Anne\u2019s preparation and her work with Helen involve translating communication into a form a deaf-blind learner can access, through sustained, hands-on instruction.",
+       "meaningful_difference": "The Perkins training is institutional preparation in a technique, whereas the Bridgman connection explains the intellectual and historical source of the teaching approach Anne brought to Helen.",
+       "interpretation": "Another possible connection is Anne\u2019s time at Perkins, where she learned the manual alphabet. This highlights the hands-on technical foundation of her teaching: she arrived with a communication tool and an educational setting behind her, even though using it successfully with Helen remained a new challenge.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is useful but ranks below the Laura Bridgman connection: it explains what Anne learned, while the first candidate more fully explains where her teaching ideas came from and how she adapted them."
+      }
+     ],
+     "selected_candidate_id": "candidate-bridgman-as-model",
+     "uncertainty": "medium",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection, with a brief explanation of Laura Bridgman\u2019s role in Anne Sullivan\u2019s preparation?",
+     "policy_flags": [
+      "contains_web_claim"
+     ]
+    },
+    "evidence": [
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anne_Sullivan",
+      "title": "Anne Sullivan",
+      "excerpt": "Title: Anne Sullivan\nURL: https://en.wikipedia.org/wiki/Anne_Sullivan\n\nDescribes Anne Sullivan's years at the Perkins Institution, where she learned the manual alphabet, and how before going to Tuscumbia she studied Samuel Gridley Howe's reports on teaching Laura Bridgman.",
+      "trust_level": "external"
+     },
+     {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Laura_Bridgman",
+      "title": "Laura Bridgman",
+      "excerpt": "Title: Laura Bridgman\nURL: https://en.wikipedia.org/wiki/Laura_Bridgman\n\nDescribes Laura Bridgman, the first deaf-blind American child to be educated in language, taught at the Perkins Institution.",
+      "trust_level": "external"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "web_search",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "get_page",
+      "source": "web",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 4,
+    "tool_calls": 3,
+    "latency_seconds": 19.979515042039566,
+    "input_tokens": 13404,
+    "output_tokens": 1188
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Offers a relevant outside source on how Sullivan came to teach Helen",
+     "Distinguishes the outside source from Keller's own account"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims the outside source settles what Keller experienced"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  }
+ ]
+}

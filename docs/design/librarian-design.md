@@ -1,12 +1,16 @@
-# Librarian Subsystem Design
+# Librarian subsystem design
 
 Status: **Five registered corpora with bounded chapter, reading-unit, and exact-passage retrieval**
+
+Implementation checked against `da95b3a` on September 24, 2026. Historical
+measurements below retain their original dates and scope; they are not a new
+evaluation of this revision.
 
 This document defines the retrieval-neutral book corpus and the typed boundary
 of the Librarian implementation. It elaborates on the Librarian
 responsibilities and safeguards in [`../specification.md`](../specification.md).
 
-### Implementation scope
+## Implementation scope
 
 The runtime registry and default access list contain Alice, Animal Farm,
 Pinocchio, Frederick Douglass's Narrative, and The Story of My Life. Routing
@@ -30,7 +34,7 @@ filters candidates before Muse receives final evidence. The live 12-case
 Librarian → Muse → Provenance release evaluation then reached 91.7% final
 evidence recall, 100% citation precision, and zero spoiler exposure.
 
-### Agent and assigned skills
+## Agent and assigned skills
 
 The Librarian subsystem contains one reusable production PydanticAI object,
 `librarian_agent`. Its explicit assignment in
@@ -79,11 +83,11 @@ Librarian evidence-strength decision.
 
 Librarian may:
 
-- privately search a complete authorised work to locate reader-known events;
+- privately search all numbered chapters in an authorised work's main part to locate reader-known events;
 - propose a request-scoped candidate ceiling with confidence and supporting locations;
 - inspect compact metadata for chapters inside the current request's boundary;
-- choose and read relevant canonical chapter files;
-- use later keyword, semantic, or hybrid indexes when available;
+- receive canonical passages selected by application retrieval;
+- use the implemented keyword, semantic, and hybrid retrieval services;
 - judge whether the retrieved evidence is sufficient, weak, or absent; and
 - return exact source evidence and resolvable locations to Muse.
 
@@ -145,7 +149,10 @@ Explicit completion for the selected book in this request?
                  Private boundary inference                       │
                  (current Line + earlier reader statements        │
                   + eligible account memories                     │
-                  + full-work candidates)                         │
+                  + main-part numbered-chapter candidates)        │
+                           ↓                                      │
+                 Independent current-event check                  │
+                 (chapter candidates only)                        │
                            ↓                                      │
                  Application validates chapter or passage grant   │
                     ├─ uncertain → Exact boundary clarification    │
@@ -153,11 +160,13 @@ Explicit completion for the selected book in this request?
                                                                   ↓
                                                   Eligible catalogue only
                                                                   ↓
-                                                  Bounded evidence search
+                                                  Plan focused needs + original-text fallback
+                                                                  ↓
+                                                  Bounded private candidate search (up to 20)
                                                                   ↓
                                                   Rerank candidate evidence
                                                                   ↓
-                                                  Judge evidence strength
+                                                  Resolve canonical passages, then assess support
                                                                   ↓
                                                   Typed result to Muse
 ```
@@ -177,8 +186,8 @@ truth, and non-selected indexes need not remain in the production path.
 | Book registry | Stores human-reviewed titles, IDs, authors, and classified aliases; deterministic code checks collisions and resolves names |
 | Muse | Judges when a request depends on a book, calls `librarian_route`, responds to clarification outcomes, and drafts replies using granted evidence |
 | Application boundary | Supplies the original reader message and access scope, resolves identity, validates chapter or exact-passage scope, and enforces reply release |
-| Librarian agent | Runs the selected boundary-inference or evidence-assessment skill on one reusable Agent object |
-| Retrieval and reranker services | Search and order only candidates already inside the validated scope; they are not model tools granted to Librarian |
+| Librarian agent | Runs one of four assigned skills: boundary inference, independent event identification, request planning, or evidence assessment |
+| Retrieval and reranker services | Localize events privately in main-part numbered chapters, or search inside a granted answer scope; they are not model tools granted to Librarian |
 | Sculptor | Has implemented curation and offline surfacing skills. Semantic corpus-metadata proposals remain an unimplemented target; deterministic tooling builds the catalogue |
 | Provenance | Runs safety preflight and reviews Muse's draft; cannot grant retrieval access or release a reply itself |
 | Serendipity | Proposes connections; has no book-registration or identity-resolution responsibility |
@@ -333,6 +342,13 @@ substituted section file; registered section corpora support part-aware chapter
 ceilings and exact unit selectors. Preparing a new corpus still requires
 deliberate registration before it can supply chat evidence.
 
+Section order is not literary chapter order. Douglass's preface, Phillips
+letter, and biography precede Chapter 1, so `sec04` is Chapter 1 and `sec10`
+is Chapter 7. Keller's dedication and editor's preface precede Part I, so
+`sec003` is Chapter 1 and `sec012` is Chapter 10. The reviewed `unit_locations`
+mapping preserves part and chapter identity; letters and supplementary parts
+do not inherit chapter numbers from section ordinals.
+
 After initial creation, routing metadata may be edited in the canonical chapter
 files and the catalogue rebuilt. The integrity check still requires every
 chapter body and deterministic provenance field to match the immutable source.
@@ -372,9 +388,10 @@ chapter bodies for BM25, semantic, and hybrid search. Every index must:
   and its chunking, embedding, and ranking versions; and
 - apply the request boundary before forbidden text reaches a model or reranker.
 
-The benchmark starts with 450-token paragraph windows and 75-token overlap,
-always contained within one chapter. These are derived-index defaults, not part
-of the canonical chapter format, and are tuned during comparison.
+The benchmark and production hybrid use a 350-word target and 60-word overlap,
+contained within one canonical chapter or section. Whole paragraphs can make
+windows exceed the target. These are word counts, not tokenizer limits. The
+reranker separately fits query/passage pairs to its actual token budget.
 
 ### 3.8 Offline input and output contract
 
@@ -419,7 +436,8 @@ A structural or integrity failure returns no ready corpus:
 
 ### 4.1 Book identity and contextual routing
 
-Muse decides whether the reader's own words carry a book cue and, only then,
+Muse decides whether the requested answer needs a book fact, quotation,
+interpretation, an indirect book follow-up, or reading resumption, and then
 calls the argument-less
 `librarian_route` tool; the application supplies the exact current reader
 message from a turn-scoped context variable, so Muse cannot substitute its own
@@ -473,25 +491,33 @@ work — `resolved_book_identity`, `distinctive_cue`, or `session_selection`.
 
 ### 4.2 Input and output contracts
 
-The boundary phase runs exactly when `librarian_route` matched a work; an
-explicit reader-confirmed ceiling is authoritative and terminal for the
-request and never enters this phase. Once a work is routed, application code
-hands off to the private boundary phase. It receives the current Line,
+A routed main-part work without explicit confirmed permission enters private
+boundary inference. Confirmed permission bypasses inference; a selected
+non-main part without explicit permission asks for part/chapter or named-unit
+clarification. The private boundary phase receives the current Line,
 a bounded set of strongly routed account-scoped memories, original earlier
-reader statements from the same session, and full-work retrieval candidates.
+reader statements from the same session, and private main-part candidates.
+Current inference searches numbered chapters in `part_id: main`; it does not
+localize Keller's letters or supplementary parts, or unnumbered front matter.
+Those units require an explicit part or unit scope for answer retrieval.
 The book-request skill plans focused reading-progress locators. The application
 searches each locator, the original Line, and earlier reader statements before
 searching the selected memories. If every reader-context search is empty, the
 application returns `insufficient_context` before memory searches or boundary
-judgment. Planning failure falls back to the original reader text. Each search
-returns at most five records. Application code interleaves results by rank and
+judgment. Planning failure falls back to the original reader text. Each signal
+is split into chunks of at most 2,000 characters. The default hybrid
+`retrieve_for_judgement` retains up to 20 records per chunk, even though the
+low-level boundary request carries `max_results: 5` for the base retriever.
+Application code interleaves results by rank and
 deduplicates evidence IDs under one 20-record private candidate limit. This
-prevents current-question matches from crowding out memory anchors. The searches remain private and grant no reading
+gives each search stream a chance to contribute before the shared cap. The
+searches remain private and grant no reading
 permission. Search errors or conflicting text for one ID fail closed.
 With earlier reader statements, candidates are narrowed to canonical paragraphs
 and the phase can grant exact passages without a completed chapter. See
 [Session-supported exact passages](session-passage-design.md). The chapter
-inference example below omits earlier reader statements:
+inference input excerpt below omits earlier reader statements. It illustrates
+localization input, not sufficient proof for a chapter grant:
 
 ```json
 {
@@ -540,7 +566,8 @@ Before accepting an otherwise valid chapter candidate, the application runs
 `identify_reader_event` with the original reader wording and private canonical
 candidates. This run receives no memories, proposed chapter, or first decision.
 Its selected stopping occurrence must agree with the candidate's chapter and
-overlap its canonical source range. Unresolved identification, disagreement,
+overlap a selected canonical source range in that chapter, with matching work,
+revision, unit ID, and source hash. Unresolved identification, disagreement,
 invalid output, or execution failure grants nothing. This check does not apply
 to the separate session-supported passage path.
 
@@ -597,9 +624,14 @@ overridden by evaluated configuration, but no agent may lower them or enlarge sc
 
 ### 4.3 Boundary enforcement and clarification
 
-Boundary inference and evidence retrieval are separate calls:
+Boundary inference and answer-evidence retrieval are separate calls. Without
+earlier reader statements, the application selects the chapter-only boundary
+output contract. With those statements, the same boundary skill can also
+propose exact passages; that branch uses its own statement and paragraph checks.
 
-1. The inference search may inspect the complete immutable work, but its
+The chapter path is:
+
+1. The inference search may inspect all numbered main-part chapters, but its
    passages remain private and never enter the turn evidence ledger.
 2. Librarian assesses every supplied memory against canonical candidates, then
    declares a consistent `memory_supported` or `line_only` basis and selects
@@ -607,17 +639,19 @@ Boundary inference and evidence retrieval are separate calls:
 3. Application code derives the ceiling from those trusted records and rejects
    invented memory or evidence IDs, a mismatched work or revision, an invalid
    basis, and inconsistent chapters.
-4. Line-only curiosity, confidence below `0.75`, or any ambiguity yields an exact clarification; the
+4. Line-only curiosity, confidence below `0.75`, or unresolved ambiguity yields a clarification; the
    release validator rejects a book answer or tool call in its place.
-5. A validated candidate enables a new search whose scope is clamped to the
+5. Independent event identification must confirm the proposed stopping occurrence.
+6. A validated candidate enables a new search whose scope is clamped to the
    inferred ceiling. No boundary is persisted to later requests.
 
 At chapter granularity:
 
 - Chapter 5 `completed` permits Chapters 1 through 5.
 - Chapter 5 `started` permits Chapters 1 through 4.
-- Missing, conflicting, or ambiguous state returns a clarification without
-  opening the catalogue or running retrieval.
+- A grounding request without a validated grant returns clarification before
+  answer-evidence retrieval. A prior routing call may already have searched
+  privately to try to establish that grant.
 
 During the second phase, post-boundary catalogue entries and chapter bodies
 must not reach the evidence judge, Muse, a bounded index, a reranker, or any
@@ -643,7 +677,8 @@ result:
 ```
 
 A clarification contains no evidence, retrieval score, or evidence-strength
-label because no search occurred. Muse presents the focused question and sends
+label because no answer evidence is released. Private localization may already
+have searched before the application asks for clarification. Muse presents the focused question and sends
 the answer through the same trusted boundary validator.
 
 General partial-current-chapter ceilings remain unsupported. Exact canonical
@@ -701,7 +736,11 @@ passage its maximum window score. The evidence text and source range remain
 unchanged. Scope filtering happens before retrieval and judgment.
 
 The caller's release limit is separate from this private budget and is supplied
-as `max_evidence_records`. The judge assesses the original request alongside
+as `max_evidence_records`. Muse clamps `max_final_evidence` to 1–5. Serendipity
+clamps `max_results_per_source` to 1–5 for the selected book search. It can
+select an allowed `work_ids` subset and must do so when multiple books are
+available; the final record budget is shared across that search, not multiplied
+by the number of books. The judge assesses the original request alongside
 the plan, including omitted needs. An oversized or invalid selection fails
 closed instead of silently truncating the evidence behind its verdict.
 
@@ -735,8 +774,8 @@ These are separate decisions:
 
 | Stage | Owner | Question answered | Output |
 |---|---|---|---|
-| Retrieval threshold | Retrieval tool | Is this candidate similar enough to keep? | Candidate kept or removed |
-| Reranking | Reranker tool called by Librarian | Which individual candidate best matches this query? | Ordered candidate list |
+| Public retrieval threshold | Application retrieval service | Does this candidate clear the public cutoff? | Candidate kept or removed; private judged retrieval bypasses this cutoff |
+| Reranking | Application reranker service | Which individual candidate best matches this query? | Ordered candidate list |
 | Evidence-strength decision | Librarian agent | Can the eligible evidence set actually answer Muse's request? | `sufficient`, `weak`, or `none` |
 
 A high retrieval or reranker score does not prove that the passage answers the
@@ -758,12 +797,14 @@ candidate passages or expanded search query. Each part contains exact
 `context_spans`, `purpose`, and exact `reader_spans`, with no free-form rewritten
 question. Context retains the book, scene, or speaker needed to resolve a
 question's pronouns, including a locator from the preceding reading report.
-It is empty only for a self-contained question and creates no extra answer
-requirements. Retrieval joins this context before the requested wording.
-The skill selects
-the shortest exact fragments naming the requested book content and excludes
-personal experiences, other sources, and progress-only statements. Application
-code checks that those spans are nonempty and occur in the supplied reader text.
+Context can be empty for a self-contained question or title-free thematic
+discovery and creates no extra answer requirements. Retrieval joins context
+before the requested wording. For named-book questions the skill selects short
+book locators, excluding unrelated personal asides. For an explicit request to
+find an unnamed book connection, it can retain the reader's action, relationship,
+or tension as the discovery cue. `search_target: reading_progress` instead
+selects progress locators. Application code validates the nonempty reader spans,
+any supplied context spans, and the purpose against the original input.
 
 `BookRequestSpanValidation` checks the plan before the Agent run completes.
 Invalid spans receive their field locations and repair guidance within the
@@ -779,11 +820,14 @@ comparison. An `answer` addresses an explicit book question, claim check, or
 quotation request, even when the answer is used in reflection. Its instructions
 require the smallest set supporting that purpose. Another record is warranted
 only when removing it would leave a requested part unsupported. A quotation can require several records; a personal
-reflection does not by itself require more book passages. The assessment must
-not add requested parts to justify available evidence.
+reflection does not by itself require more book passages. The assessment may
+recover omitted original needs in `additional_parts`, anchored to exact reader
+spans. It must not invent needs to justify available evidence. Recovering a need
+at this stage does not trigger another retrieval pass.
 
 `BookEvidenceAssessment.support` maps every selected record to an existing
-`part_index` and explains its `necessary_support`. Deterministic checks require
+`part_index` across the plan and recovered parts, and explains its
+`necessary_support`. Deterministic checks require
 unique mappings, valid selected IDs, and coverage of every part for a
 `sufficient` verdict. Selection must also fit `max_evidence_records`. Application
 code returns the existing `EvidenceStrengthDecision` fields to either caller.
@@ -838,24 +882,21 @@ clarification. A sufficient result looks like:
       "book_version_id": "pg11-v01b38ea4",
       "chapter_id": "pg11-v01b38ea4-ch05",
       "chapter_number": 5,
-      "chapter_title": "Advice from a Caterpillar",
+      "location": "Chapter 5 — Advice from a Caterpillar, source lines 974-981",
       "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
       "source_lines": [974, 981],
-      "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”\n\n“I don’t see,” said the Caterpillar.\n\n“I’m afraid I can’t put it more clearly,” Alice replied very politely,\n“for I can’t understand it myself to begin with; and being so many\ndifferent sizes in a day is very confusing.”",
-      "retrieval": {
-        "methods": ["keyword", "semantic"],
-        "keyword_rank": 2,
-        "semantic_score": 0.82,
-        "reranker_rank": 1,
-        "reranker_score": 0.91
-      }
+      "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”\n\n“I don’t see,” said the Caterpillar.\n\n“I’m afraid I can’t put it more clearly,” Alice replied very politely,\n“for I can’t understand it myself to begin with; and being so many\ndifferent sizes in a day is very confusing.”"
     }
   ],
   "limitations": []
 }
 ```
 
-For weak evidence, the same evidence details are present:
+`EvidenceRecord` carries canonical identity, location, hash, lines, and text.
+It does not include `chapter_title` or retrieval scores in the public contract.
+Internal candidates retain ranking diagnostics. For weak evidence, the same
+required evidence fields are present. This abbreviated example omits identity
+and hash fields for readability and is not a complete serialized result:
 
 ```json
 {
@@ -904,7 +945,7 @@ The response is a discriminated union:
 
 ```text
 LibrarianResponse
-├── ClarificationRequest   kind = clarification; retrieval did not run
+├── ClarificationRequest   kind = clarification; no answer evidence is released
 ├── RetrievalResult       kind = result; completed with sufficient/weak/none
 └── RetrievalFailure      kind = failure; system could not complete safely
 ```
@@ -916,10 +957,13 @@ ordinary `no_evidence`.
 ### 4.8 Failure behaviour
 
 Retrieval fails closed when the boundary or evidence location cannot be
-validated. Once a production strategy is selected, search or reranking failures
-may degrade to direct chapter reads only when those reads remain inside the same
-validated scope. The failure response includes a stable error code and
-retryability flag, but no unvalidated excerpt.
+validated. The current grounding path returns `retrieval_unavailable` for
+retrieval failures and `evidence_judgement_unavailable` for assessment failures.
+It does not automatically fall back to direct chapter reads or retry the whole
+retrieval. Serendipity returns an unavailable internal search result on failure.
+Planning alone has an original-text fallback. The grounding failure includes a
+stable error code and retryability flag, but no unvalidated excerpt; retryability
+does not schedule a retry.
 
 ### 4.9 Online verification
 
@@ -948,7 +992,7 @@ Muse switches on `kind` before it drafts anything:
 | `result` + `sufficient` | Draft an evidence-grounded candidate and cite only returned evidence IDs |
 | `result` + `weak` | Include the returned evidence context, clearly state the limitation, and avoid unsupported conclusions |
 | `result` + `none` | Say the eligible material did not provide support; never imply later chapters were searched |
-| `failure` | Produce no evidence-based draft; orchestration chooses retry or an application-authored safe message |
+| `failure` | No evidence is supplied; handle unavailable retrieval safely. The retryable flag does not automatically rerun the search |
 
 A Librarian result is evidence for Muse, not permission to display a response:
 
@@ -957,7 +1001,9 @@ Librarian evidence bundle
       ↓
 Muse drafts typed candidate response
       ↓
-Provenance reviews complete response and cited evidence
+Provenance reviews complete response, claim coverage, source contributions,
+and quotation attribution
+      ├─ revise → one Muse revision → another Provenance review
       ↓
 Application validates exact quotations, source locations,
 account scope, and request-scoped spoiler boundary
@@ -969,33 +1015,60 @@ Muse should distinguish direct evidence from interpretation and state when the
 eligible material is weak or silent. Provenance independently determines
 whether the resulting response is supported and spoiler-safe.
 
-## 6. Initial configuration
+## 6. Current configuration
 
-The canonical corpus has no retrieval tuning configuration. The required
-retrieval benchmark begins with inexpensive, overrideable defaults:
+The canonical corpus has no retrieval tuning fields. These are application
+retrieval defaults, not measurements of normal performance:
 
 ```yaml
 derived_windows:
-  target_tokens: 450
-  overlap_tokens: 75
-  cross_chapter: false
+  target_words: 350
+  overlap_words: 60
+  cross_unit: false
 
-retrieval:
+public_retrieve:
   keyword_candidates: 10
   semantic_candidates: 10
   semantic_score_threshold: 0.5
-  max_reranker_candidates: 15
+  max_fused_candidates: 15
   reranker_score_threshold: 0.5
-  max_final_evidence: 5
+
+judged_retrieval:
+  keyword_candidates: 10
+  semantic_candidates: 10
+  public_score_cutoffs_applied: false
+  max_private_candidates_per_query: 20
+  max_merged_candidates: 20
+  max_query_characters: 2000
+  max_distinct_queries: 16
+
+production_final_selection:
+  default_records: 5
+  maximum_records: 5
+
+private_boundary:
+  part_id: main
+  numbered_chapters_only: true
+  max_memories: 8
+  max_merged_candidates: 20
+  confidence_threshold: 0.75
 ```
 
-The two `0.5` thresholds are starting values, not evidence strength. Candidate
-counts, latency, cost, models, and thresholds must be tuned with the Alice eval
-set. Direct bounded chapter reads remain the no-index baseline.
+The semantic search bypass uses cosine floor `-1.0`; the private path applies
+no reranker cutoff. Public `retrieve` retains the configured cutoffs. Final
+production selection is judged and capped by each tool adapter. The shared
+`RetrievalOptions` schema permits up to ten records, but Muse's production
+adapter clamps its argument to five. Reranker window lengths come from the
+encoder tokenizer's actual pair budget, not these paragraph-window word counts.
 
-## 7. Implementation sequence
+## 7. Implementation history and saved measurements
 
-### 7.1 Initial product path
+The milestones and measurements in this section are historical. They do not
+establish that all current native scenarios pass or that new runtime paths have
+been benchmarked. Current code is the authority for behavior; Beads tracks
+remaining work.
+
+### 7.1 Initial product milestones
 
 | Order | Slice | Status | Deliverable | Beads |
 |---:|---|---|---|---|
@@ -1006,10 +1079,9 @@ set. Direct bounded chapter reads remain the no-index baseline.
 | 4 | Retrieval benchmark and selection | Complete | Five versioned configurations compared; reranked hybrid selected and implemented | `linger-ibq.5` |
 | 5 | End-to-end validation | Complete | Selected strategy, spoiler suppression, evidence resolution, failures, safe degradation, live strength judgement, and Muse/Provenance release measured against the full versioned set | `linger-ibq.4` |
 
-Slices 3A and 3B may proceed in parallel after the shared contract and boundary
-slice is complete. Slice 4 can run after the direct-read control exists while
-Muse integration proceeds independently. The epic closes only after Slice 5
-passes with the selected retrieval strategy.
+These initial milestone statuses describe the original implementation scope.
+They are not a claim that every later multi-book, ambiguity, and source-mapping
+evaluation passes.
 
 ### 7.2 Separate memory implementation
 
@@ -1047,7 +1119,7 @@ keys, superseded versions, and direct mutation authority.
 Migrating the Memory & Policy Service to this schema is tracked by `linger-4sp`;
 it can proceed independently and does not block the initial Librarian path.
 
-### 7.3 Required retrieval benchmark and selection
+### 7.3 Implemented benchmark selection
 
 1. Version an Alice query set covering names, exact quotations, events,
    paraphrases, themes, weak or absent evidence, and boundary failures.
@@ -1062,10 +1134,11 @@ it can proceed independently and does not block the initial Librarian path.
 4. Measure retrieval recall, citation precision, p95 latency, token use, and
    monetary cost with versioned configurations. Measure the model's
    evidence-strength decisions in live release validation.
-5. Select the configuration with the strongest evidence quality. When results
-   fall within a predeclared quality-equivalence margin, prefer lower p95
-   latency, then lower token use and monetary cost. Report every metric rather
-   than hiding trade-offs in one blended score.
+5. Among strategies that pass safety and citation-resolution checks, compute
+   `quality_score = (2 × recall + precision) / 3`. Treat scores within `0.02`
+   of the best as equivalent, then prefer lower p95 latency, fewer evidence
+   words, and lower local monetary cost. Preserve each individual metric in
+   the report. Evidence words are not provider token usage.
 
 ### 7.4 Measured selection
 
@@ -1100,9 +1173,9 @@ search share the judged hybrid operation described in Section 4.4. The
 historical grounding results do not measure broader connection quality, which
 Serendipity evaluates separately.
 
-### 7.5 Live end-to-end validation
+### 7.5 Historical live end-to-end validation
 
-The complete frozen 12-case set was run through the reader-confirmed
+On August 17, 2026, the then-frozen 12-case set was run through the reader-confirmed
 application boundary, selected hybrid retriever, configured Librarian strength
 judge, Muse, Provenance, and deterministic release validation with
 `openai:gpt-5.6-luna`. The report is versioned at
@@ -1118,12 +1191,12 @@ judge, Muse, Provenance, and deterministic release validation with
 | Exact citation resolution | 100% | 100% | Pass |
 | End-to-end latency | 13.7 s mean; 27.9 s p95 | budget TBD | Measured |
 
-Muse passes the reader's book question to Librarian without paraphrasing. A
-bounded output-only retry repairs citation-copy metadata before Provenance;
-deterministic validation still fails closed if an evidence ID, location, or
-visible exact quote does not resolve. The configured provider did not expose
-token usage through the current SDK result, so token and monetary cost remain
-unreported rather than being estimated.
+The current tool binds the original reader message and then plans focused
+queries as described in Section 4.4; the historical report predates that path.
+The saved report records unavailable usage, not zero usage. Current
+`live_validation._usage` reads recorded agent-exchange usage or the SDK usage
+property, so the old report does not establish a current provider limitation.
+No new provider evaluation was performed for this documentation update.
 
 ## 8. Decisions and open questions
 
@@ -1141,21 +1214,21 @@ unreported rather than being estimated.
 | Retrieval strategy selection | Reranked hybrid won the mandatory five-way comparison |
 | Reading progress | Not persisted; boundary is inferred or clarified per request |
 | Metadata as evidence | No; only canonical chapter or section bodies are authoritative |
-| Ambiguous boundary | Typed clarification; retrieval does not run |
+| Ambiguous boundary | Typed clarification after optional private localization; no answer-evidence search is authorized |
 | Completed retrieval | Typed result with sufficient, weak, or none strength |
 | Weak result | Includes exact evidence details plus limitations |
 | Corpus identity | Stable work ID plus immutable source-revision ID |
 | Evidence identity | Book version + chapter + canonical source lines |
-| Initial derived windows | 350 words (approximately 450 tokens) with 60-word overlap (approximately 75 tokens), never crossing chapters |
+| Derived windows | 350-word target with 60-word overlap; whole paragraphs stay inside a canonical unit |
 | Initial thresholds | Public search uses 0.5 semantic and reranker cutoffs; private judgment retains its bounded candidate pool below those cutoffs |
-| Candidate limits | 10 keyword + 10 semantic, at most 15 reranked, at most 5 returned |
+| Candidate limits | Public retrieval fuses at most 15; judged retrieval scores and retains up to 20 per query and 20 merged. Production tools return at most 5 selected records |
 | Selected local models | `BAAI/bge-small-en-v1.5` embedding + `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder |
-| Hybrid fusion | Reciprocal-rank fusion with `k = 60`, followed by 50% source-range overlap deduplication |
-| Live release quality | 91.7% evidence recall, 100% citation precision, 91.7% strength accuracy, and zero spoiler exposure on the complete 12-case set |
+| Hybrid fusion | RRF with `k = 60`; public shortlist uses 50% overlap deduplication. Private selection interleaves lexical, fused, semantic, and reranked streams and deduplicates by ID |
+| Historical release quality | August 17 report: 91.7% recall, 100% precision, 91.7% strength accuracy, zero measured spoiler exposure on 12 Alice cases; not current multi-book validation |
 
 ### 8.2 Open
 
 | Decision | Status |
 |---|---|
 | Partial-current-chapter boundaries | General scene or line ceilings remain undefined. Exact canonical paragraph grants are supported without chapter progress. |
-| Latency and cost budgets | End-to-end mean and p95 are measured; set product budgets and obtain provider token/cost reporting in `linger-cnx` |
+| Latency and cost budgets | Approve budgets for the current runtime; historical timings and missing usage do not establish current operating limits |

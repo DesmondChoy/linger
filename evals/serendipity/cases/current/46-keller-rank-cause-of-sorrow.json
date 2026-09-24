@@ -1,0 +1,129 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+  "owner": "serendipity",
+  "primary_behavior": "rank_the_strongest_supported_connection",
+  "contrast_group": "winner-clarity",
+  "tier": "capability",
+  "description": "Ranking between competing evidence in non-fiction. Helen feeling sorry for the doll is the anchor. The well-house, where she understands that words name things, is what changes her; the earlier finger-spelling is relevant but explains less. A different doll made of towels shares only the word doll, so the winner must not rest on it.",
+  "input": {
+    "cue": "What made Helen suddenly feel sorry about the doll she broke?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 6
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        115,
+        122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-well-house-cause",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        102,
+        114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-spelling-before",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        69,
+        83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "chapter": 5,
+      "location": "Chapter III",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        81,
+        92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Four passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "keller-ch4-repentance-anchor",
+      "keller-ch4-well-house-cause"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Rests the winner on the well-house moment",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from beyond the permitted chapters"
+      ]
+    },
+    "forbidden_selected_evidence_ids": [
+      "keller-ch3-towel-doll-look-alike"
+    ]
+  }
+}

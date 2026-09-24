@@ -1,0 +1,94 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-animal-farm-route-book-relationship-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_book_relationship_to_librarian",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "A relationship inside the book starts with Librarian even though web access is also granted. Old Major tells Boxer his reward for his strength will be the knacker; after the rebellion Boxer adopts the motto I will work harder.",
+  "input": {
+    "cue": "Boxer's answer to everything is 'I will work harder'. How does that relate to what Old Major said about him at the start?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pga0100011",
+          "book_version_id": "pga0100011-vc7ff4da7",
+          "chapter_max": 3
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "af-ch1-major-boxer-knacker",
+      "source_title": "Animal Farm",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch01",
+      "chapter": 1,
+      "location": "Chapter 1",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+        162,
+        172
+      ],
+      "excerpt": "Old Major tells Boxer that the day his great muscles lose their power, Jones will sell him to the knacker.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "af-ch3-boxer-motto",
+      "source_title": "Animal Farm",
+      "work_id": "pga0100011",
+      "book_version_id": "pga0100011-vc7ff4da7",
+      "chapter_id": "pga0100011-vc7ff4da7-ch03",
+      "chapter": 3,
+      "location": "Chapter 3",
+      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+      "source_lines": [
+        86,
+        94
+      ],
+      "excerpt": "After the rebellion Boxer does the work of three horses and answers every problem with his motto, I will work harder!",
+      "relevance": 0.96
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Uses both passages from the book",
+        "Relates Boxer's motto to Major's warning about how his strength is rewarded"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from outside the granted book scope",
+        "Reveals what happens to Boxer after chapter 3"
+      ]
+    },
+    "required_evidence_ids": [
+      "af-ch1-major-boxer-knacker",
+      "af-ch3-boxer-motto"
+    ]
+  }
+}

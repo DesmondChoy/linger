@@ -4,34 +4,29 @@
   "owner": "serendipity",
   "primary_behavior": "rank_the_strongest_supported_connection",
   "contrast_group": "winner-clarity",
-  "description": "One candidate fits the cue and evidence more directly than a plausible secondary candidate.",
+  "tier": "regression",
+  "description": "Ranking between competing evidence, not two readings of the same pair. The Caterpillar's question is the anchor. Alice asking 'Who in the world am I?' after changing in the night is the earlier event that most directly explains it; the puppy scene is also earlier and also about her size, but not about who she is. The winner must rest on the chapter 2 moment and must not rest on the puppy.",
   "input": {
     "cue": "Which earlier event most directly explains why the Caterpillar's identity question unsettles Alice?",
     "intent": "find_connection",
-    "presentation": "direct",
+    "presentation": "ask_before_showing",
     "scope": {
-      "allowed_sources": ["book_corpus"],
-      "book_scopes": [{"work_id": "pg11", "book_version_id": "pg11-v01b38ea4", "chapter_max": 5}]
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
     }
   },
   "tool_evidence": [
     {
       "source_kind": "book_corpus",
-      "evidence_id": "rank-alice-ch4-change",
-      "source_title": "Alice's Adventures in Wonderland",
-      "work_id": "pg11",
-      "book_version_id": "pg11-v01b38ea4",
-      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
-      "chapter": 4,
-      "location": "Chapter 4",
-      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
-      "source_lines": [916, 924],
-      "excerpt": "Alice has repeatedly changed size and is trying to control another transformation.",
-      "relevance": 0.96
-    },
-    {
-      "source_kind": "book_corpus",
-      "evidence_id": "rank-alice-ch5-identity",
+      "evidence_id": "rank-alice-ch5-caterpillar-question",
       "source_title": "Alice's Adventures in Wonderland",
       "work_id": "pg11",
       "book_version_id": "pg11-v01b38ea4",
@@ -39,23 +34,78 @@
       "chapter": 5,
       "location": "Chapter 5",
       "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
-      "source_lines": [968, 982],
-      "excerpt": "Alice links her inability to explain herself directly to having changed several times.",
-      "relevance": 0.99
+      "source_lines": [
+        964,
+        976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times since she got up, and cannot explain herself because she is not herself.",
+      "relevance": 0.97
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "rank-alice-ch2-who-am-i",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "02-the-pool-of-tears",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        326,
+        334
+      ],
+      "excerpt": "Alice wonders whether she was changed in the night, and says that if she is not the same, the next question is who in the world she is.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "rank-alice-ch4-puppy",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "04-the-rabbit-sends-in-a-little-bill",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        906,
+        929
+      ],
+      "excerpt": "Tiny beside an enormous puppy, Alice plays with it using a stick while trying not to be run over.",
+      "relevance": 0.72
     }
   ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Three passages were retrieved within the permitted chapters."
+  },
   "expected_searches": {
-    "allowed_operations": ["search_librarian"],
-    "required_operations": ["search_librarian"],
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
     "primary_operation": "search_librarian"
   },
   "expected": {
     "status": "proposal",
-    "required_evidence_ids": ["rank-alice-ch4-change", "rank-alice-ch5-identity"],
-    "presentation": "direct",
+    "required_evidence_ids": [
+      "rank-alice-ch2-who-am-i"
+    ],
+    "presentation": "ask_before_showing",
     "semantic_review": {
-      "criteria": ["Selects the identity-through-change bridge as the direct answer", "Explains why the selected bridge outranks a merely adjacent theme"],
-      "forbidden_claims": ["Treats two candidates as equally strong"]
-    }
+      "criteria": [
+        "Selects the identity-through-change bridge as the direct answer",
+        "Explains why the selected bridge outranks a merely adjacent theme"
+      ],
+      "forbidden_claims": [
+        "Treats two candidates as equally strong"
+      ]
+    },
+    "forbidden_selected_evidence_ids": [
+      "rank-alice-ch4-puppy"
+    ]
   }
 }

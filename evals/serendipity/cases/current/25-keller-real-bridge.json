@@ -1,0 +1,110 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-real-bridge-v3",
+  "owner": "serendipity",
+  "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+  "contrast_group": "book-specificity",
+  "tier": "regression",
+  "description": "The positive pair to case 13 on the same book. Helen breaks the doll feeling neither sorrow nor regret, and after the well-house she picks up the pieces and feels repentance for the first time. The shared structure is the same act seen before and after language; the difference is the feeling that language makes possible. The well-house passage is included as a third, relevant record so the agent has to rank.",
+  "input": {
+    "cue": "Why does Helen only feel sorry about the broken doll after the well-house?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 6
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-doll-broken",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        84,
+        101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-well-house",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        102,
+        114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.9
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-doll-repentance",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        115,
+        122
+      ],
+      "excerpt": "Returning to the house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Three passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Connects the two doll moments as the same act felt differently before and after language",
+        "Names a meaningful difference rather than only a shared subject",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from beyond the permitted chapters"
+      ]
+    },
+    "required_evidence_ids": [
+      "keller-ch4-doll-broken",
+      "keller-ch4-doll-repentance"
+    ]
+  }
+}

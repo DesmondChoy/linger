@@ -1,0 +1,69 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-douglass-route-external-web-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_external_recommendation_to_web",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "An explicit request for outside reading starts with web search even though the book is also granted. Both pages are relevant, so the case grades routing and the opened-page chain, not which page is chosen.",
+  "input": {
+    "cue": "Can you recommend something outside the book about why it was forbidden to teach enslaved people to read?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3",
+          "chapter_max": 10
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/Anti-literacy_laws_in_the_United_States",
+      "title": "Anti-literacy laws in the United States",
+      "excerpt": "Describes laws in many slave states that made it a crime to teach enslaved people to read or write."
+    },
+    {
+      "source_kind": "web",
+      "evidence_id": "https://en.wikipedia.org/wiki/The_Columbian_Orator",
+      "title": "The Columbian Orator",
+      "excerpt": "Describes the 1797 collection of speeches that Frederick Douglass read as a boy and credited with shaping his views on freedom."
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "web_search",
+      "get_page"
+    ],
+    "primary_operation": "web_search"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Offers a relevant outside source on why literacy was forbidden",
+        "Distinguishes the outside source from proof about Douglass's own account"
+      ],
+      "forbidden_claims": [
+        "Claims the outside source establishes what Douglass intended"
+      ]
+    },
+    "acceptable_evidence_ids": [
+      "https://en.wikipedia.org/wiki/Anti-literacy_laws_in_the_United_States",
+      "https://en.wikipedia.org/wiki/The_Columbian_Orator"
+    ]
+  }
+}

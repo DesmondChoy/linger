@@ -1,0 +1,718 @@
+{
+  "schema_version": 1,
+  "experiment": "serendipity-component-reliability",
+  "run_id": "cd30e976b8d14f5dba07c1324d49916a",
+  "generated_at": "2026-09-21T01:20:31.298807Z",
+  "model": "openai:gpt-5.6-luna",
+  "skill_id": "serendipity.connection-discovery",
+  "prompt_template_id": "serendipity.search-rank-select",
+  "prompt_digest": "306c3b5a17753992e78289d92a1696cbcff372f00f6d0326365503f143f07a66",
+  "dataset_digest": "378cb9ae92e21bc74fa4aa67ba34d36ec786986abd6948ef59388569546464f0",
+  "concurrency": 1,
+  "summary": {
+    "case_count": 10,
+    "repeats": 5,
+    "total_runs": 50,
+    "total_passes": 30,
+    "run_pass_rate": 0.6,
+    "cases_pass_pow_k": 4,
+    "cases_unstable": 4,
+    "cases_never_passed": 2,
+    "cases_with_unstable_decision": 3,
+    "suite_pass_pow_k": false
+  },
+  "cases": [
+    {
+      "case_id": "serendipity-select-real-semantic-bridge-v3",
+      "primary_behavior": "select_evidence_with_a_real_semantic_bridge",
+      "contrast_group": "book-specificity",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 12.342,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.776439416047651,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.7318133329972625,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.895668459008448,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.355113208002876,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 18.94942729198374,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-decline-insufficient-bridge-v3",
+      "primary_behavior": "decline_when_no_supported_bridge_exists",
+      "contrast_group": "evidence-sufficiency",
+      "repeats": 5,
+      "passes": 1,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "proposal",
+        "decline"
+      ],
+      "intermittent_failures": [
+        "expected_decline"
+      ],
+      "mean_latency_seconds": 7.696,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 7.306959332956467,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [],
+          "latency_seconds": 8.954296167008579,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 8.869023459032178,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 6.427795834024437,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 6.919842917006463,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-decline-generic-bridge-v3",
+      "primary_behavior": "decline_when_no_supported_bridge_exists",
+      "contrast_group": "book-specificity",
+      "repeats": 5,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 9.248,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 10.24357108399272,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 9.376043958996888,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 8.310946209006943,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 7.28133774996968,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "expected_decline"
+          ],
+          "latency_seconds": 11.027978750003967,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-exclude-ineligible-evidence-v3",
+      "primary_behavior": "exclude_ineligible_evidence_before_selection",
+      "contrast_group": "evidence-safety",
+      "repeats": 5,
+      "passes": 0,
+      "pass_at_k": false,
+      "pass_pow_k": false,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 4.574,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_decline_reason:insufficient_evidence"
+          ],
+          "latency_seconds": 3.3323091249912977,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_decline_reason:insufficient_evidence"
+          ],
+          "latency_seconds": 5.804893375025131,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_decline_reason:insufficient_evidence"
+          ],
+          "latency_seconds": 4.078895541955717,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_decline_reason:insufficient_evidence"
+          ],
+          "latency_seconds": 4.995267458027229,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "unexpected_decline_reason:insufficient_evidence"
+          ],
+          "latency_seconds": 4.6602645829552785,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-rank-tied-top-candidates-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "repeats": 5,
+      "passes": 4,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "decline"
+      ],
+      "intermittent_failures": [
+        "unexpected_decline_reason:generic_theme_match"
+      ],
+      "mean_latency_seconds": 6.664,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 5.519944041036069,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "generic_theme_match",
+          "failures": [
+            "unexpected_decline_reason:generic_theme_match"
+          ],
+          "latency_seconds": 16.228519290976692,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 3.799001874984242,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 3.8030655829934403,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "decline",
+          "decline_reason": "unsupported_cue",
+          "failures": [],
+          "latency_seconds": 3.9689940409734845,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-expand-to-cross-source-v3",
+      "primary_behavior": "expand_source_only_when_justified",
+      "contrast_group": "cross-source-support",
+      "repeats": 5,
+      "passes": 1,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "proposal",
+        "decline"
+      ],
+      "intermittent_failures": [
+        "expected_proposal",
+        "wrong_primary_search:search_librarian"
+      ],
+      "mean_latency_seconds": 17.358,
+      "mean_model_requests": 5.4,
+      "runs": [
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "wrong_primary_search:search_librarian"
+          ],
+          "latency_seconds": 15.780143832962494,
+          "model_requests": 5,
+          "tool_calls": 4
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 20.386149082973134,
+          "model_requests": 6,
+          "tool_calls": 6
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "no_clear_winner",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 14.09323504101485,
+          "model_requests": 5,
+          "tool_calls": 4
+        },
+        {
+          "hard_pass": false,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [
+            "wrong_primary_search:search_librarian"
+          ],
+          "latency_seconds": 21.27185970795108,
+          "model_requests": 5,
+          "tool_calls": 4
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 15.256436333002057,
+          "model_requests": 6,
+          "tool_calls": 5
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-route-book-relationship-v3",
+      "primary_behavior": "route_book_relationship_to_librarian",
+      "contrast_group": "source-routing",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 7.225,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.510072375007439,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.49872333399253,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.2367005830165,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.59253741701832,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.28696412499994,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-route-external-recommendation-v3",
+      "primary_behavior": "route_external_recommendation_to_web",
+      "contrast_group": "source-routing",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 11.289,
+      "mean_model_requests": 3.6,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 12.588103375048377,
+          "model_requests": 4,
+          "tool_calls": 3
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.999777792021632,
+          "model_requests": 4,
+          "tool_calls": 3
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.323962041002233,
+          "model_requests": 3,
+          "tool_calls": 3
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.799275124969427,
+          "model_requests": 3,
+          "tool_calls": 3
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 11.731719208997674,
+          "model_requests": 4,
+          "tool_calls": 3
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-stop-after-primary-source-v3",
+      "primary_behavior": "stop_when_primary_source_is_sufficient",
+      "contrast_group": "source-expansion",
+      "repeats": 5,
+      "passes": 4,
+      "pass_at_k": true,
+      "pass_pow_k": false,
+      "unstable": true,
+      "decision_unstable": true,
+      "observed_statuses": [
+        "proposal",
+        "decline"
+      ],
+      "intermittent_failures": [
+        "expected_proposal"
+      ],
+      "mean_latency_seconds": 8.062,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.415786833036691,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 7.627634250035044,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 9.867281459039077,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": false,
+          "status": "decline",
+          "decline_reason": "insufficient_evidence",
+          "failures": [
+            "expected_proposal"
+          ],
+          "latency_seconds": 5.247876625042409,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 8.149247708031908,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    },
+    {
+      "case_id": "serendipity-rank-clear-winner-v3",
+      "primary_behavior": "rank_the_strongest_supported_connection",
+      "contrast_group": "winner-clarity",
+      "repeats": 5,
+      "passes": 5,
+      "pass_at_k": true,
+      "pass_pow_k": true,
+      "unstable": false,
+      "decision_unstable": false,
+      "observed_statuses": [
+        "proposal"
+      ],
+      "intermittent_failures": [],
+      "mean_latency_seconds": 11.085,
+      "mean_model_requests": 2.0,
+      "runs": [
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.017822750029154,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 6.7586298329988495,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 8.658944500028156,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 10.051834834041074,
+          "model_requests": 2,
+          "tool_calls": 1
+        },
+        {
+          "hard_pass": true,
+          "status": "proposal",
+          "decline_reason": null,
+          "failures": [],
+          "latency_seconds": 19.937759749998804,
+          "model_requests": 2,
+          "tool_calls": 1
+        }
+      ]
+    }
+  ]
+}

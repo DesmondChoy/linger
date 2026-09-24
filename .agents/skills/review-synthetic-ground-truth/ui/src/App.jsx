@@ -9,14 +9,19 @@ function tokenFromLocation() {
 const reviewToken = tokenFromLocation()
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Review-Token': reviewToken,
-      ...options.headers,
-    },
-  })
+  let response
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Review-Token': reviewToken,
+        ...options.headers,
+      },
+    })
+  } catch {
+    throw new Error('Cannot connect to the local review server. Keep this page open and ask Codex to restore the connection.')
+  }
   const body = await response.json()
   if (!response.ok) throw new Error(body.error || 'The review could not complete this request.')
   return body
@@ -96,13 +101,24 @@ function GroundingExpectation({ value }) {
   )
 }
 
-function ConnectionExpectation({ value }) {
+function ConnectionExpectation({ value, bookTitles }) {
   if (!value) return null
+  const exploratory = value.book_retrieval?.search_mode === 'exploratory'
   return (
     <section className="typed-expectation">
       <h4>Connection and restraint expectation</h4>
       <div className="field-pair"><span>Expected decision</span><strong>{value.decision.replaceAll('_', ' ')}</strong></div>
       <OutcomeList title="Acceptable responses" items={value.acceptable_responses.map((item) => item.replaceAll('_', ' '))} tone="expected" />
+      {value.book_retrieval ? (
+        <section className="book-selection">
+          <OutcomeList title="Books that must be searched and retrieved" items={value.book_retrieval.required_work_ids.map((id) => bookTitles[id] ?? id)} tone="expected" />
+          {value.book_retrieval.optional_work_ids.length ? <OutcomeList title="Other acceptable books, if useful" items={value.book_retrieval.optional_work_ids.map((id) => bookTitles[id] ?? id)} tone="expected" /> : null}
+          <OutcomeList title={exploratory ? 'Books excluded from the selected connection and reply' : 'Books that must stay out of retrieval'} items={value.book_retrieval.forbidden_work_ids.map((id) => bookTitles[id] ?? id)} tone="prohibited" />
+          <p className="constraint">{exploratory
+            ? 'The system may search every available book. It must find the required support, and use only permitted evidence in the selected connection and reply. Other acceptable books may be omitted.'
+            : 'Checks include the books searched and raw results, including results omitted from the reply.'}</p>
+        </section>
+      ) : null}
       <IdList label="Permitted evidence" values={value.permitted_evidence_ids} />
       <IdList label="Required evidence" values={value.required_evidence_ids} />
       {value.required_public_claims.length ? <OutcomeList title="Required public claims" items={value.required_public_claims} tone="expected" /> : <p>No public claims are required.</p>}
@@ -111,19 +127,29 @@ function ConnectionExpectation({ value }) {
   )
 }
 
-function SceneSourceSetup({ value }) {
+function SceneSourceSetup({ value, bookTitles }) {
   if (!value) return null
-  const scope = value.book_scope
+  const scopes = value.book_scopes
   return (
     <section className="typed-expectation">
       <h4>Available sources</h4>
-      {scope ? (
-        <article className="input-record">
-          <h5>Reader-confirmed book scope</h5>
-          <div className="field-pair"><span>Work</span><code>{scope.work_id}</code></div>
-          <div className="field-pair"><span>Book version</span><code>{scope.book_version_id}</code></div>
-          <div className="field-pair"><span>Safe chapter ceiling</span><strong>{scope.safe_ceiling_chapter}</strong></div>
-        </article>
+      {scopes.length ? (
+        <section aria-label="Available books">
+          <h5>Books available to this Scene ({scopes.length})</h5>
+          {scopes.map((scope) => (
+            <article className="input-record" key={scope.work_id}>
+              <h5>{bookTitles[scope.work_id] ?? scope.work_id}</h5>
+              <p className="constraint">Reader-confirmed through chapter {scope.safe_ceiling_chapter} of the main text.</p>
+              <details className="source-metadata">
+                <summary>Book identifiers</summary>
+                <dl>
+                  <div><dt>Work</dt><dd><code>{scope.work_id}</code></dd></div>
+                  <div><dt>Version</dt><dd><code>{scope.book_version_id}</code></dd></div>
+                </dl>
+              </details>
+            </article>
+          ))}
+        </section>
       ) : <p>No book scope is supplied.</p>}
       <h5>Public source snapshots</h5>
       {value.public_sources.length ? <p className="constraint">Read the captured source in formatted view, or check its exact text.</p> : null}
@@ -259,7 +285,7 @@ function GroundTruthDetails({ row }) {
       <CurationExpectation value={row.curation} />
       <SurfacingExpectation value={row.surfacing} />
       <GroundingExpectation value={row.grounding} />
-      <ConnectionExpectation value={row.connection} />
+      <ConnectionExpectation value={row.connection} bookTitles={row.bookTitles} />
       <BookSceneFacts value={row.bookSceneFacts} />
       <BookExpectation value={row.bookExpectation} />
       {row.propRelevance.length ? (
@@ -341,7 +367,7 @@ function ReviewRow({ row, reviewed, flagged, onReview, onFlag }) {
           <div className="column-heading"><span>01</span><h3>Scene inputs</h3></div>
           <p className="column-note">Everything available to this Scene before runtime.</p>
           <div className="input-stack">{row.inputs.map((item) => <InputRecord item={item} key={item.id} />)}</div>
-          <SceneSourceSetup value={row.sourceSetup} />
+          <SceneSourceSetup value={row.sourceSetup} bookTitles={row.bookTitles} />
         </section>
         <section className="truth-column">
           <div className="column-heading"><span>02</span><h3>Proposed Ground truth</h3></div>
@@ -360,9 +386,16 @@ function ProofStrip({ rows, reviewedIds, flaggedIds }) {
         const reviewed = reviewedIds.has(row.proposalId)
         const flagged = flaggedIds.has(row.proposalId)
         return (
-          <a className={reviewed ? 'is-reviewed' : flagged ? 'is-flagged' : ''} href={`#${row.proposalId}`} key={row.proposalId} title={`${row.sceneId}: ${row.summary}`}>
+          <button
+            aria-label={`Scene ${row.sceneOrder}: ${row.summary}`}
+            className={reviewed ? 'is-reviewed' : flagged ? 'is-flagged' : ''}
+            key={row.proposalId}
+            onClick={() => document.getElementById(row.proposalId)?.scrollIntoView({ block: 'start' })}
+            title={`${row.sceneId}: ${row.summary}`}
+            type="button"
+          >
             <span>{row.sceneOrder}</span>
-          </a>
+          </button>
         )
       })}
     </nav>

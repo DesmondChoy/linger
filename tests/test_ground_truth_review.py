@@ -505,12 +505,14 @@ def test_review_payload_shows_shared_book_facts_and_expectation(
     assert "not enabled by this confirmation" in payload["replay"]["note"]
 
 
+@pytest.mark.parametrize("multi_book", [False, True])
 def test_connection_review_shows_complete_source_setup_and_labels(
-    tmp_path: Path, built_ui: Path,
+    tmp_path: Path, built_ui: Path, multi_book: bool,
 ) -> None:
     from tests.test_synthetic_connection_scenario import connection_documents
+    from tests.test_synthetic_connection_multibook import multibook_documents
 
-    content, labels = connection_documents(ROOT)
+    content, labels = multibook_documents() if multi_book else connection_documents(ROOT)
     scenario = tmp_path / "connection"
     scenario.mkdir()
     backstory_bytes = json.dumps(content, sort_keys=True).encode("utf-8")
@@ -529,7 +531,11 @@ def test_connection_review_shows_complete_source_setup_and_labels(
         if setup is None:
             assert row["sourceSetup"] is None
         else:
-            assert row["sourceSetup"]["book_scope"] == setup["book_scope"]
+            assert row["sourceSetup"]["book_scopes"] == (setup["book_scopes"] if multi_book else [setup["book_scope"]])
+            assert row["bookTitles"]["pg11"] == "Alice's Adventures in Wonderland"
+            if multi_book:
+                assert len(row["bookTitles"]) == 5
+                assert row["bookTitles"]["pg2397"] == "The Story of My Life"
             actual_sources = row["sourceSetup"]["public_sources"]
             assert len(actual_sources) == len(setup["public_sources"])
             for actual, original in zip(
@@ -543,7 +549,12 @@ def test_connection_review_shows_complete_source_setup_and_labels(
                 } == {
                     key: value for key, value in original.items() if key != "retrieved_at"
                 }
-        assert row["connection"] == proposals[row["proposalId"]]["connection"]
+        expected = {"book_retrieval": None, **proposals[row["proposalId"]]["connection"]}
+        if expected["book_retrieval"] is not None:
+            expected["book_retrieval"] = {
+                "search_mode": "targeted", "optional_work_ids": [], **expected["book_retrieval"],
+            }
+        assert row["connection"] == expected
     assert payload["rows"][0]["summary"] == "Tentative connection"
     assert payload["rows"][1]["summary"] == "Restraint with weak evidence"
     assert payload["rows"][-1]["summary"] == "Personal reflection without a connection"
@@ -711,6 +722,111 @@ def test_make_changes_returns_to_agent_without_writing_adoption(
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+@pytest.fixture
+def review_launcher(
+    tmp_path: Path,
+    built_ui: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Path:
+    scenario = tmp_path / "scenario"
+    _copy_scenario(CAPTURE_SCENARIO, scenario)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(SCRIPT),
+            str(scenario / "backstory.json"),
+            str(scenario / "ground-truth.json"),
+            "--reviewer-id",
+            "independent.developer@example.com",
+            "--ui",
+            str(built_ui),
+        ],
+    )
+    return scenario
+
+
+def test_default_launcher_waits_for_a_human_decision(
+    review_launcher: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert reviewer.parse_args().timeout is None
+    server_ready = threading.Event()
+    servers = []
+    server_class = reviewer.ReviewServer
+
+    def capture_server(state: reviewer.ReviewState) -> reviewer.ReviewServer:
+        server = server_class(state)
+        servers.append(server)
+        server_ready.set()
+        return server
+
+    monkeypatch.setattr(reviewer, "ReviewServer", capture_server)
+    exit_codes = []
+    thread = threading.Thread(
+        target=lambda: exit_codes.append(reviewer.main()), daemon=True
+    )
+    thread.start()
+    try:
+        assert server_ready.wait(timeout=5)
+        server = servers[0]
+        assert thread.is_alive()
+        response = _post(
+            f"http://127.0.0.1:{server.server_address[1]}",
+            server.state.token,
+            {
+                "action": "make_changes",
+                "reviewedProposalIds": [],
+                "flaggedProposalIds": [server.state.proposal_ids[0]],
+            },
+        )
+        assert response == {"status": "make_changes"}
+        thread.join(timeout=5)
+        assert exit_codes == [0]
+        output = capsys.readouterr()
+        assert "GROUND_TRUTH_REVIEW_JSON=" in output.out
+        assert not output.err
+        assert not (review_launcher / "ground-truth-adoption.json").exists()
+    finally:
+        if thread.is_alive() and servers:
+            servers[0].shutdown()
+        thread.join(timeout=5)
+
+
+def test_explicit_launcher_timeout_closes_without_a_decision(
+    review_launcher: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--timeout", "1"])
+
+    assert reviewer.main() == 2
+
+    output = capsys.readouterr()
+    assert "GROUND_TRUTH_REVIEW_URL=" in output.out
+    assert "GROUND_TRUTH_REVIEW_JSON=" not in output.out
+    assert "timed out without a decision" in output.err
+    assert not (review_launcher / "ground-truth-adoption.json").exists()
+
+
+@pytest.mark.parametrize("timeout", ["0", "-1"])
+def test_launcher_rejects_nonpositive_timeout(
+    review_launcher: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    timeout: str,
+) -> None:
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--timeout", timeout])
+
+    assert reviewer.main() == 1
+
+    output = capsys.readouterr()
+    assert "Timeout must be at least one second" in output.err
+    assert "GROUND_TRUTH_REVIEW_URL=" not in output.out
+    assert not (review_launcher / "ground-truth-adoption.json").exists()
 
 
 def test_confirm_requires_every_row_and_writes_exact_adoption(

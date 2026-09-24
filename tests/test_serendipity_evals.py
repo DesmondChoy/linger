@@ -16,6 +16,7 @@ from evals.serendipity.harness import (
     REQUIRED_BEHAVIORS,
     ExpectedDecline,
     ExpectedProposal,
+    ExpectedRecall,
     RunObservation,
     SearchObservation,
     dataset_digest,
@@ -25,7 +26,7 @@ from evals.serendipity.harness import (
 from evals.serendipity.runner import (
     CaseExecutionErrorReport,
     _FixtureLibrarian,
-    _fixture_book_judgement,
+    _fixture_book_judge,
     _ordered_results,
     run_case,
 )
@@ -45,6 +46,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionCandidate,
     ConnectionDecline,
     ConnectionProposal,
+    MemoryRecall,
 )
 from src.linger.agents.serendipity.skills import CONNECTION_DISCOVERY
 from src.linger.agents.serendipity.tools import SerendipityDependencies, search_librarian
@@ -52,7 +54,9 @@ from src.linger.agents.serendipity.tools import SerendipityDependencies, search_
 
 def _proposal(case) -> ConnectionProposal:
     assert isinstance(case.expected, ExpectedProposal)
-    evidence_ids = case.expected.required_evidence_ids
+    evidence_ids = (
+        case.expected.required_evidence_ids or case.expected.acceptable_evidence_ids
+    )
     candidates = (
         ConnectionCandidate(
             candidate_id="candidate-supported",
@@ -71,7 +75,7 @@ def _proposal(case) -> ConnectionProposal:
         ConnectionCandidate(
             candidate_id="candidate-secondary",
             tentative_claim="The evidence also frames uncertainty as social pressure.",
-            evidence_ids=(evidence_ids[-1],),
+            evidence_ids=(_secondary_evidence_id(case, evidence_ids),),
             shared_structure="Both moments involve uncertainty.",
             meaningful_difference="This bridge emphasizes audience rather than change.",
             interpretation="The question may feel unsettling because it demands certainty.",
@@ -97,20 +101,44 @@ def _proposal(case) -> ConnectionProposal:
     )
 
 
+def _secondary_evidence_id(case, cited: tuple[str, ...]) -> str:
+    """A record the winner does not cite, so the shortlist rests on distinct evidence.
+
+    Never a record the case forbids: a case that requires an ineligible record
+    to be excluded must not have it reintroduced by the fixture helper.
+    """
+    forbidden = set(getattr(case.expected, "forbidden_evidence_ids", ()))
+    for item in case.tool_evidence:
+        if item.evidence_id not in cited and item.evidence_id not in forbidden:
+            return item.evidence_id
+    return cited[-1]
+
+
 def _observation(case, *, response=None) -> RunObservation:
     if response is None:
-        response = (
-            _proposal(case)
-            if isinstance(case.expected, ExpectedProposal)
-            else ConnectionDecline(
+        if isinstance(case.expected, ExpectedProposal):
+            response = _proposal(case)
+        elif isinstance(case.expected, ExpectedRecall):
+            response = MemoryRecall(
+                evidence_ids=(
+                    case.expected.required_evidence_ids
+                    or case.expected.acceptable_evidence_ids
+                ),
+                relevance_note="The reader's own earlier statement on what the cue asks about.",
+            )
+        else:
+            response = ConnectionDecline(
                 reason=case.expected.allowed_reasons[0],
                 safe_next_step="No connection cleared the current evidence checks.",
             )
-        )
     searches = tuple(
         SearchObservation(
             operation=operation,
-            source="book_corpus" if operation == "search_librarian" else "web",
+            source=(
+                "memory" if operation == "search_memories"
+                else "book_corpus" if operation == "search_librarian"
+                else "web"
+            ),
             outcome="evidence_found",
         )
         for operation in case.expected_searches.required_operations
@@ -200,6 +228,75 @@ class SerendipityEvalContractTests(unittest.TestCase):
             loaded = load_serendipity_eval_cases(target)
         self.assertEqual(len(self.cases) + 1, len(loaded))
 
+    def _case(self, case_id: str):
+        return next(item for item in self.cases if item.case_id == case_id)
+
+    def test_winner_forbidden_evidence_fails_only_in_the_winner(self) -> None:
+        case = self._case("serendipity-rank-clear-winner-v3")
+        proposal = _proposal(case)
+        winner, runner_up = proposal.shortlist
+        in_winner = proposal.model_copy(
+            update={
+                "shortlist": (
+                    winner.model_copy(
+                        update={"evidence_ids": (*winner.evidence_ids, "rank-alice-ch4-puppy")}
+                    ),
+                    runner_up,
+                )
+            }
+        )
+        grade = grade_serendipity_run(case, _observation(case, response=in_winner))
+        self.assertIn("winner_cites_forbidden_evidence:rank-alice-ch4-puppy", grade.failures)
+
+        in_runner_up = proposal.model_copy(
+            update={
+                "shortlist": (
+                    winner,
+                    runner_up.model_copy(update={"evidence_ids": ("rank-alice-ch4-puppy",)}),
+                )
+            }
+        )
+        grade = grade_serendipity_run(case, _observation(case, response=in_runner_up))
+        self.assertTrue(grade.hard_pass, grade.failures)
+
+    def test_recall_padded_with_forbidden_record_fails(self) -> None:
+        case = self._case("serendipity-recall-matching-memory-v3")
+        padded = MemoryRecall(
+            evidence_ids=("memory-morning-practice", "memory-weekend-walks"),
+            relevance_note="The reader's own earlier statement on what the cue asks about.",
+        )
+        grade = grade_serendipity_run(case, _observation(case, response=padded))
+        self.assertIn("recall_cites_forbidden_evidence:memory-weekend-walks", grade.failures)
+
+    def test_decline_without_search_passes_only_when_no_search_is_required(self) -> None:
+        not_granted = self._case("serendipity-requested-source-not-granted-v3")
+        decline = ConnectionDecline(
+            reason="source_scope_violation",
+            safe_next_step="Web search is not available for this request.",
+        )
+        observation = _observation(not_granted, response=decline).model_copy(
+            update={"searches": (), "tool_calls": 0}
+        )
+        grade = grade_serendipity_run(not_granted, observation)
+        self.assertTrue(grade.hard_pass, grade.failures)
+
+        needs_search = self._case("serendipity-decline-insufficient-bridge-v3")
+        observation = _observation(needs_search).model_copy(update={"searches": (), "tool_calls": 0})
+        self.assertIn("no_observed_search", grade_serendipity_run(needs_search, observation).failures)
+
+    def test_unset_primary_operation_accepts_either_order(self) -> None:
+        case = self._case("serendipity-granted-url-opened-directly-v3")
+        observation = _observation(case)
+        reversed_order = observation.model_copy(
+            update={"searches": tuple(reversed(observation.searches))}
+        )
+        grade = grade_serendipity_run(case, reversed_order)
+        self.assertTrue(grade.hard_pass, grade.failures)
+
+    def test_every_case_declares_a_tier(self) -> None:
+        tiers = {case.tier for case in self.cases}
+        self.assertEqual({"regression", "capability"}, tiers)
+
 
 class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
     async def test_fixture_book_judge_honors_the_requested_selection_budget(self) -> None:
@@ -212,7 +309,7 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
                 deps = SerendipityDependencies(
                     task=case.input,
                     librarian=_FixtureLibrarian(case.tool_evidence),
-                    strength_judge=_fixture_book_judgement,
+                    strength_judge=_fixture_book_judge(case),
                 )
 
                 result = await search_librarian(
@@ -311,7 +408,12 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
             if item.primary_behavior == "route_external_recommendation_to_web"
         )
         expected = _proposal(case)
-        required_url = case.expected.required_evidence_ids[0]
+        required_url = (
+            case.expected.required_evidence_ids or case.expected.acceptable_evidence_ids
+        )[0]
+        # The shortlist compares two candidates on distinct records, so the run
+        # opens every page it intends to cite, not only the required one.
+        opened_urls = [required_url, _secondary_evidence_id(case, (required_url,))]
 
         def respond(messages, info: AgentInfo) -> ModelResponse:
             returns = [
@@ -324,9 +426,9 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
                 return ModelResponse(
                     parts=[ToolCallPart("web_search", {"query": "philosophy continuity selfhood"})]
                 )
-            if len(returns) == 1:
+            if len(returns) <= len(opened_urls):
                 return ModelResponse(
-                    parts=[ToolCallPart("get_page", {"url": required_url})]
+                    parts=[ToolCallPart("get_page", {"url": opened_urls[len(returns) - 1]})]
                 )
             output_tool = info.output_tools[0]
             return ModelResponse(
@@ -342,11 +444,11 @@ class SerendipityFixtureRunnerTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(report.grade.hard_pass, report.grade.failures)
         self.assertEqual(
-            ["web_search", "get_page"],
+            ["web_search", "get_page", "get_page"],
             [search.operation for search in report.observation.searches],
         )
         self.assertEqual(
-            {required_url},
+            set(opened_urls),
             {item.evidence_id for item in report.observation.evidence},
         )
 

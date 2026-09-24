@@ -1,0 +1,69 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-two-matching-records-v3",
+  "owner": "serendipity",
+  "primary_behavior": "recall_the_readers_own_earlier_record",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "Two of the reader's records both answer the question, so recall should return both, most relevant first. The third record is about the body but not about sleep.",
+  "input": {
+    "cue": "What have I written about my sleep lately?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-sleep-reading",
+      "excerpt": "Since I started reading before bed instead of scrolling, I fall asleep much faster.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-sleep-waking",
+      "excerpt": "Woke at four again three nights this week. My mind will not settle once it starts.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-desk-chair",
+      "excerpt": "The new desk chair has fixed my back after months of aching.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "recall",
+    "required_evidence_ids": [
+      "memory-sleep-reading",
+      "memory-sleep-waking"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Returns both records about sleep",
+        "Says briefly why they answer the question without interpreting them"
+      ],
+      "forbidden_claims": [
+        "Presents the desk chair record as being about sleep",
+        "Draws a conclusion about the reader's health"
+      ]
+    },
+    "forbidden_evidence_ids": [
+      "memory-desk-chair"
+    ]
+  }
+}

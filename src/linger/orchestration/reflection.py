@@ -77,7 +77,7 @@ from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
 from src.linger.orchestration.instruction_leak_detection import detect_instruction_leak
-from src.linger.orchestration.turn_context import turn_evidence, active_memories
+from src.linger.orchestration.turn_context import turn_evidence, active_memories, connection_book_scopes
 from src.linger.orchestration.inspection_context import canonical_connection_evidence
 from src.linger.services.memory import AutomaticMemoryCandidate
 
@@ -464,11 +464,17 @@ def _validate_record_scope(
     record: EvidenceRecord,
     release_scope: ReleaseScope | PassageScope | None,
     previously_released_evidence_ids: frozenset[str],
+    *,
+    connection_scopes: tuple[ReleaseScope, ...] = (),
 ) -> None:
     start_line, end_line = record.source_lines
     if start_line < 1 or end_line < start_line:
         raise ReleaseValidationError("Book evidence has invalid source lines")
+    if connection_scopes and release_scope is not None:
+        raise ReleaseValidationError("Connection permission cannot override a focused release scope")
     if record.evidence_id in previously_released_evidence_ids:
+        return
+    if any(permits_scope(scope, record) for scope in connection_scopes):
         return
     if isinstance(release_scope, PassageScope):
         if not release_scope.permits(record):
@@ -493,6 +499,7 @@ def _trusted_book_evidence(
             record,
             release_scope,
             previously_released_evidence_ids,
+            connection_scopes=connection_book_scopes(),
         )
     return evidence
 
@@ -595,7 +602,9 @@ def _validated_book_evidence(
                     raise ReleaseValidationError("Serendipity memory is no longer active")
                 continue
             record = evidence_record_from_item(item)
-            _validate_record_scope(record, release_scope, frozenset())
+            _validate_record_scope(
+                record, release_scope, frozenset(), connection_scopes=connection_book_scopes(),
+            )
             if evidence.get(record.evidence_id) != record:
                 raise ReleaseValidationError(
                     "Serendipity evidence is not registered in the turn evidence"
@@ -685,6 +694,7 @@ def _provenance_context(
         )
     unexpected = set(review_context) - {
         "policy_constraints", "reading_context", "passage_scope", "override_attempt",
+        "connection_book_scopes",
     }
     if unexpected:
         raise ReleaseValidationError("Provenance context contains unknown fields")
@@ -694,6 +704,7 @@ def _provenance_context(
                 "policy": review_context["policy_constraints"],
                 "reading_context": review_context.get("reading_context"),
                 "passage_scope": review_context.get("passage_scope"),
+                "connection_book_scopes": review_context.get("connection_book_scopes", ()),
                 "required_clarification": required_clarification,
                 "override_attempt": review_context.get("override_attempt", "no_attempt"),
             }

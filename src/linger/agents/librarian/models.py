@@ -91,14 +91,16 @@ class BookRequestPart(StrictModel):
             "Exact reader fragments identifying the book, scene or speaker needed to "
             "resolve pronouns in reader_spans. Preserve a necessary locator from an "
             "earlier sentence or reader statement. Exclude personal experiences and "
-            "other sources. Empty only when reader_spans identify their subject and "
-            "scene without additional context. These locators add no answer requirements."
+            "other sources. Empty when reader_spans need no additional locator, "
+            "including explicit thematic discovery without a named scene. "
+            "These locators add no answer requirements."
         ),
     )
     purpose: Literal["reference", "answer", "progress"] = Field(
         description=(
-            "reference: the named book material anchors reflection or a comparison "
-            "with another source. answer: the reader asks a book question, asks "
+            "reference: book material anchors reflection or a comparison with another "
+            "source, including an explicit request to discover a textual connection. "
+            "answer: the reader asks a book question, asks "
             "to verify a book claim, or requests particular wording. Determine "
             "this from the original reader request before seeing evidence. "
             "progress: locate a reported reading event for private boundary judgment."
@@ -109,8 +111,10 @@ class BookRequestPart(StrictModel):
         min_length=1,
         description=(
             "Shortest exact reader fragments naming a requested book event, fact, "
-            "interpretation or quotation. Exclude personal experiences, other sources "
-            "and, for book_evidence, general reading-progress statements. For "
+            "interpretation or quotation. For explicit title-free discovery, copy the "
+            "relevant action or tension as search concepts, without inventing book facts. "
+            "Otherwise exclude personal experiences and other sources. For book_evidence, "
+            "exclude general reading-progress statements. For "
             "reading_progress, retain the reported event and stopping-point wording. "
             "Split a mixed-source sentence rather than copying it whole. Never rewrite the reader's words."
         ),

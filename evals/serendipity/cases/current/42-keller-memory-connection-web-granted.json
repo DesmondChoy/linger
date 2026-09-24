@@ -1,0 +1,102 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_personal_connection_to_memory",
+  "contrast_group": "memory-routing",
+  "tier": "regression",
+  "description": "A personal connection with web access also granted. The reader asks about the book and their own note, not about anything outside, so the web must not be searched: that would send the reader's words to an outside service for no reason.",
+  "input": {
+    "cue": "Helen only feeling sorry for the doll after she learned words reminds me of what I wrote about not being able to apologise until I could say what I'd done. Does it connect?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg2397",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 6
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-doll-broken",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        84,
+        101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "keller-ch4-doll-repentance",
+      "source_title": "The Story of My Life",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "chapter": 6,
+      "location": "Chapter IV",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+        115,
+        122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories",
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_memories",
+      "search_librarian"
+    ]
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "memory-apology-words",
+      "keller-ch4-doll-repentance"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Connects the reader's note with Helen's delayed sorrow",
+        "Names a difference between the two situations",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Draws a conclusion about the reader's character"
+      ]
+    }
+  }
+}

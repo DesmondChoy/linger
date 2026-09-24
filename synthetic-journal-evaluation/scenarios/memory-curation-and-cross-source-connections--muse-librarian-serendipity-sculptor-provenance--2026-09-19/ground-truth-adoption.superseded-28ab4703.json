@@ -1,0 +1,68 @@
+{
+  "backstory_sha256": "46f795218e5ad87d2589601e26ce0cdce687d844fbf3f163770a9b945ccc37b9",
+  "proposed_ground_truth_sha256": "d88b7db356e5825b76c63db7d357b004b87ac89ff064f167c6092dd853b522e8",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "choy.desmond@gmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-23T12:59:34.947124+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-01",
+      "scene_id": "scene-01",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-02",
+      "scene_id": "scene-02",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-03",
+      "scene_id": "scene-03",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-04",
+      "scene_id": "scene-04",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-05",
+      "scene_id": "scene-05",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-06",
+      "scene_id": "scene-06",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-07",
+      "scene_id": "scene-07",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-08",
+      "scene_id": "scene-08",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-09",
+      "scene_id": "scene-09",
+      "objective_id": "cross_source_tentative_connection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "28ab4703c369c68f65cf6929866c1f52002f776f82aa9c5614b19265411eec8f"
+}

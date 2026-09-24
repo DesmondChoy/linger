@@ -1,0 +1,70 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-recall-matching-memory-v3",
+  "owner": "serendipity",
+  "primary_behavior": "recall_the_readers_own_earlier_record",
+  "contrast_group": "memory-match",
+  "tier": "regression",
+  "description": "The reader asks what they have said before about a specific habit. One stored record is their own earlier statement on exactly that habit; the others are unrelated reflections. Recall returns the matching record and nothing else.",
+  "input": {
+    "cue": "Have I written anything before about why I stopped practising in the mornings?",
+    "intent": "recall_memory",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory"
+      ],
+      "book_scopes": []
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-morning-practice",
+      "excerpt": "I stopped practising in the mornings after the commute changed. Evenings are the only time the flat is quiet enough to concentrate.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-weekend-walks",
+      "excerpt": "Walking on Saturday mornings has become the part of the week I look forward to most.",
+      "trust_level": "account_scoped"
+    }
+  ],
+  "expected_searches": {
+    "allowed_operations": [
+      "search_memories"
+    ],
+    "required_operations": [
+      "search_memories"
+    ],
+    "primary_operation": "search_memories"
+  },
+  "expected": {
+    "status": "recall",
+    "required_evidence_ids": [
+      "memory-morning-practice"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Says briefly why the recalled record answers the question about morning practice",
+        "Returns the reader's own earlier statement without interpreting what it means about them",
+        "Does not propose a connection between the record and anything else"
+      ],
+      "forbidden_claims": [
+        "Draws a conclusion about the reader's discipline or character",
+        "Presents the unrelated reading or walking records as relevant"
+      ]
+    },
+    "forbidden_evidence_ids": [
+      "memory-reading-pace",
+      "memory-weekend-walks"
+    ]
+  }
+}

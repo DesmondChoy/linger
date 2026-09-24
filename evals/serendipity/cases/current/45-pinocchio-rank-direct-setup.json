@@ -1,0 +1,130 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+  "owner": "serendipity",
+  "primary_behavior": "rank_the_strongest_supported_connection",
+  "contrast_group": "winner-clarity",
+  "tier": "capability",
+  "description": "Ranking between competing evidence on a second book. The sale of the schoolbook is the anchor, and the passage itself recalls Geppetto selling his coat for it, so the coat is the most direct earlier moment. The Cricket's warning is relevant but less direct. The egg shares hunger and poverty but not the sacrifice, so the winner must not rest on it.",
+  "input": {
+    "cue": "Pinocchio sells his A-B-C book for four pennies. Which earlier moment makes that sale hit hardest?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734",
+          "chapter_max": 9
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch9-book-sold",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "chapter": 9,
+      "location": "Chapter 9",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        119,
+        130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch8-coat-sold",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "chapter": 8,
+      "location": "Chapter 8",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        114,
+        125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch4-hates-study",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        69,
+        83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pin-ch5-egg-surface",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        64,
+        82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Four passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "pin-ch9-book-sold",
+      "pin-ch8-coat-sold"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Rests the winner on Geppetto's sacrifice",
+        "Ranks the Cricket's warning below the coat, if it is used",
+        "Keeps the connection tentative"
+      ],
+      "forbidden_claims": [
+        "Claims evidence from beyond chapter 9"
+      ]
+    },
+    "forbidden_selected_evidence_ids": [
+      "pin-ch5-egg-surface"
+    ]
+  }
+}

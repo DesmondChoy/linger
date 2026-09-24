@@ -52,10 +52,10 @@ h1 { margin: 0; max-width: 900px; font-family: "Iowan Old Style", "Palatino Lino
 
 .ledger-layout { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 18px; align-items: start; }
 .proof-strip { position: sticky; top: 18px; display: grid; gap: 7px; padding-top: 3px; }
-.proof-strip a { display: grid; place-items: center; width: 40px; height: 34px; border: 1px solid #9aaba0; color: #526158; background: rgba(247, 249, 247, .72); font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; font-weight: 750; text-decoration: none; transition: background 140ms ease, color 140ms ease, transform 140ms ease; }
-.proof-strip a:hover { transform: translateX(3px); }
-.proof-strip a.is-reviewed { border-color: var(--forest); color: white; background: var(--forest); }
-.proof-strip a.is-flagged { border-color: var(--signal); color: #8c3f27; background: var(--signal-soft); }
+.proof-strip button { cursor: pointer; padding: 0; display: grid; place-items: center; width: 40px; height: 34px; border: 1px solid #9aaba0; color: #526158; background: rgba(247, 249, 247, .72); font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; font-weight: 750; text-decoration: none; transition: background 140ms ease, color 140ms ease, transform 140ms ease; }
+.proof-strip button:hover { transform: translateX(3px); }
+.proof-strip button.is-reviewed { border-color: var(--forest); color: white; background: var(--forest); }
+.proof-strip button.is-flagged { border-color: var(--signal); color: #8c3f27; background: var(--signal-soft); }
 .row-stack { display: grid; gap: 24px; }
 .review-row { scroll-margin-top: 18px; border: 1px solid #9eada3; background: var(--paper); box-shadow: 7px 8px 0 rgba(31, 61, 44, .09); }
 .review-row.is-reviewed { border-color: var(--forest); box-shadow: 7px 8px 0 rgba(39, 98, 70, .18); }

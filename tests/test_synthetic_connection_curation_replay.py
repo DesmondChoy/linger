@@ -65,7 +65,7 @@ def _connection_events(scene, memory_id):
             ConnectionCandidate(
                 candidate_id=f"candidate-{index}",
                 tentative_claim=claim,
-                evidence_ids=evidence_ids,
+                evidence_ids=evidence_ids if index == 1 else evidence_ids[-1:],
                 shared_structure="A familiar image appears in different contexts.",
                 meaningful_difference="The sources concern different experiences.",
                 interpretation=claim,
@@ -116,15 +116,15 @@ def test_replay_keeps_original_order_account_inputs_and_adoption(reverse_objecti
     }
     order, accounts, roots, session_ids = [], set(), set(), []
 
-    async def chat(request, service, account, *, initial_reading, public_source_urls):
+    async def chat(request, service, account, *, initial_reading, public_source_urls, connection_book_scopes=None):
         scene = connection_by_text[request.message]
         records = service.list_active(account)
         assert len(records) == len(scene.props) == 1
         assert records[0].text == scene.props[0].source_text
         assert not service.capture_enabled(account)
         assert not sessions.history(request.session_id)
-        assert initial_reading.work_id == scene.source_setup.book_scope.work_id
-        assert initial_reading.chapter_max == scene.source_setup.book_scope.safe_ceiling_chapter
+        assert initial_reading.work_id == scene.source_setup.book_scopes[0].work_id
+        assert initial_reading.chapter_max == scene.source_setup.book_scopes[0].safe_ceiling_chapter
         assert public_source_urls == tuple(source.url for source in scene.source_setup.public_sources)
         assert "ground_truth" not in request.model_dump_json()
         order.append(scene.scene.scene_id)
@@ -270,7 +270,7 @@ def test_one_execution_failure_is_recorded_and_later_scenes_continue(failing_kin
             failures.append(scene_id)
             raise RuntimeError("private test text must not enter execution metadata")
 
-    async def chat(request, service, account, *, initial_reading, public_source_urls):
+    async def chat(request, service, account, *, initial_reading, public_source_urls, connection_book_scopes=None):
         visit(line_scenes[request.message], "connection")
         return response()
 
@@ -342,7 +342,7 @@ def test_cli_writes_every_scene_before_returning_execution_failure(tmp_path, mon
         if scene.objective_ids == (CURATION,)
     }
 
-    async def chat(request, service, account, *, initial_reading, public_source_urls):
+    async def chat(request, service, account, *, initial_reading, public_source_urls, connection_book_scopes=None):
         visits.append(line_scenes[request.message])
         return response()
 

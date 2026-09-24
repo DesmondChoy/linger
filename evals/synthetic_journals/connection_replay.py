@@ -34,10 +34,11 @@ from .connection_contract import (
 from .evaluation_link import emit_evaluation_link
 from .frozen_public_sources import bind_frozen_public_sources
 from .models import (
-    GroundTruthAdoption, GroundTruthProposal, PropEvidence, ProposedGroundTruth,
+    ConnectionExpectation, GroundTruthAdoption, GroundTruthProposal, PropEvidence, ProposedGroundTruth,
     PublicSourceEvidence, StrictModel, SyntheticBackstory,
 )
 from .replay import RUNTIME_PROMPT_FINGERPRINTS, RUNTIME_SYSTEM_VARIANT, evaluation_agents
+from .provenance_diagnostics import LateProvenanceFinding, late_provenance_findings
 from .transcript import AgentExchange, SceneTranscriptRecorder
 from evals.serendipity.objective_replay import STAGES, StageResult
 
@@ -46,6 +47,7 @@ class ConnectionChatHandler(Protocol):
     async def __call__(
         self, request: ChatRequest, service: MemoryPolicyService, account: AccountContext,
         *, initial_reading: ReleaseScope | None, public_source_urls: tuple[str, ...] | None,
+        connection_book_scopes: tuple[ReleaseScope, ...] | None = None,
     ) -> ChatResponse: ...
 
 
@@ -73,6 +75,8 @@ class ConnectionSceneObservation(StrictModel):
     grades: tuple[ProposalGrade, ...]
     hard_gate_pass: bool
     semantic_review_required: Literal[True] = True
+    # Diagnostic only: revision-check objections to unchanged, first-review-accepted text.
+    late_provenance_findings: tuple[LateProvenanceFinding, ...] = ()
 
 
 class ConnectionEvaluationRun(StrictModel):
@@ -159,7 +163,7 @@ def _stage_failures(failures: list[str], failure_stage: str | None) -> dict[str,
     for failure in failures:
         if failure in {"missing_connection_decision", "unexpected_exploration"}:
             stage = "invocation"
-        elif failure in {"retrieval_failure", "invalid_evidence_observation", "public_source_changed_or_unresolved", "required_source_not_inspected", "missing_source_inspection", "private_query_disclosure"}:
+        elif failure in {"retrieval_failure", "invalid_evidence_observation", "public_source_changed_or_unresolved", "required_source_not_inspected", "missing_source_inspection", "private_query_disclosure", "missing_book_retrieval_observation", "required_book_not_searched", "required_book_not_retrieved", "forbidden_book_searched", "forbidden_book_retrieved"}:
             stage = "retrieval"
         elif failure in {"discovery_failure", "connection_decision_mismatch", "invalid_connection_proposal", "unpermitted_selected_evidence"}:
             stage = "serendipity_selection"
@@ -195,6 +199,36 @@ def lookup_failures(
     ):
         failures.append("discovery_failure")
     return tuple(failures)
+
+
+def _book_selection_failures(
+    scene: ValidatedConnectionScene, expectation: ConnectionExpectation,
+    events: Sequence[ConnectionEvaluationEvent],
+    ledger: dict[str, dict],
+) -> list[str]:
+    selection = expectation.book_retrieval
+    if selection is None:
+        return []
+    observations = [event for event in events if event.kind == "book_retrieval"]
+    searched = {work_id for event in observations for work_id in event.requested_work_ids}
+    retrieved = {work_id for event in observations for work_id in event.retrieved_work_ids}
+    surfaced = {record.get("work_id") for record in ledger.values() if record.get("source_kind") == "book_corpus"}
+    required = set(selection.required_work_ids)
+    allowed = required | set(selection.optional_work_ids)
+    if selection.search_mode == "exploratory":
+        allowed = {scope.work_id for scope in scene.source_setup.book_scopes} if scene.source_setup else set()
+    failures = []
+    if not observations:
+        failures.append("missing_book_retrieval_observation")
+    if required - searched:
+        failures.append("required_book_not_searched")
+    if required - retrieved:
+        failures.append("required_book_not_retrieved")
+    if searched - allowed:
+        failures.append("forbidden_book_searched")
+    if (retrieved | surfaced) - allowed:
+        failures.append("forbidden_book_retrieved")
+    return failures
 
 
 def grade_connection_scene(
@@ -248,7 +282,7 @@ def grade_connection_scene(
         failures = list(common)
         decision = expectation.decision
         if decision == "not_requested":
-            if discoveries or searches or response.inspection.librarian_grounding:
+            if discoveries or searches or any(event.kind == "book_retrieval" for event in events) or response.inspection.librarian_grounding:
                 failures.append("unexpected_exploration")
         elif final is None:
             failures.append("missing_connection_decision")
@@ -268,7 +302,18 @@ def grade_connection_scene(
                 failures.append("missing_review_approval")
         mapped, evidence_failures = _runtime_ids(scene, proposal, prop_ids, ledger)
         failures.extend(evidence_failures)
-        if decision != "not_requested" and any(not ids for ids in mapped.values()):
+        failures.extend(_book_selection_failures(scene, expectation, events, ledger))
+        optional_book_evidence = {
+            identity for identity, span in scene.evidence_by_id.items()
+            if expectation.book_retrieval is not None and any(
+                record.work_id in expectation.book_retrieval.optional_work_ids
+                for record in span.accepted_runtime_records
+            )
+        }
+        if decision != "not_requested" and any(
+            not mapped[evidence_id] for evidence_id in expectation.permitted_evidence_ids
+            if evidence_id not in optional_book_evidence
+        ):
             failures.append("required_source_not_inspected")
         permitted = set().union(*(mapped[item] for item in expectation.permitted_evidence_ids))
         if cited - permitted:
@@ -304,6 +349,14 @@ def grade_connection_scene(
     return tuple(grades)
 
 
+def _late_findings(exchanges: Sequence[AgentExchange]) -> tuple[LateProvenanceFinding, ...]:
+    try:
+        return late_provenance_findings(exchanges)
+    except ValueError:
+        # A diagnostic must never fail a completed provider-backed Scene.
+        return ()
+
+
 async def replay_connection_scene(
     scene: ValidatedConnectionScene, *, run_id: str,
     handler: ConnectionChatHandler, service: MemoryPolicyService, account: AccountContext,
@@ -322,11 +375,11 @@ async def replay_connection_scene(
         service.set_capture_enabled(account, False)
     before = tuple(service.list_active(account))
     setup = scene.source_setup
-    scope = setup.book_scope if setup else None
-    reading = ReleaseScope(
+    scopes = tuple(ReleaseScope(
         work_id=scope.work_id, book_version_id=scope.book_version_id,
         chapter_max=scope.safe_ceiling_chapter,
-    ) if scope else None
+    ) for scope in setup.book_scopes) if setup else ()
+    reading = scopes[0] if len(scopes) == 1 else None
     urls = tuple(source.url for source in setup.public_sources) if setup else ()
     recorder = SceneTranscriptRecorder()
     session_id = f"{run_id}:{scene.scene.order}"
@@ -338,6 +391,7 @@ async def replay_connection_scene(
             response = await handler(
                 ChatRequest(session_id=session_id, turn_id=f"{run_id}:{scene.line.line_id}", message=scene.line.text),
                 service, account, initial_reading=reading, public_source_urls=urls,
+                connection_book_scopes=scopes if len(scopes) > 1 else None,
             )
     finally:
         sessions.clear(session_id)
@@ -351,6 +405,7 @@ async def replay_connection_scene(
         released_evidence_ids=next((event.released_evidence_ids for event in reversed(recorder.connection_events) if event.kind == "release"), ()),
         events=recorder.connection_events, agent_exchanges=recorder.exchanges,
         grades=grades, hard_gate_pass=not any(grade.failures for grade in grades),
+        late_provenance_findings=_late_findings(recorder.exchanges),
     )
     return observation
 

@@ -14,6 +14,7 @@ from src.linger.agents.librarian.models import (
 from src.linger.contracts.librarian import EvidenceRecord
 from src.linger.contracts.reading import permits_scope
 from src.linger.contracts.session import ReaderStatement
+from src.linger.evaluation_transcript import ConnectionEvaluationEvent, record_connection_event
 from src.linger.orchestration.evidence_strength import (
     StrengthJudge, assess_book_evidence, judge_evidence_strength, plan_book_request,
 )
@@ -161,9 +162,23 @@ async def retrieve_book_evidence(
         ) for query in queries]
     except ValueError as error:
         raise EvidenceJudgementError("Planned book request exceeds the retrieval budget") from error
-    items = _merge_candidates(
-        [tuple(librarian.retrieve_for_judgement(request).items) for request in requests], book_scopes,
-    )
+    streams = []
+    for request in requests:
+        requested_work_ids = tuple(scope.work_id for scope in request.book_scopes)
+        if purpose == "connection_discovery":
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="book_retrieval", status="attempted", source="book_corpus",
+                operation="search_librarian", requested_work_ids=requested_work_ids,
+            ))
+        candidates = tuple(librarian.retrieve_for_judgement(request).items)
+        if purpose == "connection_discovery":
+            record_connection_event(ConnectionEvaluationEvent(
+                kind="book_retrieval", status="ok", source="book_corpus",
+                operation="search_librarian", requested_work_ids=requested_work_ids,
+                retrieved_work_ids=tuple(item.work_id for item in candidates),
+            ))
+        streams.append(candidates)
+    items = _merge_candidates(streams, book_scopes)
     records = tuple(evidence_record_from_item(item) for item in items)
     if len({record.evidence_id for record in records}) != len(records):
         raise ValueError("retrieved evidence IDs must be unique")

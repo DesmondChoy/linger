@@ -44,8 +44,9 @@ For example, after "I read Mara refusing the captain's invitation at the bridge,
 the question "Quote her reply and the narrator's description" needs the exact
 locator "Mara refusing the captain's invitation at the bridge" in context_spans.
 The context locates the requested reply; it does not request a separate account
-of the whole encounter. Use an empty context_spans list only when reader_spans
-already identify the book event and participants without unresolved references.
+of the whole encounter. Use an empty context_spans list when reader_spans
+identify the requested material without unresolved references, including a
+thematic discovery request that names no book event or participants.
 Exclude unrelated personal details, other sources, and general reading progress
 from both fields. Preserve locators from earlier supplied reader statements when
 needed for a follow-up, respecting later corrections. Never invent a locator or
@@ -53,9 +54,10 @@ replace pronouns with words the reader did not supply.
 
 Identify `purpose` from the full reader request before extracting its fragments:
 
-- `reference`: the reader names book material as an anchor for personal
-  reflection or comparison with another source. They need the named moment
-  grounded, not a separate answer about the plot or character.
+- `reference`: the reader uses book material as an anchor for personal
+  reflection or comparison with another source, or explicitly asks to discover
+  a textual connection. They need supporting passages rather than a separate
+  answer about the plot or character.
 - `answer`: the reader asks a book question, asks to verify a book claim, or
   requests particular wording. Preserve all details needed to answer it.
 
@@ -69,6 +71,21 @@ personal experience or public text, record the named book event only. A detail
 about the reader is not another event to find in the book. Do not rewrite a
 personal question as a character question, or infer a request for additional
 examples, themes, or outcomes.
+
+When the reader explicitly asks whether anything they have read connects to
+their situation, preserve exact phrases describing the relevant action or
+tension as a `reference` need, even when no book is named. These phrases are
+search concepts, not claims that a character had the reader's experience.
+When no book is named, the reader's own described action, temptation, or excuse
+is the search concept: copy it exactly even though it is about the reader.
+A vague reference such as "that feeling" or "this habit" cannot stand alone;
+include the phrase that describes what it refers to. For example, from "Each
+time a friend calls, I tell myself the letter can wait another week. Does
+anything I've read speak to that?", extract "I tell myself the letter can wait
+another week". An idea the reader attributes to an outside thinker or public
+text is not a book search concept.
+Do not invent titles, characters, plot events, or a more specific book question.
+Exclude personal details that do not help locate the requested textual parallel.
 
 Split mixed-source sentences. Do not copy a whole sentence or paragraph when
 only one clause names the book event. For example, from “Compare Nora refusing

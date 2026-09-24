@@ -207,3 +207,53 @@ def test_obsolete_interfaces_have_no_compatibility_alias(field):
     raw[field] = []
     with pytest.raises(ValueError):
         model.model_validate(raw)
+
+
+def validated(request, candidate_review):
+    from types import SimpleNamespace
+    from src.linger.agents.provenance.review_context import reset_review_input, set_review_input
+    from src.linger.agents.provenance.review_validation import validate_provenance_review
+    token = set_review_input(request)
+    try:
+        return validate_provenance_review(SimpleNamespace(deps=None), candidate_review)
+    finally:
+        reset_review_input(token)
+
+
+def structural_response_finding():
+    finding = response_finding()
+    finding["location"] = {"kind": "structural", "source_field": "candidate.response", "path": ""}
+    return finding
+
+
+def test_revise_records_the_gap_finding_its_own_coverage_audit_requires():
+    request = task(declare=False)
+    result = validated(request, review(declare=False, finding=structural_response_finding()))
+    request.validate_review(result)
+    gap = [f for f in result.findings if getattr(f.location, "quote", None)]
+    assert [f.location.quote for f in gap] == [request.candidate.response.strip()]
+    assert result.response_decision == "revise"
+
+
+def test_revise_records_one_mapping_finding_with_the_audit_summary():
+    request = task()
+    result = validated(request, review(supported=False, finding=structural_response_finding()))
+    request.validate_review(result)
+    derived = result.findings[1:]
+    assert [(f.location.source_field, f.location.path) for f in derived] == [
+        ("candidate.evidence_uses", "/0/supported_claims/0"),
+    ]
+    assert "Fixture verdict" in derived[0].explanation
+    assert "Fixture verdict" in result.critique()
+
+
+def test_passed_review_that_contradicts_its_audit_still_retries():
+    from pydantic_ai import ModelRetry
+    passed = review(supported=False)
+    with pytest.raises(ModelRetry, match="unsupported declared claim requires a finding"):
+        validated(task(), passed)
+
+
+def test_complete_review_is_returned_unchanged():
+    candidate = review(supported=False, finding=response_finding())
+    assert validated(task(), candidate) is candidate

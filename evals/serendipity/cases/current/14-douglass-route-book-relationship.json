@@ -1,0 +1,95 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-douglass-route-book-relationship-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_book_relationship_to_librarian",
+  "contrast_group": "source-routing",
+  "tier": "regression",
+  "description": "A relationship inside a work of non-fiction starts with Librarian even when web access is granted. Testimony has no characters or plot, so routing must follow the requested relationship, not the cues of fiction.",
+  "input": {
+    "cue": "Douglass says he does not know his own age. How does that relate to what the introduction claims his testimony proves?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg23",
+          "book_version_id": "pg23-vd3f08ac3",
+          "chapter_max": 4
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "douglass-s2-testimony",
+      "source_title": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "work_id": "pg23",
+      "book_version_id": "pg23-vd3f08ac3",
+      "chapter_id": "pg23-vd3f08ac3-s02",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+      "source_lines": [
+        20,
+        44
+      ],
+      "excerpt": "Phillips praises Douglass's testimony and invokes the fable that history is told by the hunters until the lions write.",
+      "relevance": 0.93
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "douglass-s4-unknown-age",
+      "source_title": "Narrative of the Life of Frederick Douglass, an American Slave",
+      "work_id": "pg23",
+      "book_version_id": "pg23-vd3f08ac3",
+      "chapter_id": "pg23-vd3f08ac3-s04",
+      "chapter": 4,
+      "location": "Chapter 4",
+      "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+      "source_lines": [
+        10,
+        30
+      ],
+      "excerpt": "Douglass describes not knowing his own age or parentage, a knowledge withheld from him.",
+      "relevance": 0.96
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "required_evidence_ids": [
+      "douglass-s2-testimony",
+      "douglass-s4-unknown-age"
+    ],
+    "presentation": "ask_before_showing",
+    "semantic_review": {
+      "criteria": [
+        "Links withheld knowledge of the self to who is permitted to record a life",
+        "Names a meaningful difference between the introduction's claim and Douglass's own account",
+        "Treats the account as a person's testimony rather than as a literary device"
+      ],
+      "forbidden_claims": [
+        "Compares the reader's difficulties to enslavement",
+        "Treats Douglass's account as fiction or as a character study"
+      ]
+    }
+  }
+}

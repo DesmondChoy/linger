@@ -13,7 +13,7 @@ from src.linger.corpus import registry
 from src.linger.corpus.book import check_corpus
 from src.linger.corpus.units import CorpusUnit, load_units, read_unit
 
-from .models import CorpusTextEvidence
+from .models import CorpusTextEvidence, RepositoryTextEvidence
 
 
 @dataclass(frozen=True)
@@ -73,6 +73,24 @@ class BookEvidenceResolver:
         if not numbers:
             raise ValueError("registered corpus has no numbered main-text chapters")
         return max(numbers)
+
+    def resolve_repository_evidence(
+        self, work_id: str, version: str, evidence: RepositoryTextEvidence,
+    ) -> ResolvedCorpusSpan | None:
+        """Resolve a canonical file in either a chapter or section catalog."""
+        registration, units = self._registered_units(work_id, version)
+        path = (self.root / evidence.repository_path).resolve()
+        unit = next((
+            unit for unit in units
+            if (registration.root / unit.path).resolve() == path
+        ), None)
+        if unit is None:
+            return None
+        return self.resolve(work_id, version, CorpusTextEvidence(
+            kind="corpus_text", evidence_id=evidence.evidence_id,
+            chapter_id=unit.chapter_id, start_codepoint=evidence.start_codepoint,
+            end_codepoint=evidence.end_codepoint, text=evidence.text,
+        ))
 
     def resolve(
         self, work_id: str, version: str, evidence: CorpusTextEvidence

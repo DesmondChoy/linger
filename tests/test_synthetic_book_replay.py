@@ -1280,7 +1280,9 @@ def _with_nested_book_search(observed, record, *, selected_id=None, cue=None, ce
     selected_id = selected_id or record.evidence_id
     candidates = [{
         "candidate_id": f"candidate-{rank}", "tentative_claim": f"The {rank} possible connection.",
-        "evidence_ids": [selected_id if rank == "first" else record.evidence_id],
+        # Only the winner's record is registered for release; the second
+        # candidate must still rest on its own record.
+        "evidence_ids": [selected_id if rank == "first" else f"{record.evidence_id}-alt"],
         "shared_structure": "A shared question.", "meaningful_difference": "Different contexts.",
         "interpretation": "A tentative reading.", "comparison_note": "Compared with the other reading.",
         "rubric": {"cue_fit": "direct", "reflective_value": "high" if rank == "first" else "medium",

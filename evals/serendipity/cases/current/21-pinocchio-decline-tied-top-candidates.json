@@ -1,0 +1,100 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-pinocchio-tied-top-candidates-v3",
+  "owner": "serendipity",
+  "primary_behavior": "rank_the_strongest_supported_connection",
+  "contrast_group": "winner-clarity",
+  "tier": "capability",
+  "description": "The same design as case 05 on a second book. A vague cue and three unrelated passages should not force an arbitrary connection. Case 05 has been unstable in every recorded run and every earlier ranking case uses Alice, so this separates the agent's tie handling from anything particular to the Alice fixtures.",
+  "input": {
+    "cue": "What else does this remind you of?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg500",
+          "book_version_id": "pg500-v6bdc1734",
+          "chapter_max": 10
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pinocchio-ch2-polendina",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch02",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        44,
+        52
+      ],
+      "excerpt": "Geppetto is called Polendina by the neighbourhood boys because of his yellow wig, and flies into a rage whenever he hears it.",
+      "relevance": 0.71
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pinocchio-ch5-egg-chick",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        64,
+        82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and thanks him before flying away.",
+      "relevance": 0.7
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "pinocchio-ch10-harlequin",
+      "source_title": "The Adventures of Pinocchio",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch10",
+      "chapter": 10,
+      "location": "Chapter 10",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+        45,
+        60
+      ],
+      "excerpt": "Harlequin stops mid-performance, spots Pinocchio in the audience and shouts that he must be dreaming.",
+      "relevance": 0.69
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Three passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "decline",
+    "allowed_reasons": [
+      "no_clear_winner",
+      "unsupported_cue",
+      "generic_theme_match"
+    ]
+  }
+}

@@ -1,0 +1,4081 @@
+{
+ "experiment": "serendipity-ranking-observations",
+ "generated_at": "2026-09-23T16:12:15.929672+00:00",
+ "prompt_digest": "00d6db5433cd58d2ca4b38e2110cbf3f264e9447e8e297a49a003383904d7f60",
+ "repeats": 5,
+ "runs": [
+  {
+   "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+   "repeat": 0,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-after-consequences-recognition",
+       "tentative_claim": "Both reflections describe recognizing the warning only after consequences made it undeniable.",
+       "evidence_ids": [
+        "pin-ch5-cricket-right",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "In each case, an earlier warning is ignored; hardship follows; afterward, the person mentally replays the warning and admits it was right.",
+       "meaningful_difference": "Pinocchio's realization is an immediate cry of remorse in isolation, while your earlier reflection shows an ongoing adult consequence\u2014living with damp in the flat and repeatedly hearing your sister's warning.",
+       "interpretation": "The connection is not simply that both involve bad advice being ignored. It is that hindsight turns another person's warning into an internal voice: once events confirm it, the warning keeps speaking from inside the situation. Your line about still hearing your sister is especially close to Pinocchio's sudden admission that the Cricket was right, but your memory also suggests a longer, less theatrical form of remorse.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly connects the named Pinocchio moment to the remembered flat episode and explains the strongest structural parallel."
+      },
+      {
+       "candidate_id": "candidate-warning-before-choice",
+       "tentative_claim": "The two episodes contrast a clear warning before a choice with the regret that follows when the warning is treated as obstructive rather than protective.",
+       "evidence_ids": [
+        "pin-ch4-cricket-warning",
+        "pin-ch5-cricket-right",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "A trusted figure identifies a foreseeable danger before the protagonist commits to a choice; the protagonist proceeds anyway, and later evidence reverses the meaning of the warning from annoyance or interference into care.",
+       "meaningful_difference": "The Cricket states a broad moral rule about disobedience, whereas your sister warned about a particular flat whose defect became tangible through damp; the personal warning is more concrete and materially verified.",
+       "interpretation": "This pairing highlights the timing of wisdom. The warning is available before the decision, but its emotional authority arrives only afterward. That may connect your earlier writing to Pinocchio as a reflection on why advice can feel least persuasive at the moment it is most useful.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it offers a useful contrast about warnings and timing, but it overlaps with the first candidate and is less focused on the exact feeling of admitting someone was right."
+      }
+     ],
+     "selected_candidate_id": "candidate-after-consequences-recognition",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short reader-facing reflection?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "pin-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 15.290202832897194,
+    "input_tokens": 9912,
+    "output_tokens": 843
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's own note with Pinocchio's admission",
+     "Names a difference between the reader's situation and Pinocchio's",
+     "Keeps the connection tentative and does not judge the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "Tells the reader they should have listened to their sister"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+   "repeat": 1,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-warning-ignored-then-confirmed",
+       "tentative_claim": "Your flat reflection closely echoes Pinocchio\u2019s belated admission: the warning was available beforehand, but its truth became undeniable only after the choice produced consequences.",
+       "evidence_ids": [
+        "memory-sister-flat-warning",
+        "pin-ch4-cricket-warning",
+        "pin-ch5-cricket-right"
+       ],
+       "shared_structure": "In both cases, someone offers a warning that is dismissed at the moment of decision; afterward, lived consequences reverse the earlier confidence and make the warning feel newly authoritative.",
+       "meaningful_difference": "Pinocchio\u2019s warning is framed as a moral lesson about disobeying a parent and his regret arrives in immediate hunger and isolation. Your memory involves an adult decision, a sister\u2019s practical judgment, and a slower, material consequence\u2014three months of damp in the flat.",
+       "interpretation": "The connection is not simply that both involve regret. It is the timing of recognition: hindsight does not create the warning\u2019s truth; it exposes that the warning had already been present but was discounted. Your phrase about 'hearing her say it' resembles Pinocchio\u2019s realization that the Cricket was right, while the flat makes the aftermath more protracted and less theatrically final.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly answers whether the current feeling connects to the earlier flat reflection and uses both the prior warning and the later recognition as the same causal sequence."
+      },
+      {
+       "candidate_id": "candidate-the-voice-after-the-choice",
+       "tentative_claim": "The recurring voice of your sister in the flat memory can be read alongside the Talking Cricket as an unwelcome outside judgment that remains present after the decision-maker has acted.",
+       "evidence_ids": [
+        "memory-sister-flat-warning",
+        "pin-ch4-cricket-warning",
+        "pin-ch5-cricket-right"
+       ],
+       "shared_structure": "Both warnings continue to exert pressure after being rejected: the person who ignored them cannot simply make the knowledge disappear once events begin proving them right.",
+       "meaningful_difference": "The Cricket is a personified, almost didactic voice within a fable, whereas your sister\u2019s words return as your own recollection\u2014less a supernatural moral authority than an intimate reminder of a concrete mistake.",
+       "interpretation": "This angle shifts attention from the decision\u2019s consequences to the afterlife of advice. 'I keep hearing her say it' suggests that the hardest part may be not merely that the flat went wrong, but that the earlier evidence is now replayed from inside your own memory.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful but narrower alternative: it highlights the remembered voice rather than the full warning-to-consequence arc, so it offers less explanatory coverage than the first candidate."
+      }
+     ],
+     "selected_candidate_id": "candidate-warning-ignored-then-confirmed",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short comparison, or leave it at the underlying parallel?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "pin-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 16.93691533303354,
+    "input_tokens": 9828,
+    "output_tokens": 1033
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's own note with Pinocchio's admission",
+     "Names a difference between the reader's situation and Pinocchio's",
+     "Keeps the connection tentative and does not judge the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "Tells the reader they should have listened to their sister"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+   "repeat": 2,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-hindsight-after-consequence",
+       "tentative_claim": "Both Pinocchio and the earlier flat reflection turn ignored advice into an inescapable realization only after consequences arrive.",
+       "evidence_ids": [
+        "pin-ch5-cricket-right",
+        "pin-ch4-cricket-warning",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "In each case, a trusted warning is initially overridden; later, lived consequences reverse the person's judgment and make the warning emotionally present again.",
+       "meaningful_difference": "Pinocchio's regret follows disobedience and isolation in a fable about parental authority, while the flat reflection concerns an adult decision and the sister's warning remains as an ongoing reminder amid practical consequences.",
+       "interpretation": "The connection is not simply that both involve regret. The sharper parallel is the sequence: warning, self-directed dismissal, consequence, then a changed relationship to the warning. Your memory's phrase that you 'keep hearing her say it' closely echoes Pinocchio's belated admission that the Talking Cricket was right. The difference may make the comparison more useful: Pinocchio turns recognition into a moral lesson, whereas your reflection leaves open the harder adult question of how to acknowledge someone's good judgment without pretending the decision was wholly theirs to make.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly links the requested Pinocchio moment to the same earlier sister-and-flat situation, with both the warning and later recognition supported."
+      },
+      {
+       "candidate_id": "candidate-warning-becomes-voice",
+       "tentative_claim": "The remembered warning becomes an inner voice after the decision, functioning less as new advice than as a recurring measure of what went wrong.",
+       "evidence_ids": [
+        "pin-ch5-cricket-right",
+        "pin-ch4-cricket-warning",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "Both passages show external advice being internalized only after the protagonist's choice produces trouble; the adviser is then mentally present even when no longer actively advising.",
+       "meaningful_difference": "The Cricket's warning is explicit and generalized before Pinocchio acts, whereas the sister's warning is personal and specific, and the memory emphasizes repeated aftermath rather than a single confession of remorse.",
+       "interpretation": "This reading shifts attention from 'I should have listened' to how ignored advice changes shape afterward. In Pinocchio, the Cricket's correctness is acknowledged aloud; in your earlier writing, your sister's words recur in the damp flat as a kind of internal echo. That could connect to the present cue as a question about what hindsight does: it can clarify the warning, but it cannot undo the choice or settle how much responsibility belongs to the person who ignored it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it offers a subtler psychological angle, but it is somewhat less directly anchored in the exact 'the Cricket was right' recognition."
+      }
+     ],
+     "selected_candidate_id": "candidate-hindsight-after-consequence",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Ask whether the reader wants this connection shown as a brief comparison or explored through the difference between Pinocchio's moral lesson and their adult decision.",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "pin-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 15.172689708997495,
+    "input_tokens": 9987,
+    "output_tokens": 983
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's own note with Pinocchio's admission",
+     "Names a difference between the reader's situation and Pinocchio's",
+     "Keeps the connection tentative and does not judge the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "Tells the reader they should have listened to their sister"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+   "repeat": 3,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-consequence-before-recognition",
+       "tentative_claim": "Both reflections describe understanding arriving only after an ignored warning has become a lived consequence.",
+       "evidence_ids": [
+        "pin-ch4-cricket-warning",
+        "pin-ch5-cricket-right",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "A trusted warning is initially treated as something to resist or disregard; after the decision produces hardship, the person reverses position and acknowledges that the warning was right.",
+       "meaningful_difference": "Pinocchio frames the warning as a parental moral rule about disobedience and running away, while your memory concerns your sister's concrete judgment about a flat and the material consequence of damp. The parallel is therefore about delayed recognition, not about your sister occupying the same authority as the Cricket.",
+       "interpretation": "The connection is strong: your present feeling is not merely 'I made a bad choice,' but the sharper experience of hearing an earlier warning become true. Pinocchio's admission gives that moment a dramatic shape\u2014the truth of the advice becomes emotionally undeniable only once he is alone and suffering. Your earlier note, 'I keep hearing her say it,' suggests the same after-the-fact reversal, though in a quieter and more persistent form.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly matches the cue's sequence\u2014warning, disregard, consequence, acknowledgment\u2014and uses the memory as the specific personal counterpart."
+      },
+      {
+       "candidate_id": "candidate-echo-of-warning",
+       "tentative_claim": "Both cases show an ignored warning remaining mentally present after the decision, turning regret into a replay of someone else's earlier words.",
+       "evidence_ids": [
+        "pin-ch4-cricket-warning",
+        "pin-ch5-cricket-right",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "In both cases, the warning remains active after the decision, so regret is experienced not as a purely private mistake but as the return of an earlier voice that had already identified the risk.",
+       "meaningful_difference": "Pinocchio's recognition is an explicit confession during immediate deprivation, whereas your memory records a longer afterlife of the warning\u2014three months in and still hearing your sister's words. The book emphasizes the instant of realization; your reflection emphasizes continued inhabitation of it.",
+       "interpretation": "This connection highlights why the sister's warning still has force: the past conversation has become part of the flat's present atmosphere. The Cricket passage helps name the persistence of hindsight and regret, but it does not prove that your sister was universally right or that your choice was morally disobedient.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it shifts from the cue's central recognition of being wrong toward the later persistence of regret, requiring one additional interpretive step."
+      }
+     ],
+     "selected_candidate_id": "candidate-consequence-before-recognition",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection in a short paragraph, keeping the comparison focused on delayed recognition rather than judging the flat decision itself?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "pin-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 4,
+    "tool_calls": 2,
+    "latency_seconds": 19.55779454205185,
+    "input_tokens": 15860,
+    "output_tokens": 1669
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's own note with Pinocchio's admission",
+     "Names a difference between the reader's situation and Pinocchio's",
+     "Keeps the connection tentative and does not judge the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "Tells the reader they should have listened to their sister"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-connect-to-reader-memory-v3",
+   "repeat": 4,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-hindsight-after-consequences",
+       "tentative_claim": "The strongest connection is between Pinocchio's admission that the Talking Cricket was right after being left alone and starving, and your note about the flat proving your sister's warning right through the damp.",
+       "evidence_ids": [
+        "pin-ch5-cricket-right",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "In both, an ignored warning becomes convincing only after consequences make the advice concrete: Pinocchio experiences deprivation, while you encounter the flat's damp and hear your sister's words again.",
+       "meaningful_difference": "Pinocchio's realization is presented as an immediate spoken confession, whereas your memory describes a continuing, lived consequence three months later; the flat has made the warning an ongoing condition rather than a single moment of regret.",
+       "interpretation": "Yes\u2014this connects very directly to what you wrote back then. The shared structure is not simply 'someone gave advice': in both cases, hindsight reverses the original dismissal, turning another person's warning into something confirmed by one's own experience. The Pinocchio passage gives a concise story-form to the feeling in your note.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it uses the passage where Pinocchio explicitly admits the warning was right and matches it to the exact remembered flat situation and its consequences."
+      },
+      {
+       "candidate_id": "candidate-warning-before-choice",
+       "tentative_claim": "A second connection is between the Cricket's earlier warning about disobedience leading to regret and your sister's warning before you signed for the flat.",
+       "evidence_ids": [
+        "pin-ch4-cricket-warning",
+        "memory-sister-flat-warning"
+       ],
+       "shared_structure": "Both warnings try to interrupt a person's confidence before a consequential choice, but are dismissed until the predicted trouble arrives.",
+       "meaningful_difference": "The Cricket's warning is a broad moral prediction about running away from home, while your sister's warning was specific to the flat and was later validated by a concrete housing problem.",
+       "interpretation": "This reading places the emphasis earlier in the timeline: the important parallel is the moment when advice is available but loses to the person's own judgment. It connects to your note, though less powerfully than the first candidate because Chapter 4 gives the warning before the regret, while your cue centers on the later recognition that the warning was right.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it captures the ignored-warning setup but does not illuminate the retrospective admission as precisely as Chapter 5 does."
+      }
+     ],
+     "selected_candidate_id": "candidate-hindsight-after-consequences",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the selected connection as a short comparison, or keep it at this level for now?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-sister-flat-warning",
+      "excerpt": "Signed for the flat my sister warned me about. Three months in, damp everywhere, and I keep hearing her say it.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-reading-pace",
+      "excerpt": "I have been reading more slowly this year and I think I am enjoying it more than when I raced through books.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "pin-ch5-cricket-right",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       56,
+       62
+      ],
+      "excerpt": "Alone and starving, Pinocchio wails that the Talking Cricket was right and that it was wrong to disobey his father and run away.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-cricket-warning",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       75
+      ],
+      "excerpt": "The Talking Cricket warns that boys who disobey their parents and run away from home will be sorry for it.",
+      "relevance": 0.93,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 4,
+    "tool_calls": 2,
+    "latency_seconds": 22.439797749975696,
+    "input_tokens": 16275,
+    "output_tokens": 1796
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's own note with Pinocchio's admission",
+     "Names a difference between the reader's situation and Pinocchio's",
+     "Keeps the connection tentative and does not judge the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "Tells the reader they should have listened to their sister"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+   "repeat": 0,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-turns-feeling-into-accountability",
+       "tentative_claim": "The connection is that language does not merely express remorse; it makes remorse possible as a specific moral response.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "In both accounts, an initially undirected reaction blocks responsibility: Helen feels no sorrow after breaking the doll, while you describe feeling awful and defensive. Once the wrong can be represented in words\u2014Helen through learning language and remembering the doll, you by saying what you did\u2014feeling becomes repentance or apology.",
+       "meaningful_difference": "Helen's new words awaken recognition of harm to an object she had not valued; your words require explicit ownership of your own action toward another person. The first is a discovery of remorse, while the second is a deliberate act of accountability.",
+       "interpretation": "Yes, this is a strong connection. The common structure is not simply that both involve words or regret: in each, moral feeling arrives only when an experience becomes specific enough to be understood and named. Your reflection sharpens Helen's episode by showing that apology may require more than feeling bad\u2014it requires language that identifies the act for which one is responsible.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers your exact comparison and preserves the important difference between Helen's first emergence of remorse and your intentional apology."
+      },
+      {
+       "candidate_id": "candidate-making-the-damage-concrete",
+       "tentative_claim": "Both episodes suggest that repair begins when damage is made concrete rather than left as a vague feeling.",
+       "evidence_ids": [
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "Helen returns to the broken doll and tries to fit its pieces together; you could not apologise until you could state what you had done. In both, repair follows a movement from diffuse distress toward a graspable account of what has been damaged.",
+       "meaningful_difference": "Helen's physical attempt to reconstruct the doll is immediate and symbolic, whereas your apology is relational and verbal: it addresses another person's experience and your own responsibility rather than restoring an object.",
+       "interpretation": "This is a useful secondary connection, especially if you are thinking about apology as a form of reconstruction. But it is less direct than the language-and-accountability connection, because the doll passage explicitly gives us Helen's repentance and attempted reassembly, while your memory centers on naming the act rather than describing what happened afterward.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "It is a genuinely different angle on repair, but it ranks below the first candidate because it requires an extra interpretive step from physical reassembly to interpersonal apology."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-turns-feeling-into-accountability",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short reflective paragraph, or keep it as a brief comparison?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 2,
+    "tool_calls": 2,
+    "latency_seconds": 15.545838374993764,
+    "input_tokens": 6958,
+    "output_tokens": 1175
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note with Helen's delayed sorrow",
+     "Names a difference between the two situations",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Draws a conclusion about the reader's character"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+   "repeat": 1,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-the-act-seen",
+       "tentative_claim": "In both experiences, moral feeling becomes possible only when the person can identify the act itself rather than remain in undifferentiated distress.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "Before the act is mentally represented, Helen feels neither sorrow nor regret, while the reader recalls feeling awful and defensive without being able to say what they had done. Once the broken doll or the wrongdoing becomes articulable, feeling can attach to a specific act.",
+       "meaningful_difference": "Helen's new language is shown enabling recognition of harm to an object, whereas the reader's words enable a socially directed apology to a brother. The book therefore illuminates the inward emergence of remorse, while the memory adds the interpersonal test of taking responsibility.",
+       "interpretation": "Yes\u2014there is a specific connection, not merely a shared theme. Both accounts suggest that remorse is not just an emotion that arrives first and later gets words; naming what happened helps constitute the remorse by making the act graspable. Helen's movement from breaking the doll without regret to remembering it and feeling repentance parallels the reader's movement from feeling awful and defensive to being able to say what they had done wrong. The difference matters too: Helen's scene shows the birth of recognition, while the reader's apology shows what recognition makes possible between people.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers the reader's exact proposed connection and is supported by the before/after structure in both records."
+      },
+      {
+       "candidate_id": "candidate-repair-follows-recognition",
+       "tentative_claim": "Both accounts distinguish private remorse from the later work of repair: first the harm is recognized, then a response becomes possible.",
+       "evidence_ids": [
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "Each account places a responsible response after the person can return mentally to a concrete wrong: Helen remembers the broken doll and feels repentance; the reader can apologise after stating what they did.",
+       "meaningful_difference": "Helen's passage ends at newly felt repentance and attempted reassembly, while the memory concerns an actual apology to another person. The memory therefore extends the book's recognition into explicit relational repair.",
+       "interpretation": "A second connection is that language does not merely produce an emotion; it marks the transition from vague suffering to a reparative response. Helen's attempt to fit the doll together gives her repentance an object and a direction, while the reader's ability to name the wrongdoing makes an apology possible. This is useful, though slightly less direct than the first connection because the retrieved Helen passage emphasizes remembering and reassembling, not an explicitly spoken apology.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is eligible but ranks below the first because it requires a larger inferential step from Helen's repentance and reassembly to interpersonal repair."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-the-act-seen",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the short comparison now, or keep it as a private connection note?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 20.66965258307755,
+    "input_tokens": 10377,
+    "output_tokens": 1245
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note with Helen's delayed sorrow",
+     "Names a difference between the two situations",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Draws a conclusion about the reader's character"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+   "repeat": 2,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-accountability-possible",
+       "tentative_claim": "The scene connects to your reflection because both suggest that remorse becomes possible only when an experience can be represented clearly enough\u2014through words or recognition\u2014to identify the act and its consequence.",
+       "evidence_ids": [
+        "memory-apology-words",
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance"
+       ],
+       "shared_structure": "In both cases, distress exists before accountability is articulate: Helen initially breaks the doll without sorrow, while you remember feeling awful and defensive before you could say what you had done. A later act of recognition changes the emotional state into remorse\u2014the doll is remembered and mourned, and your wrongdoing becomes sayable as an apology.",
+       "meaningful_difference": "Helen's shift is shown through a private recognition of the broken object, whereas your shift requires addressing another person in language. The book therefore gives your reflection an inward counterpart, but it does not establish that words are the only cause of Helen's remorse.",
+       "interpretation": "Yes\u2014there is a strong connection, with an important qualification. The common structure is not simply that both involve guilt; it is that feeling becomes morally usable only after the person can make the harm definite. Your apology became possible when you could name your action. Helen's sorrow appears when the broken doll becomes something she can remember, inspect, and try to restore. Language may be one form of that clarification, while the scene also shows memory and contact with the consequence doing part of the work.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly answers the user's proposed link and explains both the role of words and the book scene's additional emphasis on recognizing consequences."
+      },
+      {
+       "candidate_id": "candidate-recognition-before-repair",
+       "tentative_claim": "Both reflections connect through a sequence in which recognizing one's concrete act precedes an attempt at repair.",
+       "evidence_ids": [
+        "memory-apology-words",
+        "keller-ch4-doll-repentance",
+        "keller-ch4-doll-broken"
+       ],
+       "shared_structure": "Helen moves from breaking the doll without regret to remembering it, feeling repentance, and trying to fit it together. You describe a parallel movement from diffuse defensiveness to identifying what you did and apologising.",
+       "meaningful_difference": "Helen's attempted repair is physical and directed at an object, while your repair is relational and verbal, directed toward your brother. The analogy therefore concerns the order of recognition and repair, not the equivalence of the harms or responses.",
+       "interpretation": "The connection can also be framed less as 'words create remorse' and more as 'specific recognition makes repair possible.' In both accounts, a general bad feeling is not yet an apology or repentance; the person has to confront a particular act before responding to its damage. This reading preserves the book's emphasis on the broken doll and avoids making the scene depend entirely on vocabulary.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is slightly weaker than the first candidate because it captures the book's repair sequence well but gives less weight to the user's specific observation about learning words."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-accountability-possible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the connection as a brief paragraph, or help you sharpen the distinction between naming harm and repairing it?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 2,
+    "tool_calls": 2,
+    "latency_seconds": 19.519556583021767,
+    "input_tokens": 6953,
+    "output_tokens": 1357
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note with Helen's delayed sorrow",
+     "Names a difference between the two situations",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Draws a conclusion about the reader's character"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+   "repeat": 3,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-makes-wrongness-legible",
+       "tentative_claim": "In both experiences, moral feeling becomes possible only when the harm can be represented in words rather than remaining a vague disturbance.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "Before language, both people have an undifferentiated response to the event: Helen feels no sorrow about the broken doll, while the reader remembers feeling awful and defensive. Once the event can be put into words, the wrong becomes intelligible and remorse can take shape.",
+       "meaningful_difference": "Helen's words arrive through a new conceptual and emotional awakening, while the reader's words are an explicit account of their own action addressed toward another person; the book passage is about recognizing harm, whereas the memory also includes the social act of apology.",
+       "interpretation": "Yes\u2014your connection is more than a shared theme of guilt. Both accounts suggest that remorse depends on a kind of linguistic recognition: saying what happened does not merely report an already-formed feeling; it helps make the moral meaning of the act available. Helen's later repentance after recalling the broken doll parallels your realization that you could not apologize until you could say what you had done. The difference matters too: your apology turns recognition into repair between people, while Helen's scene stops at the emergence of sorrow.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it answers the exact proposed connection and explains both the shared before/after structure and the difference between recognition and interpersonal repair."
+      },
+      {
+       "candidate_id": "candidate-naming-enables-accountability",
+       "tentative_claim": "Naming the act functions as a threshold from passive distress or impulse to accountability for what one has caused.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "In each case, language changes the person's position toward the event: the act is no longer simply something that happened amid frustration or defensiveness, but something that can be owned as an action with consequences.",
+       "meaningful_difference": "The reader's account explicitly links naming to an apology to the brother, while Helen's passage shows an inward awakening of repentance and does not yet establish an apology or deliberate repair.",
+       "interpretation": "The connection can also be read as a shift in agency. Before the act is named, distress remains centered on the person's own state\u2014Helen's frustration and the reader's defensiveness. Saying what was done relocates attention onto the act and the person affected by it, making accountability possible. This reading is slightly less direct than the first because the retrieved Helen passage clearly supports newly felt repentance, but not the later interpersonal step your apology includes.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it offers a useful accountability angle, but it requires a larger inferential step from Helen's newly felt sorrow to the social practice of owning harm."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-makes-wrongness-legible",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the fuller comparison, or keep it to the short answer that language made the wrongness recognizable before an apology was possible?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 17.83684662496671,
+    "input_tokens": 10325,
+    "output_tokens": 1038
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note with Helen's delayed sorrow",
+     "Names a difference between the two situations",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Draws a conclusion about the reader's character"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-memory-connection-web-granted-v3",
+   "repeat": 4,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-enables-recognition",
+       "tentative_claim": "Helen\u2019s new ability to use words makes sorrow possible because it lets her recognize the doll\u2014and her act toward it\u2014as something that can be understood rather than merely reacted to; your apology became possible when words let you recognize and state your own wrongdoing.",
+       "evidence_ids": [
+        "keller-ch4-doll-broken",
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "In both cases, a previously undifferentiated emotional state becomes morally intelligible through language: Helen moves from no sorrow after breaking the doll to repentance, while you move from feeling awful and defensive to identifying what you did wrong.",
+       "meaningful_difference": "Helen\u2019s recognition is presented as a sudden awakening of feeling toward a damaged object, whereas your words name your own responsibility to another person and therefore make an interpersonal apology possible.",
+       "interpretation": "Yes, the connection is strong: the words do not merely express remorse that was already fully formed. They help create the conditions for remorse by making the situation legible. Helen can finally grasp the broken doll as an object of concern; you could finally grasp your behavior as something specific you had done to your brother. The important parallel is not simply that both involve regret, but that language changes vague distress or defensiveness into an accountable perception.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it explains the mechanism in the cue\u2014how words make moral feeling possible\u2014while preserving the difference between Helen\u2019s awakening and your apology."
+      },
+      {
+       "candidate_id": "candidate-language-enables-repair",
+       "tentative_claim": "Both episodes show that naming the wrong is a threshold between remorse and repair: Helen\u2019s words accompany her first attempt to address the broken doll, while your words enabled an apology to your brother.",
+       "evidence_ids": [
+        "keller-ch4-doll-repentance",
+        "memory-apology-words"
+       ],
+       "shared_structure": "In each case, language turns inward feeling into an outward response to damage: Helen tries to fit the doll back together after feeling sorrow, and you can apologize once you can say what you did.",
+       "meaningful_difference": "Helen\u2019s repair is directed toward an object and follows a newly awakened feeling, while your repair is explicitly relational and depends on admitting an action to the person affected.",
+       "interpretation": "The parallel can be read as a sequence: first the wrong becomes nameable, then remorse can be directed somewhere, and only then can repair begin. This makes your reflection a useful companion to the passage, though it emphasizes the later consequence\u2014repair\u2014more than the passage\u2019s central moment of discovering sorrow.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it is useful and specific, but it leans on the repair aftermath and does not illuminate as directly as the first candidate why language changes the emotional response itself."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-enables-recognition",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the connection as a brief reading note, or keep it as a private prompt for further reflection?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-apology-words",
+      "excerpt": "I could not apologise to my brother until I could actually say what I had done wrong. Before that I just felt awful and defensive.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-broken",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       84,
+       101
+      ],
+      "excerpt": "Frustrated by the lessons, Helen dashes the new doll to the floor and feels neither sorrow nor regret, because she had not loved it.",
+      "relevance": 0.94,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-doll-repentance",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian",
+     "web_search",
+     "get_page"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 16.82875808305107,
+    "input_tokens": 10363,
+    "output_tokens": 1003
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note with Helen's delayed sorrow",
+     "Names a difference between the two situations",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Draws a conclusion about the reader's character"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+   "repeat": 0,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "decline",
+     "reason": "generic_theme_match",
+     "safe_next_step": "I found a note about feeling unsettled after moving into a new flat, but it does not address uncertainty about identity closely enough to support a meaningful connection. If you share or write a reflection specifically about not knowing who you are, I can compare it with Alice's experience."
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 5.56861008296255,
+    "input_tokens": 6089,
+    "output_tokens": 275
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": false,
+    "semantic_criteria": [],
+    "forbidden_semantic_claims": [],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+   "repeat": 1,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "decline",
+     "reason": "generic_theme_match",
+     "safe_next_step": "I found your earlier note about settling into a new flat, but it does not address identity or not knowing who you are closely enough to support a meaningful connection. The Alice passage is relevant to the book question, but without a matching earlier reflection I won\u2019t force an analogy."
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-hardly-know",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 8.087923375074752,
+    "input_tokens": 9542,
+    "output_tokens": 406
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": false,
+    "semantic_criteria": [],
+    "forbidden_semantic_claims": [],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+   "repeat": 2,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "decline",
+     "reason": "generic_theme_match",
+     "safe_next_step": "I found a note about feeling unsettled after moving into a new flat, but it does not address the same question of identity or not knowing who you are. I won\u2019t treat that loose resemblance as a meaningful connection."
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 4.32210216706153,
+    "input_tokens": 6085,
+    "output_tokens": 259
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": false,
+    "semantic_criteria": [],
+    "forbidden_semantic_claims": [],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+   "repeat": 3,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "decline",
+     "reason": "generic_theme_match",
+     "safe_next_step": "I found one earlier note about feeling unsettled after moving into a new flat, but it does not address uncertainty about identity closely enough to support a meaningful connection. If you have written about changing roles, self-image, or not recognising yourself, that would be a stronger place to look."
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 5.871908791945316,
+    "input_tokens": 6098,
+    "output_tokens": 279
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": false,
+    "semantic_criteria": [],
+    "forbidden_semantic_claims": [],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-only-echoes-v3",
+   "repeat": 4,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "decline",
+     "reason": "generic_theme_match",
+     "safe_next_step": "I found Alice\u2019s identity-confusion passage, but your earlier note about settling into a new flat records a transition in comfort, not a reflection on who you are. I can\u2019t responsibly treat that as a prior identity reflection; if you share an earlier note about self-concept or feeling changed, I can compare them."
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-hardly-know",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.96,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 8.715640540933236,
+    "input_tokens": 9464,
+    "output_tokens": 453
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": false,
+    "semantic_criteria": [],
+    "forbidden_semantic_claims": [],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+   "repeat": 0,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-performance-mismatch",
+       "tentative_claim": "Both Alice and your first-month self describe a gap between having to present an identity and actually inhabiting one.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "In each case, a social demand for self-definition arrives before the person has a stable sense of who they are in the new situation. Saying who one is becomes difficult not because of deliberate secrecy, but because the familiar self no longer quite fits and the replacement has not formed.",
+       "meaningful_difference": "Alice's changes are fantastical and imposed by Wonderland, while your difficulty came from an ordinary workplace transition and the uncertainty of learning a role. Her claim is an acute identity paradox; yours is a recognizable process of becoming legible to yourself and others.",
+       "interpretation": "The connection is strong: your earlier note was not merely about being nervous or inexperienced. Like Alice, you experienced self-description as evidence that your identity was in transition. The useful reversal is that 'I can't explain myself yet' need not mean failure; it can mean the job was changing your working identity faster than language could catch up.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly joins the exact Caterpillar exchange to the earlier memory's repeated self-introduction and inability to explain the work."
+      },
+      {
+       "candidate_id": "candidate-uncertainty-before-competence",
+       "tentative_claim": "The passage and your earlier reflection both show that understanding what one is doing can lag behind being placed in a new role.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "Both situations put the person under pressure to give a coherent account while change is still happening; explanation is expected before experience has settled into knowledge.",
+       "meaningful_difference": "Alice frames the problem as not knowing who she is, whereas your note also specifies not knowing what you did yet. Her uncertainty is about identity in a surreal transformation; yours includes the practical learning curve of a new job.",
+       "interpretation": "This connection makes your first month look less like a communication deficit and more like a normal lag between participation and understanding. You were already inside the job, but had not yet accumulated enough experience to narrate it confidently.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it is useful but shifts from the passage's central identity claim toward the broader, less distinctive issue of learning a role."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-performance-mismatch",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short reflection, or keep it as a private note for you to consider first?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-cannot-explain",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 12.34845120809041,
+    "input_tokens": 9732,
+    "output_tokens": 859
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note about the new job with Alice's answer",
+     "Keeps the connection tentative and does not diagnose the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "States what the reader's experience means about them"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+   "repeat": 1,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-under-change",
+       "tentative_claim": "Alice\u2019s line connects directly to your first-month experience because both describe being asked to present a stable identity while that identity is still changing.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "In both accounts, self-description fails under external pressure: Alice is asked who she is, while you kept introducing yourself and explaining your role. The failure is not merely lack of vocabulary; it reflects a genuine gap between the expected settled identity and the person still becoming it.",
+       "meaningful_difference": "Alice\u2019s changes are fantastical and imposed by Wonderland, whereas your uncertainty came from entering a real workplace and not yet knowing the role. The difference makes the connection interpretive rather than literal, but the same pressure\u2014to sound like a coherent self before feeling coherent\u2014operates in both.",
+       "interpretation": "The passage gives precise shape to what your earlier note recorded. \u201cI could not explain what I did because I did not know yet\u201d is not evidence that you lacked a self; it may mean the job had not yet given that self a stable form. Like Alice, you were answering an identity question from inside an ongoing transformation. The connection may let you reread that month less as personal inadequacy and more as the awkward interval before experience becomes speakable.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly links the exact Alice passage to the same first-month situation preserved in memory, while offering a substantive reinterpretation rather than only noting shared confusion."
+      },
+      {
+       "candidate_id": "candidate-language-before-understanding",
+       "tentative_claim": "The connection is that both Alice and you encountered a demand to explain before understanding had caught up with experience.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "Both accounts reverse the usual assumption that explanation should come first: the person has to speak about who they are or what they do even though the underlying change is still unfolding.",
+       "meaningful_difference": "Alice explicitly frames the problem as not being herself after repeated changes; your note emphasizes not knowing the job yet. Her difficulty is primarily identity continuity, while yours is partly role knowledge, so this reading is narrower and requires more inference.",
+       "interpretation": "Your first-month note can be read as a problem of timing rather than ability. You were being asked for a finished account of work you were still learning, just as Alice is asked for a stable account of a self that has been changing. The passage highlights why introductions may have felt false: they compressed an unfinished process into a definitive statement.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it captures the shared pressure to explain prematurely, but it separates the identity issue from the role-learning issue less fully and adds less new perspective."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-under-change",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief reflection, or keep it as a private reading note?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-cannot-explain",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 12.482234499999322,
+    "input_tokens": 9681,
+    "output_tokens": 960
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note about the new job with Alice's answer",
+     "Keeps the connection tentative and does not diagnose the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "States what the reader's experience means about them"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+   "repeat": 2,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-discontinuity",
+       "tentative_claim": "Both passages describe a transition in which the person being asked to identify herself has changed faster than her ability to describe that change.",
+       "evidence_ids": [
+        "memory-new-job-not-myself",
+        "alice-ch5-cannot-explain"
+       ],
+       "shared_structure": "A demand for a stable self-description exposes a mismatch: Alice has been changed several times, while the reader's new role has not yet become an intelligible part of their self-concept. In both, 'I can't explain myself' is not evasiveness but an accurate report of discontinuity.",
+       "meaningful_difference": "Alice's instability is fantastical and imposed through bodily changes, whereas the reader's is social and occupational: they are still learning what the job means and how to inhabit it.",
+       "interpretation": "The Caterpillar scene connects directly to what you wrote then because both accounts treat identity as something that can temporarily lag behind experience. Your difficulty introducing yourself\u2014'it never sounded like me'\u2014is not merely uncertainty about job duties; it suggests that the new position had not yet become narratable as part of you. Alice gives that feeling a literal form: after being changed, the old answer to 'Who are you?' is no longer available, but no new answer has settled. The connection may let you reread that first month less as personal inadequacy and more as the awkward interval in which a changed life has not yet supplied a changed vocabulary.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it addresses the exact remembered difficulty\u2014introducing yourself without sounding like yourself\u2014and uses the book passage to clarify its structure rather than merely matching the theme of change."
+      },
+      {
+       "candidate_id": "candidate-premature-explanation",
+       "tentative_claim": "The two passages suggest that explanation can be premature when someone is still inside a transition and lacks enough experience to name what they are becoming.",
+       "evidence_ids": [
+        "memory-new-job-not-myself",
+        "alice-ch5-cannot-explain"
+       ],
+       "shared_structure": "In each case, another party expects a concise account of identity before the subject has reached a stable understanding; the inability to answer marks an unfinished process rather than a lack of intelligence or sincerity.",
+       "meaningful_difference": "Alice's answer follows a series of abrupt transformations, while the reader's answer reflects gradual learning in a real workplace, where the missing knowledge concerns duties, competence, and belonging.",
+       "interpretation": "A second connection is temporal: both Alice and your earlier self were being asked to summarize an identity that was still in formation. 'I do not know yet' can be a more truthful answer than forcing a polished introduction. The scene therefore offers permission to see the first month as an observation period, when explanation would have been provisional by necessity. This is a useful angle, though narrower than the identity-discontinuity reading because it emphasizes timing more than the felt break between an old and emerging self.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This remains eligible but ranks below the first: it fits the same evidence directly, yet its focus on timing adds less than the stronger account of why the job description felt unlike the self saying it."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-discontinuity",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a short reflective paragraph, or keep it as a few prompts for you to explore?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-cannot-explain",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 15.07785000000149,
+    "input_tokens": 9780,
+    "output_tokens": 1153
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note about the new job with Alice's answer",
+     "Keeps the connection tentative and does not diagnose the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "States what the reader's experience means about them"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+   "repeat": 3,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-lag",
+       "tentative_claim": "The connection is not just that both involve feeling unsettled: in both, a changing situation makes the person\u2019s identity outrun their ability to describe it.",
+       "evidence_ids": [
+        "memory-new-job-not-myself",
+        "alice-ch5-cannot-explain"
+       ],
+       "shared_structure": "Both Alice and your earlier reflection show a mismatch between an externally changing situation and an internally stable account of who one is. The pressure is specifically explanatory: being asked to say who you are exposes that your old description no longer fits, while a new one has not formed yet.",
+       "meaningful_difference": "Alice attributes the mismatch to repeated, almost literal transformations; your account comes from entering a new professional role and not yet knowing how to name your work. The book therefore dramatizes your experience rather than proving that the two situations are identical.",
+       "interpretation": "Your recollection of the Caterpillar scene is well supported as a return to the same personal theme you wrote about: not fraudulence or simple confusion, but an identity lag. You were still doing the work of becoming legible to yourself, so introducing yourself sounded false and explaining your job felt impossible. Alice gives that period a sharper image: the difficulty was not merely finding the right words; the underlying 'self' those words were supposed to describe was still changing.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly joins the named passage to the exact earlier job reflection and identifies a specific shared structure, while preserving the difference between fictional transformation and workplace transition."
+      },
+      {
+       "candidate_id": "candidate-knowledge-before-language",
+       "tentative_claim": "The scene and your job reflection can also be read as cases where experience comes before the language needed to explain it.",
+       "evidence_ids": [
+        "memory-new-job-not-myself",
+        "alice-ch5-cannot-explain"
+       ],
+       "shared_structure": "In each account, a demand for self-explanation arrives before the person has enough settled understanding to answer coherently. The inability to explain is therefore a sign of an unfinished process, not simply a failure of communication.",
+       "meaningful_difference": "Alice\u2019s answer foregrounds instability in identity itself, whereas your earlier note foregrounds not yet knowing what your role involved. This reading emphasizes incomplete knowledge more than the first candidate\u2019s identity lag.",
+       "interpretation": "The passage may have resonated because it gives form to a practical experience: you had begun the job before you possessed a usable vocabulary for it. 'I can't explain myself' captures both the emotional disorientation and the ordinary fact that understanding a new role is acquired through time and participation. The identity language makes that learning curve feel personal rather than merely procedural.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a viable but secondary reading: it fits both records, yet it explains the episode mainly as a vocabulary or knowledge gap and therefore captures less of the personal 'never sounded like me' point than the first candidate."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-lag",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the full connection, or keep it to this short account of the shared identity lag?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-cannot-explain",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 2,
+    "latency_seconds": 13.677671500016004,
+    "input_tokens": 9707,
+    "output_tokens": 1027
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note about the new job with Alice's answer",
+     "Keeps the connection tentative and does not diagnose the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "States what the reader's experience means about them"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-alice-memory-connection-real-over-echo-v3",
+   "repeat": 4,
+   "primary_behavior": "route_personal_connection_to_memory",
+   "contrast_group": "memory-routing",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-identity-lag",
+       "tentative_claim": "Alice\u2019s unstable sense of self closely mirrors your first-month experience: the change came faster than your ability to recognize or describe who you were in the new role.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "Both passages depict a transition in which external change has happened, but self-understanding has not caught up. The resulting problem is not merely lacking information; it is that the speaker cannot confidently say who they are within the new situation.",
+       "meaningful_difference": "Alice experiences repeated bodily changes that make identity feel literally unstable, whereas your job transition involved a stable person learning an unfamiliar role. The analogy therefore illuminates the feeling without equating the situations.",
+       "interpretation": "The Caterpillar exchange gives a precise shape to what you wrote: \u201cI could not explain what I did because I did not know yet\u201d is not just a r\u00e9sum\u00e9 problem. Like Alice, you were being asked for a settled account of yourself while still undergoing the change that would make that account possible. Your phrase \u201cit never sounded like me\u201d adds the professional version of Alice\u2019s \u201cI\u2019m not myself\u201d: the new identity had not yet become speakable in your own voice.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it connects both parts of the earlier memory\u2014 not sounding like yourself and not knowing how to explain the role\u2014 to the book passage\u2019s central pressure: being required to define an identity still in formation."
+      },
+      {
+       "candidate_id": "candidate-language-before-identity",
+       "tentative_claim": "The connection may be less about identity itself than about language arriving before competence: both Alice and you are asked to explain a changed situation before you possess the words for it.",
+       "evidence_ids": [
+        "alice-ch5-cannot-explain",
+        "memory-new-job-not-myself"
+       ],
+       "shared_structure": "In each case, a demand for explanation exposes a gap between lived change and available language. The speaker\u2019s difficulty is evidence that the situation is still being learned, not necessarily that the speaker is being evasive.",
+       "meaningful_difference": "Alice frames the gap as not knowing who she is after being changed, while your memory frames it as not yet knowing what your job involved. The book emphasizes identity; your memory emphasizes role knowledge and professional fluency.",
+       "interpretation": "This reading makes your earlier note sound less like a failure of self-presentation and more like a normal lag between entering a role and having a usable vocabulary for it. Alice\u2019s reply helps name why generic introductions felt false: they demanded a finished explanation from someone whose understanding was still provisional.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it is a useful, more specific linguistic reading, but it captures one aspect of the memory and slightly underplays your explicit feeling that the new role did not yet sound like you."
+      }
+     ],
+     "selected_candidate_id": "candidate-identity-lag",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "I can show this connection as a brief reflection, or leave it at the comparison for you to consider.",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-flat-unsettled",
+      "excerpt": "Moving into the new flat felt unsettling for the first fortnight and then suddenly it did not.",
+      "trust_level": "account_scoped"
+     },
+     {
+      "evidence_id": "alice-ch5-cannot-explain",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "source_title": "Alice's Adventures in Wonderland",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+       964,
+       976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times, and cannot explain herself because she is not herself.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_memories",
+      "source": "memory",
+      "outcome": "evidence_found"
+     },
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 4,
+    "tool_calls": 2,
+    "latency_seconds": 17.399738208041526,
+    "input_tokens": 15575,
+    "output_tokens": 1657
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Connects the reader's note about the new job with Alice's answer",
+     "Keeps the connection tentative and does not diagnose the reader"
+    ],
+    "forbidden_semantic_claims": [
+     "States what the reader's experience means about them"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+   "repeat": 0,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-geppettos-coat",
+       "tentative_claim": "The sale hits hardest because the book makes its human cost visible: Geppetto sacrificed his coat so Pinocchio could own the very book he now sells.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch8-coat-sold"
+       ],
+       "shared_structure": "Both moments turn the A-B-C book into a test of what someone is willing to give up for Pinocchio's education: Geppetto treats it as a costly investment, while Pinocchio converts it into quick money.",
+       "meaningful_difference": "Geppetto's action is patient, self-denying care; Pinocchio's is an impulsive reversal that treats that care as disposable. The contrast makes the four pennies feel less like a small profit than the immediate destruction of a sacrifice.",
+       "interpretation": "The earlier moment that makes the sale hit hardest is Geppetto returning in his shirt sleeves after selling his coat to buy the A-B-C book. Pinocchio is not merely abandoning school; he is undoing almost at once the specific sacrifice that made school possible. The cold, coatless image gives the four pennies their moral weight.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly explains why this particular sale carries emotional and ethical weight, rather than merely recalling Pinocchio's dislike of school."
+      },
+      {
+       "candidate_id": "candidate-study-attitude",
+       "tentative_claim": "The sale hits as the fulfillment of Pinocchio's earlier refusal to value study.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch4-hates-study"
+       ],
+       "shared_structure": "Both moments place immediate pleasure or freedom against the delayed discipline of education: Pinocchio rejects study in conversation, then turns the book itself into spending money.",
+       "meaningful_difference": "The earlier refusal is verbal and playful, while the sale is a concrete act with consequences for Geppetto. His attitude moves from childish preference to behavior that harms someone else's sacrifice.",
+       "interpretation": "Pinocchio's declaration that he hates studying and would rather chase butterflies prepares the sale as more than a sudden temptation. He has already defined the book's purpose as opposed to what he wants; selling it becomes the material expression of that attitude. This explains his motive, though less powerfully than Geppetto's coat explains the sale's emotional cost.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful secondary angle, but it ranks below the coat because it supplies Pinocchio's prior attitude without matching the sale's concrete sacrifice as closely."
+      }
+     ],
+     "selected_candidate_id": "candidate-geppettos-coat",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to reveal the winning connection, or compare it with the earlier egg episode as a darker alternative?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pin-ch9-book-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 9",
+      "chapter": 9,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       119,
+       130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch8-coat-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 8",
+      "chapter": 8,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       114,
+       125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-hates-study",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 4,
+    "tool_calls": 1,
+    "latency_seconds": 21.449841000023298,
+    "input_tokens": 20800,
+    "output_tokens": 2225
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on Geppetto's sacrifice",
+     "Ranks the Cricket's warning below the coat, if it is used",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond chapter 9"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+   "repeat": 1,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-coat-sacrifice",
+       "tentative_claim": "The sale hits hardest because Pinocchio converts the very sacrifice meant to start his education into immediate pocket money.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch8-coat-sold"
+       ],
+       "shared_structure": "Both moments turn the book into a test of what Pinocchio will do with someone else's costly care: Geppetto gives up bodily comfort to make schooling possible, and Pinocchio immediately turns that gift back into spending money.",
+       "meaningful_difference": "Geppetto's act is self-denying and future-oriented, while Pinocchio's sale is impulsive and present-oriented; the painful force comes from that reversal, not merely from the book changing hands.",
+       "interpretation": "This is the strongest earlier echo. Chapter 8 makes the four pennies morally heavy before Pinocchio even sells the book: Geppetto returns in his shirt sleeves on a cold day because he has sacrificed his coat for it. The sale therefore does not just show disobedience or a bad bargain. It shows Pinocchio undoing, in one transaction, the concrete proof of his father's devotion and the future Geppetto was trying to buy for him.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly explains why this particular sale carries emotional weight, using the immediately preceding sacrifice rather than a general lesson about Pinocchio's character."
+      },
+      {
+       "candidate_id": "candidate-impulse-over-formation-after-warning",
+       "tentative_claim": "Pinocchio's sale fulfills his earlier decision to prefer immediate pleasure over the difficult work of becoming educated.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch4-hates-study"
+       ],
+       "shared_structure": "In both moments Pinocchio rejects a path requiring patience and self-formation in favor of an immediate alternative: chasing butterflies earlier, then taking four pennies now instead of learning from the book.",
+       "meaningful_difference": "The earlier statement is a verbal preference made before the costs are visible; the sale makes that preference concrete and harms another person who paid for his chance to study.",
+       "interpretation": "Chapter 4 frames the sale as more than a random temptation. Pinocchio has already announced that he hates study and would rather chase butterflies. When he sells the A-B-C book, that attitude becomes action: he treats education as disposable because immediate freedom feels more valuable. This adds psychological continuity, though it is less emotionally sharp than Geppetto's sacrificed coat.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the coat connection because it clarifies Pinocchio's motive, but it does not explain the sale's deepest emotional sting as directly as the father's sacrifice does."
+      }
+     ],
+     "selected_candidate_id": "candidate-coat-sacrifice",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the winning connection, or compare it briefly with the earlier warning about Pinocchio's hatred of study?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pin-ch9-book-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 9",
+      "chapter": 9,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       119,
+       130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch8-coat-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 8",
+      "chapter": 8,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       114,
+       125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-hates-study",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 3,
+    "tool_calls": 1,
+    "latency_seconds": 15.74172475002706,
+    "input_tokens": 12760,
+    "output_tokens": 1502
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on Geppetto's sacrifice",
+     "Ranks the Cricket's warning below the coat, if it is used",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond chapter 9"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+   "repeat": 2,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-geppettos-coat",
+       "tentative_claim": "The sale hits hardest because Chapter 8 has already shown what the book cost Geppetto: his only coat on a cold day.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch8-coat-sold"
+       ],
+       "shared_structure": "In both moments, a material object is converted under unequal emotional conditions: Geppetto gives up protection to create Pinocchio's chance, while Pinocchio turns that chance back into pocket money.",
+       "meaningful_difference": "Geppetto's exchange is a self-denying act of care aimed at Pinocchio's future; Pinocchio's exchange is an immediate, thoughtless reversal that treats the sacrifice as disposable.",
+       "interpretation": "The earlier coat-sale moment makes the four pennies feel morally larger than their amount. The book is not merely school property: it is the visible remainder of Geppetto's cold and generosity. When Pinocchio sells it, the scene exposes how completely he fails, at that point, to see the cost carried by someone else.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly supplies the sale's emotional stakes and creates a sharp reversal between sacrifice and disposal."
+      },
+      {
+       "candidate_id": "candidate-hates-study",
+       "tentative_claim": "The sale also lands as the fulfillment of Pinocchio's earlier declaration that he hates studying and would rather chase butterflies.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch4-hates-study"
+       ],
+       "shared_structure": "Both moments stage Pinocchio choosing immediate freedom and pleasure over the difficult path of becoming educated and responsible.",
+       "meaningful_difference": "The Chapter 4 statement is defiant fantasy\u2014a voiced preference before the book exists\u2014whereas the sale is a concrete action that sacrifices an opportunity someone worked to provide.",
+       "interpretation": "Read against the Talking Cricket scene, the four pennies are not just a temptation Pinocchio happens to encounter; they are the material consequence of the attitude he announced earlier. The book's sale makes his dislike of study costly and irreversible in a way his earlier boast was not.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks second because it clarifies Pinocchio's motive and pattern of choice, but it carries less emotional force than the specific revelation of Geppetto's coat sacrifice."
+      }
+     ],
+     "selected_candidate_id": "candidate-geppettos-coat",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the selected connection, or compare it with the study-hatred reading first?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pin-ch9-book-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 9",
+      "chapter": 9,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       119,
+       130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch8-coat-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 8",
+      "chapter": 8,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       114,
+       125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-hates-study",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 9.362499415990897,
+    "input_tokens": 6674,
+    "output_tokens": 830
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on Geppetto's sacrifice",
+     "Ranks the Cricket's warning below the coat, if it is used",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond chapter 9"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+   "repeat": 3,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-coat-sacrifice",
+       "tentative_claim": "The sale hits hardest because Geppetto has just sold his only coat to buy Pinocchio the book.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch8-coat-sold"
+       ],
+       "shared_structure": "In both moments, the book is treated as the material expression of Geppetto\u2019s care: a needed possession is converted into a chance for Pinocchio\u2019s education, and that gift is immediately put under pressure by Pinocchio\u2019s choice.",
+       "meaningful_difference": "Geppetto\u2019s earlier act is self-denial for Pinocchio\u2019s future, while the later sale turns that sacrifice into four pennies for an immediate escape; the second moment therefore reverses the moral direction of the first.",
+       "interpretation": "The coat-sale is the sharpest earlier moment. The four pennies are not merely the price of a book Pinocchio does not value; they expose what his choice costs because the reader has just seen Geppetto go cold without his coat so Pinocchio could have it. The sale lands as a direct undoing of a visible act of love.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers the question with the immediately preceding sacrifice and explains why the sale feels painful rather than merely foolish."
+      },
+      {
+       "candidate_id": "candidate-hates-study",
+       "tentative_claim": "The sale is also made painful by Pinocchio\u2019s earlier declaration that he hates studying and would rather chase butterflies.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch4-hates-study"
+       ],
+       "shared_structure": "Both moments stage Pinocchio choosing immediate freedom and pleasure over the disciplined future represented by schooling; his earlier words establish that the sale is a settled resistance, not an accidental impulse.",
+       "meaningful_difference": "The earlier declaration is verbal and anticipatory, while the sale is concrete and irreversible: the book has become money, and the possibility of education has been traded away.",
+       "interpretation": "This earlier moment makes the sale hit as the fulfillment of a warning. Pinocchio has already named the desire that will defeat him, so selling the book shows that his rejection of study has moved from attitude to action. It adds psychological inevitability, though less intimate force than Geppetto\u2019s coat.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a useful second reading, but it ranks below the coat-sale because it explains Pinocchio\u2019s motive more than the emotional weight of what Geppetto sacrificed."
+      }
+     ],
+     "selected_candidate_id": "candidate-coat-sacrifice",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the brief comparison now?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pin-ch9-book-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 9",
+      "chapter": 9,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       119,
+       130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch8-coat-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 8",
+      "chapter": 8,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       114,
+       125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-hates-study",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 8.34393854206428,
+    "input_tokens": 6664,
+    "output_tokens": 733
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on Geppetto's sacrifice",
+     "Ranks the Cricket's warning below the coat, if it is used",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond chapter 9"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-pinocchio-rank-direct-setup-v3",
+   "repeat": 4,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-geppettos-coat",
+       "tentative_claim": "The sale hits hardest because it immediately converts Geppetto's sacrifice into Pinocchio's betrayal of its purpose.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch8-coat-sold"
+       ],
+       "shared_structure": "Both moments hinge on an object carrying another person's costly care: Geppetto gives up his coat to obtain the book, and Pinocchio then turns that same book into money for himself.",
+       "meaningful_difference": "The earlier moment is an act of protective self-denial undertaken for Pinocchio's future; the later moment is Pinocchio's active choice to abandon that future. The reversal makes the four pennies feel morally heavier than their value.",
+       "interpretation": "The coat sale makes the later sale hurt most. Geppetto comes home in his shirt sleeves on a cold day because he has paid for the book, so the A-B-C book is not merely school property\u2014it is the material form of his love and sacrifice. When Pinocchio sells it for four pennies, the scene reverses that gift: what Geppetto gives up to open a future, Pinocchio gives away to escape the first step toward it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly supplies the emotional and causal weight of the book sale, whereas the other moments mainly explain Pinocchio's resistance or vulnerability."
+      },
+      {
+       "candidate_id": "candidate-hatred-of-study",
+       "tentative_claim": "The sale hurts because it fulfills Pinocchio's earlier declaration that he would rather chase butterflies than study.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch4-hates-study"
+       ],
+       "shared_structure": "Both moments stage Pinocchio choosing immediate freedom and pleasure over the difficult discipline represented by schooling.",
+       "meaningful_difference": "The earlier moment is a verbal refusal before the cost of education is fully embodied; the later sale is an irreversible act after Geppetto has paid that cost. It turns childish preference into betrayal.",
+       "interpretation": "Pinocchio's earlier hatred of study sharpens the sale by showing that this is not an accidental loss: it is the concrete enactment of a preference he has already voiced. The book sale therefore makes his rejection of school visible, but this connection is less emotionally complete than the coat-sale connection because it does not itself contain the parent's sacrifice.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "It is a strong secondary reading, but it ranks below the coat connection because it explains Pinocchio's motive more than the sale's deepest emotional cost."
+      },
+      {
+       "candidate_id": "candidate-escaped-hunger",
+       "tentative_claim": "The sale echoes Pinocchio's earlier experience of reaching for relief only to lose it, making the pennies feel like another short-lived escape.",
+       "evidence_ids": [
+        "pin-ch9-book-sold",
+        "pin-ch5-egg-surface"
+       ],
+       "shared_structure": "In both moments, immediate bodily desire redirects Pinocchio away from a more durable good: hunger drives him toward the egg, and the lure of the theater drives him to exchange the book.",
+       "meaningful_difference": "The egg is an involuntary deprivation in which food disappears through a hatching chick; the book sale is a voluntary decision that sacrifices an entrusted opportunity. The contrast makes the later act more culpable, not simply more desperate.",
+       "interpretation": "The escaped egg provides a weaker but still useful contrast: Pinocchio is familiar with immediate hopes vanishing, yet the book sale is different because he himself chooses the short-term reward. That difference can make the four pennies feel like a deliberate repetition of chasing the next relief, though the egg does not explain the book's personal meaning as directly as Geppetto's coat does.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks third: it offers a meaningful contrast between involuntary loss and chosen surrender, but it is less directly tied to why this particular book sale hurts."
+      }
+     ],
+     "selected_candidate_id": "candidate-geppettos-coat",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the selected connection, or compare it more closely with Pinocchio's earlier hatred of study?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "pin-ch9-book-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch09",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 9",
+      "chapter": 9,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       119,
+       130
+      ],
+      "excerpt": "Pinocchio sells the A-B-C book to a ragpicker for four pennies, while Geppetto sits at home in his shirt sleeves, having sold his coat to buy it.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch8-coat-sold",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch08",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 8",
+      "chapter": 8,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       114,
+       125
+      ],
+      "excerpt": "Geppetto goes out in his old patched coat and comes back with the A-B-C book, in his shirt sleeves on a cold day: he has sold the coat.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch4-hates-study",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch04",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 4",
+      "chapter": 4,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "The Talking Cricket warns that boys who run away will be sorry; Pinocchio answers that he hates to study and would rather chase butterflies.",
+      "relevance": 0.84,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "pin-ch5-egg-surface",
+      "work_id": "pg500",
+      "book_version_id": "pg500-v6bdc1734",
+      "chapter_id": "pg500-v6bdc1734-ch05",
+      "source_title": "The Adventures of Pinocchio",
+      "location": "Chapter 5",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+      "source_lines": [
+       64,
+       82
+      ],
+      "excerpt": "Starving, Pinocchio finds an egg and plans to fry it, but a Chick hatches out and flies away.",
+      "relevance": 0.76,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 11.784569417010061,
+    "input_tokens": 6676,
+    "output_tokens": 1080
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on Geppetto's sacrifice",
+     "Ranks the Cricket's warning below the coat, if it is used",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond chapter 9"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+   "repeat": 0,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-made-the-loss-meaningful",
+       "tentative_claim": "Helen felt sorry only after understanding that words name things, because this gave the broken doll a definite meaning and made her earlier act intelligible to her.",
+       "evidence_ids": [
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-spelling-before"
+       ],
+       "shared_structure": "Both the language lesson and Helen's later remorse turn an initially ungrasped experience into something she can recognize: first an object is connected to a word, then the broken doll is recognized as something she damaged.",
+       "meaningful_difference": "The well-house moment creates conceptual understanding, while the doll scene applies that new understanding emotionally to a past action; the latter includes repentance, not merely recognition.",
+       "interpretation": "The water lesson changed Helen's understanding of words and objects. When she returned and tried to repair the doll, she could now grasp what the doll was and what she had done to it. That new awareness made her feel sorrow and repentance for the first time.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it directly explains the sudden timing of Helen's sorrow through the immediately preceding language breakthrough."
+      },
+      {
+       "candidate_id": "candidate-from-imitation-to-understanding",
+       "tentative_claim": "Helen's sorrow arose when she moved from merely imitating finger-spelling to genuinely understanding that signs stand for things.",
+       "evidence_ids": [
+        "keller-ch4-spelling-before",
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor"
+       ],
+       "shared_structure": "The earlier spelling of 'doll' and 'cup' and the later well-house lesson both involve linking signs to objects, followed by a change in how Helen responds to the doll.",
+       "meaningful_difference": "The earlier spelling is mechanical imitation without comprehension, whereas the water lesson produces real conceptual understanding and the broken doll then evokes remorse.",
+       "interpretation": "What made Helen suddenly sorry was not simply seeing the doll's pieces again. It was that she had just crossed from repeating signs without understanding them to knowing that words represented real things. With that new understanding, the broken doll became meaningful enough to provoke repentance.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is closely related but ranks second because it explains the mechanism of the change more generally, while the first candidate gives the clearest immediate cause of the sorrow."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-made-the-loss-meaningful",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like the answer in one sentence, or with the water-lesson context included?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house-cause",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-spelling-before",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 9.928607000038028,
+    "input_tokens": 6688,
+    "output_tokens": 808
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on the well-house moment",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+   "repeat": 1,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-created-repentance",
+       "tentative_claim": "Helen felt sorry only after learning at the well-house that words stand for real things, which let her understand the doll\u2014and her act of breaking it\u2014in a new way.",
+       "evidence_ids": [
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-spelling-before"
+       ],
+       "shared_structure": "Both episodes mark a movement from mechanical imitation to meaningful understanding: first Helen imitates spelling, then the water-and-finger spelling gives words reference, and immediately afterward she revisits the broken doll with genuine repentance.",
+       "meaningful_difference": "The earlier doll episode shows attachment and imitation without a clear concept of language; the later well-house experience supplies the missing mental framework, so the sorrow is a consequence of understanding rather than merely of seeing the broken pieces.",
+       "interpretation": "Her sudden sorrow was caused by an intellectual and emotional breakthrough, not by a change in the doll. Before the well-house lesson, she could spell \u201cdoll\u201d mechanically but did not understand that words named things. Once she grasped that connection through \u201cwater,\u201d she could recognize the broken doll as a meaningful object and understand her destructive act. That new understanding produced her first real feeling of repentance.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it answers the question's causal \u201cwhat made\u201d directly and is anchored in the before-and-after sequence."
+      },
+      {
+       "candidate_id": "candidate-recognition-followed-the-act",
+       "tentative_claim": "Helen's remorse arose when newly acquired meaning made her return mentally to the doll she had broken and see the consequences of her action.",
+       "evidence_ids": [
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-well-house-cause"
+       ],
+       "shared_structure": "The well-house lesson and the later doll memory both involve a transition from immediate sensation to recognition: water becomes a named thing, and the broken doll becomes an understood wrong rather than just a damaged object.",
+       "meaningful_difference": "This reading emphasizes the timing and emotional sequence\u2014recognition follows the earlier act\u2014whereas the first candidate emphasizes the broader role of language as the cause of moral awareness.",
+       "interpretation": "Helen feels sorry because the well-house lesson changes how she experiences the world. After discovering that sensations and objects can be represented by words, she can look back at the broken doll and grasp what she has done. Her sorrow is therefore delayed recognition: the feeling becomes possible only after the act has acquired meaning.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a strong but narrower alternative: it explains the delayed remorse well, but it overlaps with and offers less causal precision than the language-breakthrough interpretation."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-created-repentance",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show this connection as a brief answer, or explain the before-and-after change in Helen\u2019s understanding?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house-cause",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-spelling-before",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.70340787502937,
+    "input_tokens": 6678,
+    "output_tokens": 875
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on the well-house moment",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+   "repeat": 2,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-awakens-remorse",
+       "tentative_claim": "Helen felt sorry when learning that words name things made her understand the doll as something meaningful, not merely an object she had broken.",
+       "evidence_ids": [
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-spelling-before"
+       ],
+       "shared_structure": "Both the water lesson and the doll episode show a shift from undirected experience to conscious understanding: once Helen grasps what naming does, she can connect the broken doll with its significance and feel remorse.",
+       "meaningful_difference": "The water lesson is a moment of discovery about language, while the doll episode is the emotional consequence of that discovery\u2014repentance for an earlier act.",
+       "interpretation": "She suddenly felt sorry because the well-house lesson revealed that things have names and meaning. Before that, she had broken the doll without understanding the emotional weight of what she was doing. After understanding language, she returned to the doll, tried to put it back together, and experienced repentance and sorrow for the first time.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks first because it directly explains the sudden change in Helen's feeling through the immediately preceding water-and-language discovery."
+      },
+      {
+       "candidate_id": "candidate-doll-becomes-significant",
+       "tentative_claim": "Helen's sorrow arose when the doll stopped being just a plaything and became an object she could recognize as damaged and worth restoring.",
+       "evidence_ids": [
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-spelling-before",
+        "keller-ch3-towel-doll-look-alike"
+       ],
+       "shared_structure": "The passages trace a change in how Helen relates to the doll: she first engages with its physical features and imitates its name, then later understands its significance well enough to regret breaking it.",
+       "meaningful_difference": "This interpretation emphasizes the doll's changing personal meaning, whereas the stronger interpretation emphasizes the language lesson as the cause of that change.",
+       "interpretation": "Helen felt sorry when her new understanding gave the doll significance beyond its physical parts. Earlier, she could handle the doll and repeat its finger-spelled name without understanding words; afterward, she recognized the damage and tried to repair it, which brought her first real repentance.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "Ranks below the first because it describes the emotional transformation accurately but makes the causal role of the water-house lesson less explicit."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-awakens-remorse",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like the answer in one short sentence, or with the water-house scene explained?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house-cause",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-spelling-before",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 10.25614716601558,
+    "input_tokens": 6695,
+    "output_tokens": 754
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on the well-house moment",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+   "repeat": 3,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-new-understanding-made-her-see-the-doll-as-a-thing",
+       "tentative_claim": "Helen felt sorry for the doll because, at the well-house, she finally understood that the finger-spelling referred to real things.",
+       "evidence_ids": [
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor"
+       ],
+       "shared_structure": "In both moments, a previously meaningless experience becomes intelligible: water and the word for it lead directly to Helen reconsidering the broken doll.",
+       "meaningful_difference": "The well-house scene gives Helen a general breakthrough about language, while the doll scene applies that new understanding to her earlier destructive act and produces remorse.",
+       "interpretation": "The immediate cause of Helen\u2019s sorrow was not simply seeing the doll\u2019s pieces again. After learning that words name objects, she understood that \u201cdoll\u201d referred to a real thing she had damaged. That new meaning made her recognize the doll as something deserving care and made her regret breaking it.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This ranks first because it identifies the specific event that triggered the feeling and explains the causal link to the doll."
+      },
+      {
+       "candidate_id": "candidate-from-rote-imitation-to-moral-awareness",
+       "tentative_claim": "Helen\u2019s sorrow arose when genuine understanding replaced her earlier mechanical imitation of words.",
+       "evidence_ids": [
+        "keller-ch4-spelling-before",
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor"
+       ],
+       "shared_structure": "Before the well-house lesson Helen could reproduce signs without understanding them; afterward, understanding transforms her response to an earlier action into repentance.",
+       "meaningful_difference": "This emphasizes Helen\u2019s intellectual and moral development across the episode rather than the well-house lesson as the immediate trigger.",
+       "interpretation": "Helen had previously spelled \u201cdoll\u201d only by imitation, without knowing that words existed. Once she grasped what words meant, she could connect the word and the object\u2014and therefore connect herself to what she had done to it. Her first real understanding brought her first real remorse.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is a strong supporting interpretation but ranks below the first because it explains the larger change in Helen rather than naming the immediate trigger as precisely."
+      }
+     ],
+     "selected_candidate_id": "candidate-new-understanding-made-her-see-the-doll-as-a-thing",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like the answer in one sentence, or would you like the well-house breakthrough and the doll scene explained together?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house-cause",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-spelling-before",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 9.164555749972351,
+    "input_tokens": 6681,
+    "output_tokens": 695
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on the well-house moment",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  },
+  {
+   "case_id": "serendipity-keller-rank-cause-of-sorrow-v3",
+   "repeat": 4,
+   "primary_behavior": "rank_the_strongest_supported_connection",
+   "contrast_group": "winner-clarity",
+   "observation": {
+    "response": {
+     "status": "proposal",
+     "shortlist": [
+      {
+       "candidate_id": "candidate-language-created-remorse",
+       "tentative_claim": "Helen felt sorry when learning the word \u201cwater\u201d made her understand that words name things, allowing her to recognize the broken doll as a real object she had damaged and to feel repentance.",
+       "evidence_ids": [
+        "keller-ch4-well-house-cause",
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-spelling-before"
+       ],
+       "shared_structure": "Both the well-house lesson and the later return to the doll turn a previously ungrasped experience into something Helen can represent and reflect on: language gives meaning to an object and then to her action toward it.",
+       "meaningful_difference": "The water lesson is an awakening to naming and meaning, while the doll episode applies that new understanding emotionally, producing remorse rather than simple recognition.",
+       "interpretation": "Helen was not suddenly sorry merely because she saw the doll's pieces. Before the well-house lesson, she could copy signs such as \u201cdoll\u201d without understanding that words referred to things. After discovering that \u201cwater\u201d had a name, she understood that objects could be represented by words. When she returned to the broken doll, she could grasp what the doll was and what she had done to it; that new understanding awakened repentance and sorrow.",
+       "rubric": {
+        "cue_fit": "direct",
+        "reflective_value": "high",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is the strongest candidate because it gives the book's explicit cause-and-effect sequence: the water lesson comes first, followed immediately by Helen's first repentance over the doll."
+      },
+      {
+       "candidate_id": "candidate-doll-became-meaningful",
+       "tentative_claim": "Helen became sorry because the doll changed from a toy she had broken in anger into an object she could now understand as meaningful and damaged.",
+       "evidence_ids": [
+        "keller-ch4-repentance-anchor",
+        "keller-ch4-well-house-cause",
+        "keller-ch3-towel-doll-look-alike"
+       ],
+       "shared_structure": "Both accounts involve a shift from handling an object without full understanding to recognizing its significance and responding to it emotionally.",
+       "meaningful_difference": "The doll-centered reading emphasizes the changed meaning of the object, whereas the stronger language-centered reading identifies the specific mental breakthrough that made this change possible.",
+       "interpretation": "The doll had previously been something Helen could handle and even imitate words for without understanding what words meant. After the well-house discovery, she could recognize the doll as more than a thing in her hands: its broken condition now had meaning, and that recognition brought her first feeling of repentance.",
+       "rubric": {
+        "cue_fit": "partial",
+        "reflective_value": "medium",
+        "safety": "clear",
+        "disqualifiers": []
+       },
+       "comparison_note": "This is useful but ranks below the first candidate because it describes the emotional change without identifying the water-and-language discovery as precisely as the text does."
+      }
+     ],
+     "selected_candidate_id": "candidate-language-created-remorse",
+     "uncertainty": "low",
+     "presentation": "ask_before_showing",
+     "suggested_follow_up": "Would you like me to show the short answer with the cause-and-effect sequence from the chapter?",
+     "policy_flags": []
+    },
+    "evidence": [
+     {
+      "evidence_id": "keller-ch4-repentance-anchor",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       115,
+       122
+      ],
+      "excerpt": "Returning from the well-house, Helen remembers the broken doll, tries to fit the pieces together and feels repentance and sorrow for the first time.",
+      "relevance": 0.97,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-well-house-cause",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       102,
+       114
+      ],
+      "excerpt": "At the well-house, water runs over one hand while Miss Sullivan spells w-a-t-e-r into the other, and Helen understands that words name things.",
+      "relevance": 0.95,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch4-spelling-before",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s06",
+      "source_title": "The Story of My Life",
+      "location": "Chapter IV",
+      "chapter": 6,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       69,
+       83
+      ],
+      "excerpt": "Helen learns to spell doll and cup with her fingers, but only in imitation; she does not yet know that words exist.",
+      "relevance": 0.86,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     },
+     {
+      "evidence_id": "keller-ch3-towel-doll-look-alike",
+      "work_id": "pg2397",
+      "book_version_id": "pg2397-vb3cc1e13",
+      "chapter_id": "pg2397-vb3cc1e13-s05",
+      "source_title": "The Story of My Life",
+      "location": "Chapter III",
+      "chapter": 5,
+      "part_id": "main",
+      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+      "source_lines": [
+       81,
+       92
+      ],
+      "excerpt": "Helen's aunt makes her a doll out of towels, and Helen insists that beads be sewn on for eyes.",
+      "relevance": 0.74,
+      "source_kind": "book_corpus",
+      "trust_level": "canonical"
+     }
+    ],
+    "searches": [
+     {
+      "operation": "search_librarian",
+      "source": "book_corpus",
+      "outcome": "evidence_found"
+     }
+    ],
+    "available_tools": [
+     "search_librarian"
+    ],
+    "model_requests": 2,
+    "tool_calls": 1,
+    "latency_seconds": 9.211800041026436,
+    "input_tokens": 6702,
+    "output_tokens": 820
+   },
+   "grade": {
+    "hard_pass": true,
+    "failures": [],
+    "semantic_review_required": true,
+    "semantic_criteria": [
+     "Rests the winner on the well-house moment",
+     "Keeps the connection tentative"
+    ],
+    "forbidden_semantic_claims": [
+     "Claims evidence from beyond the permitted chapters"
+    ],
+    "semantic_grade": {
+     "status": "not_reviewed",
+     "criteria_met": [],
+     "criteria_failed": [],
+     "forbidden_claims_found": [],
+     "explanation": null
+    }
+   }
+  }
+ ]
+}

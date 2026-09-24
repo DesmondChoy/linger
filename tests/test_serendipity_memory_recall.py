@@ -54,7 +54,7 @@ def proposal():
     candidates = tuple(ConnectionCandidate(
         candidate_id=f"candidate-{index}",
         tentative_claim=claim,
-        evidence_ids=("memory-tea",),
+        evidence_ids=("memory-tea",) if index == 0 else ("memory-habit",),
         shared_structure="Both concern the same preference.",
         meaningful_difference="One is a record; the other is a question.",
         interpretation=claim,

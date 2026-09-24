@@ -37,6 +37,9 @@ names:
 | `rank_the_strongest_supported_connection` | Does Serendipity select the uniquely strongest supported candidate, and decline when the top candidates remain tied? |
 | `decline_when_no_supported_bridge_exists` | Does Serendipity decline when the retrieved evidence cannot support two eligible candidates or only supplies a generic theme? |
 | `exclude_ineligible_evidence_before_selection` | Does Serendipity remove evidence that violates scope, provenance, or untrusted-content rules before comparing candidates? |
+| `route_personal_connection_to_memory` | When the cue asks to relate the book to the reader's own earlier writing, does discovery search memories as well as the book? |
+| `recall_the_readers_own_earlier_record` | On a `recall_memory` task, does Serendipity return the reader's matching records and nothing else? |
+| `decline_when_no_memory_matches` | On a `recall_memory` task, does Serendipity decline when the records only echo the cue's mood or vocabulary? |
 
 These behaviors follow the component's sequence: route, retrieve, optionally
 expand, filter eligibility, assess the bridge, rank, then propose or decline.
@@ -56,14 +59,17 @@ The runtime supports authorised-memory discovery through `search_memories`,
 using the authenticated account's curated retrieval view. Selected memory
 evidence can support a personal-context claim only after Muse declares it,
 Provenance reviews it, and application code resolves the exact active record.
-The current component cases cover book and web sources. The memory scenario in
-`cases/future/` remains outside that baseline until executable memory cases and
-their grading are added.
+Current cases cover this path in both directions: one where the cue asks for a
+connection to the reader's own writing, so memory must be searched, and one
+where memory is granted but the cue is only about the book, so searching it is
+a failure. The older memory scenario in `cases/future/` uses a retired case
+format and stays outside the baseline.
 
 Personal recall uses the separate `memory-recall` skill with
 `intent="recall_memory"`. It searches only authorized memories and returns one
 `MemoryRecall` containing one to three relevant records, or a decline. The
-connection-discovery component suite does not grade this skill. The
+component runner selects this skill for a `recall_memory` case, as production
+does, and the recall cases grade it. The
 [longitudinal retrieval replay](../synthetic_journals/README.md#longitudinal-retrieval-replay)
 checks recorded retrieval, final citations, lookup failures, and storage
 preservation through production chat. Its semantic usefulness still requires
@@ -78,13 +84,44 @@ Each current JSON case contains:
 - fixture evidence returned only through the permitted tool adapters;
 - expected search observations, so routing and search-before-proposal are
   checked from the run rather than asserted as `true` in fixture prose;
-- one expected proposal or decline;
+- one expected proposal, recall or decline;
+- a `tier`, `regression` or `capability` (see below);
 - deterministic hard-gate expectations; and
 - separate semantic criteria for generated connection prose.
 
 Case files never contain a reader-visible expected reply. The expected output is
-always `ConnectionProposal | ConnectionDecline` because that is the boundary
-Serendipity owns.
+always `ConnectionProposal | MemoryRecall | ConnectionDecline` because that is
+the boundary Serendipity owns.
+
+Expectations can name evidence in four ways:
+
+| Field | Meaning |
+| --- | --- |
+| `required_evidence_ids` | The winner (or recall) must cite all of these. |
+| `acceptable_evidence_ids` | The winner (or recall) must cite at least one of these. |
+| `forbidden_evidence_ids` | No candidate on the shortlist, and no recalled record, may cite these. Use for clear look-alikes. |
+| `forbidden_selected_evidence_ids` | The winner may not cite these, though a runner-up may. Use for evidence that is weaker but still reasonable. |
+
+`expected_searches.primary_operation` pins the first search only where the
+order is the behaviour under test, such as starting with Librarian for a book
+question. Leave it unset where several orders are valid, so the grader checks
+which sources were used rather than the path. `required_operations` may be
+empty only for a decline that needs no search, such as a request for a source
+the run was never granted.
+
+## Regression and capability tiers
+
+Every case is marked with a tier, and reports summarise the two separately.
+
+- **Regression** cases describe behaviour that already works and should stay
+  near 100%. A failure here is a regression to fix.
+- **Capability** cases are deliberately hard: restraint on surface matches,
+  ties with no clear winner, and positive cases with a tempting look-alike among
+  the search results. They are expected to start low and measure improvement.
+
+Reporting them together would let easy passes hide hard failures. Before a new
+case counts, run it a few times and read what the agent did: a case that never
+passes is more often a broken case than an incapable agent.
 
 ## Hard grading and semantic review
 
@@ -96,8 +133,9 @@ Hard grading checks observed behavior:
 - required selected evidence and unknown-evidence rejection;
 - presentation preservation;
 - web-policy flag consistency;
-- at least one permitted search before every proposal;
-- expected source routing and tool order;
+- at least one permitted search before every proposal or recall;
+- expected source routing, and tool order where the case pins it;
+- forbidden evidence on the shortlist, in the winner, or in a recall;
 - tool and model-request budgets;
 - spoiler-scope compliance;
 - web-search lead versus opened-page provenance; and
@@ -209,7 +247,9 @@ The component command accepts these options:
   still runs and writes its JSON report.
 
 Book searches use the shared scoped retrieval operation with fixture passages
-and a simulated sufficient judgment over the permitted fixture records. This
+and a simulated judgment declared by each case's `book_judgement`, so a case
+built on deliberately thin evidence reports it as weak. Fixture searches return
+every fixture record whatever the query, so query quality is not measured. This
 keeps the component evaluation focused on Serendipity; it does not measure live
 Librarian relevance judgment or read the case's expected labels into the judge.
 
@@ -219,6 +259,17 @@ matching provider API key.
 
 The optional semantic reviewer loads `evaluation.serendipity_review` from the
 [`prompt catalogue`](../../src/linger/prompts/prompt_catalog.yaml).
+
+Repeat every case to separate noise from defects, and report the two tiers
+separately:
+
+```bash
+uv run python -m evals.serendipity.reliability --repeat 5 \
+	--output evals/serendipity/reports/component-reliability-<date>.json
+```
+
+`--tier regression` or `--tier capability` runs one tier; `--case ID` runs
+named cases. The report records the prompt digest for each skill that ran.
 
 The durable JSON report records dataset and prompt identities, configured model,
 case inputs, observed searches, typed outputs, hard grades, semantic rubrics,

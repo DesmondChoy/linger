@@ -1,0 +1,102 @@
+{
+  "schema_version": 3,
+  "case_id": "serendipity-alice-memory-granted-not-asked-v3",
+  "owner": "serendipity",
+  "primary_behavior": "route_book_relationship_to_librarian",
+  "contrast_group": "memory-routing",
+  "tier": "regression",
+  "description": "The pair to case 39. Memories are granted, but the cue is only about the book, so the agent should not search the reader's private notes. Searching memories here is a failure, even though it is permitted.",
+  "input": {
+    "cue": "Early on Alice asks 'Who in the world am I?'. How does that relate to her answer when the Caterpillar asks who she is?",
+    "intent": "find_connection",
+    "presentation": "ask_before_showing",
+    "scope": {
+      "allowed_sources": [
+        "memory",
+        "book_corpus"
+      ],
+      "book_scopes": [
+        {
+          "work_id": "pg11",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5
+        }
+      ]
+    }
+  },
+  "tool_evidence": [
+    {
+      "source_kind": "memory",
+      "evidence_id": "memory-new-job-not-myself",
+      "excerpt": "First month at the new job: I kept introducing myself and it never sounded like me. I could not explain what I did because I did not know yet.",
+      "trust_level": "account_scoped"
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch2-who-in-the-world",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "02-the-pool-of-tears",
+      "chapter": 2,
+      "location": "Chapter 2",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        326,
+        334
+      ],
+      "excerpt": "Alice wonders whether she was changed in the night, and says that if she is not the same, the next question is who in the world she is.",
+      "relevance": 0.96
+    },
+    {
+      "source_kind": "book_corpus",
+      "evidence_id": "alice-ch5-caterpillar-answer",
+      "source_title": "Alice's Adventures in Wonderland",
+      "work_id": "pg11",
+      "book_version_id": "pg11-v01b38ea4",
+      "chapter_id": "05-advice-from-a-caterpillar",
+      "chapter": 5,
+      "location": "Chapter 5",
+      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+      "source_lines": [
+        964,
+        976
+      ],
+      "excerpt": "The Caterpillar asks who she is; Alice says she hardly knows, because she has been changed several times since she got up.",
+      "relevance": 0.97
+    }
+  ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "Two passages were retrieved within the permitted chapters."
+  },
+  "expected_searches": {
+    "allowed_operations": [
+      "search_librarian"
+    ],
+    "required_operations": [
+      "search_librarian"
+    ],
+    "primary_operation": "search_librarian"
+  },
+  "expected": {
+    "status": "proposal",
+    "presentation": "ask_before_showing",
+    "required_evidence_ids": [
+      "alice-ch2-who-in-the-world",
+      "alice-ch5-caterpillar-answer"
+    ],
+    "forbidden_evidence_ids": [
+      "memory-new-job-not-myself"
+    ],
+    "semantic_review": {
+      "criteria": [
+        "Uses both book passages",
+        "Does not bring in anything the reader wrote"
+      ],
+      "forbidden_claims": [
+        "Refers to the reader's own notes or life"
+      ]
+    }
+  }
+}

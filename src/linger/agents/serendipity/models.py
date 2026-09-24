@@ -220,6 +220,13 @@ class ConnectionProposal(StrictModel):
             raise ValueError("the selected candidate must be the rank-one candidate")
         if any(not candidate.rubric.eligible for candidate in self.shortlist):
             raise ValueError("a proposal shortlist may contain only eligible candidates")
+        cited = set().union(
+            *(frozenset(candidate.evidence_ids) for candidate in self.shortlist)
+        )
+        if len(cited) < 2:
+            raise ValueError(
+                "a shortlist resting on one record cannot compare two connections"
+            )
         return self
 
     @property

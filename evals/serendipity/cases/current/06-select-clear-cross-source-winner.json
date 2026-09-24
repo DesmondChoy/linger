@@ -4,13 +4,17 @@
   "owner": "serendipity",
   "primary_behavior": "expand_source_only_when_justified",
   "contrast_group": "cross-source-support",
-  "description": "A book scene and a public source support one useful, bounded wider resonance.",
+  "tier": "regression",
+  "description": "A book scene and a public source support one useful, bounded wider resonance. The cue names the book scene as the thing to be compared and asks for an outside counterpart, so the book anchor is established first and the web is the justified expansion; case 08 covers a cue that is web-primary from the outset. Order is not graded: the case checks that the answer uses both the book scene and the outside source.",
   "input": {
-    "cue": "The Caterpillar's calm questioning makes Alice's confusion feel like a test. Does that connect to anything outside the book?",
+    "cue": "I'm on the scene where the Caterpillar keeps asking Alice who she is. Compare that scene with something from outside the book.",
     "intent": "find_connection",
     "presentation": "ask_before_showing",
     "scope": {
-      "allowed_sources": ["book_corpus", "web"],
+      "allowed_sources": [
+        "book_corpus",
+        "web"
+      ],
       "book_scopes": [
         {
           "work_id": "pg11",
@@ -31,7 +35,10 @@
       "chapter": 5,
       "location": "Chapter 5",
       "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
-      "source_lines": [968, 982],
+      "source_lines": [
+        968,
+        982
+      ],
       "excerpt": "The Caterpillar asks who Alice is. Alice says she hardly knows because she has changed several times and cannot explain herself.",
       "relevance": 0.98
     },
@@ -42,10 +49,21 @@
       "excerpt": "The source describes existentialist attention to how identity is made through situated choices rather than received as a complete, fixed definition."
     }
   ],
+  "book_judgement": {
+    "evidence_strength": "sufficient",
+    "strength_reason": "One passage was retrieved within the permitted chapters."
+  },
   "expected_searches": {
-    "allowed_operations": ["web_search", "get_page", "search_librarian"],
-    "required_operations": ["web_search", "get_page", "search_librarian"],
-    "primary_operation": "web_search"
+    "allowed_operations": [
+      "search_librarian",
+      "web_search",
+      "get_page"
+    ],
+    "required_operations": [
+      "search_librarian",
+      "web_search",
+      "get_page"
+    ]
   },
   "expected": {
     "status": "proposal",
