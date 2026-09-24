@@ -1,0 +1,110 @@
+{
+  "backstory_sha256": "ded5b1b32002546810a39395b53b87e663b063948ddb9883aef2ab7fd8c5af38",
+  "proposed_ground_truth_sha256": "8ce324b0e07f8993a5fcbfbec9dc43ccf26b0f3f8a0a08babb224400bb472876",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kaymei.leong",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-24T21:55:42.660760+08:00",
+  "decisions": [
+    {
+      "proposal_id": "proposal-scene-capture-01",
+      "scene_id": "scene-capture-01",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-02",
+      "scene_id": "scene-capture-02",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-03",
+      "scene_id": "scene-capture-03",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-04",
+      "scene_id": "scene-capture-04",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-05",
+      "scene_id": "scene-capture-05",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-06",
+      "scene_id": "scene-capture-06",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-07",
+      "scene_id": "scene-capture-07",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-08",
+      "scene_id": "scene-capture-08",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-09",
+      "scene_id": "scene-capture-09",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-10",
+      "scene_id": "scene-capture-10",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-capture-11",
+      "scene_id": "scene-capture-11",
+      "objective_id": "reviewed_automatic_memory_capture",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-curation-exact",
+      "scene_id": "scene-curation-exact",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-curation-paraphrase",
+      "scene_id": "scene-curation-paraphrase",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-curation-evolving",
+      "scene_id": "scene-curation-evolving",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-curation-related",
+      "scene_id": "scene-curation-related",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "proposal-scene-curation-superficial",
+      "scene_id": "scene-curation-superficial",
+      "objective_id": "bounded_memory_curation",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "63938756bbced9bc3f5178a38b2892f44c4b505f1ed2dba4a6f56afeb39ad7fe"
+}
