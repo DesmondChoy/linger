@@ -49,7 +49,32 @@ class EvidenceClaimSupport(StrictModel):
         return self
 
 
-class BookEvidenceUse(EvidenceClaimSupport):
+class SourceLimitClaims(StrictModel):
+    """Exact reply spans that say what one named record does not establish."""
+
+    limit_claims: tuple[
+        Annotated[str, Field(min_length=1, max_length=20_000)], ...
+    ] = Field(
+        default=(),
+        description=(
+            "Exact reply spans that only withhold a conclusion from this record, such as "
+            "\"the passage does not say whether the promise still binds\". Each must be about "
+            "this named record and must not assert the opposite conclusion, advise the reader, "
+            "or be copied into supported_claims. Repeat a span across declarations when it "
+            "withholds a conclusion from several records. Leave empty when there is no limit."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def require_distinct_limits(self) -> Self:
+        if any(not claim.strip() for claim in self.limit_claims):
+            raise ValueError("limit_claims must not contain blank text")
+        if len(set(self.limit_claims)) != len(self.limit_claims):
+            raise ValueError("limit_claims must not repeat a limit for the same source")
+        return self
+
+
+class BookEvidenceUse(SourceLimitClaims, EvidenceClaimSupport):
     """One book-corpus record Muse declares as support for its reply."""
 
     source_kind: Literal["book_corpus"]
@@ -58,7 +83,7 @@ class BookEvidenceUse(EvidenceClaimSupport):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
-class MemoryEvidenceUse(EvidenceClaimSupport):
+class MemoryEvidenceUse(SourceLimitClaims, EvidenceClaimSupport):
     """An exact account-scoped memory selected during this turn's discovery."""
 
     source_kind: Literal["memory"]
@@ -66,7 +91,7 @@ class MemoryEvidenceUse(EvidenceClaimSupport):
     exact_quote: str | None = Field(default=None, min_length=1, max_length=2_000)
 
 
-class WebEvidenceUse(EvidenceClaimSupport):
+class WebEvidenceUse(SourceLimitClaims, EvidenceClaimSupport):
     """An opened public page selected during this turn's discovery."""
 
     source_kind: Literal["web"]
@@ -183,6 +208,61 @@ def supported_claim_errors(
                     )
                 errors.append(error)
             seen.add(claim)
+        supported = set(claims)
+        for limit_index, limit in enumerate(getattr(declared, "limit_claims", ())):
+            problems = []
+            if limit not in reply:
+                problems.append("is not an exact span from the current reply")
+            if limit in supported:
+                problems.append("is also declared as a supported claim for this source")
+            if problems:
+                errors.append({
+                    "path": f"evidence_uses[{evidence_index}].limit_claims[{limit_index}]",
+                    "value": limit,
+                    "error": "limit_claims entry " + "; ".join(problems) + ".",
+                })
+    return errors
+
+
+def limit_claim_texts(use: "EvidenceUse") -> tuple[str, ...]:
+    """Limit spans for source kinds that can carry them."""
+    return getattr(use, "limit_claims", ())
+
+
+_READER_ADDRESS = re.compile(r"\b(?:you|your|yours|yourself|yourselves)\b", re.IGNORECASE)
+
+
+def source_application_errors(
+    reply: str, evidence_uses: tuple[EvidenceUse, ...]
+) -> list[dict[str, object]]:
+    """Flag reader-directed wording inside claims attributed to a book or public page."""
+    from src.linger.agents.provenance.quotation_audit import quoted_response_spans
+
+    errors: list[dict[str, object]] = []
+    for evidence_index, declared in enumerate(evidence_uses):
+        if declared.source_kind not in {"book_corpus", "web"}:
+            continue
+        for claim_index, claim in enumerate(declared.supported_claims):
+            unquoted = claim
+            for span in reversed(quoted_response_spans(claim)):
+                unquoted = unquoted[:span.start] + unquoted[span.end:]
+            if declared.exact_quote:
+                unquoted = unquoted.replace(declared.exact_quote, "")
+            match = _READER_ADDRESS.search(unquoted)
+            if match is None:
+                continue
+            errors.append({
+                "path": f"evidence_uses[{evidence_index}].supported_claims[{claim_index}]",
+                "value": claim,
+                "reader_reference": match.group(0),
+                "error": (
+                    f"This {declared.source_kind} mapping addresses the reader, but a book or public "
+                    "page cannot establish anything about the reader's life, choices or options. "
+                    "Split the text: map only the clause that reports what the source says, and put "
+                    "the application to the reader in a separate, unmapped sentence in your own voice. "
+                    "Do not merely swap 'you' for 'the reader' or 'one'; separate the application."
+                ),
+            })
     return errors
 
 
@@ -190,5 +270,5 @@ def validate_supported_claims(reply: str, evidence_uses: tuple[EvidenceUse, ...]
     """Check mapping structure, not whether the source entails the claim."""
     if supported_claim_errors(reply, evidence_uses):
         raise ValueError(
-            "supported_claims must contain distinct, non-empty exact spans from the current reply"
+            "supported_claims and limit_claims must contain distinct, non-empty exact spans from the current reply"
         )

@@ -197,7 +197,7 @@ declared sources: matching IDs and text do not prove the claim follows.
 Evaluate the sources' different roles without treating them as interchangeable proof.
 `exact_quote` remains a separate declaration of a verbatim source quotation.
 
-Return two compact audits as part of this same review:
+Return three compact audits as part of this same review:
 - `coverage_audit`: one entry for every `span_index` in the application's
   `uncovered_response_spans`, with `classification` of `presentation`,
   `reader_reflection`, or `source_dependent`. The table contains the exact gaps
@@ -284,6 +284,21 @@ Return two compact audits as part of this same review:
   An independent quote or source defect still requires a finding: locate it
   at its precise quotation/source field or offending narrower response span,
   rather than denying an otherwise supported complete claim.
+- `limit_audit`: one entry for each `limit_index` in `evidence_limit_claims`.
+  Each is a span Muse declared as withholding a conclusion from one named
+  record, such as "the passage does not say whether the promise still binds".
+  It is not a supported claim, and the record need not state the withheld
+  proposition: absence from this record is the point. Set `withholds_only` to
+  false when the complete span, read in the reply, asserts the withheld
+  conclusion or its opposite, advises the reader, or reaches beyond this record
+  (for example, absence from a whole book or from everything an author wrote).
+  Set `accurate` to false only when the record's `canonical_source_text` does
+  establish the withheld proposition. A limit that mentions the reader's
+  situation only to say the record does not address it still withholds only.
+  Either false value requires a finding on
+  `candidate.evidence_uses` path `/<declaration_index>/limit_claims/<claim_index>`
+  or overlapping the limit text. Do not also demand that the record support the
+  limit as a positive claim, and do not report a correct limit as unmapped.
 
 Complete the audits before the findings and final release decisions.
 The audits record your independent judgment, not Muse's assertions. Classify

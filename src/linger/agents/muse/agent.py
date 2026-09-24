@@ -19,12 +19,17 @@ from pydantic_ai.output import OutputContext
 from pydantic_ai.tools import ToolDefinition
 
 from src.linger.agents.build import build_model
-from src.linger.agents.muse.models import MuseCandidate, supported_claim_errors
+from src.linger.agents.muse.models import (
+    MuseCandidate,
+    source_application_errors,
+    supported_claim_errors,
+)
 from src.linger.agents.muse.quote_repair import (
     canonical_quote_suggestion,
     incomplete_declared_quote_edges,
     quote_copy_feedback,
     retained_quotation_errors,
+    unbound_source_quotation_errors,
 )
 from src.linger.agents.muse.claim_repair import retained_claim_errors
 from src.linger.agents.muse.skills import SHARED_INSTRUCTIONS, SKILLS
@@ -45,6 +50,7 @@ def validate_muse_output(
 ) -> MuseCandidate:
     """Report every checkable citation error while the model can still repair it."""
     errors = supported_claim_errors(output.reply, output.evidence_uses)
+    errors.extend(source_application_errors(output.reply, output.evidence_uses))
     revision = None
     prompt = getattr(_ctx, "prompt", None)
     if isinstance(prompt, str):
@@ -74,15 +80,27 @@ def validate_muse_output(
         if output.evidence_uses[index].exact_quote is not None
         and output.evidence_uses[index].exact_quote in text
     }
+    verified_session_lines = revision.review.released_reader_lines if revision else ()
+    retained_starts: set[int] = set()
     if revision is not None:
-        errors.extend(retained_quotation_errors(
+        retained = retained_quotation_errors(
             response=output.reply,
             evidence_uses=output.evidence_uses,
             reviewed_quotes=revision.review.source_quote_interiors,
             source_texts=quote_sources,
             valid_quotes=valid_quotes,
-            verified_session_lines=revision.review.released_reader_lines,
-        ))
+            verified_session_lines=verified_session_lines,
+        )
+        retained_starts = {error["response_start"] for error in retained}
+        errors.extend(retained)
+    errors.extend(unbound_source_quotation_errors(
+        response=output.reply,
+        evidence_uses=output.evidence_uses,
+        source_texts=quote_sources,
+        valid_quotes=valid_quotes,
+        verified_session_lines=verified_session_lines,
+        skip_starts=retained_starts,
+    ))
     for evidence_index, declared in enumerate(output.evidence_uses):
         path = f"evidence_uses[{evidence_index}]"
         if (
@@ -91,7 +109,7 @@ def validate_muse_output(
             for span in incomplete_declared_quote_edges(output.reply, declared):
                 if any(quote_is_bound(
                     span, output.reply, use, quote_valid=index in valid_quotes,
-                    verified_session_lines=revision.review.released_reader_lines if revision else (),
+                    verified_session_lines=verified_session_lines,
                 ) for index, use in enumerate(output.evidence_uses)):
                     continue
                 errors.append({

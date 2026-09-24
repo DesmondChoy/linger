@@ -17,6 +17,7 @@ from src.linger.agents.provenance.models import (
     StructuralLocation,
     TextSpanLocation,
     _has_claim_finding,
+    _has_limit_finding,
     _has_response_finding,
 )
 from src.linger.agents.provenance.review_context import review_input
@@ -97,6 +98,26 @@ def _derived_findings(task: ProvenanceInput, review: ProvenanceReview) -> list[R
                     ),
                     explanation=f"The declared source does not support this mapped claim. {audit.support_summary}"[:500],
                 ))
+    limits = task.evidence_limit_claims
+    for audit in review.limit_audit:
+        if audit.limit_index >= len(limits) or (audit.withholds_only and audit.accurate):
+            continue
+        limit = limits[audit.limit_index]
+        if not _has_limit_finding(review, response, limit):
+            derived.append(RiskFinding(
+                code=RiskCode.UNSUPPORTED_CLAIM, applies_to="response",
+                location=StructuralLocation(
+                    kind="structural", source_field="candidate.evidence_uses",
+                    path=f"/{limit.declaration_index}/limit_claims/{limit.claim_index}",
+                ),
+                explanation=(
+                    "This declared limit misreports what its record establishes."
+                    if audit.withholds_only else
+                    "This declared limit does more than withhold a conclusion from its record: "
+                    "keep only what the record does not establish, and put any advice or "
+                    "conclusion in a separate sentence in your own voice."
+                ),
+            ))
     # One finding per located mapping: an unsupported group and its noncontributing member share it.
     unique: dict[tuple[str, str, str | None], RiskFinding] = {}
     for finding in derived:

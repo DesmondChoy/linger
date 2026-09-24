@@ -297,12 +297,12 @@ class ChatConnectionEndToEndTests(unittest.IsolatedAsyncioTestCase):
             uses = []
             for item in exploration.evidence:
                 use = {"source_kind": item.source_kind, "evidence_id": item.evidence_id, "exact_quote": None,
-                       "supported_claims": [f"Your earlier reflection may resonate with Alice's changes and [this essay]({url})."]}
+                       "supported_claims": [f"An earlier reflection may resonate with Alice's changes and [this essay]({url})."]}
                 if item.source_kind == "book_corpus":
                     use["source_location"] = item.location
                 uses.append(use)
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
-                "reply": f"Your earlier reflection may resonate with Alice's changes and [this essay]({url}).",
+                "reply": f"An earlier reflection may resonate with Alice's changes and [this essay]({url}).",
                 "evidence_uses": uses,
                 "memory": {"kind": "no_memory_candidate", "reason_code": "automatic_capture_disabled"},
             })])

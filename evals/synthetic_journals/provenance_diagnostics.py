@@ -24,11 +24,13 @@ def _flagged_text(task: ProvenanceInput, finding: RiskFinding) -> str | None:
         return getattr(location, "quote", None)
     if location.source_field == "candidate.evidence_uses":
         parts = location.path.strip("/").split("/")
-        if len(parts) == 3 and parts[1] == "supported_claims" and parts[0].isdecimal() and parts[2].isdecimal():
+        if len(parts) == 3 and parts[1] in {"supported_claims", "limit_claims"} and parts[0].isdecimal() and parts[2].isdecimal():
             uses = task.candidate.evidence_uses
             declaration, claim = int(parts[0]), int(parts[2])
-            if declaration < len(uses) and claim < len(uses[declaration].supported_claims):
-                return uses[declaration].supported_claims[claim]
+            if declaration < len(uses):
+                claims = getattr(uses[declaration], parts[1], ())
+                if claim < len(claims):
+                    return claims[claim]
     return None
 
 

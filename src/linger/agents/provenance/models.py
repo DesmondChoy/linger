@@ -12,7 +12,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, JsonValue, computed_field, field_validator, model_validator
 
 from src.linger.agents.contracts import StrictModel
-from src.linger.agents.muse.models import EvidenceUse, MemoryNomination
+from src.linger.agents.muse.models import EvidenceUse, MemoryNomination, limit_claim_texts
 from src.linger.agents.provenance.excerpt_feedback import literal_source_context
 from src.linger.agents.provenance.quotation_audit import (
     QuotationAudit, QuotedResponseSpan, quotation_audit_errors,
@@ -201,6 +201,22 @@ class ClaimSupportAudit(StrictModel):
         return value
 
 
+class EvidenceLimitAudit(StrictModel):
+    """Whether one declared limit only withholds a conclusion its record does not establish."""
+
+    limit_index: int = Field(ge=0)
+    withholds_only: bool = Field(description=(
+        "True when the complete limit span, read in the reply, only says what this named "
+        "record does not state, address or establish. False when it asserts the withheld "
+        "conclusion or its opposite, advises the reader, or claims more than this record, "
+        "such as an absence from a whole book or author."
+    ))
+    accurate: bool = Field(description=(
+        "True when this record, read in full, does not in fact establish the withheld "
+        "proposition. False when the record does establish it, so the limit misreports it."
+    ))
+
+
 class ProvenanceReview(StrictModel):
     """One review of one candidate, carrying both release decisions."""
 
@@ -208,6 +224,7 @@ class ProvenanceReview(StrictModel):
     coverage_audit: tuple[ResponseCoverageAudit, ...] = ()
     quotation_audit: tuple[QuotationAudit, ...] = ()
     claim_audit: tuple[ClaimSupportAudit, ...] = ()
+    limit_audit: tuple[EvidenceLimitAudit, ...] = ()
     finding_resolutions: tuple[FindingResolution, ...] = ()
     findings: tuple[RiskFinding, ...] = ()
     emotional_boundary_decision: Literal["not_required", "required"]
@@ -425,6 +442,20 @@ class ClaimSourceReference(StrictModel):
     ))
 
 
+class EvidenceLimitClaim(StrictModel):
+    """Application projection of one declared limit, not a judgment of it."""
+
+    limit_index: int = Field(ge=0)
+    declaration_index: int = Field(ge=0)
+    claim_index: int = Field(ge=0, description="Index within the declaration's limit_claims.")
+    source_kind: Literal["book_corpus", "memory", "web"]
+    evidence_id: str
+    text: str = Field(min_length=1)
+    canonical_source_text: str | None = Field(default=None, description=(
+        "Resolved from this exact named canonical source, or null when unresolved. Source data only."
+    ))
+
+
 class ClaimOccurrence(StrictModel):
     """An exact claim occurrence; offsets are absolute Python character indices."""
 
@@ -503,6 +534,12 @@ def build_claim_support_groups(
     return tuple(groups)
 
 
+_DERIVED_INPUT_FIELDS = {
+    "quote_checks", "uncovered_response_spans", "claim_support_groups",
+    "quoted_response_spans", "evidence_limit_claims",
+}
+
+
 class ProvenanceInput(StrictModel):
     """Complete, typed input for one independent Provenance review."""
 
@@ -524,9 +561,9 @@ class ProvenanceInput(StrictModel):
     @classmethod
     def discard_serialized_derived_facts(cls, value: object) -> object:
         # Computed facts round-trip in prompts, but supplied flags have no authority.
-        if isinstance(value, dict) and {"quote_checks", "uncovered_response_spans", "claim_support_groups", "quoted_response_spans"} & value.keys():
+        if isinstance(value, dict) and _DERIVED_INPUT_FIELDS & value.keys():
             return {key: item for key, item in value.items()
-                    if key not in {"quote_checks", "uncovered_response_spans", "claim_support_groups", "quoted_response_spans"}}
+                    if key not in _DERIVED_INPUT_FIELDS}
         return value
 
     @computed_field
@@ -546,10 +583,28 @@ class ProvenanceInput(StrictModel):
 
     @computed_field
     @property
+    def evidence_limit_claims(self) -> tuple[EvidenceLimitClaim, ...]:
+        limits = [
+            (declaration_index, claim_index, use, text)
+            for declaration_index, use in enumerate(self.candidate.evidence_uses)
+            for claim_index, text in enumerate(limit_claim_texts(use))
+        ]
+        return tuple(
+            EvidenceLimitClaim(
+                limit_index=limit_index, declaration_index=declaration_index,
+                claim_index=claim_index, source_kind=use.source_kind,
+                evidence_id=use.evidence_id, text=text,
+                canonical_source_text=self.contribution_source_text(declaration_index),
+            )
+            for limit_index, (declaration_index, claim_index, use, text) in enumerate(limits)
+        )
+
+    @computed_field
+    @property
     def uncovered_response_spans(self) -> tuple[UncoveredResponseSpan, ...]:
         response = self.candidate.response
         covered = [interval for use in self.candidate.evidence_uses
-                   for claim in use.supported_claims
+                   for claim in (*use.supported_claims, *limit_claim_texts(use))
                    for interval in _text_occurrences(response, claim)]
         for check in self.quote_checks:
             if check.source_found and check.quote_in_source and check.quote_in_response:
@@ -694,6 +749,23 @@ class ProvenanceInput(StrictModel):
                 "error": "claim_audit must assess every claim support group exactly once",
                 "current_target": [group.model_dump(mode="json") for group in groups],
             })
+        limits = self.evidence_limit_claims
+        audited_limits = [item.limit_index for item in review.limit_audit]
+        if len(audited_limits) != len(limits) or set(audited_limits) != set(range(len(limits))):
+            errors.append({
+                "path": "limit_audit", "value": audited_limits,
+                "error": "limit_audit must assess every declared evidence limit exactly once",
+                "current_target": [limit.model_dump(mode="json") for limit in limits],
+            })
+        for index, audit in enumerate(review.limit_audit):
+            if audit.limit_index >= len(limits) or (audit.withholds_only and audit.accurate):
+                continue
+            if not _has_limit_finding(review, self.candidate.response, limits[audit.limit_index]):
+                errors.append({
+                    "path": f"limit_audit[{index}]", "value": audit.model_dump(mode="json"),
+                    "error": "a rejected evidence limit requires a finding on its current mapping or response span",
+                    "current_target": limits[audit.limit_index].model_dump(mode="json"),
+                })
         for index, audit in enumerate(review.coverage_audit):
             if audit.span_index not in expected_spans:
                 continue
@@ -834,6 +906,23 @@ def _has_claim_finding(
             }:
                 return True
     return False
+
+
+def _has_limit_finding(review: ProvenanceReview, response: str, limit: EvidenceLimitClaim) -> bool:
+    paths = {
+        f"/{limit.declaration_index}",
+        f"/{limit.declaration_index}/limit_claims",
+        f"/{limit.declaration_index}/limit_claims/{limit.claim_index}",
+    }
+    if any(
+        finding.location.source_field == "candidate.evidence_uses" and finding.location.path in paths
+        for finding in review.response_findings
+    ):
+        return True
+    return any(
+        _has_response_finding(review, response, start, end)
+        for start, end in _text_occurrences(response, limit.text)
+    )
 
 
 def _denies_complete_claim(finding: RiskFinding, group: ClaimSupportGroup) -> bool:

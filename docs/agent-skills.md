@@ -247,8 +247,9 @@ cannot override the source text. These checks do not establish attribution or
 semantic support, which remain Provenance judgments. Skill fingerprints include
 the serialized input schema so these derived fields are part of the recorded
 model contract. The input also projects quoted response spans, uncovered text,
-and groups of overlapping claim mappings. Provenance returns `quotation_audit`,
-`coverage_audit`, and `claim_audit` entries for all projected items. Each claim
+groups of overlapping claim mappings, and declared evidence limits. Provenance
+returns `quotation_audit`, `coverage_audit`, `claim_audit`, and `limit_audit`
+entries for all projected items. Each claim
 source has a separate contribution judgment and a literal supporting excerpt;
 collective support cannot borrow from undeclared sources or other occurrences.
 The validator checks completeness and consistency while semantic support remains

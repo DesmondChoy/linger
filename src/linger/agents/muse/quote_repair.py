@@ -67,6 +67,78 @@ def retained_quotation_errors(
     return errors
 
 
+def unbound_source_quotation_errors(
+    *,
+    response: str,
+    evidence_uses: tuple[EvidenceUse, ...],
+    source_texts: dict[int, str],
+    valid_quotes: set[int],
+    verified_session_lines: tuple[str, ...],
+    skip_starts: set[int] = frozenset(),
+) -> list[dict[str, object]]:
+    """Flag quoted wording that literally matches a source mapped over it but is not declared."""
+    errors = []
+    for span in quoted_response_spans(response):
+        if span.start in skip_starts or any(quote_is_bound(
+            span, response, use, quote_valid=index in valid_quotes,
+            verified_session_lines=verified_session_lines,
+        ) for index, use in enumerate(evidence_uses)):
+            continue
+        mapped = [
+            (index, use) for index, use in enumerate(evidence_uses)
+            if use.source_kind != "session_line"
+            and any(_claim_covers_quote(response, claim, span) for claim in use.supported_claims)
+        ]
+        if any(_same_wording(use.exact_quote, span.text) for _, use in mapped if use.exact_quote):
+            # A declared quote for this wording is checked, or reclassified, elsewhere.
+            continue
+        sources = []
+        for index, use in mapped:
+            text = source_texts.get(index)
+            if text is None:
+                continue
+            suggestion = canonical_quote_suggestion(span.text, text)
+            if suggestion is not None and not _heading_text(suggestion, text):
+                sources.append({
+                    "declaration_index": index,
+                    "source_kind": use.source_kind,
+                    "evidence_id": use.evidence_id,
+                    "suggested_quote": suggestion,
+                })
+        if sources:
+            errors.append({
+                "path": "evidence_uses", "value": span.text,
+                "quoted_response_text": span.text,
+                "response_start": span.start, "response_end": span.end,
+                "matching_declared_sources": sources,
+                "error": (
+                    "This quoted wording matches the canonical text of a source you mapped over it, "
+                    "so it reads as a source quotation, but no exact_quote declaration binds it. "
+                    "Either copy the complete quoted span into an exact_quote declaration for that "
+                    "source (add another declaration with the same evidence_id for a second "
+                    "fragment), or rewrite it as an unquoted paraphrase."
+                ),
+            })
+    return errors
+
+
+def _same_wording(declared: str, quoted: str) -> bool:
+    def core(text: str) -> str:
+        return " ".join(text.split()).strip('"“”').rstrip(".,;:!?…").strip()
+
+    left, right = core(declared), core(quoted)
+    return bool(left and right) and (left in right or right in left)
+
+
+def _heading_text(fragment: str, source: str) -> bool:
+    """A quoted title matches the source's heading, not its prose."""
+    start = source.find(fragment)
+    line_start = source.rfind("\n", 0, start) + 1
+    line_end = source.find("\n", start + len(fragment))
+    line = source[line_start:line_end if line_end >= 0 else len(source)].strip()
+    return line.startswith(("#", "Title:")) or line.rstrip(".") == fragment.strip().rstrip(".")
+
+
 def _claim_covers_quote(response: str, claim: str, span: QuotedResponseSpan) -> bool:
     start = response.find(claim)
     while start >= 0:

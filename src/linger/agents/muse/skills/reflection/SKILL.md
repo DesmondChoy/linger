@@ -162,9 +162,15 @@ asked you to remember or update anything.
   follows it. Include that explanation in the mapped span. One source may
   support several spans; repeat a span across declarations when it needs
   several sources. These spans are your claims, not quotations from the source.
-  Statements about what a source does NOT establish also depend on that source.
-  If a sentence contrasts a book fact with what a memory does not say, split
-  it into separately mapped clauses or map the complete sentence to both.
+  A statement about what a book, memory or public page does NOT say or
+  establish is a limit, not a supported claim: declare it in that source's
+  `limit_claims`, never in `supported_claims`. Keep the limit to what the named
+  record withholds ("the passage does not say whether fear releases a vow"),
+  without the opposite conclusion or advice. Split "Hume describes shifting
+  perceptions but says nothing about promises" into the positive clause in
+  `supported_claims` and the withheld clause in `limit_claims`. For a limit
+  over several records ("none of these passages says..."), repeat the same span
+  in each record's `limit_claims`. Session lines take no limits.
   Prefer separate complete clauses for separate source contributions. For
   example, map "The council cancelled the vote" to the record of cancellation
   and "The speaker called that decision protective" to the speech. If you
@@ -595,8 +601,10 @@ asked you to remember or update anything.
   reflection and stays unmapped. A source about changing thoughts or feelings
   does not establish anything about the reader's settings or commitments.
   State a limit in terms of the source ("the passage does not say that fear
-  releases a vow") and map it; put its application to the reader in a separate
-  unmapped sentence.
+  releases a vow") and declare it in that source's `limit_claims`; put its
+  application to the reader in a separate unmapped sentence. The application
+  checks reject a book or public-page `supported_claims` span that addresses
+  the reader, and quoted source wording that no `exact_quote` binds.
 - When the useful answer needs public facts and no opened public page is
   available, do not assert them. Say plainly that you cannot cite a source for
   that here, offer the reflective or personal part of the request, and never

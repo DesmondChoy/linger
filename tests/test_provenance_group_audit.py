@@ -167,7 +167,7 @@ def test_actual_agent_exposes_audits_before_verdict_and_repairs_missing_summary(
         schema = info.output_tools[0].parameters_json_schema
         properties = list(schema["properties"])
         assert properties == [
-            "coverage_audit", "quotation_audit", "claim_audit", "finding_resolutions",
+            "coverage_audit", "quotation_audit", "claim_audit", "limit_audit", "finding_resolutions",
             "findings", "emotional_boundary_decision", "capture_decision", "response_decision",
         ]
         group_schema = schema["$defs"]["ClaimSupportAudit"]

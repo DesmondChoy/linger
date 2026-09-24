@@ -51,6 +51,11 @@ all detected citation errors together and supplies exact authorized source IDs,
 locations, and literal copy aids. `supported_claims` must remain exact spans of
 the final reply, including punctuation and capitalization. A requested quotation
 must retain its canonical words, Markdown, line breaks, and edge punctuation.
+A book or public-page `supported_claims` span may not address the reader outside
+quotations, and quoted wording that literally matches a source mapped over it
+needs an `exact_quote` declaration. Book, memory, and web declarations may also
+carry `limit_claims`: exact spans that only say what that record does not
+establish. Limits count as declared coverage and receive their own review.
 
 ## Review and release
 

@@ -69,7 +69,7 @@ or misclassified.
 Application code derives `quote_checks`, `quoted_response_spans`,
 `uncovered_response_spans`, and `claim_support_groups` from the current candidate
 and canonical sources. Supplied values cannot override those projections.
-Provenance returns three complete audits:
+Provenance returns four complete audits:
 
 - `coverage_audit` classifies each undeclared response span as presentation,
   reader reflection, or source-dependent content. Source-dependent content
@@ -83,6 +83,10 @@ Provenance returns three complete audits:
   mapped text and occurrences. A positive contribution includes a literal excerpt
   from that named source, allowing whitespace differences only. The reviewer
   judges the full records and records any missing collective support.
+- `limit_audit` checks every projected `evidence_limit_claims` entry: whether the
+  span only withholds a conclusion from its named record, and whether that record
+  in fact leaves the proposition unestablished. A rejected limit requires a
+  finding on its `limit_claims` mapping or response text.
 
 The output validator checks audit coverage, source bindings, finding locations,
 and consistency before accepting a review. Invalid output receives structured
