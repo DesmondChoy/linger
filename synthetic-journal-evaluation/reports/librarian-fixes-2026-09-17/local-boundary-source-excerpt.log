@@ -1,0 +1,36 @@
+.................................................................... [ 27%]
+........................................................... [ 51%]
+........................................................................ [ 80%]
+........................................F........                        [100%]
+=================================== FAILURES ===================================
+_______ test_all_instruction_resources_load_from_an_unrelated_directory ________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-246/test_all_instruction_resources0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x152355d90>
+
+    def test_all_instruction_resources_load_from_an_unrelated_directory(tmp_path, monkeypatch):
+        from evals.synthetic_journals.replay import evaluation_skills
+    
+        assignments = evaluation_skills()
+        monkeypatch.chdir(tmp_path)
+        for assignment in assignments:
+            package = f"src.linger.agents.{assignment.role.lower()}"
+            assert load_prompt("agents", assignment.role.lower()) == assignment.shared_instructions
+>           assert load_instructions(
+                package, f"skills/{assignment.name}/SKILL.md"
+            ) == assignment.instructions
+E           AssertionError: assert '---\nname: r...d connection.' == '---\nname: r...d connection.'
+E             
+E             Skipping 3647 identical leading characters in diff, use -v to show
+E                `reply`.
+E             + Keep quotation formatting and validation mechanics out of the reply.
+E               Earlier released turns appear before the envelope as plain conversation.
+E               A revision also receives the current draft's messages and tool results; that
+E               draft has not been released to the reader. A later reader statement supersedes...
+E             
+E             ...Full output truncated (372 lines hidden), use '-vv' to show
+
+/Users/kevinmanuel/Documents/REPO/linger/tests/test_runtime_skills.py:172: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_runtime_skills.py::test_all_instruction_resources_load_from_an_unrelated_directory
+1 failed, 247 passed, 17 subtests passed in 21.59s

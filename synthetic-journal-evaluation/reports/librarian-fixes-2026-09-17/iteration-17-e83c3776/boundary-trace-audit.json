@@ -1,0 +1,358 @@
+{
+  "kind": "offline_boundary_trace_audit",
+  "provider_calls": 0,
+  "book_scene_count": 23,
+  "event_gates": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ]
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "unresolved",
+      "evidence_ids": null
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg23-vd3f08ac3-sec10-ln1597-1629"
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch03-ln0672-0687"
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "boundary_decision": "infer",
+      "ceiling": 5,
+      "support_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg11-v01b38ea4-ch05-ln1151-1186",
+        "pg11-v01b38ea4-ch05-ln1208-1237",
+        "pg11-v01b38ea4-ch05-ln1230-1250"
+      ],
+      "memory_ids": [
+        "mem_92745785dcac377586b655e2ba43d92e4e2e16c52c91145b75ac2781f5e4052f"
+      ],
+      "handoff_content_free": true,
+      "provider_failures": [
+        {
+          "stage": "draft",
+          "category": "provider_error",
+          "http_status": 429
+        }
+      ]
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 4,
+      "scene": "personal-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 7,
+      "scene": "farm-decision-reversal",
+      "boundary_decision": "not_applicable",
+      "ceiling": 5,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 7,
+      "scene": "farm-personal-trust",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": [
+        {
+          "stage": "draft",
+          "category": "provider_error",
+          "http_status": 429
+        }
+      ]
+    },
+    {
+      "suite": 7,
+      "scene": "farm-interrupted-discussion",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 7,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 7,
+      "support_ids": [
+        "pg23-vd3f08ac3-sec10-ln1597-1629",
+        "pg23-vd3f08ac3-sec09-ln1346-1385"
+      ],
+      "memory_ids": [
+        "mem_6f2a7592536e22fefdfb3881f8229388b7717355b1850ec34cf4c983275c10a4"
+      ],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 10,
+      "scene": "alice-race-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": 3,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 10,
+      "scene": "alice-personal-comparison",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 3,
+      "support_ids": [
+        "pg11-v01b38ea4-ch03-ln0553-0587",
+        "pg11-v01b38ea4-ch03-ln0578-0617",
+        "pg11-v01b38ea4-ch03-ln0640-0678",
+        "pg11-v01b38ea4-ch03-ln0672-0687",
+        "pg11-v01b38ea4-ch02-ln0454-0477",
+        "pg11-v01b38ea4-ch03-ln0514-0559"
+      ],
+      "memory_ids": [
+        "mem_ea37bff8874611660cc63f9c4ec5b6fc919dcdebbe936c9f0f8839de90d6ee61"
+      ],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 10,
+      "scene": "alice-bottle-ambiguity",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 11,
+      "scene": "keller-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 10,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 11,
+      "scene": "keller-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 10,
+      "support_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254",
+        "pg2397-vb3cc1e13-sec011-ln1127-1155"
+      ],
+      "memory_ids": [
+        "mem_88bdbd482c9a68d1eea07b8dcbd2598ef42205e1a609de100aa9caf71ded5cb3"
+      ],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 11,
+      "scene": "keller-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-promises-and-book",
+      "boundary_decision": "not_applicable",
+      "ceiling": 9,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-personal-study",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": [
+        {
+          "stage": "draft",
+          "category": "provider_error",
+          "http_status": 429
+        },
+        {
+          "stage": "boundary_inference",
+          "category": "provider_error",
+          "http_status": 429
+        }
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-school-detour",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true,
+      "provider_failures": []
+    }
+  ],
+  "mechanical_scope_issues": []
+}

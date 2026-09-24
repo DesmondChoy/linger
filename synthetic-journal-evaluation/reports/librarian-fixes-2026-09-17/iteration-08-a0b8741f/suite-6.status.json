@@ -1,0 +1,155 @@
+{
+  "suite": "6",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/menu.json",
+    "--number",
+    "6",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T00:46:23.341480+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/suite-6.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.connection_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084624+0800-wphytdbf/evaluation.json"
+    ],
+    "started_at": "2026-09-18T08:46:24.330762+08:00",
+    "scenario_hashes": {
+      "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+      "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+      "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084624+0800-wphytdbf/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084624+0800-wphytdbf/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084624+0800-wphytdbf/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 3,
+      "scenes_passed": 1,
+      "scenes_failed": 2,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 1,
+      "judgments_failed": 3,
+      "failures": [
+        {
+          "scene_id": "S1",
+          "detail": "unexpected_release_source",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-memory",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-book",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-public",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "unpermitted_selected_evidence",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_review_approval",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "unpermitted_selected_evidence",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_review_approval",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "unpermitted_selected_evidence",
+          "proposal_id": "G3-weak-evidence"
+        }
+      ],
+      "execution_failures": [
+        {
+          "scene_id": "S2",
+          "detail": "Provenance review: provenance_model_failed"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G3-weak-evidence"
+        }
+      ]
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b1fa9f982745061aececbfdd6920-a72c9815fe7ded53",
+      "trace_id": "01a0b1fa9f982745061aececbfdd6920",
+      "span_id": "a72c9815fe7ded53",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b1fa9f982745061aececbfdd6920-a72c9815fe7ded53",
+    "status": "failed",
+    "problems": [
+      "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+    ],
+    "finished_at": "2026-09-18T08:49:42.796875+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T084942+0800-00c729d3.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T084942+0800-00c729d3.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/suite-6.json",
+  "failures": [
+    "S1:hard_gate_or_missing_grades",
+    "S1:G1-connection:grade_failures",
+    "S1:G1-connection:stage_failure",
+    "S2:hard_gate_or_missing_grades",
+    "S2:G2-connection:grade_failures",
+    "S2:G2-connection:stage_failure",
+    "S2:G3-weak-evidence:grade_failures",
+    "S2:G3-weak-evidence:stage_failure",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T00:49:43.120422+00:00"
+}

@@ -1,0 +1,1074 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+  "created_at": "2026-09-17T23:43:31+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "execution",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "summary": {
+    "scenes_total": 3,
+    "scenes_passed": 2,
+    "scenes_failed": 1,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 2,
+    "judgments_failed": 2,
+    "failures": [
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "inferred_scope_differs_from_ground_truth",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_memory_support_differs_from_authorised_props",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "required_grounding_evidence_not_retrieved",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "grounded_response_released_no_evidence",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "exact_quotation_missing_or_unreleased:pigeon",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "inferred_scope_differs_from_ground_truth",
+        "proposal_id": "pigeon-boundary"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_memory_support_differs_from_authorised_props",
+        "proposal_id": "pigeon-boundary"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "pigeon-boundary"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "pigeon-boundary"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "inferred_ceiling_differs_from_ground_truth",
+        "proposal_id": "pigeon-boundary"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "Librarian boundary_inference: boundary_inference_model_failed"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "order": 1,
+      "status": "failed",
+      "judgments_total": 2,
+      "judgments_passed": 0,
+      "judgments_failed": 2,
+      "expected": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Retrieve the permitted passage and reproduce the requested sentence accurately, preserving the narrator's hesitation rather than supplying a remembered paraphrase as a quotation.",
+            "Connect the reader's discomfort naming her role to the requested moment as a possible personal resonance, and invite her own interpretation."
+          ],
+          "prohibited_outcomes": [
+            "Invent or alter a quotation, or claim the source proves what Maya feels.",
+            "Turn the personal connection into an unsupported claim about the author's intent."
+          ],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "pigeon"
+            ],
+            "exact_quotation_evidence_ids": [
+              "pigeon"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "personal-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "prop_ids",
+              "line_text"
+            ]
+          }
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Use the authorised remembered exchange and the specific current event together to infer the bounded reading position from their supporting evidence.",
+            "Answer within that inferred scope; no extra location question is needed for the requested passage."
+          ],
+          "prohibited_outcomes": [
+            "Grant access beyond the position supported by the Scene facts.",
+            "Reveal or allude to the forbidden later event, including as reassurance about how the identity question resolves."
+          ],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "uncertain-growth",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "pigeon-reflection",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "remembered-caterpillar"
+              ],
+              "supporting_evidence_ids": [
+                "identity",
+                "pigeon"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "remembered-caterpillar",
+                "start_codepoint": 0,
+                "end_codepoint": 245,
+                "text": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "pigeon-line",
+                "start_codepoint": 0,
+                "end_codepoint": 406,
+                "text": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "identity",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "start_codepoint": 1456,
+                "end_codepoint": 1699,
+                "text": "This was not an encouraging opening for a conversation. Alice replied,\nrather shyly, “I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pigeon",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "start_codepoint": 10718,
+                "end_codepoint": 10842,
+                "text": "“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pigeon-grounding",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": false,
+            "failures": [
+              "inferred_scope_differs_from_ground_truth",
+              "boundary_memory_support_differs_from_authorised_props",
+              "boundary_support_differs_from_ground_truth",
+              "required_grounding_evidence_not_retrieved",
+              "grounded_response_released_no_evidence",
+              "exact_quotation_missing_or_unreleased:pigeon"
+            ]
+          },
+          {
+            "proposal_id": "pigeon-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "inferred_scope_differs_from_ground_truth",
+              "boundary_memory_support_differs_from_authorised_props",
+              "boundary_support_differs_from_ground_truth",
+              "boundary_decision_differs_from_ground_truth",
+              "inferred_ceiling_differs_from_ground_truth"
+            ]
+          }
+        ],
+        "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+        "release_source": "application_clarification",
+        "boundary_decision": "clarify",
+        "route_called": true,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "pigeon-reflection",
+            "proposal_id": "pigeon-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b007ffa68e8a333e3d98d92d10ea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "What is the latest chapter or scene in *Alice’s Adventures in Wonderland* that you have completed?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_HUtNQN7MaiH6QsS2FJVd820k",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "clarification",
+                  "request_id": "routereq_46f1d34e10e3411f88e9fb0fe9bec165",
+                  "clarification_id": "clarify_fc241b0567f64098bdb828141c2f5021",
+                  "reason_code": "inference_unavailable",
+                  "question": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+                  "expected_answer": {
+                    "type": "free_text",
+                    "values": []
+                  }
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "in Alice"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "failure",
+            "failure_code": "boundary_inference_model_failed",
+            "output": null,
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_AEn2MVPprZAVtqHbgcNw7svZ",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_1430fd05d14aa725aacfc1a13daf7c3fab569b15563616394a7b223570ec2e09\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\"],\"reason\":\"The memory reports Maya knowing the Caterpillar exchange in which Alice is asked who she is and says she has changed several times. The Chapter 5 Caterpillar passage contains that exchange, so the memory demonstrates prior knowledge in this work and is consistent with the current report of having read farther in Chapter 5.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"chapter_number\":5,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_1430fd05d14aa725aacfc1a13daf7c3fab569b15563616394a7b223570ec2e09\"],\"supporting_evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\",\"pg11-v01b38ea4-ch05-ln1151-1186\",\"pg11-v01b38ea4-ch05-ln1179-1219\",\"pg11-v01b38ea4-ch05-ln1208-1237\"],\"event_resolution\":{\"reader_event_spans\":[\"I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl.\"],\"occurrences\":[{\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln1151-1186\",\"pg11-v01b38ea4-ch05-ln1179-1219\",\"pg11-v01b38ea4-ch05-ln1208-1237\"],\"disposition\":\"selected\",\"distinguishing_reader_spans\":[\"the Pigeon calls her a serpent\",\"she tries to say she's a little girl\"],\"explanation\":\"These reader details identify the Chapter 5 exchange in which the Pigeon repeatedly calls Alice a serpent and Alice responds that she is a little girl. The three supplied passages are overlapping or continuing portions of that same occurrence.\"}]},\"other_evidence_ids\":[\"pg11-v01b38ea4-ch02-ln0327-0360\",\"pg11-v01b38ea4-ch05-ln1004-1056\",\"pg11-v01b38ea4-ch05-ln1094-1135\",\"pg11-v01b38ea4-ch05-ln1230-1250\",\"pg11-v01b38ea4-ch03-ln0640-0678\",\"pg11-v01b38ea4-ch07-ln1828-1875\",\"pg11-v01b38ea4-ch06-ln1538-1568\",\"pg11-v01b38ea4-ch01-ln0111-0132\",\"pg11-v01b38ea4-ch05-ln1048-1102\",\"pg11-v01b38ea4-ch06-ln1472-1515\",\"pg11-v01b38ea4-ch04-ln0696-0721\",\"pg11-v01b38ea4-ch10-ln2705-2744\",\"pg11-v01b38ea4-ch02-ln0363-0382\",\"pg11-v01b38ea4-ch04-ln0931-0951\",\"pg11-v01b38ea4-ch01-ln0062-0092\"]}",
+                "result": null,
+                "outcome": null
+              },
+              {
+                "tool_call_id": "call_9KQR8nhPs7IQ1NHCtClncYEa",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_1430fd05d14aa725aacfc1a13daf7c3fab569b15563616394a7b223570ec2e09\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\"],\"reason\":\"The memory reports Maya knowing the Caterpillar exchange in which Alice is asked who she is and says she has changed several times. The Chapter 5 Caterpillar passage contains that exchange, so the memory demonstrates prior knowledge in this work and is consistent with the current report of having read farther in Chapter 5.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"chapter_number\":5,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_1430fd05d14aa725aacfc1a13daf7c3fab569b15563616394a7b223570ec2e09\"],\"supporting_evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\",\"pg11-v01b38ea4-ch05-ln1151-1186\",\"pg11-v01b38ea4-ch05-ln1179-1219\",\"pg11-v01b38ea4-ch05-ln1208-1237\"],\"event_resolution\":{\"reader_event_spans\":[\"I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl.\"],\"occurrences\":[{\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln1151-1186\",\"pg11-v01b38ea4-ch05-ln1179-1219\",\"pg11-v01b38ea4-ch05-ln1208-1237\"],\"disposition\":\"selected\",\"distinguishing_reader_spans\":[\"the Pigeon calls her a serpent\",\"she tries to say she's a little girl\"],\"explanation\":\"These reader details identify the Chapter 5 exchange in which the Pigeon repeatedly calls Alice a serpent and Alice responds that she is a little girl. The three supplied passages are overlapping or continuing portions of that same occurrence.\"}]}}",
+                "result": null,
+                "outcome": null
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "exact_quotation_missing_or_unreleased:pigeon",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "pigeon-boundary"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "pigeon-boundary"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "pigeon-boundary"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "pigeon-boundary"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "pigeon-boundary"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Ask the reader for a distinguishing detail she already remembers, such as who is with Alice or where she is, before continuing the story.",
+            "The growth-house and growth-court excerpts document distinct possible readings of the vague growth reference after the remembered exchange. They are ambiguity witnesses only, not supporting inference evidence or an authorised reading position."
+          ],
+          "prohibited_outcomes": [
+            "Choose a candidate growth episode or grant a ceiling from the remembered exchange when the new stopping point remains ambiguous.",
+            "Retrieve a continuation or reveal candidate-event details in the clarification question.",
+            "Disclose any forbidden later evidence, including the final event."
+          ],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "growth-house",
+              "growth-court",
+              "uncertain-awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "pigeon-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "uncertain-growth",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "remembered-caterpillar"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "remembered-caterpillar",
+                "start_codepoint": 0,
+                "end_codepoint": 245,
+                "text": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "growth-line",
+                "start_codepoint": 0,
+                "end_codepoint": 224,
+                "text": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?"
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "growth-house",
+                "chapter_id": "pg11-v01b38ea4-ch06",
+                "start_codepoint": 14576,
+                "end_codepoint": 15112,
+                "text": "She had not gone much farther before she came in sight of the house of\nthe March Hare: she thought it must be the right house, because the\nchimneys were shaped like ears and the roof was thatched with fur. It\nwas so large a house, that she did not like to go nearer till she had\nnibbled some more of the lefthand bit of mushroom, and raised herself\nto about two feet high: even then she walked up towards it rather\ntimidly, saying to herself “Suppose it should be raving mad after all!\nI almost wish I’d gone to see the Hatter instead!”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "growth-court",
+                "chapter_id": "pg11-v01b38ea4-ch11",
+                "start_codepoint": 6398,
+                "end_codepoint": 6713,
+                "text": "Just at this moment Alice felt a very curious sensation, which puzzled\nher a good deal until she made out what it was: she was beginning to\ngrow larger again, and she thought at first she would get up and leave\nthe court; but on second thoughts she decided to remain where she was\nas long as there was room for her."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "uncertain-awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "growth-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+        "release_source": "application_clarification",
+        "boundary_decision": "clarify",
+        "route_called": true,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "uncertain-growth",
+            "proposal_id": "growth-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b007ffa68e8a333e3d98d92d10ea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_1UjinHoxlwiW4CEmY0aXd5lN",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "clarification",
+                  "request_id": "routereq_4f4e11eb60244d49b6d8fcb70162f9d2",
+                  "clarification_id": "clarify_3f12200e94a54490bc23175e0a9c1ac9",
+                  "reason_code": "low_confidence",
+                  "question": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+                  "expected_answer": {
+                    "type": "free_text",
+                    "values": []
+                  }
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "the Caterpillar"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've read on since we talked about the Caterpillar",
+                    "I'm at the bit where Alice gets bigger again"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_c0daf7cbac629144dfbeb6c6705c90f71a8ba068b9720128d56422a65ec6a4b0",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0960-1016"
+                  ],
+                  "reason": "The memory reports Maya's knowledge of Alice's exchange with the Caterpillar about who she is and having changed sizes, which is directly located in the Chapter 5 Caterpillar passage."
+                }
+              ],
+              "outcome": "uncertain",
+              "confidence": 0.42,
+              "reason_code": "low_confidence"
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_Uwj8jvLNoHOVR64sucQjEFDZ",
+                "tool_name": "final_result_BoundaryUncertainDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_c0daf7cbac629144dfbeb6c6705c90f71a8ba068b9720128d56422a65ec6a4b0\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\"],\"reason\":\"The memory reports Maya's knowledge of Alice's exchange with the Caterpillar about who she is and having changed sizes, which is directly located in the Chapter 5 Caterpillar passage.\"}],\"outcome\":\"uncertain\",\"confidence\":0.42,\"reason_code\":\"low_confidence\"}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "order": 3,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Respond to the reader's stated experience directly, exploring what she wants her introduction to convey.",
+            "Offer an adaptable introduction in the reader's own terms, without needing a factual book claim."
+          ],
+          "prohibited_outcomes": [
+            "Retrieve or quote book text for this personal request.",
+            "Treat the absent Prop or generator-only Backstory as known conversation history.",
+            "Insist on locating the reader in the book before helping with her introduction."
+          ],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required"
+          },
+          "pairing": {
+            "paired_scene_id": "pigeon-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "prop_ids",
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "personal-grounding",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "The awkwardness doesn’t mean you’re being dishonest—you already know that you like the new work. One possibility is that the old title still comes more automatically, while the new one hasn’t become easy to say yet. Another is that “manager” carries expectations you’re still deciding how to make your own. You don’t have to settle that whole question before introducing yourself.\n\nHere are a few honest options:\n\n- “Hi, I’m [name]. I’m a manager, and I’m enjoying the new work.”\n- “Hi, I’m [name]. I recently moved into management, and I’m glad to be here.”\n- “Hi, I’m [name]. I’m in a management role now—I’m still getting used to saying that.”\n- “Hi, I’m [name]. I’m a manager, and I also come from a design background.”\n\nThe last one lets “manager” be true without pretending “designer” has disappeared. When you imagine saying the title, what feels most awkward: claiming it, being seen differently because of it, or leaving the old label out?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "revise",
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b007ffa68e8a333e3d98d92d10ea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "That awkwardness makes sense: “designer” is a role you’ve practiced naming, while “manager” may still feel new enough that saying it out loud makes the transition feel more real. You don’t have to reject the old identity to make room for the new one—and liking the new work doesn’t require feeling completely fluent in the title yet.\n\nYou could try an introduction that is accurate but not overdramatic:\n\n- “Hi, I’m [name]. I’m a manager, and I’m enjoying the new work.”\n- “Hi, I’m [name]. I recently moved into management, and I’m glad to be here.”\n- “Hi, I’m [name]. I’m working in a management role now; I’m still getting used to saying that.”\n\nThe third is especially honest if you want to acknowledge the awkwardness rather than hide it. Which part feels most uncomfortable: claiming the title itself, leaving “designer” behind, or saying it in front of other people?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [
+                {
+                  "code": "unsupported_claim",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.response",
+                    "path": "",
+                    "quote": "“designer” is a role you’ve practiced naming, while “manager” may still feel new enough that saying it out loud makes the transition feel more real."
+                  },
+                  "explanation": "This presents a specific explanation of the reader's internal experience as fact, but the supplied message only establishes that naming the role feels awkward and that they like the work. Recast it as a general possibility or ask what aspect of the transition is driving the awkwardness."
+                }
+              ],
+              "response_decision": "revise",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "revision",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "The awkwardness doesn’t mean you’re being dishonest—you already know that you like the new work. One possibility is that the old title still comes more automatically, while the new one hasn’t become easy to say yet. Another is that “manager” carries expectations you’re still deciding how to make your own. You don’t have to settle that whole question before introducing yourself.\n\nHere are a few honest options:\n\n- “Hi, I’m [name]. I’m a manager, and I’m enjoying the new work.”\n- “Hi, I’m [name]. I recently moved into management, and I’m glad to be here.”\n- “Hi, I’m [name]. I’m in a management role now—I’m still getting used to saying that.”\n- “Hi, I’m [name]. I’m a manager, and I also come from a design background.”\n\nThe last one lets “manager” be true without pretending “designer” has disappeared. When you imagine saying the title, what feels most awkward: claiming it, being seen differently because of it, or leaving the old label out?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [
+                {
+                  "finding_index": 0,
+                  "status": "resolved",
+                  "explanation": "The revised response recasts the explanation as possibilities—“One possibility” and “Another”—rather than stating a specific account of the reader’s internal experience as fact. It also asks which aspect feels awkward."
+                }
+              ],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b007ffa68e8a333e3d98d92d10ea-32de8907c13ca59f",
+    "trace_id": "01a0b007ffa68e8a333e3d98d92d10ea",
+    "span_id": "32de8907c13ca59f",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T234146+0800-ohxzuptp/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T234146+0800-ohxzuptp/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "71019275216649caa68376eeb2b023a2",
+      "trace_id": "01a0b007ffa68e8a333e3d98d92d10ea",
+      "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+      "system_variant": "4267079a06b68c4d9f2f44541704c02a52103acf04bd9edca9b7fdafd5b79695",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-05T10:10:53.432734+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/hybrid_librarian.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n?? apps/backend/rerank_windows.py",
+        "scenario_commit": "c971081a2d79153fde165a97f71684c1ad61e07c",
+        "scenario_commit_description": "c971081 2026-09-05T10:35:04+08:00 fix: unify synthetic book replay and record failed memory-backed inference",
+        "current_scenario_matches_commit": true,
+        "history_window": "since earlier declared adoption time, including changes before a later scenario move or edit",
+        "recent_commits": "4f08825 2026-09-16T06:38:15+08:00 fix: preserve reading context and evidence boundaries\n\napps/backend/chat_turn.py\ndocs/specification.md\nevals/synthetic_journals/connection_replay.py\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/evidence_strength.py\nafcf271 2026-09-16T00:49:28+08:00 test: fix Windows test failures and fake retrieval models\n\nevals/synthetic_journals/run_scenario.py\nevals/synthetic_journals/scenario_catalog.py\nfaa2faf 2026-09-15T22:55:36+08:00 feat: curation risk code evals\n\nsrc/linger/orchestration/curation.py\nsrc/linger/services/memory.py\nbab63dd 2026-09-15T21:48:43+08:00 Merge pull request #54 from DesmondChoy/km-curation-loop\n1dc4e84 2026-09-15T21:35:46+08:00 feat: added sensitive inference veto, removed unused preset and journal\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/replay.py\nevals/synthetic_journals/replay_support.py\nevals/synthetic_journals/validate_scenario.py\nd07713c 2026-09-15T20:36:32+08:00 chore: remove synthetic attempts from older implementations\n\nevals/synthetic_journals/README.md\nc31019f 2026-09-15T15:05:23+08:00 fix: share Librarian evidence planning and validate agent repairs\n\napps/backend/hybrid_librarian.py\napps/backend/librarian.py\napps/backend/telemetry.py\ndocs/agent-skills.md\ndocs/specification.md\nevals/synthetic_journals/README.md\nevals/synthetic_journals/book_replay.py\nevals/synthetic_journals/connection_replay.py\nevals/synthetic_journals/frozen_public_sources.py\nevals/synthetic_journals/public_source_capture.py\nevals/synthetic_journals/transcript.py\nsrc/linger/agents/librarian/agent.py\nsrc/linger/agents/librarian/models.py\nsrc/linger/agents/librarian/skills.py\nsrc/linger/agents/librarian/skills/book-request/SKILL.md\nsrc/linger/agents/librarian/skills/boundary-inference/SKILL.md\nsrc/linger/agents/librarian/skills/evidence-assessment/SKILL.md\nsrc/linger/agents/muse/agent.py\nsrc/linger/agents/muse/models.py\nsrc/linger/agents/muse/quote_repair.py\nsrc/linger/agents/muse/skills/reflection/SKILL.md\nsrc/linger/agents/muse/tools.py\nsrc/linger/agents/provenance/models.py\nsrc/linger/agents/provenance/skills.py\nsrc/linger/agents/provenance/skills/candidate-review/SKILL.md\nsrc/linger/agents/serendipity/README.md\nsrc/linger/agents/serendipity/agent.py\nsrc/linger/agents/serendipity/models.py\nsrc/linger/agents/serendipity/skills/connection-discovery/SKILL.md\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/contracts/librarian.py\nsrc/linger/evaluation_transcript.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/boundary.py\nsrc/linger/orchestration/connection.py\nsrc/linger/orchestration/evidence_strength.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/reflection.py\nsrc/linger/orchestration/turn_context.py\nace8e3e 2026-09-15T09:42:13+08:00 fix: typed curation outcome expectation\n\nevals/synthetic_journals/curation_replay.py\n61862d3 2026-09-15T00:53:42+08:00 fix: let only the reader retract a book they stated\n\napps/backend/chat_turn.py\napps/backend/sessions.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/routing.py\nd0ffab0 2026-09-15T00:38:40+08:00 fix: stop a later sentence being read as a declared book title\n\napps/backend/chat_turn.py\ncb47f08 2026-09-15T00:25:37+08:00 fix: let Serendipity finish its web citation flow, and show review findings\n\nsrc/linger/orchestration/connection.py\n493a304 2026-09-14T23:41:30+08:00 fix: looped curation replay\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/curation_replay.py"
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b007ffa68e8a333e3d98d92d10ea-32de8907c13ca59f\", \"trace_id\": \"01a0b007ffa68e8a333e3d98d92d10ea\", \"span_id\": \"32de8907c13ca59f\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "The two controls pass, but the specific Pigeon request stops at a boundary output-contract failure. Correct Chapter 5 evidence was available; the grounded quotation and reflection were never exercised.",
+    "scenario_assessment": {
+      "goal": "The paired Scenes still distinguish a specific book stop, an ambiguous repeated event, and useful personal reflection without retrieval.",
+      "input_validity": "All three source hashes match the saved run. The specific Pigeon Line and remembered Caterpillar exchange identify the required Chapter 5 events; the vague growth Line deliberately does not identify an occurrence.",
+      "ground_truth_validity": "The adopted expectations remain appropriate. The failure follows model output validation, not changed corpus numbering, missing authority, or evidence supporting a different ceiling."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "pigeon-reflection",
+        "expected_behavior": "Infer Chapter 5 from the remembered Caterpillar exchange and named Pigeon event, quote the complete little-girl sentence, and offer a tentative personal connection without later facts.",
+        "observed_behavior": "Private retrieval supplied both required events among 20 candidates. Both output attempts chose Chapter 5 at 0.99 confidence. Attempt one misplaced other_evidence_ids at the top level; attempt two deleted it. The application released a safe location question, with no grounding call or quotation.",
+        "interpretation": "The saved retry reports extra_forbidden. An offline validation of the second saved output accepts its JSON/schema but finds 17 candidate IDs unaccounted for under event_resolution, including the memory anchor. Exhausted repair therefore produces boundary_inference_model_failed. The downstream scope, support, retrieval, and quotation failures share this execution cause.",
+        "assessment": "not_exercised",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T234146+0800-ohxzuptp/evaluation.json#scenes[0].agent_exchanges"
+        ],
+        "grade_reliability": "Failure correctly records the missing answer, but does not establish bad retrieval or a wrong semantic ceiling. The reply disclosed no story content. The intended grounded answer remains untested after the contract failure.",
+        "next_step": "Require event_resolution.other_evidence_ids explicitly and show its nested placement and complete candidate inventory in the repair contract. A local replay of the two malformed outputs must guide repair without dropping coverage; a later authorized live run must reach Chapter 5 retrieval and the exact quotation."
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "expected_behavior": "Keep the repeated growth event unresolved and ask for a remembered distinguishing detail, without selecting an episode, retrieving a continuation, or revealing candidate facts.",
+        "observed_behavior": "Librarian returned a valid grant-free uncertainty decision at 0.42 confidence while grounding the earlier memory. The application asked for the latest completed chapter or scene. No ceiling, grounding evidence, or story details were released.",
+        "interpretation": "The private pool includes distinct later growth locations. Unlike the specific Scene, this is a successful uncertainty output, not fallback from execution failure. The checks correctly accept clarification and absence of disclosure.",
+        "assessment": "pass_with_limitations",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "evals/synthetic_journals/book_replay.py:990"
+        ],
+        "grade_reliability": "The safety pass is credible. The generic chapter-or-scene question does not explicitly ask who is present or where the scene occurs, as the adopted prose suggests; deterministic checks establish a released clarification but do not measure how effectively it resolves the stated lost-place problem. No semantic spoiler grader ran, though direct inspection found no story facts.",
+        "next_step": "Preserve uncertainty and consider a content-free question asking which people or setting the reader remembers. Verify it requests a distinguishing detail without supplying any candidate-event detail."
+      },
+      {
+        "scene_id": "personal-reflection",
+        "expected_behavior": "Explore the awkward introduction and suggest adaptable wording using only the current personal request, with no book routing, quotation, or assumed saved history.",
+        "observed_behavior": "Muse used no tools. Provenance requested one revision because an internal-experience explanation was stated too confidently. The final reply offers possible explanations, four introductions, and asks what feels awkward about the title.",
+        "interpretation": "The negative control exercised useful personal reflection, not an empty early return. The reply stays within the stated manager/designer transition and treats its explanations as possibilities. No absent Prop or book fact appears.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T234146+0800-ohxzuptp/evaluation.json#scenes[2].agent_exchanges"
+        ],
+        "grade_reliability": "The no-route/no-evidence checks pass, and direct response inspection supports the ungraded requirements for helpfulness and reader-led interpretation. The saved revision trace also confirms that Provenance corrected the initial overstatement.",
+        "next_step": "No Scene-specific correction is indicated. Retain it as the paired no-retrieval control during the boundary repair."
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "application",
+        "action": "Repair the nested boundary candidate inventory contract without relaxing exact candidate coverage or altering the adopted source data. Make other_evidence_ids required inside event_resolution and make the nesting explicit in instructions and validation guidance.",
+        "verification": "Replay the two saved malformed output shapes locally, then require a later authorized Pigeon run to produce a valid Chapter 5 grant, retrieve the requested canonical sentence, and release the exact quotation."
+      },
+      {
+        "target": "application",
+        "action": "Improve unresolved-event clarification wording to ask for remembered people or setting when progress cannot be distinguished.",
+        "verification": "The uncertain-growth Scene still grants no scope and reveals no candidate facts, while its question requests a useful distinguishing detail."
+      },
+      {
+        "target": "investigation",
+        "action": "Review the grounded personal interpretation and exact quotation after the positive Scene reaches the answer path.",
+        "verification": "A complete subsequent trace contains the bounded search, released canonical quotation, and a tentative reader-led connection. The current execution failure cannot establish those behaviors."
+      }
+    ]
+  }
+}

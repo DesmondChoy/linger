@@ -1,0 +1,6 @@
+CONNECTION_REPLAY_OUTPUT=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/evaluation.json
+
+2026-09-18 19:41:45 INFO linger.backend Agent run completed elapsed=4.03s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=emotional_boundary_preflight
+2026-09-18 19:41:49 INFO linger.backend Agent run completed elapsed=3.86s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=emotional_boundary_preflight
+2026-09-18 19:41:55 INFO linger.backend Agent run completed elapsed=6.45s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=muse_draft
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b452828e67275e4fe435b64dfab7-03e3b1c472c02c4f", "trace_id": "01a0b452828e67275e4fe435b64dfab7", "span_id": "03e3b1c472c02c4f", "flushed": true}

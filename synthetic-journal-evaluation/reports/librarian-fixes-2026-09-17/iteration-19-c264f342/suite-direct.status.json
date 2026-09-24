@@ -1,0 +1,17 @@
+{
+  "suite": "direct",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "direct",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-direct.json"
+  ],
+  "started_at": "2026-09-18T11:28:04.660552+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-direct.log",
+  "passed": true,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-direct.json",
+  "failures": [],
+  "finished_at": "2026-09-18T11:30:00.860156+00:00"
+}

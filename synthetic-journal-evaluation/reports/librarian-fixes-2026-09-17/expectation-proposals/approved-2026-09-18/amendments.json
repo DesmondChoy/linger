@@ -1,0 +1,240 @@
+{
+  "approval_method": "explicit_human_instruction",
+  "user_instruction": "I agree with you on the Alice chapter 5 dialogue. I approve 2 and 3.",
+  "approved_items": [
+    2,
+    3
+  ],
+  "unapproved_items": [
+    1
+  ],
+  "constraints": [
+    "Preserve every required anchor and the existing safe ceiling.",
+    "Accept only canonical optional occurrences relevant to the stated event or authorized prior reading.",
+    "Do not weaken runtime source validation or semantic review."
+  ],
+  "changes": [
+    {
+      "number": 4,
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "scene_id": "pigeon-reflection",
+      "required_supporting_evidence_ids": [
+        "identity",
+        "pigeon"
+      ],
+      "optional_supporting_evidence_ids": [
+        "optional-pigeon-accusation",
+        "optional-pigeon-neck-comparison",
+        "optional-pigeon-departure"
+      ],
+      "reviewed_records": [
+        {
+          "record_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+          "optional_evidence_id": "optional-pigeon-accusation",
+          "chapter": 5,
+          "excerpt": "“Serpent!” screamed the Pigeon.",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch05-ln1208-1237",
+          "optional_evidence_id": "optional-pigeon-neck-comparison",
+          "chapter": 5,
+          "excerpt": "“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch05-ln1230-1250",
+          "optional_evidence_id": "optional-pigeon-departure",
+          "chapter": 5,
+          "excerpt": "“Well, be off, then!” said the Pigeon in a sulky tone, as it settled\ndown again into its nest.",
+          "new_authored_span": true
+        }
+      ],
+      "old_ground_truth_sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+      "new_ground_truth_sha256": "b7826e51a38e6775fd401e664eacee6648a3101e610f33f5ff4a3d5ea9052074",
+      "old_adoption_sha256": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8",
+      "new_adoption_sha256": "8b597d2308558eb6095d91af454f4fd54a9c91cc0de9af92c4ae2fb571847ffc",
+      "backstory_sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07"
+    },
+    {
+      "number": 7,
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "scene_id": "farm-spoiler-inference",
+      "required_supporting_evidence_ids": [
+        "farm-puppies-taken",
+        "farm-puppies-recognised",
+        "farm-tactics-acceptance"
+      ],
+      "optional_supporting_evidence_ids": [
+        "farm-no-more-debates",
+        "farm-leadership-quote",
+        "optional-farm-accepted-debates-ending",
+        "optional-farm-windmill-reversal"
+      ],
+      "reviewed_records": [
+        {
+          "record_id": "pga0100011-vc7ff4da7-ch05-ln1105-1131",
+          "optional_evidence_id": "farm-no-more-debates",
+          "chapter": 5,
+          "excerpt": "The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates.",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+          "optional_evidence_id": "farm-leadership-quote",
+          "chapter": 5,
+          "excerpt": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+          "optional_evidence_id": "farm-leadership-quote",
+          "chapter": 5,
+          "excerpt": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pga0100011-vc7ff4da7-ch05-ln1152-1175",
+          "optional_evidence_id": "optional-farm-accepted-debates-ending",
+          "chapter": 5,
+          "excerpt": "Once again this argument was unanswerable. Certainly the animals did not\nwant Jones back; if the holding of debates on Sunday mornings was liable\nto bring him back, then the debates must stop. Boxer, who had now had time\nto think things over, voiced the general feeling by saying: \"If Comrade\nNapoleon says it, it must be right.\" And from then on he adopted the\nmaxim, \"Napoleon is always right,\" in addition to his private motto of \"I\nwill work harder.\"",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pga0100011-vc7ff4da7-ch05-ln1160-1185",
+          "optional_evidence_id": "optional-farm-windmill-reversal",
+          "chapter": 5,
+          "excerpt": "On the third Sunday after Snowball's expulsion, the animals were somewhat\nsurprised to hear Napoleon announce that the windmill was to be built\nafter all. He did not give any reason for having changed his mind, but\nmerely warned the animals that this extra task would mean very hard work,\nit might even be necessary to reduce their rations. The plans, however,\nhad all been prepared, down to the last detail. A special committee of\npigs had been at work upon them for the past three weeks. The building of\nthe windmill, with various other improvements, was expected to take two\nyears.",
+          "new_authored_span": true
+        }
+      ],
+      "old_ground_truth_sha256": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+      "new_ground_truth_sha256": "b7628464d31c36cc047f1c3ddf3fcec0558a02172da570801e75ab3813e8980c",
+      "old_adoption_sha256": "719e35a7b15341f65d79e841aa469498e15dc438871f9ff5b5a549b68d1b726b",
+      "new_adoption_sha256": "2b8ce9c3e6e5df58e29b114b6c48a0e84868e7187a4ed81da4362fb5c2d5d6ec",
+      "backstory_sha256": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a"
+    },
+    {
+      "number": 10,
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "scene_id": "alice-spoiler-inference",
+      "required_supporting_evidence_ids": [
+        "alice-pool-shore",
+        "alice-alone-footsteps"
+      ],
+      "optional_supporting_evidence_ids": [
+        "optional-alice-mouse-in-pool",
+        "optional-alice-cat-conversation",
+        "optional-alice-race-proposal",
+        "alice-dodo-prizes-quote",
+        "alice-own-thimble",
+        "optional-alice-birds-depart"
+      ],
+      "reviewed_records": [
+        {
+          "record_id": "pg11-v01b38ea4-ch02-ln0408-0436",
+          "optional_evidence_id": "optional-alice-mouse-in-pool",
+          "chapter": 2,
+          "excerpt": "Just then she heard something splashing about in the pool a little way\noff, and she swam nearer to make out what it was: at first she thought\nit must be a walrus or hippopotamus, but then she remembered how small\nshe was now, and she soon made out that it was only a mouse that had\nslipped in like herself.",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch02-ln0438-0465",
+          "optional_evidence_id": "optional-alice-cat-conversation",
+          "chapter": 2,
+          "excerpt": "“Well, perhaps not,” said Alice in a soothing tone: “don’t be angry\nabout it. And yet I wish I could show you our cat Dinah: I think you’d\ntake a fancy to cats if you could only see her. She is such a dear\nquiet thing,” Alice went on, half to herself, as she swam lazily about\nin the pool, “and she sits purring so nicely by the fire, licking her\npaws and washing her face—and she is such a nice soft thing to\nnurse—and she’s such a capital one for catching mice—oh, I beg your\npardon!” cried Alice again, for this time the Mouse was bristling all\nover, and she felt certain it must be really offended. “We won’t talk\nabout her any more if you’d rather not.”",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch03-ln0514-0559",
+          "optional_evidence_id": "optional-alice-race-proposal",
+          "chapter": 3,
+          "excerpt": "“What I was going to say,” said the Dodo in an offended tone, “was,\nthat the best thing to get us dry would be a Caucus-race.”",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch03-ln0553-0587",
+          "optional_evidence_id": "alice-dodo-prizes-quote",
+          "chapter": 3,
+          "excerpt": "“_Everybody_ has won, and all must have prizes.”",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch03-ln0578-0617",
+          "optional_evidence_id": "alice-own-thimble",
+          "chapter": 3,
+          "excerpt": "“Only a thimble,” said Alice sadly.",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch03-ln0640-0678",
+          "optional_evidence_id": "optional-alice-birds-depart",
+          "chapter": 3,
+          "excerpt": "This speech caused a remarkable sensation among the party. Some of the\nbirds hurried off at once: one old Magpie began wrapping itself up very\ncarefully, remarking, “I really must be getting home; the night-air\ndoesn’t suit my throat!” and a Canary called out in a trembling voice\nto its children, “Come away, my dears! It’s high time you were all in\nbed!” On various pretexts they all moved off, and Alice was soon left\nalone.",
+          "new_authored_span": true
+        },
+        {
+          "record_id": "pg11-v01b38ea4-ch02-ln0392-0412",
+          "optional_evidence_id": "optional-alice-mouse-in-pool",
+          "chapter": 2,
+          "excerpt": "Just then she heard something splashing about in the pool a little way\noff, and she swam nearer to make out what it was: at first she thought\nit must be a walrus or hippopotamus, but then she remembered how small\nshe was now, and she soon made out that it was only a mouse that had\nslipped in like herself.",
+          "new_authored_span": false
+        }
+      ],
+      "old_ground_truth_sha256": "59d6b0992c62793ead80a55ed916e35d5a9675cf95606c588a783889fa423c21",
+      "new_ground_truth_sha256": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+      "old_adoption_sha256": "eeea34dfc65056e19f952d5ee730a3c83a3f1eb095e38ec2e4c17829078d2e83",
+      "new_adoption_sha256": "57d44ca8f2d062512a1dc739f354d7e3246d6ba76cc961b930689ac19d72b69b",
+      "backstory_sha256": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3"
+    },
+    {
+      "number": 12,
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "scene_id": "pinocchio-spoiler-inference",
+      "required_supporting_evidence_ids": [
+        "pinocchio-coat-for-book",
+        "pinocchio-gratitude-embrace",
+        "pinocchio-ragpicker-sale"
+      ],
+      "optional_supporting_evidence_ids": [
+        "pinocchio-school-tomorrow-quote",
+        "optional-pinocchio-sale-offer"
+      ],
+      "reviewed_records": [
+        {
+          "record_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+          "optional_evidence_id": "pinocchio-school-tomorrow-quote",
+          "chapter": 9,
+          "excerpt": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”",
+          "new_authored_span": false
+        },
+        {
+          "record_id": "pg500-v6bdc1734-ch09-ln0928-0984",
+          "optional_evidence_id": "optional-pinocchio-sale-offer",
+          "chapter": 9,
+          "excerpt": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.",
+          "new_authored_span": true
+        }
+      ],
+      "old_ground_truth_sha256": "9a0a0741b39717c9b572a2bc3c85c5027e0b2d43d5a850e0ce841b49e723ac16",
+      "new_ground_truth_sha256": "7b90e0316a99af81b81bbed1f0d2cad11f7b6f5b59ac6ca7669417b72b452847",
+      "old_adoption_sha256": "48e222ddb262cfdc08557657fd8cc6dca159b7831962bb3487205304a58c45cb",
+      "new_adoption_sha256": "8cee44319adbdeef7f717d6e272144b9dac75ebecba57f7631be599ea9cb0892",
+      "backstory_sha256": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9"
+    }
+  ],
+  "rejected_candidates": [
+    {
+      "record_id": "pg23-vd3f08ac3-sec06-ln0971-0980",
+      "reason": "Unrelated earlier truth-telling punishment does not support the stated literacy stopping event or prior lessons."
+    }
+  ],
+  "unchanged_suites": [
+    9,
+    11
+  ],
+  "status": "applied_after_explicit_human_approval",
+  "identity_case_file": "evals/librarian/cases.json",
+  "identity_cases_sha256": "0ae00d99aa16b58fac517408588e31f4a4f662ccfb42b1eb0328c1dc12c232dd",
+  "original_menu_sha256": "2c9d7483693986864caddc03647b0851c44710ad3b1c5cc43876e972c110327b"
+}

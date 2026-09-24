@@ -1,0 +1,314 @@
+[
+  {
+    "case_id": "rabbit-watch",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "burning with curiosity, she ran across the\nfield after it",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].evidence_id",
+        "value": "pg11-v01b38ea4bfa14867aae1f809bd35acf7",
+        "error": "Every evidence_id must exactly match book evidence authorised for this turn."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“burning with curiosity, she ran across the field after it”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "drink-me",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "DRINK ME,",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“DRINK ME,”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "**“DRINK ME,”**",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "pool-of-tears",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "in the pool of tears which she had wept when\nshe was nine feet high.",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "in the pool of tears which she had wept when she was nine feet high",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "in the pool of tears which she had wept when\nshe was nine feet high",
+        "error": "The declaration omits the edge punctuation or whitespace of its complete quoted occurrence. Make the displayed quotation and exact_quote match the same complete canonical source span. Do not add sentence punctuation inside source quotation marks unless it belongs to that span. Preserve the requested quotation and all substantive claim mappings.",
+        "quoted_response_text": "in the pool of tears which she had wept when\nshe was nine feet high."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "caucus-prizes",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "_Everybody_ has won, and all must have prizes.",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].exact_quote",
+        "value": "“We beg your acceptance of this elegant thimble;”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "giant-puppy",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "expecting every\nmoment to be trampled under its feet,",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“expecting every moment to be trampled under its feet,”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "expecting every\nday moment to be trampled under its feet,",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "identity-change",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m not myself, you see.”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].exact_quote",
+        "value": "“Who are _you?_” said the Caterpillar.",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "father-william",
+    "release_source": "application_safe_decline",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "Repeat, ‘_You are old, Father William_,’",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“Repeat, ‘_You are old, Father William_,’",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "pigeon-serpent",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].supported_claims[2]",
+        "value": "The joke comes from the Pigeon forcing Alice into its narrow category: anything with a serpent-like appearance that eats eggs must be a serpent, no matter what Alice says about herself.",
+        "error": "supported_claims entry is not an exact span from the current reply."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].supported_claims[2]",
+        "value": "The joke comes from the Pigeon forcing Alice into its narrow category: anything with a serpent-like appearance that eats eggs must be a serpent, no matter what Alice says about herself.",
+        "error": "supported_claims entry is not an exact span from the current reply."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "“such a neck as that”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].exact_quote",
+        "value": "“they’re a kind of serpent”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].exact_quote",
+        "value": "such a neck as that",
+        "error": "The declaration omits the edge punctuation or whitespace of its complete quoted occurrence. Make the displayed quotation and exact_quote match the same complete canonical source span. Do not add sentence punctuation inside source quotation marks unless it belongs to that span. Preserve the requested quotation and all substantive claim mappings.",
+        "quoted_response_text": "such a neck as that,"
+      },
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].exact_quote",
+        "value": "they’re a kind of serpent",
+        "error": "The declaration omits the edge punctuation or whitespace of its complete quoted occurrence. Make the displayed quotation and exact_quote match the same complete canonical source span. Do not add sentence punctuation inside source quotation marks unless it belongs to that span. Preserve the requested quotation and all substantive claim mappings.",
+        "quoted_response_text": "they’re a kind of serpent."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "identity-theme",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "Who are _you?_",
+        "declaration_index": 0,
+        "bound": true
+      },
+      {
+        "text": "Who are _you?_",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[1].exact_quote",
+        "value": "“I can’t remember things as I used,”",
+        "error": "exact_quote must occur character for character in both reply and the matching evidence text."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "exact-caucus-quote",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [
+      {
+        "text": "_Everybody_ has won, and all must have prizes.",
+        "declaration_index": 0,
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [
+      {
+        "stage": "draft",
+        "path": "evidence_uses[0].supported_claims[0]",
+        "value": "In **Chapter 3, “A Caucus-Race and a Long Tale,”** the passage says: > “_Everybody_ has won, and all must have prizes.”",
+        "error": "supported_claims entry is not an exact span from the current reply."
+      }
+    ],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "future-cheshire",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "absent-spaceship",
+    "release_source": "muse_candidate",
+    "full_reader_message_matches": true,
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "repairs": [],
+    "overlap_members_across_reviews": 0,
+    "failed_exchanges": []
+  }
+]

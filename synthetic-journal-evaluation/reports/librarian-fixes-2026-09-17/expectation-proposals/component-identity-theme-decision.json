@@ -1,0 +1,70 @@
+{
+  "status": "approved_by_explicit_human_instruction",
+  "original_case": {
+    "case_id": "identity-theme",
+    "query": "How do Alice's changing size and uncertain identity reinforce each other?",
+    "chapter_max": 5,
+    "expected_strength": "weak",
+    "relevant_ranges": [
+      [
+        4,
+        762,
+        770
+      ],
+      [
+        5,
+        966,
+        981
+      ]
+    ]
+  },
+  "observed_alternative_support": [
+    "pg11-v01b38ea4-ch02-ln0327-0360",
+    "pg11-v01b38ea4-ch05-ln1004-1056"
+  ],
+  "strength_question": "Does reinforce each other require reciprocal causal evidence, or a bounded thematic comparison? The current key says weak; the live judge treats it as a thematic interpretation and says sufficient.",
+  "coverage_question": "Chapter 2 lines327-360 and Chapter5 lines1004-1056 directly discuss unstable identity, memory and size, but neither overlaps the two fixed relevant ranges. Should these be permitted thematic support?",
+  "guardrails": [
+    "Keep original case unchanged until the intended answerability criterion is reviewed.",
+    "Do not let alternative relevant evidence excuse unsupported reciprocal causal claims.",
+    "Revalidate source ranges and preserve exact citation and spoiler checks after an approved change."
+  ],
+  "evidence": "iteration-04-797d2eda/component-analysis.md",
+  "approved_instruction": "I agree with you on the Alice chapter 5 dialogue. I approve 2 and 3.",
+  "approved_case": {
+    "case_id": "identity-theme",
+    "query": "How do Alice's changing size and uncertain identity reinforce each other?",
+    "chapter_max": 5,
+    "expected_strength": "sufficient",
+    "relevant_ranges": [
+      [
+        4,
+        762,
+        770
+      ],
+      [
+        5,
+        966,
+        981
+      ],
+      [
+        5,
+        1026,
+        1032
+      ],
+      [
+        2,
+        327,
+        360
+      ]
+    ],
+    "required_ranges": [
+      [
+        5,
+        966,
+        981
+      ]
+    ]
+  },
+  "qualification": "Sufficient for a supported literary interpretation; no automatic approval of unqualified reciprocal causal claims."
+}

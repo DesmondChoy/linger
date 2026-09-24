@@ -1,0 +1,47 @@
+2026-09-18 09:20:56 INFO linger.backend Agent run completed elapsed=155.95s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=provenance_review
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/cross_source_tentative_connection/compare?experiment=01a0b217ce838f8cffd151f317588696-65073edd7fa6331f", "trace_id": "01a0b217ce838f8cffd151f317588696", "span_id": "65073edd7fa6331f", "flushed": true}
+{
+  "schema_version": 1,
+  "run_id": "6037cdfdc7384f04881aad4e9f319970",
+  "case_id": "cross-source-outside-essay-v1",
+  "objective_id": "cross_source_tentative_connection",
+  "generated_at": "2026-09-18T01:20:56.159398Z",
+  "trace_id": "01a0b217ce838f8cffd151f317588696",
+  "reply": "Something went wrong on my side just now — mind asking again?",
+  "release_source": "application_safe_decline",
+  "stages": [
+    {
+      "stage": "invocation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "retrieval",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "serendipity_selection",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "muse_presentation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "provenance_review",
+      "status": "failed",
+      "reason_code": "provenance_review_failed"
+    },
+    {
+      "stage": "deterministic_release",
+      "status": "not_reached",
+      "reason_code": null
+    }
+  ],
+  "first_failure_stage": "provenance_review",
+  "hard_gate_pass": false,
+  "semantic_review_required": true
+}

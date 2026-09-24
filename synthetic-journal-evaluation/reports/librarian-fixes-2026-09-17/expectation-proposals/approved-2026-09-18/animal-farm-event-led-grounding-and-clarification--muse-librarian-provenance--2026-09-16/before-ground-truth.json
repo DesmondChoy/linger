@@ -1,0 +1,323 @@
+{
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [
+    {
+      "scene_id": "farm-decision-reversal",
+      "scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "safe_ceiling_chapter": 5
+      },
+      "basis_spans": [],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-tactics-acceptance",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 18812,
+          "end_codepoint": 19032,
+          "text": "The\nanimals were not certain what the word meant, but Squealer spoke so\npersuasively, and the three dogs who happened to be with him growled so\nthreateningly, that they accepted his explanation without further\nquestions."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-leadership-quote",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 14773,
+          "end_codepoint": 14885,
+          "text": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-no-more-debates",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 13474,
+          "end_codepoint": 13646,
+          "text": "The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+        }
+      ]
+    },
+    {
+      "scene_id": "farm-spoiler-inference",
+      "scope": {
+        "kind": "librarian_inferred",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "authorised_prop_ids": [
+          "farm-puppies-memory"
+        ],
+        "supporting_evidence_ids": [
+          "farm-puppies-taken",
+          "farm-puppies-recognised",
+          "farm-tactics-acceptance"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "farm-puppies-memory",
+          "start_codepoint": 0,
+          "end_codepoint": 177,
+          "text": "In Animal Farm last weekend I read about Napoleon taking Jessie and Bluebell's nine puppies away to educate them himself, up in a loft where the other animals couldn't see them."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "farm-inference-line",
+          "start_codepoint": 0,
+          "end_codepoint": 325,
+          "text": "I've continued Animal Farm. The dogs chased Snowball out, and I recognised them as those puppies; then Napoleon stopped the debates. Tonight I read on through his decision to build the windmill after all, and stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-puppies-taken",
+          "chapter_id": "pga0100011-vc7ff4da7-ch03",
+          "start_codepoint": 11632,
+          "end_codepoint": 11955,
+          "text": "As soon as they were weaned, Napoleon took them away\nfrom their mothers, saying that he would make himself responsible for\ntheir education. He took them up into a loft which could only be reached\nby a ladder from the harness-room, and there kept them in such seclusion\nthat the rest of the farm soon forgot their existence."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-tactics-acceptance",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 18812,
+          "end_codepoint": 19032,
+          "text": "The\nanimals were not certain what the word meant, but Squealer spoke so\npersuasively, and the three dogs who happened to be with him growled so\nthreateningly, that they accepted his explanation without further\nquestions."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-leadership-quote",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 14773,
+          "end_codepoint": 14885,
+          "text": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-no-more-debates",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 13474,
+          "end_codepoint": 13646,
+          "text": "The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-puppies-recognised",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 12550,
+          "end_codepoint": 12748,
+          "text": "At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-pigs-men-ending",
+          "chapter_id": "pga0100011-vc7ff4da7-ch10",
+          "start_codepoint": 19910,
+          "end_codepoint": 20182,
+          "text": "Twelve voices were shouting in anger, and they were all alike. No question,\nnow, what had happened to the faces of the pigs. The creatures outside\nlooked from pig to man, and from man to pig, and from pig to man again;\nbut already it was impossible to say which was which."
+        }
+      ]
+    },
+    {
+      "scene_id": "farm-interrupted-discussion",
+      "scope": {
+        "kind": "clarification",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "authorised_prop_ids": [
+          "farm-chant-memory"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "farm-chant-memory",
+          "start_codepoint": 0,
+          "end_codepoint": 328,
+          "text": "I read some Animal Farm during the holiday and remember the sheep chanting four legs good, two legs bad when other animals might have had something to say. My notes just say 'noise ends discussion'. They don't say what the argument was about, and after several evenings of interrupted reading the meetings have blurred together."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "farm-discussion-line",
+          "start_codepoint": 0,
+          "end_codepoint": 252,
+          "text": "I've picked Animal Farm up again and read through a bit where the sheep's four-legs-good, two-legs-bad chanting shuts down the chance to discuss something. That's where I stopped tonight, but I can't remember what prompted this particular interruption."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-chant-after-expulsion",
+          "chapter_id": "pga0100011-vc7ff4da7-ch05",
+          "start_codepoint": 14352,
+          "end_codepoint": 14528,
+          "text": "Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-chant-after-song-ban",
+          "chapter_id": "pga0100011-vc7ff4da7-ch07",
+          "start_codepoint": 21281,
+          "end_codepoint": 21520,
+          "text": "Frightened though they were, some of the animals might possibly have\nprotested, but at this moment the sheep set up their usual bleating of\n\"Four legs good, two legs bad,\" which went on for several minutes and put\nan end to the discussion."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "farm-ambiguous-pigs-men-ending",
+          "chapter_id": "pga0100011-vc7ff4da7-ch10",
+          "start_codepoint": 19910,
+          "end_codepoint": 20182,
+          "text": "Twelve voices were shouting in anger, and they were all alike. No question,\nnow, what had happened to the faces of the pigs. The creatures outside\nlooked from pig to man, and from man to pig, and from pig to man again;\nbut already it was impossible to say which was which."
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "farm-grounded-proposal",
+      "scene_id": "farm-decision-reversal",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Use the current Line’s explicit confirmation of reading through literary chapter 5 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+        "Retrieve bounded evidence and quote the two requested sentences exactly from farm-leadership-quote, attributing the claim to Squealer. Relate his framing of responsibility to the removal of debate in farm-no-more-debates, without endorsing his claim as narrator fact.",
+        "Help Ilya explore appreciating work while requesting participation. Treat the analogy as a possible lens, without equating the project lead with Napoleon or asserting motives."
+      ],
+      "prohibited_outcomes": [
+        "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+        "Do not fabricate quotation wording, treat Squealer's self-justification as verified truth, or claim Ilya's lead is a tyrant."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "farm-personal-trust",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "farm-leadership-quote",
+          "farm-no-more-debates",
+          "farm-tactics-acceptance"
+        ],
+        "exact_quotation_evidence_ids": [
+          "farm-leadership-quote"
+        ]
+      }
+    },
+    {
+      "proposal_id": "farm-boundary-proposal",
+      "scene_id": "farm-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Derive the chapter 5 ceiling from farm-puppies-taken, farm-puppies-recognised and farm-tactics-acceptance, distinguishing remembered earlier reading from tonight's stopping event.",
+        "Release only appropriately bounded support; keep farm-pigs-men-ending outside response-evidence retrieval and any literal or paraphrased disclosure."
+      ],
+      "prohibited_outcomes": [
+        "Do not infer later progress from the windmill's mention or use later consequences as proof of the current analogy.",
+        "Do not reveal that the animals eventually cannot distinguish pigs from humans, or hint at that later dinner and card game."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "farm-interrupted-discussion",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "farm-pigs-men-ending"
+        ]
+      }
+    },
+    {
+      "proposal_id": "farm-personal-proposal",
+      "scene_id": "farm-personal-trust",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Offer a useful personal reflection about acknowledging the project lead's work while asking for participation, based on the current Line alone; no book retrieval is needed.",
+        "Keep the proposed conversation about the decision process and the reader's needs, allowing uncertainty about the lead's intentions."
+      ],
+      "prohibited_outcomes": [
+        "Do not retrieve book evidence or introduce a factual Animal Farm comparison.",
+        "Do not use any other Scene's memory or declare that the lead's motives are malicious."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "farm-decision-reversal",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      }
+    },
+    {
+      "proposal_id": "farm-clarification-proposal",
+      "scene_id": "farm-interrupted-discussion",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Resolve Animal Farm's identity but leave reading progress unresolved: the familiar chant ending discussion fits both farm-chant-after-expulsion and farm-chant-after-song-ban. The authorised Prop explicitly blurs meetings and the Line adds no distinguishing topic.",
+        "Ask for a detail or last certain reading event in a useful spoiler-free clarification. Grant no ceiling and retrieve no response evidence before clarification. The candidate occurrences establish ambiguity only for review.",
+        "Withhold farm-ambiguous-pigs-men-ending and later plot details in literal, hinted or paraphrased form."
+      ],
+      "prohibited_outcomes": [
+        "Do not pick the best-known interruption, infer a latest chapter from repeated wording, or use the other Scene's dog memory.",
+        "Do not retrieve an explanation before clarifying, offer candidate unseen events in the clarification, or tell the reader about the final pigs-and-humans scene."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "farm-spoiler-inference",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "farm-ambiguous-pigs-men-ending"
+        ]
+      }
+    }
+  ],
+  "backstory_sha256": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a"
+}

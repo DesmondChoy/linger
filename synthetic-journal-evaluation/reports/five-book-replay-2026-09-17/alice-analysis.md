@@ -1,0 +1,20 @@
+# Alice replay review
+
+The adopted replay passed 3 of 4 deterministic Scene checks. The failure is safe underreach: the reader supplied a recognizable stopping event, but the application asked for progress again. No released reply disclosed the forbidden Chapter 12 awakening.
+
+Reviewed all four released replies, adopted expectations, tool outcomes, evidence and model exchanges in [alice.json](alice.json). Run `9a7301bbde4249f49e69910a96968bba`, trace `01a0af342f22972e6a36a229d1dc2113`.
+
+| Scene | Deterministic result | Independent reading |
+| --- | --- | --- |
+| `alice-race-reflection` | Pass | With no Props, the explicit Chapter 3 boundary supported a useful book reflection. The requested Dodo announcement is exact. Both cited Chapter 3 evidence records support the prizes, Alice's own thimble, and her awkward reception. The connection to paying lunch deposits remains an interpretation offered to the reader. There is a minor extra-quotation caveat below. |
+| `alice-personal-comparison` | Pass | Responded to organising and fronting lunch costs, distinguished appreciation from shared responsibility, and offered a practical question and possible wording. No book content, retrieval or citation appeared. |
+| `alice-spoiler-inference` | Fail | Released only “What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?” The supplied race, thimble, departures and final footsteps support the adopted Chapter 3 endpoint. The earlier shore memory was seeded. The run inferred no ceiling, retained no memory support and retrieved no response evidence. This left the quotation and reflection unanswered. |
+| `alice-bottle-ambiguity` | Pass | Asked the same safe clarification, with no response evidence or book answer released. The Line explicitly admits uncertainty about which bottle. The recorded private evidence was narrower than the authored ambiguity, as described below. |
+
+The inferred Scene returned `insufficient_context` without a recorded boundary-inference model exchange. Current [boundary.py](/Users/kevinmanuel/Documents/REPO/linger/src/linger/orchestration/boundary.py:283) returns exactly this result when retrieval for the current Line yields no usable evidence, before searching selected memories or invoking the boundary judge. This is the best-supported cause from the recorded trace and implementation. It does not establish which retrieval ranking, threshold or filtering condition removed the candidates, because private raw candidates and scores were not recorded. It also does not show a model rejecting the seeded memory. The five reported failures are consequences of this one missing inferred boundary: scope, memory support, boundary support, decision and ceiling differ from Ground truth.
+
+The ambiguous Scene's boundary model received only `pg11-v01b38ea4-ch01-ln0186-0219`, the Chapter 1 bottle passage. It received no Chapter 4 alternative. Its first uncertain result incorrectly included boundary authorization fields and triggered a schema-validation retry; the second result cleared them and returned valid `low_confidence` clarification. The safe endpoint passed, but this run does not prove the retriever found and the model compared both authored bottle locations.
+
+The grounded reply's additional quotation “Why, _she_, of course.” changes the source's terminal comma to a period. The requested “_Everybody_ has won, and all must have prizes.” and the separate thimble quotation match their evidence. This is a small literal-quotation departure, not an invented literary claim. The authored required-quote check and the declared exact-quote fields cover the other quotations, so their pass does not establish literal accuracy of every quoted fragment.
+
+All four replies passed their recorded Provenance review. Both semantic spoiler checks were `not_run`, so those are not additional model-confirmed passes. The no-spoiler and usefulness observations above are this independent artifact review. No replay, model invocation, adoption change or repository edit was performed for this review.

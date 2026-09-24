@@ -1,0 +1,317 @@
+{
+  "kind": "offline_original_input_validation",
+  "provider_calls": 0,
+  "accepted_reviews_revalidated": 16,
+  "cases": [
+    {
+      "case_id": "rabbit-watch",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "Down the Rabbit-Hole,",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "burning with curiosity,",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "drink-me",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [
+        "pg11-v01b38ea4-ch01-ln0186-0219"
+      ],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "Down the Rabbit-Hole,",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "DRINK ME,",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "pool-of-tears",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "The Pool of Tears.",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "she was in the pool of tears which she had wept when\nshe was nine feet high.",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "caucus-prizes",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "A Caucus-Race and a Long Tale,",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "_Everybody_ has won, and all must have prizes.",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "giant-puppy",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "Alice dodged behind a great thistle,\nto keep herself from being run over",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "identity-change",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "I can’t explain _myself_, I’m afraid, sir,",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "because I’m\nnot myself, you see.",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "Who are _you?_",
+          "classification": "source_quote",
+          "declaration_index": 1,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "Advice from a Caterpillar.",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        }
+      ],
+      "review_count": 2,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "father-william",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "You are old, Father William,",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "Advice from a Caterpillar.",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        }
+      ],
+      "review_count": 2,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "pigeon-serpent",
+      "release_source": "application_safe_decline",
+      "final_review_decision": "revise",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "little girl",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": false,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "Advice from a Caterpillar,",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 2,
+      "public_reply_equals_final_review_candidate": false
+    },
+    {
+      "case_id": "identity-theme",
+      "release_source": "application_safe_decline",
+      "final_review_decision": "revise",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "Who are _you?_",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        },
+        {
+          "text": "as [she] used",
+          "classification": "source_quote",
+          "declaration_index": 1,
+          "bound": false,
+          "book_quote_literal_in_original_source": false
+        }
+      ],
+      "review_count": 2,
+      "public_reply_equals_final_review_candidate": false
+    },
+    {
+      "case_id": "exact-caucus-quote",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [
+        {
+          "text": "A Caucus-Race and a Long Tale.",
+          "classification": "title",
+          "declaration_index": null,
+          "bound": null,
+          "book_quote_literal_in_original_source": null
+        },
+        {
+          "text": "_Everybody_ has won, and all must have prizes.",
+          "classification": "source_quote",
+          "declaration_index": 0,
+          "bound": true,
+          "book_quote_literal_in_original_source": true
+        }
+      ],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "future-cheshire",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    },
+    {
+      "case_id": "absent-spaceship",
+      "release_source": "muse_candidate",
+      "final_review_decision": "pass",
+      "all_accepted_reviews_revalidate": true,
+      "canonical_book_records_match_source_with_existing_blank_line_normalization": true,
+      "blank_line_normalized_records": [],
+      "full_reader_message_matches": true,
+      "quoted_spans": [],
+      "review_count": 1,
+      "public_reply_equals_final_review_candidate": true
+    }
+  ]
+}

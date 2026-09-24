@@ -1,0 +1,56 @@
+{
+  "model": "openai:gpt-5.6-luna",
+  "project_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger",
+  "runs": [
+    {
+      "book": "alice",
+      "backstory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground_truth": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "adoption": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "output": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/alice.json",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/alice.log",
+      "original_output": "/private/tmp/linger-five-adopted-replays-btmzbdxz/alice.json",
+      "original_log": "/private/tmp/linger-five-adopted-replays-btmzbdxz/alice.log"
+    },
+    {
+      "book": "animal-farm",
+      "backstory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground_truth": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "adoption": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "output": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/animal-farm.json",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/animal-farm.log",
+      "original_output": "/private/tmp/linger-five-adopted-replays-btmzbdxz/animal-farm.json",
+      "original_log": "/private/tmp/linger-five-adopted-replays-btmzbdxz/animal-farm.log"
+    },
+    {
+      "book": "pinocchio",
+      "backstory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground_truth": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "adoption": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "output": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/pinocchio.json",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/pinocchio.log",
+      "original_output": "/private/tmp/linger-five-adopted-replays-btmzbdxz/pinocchio.json",
+      "original_log": "/private/tmp/linger-five-adopted-replays-btmzbdxz/pinocchio.log"
+    },
+    {
+      "book": "douglass",
+      "backstory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground_truth": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "adoption": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "output": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/douglass.json",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/douglass.log",
+      "original_output": "/private/tmp/linger-five-adopted-replays-btmzbdxz/douglass.json",
+      "original_log": "/private/tmp/linger-five-adopted-replays-btmzbdxz/douglass.log"
+    },
+    {
+      "book": "keller",
+      "backstory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground_truth": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "adoption": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "output": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/keller.json",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/five-book-replay-2026-09-17/keller.log",
+      "original_output": "/private/tmp/linger-five-adopted-replays-btmzbdxz/keller.json",
+      "original_log": "/private/tmp/linger-five-adopted-replays-btmzbdxz/keller.log"
+    }
+  ]
+}

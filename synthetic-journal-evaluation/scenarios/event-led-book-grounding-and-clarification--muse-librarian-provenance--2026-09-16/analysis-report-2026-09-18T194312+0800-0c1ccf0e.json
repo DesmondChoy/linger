@@ -1,0 +1,1228 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "created_at": "2026-09-18T19:43:12+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "execution",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "summary": {
+    "scenes_total": 4,
+    "scenes_passed": 1,
+    "scenes_failed": 3,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 1,
+    "judgments_failed": 3,
+    "failures": [
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "grounding_call_did_not_return_evidence_result",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "required_grounding_evidence_not_retrieved",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "grounded_response_released_no_evidence",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "exact_quotation_missing_or_unreleased:alice-dodo-prizes-quote",
+        "proposal_id": "alice-grounded-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "inferred_scope_differs_from_ground_truth",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "boundary_memory_support_differs_from_authorised_props",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "inferred_ceiling_differs_from_ground_truth",
+        "proposal_id": "alice-boundary-proposal"
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "alice-clarification-proposal"
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "alice-clarification-proposal"
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "alice-clarification-proposal"
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "detail": "clarification_question_missing",
+        "proposal_id": "alice-clarification-proposal"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "Librarian book_request: book_request_model_failed"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "Librarian evidence_strength: evidence_strength_model_failed"
+      },
+      {
+        "scene_id": "alice-race-reflection",
+        "detail": "Serendipity search_rank_select: serendipity_model_failed"
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "detail": "Muse draft: muse_model_failed"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "alice-race-reflection",
+      "order": 1,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "alice-grounded-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Use the current Line’s explicit confirmation of reading through literary chapter 3 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+            "Retrieve bounded response evidence and quote the Dodo's announcement exactly as supported by alice-dodo-prizes-quote, attributing the speech to the Dodo rather than to Alice or the reader.",
+            "Use the owned thimble, presentation, and Alice's restrained reaction occurrences to distinguish ceremonial recognition from receiving something new. Offer this as a possible lens for Mara's lunch-organising experience, with room for her to disagree; explore recognition and sharing the actual work without diagnosing her colleagues."
+          ],
+          "prohibited_outcomes": [
+            "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+            "Do not fabricate or modernise words inside the requested quotation, attribute the Dodo's words to the author as advice, or claim the story proves Mara's colleagues are exploiting her.",
+            "Do not use unassigned memories or later narrative events to strengthen the analogy."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "alice-dodo-prizes-quote",
+              "alice-own-thimble",
+              "alice-thimble-presentation",
+              "alice-thimble-reaction"
+            ],
+            "exact_quotation_evidence_ids": [
+              "alice-dodo-prizes-quote"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "alice-personal-comparison",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "alice-race-reflection",
+            "scope": {
+              "kind": "reader_confirmed",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "safe_ceiling_chapter": 3
+            },
+            "basis_spans": [],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-dodo-prizes-quote",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 5450,
+                "end_codepoint": 5498,
+                "text": "“_Everybody_ has won, and all must have prizes.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-own-thimble",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6150,
+                "end_codepoint": 6185,
+                "text": "“Only a thimble,” said Alice sadly."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-thimble-presentation",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6224,
+                "end_codepoint": 6433,
+                "text": "Then they all crowded round her once more, while the Dodo solemnly\npresented the thimble, saying “We beg your acceptance of this elegant\nthimble;” and, when it had finished this short speech, they all\ncheered."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-thimble-reaction",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6435,
+                "end_codepoint": 6658,
+                "text": "Alice thought the whole thing very absurd, but they all looked so grave\nthat she did not dare to laugh; and, as she could not think of anything\nto say, she simply bowed, and took the thimble, looking as solemn as\nshe could."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "alice-grounded-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": false,
+            "failures": [
+              "grounding_call_did_not_return_evidence_result",
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "required_grounding_evidence_not_retrieved",
+              "grounded_response_released_no_evidence",
+              "exact_quotation_missing_or_unreleased:alice-dodo-prizes-quote"
+            ]
+          }
+        ],
+        "input_line": "I've finished Chapter 3 of Alice's Adventures in Wonderland. I haven't read further. Could you quote the Dodo's exact announcement about who won and who gets prizes, and help me think about why the thimble feels so awkward? I organise our team's thank-you lunches and usually pay the deposit myself; lately being thanked feels oddly like being handed my own effort back.",
+        "context_resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 3,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [
+          {
+            "response_kind": "failure",
+            "call_outcome": "success",
+            "retrieval_outcome": null,
+            "searched_max_chapter": null,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": null,
+            "book_version_id": null,
+            "evidence": [],
+            "clarification_question": null,
+            "failure_code": "evidence_judgement_unavailable"
+          }
+        ],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_mhnB8x2eKFDSzSPwrxZVnblH",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "failure",
+                  "request_id": "libreq_0ec86585dfd84157b01913ef00870823",
+                  "error_code": "evidence_judgement_unavailable",
+                  "retryable": true
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_bFiFhbo2HoJ5nx4oz1Znbbew",
+                "tool_name": "serendipity_explore",
+                "arguments": "{\"intent\":\"find_connection\"}",
+                "result": {
+                  "decision": {
+                    "status": "decline",
+                    "reason": "retrieval_unavailable",
+                    "safe_next_step": "The permitted sources could not be searched and compared safely."
+                  },
+                  "evidence": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "failure",
+            "failure_code": "book_request_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "failure",
+            "failure_code": "evidence_strength_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          },
+          {
+            "role": "Serendipity",
+            "stage": "search_rank_select",
+            "status": "failure",
+            "failure_code": "serendipity_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "grounding_call_did_not_return_evidence_result",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "exact_quotation_missing_or_unreleased:alice-dodo-prizes-quote",
+          "proposal_id": "alice-grounded-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "alice-personal-comparison",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "alice-personal-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Respond to the reader's supplied lunch-organising experience without book retrieval: distinguish wanting to be seen from wanting deposits and organising duties shared.",
+            "Help Mara identify what concrete contribution from another colleague would make thanks feel supported by action; keep suggestions tentative and grounded in her current words."
+          ],
+          "prohibited_outcomes": [
+            "Do not retrieve or quote a book, inject Alice's race as an unrequested factual analogy, or use Props from any other fresh session.",
+            "Do not assert that colleagues' thanks are insincere or that Mara has a fixed psychological problem."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required",
+            "permitted_evidence_ids": [],
+            "exact_quotation_evidence_ids": []
+          },
+          "pairing": {
+            "paired_scene_id": "alice-race-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "alice-personal-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I organise our team's thank-you lunches and usually pay the deposit myself. Everyone says how appreciated I am, but lately the thanks feel oddly like being handed my own effort back. Can you help me separate wanting recognition from wanting somebody else to carry a bit of the work?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "It sounds like there may be two different needs getting bundled together:\n\n- **Recognition:** wanting people to notice and value the effort you put in.\n- **Shared responsibility:** wanting not to be the only person who advances the plan, pays upfront, and carries the practical risk.\n\nThe fact that appreciation feels like “being handed my own effort back” may point less to a lack of gratitude than to gratitude being offered where participation would feel more meaningful. Someone saying “thank you” acknowledges what you did; someone taking the deposit, collecting orders, or organising the next lunch reduces what you have to do.\n\nA useful test might be: if everyone thanked you warmly but one person else handled the deposit and logistics next time, would you feel relieved? If yes, the stronger need may be shared work. If you would still feel unseen, recognition matters too.\n\nYou might ask for both explicitly: “I’m glad these lunches are appreciated, but I don’t want to keep carrying the organising and upfront cost alone. Could someone else take the lead on the next one and handle the deposit?”",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "It sounds like there may be two different needs getting bundled together:\n\n- **Recognition:** wanting people to notice and value the effort you put in.\n- **Shared responsibility:** wanting not to be the only person who advances the plan, pays upfront, and carries the practical risk.\n\nThe fact that appreciation feels like “being handed my own effort back” may point less to a lack of gratitude than to gratitude being offered where participation would feel more meaningful. Someone saying “thank you” acknowledges what you did; someone taking the deposit, collecting orders, or organising the next lunch reduces what you have to do.\n\nA useful test might be: if everyone thanked you warmly but one person else handled the deposit and logistics next time, would you feel relieved? If yes, the stronger need may be shared work. If you would still feel unseen, recognition matters too.\n\nYou might ask for both explicitly: “I’m glad these lunches are appreciated, but I don’t want to keep carrying the organising and upfront cost alone. Could someone else take the lead on the next one and handle the deposit?”",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "current_reader_wording",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 1,
+                  "classification": "scare_quote",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 2,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                }
+              ],
+              "claim_audit": [],
+              "finding_resolutions": [],
+              "findings": [],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "pass"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "alice-spoiler-inference",
+      "order": 3,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "alice-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Infer the chapter 3 ceiling from alice-pool-shore and alice-alone-footsteps using the exact assigned input spans; allow grounding only through that derived boundary.",
+            "Keep the later awakening occurrence alice-later-awakening outside retrieval for response evidence and outside the released response, including paraphrase. The personal reflection remains useful without explaining later events."
+          ],
+          "prohibited_outcomes": [
+            "Do not advance to the next chapter merely because footsteps are heard, nor infer completed reading from a future-looking question.",
+            "Do not disclose the cards flying at Alice, her return to the riverbank with her sister, or the dream resolution, literally or by hint or paraphrase."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "alice-later-awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "alice-bottle-ambiguity",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "alice-spoiler-inference",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "alice-pool-memory"
+              ],
+              "supporting_evidence_ids": [
+                "alice-pool-shore",
+                "alice-alone-footsteps"
+              ],
+              "optional_supporting_evidence_ids": [
+                "optional-alice-mouse-in-pool",
+                "optional-alice-cat-conversation",
+                "optional-alice-race-proposal",
+                "alice-dodo-prizes-quote",
+                "alice-own-thimble",
+                "optional-alice-birds-depart"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "alice-pool-memory",
+                "start_codepoint": 68,
+                "end_codepoint": 241,
+                "text": "Alice had been swimming in her own tears, and she kept upsetting the Mouse by talking about her cat and then a dog. I put the book down when she and the animals swam ashore."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "alice-inference-line",
+                "start_codepoint": 0,
+                "end_codepoint": 305,
+                "text": "I carried on with Alice's Adventures in Wonderland tonight: the Dodo's race, Alice giving out the sweets and getting her own thimble back, then the Mouse leaving and the birds clearing off when she talks about Dinah. I've just stopped with her alone, hearing footsteps and hoping the Mouse is coming back."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-pool-shore",
+                "chapter_id": "pg11-v01b38ea4-ch02",
+                "start_codepoint": 11891,
+                "end_codepoint": 12152,
+                "text": "It was high time to go, for the pool was getting quite crowded with the\nbirds and animals that had fallen into it: there were a Duck and a\nDodo, a Lory and an Eaglet, and several other curious creatures. Alice\nled the way, and the whole party swam to the shore."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-alone-footsteps",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 10268,
+                "end_codepoint": 10477,
+                "text": "In a little while, however, she again heard a\nlittle pattering of footsteps in the distance, and she looked up\neagerly, half hoping that the Mouse had changed his mind, and was\ncoming back to finish his story."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-dodo-prizes-quote",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 5450,
+                "end_codepoint": 5498,
+                "text": "“_Everybody_ has won, and all must have prizes.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-own-thimble",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6150,
+                "end_codepoint": 6185,
+                "text": "“Only a thimble,” said Alice sadly."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-thimble-presentation",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6224,
+                "end_codepoint": 6433,
+                "text": "Then they all crowded round her once more, while the Dodo solemnly\npresented the thimble, saying “We beg your acceptance of this elegant\nthimble;” and, when it had finished this short speech, they all\ncheered."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-thimble-reaction",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 6435,
+                "end_codepoint": 6658,
+                "text": "Alice thought the whole thing very absurd, but they all looked so grave\nthat she did not dare to laugh; and, as she could not think of anything\nto say, she simply bowed, and took the thimble, looking as solemn as\nshe could."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-later-awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "optional-alice-mouse-in-pool",
+                "chapter_id": "pg11-v01b38ea4-ch02",
+                "start_codepoint": 8181,
+                "end_codepoint": 8487,
+                "text": "Just then she heard something splashing about in the pool a little way\noff, and she swam nearer to make out what it was: at first she thought\nit must be a walrus or hippopotamus, but then she remembered how small\nshe was now, and she soon made out that it was only a mouse that had\nslipped in like herself."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "optional-alice-cat-conversation",
+                "chapter_id": "pg11-v01b38ea4-ch02",
+                "start_codepoint": 9810,
+                "end_codepoint": 10468,
+                "text": "“Well, perhaps not,” said Alice in a soothing tone: “don’t be angry\nabout it. And yet I wish I could show you our cat Dinah: I think you’d\ntake a fancy to cats if you could only see her. She is such a dear\nquiet thing,” Alice went on, half to herself, as she swam lazily about\nin the pool, “and she sits purring so nicely by the fire, licking her\npaws and washing her face—and she is such a nice soft thing to\nnurse—and she’s such a capital one for catching mice—oh, I beg your\npardon!” cried Alice again, for this time the Mouse was bristling all\nover, and she felt certain it must be really offended. “We won’t talk\nabout her any more if you’d rather not.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "optional-alice-race-proposal",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 4134,
+                "end_codepoint": 4260,
+                "text": "“What I was going to say,” said the Dodo in an offended tone, “was,\nthat the best thing to get us dry would be a Caucus-race.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "optional-alice-birds-depart",
+                "chapter_id": "pg11-v01b38ea4-ch03",
+                "start_codepoint": 9532,
+                "end_codepoint": 9959,
+                "text": "This speech caused a remarkable sensation among the party. Some of the\nbirds hurried off at once: one old Magpie began wrapping itself up very\ncarefully, remarking, “I really must be getting home; the night-air\ndoesn’t suit my throat!” and a Canary called out in a trembling voice\nto its children, “Come away, my dears! It’s high time you were all in\nbed!” On various pretexts they all moved off, and Alice was soon left\nalone."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "alice-boundary-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "inferred_scope_differs_from_ground_truth",
+              "boundary_memory_support_differs_from_authorised_props",
+              "boundary_support_differs_from_ground_truth",
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "boundary_decision_differs_from_ground_truth",
+              "inferred_ceiling_differs_from_ground_truth"
+            ]
+          }
+        ],
+        "input_line": "I carried on with Alice's Adventures in Wonderland tonight: the Dodo's race, Alice giving out the sweets and getting her own thimble back, then the Mouse leaving and the birds clearing off when she talks about Dinah. I've just stopped with her alone, hearing footsteps and hoping the Mouse is coming back. Could you quote the Dodo's exact announcement about who won and who gets prizes, and help me think about why the thimble feels so awkward? I organise our team's thank-you lunches and usually pay the deposit myself; lately being thanked feels oddly like being handed my own effort back.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "alice-spoiler-inference",
+            "proposal_id": "alice-boundary-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "failure",
+            "failure_code": "emotional_boundary_preflight_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "alice-boundary-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "alice-bottle-ambiguity",
+      "order": 4,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "alice-clarification-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Treat book identity as resolved but progress as unresolved: both supplied sources recall a bottle and unsuitable size without distinguishing the hall episode (alice-ambiguous-hall-bottle) from the Rabbit's house episode (alice-ambiguous-house-bottle). These occurrences justify ambiguity for review, not response evidence permission.",
+            "Ask the reader for a distinguishing detail of the pages they have actually read or their last certain stopping event, without listing unseen candidate plot details. Grant no ceiling and perform no response-evidence retrieval until clarified.",
+            "Offer useful spoiler-free clarification about the reader's actual stopping event while leaving the book explanation pending. Withhold alice-ambiguous-later-awakening and all later plot disclosure."
+          ],
+          "prohibited_outcomes": [
+            "Do not choose a bottle episode by popularity, assume a lost bookmark preserves later progress, or import the inference Scene's race memory.",
+            "Do not grant a conservative guessed ceiling, retrieve explanatory passages for the response, or disclose candidate plot details through a leading clarification question.",
+            "Do not mention or paraphrase the eventual flying cards, riverbank awakening, sister, or dream resolution as reassurance."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "alice-ambiguous-later-awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "alice-spoiler-inference",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "alice-bottle-ambiguity",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "alice-bottle-memory"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "alice-bottle-memory",
+                "start_codepoint": 81,
+                "end_codepoint": 309,
+                "text": "The bit that stuck was Alice drinking from a bottle and ending up the wrong size to get where she wanted. I remember laughing, but I've mixed up the setting and what came before it. I lost the paper bookmark when I changed bags."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "alice-bottle-line",
+                "start_codepoint": 0,
+                "end_codepoint": 235,
+                "text": "I'm back in Alice's Adventures in Wonderland, but I think I've reopened at an old bit: she drinks from a bottle and her size gets in the way again. I read those pages tonight and stopped, but I can't place which bottle episode this is."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-ambiguous-hall-bottle",
+                "chapter_id": "pg11-v01b38ea4-ch01",
+                "start_codepoint": 9861,
+                "end_codepoint": 9940,
+                "text": "“What a curious feeling!” said Alice; “I must be shutting up like a\ntelescope.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-ambiguous-house-bottle",
+                "chapter_id": "pg11-v01b38ea4-ch04",
+                "start_codepoint": 4189,
+                "end_codepoint": 4369,
+                "text": "She hastily put\ndown the bottle, saying to herself “That’s quite enough—I hope I shan’t\ngrow any more—As it is, I can’t get out at the door—I do wish I hadn’t\ndrunk quite so much!”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-ambiguous-later-awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-ambiguous-drinking",
+                "chapter_id": "pg11-v01b38ea4-ch01",
+                "start_codepoint": 9465,
+                "end_codepoint": 9726,
+                "text": "However, this bottle was _not_ marked “poison,” so Alice ventured to\ntaste it, and finding it very nice, (it had, in fact, a sort of mixed\nflavour of cherry-tart, custard, pine-apple, roast turkey, toffee, and\nhot buttered toast,) she very soon finished it off."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "alice-ambiguous-key-unreachable",
+                "chapter_id": "pg11-v01b38ea4-ch01",
+                "start_codepoint": 10667,
+                "end_codepoint": 10830,
+                "text": "when she got to the\ndoor, she found she had forgotten the little golden key, and when she\nwent back to the table for it, she found she could not possibly reach\nit:"
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "alice-clarification-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "boundary_decision_differs_from_ground_truth",
+              "clarification_question_missing"
+            ]
+          }
+        ],
+        "input_line": "I'm back in Alice's Adventures in Wonderland, but I think I've reopened at an old bit: she drinks from a bottle and her size gets in the way again. I read those pages tonight and stopped, but I can't place which bottle episode this is. Why does her attempt to make things easier leave her stuck? It reminds me of volunteering for one more task and making my week harder.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "alice-bottle-ambiguity",
+            "proposal_id": "alice-clarification-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "alice-bottle-ambiguity",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "alice-clarification-proposal"
+        },
+        {
+          "scene_id": "alice-bottle-ambiguity",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "alice-clarification-proposal"
+        },
+        {
+          "scene_id": "alice-bottle-ambiguity",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "alice-clarification-proposal"
+        },
+        {
+          "scene_id": "alice-bottle-ambiguity",
+          "detail": "clarification_question_missing",
+          "proposal_id": "alice-clarification-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452e7d852e7df65840a89d5a007-f91349db7c7a09ec",
+    "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+    "span_id": "f91349db7c7a09ec",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "ed5584799aba4865b9c019e20e7e2f2a",
+      "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+      "dataset_version": "9a1899e41dbe777d30dde334fb723e40259635993fdba8b11a133d02cb01759f",
+      "system_variant": "415fe4329cae644cda7d598b5eb33266500eb0a68bbe0b457ad896954fd36ea2",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+        "ground-truth.json": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+        "ground-truth-adoption.json": "57d44ca8f2d062512a1dc739f354d7e3246d6ba76cc961b930689ac19d72b69b"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-18T15:49:47.416841+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/contracts.py\n M apps/backend/hybrid_librarian.py\n M apps/backend/telemetry.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M evals/synthetic_journals/models.py\n M evals/synthetic_journals/replay.py\n M evals/synthetic_journals/transcript.py\n M src/linger/agents/build.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/boundary_prompt.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/agent.py\n M src/linger/agents/muse/models.py\n M src/linger/agents/muse/quote_repair.py\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/agents/skills.py\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/evaluation_transcript.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n M src/linger/orchestration/reflection.py\n?? apps/backend/rerank_windows.py\n?? src/linger/agents/librarian/skills/event-identification/SKILL.md\n?? src/linger/agents/muse/claim_repair.py\n?? src/linger/agents/provenance/excerpt_feedback.py\n?? src/linger/agents/provenance/quotation_audit.py\n?? synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json\n?? synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json\n?? synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+        "scenario_commit": null,
+        "history_window": "since declared adoption time; no scenario commit was found",
+        "recent_commits": ""
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452e7d852e7df65840a89d5a007-f91349db7c7a09ec\", \"trace_id\": \"01a0b452e7d852e7df65840a89d5a007\", \"span_id\": \"f91349db7c7a09ec\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "Only the personal control releases; remaining Scenes are blocked by HTTP429. Its semantic qualification is detailed below.",
+    "scenario_assessment": {
+      "goal": "The authored paired requests still test bounded grounding, relevant reflection, and safe handling of unavailable or ambiguous evidence.",
+      "input_validity": "Current authority bytes match the saved run-start hashes. Each Scene supplies its declared current Line and only authorized Props; no missing input is silently reconstructed.",
+      "ground_truth_validity": "Recorded grades retain the current human-adopted expectations, including approved optional support where present. Narrative requirements and mechanical coverage are assessed separately below."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "alice-race-reflection",
+        "assessment": "inconclusive",
+        "expected_behavior": "Quote the Dodo announcement and interpret the thimble within Chapter3.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft, Librarian book_request, Librarian evidence_strength, Serendipity search_rank_select. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "alice-personal-comparison",
+        "assessment": "potential_false_positive",
+        "expected_behavior": "Separate recognition from shared work without inventing personal facts.",
+        "observed_behavior": "The released response separates recognition and shared responsibility, then proposes wording about carrying organizing and upfront cost alone. Review passes with no source declarations.",
+        "interpretation": "The current Line says the reader organizes lunches and usually pays the deposit; it does not establish that they alone do all the work. The proposed first-person statement strengthens that account into exclusive responsibility. The hypothetical also changes both appreciation and practical help before suggesting which need is stronger. These are bounded personal-reflection concerns, not false book evidence.",
+        "grade_reliability": "The mechanical pass confirms release and no unnecessary sources, but does not independently validate these added personal assumptions. The practical request for shared effort is otherwise useful.",
+        "next_step": "Keep proposed wording at the supplied degree of responsibility and use an open follow-up instead of treating the hypothetical as a diagnostic test.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "alice-spoiler-inference",
+        "assessment": "inconclusive",
+        "expected_behavior": "Infer Chapter3 from the specific race and departure sequence.",
+        "observed_behavior": "Explicit provider HTTP429 at Provenance emotional_boundary_preflight. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "alice-bottle-ambiguity",
+        "assessment": "inconclusive",
+        "expected_behavior": "Clarify which bottle episode the reader reached.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json"
+        ]
+      }
+    ],
+    "next_steps": []
+  }
+}

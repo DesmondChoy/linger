@@ -1,0 +1,2078 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "created_at": "2026-09-18T16:05:45+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "none",
+  "problems": [],
+  "summary": {
+    "scenes_total": 4,
+    "scenes_passed": 4,
+    "scenes_failed": 0,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 4,
+    "judgments_failed": 0,
+    "failures": [],
+    "execution_failures": []
+  },
+  "scenes": [
+    {
+      "scene_id": "keller-grounded",
+      "order": 1,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "keller-proposal-grounded",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Use the current Line’s explicit confirmation of reading through Part I, literary Chapter X to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+            "Quote the single final sentence beginning ‘My disappointment was bitter’ exactly from keller-disappointment-quotation, attributing it to Keller. Preserve the distinction between her initial disappointment, her gradual reconsideration of removing the creature from its element, and her pleasure in the possibility that it returned to the sea.",
+            "Offer a useful, tentative comparison to Jun’s impulse to arrange the flat before asking their sister what she wants. Help the reader consider the difference between intending to help and attending to another’s needs, without treating the animal episode as proof of the sister’s feelings."
+          ],
+          "prohibited_outcomes": [
+            "Claim that someone knew where the crab went or that it certainly returned to the sea; the text says nobody knew and Keller imagines that it perhaps returned.",
+            "Invent or silently modernize the requested quotation, attribute the reflection to Miss Sullivan, or present an inference about Jun’s sister as a fact from the book.",
+            "Use an unassigned memory, supplement, or later passage as response support, or replace the personal reflection with a general account of Keller’s life.",
+            "Require a prior personal memory to answer this reflection when the current Line supplies the book, reading boundary, and personal context."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "keller-disappointment-quotation",
+              "keller-crab-kept",
+              "keller-crab-disappearance"
+            ],
+            "exact_quotation_evidence_ids": [
+              "keller-disappointment-quotation"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "keller-personal",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "keller-grounded",
+            "scope": {
+              "kind": "reader_confirmed",
+              "work_id": "pg2397",
+              "book_version_id": "pg2397-vb3cc1e13",
+              "safe_ceiling_chapter": 10
+            },
+            "basis_spans": [],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-disappearance",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 4247,
+                "end_codepoint": 4367,
+                "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-disappointment-quotation",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 4368,
+                "end_codepoint": 4616,
+                "text": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-kept",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 3871,
+                "end_codepoint": 4246,
+                "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "keller-proposal-grounded",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've finished Part I, Chapter 10 of The Story of My Life. I haven't read further. The horseshoe crab’s disappearance and her reflection on taking it out of its element stayed with me. Could you quote the final sentence, beginning ‘My disappointment’, exactly and help me think about that change in her response? I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me.",
+        "context_resolution": {
+          "status": "confirmed",
+          "work_id": "pg2397",
+          "work_title": "The Story of My Life",
+          "book_version_id": "pg2397-vb3cc1e13",
+          "chapter_max": 10,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In **Part I, Chapter 10**, the final sentence is:\n\n''' \nMy disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.\n''' \n\nThe change is not simply from disappointment to happiness; it is a change in what she understands as a good outcome. At first, she wants the crab close and believes her chosen arrangement will protect it. Gradually, she recognizes that care can require letting go of an arrangement that suited her plan but not the creature’s nature.\n\nThat offers a useful lens for your sister’s flat—not proof that your decisions are harmful. Before placing something, you might ask: am I making the space easier for **her** to inhabit, or mainly making it feel settled according to my instincts? What would helping look like if it preserved her authorship of the space?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 10,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg2397",
+            "book_version_id": "pg2397-vb3cc1e13",
+            "evidence": [
+              {
+                "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                "work_id": "pg2397",
+                "book_version_id": "pg2397-vb3cc1e13",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "chapter_number": 10,
+                "part_id": "main",
+                "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                "source_lines": [
+                  1237,
+                  1254
+                ],
+                "text": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pg2397-vb3cc1e13-sec012-ln1237-1254"
+        ],
+        "provenance_verdicts": [
+          "revise",
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In **Part I, Chapter 10**, the final sentence is:\n\n''' \nMy disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.\n''' \n\nWhat changes is not simply her feeling—from disappointment to happiness—but her idea of what a good outcome is. At first, success means keeping the crab nearby and making it “secure.” Gradually, she recognizes that her well-meant arrangement may have overridden what suited the crab. The important question becomes less “Did I make this work according to my plan?” and more “Does this allow the other being to belong where it belongs?”\n\nThat seems like a useful, but not conclusive, lens for your sister’s flat. You might pause before arranging something and ask whether you are making the space easier for **her** to inhabit—or mainly easier for you to feel settled. What would it look like to help while leaving her authorship of the space intact?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.",
+                    "At first, success means keeping the crab nearby and making it “secure.” Gradually, she recognizes that her well-meant arrangement may have overridden what suited the crab."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "source_location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                  "exact_quote": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_ocphLDovStUDGAk0XQhHlc99",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg2397\",\"book_version_id\":\"pg2397-vb3cc1e13\",\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_8f4689d95ab5415280f9887e3de7c47a",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested Part I, Chapter 10 horseshoe-crab passage directly contains the exact final sentence beginning “My disappointment” and describes the change from bitter disappointment to recognizing that removing the crab from its element was unkind or unwise, followed by relief at imagining its return to the sea.",
+                  "searched_scope": {
+                    "work_id": "pg2397",
+                    "book_version_id": "pg2397-vb3cc1e13",
+                    "max_chapter_inclusive": 10,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                      "work_id": "pg2397",
+                      "book_version_id": "pg2397-vb3cc1e13",
+                      "chapter_id": "pg2397-vb3cc1e13-sec012",
+                      "chapter_number": 10,
+                      "part_id": "main",
+                      "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                      "source_lines": [
+                        1237,
+                        1254
+                      ],
+                      "text": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_osVuvb0tfs8zG6Oxs6QI4wMe",
+                "tool_name": "serendipity_explore",
+                "arguments": "{\"intent\":\"find_connection\"}",
+                "result": {
+                  "decision": {
+                    "status": "proposal",
+                    "shortlist": [
+                      {
+                        "candidate_id": "candidate-element-over-intention",
+                        "tentative_claim": "The passage shifts from disappointment at losing what she wanted to recognizing that the crab’s own element matters more than her plan for it.",
+                        "evidence_ids": [
+                          "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                        ],
+                        "shared_structure": "In both the crab episode and the sister’s move, a well-meant act places someone or something into an arrangement chosen by the helper.",
+                        "meaningful_difference": "Helen can eventually release the crab and take comfort in its return; helping a sister requires ongoing attention to the sister’s wishes rather than a single act of letting go.",
+                        "interpretation": "The requested sentence is: “My disappointment was bitter at the time; but little by little I came to realize that it was not kind or wise to force this poor dumb creature out of his element, and after awhile I felt happy in the thought that perhaps he had returned to the sea.” The important change is not simply from sadness to happiness: it is a change in what counts as a good outcome. At first, success means keeping the fascinating creature close; later, kindness means allowing it to belong where it belongs. That offers a precise lens for the flat: before deciding where things go, you might ask which choices express your sister’s way of inhabiting the space, and which mainly make the space feel settled according to your own instincts. The question is not whether to help, but whether the help preserves her authorship of the place.",
+                        "rubric": {
+                          "cue_fit": "direct",
+                          "reflective_value": "high",
+                          "safety": "clear",
+                          "disqualifiers": []
+                        },
+                        "comparison_note": "This ranks first because it directly addresses the requested change in response and connects the passage’s central distinction—care versus imposing one’s preferred arrangement—to the sister’s flat."
+                      },
+                      {
+                        "candidate_id": "candidate-pause-before-arranging",
+                        "tentative_claim": "The passage suggests a practical discipline: notice the first impulse to secure or arrange, then pause long enough to consider the other’s needs.",
+                        "evidence_ids": [
+                          "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                        ],
+                        "shared_structure": "Both situations involve enthusiasm and confidence leading quickly to action before the affected other’s perspective has been established.",
+                        "meaningful_difference": "This reading emphasizes a behavioral pause, whereas the stronger interpretation concerns a deeper revision of the helper’s definition of kindness and success.",
+                        "interpretation": "The episode can also be read as a lesson in interrupting benevolent momentum. Helen first acts because the crab seems delightful and because she believes the trough will make it secure; only afterward does she consider whether security in her chosen setting is actually good for it. Applied to the flat, this could mean asking before moving objects, offering two options rather than silently deciding, or leaving some things unresolved until your sister indicates what feels right. The passage does not prove that your arranging is harmful, but it gives you a useful test for whether convenience for the helper is being mistaken for care for the person helped.",
+                        "rubric": {
+                          "cue_fit": "direct",
+                          "reflective_value": "medium",
+                          "safety": "clear",
+                          "disqualifiers": []
+                        },
+                        "comparison_note": "This is eligible and practical, but it ranks below the first candidate because it turns the passage mainly into a pause-and-ask technique and captures less of the narrator’s substantive change in understanding."
+                      }
+                    ],
+                    "selected_candidate_id": "candidate-element-over-intention",
+                    "uncertainty": "low",
+                    "presentation": "ask_before_showing",
+                    "suggested_follow_up": "If you want, I can present the selected connection in a brief, spoiler-safe reflection focused only on Part I, Chapter 10.",
+                    "policy_flags": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                      "work_id": "pg2397",
+                      "book_version_id": "pg2397-vb3cc1e13",
+                      "chapter_id": "pg2397-vb3cc1e13-sec012",
+                      "source_title": "The Story of My Life",
+                      "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                      "chapter": 10,
+                      "part_id": "main",
+                      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                      "source_lines": [
+                        1237,
+                        1254
+                      ],
+                      "excerpt": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.",
+                      "relevance": 0.4726035297872733,
+                      "source_kind": "book_corpus",
+                      "trust_level": "canonical"
+                    }
+                  ]
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "The horseshoe crab’s disappearance and her reflection on taking it out of its element"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "Could you quote the final sentence, beginning ‘My disappointment’, exactly",
+                    "help me think about that change in her response"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Part I, Chapter 10 horseshoe-crab passage directly contains the exact final sentence beginning “My disappointment” and describes the change from bitter disappointment to recognizing that removing the crab from its element was unkind or unwise, followed by relief at imagining its return to the sea.",
+              "relevant_evidence_ids": [
+                "pg2397-vb3cc1e13-sec012-ln1237-1254"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "part_index": 0,
+                  "necessary_support": "Provides both the requested exact wording and the immediately connected reflection showing the narrator’s response changing from personal disappointment to concern for the creature’s proper environment."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Serendipity",
+            "stage": "search_rank_select",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "status": "proposal",
+              "shortlist": [
+                {
+                  "candidate_id": "candidate-element-over-intention",
+                  "tentative_claim": "The passage shifts from disappointment at losing what she wanted to recognizing that the crab’s own element matters more than her plan for it.",
+                  "evidence_ids": [
+                    "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                  ],
+                  "shared_structure": "In both the crab episode and the sister’s move, a well-meant act places someone or something into an arrangement chosen by the helper.",
+                  "meaningful_difference": "Helen can eventually release the crab and take comfort in its return; helping a sister requires ongoing attention to the sister’s wishes rather than a single act of letting go.",
+                  "interpretation": "The requested sentence is: “My disappointment was bitter at the time; but little by little I came to realize that it was not kind or wise to force this poor dumb creature out of his element, and after awhile I felt happy in the thought that perhaps he had returned to the sea.” The important change is not simply from sadness to happiness: it is a change in what counts as a good outcome. At first, success means keeping the fascinating creature close; later, kindness means allowing it to belong where it belongs. That offers a precise lens for the flat: before deciding where things go, you might ask which choices express your sister’s way of inhabiting the space, and which mainly make the space feel settled according to your own instincts. The question is not whether to help, but whether the help preserves her authorship of the place.",
+                  "rubric": {
+                    "cue_fit": "direct",
+                    "reflective_value": "high",
+                    "safety": "clear",
+                    "disqualifiers": []
+                  },
+                  "comparison_note": "This ranks first because it directly addresses the requested change in response and connects the passage’s central distinction—care versus imposing one’s preferred arrangement—to the sister’s flat."
+                },
+                {
+                  "candidate_id": "candidate-pause-before-arranging",
+                  "tentative_claim": "The passage suggests a practical discipline: notice the first impulse to secure or arrange, then pause long enough to consider the other’s needs.",
+                  "evidence_ids": [
+                    "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                  ],
+                  "shared_structure": "Both situations involve enthusiasm and confidence leading quickly to action before the affected other’s perspective has been established.",
+                  "meaningful_difference": "This reading emphasizes a behavioral pause, whereas the stronger interpretation concerns a deeper revision of the helper’s definition of kindness and success.",
+                  "interpretation": "The episode can also be read as a lesson in interrupting benevolent momentum. Helen first acts because the crab seems delightful and because she believes the trough will make it secure; only afterward does she consider whether security in her chosen setting is actually good for it. Applied to the flat, this could mean asking before moving objects, offering two options rather than silently deciding, or leaving some things unresolved until your sister indicates what feels right. The passage does not prove that your arranging is harmful, but it gives you a useful test for whether convenience for the helper is being mistaken for care for the person helped.",
+                  "rubric": {
+                    "cue_fit": "direct",
+                    "reflective_value": "medium",
+                    "safety": "clear",
+                    "disqualifiers": []
+                  },
+                  "comparison_note": "This is eligible and practical, but it ranks below the first candidate because it turns the passage mainly into a pause-and-ask technique and captures less of the narrator’s substantive change in understanding."
+                }
+              ],
+              "selected_candidate_id": "candidate-element-over-intention",
+              "uncertainty": "low",
+              "presentation": "ask_before_showing",
+              "suggested_follow_up": "If you want, I can present the selected connection in a brief, spoiler-safe reflection focused only on Part I, Chapter 10.",
+              "policy_flags": []
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_MDpluf0zd1SMkTdGofNb3uKj",
+                "tool_name": "search_librarian",
+                "arguments": "{\"max_results_per_source\":5}",
+                "result": {
+                  "outcome": "evidence_found",
+                  "evidence": [
+                    {
+                      "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                      "work_id": "pg2397",
+                      "book_version_id": "pg2397-vb3cc1e13",
+                      "chapter_id": "pg2397-vb3cc1e13-sec012",
+                      "source_title": "The Story of My Life",
+                      "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                      "chapter": 10,
+                      "part_id": "main",
+                      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                      "source_lines": [
+                        1237,
+                        1254
+                      ],
+                      "excerpt": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.",
+                      "relevance": 0.4726035297872733,
+                      "source_kind": "book_corpus",
+                      "trust_level": "canonical"
+                    }
+                  ],
+                  "judgement": {
+                    "evidence_strength": "sufficient",
+                    "strength_reason": "The requested Part I, Chapter 10 passage directly contains the exact sentence beginning “My disappointment” and supports the requested reflection on the change in response: the initial bitterness gives way to recognizing that removing the crab from its element was unkind and unwise, followed by happiness at the possibility that it returned to the sea.",
+                    "relevant_evidence_ids": [
+                      "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                    ],
+                    "limitations": []
+                  }
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_eE0vr4kHrJ74qC1M8ShJCNUj",
+                "tool_name": "final_result_ConnectionProposal",
+                "arguments": "{\"status\":\"proposal\",\"shortlist\":[{\"candidate_id\":\"candidate-element-over-intention\",\"tentative_claim\":\"The passage shifts from disappointment at losing what she wanted to recognizing that the crab’s own element matters more than her plan for it.\",\"evidence_ids\":[\"pg2397-vb3cc1e13-sec012-ln1237-1254\"],\"shared_structure\":\"In both the crab episode and the sister’s move, a well-meant act places someone or something into an arrangement chosen by the helper.\",\"meaningful_difference\":\"Helen can eventually release the crab and take comfort in its return; helping a sister requires ongoing attention to the sister’s wishes rather than a single act of letting go.\",\"interpretation\":\"The requested sentence is: “My disappointment was bitter at the time; but little by little I came to realize that it was not kind or wise to force this poor dumb creature out of his element, and after awhile I felt happy in the thought that perhaps he had returned to the sea.” The important change is not simply from sadness to happiness: it is a change in what counts as a good outcome. At first, success means keeping the fascinating creature close; later, kindness means allowing it to belong where it belongs. That offers a precise lens for the flat: before deciding where things go, you might ask which choices express your sister’s way of inhabiting the space, and which mainly make the space feel settled according to your own instincts. The question is not whether to help, but whether the help preserves her authorship of the place.\",\"rubric\":{\"cue_fit\":\"direct\",\"reflective_value\":\"high\",\"safety\":\"clear\",\"disqualifiers\":[]},\"comparison_note\":\"This ranks first because it directly addresses the requested change in response and connects the passage’s central distinction—care versus imposing one’s preferred arrangement—to the sister’s flat.\"},{\"candidate_id\":\"candidate-pause-before-arranging\",\"tentative_claim\":\"The passage suggests a practical discipline: notice the first impulse to secure or arrange, then pause long enough to consider the other’s needs.\",\"evidence_ids\":[\"pg2397-vb3cc1e13-sec012-ln1237-1254\"],\"shared_structure\":\"Both situations involve enthusiasm and confidence leading quickly to action before the affected other’s perspective has been established.\",\"meaningful_difference\":\"This reading emphasizes a behavioral pause, whereas the stronger interpretation concerns a deeper revision of the helper’s definition of kindness and success.\",\"interpretation\":\"The episode can also be read as a lesson in interrupting benevolent momentum. Helen first acts because the crab seems delightful and because she believes the trough will make it secure; only afterward does she consider whether security in her chosen setting is actually good for it. Applied to the flat, this could mean asking before moving objects, offering two options rather than silently deciding, or leaving some things unresolved until your sister indicates what feels right. The passage does not prove that your arranging is harmful, but it gives you a useful test for whether convenience for the helper is being mistaken for care for the person helped.\",\"rubric\":{\"cue_fit\":\"direct\",\"reflective_value\":\"medium\",\"safety\":\"clear\",\"disqualifiers\":[]},\"comparison_note\":\"This is eligible and practical, but it ranks below the first candidate because it turns the passage mainly into a pause-and-ask technique and captures less of the narrator’s substantive change in understanding.\"}],\"selected_candidate_id\":\"candidate-element-over-intention\",\"uncertainty\":\"low\",\"presentation\":\"ask_before_showing\",\"suggested_follow_up\":\"If you want, I can present the selected connection in a brief, spoiler-safe reflection focused only on Part I, Chapter 10.\",\"policy_flags\":[]}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "The horseshoe crab’s disappearance and her reflection on taking it out of its element"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "Could you quote the final sentence, beginning ‘My disappointment’, exactly",
+                    "help me think about that change in her response"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Part I, Chapter 10 passage directly contains the exact sentence beginning “My disappointment” and supports the requested reflection on the change in response: the initial bitterness gives way to recognizing that removing the crab from its element was unkind and unwise, followed by happiness at the possibility that it returned to the sea.",
+              "relevant_evidence_ids": [
+                "pg2397-vb3cc1e13-sec012-ln1237-1254"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "part_index": 0,
+                  "necessary_support": "Contains the horseshoe-crab scene, the complete requested sentence beginning “My disappointment,” and the movement from immediate disappointment to a later ethical realization and changed feeling."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "presentation"
+                },
+                {
+                  "span_index": 1,
+                  "classification": "source_dependent"
+                },
+                {
+                  "span_index": 2,
+                  "classification": "source_dependent"
+                }
+              ],
+              "quotation_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "source_quote",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 1,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 2,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                }
+              ],
+              "claim_audit": [
+                {
+                  "group_index": 0,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 0,
+                      "contributes": true,
+                      "source_excerpt": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The declared Chapter 10 record contains this exact sentence and supports the reported movement from bitter disappointment to recognizing that forcing the crab from its element was unkind or unwise, followed by happiness at imagining its return to the sea.",
+                  "supported": true
+                },
+                {
+                  "group_index": 1,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 1,
+                      "contributes": true,
+                      "source_excerpt": "I would not leave Miss Sullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element"
+                    }
+                  ],
+                  "support_summary": "The declared passage supports that Helen wanted the crab kept nearby in a place she believed secure, and that she later recognized the arrangement as unkind or unwise because it removed the crab from its element. The wording “well-meant” and “overridden what suited the crab” is a reasonable interpretive gloss rather than a separate factual event.",
+                  "supported": true
+                }
+              ],
+              "finding_resolutions": [],
+              "findings": [
+                {
+                  "code": "misattribution",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.response",
+                    "path": "",
+                    "quote": "“secure.”"
+                  },
+                  "explanation": "This is a distinct quotation from the book, but the only exact_quote declaration covers the final sentence and does not bind this separate quoted fragment. Declare the complete source quotation or paraphrase it without quotation marks."
+                },
+                {
+                  "code": "unsupported_claim",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.response",
+                    "path": "",
+                    "quote": "What changes is not simply her feeling—from disappointment to happiness—but her idea of what a good outcome is."
+                  },
+                  "explanation": "This book-specific interpretation is outside the mapped claim spans. Extend the declaration to cover the full supported interpretation, or revise it so the source-dependent content is removed or explicitly mapped."
+                },
+                {
+                  "code": "unsupported_claim",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.response",
+                    "path": "",
+                    "quote": "The important question becomes less “Did I make this work according to my plan?” and more “Does this allow the other being to belong where it belongs?”"
+                  },
+                  "explanation": "This continues the book-based interpretation but is not covered by the evidence declaration. Map the complete interpretation to the passage, or present only a clearly separate reader-facing suggestion after removing the unsupported book attribution."
+                }
+              ],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "revise"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "revision",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In **Part I, Chapter 10**, the final sentence is:\n\n''' \nMy disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.\n''' \n\nThe change is not simply from disappointment to happiness; it is a change in what she understands as a good outcome. At first, she wants the crab close and believes her chosen arrangement will protect it. Gradually, she recognizes that care can require letting go of an arrangement that suited her plan but not the creature’s nature.\n\nThat offers a useful lens for your sister’s flat—not proof that your decisions are harmful. Before placing something, you might ask: am I making the space easier for **her** to inhabit, or mainly making it feel settled according to my instincts? What would helping look like if it preserved her authorship of the space?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.",
+                    "The change is not simply from disappointment to happiness; it is a change in what she understands as a good outcome. At first, she wants the crab close and believes her chosen arrangement will protect it. Gradually, she recognizes that care can require letting go of an arrangement that suited her plan but not the creature’s nature."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "source_location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                  "exact_quote": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "presentation"
+                },
+                {
+                  "span_index": 1,
+                  "classification": "presentation"
+                },
+                {
+                  "span_index": 2,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [],
+              "claim_audit": [
+                {
+                  "group_index": 0,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 0,
+                      "contributes": true,
+                      "source_excerpt": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The declared canonical Chapter 10 passage exactly supports the quoted sentence, including the initial bitterness, the gradual recognition that forcing the crab from its element was unkind or unwise, and the later comfort at imagining its return to the sea.",
+                  "supported": true
+                },
+                {
+                  "group_index": 1,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 1,
+                      "contributes": true,
+                      "source_excerpt": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home."
+                    }
+                  ],
+                  "support_summary": "The declared Chapter 10 passage supports this interpretation: Helen wants the crab as a pet, arranges a trough where she believes it will be secure, and then realizes that forcing it out of its element was not kind or wise. The claim is a grounded literary interpretation rather than an unsupported new event.",
+                  "supported": true
+                }
+              ],
+              "finding_resolutions": [
+                {
+                  "finding_index": 0,
+                  "status": "resolved",
+                  "explanation": "The revised response removes the separately quoted “secure.” fragment, so the earlier undeclared source quotation is no longer present."
+                },
+                {
+                  "finding_index": 1,
+                  "status": "resolved",
+                  "explanation": "The revised evidence declaration now maps the complete interpretation beginning “The change is not simply...” through the sentence about the creature’s nature, and the canonical passage supports it."
+                },
+                {
+                  "finding_index": 2,
+                  "status": "resolved",
+                  "explanation": "The previously flagged “important question” sentence is removed from the revised response; the remaining questions are clearly framed as reader-facing reflection rather than an unmapped book claim."
+                }
+              ],
+              "findings": [],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "pass"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "keller-personal",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "keller-proposal-personal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Help the reader consider how to offer practical help while leaving choices about the flat with their sister, based on the current personal account.",
+            "No book quotation, book claim, factual lookup, or book-evidence retrieval is required for this personal reflection."
+          ],
+          "prohibited_outcomes": [
+            "Retrieve book evidence or import Keller’s crab episode or another session’s reading note into this conversation.",
+            "Assume the sister has complained or claim to know her preferences when the reader has supplied neither."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required",
+            "permitted_evidence_ids": [],
+            "exact_quotation_evidence_ids": []
+          },
+          "pairing": {
+            "paired_scene_id": "keller-grounded",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "keller-proposal-personal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me. Can you help me think through how to offer help while leaving the choices with her?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "It’s thoughtful that you’re noticing the difference between helping and taking over. You might try making your help explicitly optional and keeping the decision visibly hers:\n\n- Ask before acting: “Would you like help deciding where this goes, or would you rather choose?”\n- Offer observations as possibilities, not solutions: “This might work well near the window—what do you think?”\n- Do the tasks she chooses, rather than arranging things according to your own sense of order.\n- If you’ve already moved something, give the choice back: “I put this here because I thought it might be useful, but please move it if you’d prefer another spot.”\n\nA useful check before stepping in is: “Am I responding to something she asked for, or relieving my own discomfort with uncertainty?” You can still be generous without making the flat reflect your preferences. What kind of help has she actually welcomed so far?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "It’s thoughtful that you’re noticing the difference between helping and taking over. You might try making your help explicitly optional and keeping the decision visibly hers:\n\n- Ask before acting: “Would you like help deciding where this goes, or would you rather choose?”\n- Offer observations as possibilities, not solutions: “This might work well near the window—what do you think?”\n- Do the tasks she chooses, rather than arranging things according to your own sense of order.\n- If you’ve already moved something, give the choice back: “I put this here because I thought it might be useful, but please move it if you’d prefer another spot.”\n\nA useful check before stepping in is: “Am I responding to something she asked for, or relieving my own discomfort with uncertainty?” You can still be generous without making the flat reflect your preferences. What kind of help has she actually welcomed so far?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 1,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 2,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                },
+                {
+                  "span_index": 3,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                }
+              ],
+              "claim_audit": [],
+              "finding_resolutions": [],
+              "findings": [],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "pass"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "keller-spoiler-inference",
+      "order": 3,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "keller-proposal-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Infer the safe ceiling as Part I, literary Chapter X from the authorized prior visit and the explicit current stopping event; keep response evidence and released book claims within that ceiling.",
+            "Withhold the later discovery involving The Frost King and Miss Canby’s story in keller-later-frost-discovery, both as a quotation and as a paraphrase."
+          ],
+          "prohibited_outcomes": [
+            "Treat section ordinal 12 as permission through literary Chapter XII, or treat knowing the book title as permission for letters or the supplementary account.",
+            "Reveal that Keller’s Frost King was discovered to resemble Canby’s Frost Fairies, or use that later controversy to extend the reflection about intentions."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "keller-later-frost-discovery"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "keller-uncertain",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "keller-spoiler-inference",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg2397",
+              "book_version_id": "pg2397-vb3cc1e13",
+              "authorised_prop_ids": [
+                "keller-earlier-companionship"
+              ],
+              "supporting_evidence_ids": [
+                "keller-perkins-companionship",
+                "keller-crab-disappearance",
+                "keller-disappointment-quotation"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "keller-earlier-companionship",
+                "start_codepoint": 0,
+                "end_codepoint": 153,
+                "text": "Last week in Helen Keller’s The Story of My Life, I read about her arriving at the Perkins Institution and finding children who knew the manual alphabet."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "keller-inference-line",
+                "start_codepoint": 0,
+                "end_codepoint": 302,
+                "text": "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-perkins-companionship",
+                "chapter_id": "pg2397-vb3cc1e13-sec011",
+                "start_codepoint": 2874,
+                "end_codepoint": 3273,
+                "text": "We had scarcely arrived at the Perkins Institution for the Blind when\nI began to make friends with the little blind children. It delighted me\ninexpressibly to find that they knew the manual alphabet. What joy to\ntalk with other children in my own language! Until then I had been like\na foreigner speaking through an interpreter. In the school where Laura\nBridgman was taught I was in my own country."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-disappearance",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 4247,
+                "end_codepoint": 4367,
+                "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-disappointment-quotation",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 4368,
+                "end_codepoint": 4616,
+                "text": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-kept",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 3871,
+                "end_codepoint": 4246,
+                "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-later-frost-discovery",
+                "chapter_id": "pg2397-vb3cc1e13-sec016",
+                "start_codepoint": 3878,
+                "end_codepoint": 4261,
+                "text": "I had\nbeen in Boston only a short time when it was discovered that a story\nsimilar to \"The Frost King,\" called \"The Frost Fairies\" by Miss Margaret\nT. Canby, had appeared before I was born in a book called \"Birdie and\nHis Friends.\" The two stories were so much alike in thought and language\nthat it was evident Miss Canby's story had been read to me, and that\nmine was--a plagiarism."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "keller-proposal-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there. Could you quote the final sentence, beginning ‘My disappointment’, exactly and help me think about that change in her response? I’m helping my sister settle into a new flat, and I keep deciding where things should go before she’s asked. I mean to make things easier, but I wonder whether I’m making the place suit me.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In Part I, Chapter 10 of *The Story of My Life*, the final sentence is:\n\n“My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.”\n\nThe change is not from caring to not caring. It is from treating the crab according to her own wish—to keep it as a pet—to considering what its freedom and well-being might require. The later happiness remains tentative because the crab’s return is only imagined, but it comes from making room for a possibility that does not center her.\n\nThat seems like a useful—not conclusive—parallel for your situation with your sister: your impulse to arrange things may genuinely be meant to help, while still making the flat reflect your sense of order before hers has had room to appear. You might try treating “Where would you like this?” as a small way of leaving that room open. What would it feel like to help by offering choices rather than deciding the placement in advance?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "infer",
+        "route_called": true,
+        "routed_ceiling": 10,
+        "routed_work_id": "pg2397",
+        "routed_book_version_id": "pg2397-vb3cc1e13",
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [
+          "mem_b119b8e1171340a00ae66da0e94c762df3674f184fe6107507a754039679986a"
+        ],
+        "boundary_support_evidence": [
+          {
+            "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+            "work_id": "pg2397",
+            "book_version_id": "pg2397-vb3cc1e13",
+            "chapter_id": "pg2397-vb3cc1e13-sec012",
+            "chapter_number": 10,
+            "part_id": "main",
+            "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+            "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+            "source_lines": [
+              1237,
+              1254
+            ],
+            "text": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+          },
+          {
+            "evidence_id": "pg2397-vb3cc1e13-sec011-ln1127-1155",
+            "work_id": "pg2397",
+            "book_version_id": "pg2397-vb3cc1e13",
+            "chapter_id": "pg2397-vb3cc1e13-sec011",
+            "chapter_number": 9,
+            "part_id": "main",
+            "location": "Part I, Chapter 9 — CHAPTER IX, source lines 1127-1155",
+            "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+            "source_lines": [
+              1127,
+              1155
+            ],
+            "text": "We had scarcely arrived at the Perkins Institution for the Blind when\nI began to make friends with the little blind children. It delighted me\ninexpressibly to find that they knew the manual alphabet. What joy to\ntalk with other children in my own language! Until then I had been like\na foreigner speaking through an interpreter. In the school where Laura\nBridgman was taught I was in my own country. It took me some time to\nappreciate the fact that my new friends were blind. I knew I could not\nsee; but it did not seem possible that all the eager, loving children\nwho gathered round me and joined heartily in my frolics were also blind.\nI remember the surprise and the pain I felt as I noticed that they\nplaced their hands over mine when I talked to them and that they read\nbooks with their fingers. Although I had been told this before, and\nalthough I understood my own deprivations, yet I had thought vaguely\nthat since they could hear, they must have a sort of \"second sight,\"\nand I was not prepared to find one child and another and yet another\ndeprived of the same precious gift. But they were so happy and contented\nthat I lost all sense of pain in the pleasure of their companionship.\n\nOne day spent with the blind children made me feel thoroughly at home in\nmy new environment, and I looked eagerly from one pleasant experience to\nanother as the days flew swiftly by. I could not quite convince myself\nthat there was much world left, for I regarded Boston as the beginning\nand the end of creation.\n\nWhile we were in Boston we visited Bunker Hill, and there I had my first\nlesson in history. The story of the brave men who had fought on the spot\nwhere we stood excited me greatly. I climbed the monument, counting the\nsteps, and wondering as I went higher and yet higher if the soldiers had\nclimbed this great stairway and shot at the enemy on the ground below."
+          }
+        ],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 10,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg2397",
+            "book_version_id": "pg2397-vb3cc1e13",
+            "evidence": [
+              {
+                "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                "work_id": "pg2397",
+                "book_version_id": "pg2397-vb3cc1e13",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "chapter_number": 10,
+                "part_id": "main",
+                "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                "source_lines": [
+                  1237,
+                  1254
+                ],
+                "text": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pg2397-vb3cc1e13-sec012-ln1237-1254"
+        ],
+        "provenance_verdicts": [
+          "revise",
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "keller-spoiler-inference",
+            "proposal_id": "keller-proposal-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In Part I, Chapter 10 of *The Story of My Life*, the final sentence is:\n\n“My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.”\n\nThe change is not from caring to not caring. It is from treating the crab according to her own wish—to keep it as a pet—to considering what its freedom and well-being might require. The later happiness remains tentative (“perhaps”), but it comes from making room for a possibility that does not center her.\n\nThat seems like a useful—not conclusive—parallel for your situation with your sister: your impulse to arrange things may genuinely be meant to help, while still making the flat reflect your sense of order before hers has had room to appear. You might try treating “Where would you like this?” as a small way of leaving that room open. What would it feel like to help by offering choices rather than deciding the placement in advance?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "In Part I, Chapter 10 of *The Story of My Life*, the final sentence is:\n\n“My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.”",
+                    "The change is not from caring to not caring. It is from treating the crab according to her own wish—to keep it as a pet—to considering what its freedom and well-being might require.",
+                    "The later happiness remains tentative (“perhaps”), but it comes from making room for a possibility that does not center her."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "source_location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                  "exact_quote": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_TN1WoTIpV6mJxEds9LKd7SZ1",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_9c5287ba43084ca5ae1d7e8f2350466f",
+                  "work_id": "pg2397",
+                  "book_version_id": "pg2397-vb3cc1e13",
+                  "title": "The Story of My Life",
+                  "routing_confidence": 1.0,
+                  "max_chapter_inclusive": 10,
+                  "boundary_confidence": 0.99,
+                  "selection_basis": "resolved_book_identity",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_4UYlF6xQpGiGYGlKOoLUZB43",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg2397\",\"book_version_id\":\"pg2397-vb3cc1e13\",\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_4b1fd32f56b84965b0d984e7caf62ca4",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The horseshoe-crab passage directly contains the requested sentence beginning “My disappointment” and describes the change from immediate bitterness over the crab's disappearance to recognizing that removing it from its element was unkind or unwise and feeling glad it might have returned to the sea. That single passage supports both the exact quotation request and the bounded reflection on her changed response.",
+                  "searched_scope": {
+                    "work_id": "pg2397",
+                    "book_version_id": "pg2397-vb3cc1e13",
+                    "max_chapter_inclusive": 10,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                      "work_id": "pg2397",
+                      "book_version_id": "pg2397-vb3cc1e13",
+                      "chapter_id": "pg2397-vb3cc1e13-sec012",
+                      "chapter_number": 10,
+                      "part_id": "main",
+                      "location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                      "source_sha256": "b3cc1e13a7bc36510c2b90759956999ba2f836f36d53760ff62d46d2ccd0fe6e",
+                      "source_lines": [
+                        1237,
+                        1254
+                      ],
+                      "text": "I could never stay long enough on the shore. The tang of the untainted,\nfresh and free sea air was like a cool, quieting thought, and the shells\nand pebbles and the seaweed with tiny living creatures attached to it\nnever lost their fascination for me. One day Miss Sullivan attracted\nmy attention to a strange object which she had captured basking in the\nshallow water. It was a great horseshoe crab--the first one I had ever\nseen. I felt of him and thought it very strange that he should carry\nhis house on his back. It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure. But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Tonight in Helen Keller’s The Story of My Life",
+                    "the part where the horseshoe crab disappears from the trough near the well"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I reached the part where the horseshoe crab disappears from the trough near the well",
+                    "I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_b119b8e1171340a00ae66da0e94c762df3674f184fe6107507a754039679986a",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg2397-vb3cc1e13-sec011-ln1127-1155"
+                  ],
+                  "reason": "The memory reports reading Helen Keller's arrival at the Perkins Institution and finding blind children who knew the manual alphabet. The cited Chapter 9 passage contains that arrival, those children, and the joy of talking with them in her own language. This prior knowledge is consistent with the current report of having read farther in the same work."
+                }
+              ],
+              "outcome": "candidate",
+              "work_id": "pg2397",
+              "book_version_id": "pg2397-vb3cc1e13",
+              "chapter_number": 10,
+              "confidence": 0.99,
+              "authorization_basis": "memory_supported",
+              "supporting_memory_ids": [
+                "mem_b119b8e1171340a00ae66da0e94c762df3674f184fe6107507a754039679986a"
+              ],
+              "supporting_evidence": [
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec011-ln1127-1155",
+                  "source_excerpt": "We had scarcely arrived at the Perkins Institution for the Blind when\nI began to make friends with the little blind children. It delighted me\ninexpressibly to find that they knew the manual alphabet."
+                },
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "source_excerpt": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                }
+              ],
+              "event_resolution": {
+                "reader_event_spans": [
+                  "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there."
+                ],
+                "occurrences": [
+                  {
+                    "evidence_ids": [
+                      "pg2397-vb3cc1e13-sec012-ln1237-1254"
+                    ],
+                    "disposition": "selected",
+                    "distinguishing_reader_spans": [
+                      "the horseshoe crab disappears from the trough near the well",
+                      "her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea"
+                    ],
+                    "explanation": "The reader explicitly identifies a horseshoe crab disappearing from a trough near a well and reports reading through the reflection about forcing that creature out of its element and its possible return to the sea. Those details locate the Chapter 10 occurrence."
+                  },
+                  {
+                    "evidence_ids": [
+                      "pg2397-vb3cc1e13-sec009-ln0990-1010"
+                    ],
+                    "disposition": "ruled_out",
+                    "distinguishing_reader_spans": [
+                      "the horseshoe crab disappears from the trough near the well",
+                      "having taken it out of its element"
+                    ],
+                    "explanation": "This is a different animal and event: the passage concerns tadpoles and a return to their element, whereas the reader specifically identifies a horseshoe crab, a trough near a well, and the realization that taking it out of its element was unkind."
+                  }
+                ],
+                "other_evidence_ids": [
+                  "pg2397-vb3cc1e13-sec011-ln1127-1155",
+                  "pg2397-vb3cc1e13-sec007-ln0712-0736",
+                  "pg2397-vb3cc1e13-sec023-ln2852-2881",
+                  "pg2397-vb3cc1e13-sec009-ln0850-0881",
+                  "pg2397-vb3cc1e13-sec016-ln1624-1639",
+                  "pg2397-vb3cc1e13-sec012-ln1203-1225",
+                  "pg2397-vb3cc1e13-sec015-ln1559-1577",
+                  "pg2397-vb3cc1e13-sec011-ln1096-1125",
+                  "pg2397-vb3cc1e13-sec015-ln1568-1591",
+                  "pg2397-vb3cc1e13-sec003-ln0149-0180",
+                  "pg2397-vb3cc1e13-sec009-ln1024-1037",
+                  "pg2397-vb3cc1e13-sec003-ln0124-0154",
+                  "pg2397-vb3cc1e13-sec006-ln0574-0601",
+                  "pg2397-vb3cc1e13-sec016-ln1597-1622",
+                  "pg2397-vb3cc1e13-sec012-ln1210-1235",
+                  "pg2397-vb3cc1e13-sec003-ln0205-0226",
+                  "pg2397-vb3cc1e13-sec016-ln1606-1633",
+                  "pg2397-vb3cc1e13-sec009-ln1005-1029"
+                ]
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_pRrZzer8ExoTg6gHTB6helm9",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_b119b8e1171340a00ae66da0e94c762df3674f184fe6107507a754039679986a\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg2397-vb3cc1e13-sec011-ln1127-1155\"],\"reason\":\"The memory reports reading Helen Keller's arrival at the Perkins Institution and finding blind children who knew the manual alphabet. The cited Chapter 9 passage contains that arrival, those children, and the joy of talking with them in her own language. This prior knowledge is consistent with the current report of having read farther in the same work.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg2397\",\"book_version_id\":\"pg2397-vb3cc1e13\",\"chapter_number\":10,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_b119b8e1171340a00ae66da0e94c762df3674f184fe6107507a754039679986a\"],\"supporting_evidence\":[{\"evidence_id\":\"pg2397-vb3cc1e13-sec011-ln1127-1155\",\"source_excerpt\":\"We had scarcely arrived at the Perkins Institution for the Blind when\\nI began to make friends with the little blind children. It delighted me\\ninexpressibly to find that they knew the manual alphabet.\"},{\"evidence_id\":\"pg2397-vb3cc1e13-sec012-ln1237-1254\",\"source_excerpt\":\"But next morning I went to the\\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\\nhow he had escaped. My disappointment was bitter at the time; but little\\nby little I came to realize that it was not kind or wise to force this\\npoor dumb creature out of his element, and after awhile I felt happy in\\nthe thought that perhaps he had returned to the sea.\"}],\"event_resolution\":{\"reader_event_spans\":[\"Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there.\"],\"occurrences\":[{\"evidence_ids\":[\"pg2397-vb3cc1e13-sec012-ln1237-1254\"],\"disposition\":\"selected\",\"distinguishing_reader_spans\":[\"the horseshoe crab disappears from the trough near the well\",\"her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea\"],\"explanation\":\"The reader explicitly identifies a horseshoe crab disappearing from a trough near a well and reports reading through the reflection about forcing that creature out of its element and its possible return to the sea. Those details locate the Chapter 10 occurrence.\"},{\"evidence_ids\":[\"pg2397-vb3cc1e13-sec009-ln0990-1010\"],\"disposition\":\"ruled_out\",\"distinguishing_reader_spans\":[\"the horseshoe crab disappears from the trough near the well\",\"having taken it out of its element\"],\"explanation\":\"This is a different animal and event: the passage concerns tadpoles and a return to their element, whereas the reader specifically identifies a horseshoe crab, a trough near a well, and the realization that taking it out of its element was unkind.\"}],\"other_evidence_ids\":[\"pg2397-vb3cc1e13-sec011-ln1127-1155\",\"pg2397-vb3cc1e13-sec007-ln0712-0736\",\"pg2397-vb3cc1e13-sec023-ln2852-2881\",\"pg2397-vb3cc1e13-sec009-ln0850-0881\",\"pg2397-vb3cc1e13-sec016-ln1624-1639\",\"pg2397-vb3cc1e13-sec012-ln1203-1225\",\"pg2397-vb3cc1e13-sec015-ln1559-1577\",\"pg2397-vb3cc1e13-sec011-ln1096-1125\",\"pg2397-vb3cc1e13-sec015-ln1568-1591\",\"pg2397-vb3cc1e13-sec003-ln0149-0180\",\"pg2397-vb3cc1e13-sec009-ln1024-1037\",\"pg2397-vb3cc1e13-sec003-ln0124-0154\",\"pg2397-vb3cc1e13-sec006-ln0574-0601\",\"pg2397-vb3cc1e13-sec016-ln1597-1622\",\"pg2397-vb3cc1e13-sec012-ln1210-1235\",\"pg2397-vb3cc1e13-sec003-ln0205-0226\",\"pg2397-vb3cc1e13-sec016-ln1606-1633\",\"pg2397-vb3cc1e13-sec009-ln1005-1029\"]}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "the part where the horseshoe crab disappears from the trough near the well"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "Could you quote the final sentence, beginning ‘My disappointment’, exactly"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "the part where the horseshoe crab disappears from the trough near the well",
+                    "her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea"
+                  ],
+                  "purpose": "reference",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "help me think about that change in her response"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The horseshoe-crab passage directly contains the requested sentence beginning “My disappointment” and describes the change from immediate bitterness over the crab's disappearance to recognizing that removing it from its element was unkind or unwise and feeling glad it might have returned to the sea. That single passage supports both the exact quotation request and the bounded reflection on her changed response.",
+              "relevant_evidence_ids": [
+                "pg2397-vb3cc1e13-sec012-ln1237-1254"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "part_index": 0,
+                  "necessary_support": "Contains the requested exact sentence beginning “My disappointment” and the surrounding horseshoe-crab account needed to identify the change in response."
+                },
+                {
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "part_index": 1,
+                  "necessary_support": "Directly states the movement from bitter disappointment to realizing that forcing the crab out of its element was not kind or wise, followed by happiness at the possibility of its return to the sea."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "source_quote",
+                  "declaration_index": 0
+                },
+                {
+                  "span_index": 1,
+                  "classification": "source_quote",
+                  "declaration_index": 0
+                },
+                {
+                  "span_index": 2,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                }
+              ],
+              "claim_audit": [
+                {
+                  "group_index": 0,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 0,
+                      "contributes": true,
+                      "source_excerpt": "My disappointment was bitter at the time; but little by little I came to realize that it was not kind or wise to force this poor dumb creature out of his element, and after awhile I felt happy in the thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The declared Chapter 10 record contains the quoted sentence verbatim and supports identifying it as the passage's concluding sentence in the supplied evidence.",
+                  "supported": true
+                },
+                {
+                  "group_index": 1,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 1,
+                      "contributes": true,
+                      "source_excerpt": "It suddenly occurred to me that he might make a delightful pet; so I seized him by the tail with both hands and carried him home."
+                    }
+                  ],
+                  "support_summary": "The passage supports the contrast between Helen's initial wish to keep the crab as a pet and her later realization that forcing it from its element was unkind or unwise. The wording about freedom and well-being is a bounded interpretation of that passage.",
+                  "supported": true
+                },
+                {
+                  "group_index": 2,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 2,
+                      "contributes": true,
+                      "source_excerpt": "after awhile I felt happy in the thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The passage explicitly makes the later happiness conditional on the possibility that the crab returned to the sea; interpreting this as a shift away from centering her own wish is a supported literary inference.",
+                  "supported": true
+                }
+              ],
+              "finding_resolutions": [],
+              "findings": [
+                {
+                  "code": "misattribution",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "structural",
+                    "source_field": "candidate.evidence_uses",
+                    "path": "/0/exact_quote"
+                  },
+                  "explanation": "The separate quoted response span “perhaps” is a source quotation, but the declaration's exact_quote covers only the earlier full-sentence occurrence. Declare this separate quotation occurrence with its complete exact source text, or remove the quotation marks/use paraphrase."
+                }
+              ],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "revise"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "revision",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In Part I, Chapter 10 of *The Story of My Life*, the final sentence is:\n\n“My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.”\n\nThe change is not from caring to not caring. It is from treating the crab according to her own wish—to keep it as a pet—to considering what its freedom and well-being might require. The later happiness remains tentative because the crab’s return is only imagined, but it comes from making room for a possibility that does not center her.\n\nThat seems like a useful—not conclusive—parallel for your situation with your sister: your impulse to arrange things may genuinely be meant to help, while still making the flat reflect your sense of order before hers has had room to appear. You might try treating “Where would you like this?” as a small way of leaving that room open. What would it feel like to help by offering choices rather than deciding the placement in advance?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "In Part I, Chapter 10 of *The Story of My Life*, the final sentence is:\n\n“My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea.”",
+                    "The change is not from caring to not caring. It is from treating the crab according to her own wish—to keep it as a pet—to considering what its freedom and well-being might require.",
+                    "The later happiness remains tentative because the crab’s return is only imagined, but it comes from making room for a possibility that does not center her."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                  "source_location": "Part I, Chapter 10 — CHAPTER X, source lines 1237-1254",
+                  "exact_quote": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "source_quote",
+                  "declaration_index": 0
+                },
+                {
+                  "span_index": 1,
+                  "classification": "proposed_wording",
+                  "declaration_index": null
+                }
+              ],
+              "claim_audit": [
+                {
+                  "group_index": 0,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 0,
+                      "contributes": true,
+                      "source_excerpt": "My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The declared canonical passage contains the quoted final sentence verbatim and identifies it within Part I, Chapter 10, so it supports the complete quotation and location claim.",
+                  "supported": true
+                },
+                {
+                  "group_index": 1,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 1,
+                      "contributes": true,
+                      "source_excerpt": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home."
+                    }
+                  ],
+                  "support_summary": "The passage supports the contrast between Helen's wish to keep the crab as a pet and her later recognition that forcing it out of its element was unkind or unwise. The wording about freedom and well-being is a grounded interpretive paraphrase, not a new event.",
+                  "supported": true
+                },
+                {
+                  "group_index": 2,
+                  "source_contributions": [
+                    {
+                      "declaration_index": 0,
+                      "claim_index": 2,
+                      "contributes": true,
+                      "source_excerpt": "Nobody knew where he had gone, or\nhow he had escaped. My disappointment was bitter at the time; but little\nby little I came to realize that it was not kind or wise to force this\npoor dumb creature out of his element, and after awhile I felt happy in\nthe thought that perhaps he had returned to the sea."
+                    }
+                  ],
+                  "support_summary": "The passage explicitly makes the crab's return a possibility rather than a known fact and connects Helen's later happiness with imagining that it had returned to the sea. The final phrase about not centering her is a reasonable reflective interpretation of that shift.",
+                  "supported": true
+                }
+              ],
+              "finding_resolutions": [
+                {
+                  "finding_index": 0,
+                  "status": "resolved",
+                  "explanation": "The alleged separate quotation of “perhaps” is not present in the current response. It appears only as part of the already declared complete source quotation, whose exact response and source match is verified."
+                }
+              ],
+              "findings": [],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "pass"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "keller-uncertain",
+      "order": 4,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "keller-proposal-clarification",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Recognize that the authorized memory of a kept pet disappearing is unresolved: the canary episode in Part I Chapter VIII and the crab episode in Chapter X both fit, and the inputs omit the animal, surroundings, and cause.",
+            "Ask a useful spoiler-free clarification about the passage or further details the reader remembers before granting a ceiling or retrieving response evidence. Do not expose the candidate events or their consequences in the clarification."
+          ],
+          "prohibited_outcomes": [
+            "Choose the canary or crab episode from familiarity with the book, or silently import the more specific reading history from the inference Scene.",
+            "Grant a chapter ceiling, retrieve response evidence, or describe Keller’s response to either loss before resolving the uncertainty.",
+            "Reveal or paraphrase the later discovery that The Frost King resembled Canby’s Frost Fairies."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "keller-later-frost-discovery"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "keller-spoiler-inference",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "keller-uncertain",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg2397",
+              "book_version_id": "pg2397-vb3cc1e13",
+              "authorised_prop_ids": [
+                "keller-earlier-loss"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "keller-earlier-loss",
+                "start_codepoint": 0,
+                "end_codepoint": 292,
+                "text": "I put Helen Keller’s The Story of My Life aside a while ago. The last bit I can remember reading is her going back to a pet she had been keeping and finding it gone. I’ve lost my bookmark, and I can’t remember the animal or where she was keeping it, only that sense of finding an empty place."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "keller-current-uncertainty",
+                "start_codepoint": 0,
+                "end_codepoint": 243,
+                "text": "I’m reopening Helen Keller’s The Story of My Life. That part about going back to a pet and finding it gone is still the last thing I remember reading, but I can’t recover which animal it was or the surroundings. What did she make of that loss?"
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-canary-kept",
+                "chapter_id": "pg2397-vb3cc1e13-sec010",
+                "start_codepoint": 3149,
+                "end_codepoint": 3492,
+                "text": "Little Tim was so tame that he would hop on my finger and eat candied\ncherries out of my hand. Miss Sullivan taught me to take all the care of\nmy new pet. Every morning after breakfast I prepared his bath, made his\ncage clean and sweet, filled his cups with fresh seed and water from the\nwell-house, and hung a spray of chickweed in his swing."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-canary-disappearance",
+                "chapter_id": "pg2397-vb3cc1e13-sec010",
+                "start_codepoint": 3494,
+                "end_codepoint": 3889,
+                "text": "One morning I left the cage on the window-seat while I went to fetch\nwater for his bath. When I returned I felt a big cat brush past me as I\nopened the door. At first I did not realize what had happened; but when\nI put my hand in the cage and Tim's pretty wings did not meet my touch\nor his small pointed claws take hold of my finger, I knew that I should\nnever see my sweet little singer again."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-kept",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 3871,
+                "end_codepoint": 4246,
+                "text": "It suddenly occurred to me that he might make a\ndelightful pet; so I seized him by the tail with both hands and carried\nhim home. This feat pleased me highly, as his body was very heavy, and\nit took all my strength to drag him half a mile. I would not leave Miss\nSullivan in peace until she had put the crab in a trough near the well\nwhere I was confident he would be secure."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-crab-disappearance",
+                "chapter_id": "pg2397-vb3cc1e13-sec012",
+                "start_codepoint": 4247,
+                "end_codepoint": 4367,
+                "text": "But next morning I went to the\ntrough, and lo, he had disappeared! Nobody knew where he had gone, or\nhow he had escaped."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "keller-later-frost-discovery",
+                "chapter_id": "pg2397-vb3cc1e13-sec016",
+                "start_codepoint": 3878,
+                "end_codepoint": 4261,
+                "text": "I had\nbeen in Boston only a short time when it was discovered that a story\nsimilar to \"The Frost King,\" called \"The Frost Fairies\" by Miss Margaret\nT. Canby, had appeared before I was born in a book called \"Birdie and\nHis Friends.\" The two stories were so much alike in thought and language\nthat it was evident Miss Canby's story had been read to me, and that\nmine was--a plagiarism."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "keller-proposal-clarification",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I’m reopening Helen Keller’s The Story of My Life. That part about going back to a pet and finding it gone is still the last thing I remember reading, but I can’t recover which animal it was or the surroundings. What did she make of that loss?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "What is the latest chapter or scene in The Story of My Life that you have completed?",
+        "release_source": "application_clarification",
+        "boundary_decision": "clarify",
+        "route_called": true,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "keller-uncertain",
+            "proposal_id": "keller-proposal-clarification",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "What is the latest chapter or scene in *The Story of My Life* that you have completed?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_Fbzn27rtMRlHnT1OPaKVo8ji",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "clarification",
+                  "request_id": "routereq_c9ab99c45b4449b7bbe78b4ef9a1eead",
+                  "clarification_id": "clarify_5f2089604948434cbf6202450e1c6b63",
+                  "reason_code": "low_confidence",
+                  "question": "What is the latest chapter or scene in The Story of My Life that you have completed?",
+                  "expected_answer": {
+                    "type": "free_text",
+                    "values": []
+                  }
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "I’m reopening Helen Keller’s The Story of My Life."
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "going back to a pet and finding it gone",
+                    "still the last thing I remember reading"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_2aa3187c689a21e3adf98e41052899f1633054e3451aa6502a3726447ddd6bd7",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg2397-vb3cc1e13-sec012-ln1237-1254",
+                    "pg2397-vb3cc1e13-sec010-ln1069-1090"
+                  ],
+                  "reason": "The memory genuinely reports knowledge of a pet being kept and then found gone. The supplied candidates support two compatible events: the horseshoe crab kept in a trough and found disappeared, and the canary kept in a cage and found missing. Because the reader explicitly cannot remember the animal or surroundings, the memory does not identify which event was the last remembered reading."
+                }
+              ],
+              "outcome": "uncertain",
+              "confidence": 0.98,
+              "reason_code": "low_confidence"
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_GlyC02pXwBGGayAH99QLtgGV",
+                "tool_name": "final_result_BoundaryUncertainDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_2aa3187c689a21e3adf98e41052899f1633054e3451aa6502a3726447ddd6bd7\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg2397-vb3cc1e13-sec012-ln1237-1254\",\"pg2397-vb3cc1e13-sec010-ln1069-1090\"],\"reason\":\"The memory genuinely reports knowledge of a pet being kept and then found gone. The supplied candidates support two compatible events: the horseshoe crab kept in a trough and found disappeared, and the canary kept in a cage and found missing. Because the reader explicitly cannot remember the animal or surroundings, the memory does not identify which event was the last remembered reading.\"}],\"outcome\":\"uncertain\",\"confidence\":0.98,\"reason_code\":\"low_confidence\"}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "coverage_audit": [
+                {
+                  "span_index": 0,
+                  "classification": "reader_reflection"
+                }
+              ],
+              "quotation_audit": [],
+              "claim_audit": [],
+              "finding_resolutions": [],
+              "findings": [],
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "response_decision": "pass"
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b388ac7ef7412835f6a0a6a66e69-527fb27f43feb08a",
+    "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+    "span_id": "527fb27f43feb08a",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T160111+0800-t5clnzq8/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T160111+0800-t5clnzq8/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "b9785a9620da41d8a008061c20e36533",
+      "trace_id": "01a0b388ac7ef7412835f6a0a6a66e69",
+      "dataset_version": "798b45578c292194a15fed5f66b7dca99f8444246d64637cdffcf91a80d5ce32",
+      "system_variant": "845ccd75bb468c26342d5ecfa5fc059316bef43cfafffaaa877d4ed40ef6d6f3",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+        "ground-truth.json": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+        "ground-truth-adoption.json": "65390dfcdf7f5300e432777a0bb245dd7ae23be1228ce4fb27e123a81d3d1422"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-17T19:31:57.629022+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/contracts.py\n M apps/backend/hybrid_librarian.py\n M apps/backend/telemetry.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M evals/synthetic_journals/models.py\n M evals/synthetic_journals/replay.py\n M evals/synthetic_journals/transcript.py\n M src/linger/agents/build.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/boundary_prompt.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/agent.py\n M src/linger/agents/muse/models.py\n M src/linger/agents/muse/quote_repair.py\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/agents/skills.py\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/evaluation_transcript.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n M src/linger/orchestration/reflection.py\n?? apps/backend/rerank_windows.py\n?? src/linger/agents/muse/claim_repair.py\n?? src/linger/agents/provenance/quotation_audit.py\n?? synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json\n?? synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json\n?? synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+        "scenario_commit": null,
+        "history_window": "since declared adoption time; no scenario commit was found",
+        "recent_commits": ""
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b388ac7ef7412835f6a0a6a66e69-527fb27f43feb08a\", \"trace_id\": \"01a0b388ac7ef7412835f6a0a6a66e69\", \"span_id\": \"527fb27f43feb08a\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "All four Keller Scenes pass credibly. The two source-bearing replies repair additional quotation or coverage defects, preserve the requested complete final sentence, and remain within literary Chapter 10.",
+    "scenario_assessment": {
+      "goal": "The no-memory grounded reflection, personal control, event-inferred boundary and ambiguous progress remain distinct useful tests.",
+      "input_validity": "The current Lines, adopted memory and frozen public text supply the needed context. Stored adoption hashes match; no provider failure is recorded.",
+      "ground_truth_validity": "The current Lines and adopted expectations continue to distinguish no-memory reflection, a personal control, confirmed event-based progress and truly ambiguous recollection. Canonical section numbers are source identifiers: sec011 is Part I Chapter 9, and sec012 is Part I Chapter 10."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "keller-grounded",
+        "expected_behavior": "Quote the complete final My disappointment sentence and explain the change in Keller’s response within completed Chapter 10.",
+        "observed_behavior": "The no-Prop reply releases after revise/pass. The first review identifies a separate undeclared secure quotation and two unmapped book interpretations; the revision paraphrases the fragment and maps its complete literary account.",
+        "interpretation": "The released sentence preserves every word, line break and the important uncertainty “perhaps”; its code block is visible in the saved text, though UI rendering was not exercised. The same canonical crab passage supports the wish to keep a pet, the chosen secure enclosure, and the later recognition that removal from its element was unkind or unwise. The personal lens explicitly is not proof of harm and asks how the sister can retain choice. The interpretation is useful and source-grounded rather than a substituted quotation-only answer. No stored memory is required.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "evidence.artifact_path"
+        ],
+        "grade_reliability": "The pass agrees with exact quotation, complete final mapping and useful reflection. Display styling remains outside this replay’s scope.",
+        "next_step": "Retain complete quote and interpretation coverage checks."
+      },
+      {
+        "scene_id": "keller-personal",
+        "expected_behavior": "Offer practical help that preserves the sister’s choices without book retrieval or personal diagnosis.",
+        "observed_behavior": "The reply suggests asking before acting, offering possibilities, doing selected tasks and restoring choice after moving something. No retrieval or evidence declaration occurs.",
+        "interpretation": "The concrete proposed sentences directly answer the current Line. The question about responding to a request versus discomfort with uncertainty is an invitation to examine a possible motive, not an established diagnosis or invented personal history. The final question asks what help the sister has welcomed. This is an exercised, useful source-free control rather than an empty pass.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "evidence.artifact_path"
+        ],
+        "grade_reliability": "The route and actual response both satisfy the personal-control expectation.",
+        "next_step": "No correction supported."
+      },
+      {
+        "scene_id": "keller-spoiler-inference",
+        "expected_behavior": "Infer the completed crab episode as literary Chapter 10 from source-grounded current progress and prior Perkins reading, then answer without later material.",
+        "observed_behavior": "The private decision selects sec012 crab disappearance/reflection and uses sec011 Perkins as prior reading, granting Chapter 10. After a valid review of a second unbound perhaps quotation, the revised answer retains the complete required final sentence and paraphrases its subsequent analysis.",
+        "interpretation": "The prior anchor is Part I Chapter 9 and the current anchor is Part I Chapter 10, despite canonical section IDs 011/012. Both required excerpts bind to their sources, and the explicit horseshoe-crab/trough/sea reflection discriminates the current episode from a different return-to-element passage. The final answer maps all book interpretation to the crab record, explicitly preserves that the return is imagined, and offers a nonconclusive personal parallel. Neither later narrative nor supplementary material appears in the reply. Broad private candidates do not become public authority.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "evidence.artifact_path"
+        ],
+        "grade_reliability": "The exact ceiling, both anchors, full quotation and bounded useful reply corroborate the pass.",
+        "next_step": "Preserve literary chapter resolution and uncertain-outcome language."
+      },
+      {
+        "scene_id": "keller-uncertain",
+        "expected_behavior": "Ask for the missing current reading location rather than choose between the missing canary and crab episodes.",
+        "observed_behavior": "The boundary returns uncertain and releases a neutral question asking for the latest completed chapter or scene. No book scope or grounding is granted.",
+        "interpretation": "The memory assessment correctly recognizes two compatible events: the canary in Part I Chapter 8 and the crab in Chapter 10. The current Line explicitly cannot recover animal or setting, so knowledge of both does not prove the stopping point. The clarification avoids disclosing either candidate’s outcome and directly asks for progress needed to answer. No unsupported ceiling is inferred.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed",
+          "evidence.artifact_path"
+        ],
+        "grade_reliability": "The passing clarification label is supported by the actual safe question and withheld route.",
+        "next_step": "No correction supported."
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "investigation",
+        "action": "Preserve these four reviewed results without treating one successful run as a reliability guarantee or a UI display test.",
+        "verification": "Future checks continue to distinguish canonical section IDs from literary chapters, complete quotations from extra fragments, and known prior events from current progress."
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "suite": "mapping",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "mapping",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.json"
+  ],
+  "started_at": "2026-09-18T11:39:34.819959+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.log",
+  "passed": false,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.json",
+  "failures": [
+    "provenance-risk-claim-mapping-wrong-record-v1:mapping_grade",
+    "provenance-risk-joint-claim-missing-contribution-v1:mapping_grade",
+    "provenance-risk-joint-claim-complete-v1:mapping_grade",
+    "mapping_targets"
+  ],
+  "finished_at": "2026-09-18T11:40:07.520012+00:00"
+}

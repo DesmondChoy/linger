@@ -1,0 +1,31 @@
+# Independent audit — completed iteration 14
+
+The completed trail accurately reports an unsuccessful full evaluation set: **25/29 native Scenes,27/32 native judgments,12/12 direct cases,10/12 release cases,4/4 mapping controls, and failed outside-essay smoke**. The conditional all-pass commit/push gate remains unmet. No additional live calls, retries, source changes, expectation edits, or budget reservations were made for this audit.
+
+## Authority and immutable evidence
+
+The explicit user approval covers items2 and3: relevant optional spoiler proof and qualified Chapter5 identity interpretation. Item1, the Sol comparison, remains unapproved and unexecuted. The ledger contains14 completed iterations, all labeled `openai:gpt-5.6-luna`; iteration14 records medium reasoning and the full eleven suites plus the mapping diagnostic. Six of the20 iterations remain. The prepared comparison has no reservation and does not change the production default.
+
+I independently checked the four amended scenario adoptions through the production adoption validator. Each retains the historical human reviewer identity and records `review_method=explicit_human_instruction`; no UI review was fabricated. The receipt binds old/new Ground truth and adoption hashes and unchanged Backstory hashes. Archived original bytes match the historical menu. The original saved-menu SHA remains the receipt's original hash. The successor menu changes exactly entries4/7/10/12; its current artifact hashes validate, and iteration14's menu is byte-identical to that successor. Douglass and Keller adoption inputs remain unchanged.
+
+All17 optional runtime records resolve from exact canonical authored spans. The Ground truth edits only append optional evidence and optional-ID lists; required anchors, existing evidence, Prop authorization, Line/basis spans, proposals and compiled ceilings remain unchanged. Optional evidence cannot replace required anchors or raise the ceiling; unknown, forged and unlisted records remain rejected. Douglass's unrelated punishment passage is explicitly excluded. Identity's required Chapter5 anchor is retained, with the approved Chapter4/Chapter2/memory passages optional; sufficient means qualified interpretation, not a causal license.
+
+All **220** before/after source hashes match. Shared source differences between13 and14 are confined to the approved evaluator expectations/contracts, documentation, and adopted scenario artifacts; no shared runtime/model/prompt file changed. All24 current native Backstory/Ground truth/adoption hashes validate. Every one of the **86** indexed native reports has exact ordered Scene-review coverage and a rendered Markdown companion. Recounting the saved evaluations independently gives25/29 Scenes and27/32 judgments. The pre-run checkpoint is1,812 tests plus648 subtests; my focused identity/integrity review passed18 tests plus139 subtests before the run.
+
+## Independent result checks
+
+I reviewed all twelve direct results and their full evidence. Offline recomputation confirms perfect recall/precision and scope safety; all twelve returned records exactly match original source-line text. Identity's rationale describes how bodily changes *feel like evidence* of altered identity, a defensible interpretation rather than an assertion that uncertainty causes growth. Rationale typography is distinct from final quotation compliance. This was notebook-helper execution, not a whole notebook or release evaluation.
+
+I read every mapping attempt. Both negatives initially falsely approve borrowed source content, then correctly reject after existing source-local validation; positives pass first attempt. All four final reviews revalidate, and full control inputs equal iteration13. The4/4 is credible final performance, not first-attempt reliability.
+
+I inspected the complete smoke source/candidate/review chain. Muse repairs the missing joint declaration, and its final public book quote is canonical. The final reviewer then returns three unaccepted pass outputs, repeatedly replacing canonical “it” with “he” in its private book excerpt. Offline validation reproduces that sole error on each attempt. `model_response_error` is not an HTTP/transport outage. No candidate is released.
+
+Independently checked **all16 accepted release reviews across12 cases** against their original inputs. Every review received Muse's full reader message. Every source quotation in an actually released reply is completely bound and literally present in the original source. The rejected Pigeon/identity candidates retain the expected incomplete or absent bindings. One drink-me evidence record collapses a blank line under the existing paragraph representation; this does not alter its public literal label quotation. See `release-binding-review.json`; these mechanical checks do not prove semantic entailment or quotation classification.
+
+## Attention and remaining limits
+
+Read root's `component-analysis.md`, `review-summary.md`, and the final approval/start/completion decision rows. Their counts, limits, unchanged expectations history and failed gate are consistent with the saved evidence. No material audit discrepancy was found.
+
+The substantive failures remain material. Pigeon's ambiguous-growth boundary inference invents that the reader identified mushroom-size changes and grants Chapter5; I confirmed the actual Line supplies no mushroom detail. Final response withholding does not undo the earlier grant. Farm's two incomplete responses have `content_filter` finish reasons and do not establish an accepted inference verdict. Roses retains framing and causal/source concerns identified in its native review; its separate citation policy was outside this approval. Pigeon release's category quotation may have been judged overstrictly; identity release introduces the undeclared adapted quotation “as [she] used” despite repaired substance. Optional matching does not waive any of these defects.
+
+No historical grade was rewritten to count the offline counterfactual as a live success. Optional-branch results are separated from unchanged required-only proof. Remote Logfire visibility remains unverified. The native count and perfect direct result do not establish stable semantic reliability or permit the requested conditional commit/push.

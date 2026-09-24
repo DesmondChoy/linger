@@ -1,0 +1,192 @@
+{
+  "suite": "12",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+    "--number",
+    "12",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T11:42:51.218368+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-12.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json"
+    ],
+    "started_at": "2026-09-18T19:42:51.543726+08:00",
+    "scenario_hashes": {
+      "backstory.json": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+      "ground-truth.json": "7b90e0316a99af81b81bbed1f0d2cad11f7b6f5b59ac6ca7669417b72b452847",
+      "ground-truth-adoption.json": "8cee44319adbdeef7f717d6e272144b9dac75ebecba57f7631be599ea9cb0892"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 0,
+      "scenes_failed": 4,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 0,
+      "judgments_failed": 4,
+      "failures": [
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "pinocchio-grounded-proposal"
+        },
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "pinocchio-grounded-proposal"
+        },
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "pinocchio-grounded-proposal"
+        },
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "pinocchio-grounded-proposal"
+        },
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "exact_quotation_missing_or_unreleased:pinocchio-school-tomorrow-quote",
+          "proposal_id": "pinocchio-grounded-proposal"
+        },
+        {
+          "scene_id": "pinocchio-personal-study",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "pinocchio-personal-proposal"
+        },
+        {
+          "scene_id": "pinocchio-personal-study",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "pinocchio-personal-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "pinocchio-boundary-proposal"
+        },
+        {
+          "scene_id": "pinocchio-school-detour",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "pinocchio-clarification-proposal"
+        },
+        {
+          "scene_id": "pinocchio-school-detour",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "pinocchio-clarification-proposal"
+        },
+        {
+          "scene_id": "pinocchio-school-detour",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "pinocchio-clarification-proposal"
+        },
+        {
+          "scene_id": "pinocchio-school-detour",
+          "detail": "clarification_question_missing",
+          "proposal_id": "pinocchio-clarification-proposal"
+        }
+      ],
+      "execution_failures": [
+        {
+          "scene_id": "pinocchio-promises-and-book",
+          "detail": "Muse draft: muse_model_failed"
+        },
+        {
+          "scene_id": "pinocchio-personal-study",
+          "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+        },
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+        },
+        {
+          "scene_id": "pinocchio-school-detour",
+          "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+        }
+      ]
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4539d3924605723f68d45d4bf15-d163b6dd214af6ab",
+      "trace_id": "01a0b4539d3924605723f68d45d4bf15",
+      "span_id": "d163b6dd214af6ab",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4539d3924605723f68d45d4bf15-d163b6dd214af6ab",
+    "status": "failed",
+    "problems": [
+      "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+    ],
+    "finished_at": "2026-09-18T19:43:15.301039+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-12.json",
+  "failures": [
+    "pinocchio-promises-and-book:hard_gate_or_missing_grades",
+    "pinocchio-promises-and-book:pinocchio-grounded-proposal:grade_failures",
+    "pinocchio-personal-study:hard_gate_or_missing_grades",
+    "pinocchio-personal-study:pinocchio-personal-proposal:grade_failures",
+    "pinocchio-spoiler-inference:hard_gate_or_missing_grades",
+    "pinocchio-spoiler-inference:pinocchio-boundary-proposal:grade_failures",
+    "pinocchio-school-detour:hard_gate_or_missing_grades",
+    "pinocchio-school-detour:pinocchio-clarification-proposal:grade_failures",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T11:43:15.452168+00:00"
+}

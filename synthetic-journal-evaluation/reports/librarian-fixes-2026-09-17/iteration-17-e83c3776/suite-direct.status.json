@@ -1,0 +1,24 @@
+{
+  "suite": "direct",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "direct",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/suite-direct.json"
+  ],
+  "started_at": "2026-09-18T10:52:00.192585+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/suite-direct.log",
+  "passed": false,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/suite-direct.json",
+  "failures": [
+    "exact-caucus-quote:strength_correct",
+    "exact-caucus-quote:recall",
+    "exact-caucus-quote:precision",
+    "exact-caucus-quote:citations",
+    "exact-caucus-quote:spoiler_safe",
+    "exact-caucus-quote:contract"
+  ],
+  "finished_at": "2026-09-18T10:55:31.698827+00:00"
+}

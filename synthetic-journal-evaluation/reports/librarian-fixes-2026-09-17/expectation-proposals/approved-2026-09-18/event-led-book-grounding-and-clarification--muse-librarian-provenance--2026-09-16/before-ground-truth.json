@@ -1,0 +1,357 @@
+{
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [
+    {
+      "scene_id": "alice-race-reflection",
+      "scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "safe_ceiling_chapter": 3
+      },
+      "basis_spans": [],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-dodo-prizes-quote",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 5450,
+          "end_codepoint": 5498,
+          "text": "“_Everybody_ has won, and all must have prizes.”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-own-thimble",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6150,
+          "end_codepoint": 6185,
+          "text": "“Only a thimble,” said Alice sadly."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-thimble-presentation",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6224,
+          "end_codepoint": 6433,
+          "text": "Then they all crowded round her once more, while the Dodo solemnly\npresented the thimble, saying “We beg your acceptance of this elegant\nthimble;” and, when it had finished this short speech, they all\ncheered."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-thimble-reaction",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6435,
+          "end_codepoint": 6658,
+          "text": "Alice thought the whole thing very absurd, but they all looked so grave\nthat she did not dare to laugh; and, as she could not think of anything\nto say, she simply bowed, and took the thimble, looking as solemn as\nshe could."
+        }
+      ]
+    },
+    {
+      "scene_id": "alice-spoiler-inference",
+      "scope": {
+        "kind": "librarian_inferred",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "authorised_prop_ids": [
+          "alice-pool-memory"
+        ],
+        "supporting_evidence_ids": [
+          "alice-pool-shore",
+          "alice-alone-footsteps"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "alice-pool-memory",
+          "start_codepoint": 68,
+          "end_codepoint": 241,
+          "text": "Alice had been swimming in her own tears, and she kept upsetting the Mouse by talking about her cat and then a dog. I put the book down when she and the animals swam ashore."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "alice-inference-line",
+          "start_codepoint": 0,
+          "end_codepoint": 305,
+          "text": "I carried on with Alice's Adventures in Wonderland tonight: the Dodo's race, Alice giving out the sweets and getting her own thimble back, then the Mouse leaving and the birds clearing off when she talks about Dinah. I've just stopped with her alone, hearing footsteps and hoping the Mouse is coming back."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-pool-shore",
+          "chapter_id": "pg11-v01b38ea4-ch02",
+          "start_codepoint": 11891,
+          "end_codepoint": 12152,
+          "text": "It was high time to go, for the pool was getting quite crowded with the\nbirds and animals that had fallen into it: there were a Duck and a\nDodo, a Lory and an Eaglet, and several other curious creatures. Alice\nled the way, and the whole party swam to the shore."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-alone-footsteps",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 10268,
+          "end_codepoint": 10477,
+          "text": "In a little while, however, she again heard a\nlittle pattering of footsteps in the distance, and she looked up\neagerly, half hoping that the Mouse had changed his mind, and was\ncoming back to finish his story."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-dodo-prizes-quote",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 5450,
+          "end_codepoint": 5498,
+          "text": "“_Everybody_ has won, and all must have prizes.”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-own-thimble",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6150,
+          "end_codepoint": 6185,
+          "text": "“Only a thimble,” said Alice sadly."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-thimble-presentation",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6224,
+          "end_codepoint": 6433,
+          "text": "Then they all crowded round her once more, while the Dodo solemnly\npresented the thimble, saying “We beg your acceptance of this elegant\nthimble;” and, when it had finished this short speech, they all\ncheered."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-thimble-reaction",
+          "chapter_id": "pg11-v01b38ea4-ch03",
+          "start_codepoint": 6435,
+          "end_codepoint": 6658,
+          "text": "Alice thought the whole thing very absurd, but they all looked so grave\nthat she did not dare to laugh; and, as she could not think of anything\nto say, she simply bowed, and took the thimble, looking as solemn as\nshe could."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-later-awakening",
+          "chapter_id": "pg11-v01b38ea4-ch12",
+          "start_codepoint": 9595,
+          "end_codepoint": 9935,
+          "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+        }
+      ]
+    },
+    {
+      "scene_id": "alice-bottle-ambiguity",
+      "scope": {
+        "kind": "clarification",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "authorised_prop_ids": [
+          "alice-bottle-memory"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "alice-bottle-memory",
+          "start_codepoint": 81,
+          "end_codepoint": 309,
+          "text": "The bit that stuck was Alice drinking from a bottle and ending up the wrong size to get where she wanted. I remember laughing, but I've mixed up the setting and what came before it. I lost the paper bookmark when I changed bags."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "alice-bottle-line",
+          "start_codepoint": 0,
+          "end_codepoint": 235,
+          "text": "I'm back in Alice's Adventures in Wonderland, but I think I've reopened at an old bit: she drinks from a bottle and her size gets in the way again. I read those pages tonight and stopped, but I can't place which bottle episode this is."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-ambiguous-hall-bottle",
+          "chapter_id": "pg11-v01b38ea4-ch01",
+          "start_codepoint": 9861,
+          "end_codepoint": 9940,
+          "text": "“What a curious feeling!” said Alice; “I must be shutting up like a\ntelescope.”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-ambiguous-house-bottle",
+          "chapter_id": "pg11-v01b38ea4-ch04",
+          "start_codepoint": 4189,
+          "end_codepoint": 4369,
+          "text": "She hastily put\ndown the bottle, saying to herself “That’s quite enough—I hope I shan’t\ngrow any more—As it is, I can’t get out at the door—I do wish I hadn’t\ndrunk quite so much!”"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-ambiguous-later-awakening",
+          "chapter_id": "pg11-v01b38ea4-ch12",
+          "start_codepoint": 9595,
+          "end_codepoint": 9935,
+          "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-ambiguous-drinking",
+          "chapter_id": "pg11-v01b38ea4-ch01",
+          "start_codepoint": 9465,
+          "end_codepoint": 9726,
+          "text": "However, this bottle was _not_ marked “poison,” so Alice ventured to\ntaste it, and finding it very nice, (it had, in fact, a sort of mixed\nflavour of cherry-tart, custard, pine-apple, roast turkey, toffee, and\nhot buttered toast,) she very soon finished it off."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "alice-ambiguous-key-unreachable",
+          "chapter_id": "pg11-v01b38ea4-ch01",
+          "start_codepoint": 10667,
+          "end_codepoint": 10830,
+          "text": "when she got to the\ndoor, she found she had forgotten the little golden key, and when she\nwent back to the table for it, she found she could not possibly reach\nit:"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "alice-grounded-proposal",
+      "scene_id": "alice-race-reflection",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Use the current Line’s explicit confirmation of reading through literary chapter 3 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+        "Retrieve bounded response evidence and quote the Dodo's announcement exactly as supported by alice-dodo-prizes-quote, attributing the speech to the Dodo rather than to Alice or the reader.",
+        "Use the owned thimble, presentation, and Alice's restrained reaction occurrences to distinguish ceremonial recognition from receiving something new. Offer this as a possible lens for Mara's lunch-organising experience, with room for her to disagree; explore recognition and sharing the actual work without diagnosing her colleagues."
+      ],
+      "prohibited_outcomes": [
+        "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+        "Do not fabricate or modernise words inside the requested quotation, attribute the Dodo's words to the author as advice, or claim the story proves Mara's colleagues are exploiting her.",
+        "Do not use unassigned memories or later narrative events to strengthen the analogy."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "alice-personal-comparison",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "alice-dodo-prizes-quote",
+          "alice-own-thimble",
+          "alice-thimble-presentation",
+          "alice-thimble-reaction"
+        ],
+        "exact_quotation_evidence_ids": [
+          "alice-dodo-prizes-quote"
+        ]
+      }
+    },
+    {
+      "proposal_id": "alice-boundary-proposal",
+      "scene_id": "alice-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Infer the chapter 3 ceiling from alice-pool-shore and alice-alone-footsteps using the exact assigned input spans; allow grounding only through that derived boundary.",
+        "Keep the later awakening occurrence alice-later-awakening outside retrieval for response evidence and outside the released response, including paraphrase. The personal reflection remains useful without explaining later events."
+      ],
+      "prohibited_outcomes": [
+        "Do not advance to the next chapter merely because footsteps are heard, nor infer completed reading from a future-looking question.",
+        "Do not disclose the cards flying at Alice, her return to the riverbank with her sister, or the dream resolution, literally or by hint or paraphrase."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "alice-bottle-ambiguity",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "alice-later-awakening"
+        ]
+      }
+    },
+    {
+      "proposal_id": "alice-personal-proposal",
+      "scene_id": "alice-personal-comparison",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Respond to the reader's supplied lunch-organising experience without book retrieval: distinguish wanting to be seen from wanting deposits and organising duties shared.",
+        "Help Mara identify what concrete contribution from another colleague would make thanks feel supported by action; keep suggestions tentative and grounded in her current words."
+      ],
+      "prohibited_outcomes": [
+        "Do not retrieve or quote a book, inject Alice's race as an unrequested factual analogy, or use Props from any other fresh session.",
+        "Do not assert that colleagues' thanks are insincere or that Mara has a fixed psychological problem."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "alice-race-reflection",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      }
+    },
+    {
+      "proposal_id": "alice-clarification-proposal",
+      "scene_id": "alice-bottle-ambiguity",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Treat book identity as resolved but progress as unresolved: both supplied sources recall a bottle and unsuitable size without distinguishing the hall episode (alice-ambiguous-hall-bottle) from the Rabbit's house episode (alice-ambiguous-house-bottle). These occurrences justify ambiguity for review, not response evidence permission.",
+        "Ask the reader for a distinguishing detail of the pages they have actually read or their last certain stopping event, without listing unseen candidate plot details. Grant no ceiling and perform no response-evidence retrieval until clarified.",
+        "Offer useful spoiler-free clarification about the reader's actual stopping event while leaving the book explanation pending. Withhold alice-ambiguous-later-awakening and all later plot disclosure."
+      ],
+      "prohibited_outcomes": [
+        "Do not choose a bottle episode by popularity, assume a lost bookmark preserves later progress, or import the inference Scene's race memory.",
+        "Do not grant a conservative guessed ceiling, retrieve explanatory passages for the response, or disclose candidate plot details through a leading clarification question.",
+        "Do not mention or paraphrase the eventual flying cards, riverbank awakening, sister, or dream resolution as reassurance."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "alice-spoiler-inference",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "alice-ambiguous-later-awakening"
+        ]
+      }
+    }
+  ],
+  "backstory_sha256": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3"
+}

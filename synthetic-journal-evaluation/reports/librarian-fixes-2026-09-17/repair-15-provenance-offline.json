@@ -1,0 +1,21 @@
+{
+  "kind": "saved_attempt_validation_only",
+  "provider_calls": 0,
+  "attempts": [
+    {
+      "submitted": "For some minutes he puffed away without speaking, but at last he unfolded his arms, took the hookah out of his mouth again, and said, “So you\nthink you’re changed, do you?”",
+      "same_source_copy_context": "something worth hearing. For\nsome minutes it puffed away without speaking, but at last it unfolded\nits arms, took the hookah out of its mouth again, and said, “So you\nthink you’re changed, do you?”\n\n“I’m afraid I",
+      "still_rejected": true
+    },
+    {
+      "submitted": "For some minutes he puffed away without speaking",
+      "same_source_copy_context": "something worth hearing. For\nsome minutes it puffed away without speaking, but at last",
+      "still_rejected": true
+    },
+    {
+      "submitted": "For\nsome minutes he puffed away without speaking",
+      "same_source_copy_context": "something worth hearing. For\nsome minutes it puffed away without speaking, but at last",
+      "still_rejected": true
+    }
+  ]
+}

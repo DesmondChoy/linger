@@ -1,0 +1,109 @@
+{
+  "kind": "offline_counterfactual_grading_only",
+  "historical_artifacts_changed": false,
+  "live_calls": 0,
+  "results": [
+    {
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-10-694474e9/suite-4.json",
+      "scene_id": "pigeon-reflection",
+      "before": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": false,
+          "failures": [
+            "boundary_support_differs_from_ground_truth"
+          ]
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "boundary_support_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "hard_pass": true,
+          "failures": []
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json",
+      "scene_id": "farm-spoiler-inference",
+      "before": [
+        {
+          "proposal_id": "farm-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "boundary_support_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "proposal_id": "farm-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-10.json",
+      "scene_id": "alice-spoiler-inference",
+      "before": [
+        {
+          "proposal_id": "alice-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "boundary_support_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "proposal_id": "alice-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ]
+    },
+    {
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-12.json",
+      "scene_id": "pinocchio-spoiler-inference",
+      "before": [
+        {
+          "proposal_id": "pinocchio-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": false,
+          "failures": [
+            "boundary_support_differs_from_ground_truth"
+          ]
+        }
+      ],
+      "after": [
+        {
+          "proposal_id": "pinocchio-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "hard_pass": true,
+          "failures": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+Offline validation record, transcribed from completed tool output; no rerun made.
+
+Command:
+PYTHONPATH=src:. LOGFIRE_SEND_TO_LOGFIRE=false .venv/bin/pytest -q synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_compare_review_models.py synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/test_live_mapping_adapter.py tests/test_failed_evaluation_transcript.py
+
+Result:
+21 passed, 18 subtests passed in 2.85s
+Exit code: 0
+
+The new comparison file accounts for 10 tests. These verify exact saved inputs, dry-plan nonmutation, explicit model acknowledgement before reservation, one shared locked reservation up to the existing20 limit, successful production validation, existing three-attempt output repair without an outer retry, sanitized failure captures, 24 sequential fixed-case/model invocations, and visible local grading errors. Models in tests are the installed PydanticAI FunctionModel; no provider calls or live budget mutations occurred.
+
+Dry preparation also succeeded:12 fixed cases,24 top-level reviews, Luna medium and Sol medium, existing output_retries2, no added run retries, provider_calls=false, budget_reserved=false. Shared ledger remained13/20. Root saved the reviewed dry plan as review-model-comparison-plan.json. Preparation does not authorize the additional live model and changes no production default or grade.

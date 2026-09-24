@@ -1,0 +1,65 @@
+{
+  "kind": "offline_saved_output_probe_not_live_rerun",
+  "results": [
+    {
+      "suite": 4,
+      "scene_id": "pigeon-reflection",
+      "candidate_chapter": 5,
+      "errors": []
+    },
+    {
+      "suite": 4,
+      "scene_id": "pigeon-reflection",
+      "candidate_chapter": 5,
+      "errors": []
+    },
+    {
+      "suite": 9,
+      "scene_id": "douglass-spoiler-inference",
+      "candidate_chapter": 7,
+      "errors": []
+    },
+    {
+      "suite": 9,
+      "scene_id": "douglass-spoiler-inference",
+      "candidate_chapter": 7,
+      "errors": []
+    },
+    {
+      "suite": 10,
+      "scene_id": "alice-spoiler-inference",
+      "candidate_chapter": 3,
+      "errors": []
+    },
+    {
+      "suite": 10,
+      "scene_id": "alice-spoiler-inference",
+      "candidate_chapter": 3,
+      "errors": []
+    },
+    {
+      "suite": 11,
+      "scene_id": "keller-spoiler-inference",
+      "candidate_chapter": 10,
+      "errors": [
+        {
+          "path": "supporting_evidence[1].source_excerpt",
+          "error": "Copy a short nonblank source_excerpt from this named canonical record. Only whitespace may differ: preserve every word, pronoun, letter case, punctuation mark and markup character. Do not correct or paraphrase the source; choose a concise contiguous span that supports the intended event. Recheck the named record rather than attaching another record's words or unrelated text.",
+          "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254"
+        }
+      ]
+    },
+    {
+      "suite": 11,
+      "scene_id": "keller-spoiler-inference",
+      "candidate_chapter": 10,
+      "errors": [
+        {
+          "path": "supporting_evidence[1].source_excerpt",
+          "error": "Copy a short nonblank source_excerpt from this named canonical record. Only whitespace may differ: preserve every word, pronoun, letter case, punctuation mark and markup character. Do not correct or paraphrase the source; choose a concise contiguous span that supports the intended event. Recheck the named record rather than attaching another record's words or unrelated text.",
+          "evidence_id": "pg2397-vb3cc1e13-sec012-ln1237-1254"
+        }
+      ]
+    }
+  ]
+}

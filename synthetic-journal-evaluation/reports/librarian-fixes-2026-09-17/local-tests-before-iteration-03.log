@@ -1,0 +1,249 @@
+.................................................................................................................... [  7%]
+............................................................................................................ [ 13%]
+................................................................................................................................ [ 21%]
+.........................................................FF [ 24%]
+FF.F............................................................................................................... [ 31%]
+...................................................................................................................... [ 38%]
+........................................ [ 41%]
+.............................................................. [ 45%]
+............................................... [ 47%]
+......................................................... [ 51%]
+................................................ [ 54%]
+............................................................................................................ [ 60%]
+........................................................................ [ 65%]
+......................................................... [ 68%]
+............................................................................................................... [ 75%]
+........................................................................ [ 79%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+................................................................. [ 96%]
+.......................................................                  [100%]
+=================================== FAILURES ===================================
+_________ test_make_changes_returns_to_agent_without_writing_adoption __________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_make_changes_returns_to_a0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_make_changes_returns_to_a0/ui')
+
+    def test_make_changes_returns_to_agent_without_writing_adoption(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:672: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x12636bc50>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+__________ test_confirm_requires_every_row_and_writes_exact_adoption ___________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_confirm_requires_every_ro0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_confirm_requires_every_ro0/ui')
+
+    def test_confirm_requires_every_row_and_writes_exact_adoption(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _write_curation_scenario(scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:703: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x113318200>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+___________ test_confirm_rejects_files_changed_while_review_is_open ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_confirm_rejects_files_cha0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_confirm_rejects_files_cha0/ui')
+
+    def test_confirm_rejects_files_changed_while_review_is_open(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:754: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x113318050>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+____________ test_make_changes_rejects_approved_and_flagged_overlap ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_make_changes_rejects_appr0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_make_changes_rejects_appr0/ui')
+
+    def test_make_changes_rejects_approved_and_flagged_overlap(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:785: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x127226ff0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+____________ test_review_server_rejects_unauthorized_scenario_reads ____________
+
+tmp_path = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_review_server_rejects_una0')
+built_ui = PosixPath('/private/var/folders/x_/x0mlk2v57v90vn9m7n8z9blw0000gn/T/pytest-of-kevinmanuel/pytest-222/test_review_server_rejects_una0/ui')
+
+    def test_review_server_rejects_unauthorized_scenario_reads(
+        tmp_path: Path,
+        built_ui: Path,
+    ) -> None:
+        scenario = tmp_path / "scenario"
+        _copy_scenario(CAPTURE_SCENARIO, scenario)
+        state = _state(scenario, built_ui)
+>       server, thread, base_url = _start_server(state)
+                                   ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ground_truth_review.py:856: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_ground_truth_review.py:349: in _start_server
+    server = reviewer.ReviewServer(state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.agents/skills/review-synthetic-ground-truth/scripts/ground_truth_reviewer.py:361: in __init__
+    super().__init__(("127.0.0.1", 0), ReviewHandler)
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py:136: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <ground_truth_reviewer.ReviewServer object at 0x12719ecf0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+/opt/homebrew/Cellar/python@3.12/3.12.2_1/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py:473: PermissionError
+=========================== short test summary info ============================
+FAILED tests/test_ground_truth_review.py::test_make_changes_returns_to_agent_without_writing_adoption
+FAILED tests/test_ground_truth_review.py::test_confirm_requires_every_row_and_writes_exact_adoption
+FAILED tests/test_ground_truth_review.py::test_confirm_rejects_files_changed_while_review_is_open
+FAILED tests/test_ground_truth_review.py::test_make_changes_rejects_approved_and_flagged_overlap
+FAILED tests/test_ground_truth_review.py::test_review_server_rejects_unauthorized_scenario_reads
+5 failed, 1649 passed, 633 subtests passed in 39.21s

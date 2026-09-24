@@ -1,0 +1,1813 @@
+{
+  "model": "openai:gpt-5.6-luna",
+  "model_settings": {
+    "openai_reasoning_effort": "medium"
+  },
+  "iteration": 20,
+  "suites": [
+    "release",
+    "direct",
+    "smoke",
+    "mapping",
+    "4",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12"
+  ],
+  "maximum_concurrent_suites": 3,
+  "complete_evaluation_set": true,
+  "source_unchanged": true,
+  "source_error": null,
+  "selected_pass": false,
+  "all_pass": false,
+  "finished_at": "2026-09-18T11:43:15.495791+00:00",
+  "results": [
+    {
+      "suite": "release",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+        "release",
+        "--output",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-release.json"
+      ],
+      "started_at": "2026-09-18T11:39:27.034089+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-release.log",
+      "passed": false,
+      "returncode": 0,
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-release.json",
+      "failures": [
+        "rabbit-watch:strength_correct",
+        "rabbit-watch:recall",
+        "rabbit-watch:release",
+        "rabbit-watch:provenance",
+        "rabbit-watch:call_contract",
+        "drink-me:strength_correct",
+        "drink-me:recall",
+        "pool-of-tears:strength_correct",
+        "pool-of-tears:recall",
+        "pool-of-tears:release",
+        "pool-of-tears:provenance",
+        "pool-of-tears:call_contract",
+        "caucus-prizes:strength_correct",
+        "caucus-prizes:recall",
+        "caucus-prizes:release",
+        "caucus-prizes:provenance",
+        "caucus-prizes:call_contract",
+        "giant-puppy:strength_correct",
+        "giant-puppy:recall",
+        "identity-change:strength_correct",
+        "identity-change:recall",
+        "identity-change:release",
+        "identity-change:provenance",
+        "identity-change:call_contract",
+        "father-william:strength_correct",
+        "father-william:recall",
+        "father-william:release",
+        "father-william:provenance",
+        "pigeon-serpent:strength_correct",
+        "pigeon-serpent:recall",
+        "pigeon-serpent:release",
+        "pigeon-serpent:provenance",
+        "pigeon-serpent:call_contract",
+        "identity-theme:strength_correct",
+        "identity-theme:recall",
+        "identity-theme:release",
+        "identity-theme:provenance",
+        "identity-theme:call_contract",
+        "exact-caucus-quote:strength_correct",
+        "exact-caucus-quote:recall",
+        "exact-caucus-quote:release",
+        "exact-caucus-quote:provenance",
+        "exact-caucus-quote:call_contract",
+        "future-cheshire:strength_correct",
+        "absent-spaceship:release",
+        "absent-spaceship:provenance",
+        "native_release_targets"
+      ],
+      "finished_at": "2026-09-18T11:42:51.217715+00:00"
+    },
+    {
+      "suite": "direct",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+        "direct",
+        "--output",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-direct.json"
+      ],
+      "started_at": "2026-09-18T11:39:27.034221+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-direct.log",
+      "passed": false,
+      "returncode": 0,
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-direct.json",
+      "failures": [
+        "drink-me:strength_correct",
+        "drink-me:recall",
+        "drink-me:precision",
+        "drink-me:citations",
+        "drink-me:spoiler_safe",
+        "drink-me:contract",
+        "pool-of-tears:strength_correct",
+        "pool-of-tears:recall",
+        "pool-of-tears:precision",
+        "pool-of-tears:citations",
+        "pool-of-tears:spoiler_safe",
+        "pool-of-tears:contract",
+        "giant-puppy:strength_correct",
+        "giant-puppy:recall",
+        "giant-puppy:precision",
+        "giant-puppy:citations",
+        "giant-puppy:spoiler_safe",
+        "giant-puppy:contract",
+        "identity-change:strength_correct",
+        "identity-change:recall",
+        "identity-change:precision",
+        "identity-change:citations",
+        "identity-change:spoiler_safe",
+        "identity-change:contract",
+        "father-william:strength_correct",
+        "father-william:recall",
+        "father-william:precision",
+        "father-william:citations",
+        "father-william:spoiler_safe",
+        "father-william:contract",
+        "pigeon-serpent:strength_correct",
+        "pigeon-serpent:recall",
+        "pigeon-serpent:precision",
+        "pigeon-serpent:citations",
+        "pigeon-serpent:spoiler_safe",
+        "pigeon-serpent:contract",
+        "exact-caucus-quote:strength_correct",
+        "exact-caucus-quote:recall",
+        "exact-caucus-quote:precision",
+        "exact-caucus-quote:citations",
+        "exact-caucus-quote:spoiler_safe",
+        "exact-caucus-quote:contract",
+        "future-cheshire:strength_correct",
+        "future-cheshire:recall",
+        "future-cheshire:precision",
+        "future-cheshire:citations",
+        "future-cheshire:spoiler_safe",
+        "future-cheshire:contract"
+      ],
+      "finished_at": "2026-09-18T11:41:38.460007+00:00"
+    },
+    {
+      "suite": "smoke",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_smoke.py",
+        "--output",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-smoke.json"
+      ],
+      "started_at": "2026-09-18T11:39:27.037878+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-smoke.log",
+      "passed": false,
+      "returncode": 0,
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-smoke.json",
+      "failures": [
+        "smoke_hard_grades"
+      ],
+      "finished_at": "2026-09-18T11:39:34.819513+00:00"
+    },
+    {
+      "suite": "mapping",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+        "mapping",
+        "--output",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.json"
+      ],
+      "started_at": "2026-09-18T11:39:34.819959+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.log",
+      "passed": false,
+      "returncode": 0,
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-mapping.json",
+      "failures": [
+        "provenance-risk-claim-mapping-wrong-record-v1:mapping_grade",
+        "provenance-risk-joint-claim-missing-contribution-v1:mapping_grade",
+        "provenance-risk-joint-claim-complete-v1:mapping_grade",
+        "mapping_targets"
+      ],
+      "finished_at": "2026-09-18T11:40:07.520012+00:00"
+    },
+    {
+      "suite": "4",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "4",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:40:07.520505+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-4.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:40:07.847902+08:00",
+        "scenario_hashes": {
+          "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+          "ground-truth.json": "b7826e51a38e6775fd401e664eacee6648a3101e610f33f5ff4a3d5ea9052074",
+          "ground-truth-adoption.json": "8b597d2308558eb6095d91af454f4fd54a9c91cc0de9af92c4ae2fb571847ffc"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 3,
+          "scenes_passed": 0,
+          "scenes_failed": 3,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "exact_quotation_missing_or_unreleased:pigeon",
+              "proposal_id": "pigeon-grounding"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "pigeon-boundary"
+            },
+            {
+              "scene_id": "uncertain-growth",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "growth-boundary"
+            },
+            {
+              "scene_id": "uncertain-growth",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "growth-boundary"
+            },
+            {
+              "scene_id": "uncertain-growth",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "growth-boundary"
+            },
+            {
+              "scene_id": "uncertain-growth",
+              "detail": "clarification_question_missing",
+              "proposal_id": "growth-boundary"
+            },
+            {
+              "scene_id": "personal-reflection",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "personal-grounding"
+            },
+            {
+              "scene_id": "personal-reflection",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "personal-grounding"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "pigeon-reflection",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "uncertain-growth",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "personal-reflection",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b45120a2db8feb7bbaeecdac8103-9531f70ad4f3a5c0",
+          "trace_id": "01a0b45120a2db8feb7bbaeecdac8103",
+          "span_id": "9531f70ad4f3a5c0",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b45120a2db8feb7bbaeecdac8103-9531f70ad4f3a5c0",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:40:22.845131+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T194022+0800-df67154c.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T194022+0800-df67154c.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-4.json",
+      "failures": [
+        "pigeon-reflection:hard_gate_or_missing_grades",
+        "pigeon-reflection:pigeon-grounding:grade_failures",
+        "pigeon-reflection:pigeon-boundary:grade_failures",
+        "uncertain-growth:hard_gate_or_missing_grades",
+        "uncertain-growth:growth-boundary:grade_failures",
+        "personal-reflection:hard_gate_or_missing_grades",
+        "personal-reflection:personal-grounding:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:40:23.411122+00:00"
+    },
+    {
+      "suite": "6",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "6",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:40:23.412035+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-6.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.connection_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:40:23.870143+08:00",
+        "scenario_hashes": {
+          "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+          "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+          "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 3,
+          "scenes_passed": 0,
+          "scenes_failed": 3,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "S1",
+              "detail": "provider_failure",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_connection_decision",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_source_inspection",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "unexpected_release_source",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:S1C-memory",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:S1C-book",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:S1C-public",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "discovery_failure",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "connection_decision_mismatch",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_source_inspection",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_review_approval",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "discovery_failure",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "connection_decision_mismatch",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_source_inspection",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_review_approval",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "provider_failure",
+              "proposal_id": "G4-weak-evidence"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "unexpected_release_source",
+              "proposal_id": "G4-weak-evidence"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "S1",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "provider_failure",
+              "proposal_id": "G1-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "Serendipity search_rank_select: serendipity_model_failed"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "G2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "G3-weak-evidence"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "provider_failure",
+              "proposal_id": "G4-weak-evidence"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22",
+          "trace_id": "01a0b4515d7a95f2695cbcc223ee1743",
+          "span_id": "78258c0a6cfa5f22",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:41:00.208425+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-6.json",
+      "failures": [
+        "S1:hard_gate_or_missing_grades",
+        "S1:G1-connection:grade_failures",
+        "S1:G1-connection:stage_failure",
+        "S2:hard_gate_or_missing_grades",
+        "S2:G2-connection:grade_failures",
+        "S2:G2-connection:stage_failure",
+        "S2:G3-weak-evidence:grade_failures",
+        "S2:G3-weak-evidence:stage_failure",
+        "S3:hard_gate_or_missing_grades",
+        "S3:G4-weak-evidence:grade_failures",
+        "S3:G4-weak-evidence:stage_failure",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:41:00.558902+00:00"
+    },
+    {
+      "suite": "7",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "7",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:41:00.559301+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-7.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:41:00.987058+08:00",
+        "scenario_hashes": {
+          "backstory.json": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+          "ground-truth.json": "b7628464d31c36cc047f1c3ddf3fcec0558a02172da570801e75ab3813e8980c",
+          "ground-truth-adoption.json": "2b8ce9c3e6e5df58e29b114b6c48a0e84868e7187a4ed81da4362fb5c2d5d6ec"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 4,
+          "scenes_passed": 0,
+          "scenes_failed": 4,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "farm-grounded-proposal"
+            },
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "farm-grounded-proposal"
+            },
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "farm-grounded-proposal"
+            },
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "farm-grounded-proposal"
+            },
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "exact_quotation_missing_or_unreleased:farm-leadership-quote",
+              "proposal_id": "farm-grounded-proposal"
+            },
+            {
+              "scene_id": "farm-personal-trust",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "farm-personal-proposal"
+            },
+            {
+              "scene_id": "farm-personal-trust",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "farm-personal-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "farm-boundary-proposal"
+            },
+            {
+              "scene_id": "farm-interrupted-discussion",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "farm-clarification-proposal"
+            },
+            {
+              "scene_id": "farm-interrupted-discussion",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "farm-clarification-proposal"
+            },
+            {
+              "scene_id": "farm-interrupted-discussion",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "farm-clarification-proposal"
+            },
+            {
+              "scene_id": "farm-interrupted-discussion",
+              "detail": "clarification_question_missing",
+              "proposal_id": "farm-clarification-proposal"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "farm-decision-reversal",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "farm-personal-trust",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "Librarian book_request: book_request_model_failed"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "Librarian boundary_inference: boundary_inference_model_failed"
+            },
+            {
+              "scene_id": "farm-spoiler-inference",
+              "detail": "Provenance review: provenance_model_failed"
+            },
+            {
+              "scene_id": "farm-interrupted-discussion",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b451ee47207883d11bdea8af87aa-9399155f964bd648",
+          "trace_id": "01a0b451ee47207883d11bdea8af87aa",
+          "span_id": "9399155f964bd648",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b451ee47207883d11bdea8af87aa-9399155f964bd648",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:42:04.497224+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194204+0800-5bff2ca5.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194204+0800-5bff2ca5.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-7.json",
+      "failures": [
+        "farm-decision-reversal:hard_gate_or_missing_grades",
+        "farm-decision-reversal:farm-grounded-proposal:grade_failures",
+        "farm-personal-trust:hard_gate_or_missing_grades",
+        "farm-personal-trust:farm-personal-proposal:grade_failures",
+        "farm-spoiler-inference:hard_gate_or_missing_grades",
+        "farm-spoiler-inference:farm-boundary-proposal:grade_failures",
+        "farm-interrupted-discussion:hard_gate_or_missing_grades",
+        "farm-interrupted-discussion:farm-clarification-proposal:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:42:04.715997+00:00"
+    },
+    {
+      "suite": "8",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "8",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:41:38.460805+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-8.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.connection_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:41:38.881653+08:00",
+        "scenario_hashes": {
+          "backstory.json": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+          "ground-truth.json": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+          "ground-truth-adoption.json": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 3,
+          "scenes_passed": 0,
+          "scenes_failed": 3,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "S1",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_connection_decision",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_source_inspection",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "unexpected_release_source",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:s1-connection-memory",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:s1-connection-book",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "missing_required_citation:s1-connection-public",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_connection_decision",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_source_inspection",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_review_approval",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_connection_decision",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_source_inspection",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "missing_review_approval",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "required_source_not_inspected",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s3-personal-reflection"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "unexpected_release_source",
+              "proposal_id": "proposal-s3-personal-reflection"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "S1",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "S1",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s1-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s2-connection"
+            },
+            {
+              "scene_id": "S2",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s2-weak-evidence"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "S3",
+              "detail": "provider_failure",
+              "proposal_id": "proposal-s3-personal-reflection"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b452828e67275e4fe435b64dfab7-03e3b1c472c02c4f",
+          "trace_id": "01a0b452828e67275e4fe435b64dfab7",
+          "span_id": "03e3b1c472c02c4f",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b452828e67275e4fe435b64dfab7-03e3b1c472c02c4f",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:41:56.915395+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194156+0800-4cfef713.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194156+0800-4cfef713.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-8.json",
+      "failures": [
+        "S1:hard_gate_or_missing_grades",
+        "S1:proposal-s1-connection:grade_failures",
+        "S1:proposal-s1-connection:stage_failure",
+        "S2:hard_gate_or_missing_grades",
+        "S2:proposal-s2-connection:grade_failures",
+        "S2:proposal-s2-connection:stage_failure",
+        "S2:proposal-s2-weak-evidence:grade_failures",
+        "S2:proposal-s2-weak-evidence:stage_failure",
+        "S3:hard_gate_or_missing_grades",
+        "S3:proposal-s3-personal-reflection:grade_failures",
+        "S3:proposal-s3-personal-reflection:stage_failure",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:41:57.179316+00:00"
+    },
+    {
+      "suite": "9",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "9",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:41:57.179719+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-9.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:41:57.522765+08:00",
+        "scenario_hashes": {
+          "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+          "ground-truth.json": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+          "ground-truth-adoption.json": "f627a199e49705a1b757d61c49fdf90fd6303d973a2e535e410e79543efc4ec7"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 4,
+          "scenes_passed": 0,
+          "scenes_failed": 4,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "douglass-proposal-grounded"
+            },
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "douglass-proposal-grounded"
+            },
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "douglass-proposal-grounded"
+            },
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "douglass-proposal-grounded"
+            },
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "exact_quotation_missing_or_unreleased:douglass-pit-quotation",
+              "proposal_id": "douglass-proposal-grounded"
+            },
+            {
+              "scene_id": "douglass-personal",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "douglass-proposal-personal"
+            },
+            {
+              "scene_id": "douglass-personal",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "douglass-proposal-personal"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "douglass-proposal-boundary"
+            },
+            {
+              "scene_id": "douglass-uncertain",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "douglass-proposal-clarification"
+            },
+            {
+              "scene_id": "douglass-uncertain",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "douglass-proposal-clarification"
+            },
+            {
+              "scene_id": "douglass-uncertain",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "douglass-proposal-clarification"
+            },
+            {
+              "scene_id": "douglass-uncertain",
+              "detail": "clarification_question_missing",
+              "proposal_id": "douglass-proposal-clarification"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "douglass-grounded",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "douglass-personal",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "douglass-spoiler-inference",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "douglass-uncertain",
+              "detail": "Muse draft: muse_model_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be",
+          "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+          "span_id": "de090a61f77b88be",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:42:21.329960+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-9.json",
+      "failures": [
+        "douglass-grounded:hard_gate_or_missing_grades",
+        "douglass-grounded:douglass-proposal-grounded:grade_failures",
+        "douglass-personal:hard_gate_or_missing_grades",
+        "douglass-personal:douglass-proposal-personal:grade_failures",
+        "douglass-spoiler-inference:hard_gate_or_missing_grades",
+        "douglass-spoiler-inference:douglass-proposal-boundary:grade_failures",
+        "douglass-uncertain:hard_gate_or_missing_grades",
+        "douglass-uncertain:douglass-proposal-clarification:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:42:21.648655+00:00"
+    },
+    {
+      "suite": "10",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "10",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:42:04.716602+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-10.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:42:05.058653+08:00",
+        "scenario_hashes": {
+          "backstory.json": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+          "ground-truth.json": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+          "ground-truth-adoption.json": "57d44ca8f2d062512a1dc739f354d7e3246d6ba76cc961b930689ac19d72b69b"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 4,
+          "scenes_passed": 1,
+          "scenes_failed": 3,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 1,
+          "judgments_failed": 3,
+          "failures": [
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "grounding_call_did_not_return_evidence_result",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "exact_quotation_missing_or_unreleased:alice-dodo-prizes-quote",
+              "proposal_id": "alice-grounded-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "alice-boundary-proposal"
+            },
+            {
+              "scene_id": "alice-bottle-ambiguity",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "alice-clarification-proposal"
+            },
+            {
+              "scene_id": "alice-bottle-ambiguity",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "alice-clarification-proposal"
+            },
+            {
+              "scene_id": "alice-bottle-ambiguity",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "alice-clarification-proposal"
+            },
+            {
+              "scene_id": "alice-bottle-ambiguity",
+              "detail": "clarification_question_missing",
+              "proposal_id": "alice-clarification-proposal"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "Librarian book_request: book_request_model_failed"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "Librarian evidence_strength: evidence_strength_model_failed"
+            },
+            {
+              "scene_id": "alice-race-reflection",
+              "detail": "Serendipity search_rank_select: serendipity_model_failed"
+            },
+            {
+              "scene_id": "alice-spoiler-inference",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "alice-bottle-ambiguity",
+              "detail": "Muse draft: muse_model_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452e7d852e7df65840a89d5a007-f91349db7c7a09ec",
+          "trace_id": "01a0b452e7d852e7df65840a89d5a007",
+          "span_id": "f91349db7c7a09ec",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452e7d852e7df65840a89d5a007-f91349db7c7a09ec",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:43:12.721739+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194312+0800-0c1ccf0e.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194312+0800-0c1ccf0e.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-10.json",
+      "failures": [
+        "alice-race-reflection:hard_gate_or_missing_grades",
+        "alice-race-reflection:alice-grounded-proposal:grade_failures",
+        "alice-spoiler-inference:hard_gate_or_missing_grades",
+        "alice-spoiler-inference:alice-boundary-proposal:grade_failures",
+        "alice-bottle-ambiguity:hard_gate_or_missing_grades",
+        "alice-bottle-ambiguity:alice-clarification-proposal:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:43:12.880661+00:00"
+    },
+    {
+      "suite": "11",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "11",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:42:21.649223+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-11.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:42:22.140174+08:00",
+        "scenario_hashes": {
+          "backstory.json": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+          "ground-truth.json": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+          "ground-truth-adoption.json": "65390dfcdf7f5300e432777a0bb245dd7ae23be1228ce4fb27e123a81d3d1422"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 4,
+          "scenes_passed": 1,
+          "scenes_failed": 3,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 1,
+          "judgments_failed": 3,
+          "failures": [
+            {
+              "scene_id": "keller-grounded",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "keller-proposal-grounded"
+            },
+            {
+              "scene_id": "keller-grounded",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "keller-proposal-grounded"
+            },
+            {
+              "scene_id": "keller-grounded",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "keller-proposal-grounded"
+            },
+            {
+              "scene_id": "keller-grounded",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "keller-proposal-grounded"
+            },
+            {
+              "scene_id": "keller-grounded",
+              "detail": "exact_quotation_missing_or_unreleased:keller-disappointment-quotation",
+              "proposal_id": "keller-proposal-grounded"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "keller-proposal-boundary"
+            },
+            {
+              "scene_id": "keller-uncertain",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "keller-proposal-clarification"
+            },
+            {
+              "scene_id": "keller-uncertain",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "keller-proposal-clarification"
+            },
+            {
+              "scene_id": "keller-uncertain",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "keller-proposal-clarification"
+            },
+            {
+              "scene_id": "keller-uncertain",
+              "detail": "clarification_question_missing",
+              "proposal_id": "keller-proposal-clarification"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "keller-grounded",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "keller-spoiler-inference",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "keller-uncertain",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4532af66248f59041af4aa731ba-5405f9c97340811d",
+          "trace_id": "01a0b4532af66248f59041af4aa731ba",
+          "span_id": "5405f9c97340811d",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4532af66248f59041af4aa731ba-5405f9c97340811d",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:42:58.998374+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194258+0800-8af108ab.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194258+0800-8af108ab.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-11.json",
+      "failures": [
+        "keller-grounded:hard_gate_or_missing_grades",
+        "keller-grounded:keller-proposal-grounded:grade_failures",
+        "keller-spoiler-inference:hard_gate_or_missing_grades",
+        "keller-spoiler-inference:keller-proposal-boundary:grade_failures",
+        "keller-uncertain:hard_gate_or_missing_grades",
+        "keller-uncertain:keller-proposal-clarification:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:42:59.149800+00:00"
+    },
+    {
+      "suite": "12",
+      "command": [
+        "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+        "-m",
+        "evals.synthetic_journals.run_scenario",
+        "run",
+        "--menu",
+        "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+        "--number",
+        "12",
+        "--confirmed-model",
+        "openai:gpt-5.6-luna"
+      ],
+      "started_at": "2026-09-18T11:42:51.218368+00:00",
+      "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-12.log",
+      "passed": false,
+      "returncode": 1,
+      "native_summary": {
+        "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+        "model": "openai:gpt-5.6-luna",
+        "command": [
+          "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+          "-m",
+          "evals.synthetic_journals.book_replay",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+          "--adoption",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+          "--output",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json"
+        ],
+        "started_at": "2026-09-18T19:42:51.543726+08:00",
+        "scenario_hashes": {
+          "backstory.json": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+          "ground-truth.json": "7b90e0316a99af81b81bbed1f0d2cad11f7b6f5b59ac6ca7669417b72b452847",
+          "ground-truth-adoption.json": "8cee44319adbdeef7f717d6e272144b9dac75ebecba57f7631be599ea9cb0892"
+        },
+        "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+        "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/run.log",
+        "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/summary.json",
+        "execution_status": "completed",
+        "returncode": 0,
+        "results": {
+          "scenes_total": 4,
+          "scenes_passed": 0,
+          "scenes_failed": 4,
+          "scenes_ungraded": 0,
+          "judgments_total": 4,
+          "judgments_passed": 0,
+          "judgments_failed": 4,
+          "failures": [
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pinocchio-grounded-proposal"
+            },
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pinocchio-grounded-proposal"
+            },
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "required_grounding_evidence_not_retrieved",
+              "proposal_id": "pinocchio-grounded-proposal"
+            },
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "grounded_response_released_no_evidence",
+              "proposal_id": "pinocchio-grounded-proposal"
+            },
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "exact_quotation_missing_or_unreleased:pinocchio-school-tomorrow-quote",
+              "proposal_id": "pinocchio-grounded-proposal"
+            },
+            {
+              "scene_id": "pinocchio-personal-study",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pinocchio-personal-proposal"
+            },
+            {
+              "scene_id": "pinocchio-personal-study",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pinocchio-personal-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "inferred_scope_differs_from_ground_truth",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "boundary_memory_support_differs_from_authorised_props",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "boundary_support_differs_from_ground_truth",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "inferred_ceiling_differs_from_ground_truth",
+              "proposal_id": "pinocchio-boundary-proposal"
+            },
+            {
+              "scene_id": "pinocchio-school-detour",
+              "detail": "response_not_released_from_allowed_source",
+              "proposal_id": "pinocchio-clarification-proposal"
+            },
+            {
+              "scene_id": "pinocchio-school-detour",
+              "detail": "provenance_did_not_pass_release",
+              "proposal_id": "pinocchio-clarification-proposal"
+            },
+            {
+              "scene_id": "pinocchio-school-detour",
+              "detail": "boundary_decision_differs_from_ground_truth",
+              "proposal_id": "pinocchio-clarification-proposal"
+            },
+            {
+              "scene_id": "pinocchio-school-detour",
+              "detail": "clarification_question_missing",
+              "proposal_id": "pinocchio-clarification-proposal"
+            }
+          ],
+          "execution_failures": [
+            {
+              "scene_id": "pinocchio-promises-and-book",
+              "detail": "Muse draft: muse_model_failed"
+            },
+            {
+              "scene_id": "pinocchio-personal-study",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "pinocchio-spoiler-inference",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            },
+            {
+              "scene_id": "pinocchio-school-detour",
+              "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+            }
+          ]
+        },
+        "telemetry": {
+          "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4539d3924605723f68d45d4bf15-d163b6dd214af6ab",
+          "trace_id": "01a0b4539d3924605723f68d45d4bf15",
+          "span_id": "d163b6dd214af6ab",
+          "flushed": true
+        },
+        "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4539d3924605723f68d45d4bf15-d163b6dd214af6ab",
+        "status": "failed",
+        "problems": [
+          "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+        ],
+        "finished_at": "2026-09-18T19:43:15.301039+08:00",
+        "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.md",
+        "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.json"
+      },
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-12.json",
+      "failures": [
+        "pinocchio-promises-and-book:hard_gate_or_missing_grades",
+        "pinocchio-promises-and-book:pinocchio-grounded-proposal:grade_failures",
+        "pinocchio-personal-study:hard_gate_or_missing_grades",
+        "pinocchio-personal-study:pinocchio-personal-proposal:grade_failures",
+        "pinocchio-spoiler-inference:hard_gate_or_missing_grades",
+        "pinocchio-spoiler-inference:pinocchio-boundary-proposal:grade_failures",
+        "pinocchio-school-detour:hard_gate_or_missing_grades",
+        "pinocchio-school-detour:pinocchio-clarification-proposal:grade_failures",
+        "process_exit:1",
+        "native_helper_not_passed"
+      ],
+      "finished_at": "2026-09-18T11:43:15.452168+00:00"
+    }
+  ],
+  "semantic_review": "Not performed by this deterministic batch driver"
+}

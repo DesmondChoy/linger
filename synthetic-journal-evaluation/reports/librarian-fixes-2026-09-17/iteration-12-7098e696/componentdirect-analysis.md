@@ -1,0 +1,26 @@
+# Direct notebook helpers — iteration 12
+
+All twelve direct Librarian requests return results; **11/12 pass the strict contract**. Identity-theme returns sufficient against expected weak and has .5 evidence recall/precision. All returned citations resolve and stay inside their application-selected ceilings. This is execution of the notebook's case helpers, not execution of every notebook cell, and it does not run Muse composition or independent Provenance release. The saved artifact retains each public tool result, including exact evidence and strength rationale; it does not retain the planner's and strength judge's complete exchanges.
+
+Every case's actual query, returned records and rationale was inspected. The aggregate pass count does not check each explanatory verb or literal quote in the strength rationale.
+
+| Case | Independent assessment |
+| --- | --- |
+| rabbit-watch | Credible retrieval/strength pass. Chapter1 lines62–92 directly connect the waistcoat/watch novelty to curiosity and pursuit. The rationale correctly avoids making lateness the cause. |
+| drink-me | Credible pass. Chapter1 lines165–192 contain the complete bottle label. Source text preserves its punctuation. |
+| pool-of-tears | Credible pass. Chapter2 lines375–401 explicitly identify Alice's own tears from when she was nine feet high. |
+| caucus-prizes | Credible pass. Chapter3 lines553–587 establish everybody winning and one comfit each;578–617 add Alice's thimble. The answer is supported collectively. |
+| giant-puppy | Retrieval and sufficient strength are credible, **but the passed rationale has an unsupported action**: it says Alice throws the stick. Chapter4 lines906–929 say she picks it up and holds it out, then dodges/runs around the thistle; they do not say she throws it. The canonical record is correct and supplies the actual answer, so this is a prose-quality gap hidden by the range/strength grade, not failed retrieval. |
+| identity-change | Credible pass for the direct why-question. Chapter5 lines960–1016 contain her inability to explain herself, repeated changes and confusion about different sizes. |
+| father-william | Credible retrieval/strength pass. Chapter5 lines1004–1056 contain the recitation instruction and poem opening. The rationale quotes the instruction without the canonical emphasis markup; the exact returned evidence preserves it. This helper result is not an approved final literal quotation. |
+| pigeon-serpent | Credible pass. Chapter5 lines1179–1219 contain the Pigeon's fear for eggs, the long-neck inference, Alice's admission that she has tasted eggs, and the Pigeon's refusal to distinguish girls from serpents. The rationale does not claim Alice ate this Pigeon's eggs. |
+| identity-theme | Strict failure with a substantive calibration concern. The original query asks how size and identity “reinforce each other.” Chapter5 lines960–1016 plus Chapter2 lines327–360 support unstable self-description and confusion; the rationale additionally says identity confusion is expressed through inability to remain physically constant. That reciprocal formulation is interpretation, not a demonstrated reverse physical cause. It supplies no limitation while declaring sufficient. This is not resolved merely by approving extra evidence: acceptable literary interpretation and sufficiency remain the pending human question. |
+| exact-caucus-quote | Credible retrieval pass. Chapter3 lines553–587 contain the exact canonical Dodo sentence. The rationale itself removes emphasis and changes its terminal period to a comma; downstream literal quotation should use the returned source, not treat that explanatory rendering as a verified quote. |
+| future-cheshire | Credible safe negative. No evidence is released; the explanation says none of the supplied passages contains the requested exchange, without confirming a later chapter or offering future details. |
+| absent-spaceship | Credible safe negative. No evidence is released and no location/event is invented. The absence statement is limited to supplied passages. |
+
+Identity's frozen key expects Chapter4 lines762–770 and Chapter5 lines966–981. The returned Chapter5 record matches one expected range; the additional Chapter2 record is outside that key, yielding .5 recall and precision. It is still canonical, in scope and relevant to identity. This explains the deterministic mismatch without changing the adopted key or automatically approving its strength judgment. The selected query is not silently reduced in the source case, but absent saved planning exchanges prevent establishing whether its internal decomposition dropped a clause.
+
+Mean evidence recall and precision are both .9583 and strength accuracy is .9167. These metrics do not assess a final reader response, quotation completeness or independent source-use approval. The earlier release-harness empty-current-Line issue concerns the separate release path, not these direct helpers. No provider call, source, expectation or notebook mutation was made during analysis.
+
+Evidence: [all twelve results](suite-direct.json), [original cases](../../../../evals/librarian/cases.json), and adapter execution mode recorded in the artifact. No whole-notebook execution is claimed.

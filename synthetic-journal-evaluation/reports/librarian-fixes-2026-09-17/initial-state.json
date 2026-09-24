@@ -1,0 +1,33 @@
+{
+  "started_at": "2026-09-17T15:16:30.070945+00:00",
+  "branch": "librarian-all",
+  "tracked_dirty_sha256": {
+    ".beads/interactions.jsonl": "e99d261ae99db9278f893fb68899cb9cb7222002b208b90856db41b265022f3e",
+    "docs/agent-skills.md": "49e282194e19ff69526f3a562f43c2e711644740648591877cdb6550d05374a7",
+    "docs/design/librarian-design.html": "40b305d82b14ac054706df86e067c72784259f54c8bff0a8e418cad518dad0e9",
+    "docs/project-progress.html": "1cbc1d0d22d505dedbf25d3d0c51f546c10bbecf94395fb03cc6eefe009e00dc",
+    "evals/librarian/live_validation.py": "7886d6df3405cd8add721dff6f202d8fc5f110298c058eeb35082a75151cc5bb",
+    "evals/provenance/README.md": "2eaeb00740c87803ca261d7b989af752d37c39364284e0d661af7f18da7f1d23",
+    "evals/synthetic_journals/book_contract.py": "eac10dc295429477fc536043c23e40b316e59d0f2bc5931e0daf9819243d0fea",
+    "evals/synthetic_journals/book_evidence.py": "b8895fecba77675727425ec995d47f5b0083782ccfebff4f26a0bf737de881a8",
+    "notebooks/librarian_manual_evaluation.ipynb": "67cb8cdb3085e5de19446f14e939c0e2505f68cd6544dba7b143ae19ace4b915",
+    "src/linger/agents/librarian/README.md": "a831b2ed6f3ba4439eab9cfca7985c9f79d8accbef7157c4096125f93c63aa8b",
+    "src/linger/agents/librarian/models.py": "6f6fe488c613cec6e7d65b3a191ecb67e67acc0c0c5ce10505630fc78a38e23e",
+    "src/linger/agents/librarian/skills/book-request/SKILL.md": "f3247506f644785dddfa06bb88ecd57ff7d91b6e1255e7e665b466bff860a136",
+    "src/linger/agents/librarian/skills/evidence-assessment/SKILL.md": "239833a30923ee7d50e33f71b12431854c21a473a23fbfd74045d64e08e40d73",
+    "src/linger/orchestration/book_evidence.py": "38370aa23f5e3cd57203fa7920f2637cdf06473a39fd54acc73eacf378f5b426",
+    "src/linger/orchestration/boundary.py": "f4355261ef4c750d3e585250ad98d1b491a057bc551aa1860d601fb317cfb7e2",
+    "src/linger/orchestration/evidence_strength.py": "c4eaa74d4db1a9240ffcbaf4caa3a4ba454e0d4cb4e51b8d8c33fc1e35abfe10",
+    "synthetic-journal-evaluation/README.md": "ee1a2b917c58e9d0daa76b228e8161137af5c4ea3982effecf99db5af5f53b23",
+    "tests/test_boundary_inference.py": "b369c592cc0c5d0b98d6ba9d66767165483574c7bf9babc48a46aa8ebf15dfbd",
+    "tests/test_evidence_strength.py": "95c311076657022910584de2f3d11cbc94b2ee4cd61641803064ff7c4993fd00",
+    "tests/test_hybrid_judgement_candidates.py": "9f29fa057756e95e0d464297e01924b2a337629941529c199b68ec9f2cf97a4b",
+    "tests/test_librarian_request_context.py": "959f7fd5bf9c6319b0c96f00f6b8381b7a1c4679fb81e7cc19824c0c26e84bd4",
+    "tests/test_librarian_request_plan.py": "d860d403baf832f4576ec04f2ad97a31ea723415733dea503d6f9d7e630017f8",
+    "tests/test_librarian_route_e2e.py": "7c41dfe1e632180c6c98d5bbbf37d3bb67dcaf091b4ffbd3addbca34ba7ee0b1",
+    "tests/test_librarian_routing.py": "e3226985642d8471602cb7a3290a94c86cfc436e4b1e1498294f7fe12aa64112",
+    "tests/test_librarian_runtime_skills.py": "0ed3be6f8c9d76d9114daacf82fe265a9c237baac7041dfa6a928332db39f26f",
+    "tests/test_serendipity_librarian.py": "4273fef209983ea754956274de8cf0d21605b86535db59d162dbe270a6df38d9",
+    "tests/test_synthetic_book_contract.py": "c9956d1f2fe59d42bc01a6ab3d6348f8b73f026df92b1c78969b683db14bcf6b"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "kind": "offline_counterfactual_validation",
+  "provider_calls": 0,
+  "historical_results_changed": false,
+  "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190722+0800-_ps33agg/evaluation.json",
+  "scene": "douglass-spoiler-inference",
+  "before_final_failure": "Duplicate1387-1424 solely within other_evidence_ids",
+  "after": [
+    {
+      "attempt": 1,
+      "errors": [
+        {
+          "path": "supporting_evidence[0].source_excerpt",
+          "error": "Copy a short nonblank source_excerpt from this named canonical record. Only whitespace may differ: preserve every word, pronoun, letter case, punctuation mark and markup character. Do not correct or paraphrase the source; choose a concise contiguous span that supports the intended event. Recheck the named record rather than attaching another record's words or unrelated text.",
+          "evidence_id": "pg23-vd3f08ac3-sec09-ln1387-1424"
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "errors": []
+    }
+  ],
+  "limits": "Validation only; no live scope grant or independent event-identification call was made."
+}

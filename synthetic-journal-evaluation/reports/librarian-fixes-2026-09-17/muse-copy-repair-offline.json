@@ -1,0 +1,111 @@
+{
+  "kind": "offline_diagnostic_replay",
+  "provider_calls": 0,
+  "saved_candidates_modified": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "still_rejected": true,
+      "candidate_unchanged": true,
+      "repair": {
+        "current_reply_quote": "in the pool of tears which she had wept when she was nine feet high.",
+        "response_start": 232,
+        "response_end": 300,
+        "suggested_quote": "in the pool of tears which she had wept when\nshe was nine feet high.",
+        "reply_differences": [
+          {
+            "current_start": 44,
+            "current_end": 45,
+            "current_text": " ",
+            "source_text": "\n"
+          }
+        ],
+        "declaration_differences": [
+          {
+            "current_start": 44,
+            "current_end": 45,
+            "current_text": " ",
+            "source_text": "\n"
+          },
+          {
+            "current_start": 67,
+            "current_end": 67,
+            "current_text": "",
+            "source_text": "."
+          }
+        ],
+        "instruction": "Inspect this complete quoted occurrence and its literal differences. If this canonical span covers the requested quotation, copy suggested_quote unchanged into both the reply occurrence and exact_quote. Preserve its line breaks without inserting Markdown prefixes between lines. Then copy supported_claims from the final reply. These differences describe text only; they do not approve attribution or waive any evidence check."
+      }
+    },
+    {
+      "attempt": 2,
+      "still_rejected": true,
+      "candidate_unchanged": true,
+      "repair": {
+        "current_reply_quote": "in the pool of tears which she had wept when\n> she was nine feet high",
+        "response_start": 236,
+        "response_end": 305,
+        "suggested_quote": "in the pool of tears which she had wept when\nshe was nine feet high",
+        "reply_differences": [
+          {
+            "current_start": 45,
+            "current_end": 47,
+            "current_text": "> ",
+            "source_text": ""
+          }
+        ],
+        "declaration_differences": [],
+        "instruction": "Inspect this complete quoted occurrence and its literal differences. If this canonical span covers the requested quotation, copy suggested_quote unchanged into both the reply occurrence and exact_quote. Preserve its line breaks without inserting Markdown prefixes between lines. Then copy supported_claims from the final reply. These differences describe text only; they do not approve attribution or waive any evidence check."
+      }
+    },
+    {
+      "attempt": 3,
+      "still_rejected": true,
+      "candidate_unchanged": true,
+      "repair": {
+        "current_reply_quote": "in the pool of tears which she had wept when she was nine feet high.",
+        "response_start": 232,
+        "response_end": 300,
+        "suggested_quote": "in the pool of tears which she had wept when\nshe was nine feet high.",
+        "reply_differences": [
+          {
+            "current_start": 44,
+            "current_end": 45,
+            "current_text": " ",
+            "source_text": "\n"
+          }
+        ],
+        "declaration_differences": [
+          {
+            "current_start": 67,
+            "current_end": 67,
+            "current_text": "",
+            "source_text": "."
+          }
+        ],
+        "instruction": "Inspect this complete quoted occurrence and its literal differences. If this canonical span covers the requested quotation, copy suggested_quote unchanged into both the reply occurrence and exact_quote. Preserve its line breaks without inserting Markdown prefixes between lines. Then copy supported_claims from the final reply. These differences describe text only; they do not approve attribution or waive any evidence check."
+      }
+    },
+    {
+      "attempt": 4,
+      "still_rejected": true,
+      "candidate_unchanged": true,
+      "repair": {
+        "current_reply_quote": "in the pool of tears which she had wept when\nshe was nine feet high.",
+        "response_start": 232,
+        "response_end": 300,
+        "suggested_quote": "in the pool of tears which she had wept when\nshe was nine feet high.",
+        "reply_differences": [],
+        "declaration_differences": [
+          {
+            "current_start": 67,
+            "current_end": 67,
+            "current_text": "",
+            "source_text": "."
+          }
+        ],
+        "instruction": "Inspect this complete quoted occurrence and its literal differences. If this canonical span covers the requested quotation, copy suggested_quote unchanged into both the reply occurrence and exact_quote. Preserve its line breaks without inserting Markdown prefixes between lines. Then copy supported_claims from the final reply. These differences describe text only; they do not approve attribution or waive any evidence check."
+      }
+    }
+  ]
+}

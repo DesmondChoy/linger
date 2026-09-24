@@ -1,0 +1,350 @@
+{
+  "kind": "offline_input_projection_character_measurement",
+  "provider_calls": 0,
+  "historical_artifacts_modified": false,
+  "native_review_count": 36,
+  "max_ratio": {
+    "suite": "suite-6",
+    "scene": "S2",
+    "sequence": 10,
+    "before_chars": 49879,
+    "after_chars": 94264,
+    "additional_canonical_chars": 43532,
+    "ratio": 1.89
+  },
+  "max_total": {
+    "suite": "suite-6",
+    "scene": "S2",
+    "sequence": 10,
+    "before_chars": 49879,
+    "after_chars": 94264,
+    "additional_canonical_chars": 43532,
+    "ratio": 1.89
+  },
+  "rows": [
+    {
+      "suite": "suite-9",
+      "scene": "douglass-grounded",
+      "sequence": 8,
+      "before_chars": 19803,
+      "after_chars": 29895,
+      "additional_canonical_chars": 9844,
+      "ratio": 1.51
+    },
+    {
+      "suite": "suite-9",
+      "scene": "douglass-personal",
+      "sequence": 3,
+      "before_chars": 3144,
+      "after_chars": 3144,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-9",
+      "scene": "douglass-spoiler-inference",
+      "sequence": 8,
+      "before_chars": 12380,
+      "after_chars": 17426,
+      "additional_canonical_chars": 4922,
+      "ratio": 1.408
+    },
+    {
+      "suite": "suite-9",
+      "scene": "douglass-uncertain",
+      "sequence": 5,
+      "before_chars": 1492,
+      "after_chars": 1492,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-8",
+      "scene": "S1",
+      "sequence": 8,
+      "before_chars": 42242,
+      "after_chars": 66032,
+      "additional_canonical_chars": 23379,
+      "ratio": 1.563
+    },
+    {
+      "suite": "suite-8",
+      "scene": "S1",
+      "sequence": 14,
+      "before_chars": 55328,
+      "after_chars": 81262,
+      "additional_canonical_chars": 25440,
+      "ratio": 1.469
+    },
+    {
+      "suite": "suite-8",
+      "scene": "S2",
+      "sequence": 8,
+      "before_chars": 40463,
+      "after_chars": 64253,
+      "additional_canonical_chars": 23379,
+      "ratio": 1.588
+    },
+    {
+      "suite": "suite-8",
+      "scene": "S3",
+      "sequence": 3,
+      "before_chars": 1675,
+      "after_chars": 1675,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-4",
+      "scene": "pigeon-reflection",
+      "sequence": 8,
+      "before_chars": 9560,
+      "after_chars": 13100,
+      "additional_canonical_chars": 3406,
+      "ratio": 1.37
+    },
+    {
+      "suite": "suite-4",
+      "scene": "uncertain-growth",
+      "sequence": 5,
+      "before_chars": 1394,
+      "after_chars": 1394,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-4",
+      "scene": "personal-reflection",
+      "sequence": 3,
+      "before_chars": 3668,
+      "after_chars": 3668,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-7",
+      "scene": "farm-decision-reversal",
+      "sequence": 8,
+      "before_chars": 19799,
+      "after_chars": 29779,
+      "additional_canonical_chars": 9584,
+      "ratio": 1.504
+    },
+    {
+      "suite": "suite-7",
+      "scene": "farm-personal-trust",
+      "sequence": 3,
+      "before_chars": 3655,
+      "after_chars": 3655,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-7",
+      "scene": "farm-spoiler-inference",
+      "sequence": 5,
+      "before_chars": 1744,
+      "after_chars": 1744,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-7",
+      "scene": "farm-interrupted-discussion",
+      "sequence": 5,
+      "before_chars": 1495,
+      "after_chars": 1495,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-6",
+      "scene": "S1",
+      "sequence": 8,
+      "before_chars": 43139,
+      "after_chars": 65283,
+      "additional_canonical_chars": 21736,
+      "ratio": 1.513
+    },
+    {
+      "suite": "suite-6",
+      "scene": "S1",
+      "sequence": 10,
+      "before_chars": 47258,
+      "after_chars": 69402,
+      "additional_canonical_chars": 21736,
+      "ratio": 1.469
+    },
+    {
+      "suite": "suite-6",
+      "scene": "S2",
+      "sequence": 8,
+      "before_chars": 42306,
+      "after_chars": 56367,
+      "additional_canonical_chars": 13736,
+      "ratio": 1.332
+    },
+    {
+      "suite": "suite-6",
+      "scene": "S2",
+      "sequence": 10,
+      "before_chars": 49879,
+      "after_chars": 94264,
+      "additional_canonical_chars": 43532,
+      "ratio": 1.89
+    },
+    {
+      "suite": "suite-6",
+      "scene": "S3",
+      "sequence": 3,
+      "before_chars": 2163,
+      "after_chars": 2163,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-promises-and-book",
+      "sequence": 5,
+      "before_chars": 10157,
+      "after_chars": 12079,
+      "additional_canonical_chars": 1853,
+      "ratio": 1.189
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-personal-study",
+      "sequence": 3,
+      "before_chars": 3058,
+      "after_chars": 3058,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-personal-study",
+      "sequence": 5,
+      "before_chars": 4456,
+      "after_chars": 4456,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-spoiler-inference",
+      "sequence": 8,
+      "before_chars": 10294,
+      "after_chars": 12216,
+      "additional_canonical_chars": 1853,
+      "ratio": 1.187
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-spoiler-inference",
+      "sequence": 10,
+      "before_chars": 12261,
+      "after_chars": 14183,
+      "additional_canonical_chars": 1853,
+      "ratio": 1.157
+    },
+    {
+      "suite": "suite-12",
+      "scene": "pinocchio-school-detour",
+      "sequence": 5,
+      "before_chars": 1486,
+      "after_chars": 1486,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-race-reflection",
+      "sequence": 10,
+      "before_chars": 31151,
+      "after_chars": 41810,
+      "additional_canonical_chars": 10278,
+      "ratio": 1.342
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-race-reflection",
+      "sequence": 16,
+      "before_chars": 44714,
+      "after_chars": 53542,
+      "additional_canonical_chars": 8508,
+      "ratio": 1.197
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-personal-comparison",
+      "sequence": 3,
+      "before_chars": 3503,
+      "after_chars": 3503,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-spoiler-inference",
+      "sequence": 8,
+      "before_chars": 19305,
+      "after_chars": 29964,
+      "additional_canonical_chars": 10278,
+      "ratio": 1.552
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-spoiler-inference",
+      "sequence": 12,
+      "before_chars": 29631,
+      "after_chars": 42121,
+      "additional_canonical_chars": 12048,
+      "ratio": 1.422
+    },
+    {
+      "suite": "suite-10",
+      "scene": "alice-bottle-ambiguity",
+      "sequence": 5,
+      "before_chars": 1540,
+      "after_chars": 1540,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-11",
+      "scene": "keller-grounded",
+      "sequence": 8,
+      "before_chars": 15505,
+      "after_chars": 18119,
+      "additional_canonical_chars": 2526,
+      "ratio": 1.169
+    },
+    {
+      "suite": "suite-11",
+      "scene": "keller-personal",
+      "sequence": 3,
+      "before_chars": 3364,
+      "after_chars": 3364,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    },
+    {
+      "suite": "suite-11",
+      "scene": "keller-spoiler-inference",
+      "sequence": 8,
+      "before_chars": 11101,
+      "after_chars": 15022,
+      "additional_canonical_chars": 3789,
+      "ratio": 1.353
+    },
+    {
+      "suite": "suite-11",
+      "scene": "keller-uncertain",
+      "sequence": 5,
+      "before_chars": 1377,
+      "after_chars": 1377,
+      "additional_canonical_chars": 0,
+      "ratio": 1.0
+    }
+  ]
+}

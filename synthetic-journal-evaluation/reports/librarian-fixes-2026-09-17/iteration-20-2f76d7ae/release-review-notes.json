@@ -1,0 +1,50 @@
+{
+  "rabbit-watch": {
+    "credible": false,
+    "note": "No substantive book answer released. Saved provider errors: [{'role': 'Muse', 'category': 'provider_error', 'http': 429}]. Application error fallback is not task success."
+  },
+  "drink-me": {
+    "credible": false,
+    "note": "No substantive book answer released. Saved provider errors: [{'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. Muse transparently reports unavailable retrieval; Prove pass approves only that safe limitation, not successful book retrieval."
+  },
+  "pool-of-tears": {
+    "credible": false,
+    "note": "No substantive book answer released. Saved provider errors: [{'role': 'Muse', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. Application error fallback is not task success."
+  },
+  "caucus-prizes": {
+    "credible": false,
+    "note": "No substantive book answer released; errors [{'role': 'Muse', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. Application fallback; no completed final review."
+  },
+  "giant-puppy": {
+    "credible": false,
+    "note": "No substantive book answer released; errors [{'role': 'Librarian', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. Transparent retrieval-unavailable response passed review as a safe limitation, not a successful book answer."
+  },
+  "identity-change": {
+    "credible": false,
+    "note": "No substantive book answer released; errors [{'role': 'Muse', 'category': 'provider_error', 'http': 429}]. Application fallback; no completed final review."
+  },
+  "father-william": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Librarian', 'category': 'provider_error', 'http': 429}, {'role': 'Provenance', 'category': 'provider_error', 'http': 429}]. No valid answer released; saved limitation-only draft, if any, is not successful book evidence."
+  },
+  "pigeon-serpent": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Muse', 'category': 'provider_error', 'http': 429}, {'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. No valid answer released; saved limitation-only draft, if any, is not successful book evidence."
+  },
+  "identity-theme": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Muse', 'category': 'provider_error', 'http': 429}]. No valid answer released; saved limitation-only draft, if any, is not successful book evidence."
+  },
+  "exact-caucus-quote": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Muse', 'category': 'provider_error', 'http': 429}]. No valid answer released; saved limitation-only draft, if any, is not successful book evidence."
+  },
+  "future-cheshire": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Librarian', 'category': 'provider_error', 'http': 429}]. Review passes only an unavailable-search response. No later-book advice leaked; retry promise is not proof Chapter5 can answer this question."
+  },
+  "absent-spaceship": {
+    "credible": false,
+    "note": "No substantive benchmark answer; provider errors [{'role': 'Librarian', 'category': 'provider_error', 'http': 429}, {'role': 'Provenance', 'category': 'provider_error', 'http': 429}]. No valid answer released; saved limitation-only draft, if any, is not successful book evidence."
+  }
+}

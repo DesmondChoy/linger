@@ -1,0 +1,7 @@
+# Optional corrective citation semantics
+
+The prepared human decision concerns one exact same-chapter Queen-discovery passage. Current connection grading additionally requires every authored evidence handle to map to an inspected runtime record, even when the handle is only permitted and not required as a citation. Merely appending the allowed passage could therefore introduce a new unintended retrieval requirement.
+
+Before adopting this proposal, encode optional inspection explicitly: a default-empty ConnectionExpectation.optional_evidence_ids tuple, constrained to permitted IDs and disjoint from required citation IDs. Exclude only explicitly optional handles from the existing required_source_not_inspected check; preserve exact canonical resolution and every existing requirement for unmarked evidence. Add the new corrective handle to this list in G1/G2/G3. Existing adopted cases retain the default and their previous behavior. Test absent optional evidence, present canonical evidence, forged/unpermitted citations, missing required source inspection and invalid optional declarations. This is prospective evaluator behavior, not runtime authority.
+
+The user decision is pending. Neither current Ground truth nor current evaluation semantics has changed; iteration15 uses the already approved menu. If approved during the frozen run, apply and validate only after it completes, preserve original bytes and hash-bind successor adoption before another iteration. Existing causal/source-mapping failures remain failures even if the corrective citation is permitted.

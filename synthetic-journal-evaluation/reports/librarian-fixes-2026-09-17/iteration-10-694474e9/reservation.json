@@ -1,0 +1,20 @@
+{
+  "iteration": 10,
+  "reservation_id": "6aa07ad266214fbab01d0ac14a3803cb",
+  "reserved_at": "2026-09-18T01:31:47.669952+00:00",
+  "status": "reserved",
+  "suites": [
+    "4",
+    "6",
+    "8",
+    "release",
+    "smoke",
+    "mapping"
+  ],
+  "model": "openai:gpt-5.6-luna",
+  "model_settings": {
+    "openai_reasoning_effort": "high"
+  },
+  "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-10-694474e9",
+  "source_manifest_sha256": "b75087e65f2088baf808959e94ebd41f657cb592d1cd5a716a3e4a86fd00c536"
+}

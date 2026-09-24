@@ -1,0 +1,14 @@
+ITERATION_DIRECTORY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342
+{"suite": "4", "passed": true, "failures": []}
+{"suite": "7", "passed": false, "failures": ["farm-spoiler-inference:hard_gate_or_missing_grades", "farm-spoiler-inference:farm-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "9", "passed": false, "failures": ["douglass-spoiler-inference:hard_gate_or_missing_grades", "douglass-spoiler-inference:douglass-proposal-boundary:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "8", "passed": true, "failures": []}
+{"suite": "10", "passed": true, "failures": []}
+{"suite": "6", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:G1-connection:grade_failures", "S1:G1-connection:stage_failure", "S2:hard_gate_or_missing_grades", "S2:G2-connection:grade_failures", "S2:G2-connection:stage_failure", "S2:G3-weak-evidence:grade_failures", "S2:G3-weak-evidence:stage_failure", "S3:hard_gate_or_missing_grades", "S3:G4-weak-evidence:grade_failures", "S3:G4-weak-evidence:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "mapping", "passed": true, "failures": []}
+{"suite": "direct", "passed": true, "failures": []}
+{"suite": "12", "passed": false, "failures": ["pinocchio-spoiler-inference:hard_gate_or_missing_grades", "pinocchio-spoiler-inference:pinocchio-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "smoke", "passed": false, "failures": ["smoke_hard_grades"]}
+{"suite": "11", "passed": true, "failures": []}
+{"suite": "release", "passed": false, "failures": ["pool-of-tears:recall", "pool-of-tears:precision", "pigeon-serpent:recall", "pigeon-serpent:release", "pigeon-serpent:provenance", "identity-theme:recall", "identity-theme:release", "identity-theme:provenance", "exact-caucus-quote:strength_correct", "exact-caucus-quote:recall", "exact-caucus-quote:release", "exact-caucus-quote:provenance", "exact-caucus-quote:call_contract", "future-cheshire:strength_correct", "future-cheshire:release", "future-cheshire:provenance", "future-cheshire:call_contract", "absent-spaceship:strength_correct", "absent-spaceship:release", "absent-spaceship:provenance", "absent-spaceship:call_contract", "native_release_targets"]}
+BATCH_SUMMARY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/summary.json

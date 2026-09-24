@@ -1,0 +1,14 @@
+ITERATION_DIRECTORY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6
+{"suite": "9", "passed": false, "failures": ["douglass-spoiler-inference:hard_gate_or_missing_grades", "douglass-spoiler-inference:douglass-proposal-boundary:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "4", "passed": true, "failures": []}
+{"suite": "10", "passed": true, "failures": []}
+{"suite": "8", "passed": true, "failures": []}
+{"suite": "7", "passed": false, "failures": ["farm-spoiler-inference:hard_gate_or_missing_grades", "farm-spoiler-inference:farm-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "11", "passed": true, "failures": []}
+{"suite": "12", "passed": true, "failures": []}
+{"suite": "mapping", "passed": true, "failures": []}
+{"suite": "6", "passed": false, "failures": ["S2:hard_gate_or_missing_grades", "S2:G2-connection:grade_failures", "S2:G2-connection:stage_failure", "S2:G3-weak-evidence:grade_failures", "S2:G3-weak-evidence:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "direct", "passed": true, "failures": []}
+{"suite": "smoke", "passed": true, "failures": []}
+{"suite": "release", "passed": true, "failures": []}
+BATCH_SUMMARY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6/summary.json

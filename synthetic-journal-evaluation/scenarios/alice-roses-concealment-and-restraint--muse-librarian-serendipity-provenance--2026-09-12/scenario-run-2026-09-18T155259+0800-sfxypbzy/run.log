@@ -1,0 +1,6 @@
+CONNECTION_REPLAY_OUTPUT=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T155259+0800-sfxypbzy/evaluation.json
+
+2026-09-18 15:56:12 INFO linger.backend Agent run completed elapsed=190.56s release_source=application_safe_decline provenance_path=revise,revise findings=misattribution,unsupported_claim revisions=1 failure_stage=none
+2026-09-18 15:58:00 INFO linger.backend Agent run completed elapsed=107.65s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+2026-09-18 15:58:09 INFO linger.backend Agent run completed elapsed=9.09s release_source=muse_candidate provenance_path=pass findings=none revisions=0 failure_stage=none
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b3812be53308952d7b25f94baf77-9e761cd0b76e0f12", "trace_id": "01a0b3812be53308952d7b25f94baf77", "span_id": "9e761cd0b76e0f12", "flushed": true}

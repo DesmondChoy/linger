@@ -1,0 +1,111 @@
+{
+  "suite": "10",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/menu.json",
+    "--number",
+    "10",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T10:52:00.186858+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/suite-10.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-9wdhxl1l/evaluation.json"
+    ],
+    "started_at": "2026-09-18T18:52:00.688727+08:00",
+    "scenario_hashes": {
+      "backstory.json": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+      "ground-truth.json": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+      "ground-truth-adoption.json": "57d44ca8f2d062512a1dc739f354d7e3246d6ba76cc961b930689ac19d72b69b"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-9wdhxl1l/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-9wdhxl1l/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-9wdhxl1l/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 2,
+      "scenes_failed": 2,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 2,
+      "judgments_failed": 2,
+      "failures": [
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-race-reflection",
+          "detail": "exact_quotation_missing_or_unreleased:alice-dodo-prizes-quote",
+          "proposal_id": "alice-grounded-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "alice-boundary-proposal"
+        },
+        {
+          "scene_id": "alice-spoiler-inference",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "alice-boundary-proposal"
+        }
+      ],
+      "execution_failures": []
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4251634e683b319909988a870cc-a5656a4e44f65fbf",
+      "trace_id": "01a0b4251634e683b319909988a870cc",
+      "span_id": "a5656a4e44f65fbf",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4251634e683b319909988a870cc-a5656a4e44f65fbf",
+    "status": "failed",
+    "problems": [
+      "The replay completed with failed evaluation checks; see expected versus observed evidence."
+    ],
+    "finished_at": "2026-09-18T18:58:53.234399+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185853+0800-2066cf09.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185853+0800-2066cf09.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/suite-10.json",
+  "failures": [
+    "alice-race-reflection:hard_gate_or_missing_grades",
+    "alice-race-reflection:alice-grounded-proposal:grade_failures",
+    "alice-spoiler-inference:hard_gate_or_missing_grades",
+    "alice-spoiler-inference:alice-boundary-proposal:grade_failures",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T10:58:53.490568+00:00"
+}

@@ -1,0 +1,50 @@
+{
+  "rabbit-watch": {
+    "credible": true,
+    "note": "Final source mapping now covers initially unmapped curiosity-versus-boredom synthesis; quote exact; same Chapter1 source covers novelty, curiosity and following down hole. Revision preserved accepted response wording while adding missing mapping."
+  },
+  "drink-me": {
+    "credible": true,
+    "note": "Correct exact label and source-supported poison-check sequence. Revision paraphrases undeclared poison fragment without changing accepted label or claim timing; full0186\u20130219 canonical record reviewed."
+  },
+  "pool-of-tears": {
+    "credible": true,
+    "note": "Canonical0375\u20130401 text unchanged from reviewed16; direct own-tears/nine-foot explanation, requested quotation exact including newline and period; complete two claims mapped."
+  },
+  "caucus-prizes": {
+    "credible": false,
+    "note": "No book answer released: Provenance review failed with saved provider HTTP429 (trace01a0b425148e998b7c198f09f4f0f3b9). No review verdict exists; candidate claims not counted as successful."
+  },
+  "giant-puppy": {
+    "credible": true,
+    "note": "Correct stick/thistle/charges/panting escape sequence and literal cart-horse comparison, canonical source same as16. Does not repeat direct assessor unsupported throwing wording; thought attribution slightly loose but source-faithful."
+  },
+  "identity-change": {
+    "credible": true,
+    "note": "Revision removes unsupported characterization of Caterpillar identity philosophy; preserves exact quotation and grounded interpretation of Alice size/self confusion. All final claims mapped to canonical0960\u20131016 unchanged from16."
+  },
+  "father-william": {
+    "credible": true,
+    "note": "Correct Chapter5 poem title and complete exact Caterpillar instruction, canonical1004\u20131056; quote/title distinctions sound."
+  },
+  "pigeon-serpent": {
+    "credible": true,
+    "note": "Improvement over16: reviewer detects missing egg-guarding source and unsupported mushroom-cause clause; revision removes cause and maps egg/tree-top synthesis jointly to1151\u20131186 and1179\u20131219. Final complete facts/quotes/source unions valid; comic logic is scare quote. Both records same canonical texts reviewed16."
+  },
+  "identity-theme": {
+    "credible": false,
+    "note": "Withheld after second revise: first review caught undeclared Who-are-you quotation but accepted two-way identity synthesis mapped only to1004\u20131056; second review demands0960\u20131016 too. Initial gap missed vs potentially overstrict literary inference remains semantic ambiguity. No answer released; not an alternative-anchor expectation failure because bothprecise Chapter5 records available."
+  },
+  "exact-caucus-quote": {
+    "credible": true,
+    "note": "Exact full requested Dodo quotation and ceremony context supported by same canonical0553\u20130587; declaration covers full quote and attribution."
+  },
+  "future-cheshire": {
+    "credible": true,
+    "note": "No unsupported plot facts or preview; reports current bounded search limitation."
+  },
+  "absent-spaceship": {
+    "credible": true,
+    "note": "Revision removes general claim of chapter-wide absence and reports only no passage found; no invented event/location."
+  }
+}

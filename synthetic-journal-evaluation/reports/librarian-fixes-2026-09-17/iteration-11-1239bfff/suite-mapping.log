@@ -1,0 +1,7 @@
+Currently retrying 1 failed export(s) (3594 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.999994039535522)
+{
+  "cases_total": 4,
+  "cases_passed": 4,
+  "targets_pass": true
+}

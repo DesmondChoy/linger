@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+  "proposed_ground_truth_sha256": "59d6b0992c62793ead80a55ed916e35d5a9675cf95606c588a783889fa423c21",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-17T19:33:20.463939+08:00",
+  "decisions": [
+    {
+      "proposal_id": "alice-grounded-proposal",
+      "scene_id": "alice-race-reflection",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "alice-boundary-proposal",
+      "scene_id": "alice-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "alice-personal-proposal",
+      "scene_id": "alice-personal-comparison",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "alice-clarification-proposal",
+      "scene_id": "alice-bottle-ambiguity",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "8196bd49759f99c9ad3b2ef71027c5fbb5daa3eefa750139437f07253657fd99"
+}

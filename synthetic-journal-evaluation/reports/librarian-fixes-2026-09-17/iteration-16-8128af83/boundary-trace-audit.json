@@ -1,0 +1,317 @@
+{
+  "kind": "offline_boundary_trace_audit",
+  "provider_calls": 0,
+  "book_scene_count": 23,
+  "event_gates": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ]
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg23-vd3f08ac3-sec10-ln1597-1629"
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch03-ln0672-0687"
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254"
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch09-ln0974-0988"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "boundary_decision": "infer",
+      "ceiling": 5,
+      "support_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219",
+        "pg11-v01b38ea4-ch05-ln0960-1016"
+      ],
+      "memory_ids": [
+        "mem_a48b272831e82490d4bdbbe1027468f22bbbbfd609b40e52a787d172b1fb0dcc"
+      ],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 4,
+      "scene": "personal-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 7,
+      "scene": "farm-decision-reversal",
+      "boundary_decision": "not_applicable",
+      "ceiling": 5,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 7,
+      "scene": "farm-personal-trust",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 7,
+      "scene": "farm-interrupted-discussion",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 7,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 7,
+      "support_ids": [
+        "pg23-vd3f08ac3-sec10-ln1597-1629",
+        "pg23-vd3f08ac3-sec09-ln1346-1385"
+      ],
+      "memory_ids": [
+        "mem_6d34dcbb3c2db818a35f284b3b22e1b8a03b57424554a85946cebc135f70c372"
+      ],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 10,
+      "scene": "alice-race-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": 3,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 10,
+      "scene": "alice-personal-comparison",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 3,
+      "support_ids": [
+        "pg11-v01b38ea4-ch03-ln0553-0587",
+        "pg11-v01b38ea4-ch03-ln0578-0617",
+        "pg11-v01b38ea4-ch03-ln0640-0678",
+        "pg11-v01b38ea4-ch03-ln0672-0687",
+        "pg11-v01b38ea4-ch02-ln0454-0477",
+        "pg11-v01b38ea4-ch02-ln0438-0465"
+      ],
+      "memory_ids": [
+        "mem_fe658d8e435833486947741f5cb1dd260fdd81603f7f5478f56c8234f0c06147"
+      ],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 10,
+      "scene": "alice-bottle-ambiguity",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 11,
+      "scene": "keller-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 10,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 11,
+      "scene": "keller-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 10,
+      "support_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254",
+        "pg2397-vb3cc1e13-sec011-ln1127-1155"
+      ],
+      "memory_ids": [
+        "mem_78a9809b9e01063425905cc6ecabb83f4ba69a14117a0c774aa5330403b82cb9"
+      ],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 11,
+      "scene": "keller-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-promises-and-book",
+      "boundary_decision": "not_applicable",
+      "ceiling": 9,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-personal-study",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 9,
+      "support_ids": [
+        "pg500-v6bdc1734-ch08-ln0869-0886",
+        "pg500-v6bdc1734-ch09-ln0897-0939",
+        "pg500-v6bdc1734-ch09-ln0974-0988"
+      ],
+      "memory_ids": [
+        "mem_c97b8a860a5280e8547272bc29be6fc1bd088578cf5b8fd6b28529ceebc97af3"
+      ],
+      "handoff_content_free": true
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-school-detour",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "handoff_content_free": true
+    }
+  ],
+  "mechanical_scope_issues": []
+}

@@ -1,0 +1,24 @@
+# Iteration 14: direct notebook-equivalent Librarian review
+
+All **12/12** direct cases meet the current approved retrieval expectations. Independent inspection finds the selected passages relevant and scoped, including a defensible qualified identity interpretation. This is execution of the notebook's case helpers, not execution of every notebook cell and not a Muse/Provenance release test.
+
+Evidence: `suite-direct.json`, all twelve result rationales and complete evidence records. Trace ID `01a0b38c481c6913283d161ca68c5fb0`; model `openai:gpt-5.6-luna`. Independent offline recomputation confirms recall/precision1 and spoiler safety for every case. All twelve returned evidence records exactly equal their canonical source-line text, without needing whitespace normalization. The saved helper artifact has no raw planner or evidence-judgment messages, so internal repairs and request usage are not established here.
+
+| Case | Named source lines | Independent assessment |
+| --- | --- | --- |
+| rabbit-watch | Ch1 62–92 | Credible. The watch and waistcoat pocket trigger curiosity and pursuit; the rationale does not confuse background boredom with the immediate trigger. |
+| drink-me | Ch1 165–192 | Credible. The label says DRINK ME and the exact canonical record preserves its comma and typography. |
+| pool-of-tears | Ch2 375–401 | Credible. The passage directly identifies Alice's own tears from when she was nine feet high. |
+| caucus-prizes | Ch3 553–587 and578–617 | Credible. Everybody wins, each member of the party receives a comfit, and Alice receives her own thimble. Both necessary sections are present. |
+| giant-puppy | Ch4 913–937 | Credible. Alice holds out a stick, dodges behind a thistle, and avoids the puppy's charges until it tires. The rationale does not repeat the earlier invented action of throwing the stick. |
+| identity-change | Ch5 960–1016 | Credible. Her changing sense of self, inability to explain herself, and confusion at changing size are explicit. |
+| father-william | Ch5 1004–1056 | Correct retrieval and poem identification. The rationale omits the canonical underscore emphasis inside its quoted recitation instruction; the evidence text itself preserves it exactly. This is not evidence of literal final-reply quotation compliance. |
+| pigeon-serpent | Ch5 1179–1219 | Credible. The Pigeon explicitly appeals to her unusual neck, eggs, and its nesting fears. The rationale does not add the earlier causal claim that growth produced her neck. |
+| identity-theme | Ch5 960–1016 andCh2 327–360 | Credible under the approved qualified-interpretation expectation; details below. Required Chapter5 anchor is present, and the optional Chapter2 self-testing passage is relevant. |
+| exact-caucus-quote | Ch3 553–587 | Correct exact passage returned. The rationale quotes the sentence without the canonical underscore emphasis on Everybody; the returned source retains that emphasis. The helper's citation check grades evidence text, not the rationale's quotation typography. |
+| future-cheshire | No evidence, searched throughCh5 | Credible scoped absence. The rationale says no supplied passage supports the road-advice exchange; it does not disclose the advice or assert a later location. |
+| absent-spaceship | No evidence, searched throughCh5 | Credible scoped absence. It invents no spaceship, repair, or location and confines its claim to the supplied passages. |
+
+The identity rationale explicitly calls its conclusion an interpretation: bodily instability makes identity uncertain, while uncertainty makes each bodily change *feel like evidence* that Alice is no longer herself. This is a claim about interpretation of experience, not that uncertain identity physically causes growth. Chapter5 supplies the direct link between changes, inability to explain herself and confusing size; Chapter2 supplies her question about who she is and her attempted memory/knowledge tests. The reciprocal formulation is an inference rather than an explicit narrator statement, but it is qualified and supported well enough for the newly approved sufficient label. Optional support did not replace the required anchor. The live selection and rationale were inspected independently of the changed metric, and historical grades were not rewritten.
+
+The perfect direct score establishes relevant canonical retrieval for these cases. It does not validate final answer completeness, quotations in a Muse reply, source declaration mapping, or Provenance's semantic review. Short illustrative quotations inside the identity rationale also condense canonical line wrapping. Those prose limitations cannot be inferred away from `all_citations_resolve=true`, which concerns the returned records. No raw model retry count or provider usage is saved for this helper run; no new provider calls, case edits or source changes were made for this review.

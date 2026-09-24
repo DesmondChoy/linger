@@ -1,0 +1,210 @@
+{
+  "case_id": "cross-source-outside-essay-v1",
+  "run_id": "dcfd5107fa974770ad0426b5807812e4",
+  "model": "openai:gpt-5.6-luna",
+  "exit_code": 0,
+  "hard_gate_pass": true,
+  "stage_results": [
+    {
+      "stage": "invocation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "retrieval",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "serendipity_selection",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "muse_presentation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "provenance_review",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "deterministic_release",
+      "status": "passed",
+      "reason_code": null
+    }
+  ],
+  "semantic_review_required": true,
+  "release_source": "muse_candidate",
+  "trace_id": "01a0afdc9b96c7e22e4ecbe5f2c50556",
+  "telemetry_flushed": true,
+  "agent_exchanges": 8,
+  "sdk_usage": {
+    "input_tokens": 105996,
+    "output_tokens": 5769,
+    "requests": 13
+  },
+  "web_operations": {
+    "web_search": 1,
+    "get_page": 2
+  },
+  "schema_repairs": [
+    {
+      "role": "Serendipity",
+      "stage": "search_rank_select",
+      "tool_name": "final_result_ConnectionProposal",
+      "errors": [
+        {
+          "type": "extra_forbidden",
+          "location": [
+            "shortlist",
+            1,
+            "candidate-gordon-essay-on-confusion-and-uncertainty"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "candidate_id"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "tentative_claim"
+          ]
+        },
+        {
+          "type": "too_short",
+          "location": [
+            "shortlist"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Serendipity",
+      "stage": "search_rank_select",
+      "tool_name": "final_result_ConnectionProposal",
+      "errors": [
+        {
+          "type": "extra_forbidden",
+          "location": [
+            "shortlist",
+            1,
+            "candidate-gordon-essay-on-confusion-and-uncertainty"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "tentative_claim"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "evidence_ids"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "shared_structure"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "meaningful_difference"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "interpretation"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "rubric"
+          ]
+        },
+        {
+          "type": "missing",
+          "location": [
+            "shortlist",
+            1,
+            "comparison_note"
+          ]
+        },
+        {
+          "type": "too_short",
+          "location": [
+            "shortlist"
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": [
+    {
+      "sequence": 6,
+      "output": {
+        "findings": [
+          {
+            "code": "unsupported_claim",
+            "applies_to": "response",
+            "location": {
+              "kind": "text_span",
+              "source_field": "candidate.response",
+              "path": "",
+              "quote": "while the Caterpillar\u2019s questioning remains enigmatic and offers no clearly constructive follow-through."
+            },
+            "explanation": "This book-specific interpretive claim relies on the Chapter 5 passage but is not included in the book evidence mapping. Map the full claim to the canonical passage, or rephrase it as an explicitly tentative reader-facing reflection and ensure the source-dependent content is removed."
+          }
+        ],
+        "response_decision": "revise",
+        "emotional_boundary_decision": "not_required",
+        "capture_decision": "no_candidate",
+        "finding_resolutions": []
+      }
+    },
+    {
+      "sequence": 8,
+      "output": {
+        "findings": [],
+        "response_decision": "pass",
+        "emotional_boundary_decision": "not_required",
+        "capture_decision": "no_candidate",
+        "finding_resolutions": [
+          {
+            "finding_index": 0,
+            "status": "resolved",
+            "explanation": "The revised response removes the earlier stronger claim about no constructive follow-through and now says the Caterpillar\u2019s purpose remains open to interpretation. That qualified interpretation is mapped to the Chapter 5 passage, while the Meno claims remain supported by the cited web record and visibly cited URL."
+          }
+        ]
+      }
+    }
+  ],
+  "remaining_cross_source_scenarios_are_covered_by_this_smoke": false
+}

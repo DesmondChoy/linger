@@ -1,0 +1,102 @@
+{
+  "kind": "prospective_approved_expectation_clarification",
+  "created_at": "2026-09-18T10:48:08.923614+00:00",
+  "applies_from_iteration": 17,
+  "authorization": "I agree with you on the Alice chapter 5 dialogue. I approve 2 and 3.",
+  "interpretation": "Approval accepts a well-supported interpretation using Chapter 5 dialogue; requiring only lines966-981 was an implementation narrowing. The second precise dialogue about changed memory and size also qualifies.",
+  "case_before": {
+    "case_id": "identity-theme",
+    "query": "How do Alice's changing size and uncertain identity reinforce each other?",
+    "chapter_max": 5,
+    "expected_strength": "sufficient",
+    "relevant_ranges": [
+      [
+        4,
+        762,
+        770
+      ],
+      [
+        5,
+        966,
+        981
+      ],
+      [
+        5,
+        1026,
+        1032
+      ],
+      [
+        2,
+        327,
+        360
+      ]
+    ],
+    "required_ranges": [
+      [
+        5,
+        966,
+        981
+      ]
+    ]
+  },
+  "case_after": {
+    "case_id": "identity-theme",
+    "query": "How do Alice's changing size and uncertain identity reinforce each other?",
+    "chapter_max": 5,
+    "expected_strength": "sufficient",
+    "relevant_ranges": [
+      [
+        4,
+        762,
+        770
+      ],
+      [
+        5,
+        966,
+        981
+      ],
+      [
+        5,
+        1026,
+        1032
+      ],
+      [
+        2,
+        327,
+        360
+      ]
+    ],
+    "required_range_groups": [
+      [
+        [
+          5,
+          966,
+          981
+        ],
+        [
+          5,
+          1026,
+          1032
+        ]
+      ]
+    ]
+  },
+  "cases_sha256_before": "0ae00d99aa16b58fac517408588e31f4a4f662ccfb42b1eb0328c1dc12c232dd",
+  "cases_sha256_after": "dac4d0ae4353006ecd8ba3bbb000ed908d208ca960d59228d67e92196f3c5a4a",
+  "invariants": [
+    "Same query, chapter5 ceiling, sufficient strength, relevant ranges and precision",
+    "Either precise dialogue required; Chapter2/4 alone and unrelated Chapter5 passages fail",
+    "Other11 case expectations unchanged; identity-change merely migrates to a singleton group",
+    "No prior result, scenario Ground truth or adoption changed",
+    "Roses adopted Ground truth is separate and unchanged"
+  ],
+  "implementation": "AND of required_range_groups, OR within each group; one shared BenchmarkCase.evidence_recall calculation for benchmark/direct/notebook/release",
+  "validation": {
+    "regression_before": "Chapter5 lines1026-1032 alone expected recall1 but observed0",
+    "after": "39 tests and161 subtests; boundary guidance55 tests and4 subtests"
+  },
+  "historical_results_changed": false,
+  "provider_calls": 0,
+  "before_cases_archive": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/expectation-proposals/identity-alternatives-17/cases-before.json",
+  "after_cases_archive": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/expectation-proposals/identity-alternatives-17/cases-after.json"
+}

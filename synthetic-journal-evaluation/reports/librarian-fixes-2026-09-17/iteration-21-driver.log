@@ -1,0 +1,14 @@
+ITERATION_DIRECTORY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-21-f155ea01
+{"suite": "direct", "passed": true, "failures": []}
+{"suite": "mapping", "passed": true, "failures": []}
+{"suite": "smoke", "passed": true, "failures": []}
+{"suite": "4", "passed": true, "failures": []}
+{"suite": "6", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:G1-connection:grade_failures", "S1:G1-connection:stage_failure", "S2:hard_gate_or_missing_grades", "S2:G2-connection:grade_failures", "S2:G2-connection:stage_failure", "S2:G3-weak-evidence:grade_failures", "S2:G3-weak-evidence:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "release", "passed": false, "failures": ["rabbit-watch:recall", "rabbit-watch:release", "rabbit-watch:provenance"]}
+{"suite": "7", "passed": false, "failures": ["farm-spoiler-inference:hard_gate_or_missing_grades", "farm-spoiler-inference:farm-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "8", "passed": true, "failures": []}
+{"suite": "9", "passed": false, "failures": ["douglass-spoiler-inference:hard_gate_or_missing_grades", "douglass-spoiler-inference:douglass-proposal-boundary:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "10", "passed": false, "failures": ["alice-race-reflection:hard_gate_or_missing_grades", "alice-race-reflection:alice-grounded-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "12", "passed": true, "failures": []}
+{"suite": "11", "passed": false, "failures": ["keller-grounded:hard_gate_or_missing_grades", "keller-grounded:keller-proposal-grounded:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+BATCH_SUMMARY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-21-f155ea01/summary.json

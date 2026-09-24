@@ -1,0 +1,603 @@
+{
+  "kind": "targeted_two_turn_regression",
+  "date": "2026-09-05",
+  "not_an_adopted_dataset_replay": true,
+  "runs": [
+    {
+      "phase": "before_upstream_integration",
+      "muse_prompt_version": "7",
+      "result": "failed",
+      "assessment": "Second reply paraphrased instead of quoting.",
+      "local_artifact": "/tmp/linger-caterpillar-passages.PfzrTw/result.json",
+      "artifact_sha256": "16b300bead0eae8c5d1eb8d5e5ffdcf6a51bc64b7ed5d816d63728e00928a92c",
+      "model": "openai:gpt-5.6-luna",
+      "git_head": "ae8280663850f4f4f21edbceee2685e4d825dd0c",
+      "capture_enabled": false,
+      "turns": [
+        {
+          "turn": 1,
+          "message": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "reply": "That sounds like a strikingly unsettling place to pause. Putting the book down for a minute makes sense. Two chapters a night is plenty; staying with the experience matters more than keeping pace.",
+          "history_messages_before": 0,
+          "history_messages_after": 2,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "revise",
+              "pass"
+            ],
+            "finding_codes": [
+              "unresolved_evidence"
+            ],
+            "released_evidence_ids": [],
+            "revision_count": 1,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": []
+        },
+        {
+          "turn": 2,
+          "message": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "reply": "Alice says she can’t explain herself, adding that she isn’t herself. That’s the wording you were reaching for.",
+          "history_messages_before": 2,
+          "history_messages_after": 4,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "revise",
+              "pass"
+            ],
+            "finding_codes": [
+              "unsupported_claim"
+            ],
+            "released_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0974-0975"
+            ],
+            "revision_count": 1,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": [
+            {
+              "tool_name": "librarian_route",
+              "request": {},
+              "outcome": "success",
+              "response": {
+                "kind": "passages",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "evidence_ids": [
+                  "pg11-v01b38ea4-ch05-ln0974-0975"
+                ],
+                "request_id": "routereq_4360920725fa42d690ba18e55083e18c",
+                "title": "Alice's Adventures in Wonderland",
+                "routing_confidence": 0.7,
+                "boundary_confidence": 0.99
+              }
+            },
+            {
+              "tool_name": "librarian_search",
+              "request": {
+                "query": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "reading_boundary": null,
+                "max_final_evidence": 3
+              },
+              "outcome": "success",
+              "response": {
+                "kind": "result",
+                "request_id": "libreq_c42eea4899ad42c5a6e44d0fccba6d08",
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "strength_reason": "The passage directly gives Alice’s wording in the exchange with the Caterpillar, including the phrasing the reader is trying to recall.",
+                "searched_scope": {
+                  "kind": "passages",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0974-0975"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0975",
+                    "work_id": "pg11",
+                    "book_version_id": "pg11-v01b38ea4",
+                    "chapter_id": "pg11-v01b38ea4-ch05",
+                    "chapter_number": 5,
+                    "location": "Chapter 5 — Advice from a Caterpillar, source lines 974-975",
+                    "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                    "source_lines": [
+                      974,
+                      975
+                    ],
+                    "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”"
+                  }
+                ],
+                "limitations": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "before_upstream_integration",
+      "muse_prompt_version": "8",
+      "result": "failed",
+      "assessment": "First reply retained unsupported interpretation and was declined; second lacked prior history.",
+      "local_artifact": "/tmp/linger-caterpillar-quote.TaLKVk/result.json",
+      "artifact_sha256": "fe9a52e7fe96bbc275f7b5cd2ee4d4a61f3c550a8de8bda051b82efe8c5b41e6",
+      "model": "openai:gpt-5.6-luna",
+      "git_head": "ae8280663850f4f4f21edbceee2685e4d825dd0c",
+      "capture_enabled": false,
+      "turns": [
+        {
+          "turn": 1,
+          "message": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+          "history_messages_before": 0,
+          "history_messages_after": 0,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "application_safe_decline",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "revise",
+              "revise"
+            ],
+            "finding_codes": [
+              "unresolved_evidence",
+              "unsupported_claim"
+            ],
+            "released_evidence_ids": [],
+            "revision_count": 1,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": []
+        },
+        {
+          "turn": 2,
+          "message": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+          "history_messages_before": 0,
+          "history_messages_after": 2,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "application_clarification",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "pass"
+            ],
+            "finding_codes": [],
+            "released_evidence_ids": [],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": [
+            {
+              "tool_name": "librarian_route",
+              "request": {},
+              "outcome": "success",
+              "response": {
+                "kind": "clarification",
+                "request_id": "routereq_8ba26a68076d4c2bb4a36489b5af4bee",
+                "clarification_id": "clarify_ac14552afe2b4df9a27b2404e2c0674f",
+                "reason_code": "insufficient_context",
+                "question": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+                "expected_answer": {
+                  "type": "free_text",
+                  "values": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "before_upstream_integration",
+      "muse_prompt_version": "9",
+      "result": "passed",
+      "assessment": "Both turns released; second quoted the exact authorized paragraph.",
+      "local_artifact": "/tmp/linger-caterpillar-final.bxhWGo/result.json",
+      "artifact_sha256": "2241466011fb5ac2ade12aace50d08b636695c17c70b3cbaaebef2d1314aee00",
+      "model": "openai:gpt-5.6-luna",
+      "git_head": "ae8280663850f4f4f21edbceee2685e4d825dd0c",
+      "capture_enabled": false,
+      "turns": [
+        {
+          "turn": 1,
+          "message": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "reply": "That sounds like a good place to pause if you needed a minute. Two chapters a night is plenty; you don’t have to push past the point where reading stops feeling enjoyable.",
+          "history_messages_before": 0,
+          "history_messages_after": 2,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "revise",
+              "pass"
+            ],
+            "finding_codes": [
+              "unresolved_evidence"
+            ],
+            "released_evidence_ids": [],
+            "revision_count": 1,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": []
+        },
+        {
+          "turn": 2,
+          "message": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "reply": "She says: “I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”",
+          "history_messages_before": 2,
+          "history_messages_after": 4,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "pass"
+            ],
+            "finding_codes": [],
+            "released_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0974-0975"
+            ],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": [
+            {
+              "tool_name": "librarian_route",
+              "request": {},
+              "outcome": "success",
+              "response": {
+                "kind": "passages",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "evidence_ids": [
+                  "pg11-v01b38ea4-ch05-ln0974-0975"
+                ],
+                "request_id": "routereq_1b821cc96ed8402e8dd92e8e56fe5d3e",
+                "title": "Alice's Adventures in Wonderland",
+                "routing_confidence": 0.7,
+                "boundary_confidence": 0.99
+              }
+            },
+            {
+              "tool_name": "librarian_search",
+              "request": {
+                "query": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "reading_boundary": null,
+                "max_final_evidence": 3
+              },
+              "outcome": "success",
+              "response": {
+                "kind": "result",
+                "request_id": "libreq_f374a4020b0f4f58a520864a83139e21",
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "strength_reason": "The passage directly gives Alice's wording in response to the caterpillar: “I can’t explain myself, I’m afraid, sir,” said Alice, “because I’m not myself, you see.”",
+                "searched_scope": {
+                  "kind": "passages",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0974-0975"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0975",
+                    "work_id": "pg11",
+                    "book_version_id": "pg11-v01b38ea4",
+                    "chapter_id": "pg11-v01b38ea4-ch05",
+                    "chapter_number": 5,
+                    "location": "Chapter 5 — Advice from a Caterpillar, source lines 974-975",
+                    "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                    "source_lines": [
+                      974,
+                      975
+                    ],
+                    "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”"
+                  }
+                ],
+                "limitations": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "after_upstream_integration",
+      "muse_prompt_version": "10",
+      "result": "failed",
+      "assessment": "First reply repeated unsupported book content and was rejected; the second turn clarified because failed history was not retained.",
+      "local_artifact": "/tmp/linger-caterpillar-postmerge.VOy5SK/result.json",
+      "artifact_sha256": "183ccd576aa092410946b250368ed0afb098a569343a724897244634400f074b",
+      "integration_parent": "347405f",
+      "model": "openai:gpt-5.6-luna",
+      "git_head": "4abda3851f37c2d4257079ba873594d33bd0ee8e",
+      "capture_enabled": false,
+      "turns": [
+        {
+          "turn": 1,
+          "message": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+          "history_messages_before": 0,
+          "history_messages_after": 0,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "application_safe_decline",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "reject"
+            ],
+            "finding_codes": [
+              "unresolved_evidence",
+              "spoiler"
+            ],
+            "released_evidence_ids": [],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": []
+        },
+        {
+          "turn": 2,
+          "message": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "reply": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+          "history_messages_before": 0,
+          "history_messages_after": 2,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "application_clarification",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "pass"
+            ],
+            "finding_codes": [],
+            "released_evidence_ids": [],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": [
+            {
+              "tool_name": "librarian_route",
+              "request": {},
+              "outcome": "success",
+              "response": {
+                "kind": "clarification",
+                "request_id": "routereq_203105e8c33148e984c8f9afd147e4ca",
+                "clarification_id": "clarify_850d9c774de449338cd60f4429cdd156",
+                "reason_code": "insufficient_context",
+                "question": "What is the latest chapter or scene in Alice's Adventures in Wonderland that you have completed?",
+                "expected_answer": {
+                  "type": "free_text",
+                  "values": []
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "after_upstream_integration",
+      "muse_prompt_version": "11",
+      "result": "passed",
+      "assessment": "Both turns passed first review; exact authorized quotation answered the second message without chapter completion.",
+      "local_artifact": "/tmp/linger-caterpillar-checkin.yP2kTt/result.json",
+      "artifact_sha256": "c0c339b8d5891a4de3d411ec5183282f6b909167bcec94bc09f5d227bf13ca89",
+      "integration_parent": "347405f",
+      "model": "openai:gpt-5.6-luna",
+      "git_head": "4abda3851f37c2d4257079ba873594d33bd0ee8e",
+      "capture_enabled": false,
+      "turns": [
+        {
+          "turn": 1,
+          "message": "Got up to the part with the caterpillar on the mushroom tonight. It keeps asking Alice who she is and she can't answer properly. I had to put the book down for a minute. Reading two chapters a night if I can stay awake.",
+          "reply": "That sounds like a good place to pause for a minute—especially when a scene catches you unexpectedly. Two chapters a night is a gentle, realistic pace if you can stay awake. Hope the next bit feels easier to settle back into.",
+          "history_messages_before": 0,
+          "history_messages_after": 2,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "pass"
+            ],
+            "finding_codes": [],
+            "released_evidence_ids": [],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": []
+        },
+        {
+          "turn": 2,
+          "message": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+          "reply": "The wording is:\n\n“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”",
+          "history_messages_before": 2,
+          "history_messages_after": 4,
+          "active_memory_count": 0,
+          "release": {
+            "release_source": "muse_candidate",
+            "boundary_origin": null,
+            "provenance_verdicts": [
+              "pass"
+            ],
+            "finding_codes": [],
+            "released_evidence_ids": [
+              "pg11-v01b38ea4-ch05-ln0974-0975"
+            ],
+            "revision_count": 0,
+            "failure_stage": null,
+            "failure_type": null,
+            "failure_retryable": null,
+            "capture": {
+              "nomination": "no_candidate",
+              "provenance_decision": "no_candidate",
+              "binding": "not_applicable",
+              "storage": "not_applicable",
+              "reason_code": "not_applicable"
+            }
+          },
+          "grounding": [
+            {
+              "tool_name": "librarian_route",
+              "request": {},
+              "outcome": "success",
+              "response": {
+                "kind": "passages",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "evidence_ids": [
+                  "pg11-v01b38ea4-ch05-ln0974-0975"
+                ],
+                "request_id": "routereq_83f5b3f5b82e4d47b3152364b2b86c14",
+                "title": "Alice's Adventures in Wonderland",
+                "routing_confidence": 0.7,
+                "boundary_confidence": 0.99
+              }
+            },
+            {
+              "tool_name": "librarian_search",
+              "request": {
+                "query": "There's a bit where Alice tries to tell the caterpillar that she can't explain herself because she isn't herself at the moment. I've been turning it over all week but I know I'm mangling the actual wording. What does she actually say there?",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "reading_boundary": null,
+                "max_final_evidence": 5
+              },
+              "outcome": "success",
+              "response": {
+                "kind": "result",
+                "request_id": "libreq_0d197c549daa4eac9161454a3a968776",
+                "outcome": "evidence_found",
+                "evidence_strength": "sufficient",
+                "strength_reason": "The passage directly gives Alice’s wording in response to the Caterpillar, including the phrasing she is trying to recall.",
+                "searched_scope": {
+                  "kind": "passages",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0974-0975"
+                  ]
+                },
+                "evidence": [
+                  {
+                    "evidence_id": "pg11-v01b38ea4-ch05-ln0974-0975",
+                    "work_id": "pg11",
+                    "book_version_id": "pg11-v01b38ea4",
+                    "chapter_id": "pg11-v01b38ea4-ch05",
+                    "chapter_number": 5,
+                    "location": "Chapter 5 — Advice from a Caterpillar, source lines 974-975",
+                    "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                    "source_lines": [
+                      974,
+                      975
+                    ],
+                    "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”"
+                  }
+                ],
+                "limitations": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

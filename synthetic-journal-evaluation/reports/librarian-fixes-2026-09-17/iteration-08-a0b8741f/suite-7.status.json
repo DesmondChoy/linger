@@ -1,0 +1,131 @@
+{
+  "suite": "7",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/menu.json",
+    "--number",
+    "7",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T00:46:23.341563+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/suite-7.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084624+0800-ihpcc3qh/evaluation.json"
+    ],
+    "started_at": "2026-09-18T08:46:24.342798+08:00",
+    "scenario_hashes": {
+      "backstory.json": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+      "ground-truth.json": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+      "ground-truth-adoption.json": "719e35a7b15341f65d79e841aa469498e15dc438871f9ff5b5a549b68d1b726b"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084624+0800-ihpcc3qh/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084624+0800-ihpcc3qh/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084624+0800-ihpcc3qh/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 2,
+      "scenes_failed": 2,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 2,
+      "judgments_failed": 2,
+      "failures": [
+        {
+          "scene_id": "farm-decision-reversal",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "farm-grounded-proposal"
+        },
+        {
+          "scene_id": "farm-decision-reversal",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "farm-grounded-proposal"
+        },
+        {
+          "scene_id": "farm-decision-reversal",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "farm-grounded-proposal"
+        },
+        {
+          "scene_id": "farm-decision-reversal",
+          "detail": "exact_quotation_missing_or_unreleased:farm-leadership-quote",
+          "proposal_id": "farm-grounded-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        }
+      ],
+      "execution_failures": [
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "Librarian boundary_inference: boundary_inference_model_failed"
+        }
+      ]
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b1faa05ddd456d1dd1ef2c5ac555-4057577e5b43fb19",
+      "trace_id": "01a0b1faa05ddd456d1dd1ef2c5ac555",
+      "span_id": "4057577e5b43fb19",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b1faa05ddd456d1dd1ef2c5ac555-4057577e5b43fb19",
+    "status": "failed",
+    "problems": [
+      "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+    ],
+    "finished_at": "2026-09-18T08:49:31.243495+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T084931+0800-bbf7ddb6.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T084931+0800-bbf7ddb6.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/suite-7.json",
+  "failures": [
+    "farm-decision-reversal:hard_gate_or_missing_grades",
+    "farm-decision-reversal:farm-grounded-proposal:grade_failures",
+    "farm-spoiler-inference:hard_gate_or_missing_grades",
+    "farm-spoiler-inference:farm-boundary-proposal:grade_failures",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T00:49:31.555986+00:00"
+}

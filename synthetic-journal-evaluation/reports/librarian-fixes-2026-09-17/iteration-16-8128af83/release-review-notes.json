@@ -1,0 +1,50 @@
+{
+  "rabbit-watch": {
+    "credible": true,
+    "note": "Exact curiosity quotation and Chapter1 source support watch, waistcoat, novelty and pursuit. Initial unsupported statement about where the hole leads revised into source-supported seeing Rabbit enter hole; final review bound to current reply and all three complete claims."
+  },
+  "drink-me": {
+    "credible": true,
+    "note": "Chapter1 label text exact and full answer mapped to its canonical record. Cosmetic awkwardness: answer ends with original quoted comma instead of adding contextual continuation; no factual/grounding error."
+  },
+  "pool-of-tears": {
+    "credible": true,
+    "note": "Requested quotation includes exact canonical newline and terminal period; source supports shrinking, salt water and own tears. Final pass honest. Check diagnostic use separately before attributing improvement to fix. New reply_quote_repair diagnostic present in draft history with two repair prompts; live usefulness exercised."
+  },
+  "caucus-prizes": {
+    "credible": true,
+    "note": "Everybody wins, comfits one each and Alice thimble supported by two canonical Chapter3 records. Complete joint mapping covers both contributions. Reviewer marks overlapping second record noncontributing to narrower comfit clause despite that fact appearing there too; no substantive unsupported release."
+  },
+  "giant-puppy": {
+    "credible": true,
+    "note": "Chapter4 stick, repeated charges, thistle avoidance, panting and escape supported. Exact cart-horse phrase is narrated as Alice thinking it; as Alice puts it is slightly loose attribution to her thought, not fabricated dialogue. Final reviewer binds all substantive claims to correct source."
+  },
+  "identity-change": {
+    "credible": true,
+    "note": "Chapter5 dialogue supports explicit inability to explain herself, repeated bodily change and interpretive unstable identity; requested quotation copied whole with original newline; all five substantive claims mapped."
+  },
+  "father-william": {
+    "credible": true,
+    "note": "Correct poem and Chapter5 location. Exact short title occurs in recitation, full source also contains Caterpillar instruction. No later-event overreach."
+  },
+  "pigeon-serpent": {
+    "credible": false,
+    "note": "Automated pass is misleading. Complete girl-identity/rejection sentence mapped only to1151\u20131186, which lacks that dialogue; it is in1179\u20131219, undeclared for this claim. Prove explicitly borrows adjacent canonical passage and treats partial member contribution as full group support. Overall book facts are true, but claim-to-source mapping is not valid. Two literal quotes themselves exact."
+  },
+  "identity-theme": {
+    "credible": true,
+    "note": "Valid literary interpretation links Chapter2 failed recall/identity and Chapter5 explicit memory/size instability. Revised opening and closing map jointly; invented isolated quote removed. Strict recall may still require the other Chapter5 self-explanation dialogue, though1004\u20131056 includes directly relevant1026\u20131032. Preserve historical strict grade and distinguish expectation mismatch."
+  },
+  "exact-caucus-quote": {
+    "credible": true,
+    "note": "Requested full Dodo quote exact including emphasis, punctuation, chapter title; who/when statement supported by same record."
+  },
+  "future-cheshire": {
+    "credible": true,
+    "note": "No within-boundary source returned; concise refusal without later facts or implied plot detail. Retrieval outcome backs availability statement."
+  },
+  "absent-spaceship": {
+    "credible": true,
+    "note": "Absent-premise control honestly reports no supporting passage in authorized chapters; no invented event."
+  }
+}

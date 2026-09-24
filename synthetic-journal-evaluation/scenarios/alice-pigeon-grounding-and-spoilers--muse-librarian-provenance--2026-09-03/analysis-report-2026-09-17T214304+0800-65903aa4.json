@@ -1,0 +1,1486 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+  "created_at": "2026-09-17T21:43:04+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "behavioral",
+  "problems": [
+    "The replay completed with failed evaluation checks; see expected versus observed evidence."
+  ],
+  "summary": {
+    "scenes_total": 3,
+    "scenes_passed": 1,
+    "scenes_failed": 2,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 2,
+    "judgments_failed": 2,
+    "failures": [
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "required_grounding_evidence_not_retrieved",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "grounded_response_released_no_evidence",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "exact_quotation_missing_or_unreleased:pigeon",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "retrieval_exceeded_safe_ceiling",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "evidence_exceeded_safe_scope",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "clarification_scene_granted_retrieval_scope",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "clarification_question_missing",
+        "proposal_id": "growth-boundary"
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "detail": "clarification_scene_retrieved_evidence",
+        "proposal_id": "growth-boundary"
+      }
+    ],
+    "execution_failures": []
+  },
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "order": 1,
+      "status": "failed",
+      "judgments_total": 2,
+      "judgments_passed": 1,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "pigeon-grounding",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Retrieve the permitted passage and reproduce the requested sentence accurately, preserving the narrator's hesitation rather than supplying a remembered paraphrase as a quotation.",
+            "Connect the reader's discomfort naming her role to the requested moment as a possible personal resonance, and invite her own interpretation."
+          ],
+          "prohibited_outcomes": [
+            "Invent or alter a quotation, or claim the source proves what Maya feels.",
+            "Turn the personal connection into an unsupported claim about the author's intent."
+          ],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "pigeon"
+            ],
+            "exact_quotation_evidence_ids": [
+              "pigeon"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "personal-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "prop_ids",
+              "line_text"
+            ]
+          }
+        },
+        {
+          "proposal_id": "pigeon-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Use the authorised remembered exchange and the specific current event together to infer the bounded reading position from their supporting evidence.",
+            "Answer within that inferred scope; no extra location question is needed for the requested passage."
+          ],
+          "prohibited_outcomes": [
+            "Grant access beyond the position supported by the Scene facts.",
+            "Reveal or allude to the forbidden later event, including as reassurance about how the identity question resolves."
+          ],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "uncertain-growth",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "pigeon-reflection",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "remembered-caterpillar"
+              ],
+              "supporting_evidence_ids": [
+                "identity",
+                "pigeon"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "remembered-caterpillar",
+                "start_codepoint": 0,
+                "end_codepoint": 245,
+                "text": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "pigeon-line",
+                "start_codepoint": 0,
+                "end_codepoint": 406,
+                "text": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "identity",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "start_codepoint": 1456,
+                "end_codepoint": 1699,
+                "text": "This was not an encouraging opening for a conversation. Alice replied,\nrather shyly, “I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pigeon",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "start_codepoint": 10718,
+                "end_codepoint": 10842,
+                "text": "“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pigeon-grounding",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": false,
+            "failures": [
+              "required_grounding_evidence_not_retrieved",
+              "grounded_response_released_no_evidence",
+              "exact_quotation_missing_or_unreleased:pigeon"
+            ]
+          },
+          {
+            "proposal_id": "pigeon-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "I can’t quote that sentence safely from the text currently available within your reading boundary: the retrieved passages don’t include the Pigeon’s “serpent” exchange or the narrator’s description of Alice calling herself a little girl. I won’t substitute a nearby line or risk bringing in material beyond what you’ve read.\n\nStaying with your experience, it makes sense that saying “I’m a manager” could feel awkward when the role is newer than the responsibilities it names. A title can sound like a claim about who you are, not merely a description of what you’re doing. You might try treating it as a sentence you’re learning to inhabit rather than a verdict you have to feel fully ready for: “I’m a manager” can simply mean “this is the role I’m in now.” What part feels most awkward—the word itself, saying it to other people, or what you imagine the title requires you to be?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "infer",
+        "route_called": true,
+        "routed_ceiling": 5,
+        "routed_work_id": "pg11",
+        "routed_book_version_id": "pg11-v01b38ea4",
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [
+          "mem_affa96c83f72dc4dcab3ba94e97c8f03dbb73a5f65bd0fea41c4fc5abf812cda"
+        ],
+        "boundary_support_evidence": [
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln1179-1219",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 1179-1219",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              1179,
+              1219
+            ],
+            "text": "“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished.\n\n“As if it wasn’t trouble enough hatching the eggs,” said the Pigeon;\n“but I must be on the look-out for serpents night and day! Why, I\nhaven’t had a wink of sleep these three weeks!”\n\n“I’m very sorry you’ve been annoyed,” said Alice, who was beginning to\nsee its meaning.\n\n“And just as I’d taken the highest tree in the wood,” continued the\nPigeon, raising its voice to a shriek, “and just as I was thinking I\nshould be free of them at last, they must needs come wriggling down\nfrom the sky! Ugh, Serpent!”\n\n“But I’m _not_ a serpent, I tell you!” said Alice. “I’m a—I’m a—”\n\n“Well! _What_ are you?” said the Pigeon. “I can see you’re trying to\ninvent something!”\n\n“I—I’m a little girl,” said Alice, rather doubtfully, as she remembered\nthe number of changes she had gone through that day.\n\n“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”"
+          },
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln0960-1016",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 960-1016",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1016
+            ],
+            "text": "The Caterpillar and Alice looked at each other for some time in\nsilence: at last the Caterpillar took the hookah out of its mouth, and\naddressed her in a languid, sleepy voice.\n\n“Who are _you?_” said the Caterpillar.\n\nThis was not an encouraging opening for a conversation. Alice replied,\nrather shyly, “I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then.”\n\n“What do you mean by that?” said the Caterpillar sternly. “Explain\nyourself!”\n\n“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”\n\n“I don’t see,” said the Caterpillar.\n\n“I’m afraid I can’t put it more clearly,” Alice replied very politely,\n“for I can’t understand it myself to begin with; and being so many\ndifferent sizes in a day is very confusing.”\n\n“It isn’t,” said the Caterpillar.\n\n“Well, perhaps you haven’t found it so yet,” said Alice; “but when you\nhave to turn into a chrysalis—you will some day, you know—and then\nafter that into a butterfly, I should think you’ll feel it a little\nqueer, won’t you?”\n\n“Not a bit,” said the Caterpillar.\n\n“Well, perhaps your feelings may be different,” said Alice; “all I know\nis, it would feel very queer to _me_.”\n\n“You!” said the Caterpillar contemptuously. “Who are _you?_”\n\nWhich brought them back again to the beginning of the conversation.\nAlice felt a little irritated at the Caterpillar’s making such _very_\nshort remarks, and she drew herself up and said, very gravely, “I\nthink, you ought to tell me who _you_ are, first.”\n\n“Why?” said the Caterpillar.\n\nHere was another puzzling question; and as Alice could not think of any\ngood reason, and as the Caterpillar seemed to be in a _very_ unpleasant\nstate of mind, she turned away.\n\n“Come back!” the Caterpillar called after her. “I’ve something\nimportant to say!”\n\nThis sounded promising, certainly: Alice turned and came back again.\n\n“Keep your temper,” said the Caterpillar.\n\n“Is that all?” said Alice, swallowing down her anger as well as she\ncould."
+          }
+        ],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "no_evidence",
+            "searched_max_chapter": 4,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "evidence": [],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "pigeon-reflection",
+            "proposal_id": "pigeon-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0af988e1c3c95d05c5901d000c3fa",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "I can’t quote that sentence safely from the text currently available within your reading boundary: the retrieved passages don’t include the Pigeon’s “serpent” exchange or the narrator’s description of Alice calling herself a little girl. I won’t substitute a nearby line or risk bringing in material beyond what you’ve read.\n\nStaying with your experience, it makes sense that saying “I’m a manager” could feel awkward when the role is newer than the responsibilities it names. A title can sound like a claim about who you are, not merely a description of what you’re doing. You might try treating it as a sentence you’re learning to inhabit rather than a verdict you have to feel fully ready for: “I’m a manager” can simply mean “this is the role I’m in now.” What part feels most awkward—the word itself, saying it to other people, or what you imagine the title requires you to be?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_FHQcOx0GVTNO4iod6T4SePfu",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_9495a8f978c740e9af7b7f5b237bb46c",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "title": "Alice's Adventures in Wonderland",
+                  "routing_confidence": 0.7,
+                  "max_chapter_inclusive": 5,
+                  "boundary_confidence": 0.99,
+                  "selection_basis": "distinctive_cue",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_6a29oaE2gWqn8xmGmAR9io8M",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"started\",\"part_id\":\"main\"},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_2d9504b7a97f43829444eca23f9df933",
+                  "outcome": "no_evidence",
+                  "evidence_strength": "none",
+                  "strength_reason": "The supplied passages do not include the located scene where the Pigeon calls Alice a serpent and she calls herself a little girl. The Chapter 2 passage about Alice asking “Who in the world am I?” is from a different encounter and cannot support the requested quotation or ground that specific scene.",
+                  "searched_scope": {
+                    "work_id": "pg11",
+                    "book_version_id": "pg11-v01b38ea4",
+                    "max_chapter_inclusive": 4,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [],
+                  "limitations": [
+                    "No supplied evidence contains the requested sentence or the narrator’s description of Alice saying it.",
+                    "No supplied evidence directly supports the named Pigeon-and-serpent passage for reflection."
+                  ]
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl."
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_affa96c83f72dc4dcab3ba94e97c8f03dbb73a5f65bd0fea41c4fc5abf812cda",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0960-1016"
+                  ],
+                  "reason": "The memory reports Maya's knowledge of Alice's exchange with the Caterpillar about who she was and changing several times; the Chapter 5 passage contains that exchange. This earlier knowledge is consistent with the current specific report of having read further in the same chapter to the Pigeon scene."
+                }
+              ],
+              "outcome": "candidate",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "chapter_number": 5,
+              "confidence": 0.99,
+              "authorization_basis": "memory_supported",
+              "supporting_memory_ids": [
+                "mem_affa96c83f72dc4dcab3ba94e97c8f03dbb73a5f65bd0fea41c4fc5abf812cda"
+              ],
+              "supporting_evidence_ids": [
+                "pg11-v01b38ea4-ch05-ln0960-1016",
+                "pg11-v01b38ea4-ch05-ln1179-1219"
+              ],
+              "reason_code": null
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_NPN00dW2USNThA5Av2lF43zS",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_affa96c83f72dc4dcab3ba94e97c8f03dbb73a5f65bd0fea41c4fc5abf812cda\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\"],\"reason\":\"The memory reports Maya's knowledge of Alice's exchange with the Caterpillar about who she was and changing several times; the Chapter 5 passage contains that exchange. This earlier knowledge is consistent with the current specific report of having read further in the same chapter to the Pigeon scene.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"chapter_number\":5,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_affa96c83f72dc4dcab3ba94e97c8f03dbb73a5f65bd0fea41c4fc5abf812cda\"],\"supporting_evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\",\"pg11-v01b38ea4-ch05-ln1179-1219\"]}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it"
+                  ]
+                },
+                {
+                  "context_spans": [],
+                  "purpose": "reference",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "none",
+              "strength_reason": "The supplied passages do not include the located scene where the Pigeon calls Alice a serpent and she calls herself a little girl. The Chapter 2 passage about Alice asking “Who in the world am I?” is from a different encounter and cannot support the requested quotation or ground that specific scene.",
+              "relevant_evidence_ids": [],
+              "limitations": [
+                "No supplied evidence contains the requested sentence or the narrator’s description of Alice saying it.",
+                "No supplied evidence directly supports the named Pigeon-and-serpent passage for reflection."
+              ],
+              "additional_parts": [],
+              "support": []
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "pigeon-grounding"
+        },
+        {
+          "scene_id": "pigeon-reflection",
+          "detail": "exact_quotation_missing_or_unreleased:pigeon",
+          "proposal_id": "pigeon-grounding"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "order": 2,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "growth-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Ask the reader for a distinguishing detail she already remembers, such as who is with Alice or where she is, before continuing the story.",
+            "The growth-house and growth-court excerpts document distinct possible readings of the vague growth reference after the remembered exchange. They are ambiguity witnesses only, not supporting inference evidence or an authorised reading position."
+          ],
+          "prohibited_outcomes": [
+            "Choose a candidate growth episode or grant a ceiling from the remembered exchange when the new stopping point remains ambiguous.",
+            "Retrieve a continuation or reveal candidate-event details in the clarification question.",
+            "Disclose any forbidden later evidence, including the final event."
+          ],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "growth-house",
+              "growth-court",
+              "uncertain-awakening"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "pigeon-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "uncertain-growth",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "authorised_prop_ids": [
+                "remembered-caterpillar"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "remembered-caterpillar",
+                "start_codepoint": 0,
+                "end_codepoint": 245,
+                "text": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "growth-line",
+                "start_codepoint": 0,
+                "end_codepoint": 224,
+                "text": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?"
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "growth-house",
+                "chapter_id": "pg11-v01b38ea4-ch06",
+                "start_codepoint": 14576,
+                "end_codepoint": 15112,
+                "text": "She had not gone much farther before she came in sight of the house of\nthe March Hare: she thought it must be the right house, because the\nchimneys were shaped like ears and the roof was thatched with fur. It\nwas so large a house, that she did not like to go nearer till she had\nnibbled some more of the lefthand bit of mushroom, and raised herself\nto about two feet high: even then she walked up towards it rather\ntimidly, saying to herself “Suppose it should be raving mad after all!\nI almost wish I’d gone to see the Hatter instead!”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "growth-court",
+                "chapter_id": "pg11-v01b38ea4-ch11",
+                "start_codepoint": 6398,
+                "end_codepoint": 6713,
+                "text": "Just at this moment Alice felt a very curious sensation, which puzzled\nher a good deal until she made out what it was: she was beginning to\ngrow larger again, and she thought at first she would get up and leave\nthe court; but on second thoughts she decided to remain where she was\nas long as there was room for her."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "uncertain-awakening",
+                "chapter_id": "pg11-v01b38ea4-ch12",
+                "start_codepoint": 9595,
+                "end_codepoint": 9935,
+                "text": "At this the whole pack rose up into the air, and came flying down upon\nher: she gave a little scream, half of fright and half of anger, and\ntried to beat them off, and found herself lying on the bank, with her\nhead in the lap of her sister, who was gently brushing away some dead\nleaves that had fluttered down from the trees upon her face."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "growth-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "retrieval_exceeded_safe_ceiling",
+              "evidence_exceeded_safe_scope",
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "boundary_decision_differs_from_ground_truth",
+              "clarification_scene_granted_retrieval_scope",
+              "clarification_question_missing",
+              "clarification_scene_retrieved_evidence"
+            ]
+          }
+        ],
+        "input_line": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "infer",
+        "route_called": true,
+        "routed_ceiling": 5,
+        "routed_work_id": "pg11",
+        "routed_book_version_id": "pg11-v01b38ea4",
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [
+          "mem_171ec04c021365d0f6f3d48f89f53c9d5799665d0d5c73954de1fe7e7596b95b"
+        ],
+        "boundary_support_evidence": [
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln0960-1016",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 960-1016",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              960,
+              1016
+            ],
+            "text": "The Caterpillar and Alice looked at each other for some time in\nsilence: at last the Caterpillar took the hookah out of its mouth, and\naddressed her in a languid, sleepy voice.\n\n“Who are _you?_” said the Caterpillar.\n\nThis was not an encouraging opening for a conversation. Alice replied,\nrather shyly, “I—I hardly know, sir, just at present—at least I know\nwho I _was_ when I got up this morning, but I think I must have been\nchanged several times since then.”\n\n“What do you mean by that?” said the Caterpillar sternly. “Explain\nyourself!”\n\n“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”\n\n“I don’t see,” said the Caterpillar.\n\n“I’m afraid I can’t put it more clearly,” Alice replied very politely,\n“for I can’t understand it myself to begin with; and being so many\ndifferent sizes in a day is very confusing.”\n\n“It isn’t,” said the Caterpillar.\n\n“Well, perhaps you haven’t found it so yet,” said Alice; “but when you\nhave to turn into a chrysalis—you will some day, you know—and then\nafter that into a butterfly, I should think you’ll feel it a little\nqueer, won’t you?”\n\n“Not a bit,” said the Caterpillar.\n\n“Well, perhaps your feelings may be different,” said Alice; “all I know\nis, it would feel very queer to _me_.”\n\n“You!” said the Caterpillar contemptuously. “Who are _you?_”\n\nWhich brought them back again to the beginning of the conversation.\nAlice felt a little irritated at the Caterpillar’s making such _very_\nshort remarks, and she drew herself up and said, very gravely, “I\nthink, you ought to tell me who _you_ are, first.”\n\n“Why?” said the Caterpillar.\n\nHere was another puzzling question; and as Alice could not think of any\ngood reason, and as the Caterpillar seemed to be in a _very_ unpleasant\nstate of mind, she turned away.\n\n“Come back!” the Caterpillar called after her. “I’ve something\nimportant to say!”\n\nThis sounded promising, certainly: Alice turned and came back again.\n\n“Keep your temper,” said the Caterpillar.\n\n“Is that all?” said Alice, swallowing down her anger as well as she\ncould."
+          },
+          {
+            "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "chapter_id": "pg11-v01b38ea4-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Advice from a Caterpillar, source lines 1094-1135",
+            "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+            "source_lines": [
+              1094,
+              1135
+            ],
+            "text": "“I _don’t_ know,” said the Caterpillar.\n\nAlice said nothing: she had never been so much contradicted in her life\nbefore, and she felt that she was losing her temper.\n\n“Are you content now?” said the Caterpillar.\n\n“Well, I should like to be a _little_ larger, sir, if you wouldn’t\nmind,” said Alice: “three inches is such a wretched height to be.”\n\n“It is a very good height indeed!” said the Caterpillar angrily,\nrearing itself upright as it spoke (it was exactly three inches high).\n\n“But I’m not used to it!” pleaded poor Alice in a piteous tone. And she\nthought of herself, “I wish the creatures wouldn’t be so easily\noffended!”\n\n“You’ll get used to it in time,” said the Caterpillar; and it put the\nhookah into its mouth and began smoking again.\n\nThis time Alice waited patiently until it chose to speak again. In a\nminute or two the Caterpillar took the hookah out of its mouth and\nyawned once or twice, and shook itself. Then it got down off the\nmushroom, and crawled away in the grass, merely remarking as it went,\n“One side will make you grow taller, and the other side will make you\ngrow shorter.”\n\n“One side of _what?_ The other side of _what?_” thought Alice to\nherself.\n\n“Of the mushroom,” said the Caterpillar, just as if she had asked it\naloud; and in another moment it was out of sight.\n\nAlice remained looking thoughtfully at the mushroom for a minute,\ntrying to make out which were the two sides of it; and as it was\nperfectly round, she found this a very difficult question. However, at\nlast she stretched her arms round it as far as they would go, and broke\noff a bit of the edge with each hand.\n\n“And now which is which?” she said to herself, and nibbled a little of\nthe right-hand bit to try the effect: the next moment she felt a\nviolent blow underneath her chin: it had struck her foot!"
+          }
+        ],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 5,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg11",
+            "book_version_id": "pg11-v01b38ea4",
+            "evidence": [
+              {
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Advice from a Caterpillar, source lines 1094-1135",
+                "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                "source_lines": [
+                  1094,
+                  1135
+                ],
+                "text": "“I _don’t_ know,” said the Caterpillar.\n\nAlice said nothing: she had never been so much contradicted in her life\nbefore, and she felt that she was losing her temper.\n\n“Are you content now?” said the Caterpillar.\n\n“Well, I should like to be a _little_ larger, sir, if you wouldn’t\nmind,” said Alice: “three inches is such a wretched height to be.”\n\n“It is a very good height indeed!” said the Caterpillar angrily,\nrearing itself upright as it spoke (it was exactly three inches high).\n\n“But I’m not used to it!” pleaded poor Alice in a piteous tone. And she\nthought of herself, “I wish the creatures wouldn’t be so easily\noffended!”\n\n“You’ll get used to it in time,” said the Caterpillar; and it put the\nhookah into its mouth and began smoking again.\n\nThis time Alice waited patiently until it chose to speak again. In a\nminute or two the Caterpillar took the hookah out of its mouth and\nyawned once or twice, and shook itself. Then it got down off the\nmushroom, and crawled away in the grass, merely remarking as it went,\n“One side will make you grow taller, and the other side will make you\ngrow shorter.”\n\n“One side of _what?_ The other side of _what?_” thought Alice to\nherself.\n\n“Of the mushroom,” said the Caterpillar, just as if she had asked it\naloud; and in another moment it was out of sight.\n\nAlice remained looking thoughtfully at the mushroom for a minute,\ntrying to make out which were the two sides of it; and as it was\nperfectly round, she found this a very difficult question. However, at\nlast she stretched her arms round it as far as they would go, and broke\noff a bit of the edge with each hand.\n\n“And now which is which?” she said to herself, and nibbled a little of\nthe right-hand bit to try the effect: the next moment she felt a\nviolent blow underneath her chin: it had struck her foot!"
+              },
+              {
+                "evidence_id": "pg11-v01b38ea4-ch05-ln1048-1102",
+                "work_id": "pg11",
+                "book_version_id": "pg11-v01b38ea4",
+                "chapter_id": "pg11-v01b38ea4-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Advice from a Caterpillar, source lines 1048-1102",
+                "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                "source_lines": [
+                  1048,
+                  1102
+                ],
+                "text": "“You are old,” said the youth, “as I mentioned before,\n    And have grown most uncommonly fat;\nYet you turned a back-somersault in at the door—\n    Pray, what is the reason of that?”\n\n“In my youth,” said the sage, as he shook his grey locks,\n    “I kept all my limbs very supple\nBy the use of this ointment—one shilling the box—\n    Allow me to sell you a couple?”\n\n“You are old,” said the youth, “and your jaws are too weak\n    For anything tougher than suet;\nYet you finished the goose, with the bones and the beak—\n    Pray, how did you manage to do it?”\n\n“In my youth,” said his father, “I took to the law,\n    And argued each case with my wife;\nAnd the muscular strength, which it gave to my jaw,\n    Has lasted the rest of my life.”\n\n“You are old,” said the youth, “one would hardly suppose\n    That your eye was as steady as ever;\nYet you balanced an eel on the end of your nose—\n    What made you so awfully clever?”\n\n“I have answered three questions, and that is enough,”\n    Said his father; “don’t give yourself airs!\nDo you think I can listen all day to such stuff?\n    Be off, or I’ll kick you down stairs!”\n\n“That is not said right,” said the Caterpillar.\n\n“Not _quite_ right, I’m afraid,” said Alice, timidly; “some of the\nwords have got altered.”\n\n“It is wrong from beginning to end,” said the Caterpillar decidedly,\nand there was silence for some minutes.\n\nThe Caterpillar was the first to speak.\n\n“What size do you want to be?” it asked.\n\n“Oh, I’m not particular as to size,” Alice hastily replied; “only one\ndoesn’t like changing so often, you know.”\n\n“I _don’t_ know,” said the Caterpillar.\n\nAlice said nothing: she had never been so much contradicted in her life\nbefore, and she felt that she was losing her temper.\n\n“Are you content now?” said the Caterpillar.\n\n“Well, I should like to be a _little_ larger, sir, if you wouldn’t\nmind,” said Alice: “three inches is such a wretched height to be.”"
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "revise",
+          "revise"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "uncertain-growth",
+            "proposal_id": "growth-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0af988e1c3c95d05c5901d000c3fa",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "You’re in **Chapter 5, “Advice from a Caterpillar.”** The immediate lead-in is that the Caterpillar explains that one side of the mushroom makes Alice grow taller and the other makes her grow shorter. Alice breaks off a piece from each side, nibbles one to test it, and feels a blow beneath her chin because it has reached her foot.\n\nThe text available within your spoiler boundary stops just as that effect begins, so I can’t safely continue from “Alice gets bigger again” without risking later material. The safest place to resume is a few lines before the Caterpillar’s explanation of the mushroom; that should restore the sequence without revealing what comes next.",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "The immediate lead-in is that the Caterpillar explains that one side of the mushroom makes Alice grow taller and the other makes her grow shorter.",
+                    "Alice breaks off a piece from each side, nibbles one to test it, and feels a blow beneath her chin because it has reached her foot.",
+                    "The text available within your spoiler boundary stops just as that effect begins, so I can’t safely continue from “Alice gets bigger again” without risking later material."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+                  "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1094-1135",
+                  "exact_quote": null
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_eLFjXYy5Yi3kpaRgIwLRQImp",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_4ea2083de1c14b9d9e5c25cef4f1748d",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "title": "Alice's Adventures in Wonderland",
+                  "routing_confidence": 0.7,
+                  "max_chapter_inclusive": 5,
+                  "boundary_confidence": 0.93,
+                  "selection_basis": "distinctive_cue",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_RyTcUXMu9X255WkkiBRWfELq",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"completed\",\"part_id\":\"main\",\"unit_ids\":[]},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_8d3c216a1ae74bd9adcf342dc32073e7",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "weak",
+                  "strength_reason": "The request is to resume at the point where Alice is growing larger without revealing anything later. The selected passage directly provides the immediate lead-in: the Caterpillar explains that the mushroom's sides change her size, and Alice tests one piece, but the supplied text stops at the initial physical effect rather than showing the continuation from the requested stopping point. The earlier Caterpillar exchange is useful for identifying the scene but cannot by itself provide the requested pickup.",
+                  "searched_scope": {
+                    "work_id": "pg11",
+                    "book_version_id": "pg11-v01b38ea4",
+                    "max_chapter_inclusive": 5,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+                      "work_id": "pg11",
+                      "book_version_id": "pg11-v01b38ea4",
+                      "chapter_id": "pg11-v01b38ea4-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Advice from a Caterpillar, source lines 1094-1135",
+                      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                      "source_lines": [
+                        1094,
+                        1135
+                      ],
+                      "text": "“I _don’t_ know,” said the Caterpillar.\n\nAlice said nothing: she had never been so much contradicted in her life\nbefore, and she felt that she was losing her temper.\n\n“Are you content now?” said the Caterpillar.\n\n“Well, I should like to be a _little_ larger, sir, if you wouldn’t\nmind,” said Alice: “three inches is such a wretched height to be.”\n\n“It is a very good height indeed!” said the Caterpillar angrily,\nrearing itself upright as it spoke (it was exactly three inches high).\n\n“But I’m not used to it!” pleaded poor Alice in a piteous tone. And she\nthought of herself, “I wish the creatures wouldn’t be so easily\noffended!”\n\n“You’ll get used to it in time,” said the Caterpillar; and it put the\nhookah into its mouth and began smoking again.\n\nThis time Alice waited patiently until it chose to speak again. In a\nminute or two the Caterpillar took the hookah out of its mouth and\nyawned once or twice, and shook itself. Then it got down off the\nmushroom, and crawled away in the grass, merely remarking as it went,\n“One side will make you grow taller, and the other side will make you\ngrow shorter.”\n\n“One side of _what?_ The other side of _what?_” thought Alice to\nherself.\n\n“Of the mushroom,” said the Caterpillar, just as if she had asked it\naloud; and in another moment it was out of sight.\n\nAlice remained looking thoughtfully at the mushroom for a minute,\ntrying to make out which were the two sides of it; and as it was\nperfectly round, she found this a very difficult question. However, at\nlast she stretched her arms round it as far as they would go, and broke\noff a bit of the edge with each hand.\n\n“And now which is which?” she said to herself, and nibbled a little of\nthe right-hand bit to try the effect: the next moment she felt a\nviolent blow underneath her chin: it had struck her foot!"
+                    },
+                    {
+                      "evidence_id": "pg11-v01b38ea4-ch05-ln1048-1102",
+                      "work_id": "pg11",
+                      "book_version_id": "pg11-v01b38ea4",
+                      "chapter_id": "pg11-v01b38ea4-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Advice from a Caterpillar, source lines 1048-1102",
+                      "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+                      "source_lines": [
+                        1048,
+                        1102
+                      ],
+                      "text": "“You are old,” said the youth, “as I mentioned before,\n    And have grown most uncommonly fat;\nYet you turned a back-somersault in at the door—\n    Pray, what is the reason of that?”\n\n“In my youth,” said the sage, as he shook his grey locks,\n    “I kept all my limbs very supple\nBy the use of this ointment—one shilling the box—\n    Allow me to sell you a couple?”\n\n“You are old,” said the youth, “and your jaws are too weak\n    For anything tougher than suet;\nYet you finished the goose, with the bones and the beak—\n    Pray, how did you manage to do it?”\n\n“In my youth,” said his father, “I took to the law,\n    And argued each case with my wife;\nAnd the muscular strength, which it gave to my jaw,\n    Has lasted the rest of my life.”\n\n“You are old,” said the youth, “one would hardly suppose\n    That your eye was as steady as ever;\nYet you balanced an eel on the end of your nose—\n    What made you so awfully clever?”\n\n“I have answered three questions, and that is enough,”\n    Said his father; “don’t give yourself airs!\nDo you think I can listen all day to such stuff?\n    Be off, or I’ll kick you down stairs!”\n\n“That is not said right,” said the Caterpillar.\n\n“Not _quite_ right, I’m afraid,” said Alice, timidly; “some of the\nwords have got altered.”\n\n“It is wrong from beginning to end,” said the Caterpillar decidedly,\nand there was silence for some minutes.\n\nThe Caterpillar was the first to speak.\n\n“What size do you want to be?” it asked.\n\n“Oh, I’m not particular as to size,” Alice hastily replied; “only one\ndoesn’t like changing so often, you know.”\n\n“I _don’t_ know,” said the Caterpillar.\n\nAlice said nothing: she had never been so much contradicted in her life\nbefore, and she felt that she was losing her temper.\n\n“Are you content now?” said the Caterpillar.\n\n“Well, I should like to be a _little_ larger, sir, if you wouldn’t\nmind,” said Alice: “three inches is such a wretched height to be.”"
+                    }
+                  ],
+                  "limitations": [
+                    "The supplied passages do not include enough text to continue the story from the moment Alice gets bigger again without either stopping before that point or risking spoilers from later material."
+                  ]
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "the Caterpillar"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've read on since we talked about the Caterpillar",
+                    "I'm at the bit where Alice gets bigger again"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_171ec04c021365d0f6f3d48f89f53c9d5799665d0d5c73954de1fe7e7596b95b",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg11-v01b38ea4-ch05-ln0960-1016"
+                  ],
+                  "reason": "The memory reports Maya's prior knowledge of Alice's exchange with the Caterpillar about who she is and having changed sizes, which is directly located in this Chapter 5 passage. That prior knowledge is consistent with the current report of having read on to Alice becoming bigger again."
+                }
+              ],
+              "outcome": "candidate",
+              "work_id": "pg11",
+              "book_version_id": "pg11-v01b38ea4",
+              "chapter_number": 5,
+              "confidence": 0.93,
+              "authorization_basis": "memory_supported",
+              "supporting_memory_ids": [
+                "mem_171ec04c021365d0f6f3d48f89f53c9d5799665d0d5c73954de1fe7e7596b95b"
+              ],
+              "supporting_evidence_ids": [
+                "pg11-v01b38ea4-ch05-ln0960-1016",
+                "pg11-v01b38ea4-ch05-ln1094-1135"
+              ],
+              "reason_code": null
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_zM71iLAJGt71Vkqjr24VwldV",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_171ec04c021365d0f6f3d48f89f53c9d5799665d0d5c73954de1fe7e7596b95b\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\"],\"reason\":\"The memory reports Maya's prior knowledge of Alice's exchange with the Caterpillar about who she is and having changed sizes, which is directly located in this Chapter 5 passage. That prior knowledge is consistent with the current report of having read on to Alice becoming bigger again.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg11\",\"book_version_id\":\"pg11-v01b38ea4\",\"chapter_number\":5,\"confidence\":0.93,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_171ec04c021365d0f6f3d48f89f53c9d5799665d0d5c73954de1fe7e7596b95b\"],\"supporting_evidence_ids\":[\"pg11-v01b38ea4-ch05-ln0960-1016\",\"pg11-v01b38ea4-ch05-ln1094-1135\"],\"reason_code\":null}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "the Caterpillar",
+                    "the bit where Alice gets bigger again"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "help me pick up the story from there without spoiling anything ahead"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "weak",
+              "strength_reason": "The request is to resume at the point where Alice is growing larger without revealing anything later. The selected passage directly provides the immediate lead-in: the Caterpillar explains that the mushroom's sides change her size, and Alice tests one piece, but the supplied text stops at the initial physical effect rather than showing the continuation from the requested stopping point. The earlier Caterpillar exchange is useful for identifying the scene but cannot by itself provide the requested pickup.",
+              "relevant_evidence_ids": [
+                "pg11-v01b38ea4-ch05-ln1094-1135",
+                "pg11-v01b38ea4-ch05-ln1048-1102"
+              ],
+              "limitations": [
+                "The supplied passages do not include enough text to continue the story from the moment Alice gets bigger again without either stopping before that point or risking spoilers from later material."
+              ],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+                  "part_index": 0,
+                  "necessary_support": "Directly locates the requested Caterpillar scene and shows the immediate size-changing action: Alice breaks off mushroom pieces and nibbles one, with the passage ending at its first effect."
+                },
+                {
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1048-1102",
+                  "part_index": 0,
+                  "necessary_support": "Supplies the preceding exchange in which Alice asks to be larger and the Caterpillar gives the mushroom-size-change advice, confirming the scene immediately before the requested pickup."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [
+                {
+                  "code": "unresolved_evidence",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.evidence_uses",
+                    "path": "/0/supported_claims/2",
+                    "quote": "The text available within your spoiler boundary stops just as that effect begins, so I can’t safely continue from “Alice gets bigger again” without risking later material."
+                  },
+                  "explanation": "The cited book-corpus record supports where the supplied passage stops, but it does not support the candidate’s spoiler-policy conclusion about what can be continued safely. Remove this sentence from the book evidence mapping (it may remain as a plainly stated boundary-based limitation), or map only its supported textual portion."
+                }
+              ],
+              "response_decision": "revise",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "revision",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "You’re in **Chapter 5, “Advice from a Caterpillar.”** The immediate lead-in is that the Caterpillar explains that one side of the mushroom makes Alice grow taller and the other makes her grow shorter. Alice breaks off a piece from each side, nibbles one to test it, and feels a blow beneath her chin because it has reached her foot.\n\nThe supplied passage stops just as that effect begins. I can’t safely continue from “Alice gets bigger again” without risking later material. The safest place to resume is a few lines before the Caterpillar’s explanation of the mushroom; that should restore the sequence without revealing what comes next.",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "The immediate lead-in is that the Caterpillar explains that one side of the mushroom makes Alice grow taller and the other makes her grow shorter.",
+                    "Alice breaks off a piece from each side, nibbles one to test it, and feels a blow beneath her chin because it has reached her foot.",
+                    "The supplied passage stops just as that effect begins."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg11-v01b38ea4-ch05-ln1094-1135",
+                  "source_location": "Chapter 5 — Advice from a Caterpillar, source lines 1094-1135",
+                  "exact_quote": null
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [
+                {
+                  "code": "unresolved_evidence",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.evidence_uses",
+                    "path": "/0/supported_claims/2",
+                    "quote": "The supplied passage stops just as that effect begins."
+                  },
+                  "explanation": "The revision removed the policy conclusion from the mapped claim, so the remaining textual claim is supported by the cited passage. However, the candidate response still includes the separate conclusion that it cannot safely continue without risking spoilers, and that conclusion is not a book-corpus fact supported by this evidence declaration. Remove the corresponding response wording from the mapping or keep the mapping limited strictly to the passage-stop claim."
+                }
+              ],
+              "response_decision": "revise",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [
+                {
+                  "finding_index": 0,
+                  "status": "unresolved",
+                  "explanation": "The response wording changed, but the evidence declaration still treats the passage-stop statement as the mapped support for the broader safety/spoiler conclusion. The textual stop is supported; the boundary-based conclusion remains outside the cited book evidence and needs to be separated from the mapping."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "retrieval_exceeded_safe_ceiling",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "evidence_exceeded_safe_scope",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "clarification_scene_granted_retrieval_scope",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "clarification_question_missing",
+          "proposal_id": "growth-boundary"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "detail": "clarification_scene_retrieved_evidence",
+          "proposal_id": "growth-boundary"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "order": 3,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "personal-grounding",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Respond to the reader's stated experience directly, exploring what she wants her introduction to convey.",
+            "Offer an adaptable introduction in the reader's own terms, without needing a factual book claim."
+          ],
+          "prohibited_outcomes": [
+            "Retrieve or quote book text for this personal request.",
+            "Treat the absent Prop or generator-only Backstory as known conversation history.",
+            "Insist on locating the reader in the book before helping with her introduction."
+          ],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required"
+          },
+          "pairing": {
+            "paired_scene_id": "pigeon-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "prop_ids",
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "personal-grounding",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "It makes sense that “manager” feels awkward when “designer” is still the word your reflex reaches for. One possibility is that the new title feels harder to say because it names a change you’re still growing into—not because it’s inaccurate. You don’t have to force it to feel completely natural before using it.\n\nYou could try:\n- “Hi, I’m [name]. I’m a manager, and I’m enjoying the new work.”\n- “I’m [name], moving into a management role. I’m still figuring out how to describe the shift from design.”\n- “I’m [name]. I’m a manager now, and design is still part of how I think about my work.”\n\nThe first is the simplest; the others leave room for the transition to feel unfinished. Which version sounds most like something you could actually say aloud?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "revise",
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0af988e1c3c95d05c5901d000c3fa",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "It makes sense that “manager” feels awkward when “designer” is still the word your reflex reaches for. One possibility is that the new title feels harder to say because it names a change that you’re still growing into—not because it’s inaccurate. You don’t have to force it to feel completely natural before using it.\n\nYou could try:\n- “Hi, I’m [name]. I manage the team, and my background is in design.”\n- “I’m [name], moving into management from design—and I’m enjoying the new work.”\n- “I’m [name]. I’m the team’s manager, with a design background.”\n\nThe first keeps both parts of your experience visible without making you pretend the transition feels effortless. Which version sounds most like something you could actually say aloud?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [
+                {
+                  "code": "unsupported_claim",
+                  "applies_to": "response",
+                  "location": {
+                    "kind": "text_span",
+                    "source_field": "candidate.response",
+                    "path": "",
+                    "quote": "Hi, I’m [name]. I manage the team, and my background is in design."
+                  },
+                  "explanation": "The proposed first-person introduction asserts that the reader manages a team, but the supplied message only establishes that they are calling themselves a manager and attended a team introduction. Remove or qualify the team-management detail unless it is confirmed."
+                }
+              ],
+              "response_decision": "revise",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "revision",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "It makes sense that “manager” feels awkward when “designer” is still the word your reflex reaches for. One possibility is that the new title feels harder to say because it names a change you’re still growing into—not because it’s inaccurate. You don’t have to force it to feel completely natural before using it.\n\nYou could try:\n- “Hi, I’m [name]. I’m a manager, and I’m enjoying the new work.”\n- “I’m [name], moving into a management role. I’m still figuring out how to describe the shift from design.”\n- “I’m [name]. I’m a manager now, and design is still part of how I think about my work.”\n\nThe first is the simplest; the others leave room for the transition to feel unfinished. Which version sounds most like something you could actually say aloud?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [
+                {
+                  "finding_index": 0,
+                  "status": "resolved",
+                  "explanation": "The revised response removes the unsupported assertion that the reader manages a team. Its introductions use the supported role of manager, the reader's design background as reflected in the current message and prior draft context, and the reader's stated enjoyment of the new work without adding the disputed team-management detail."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0af988e1c3c95d05c5901d000c3fa-a235f105789727b9",
+    "trace_id": "01a0af988e1c3c95d05c5901d000c3fa",
+    "span_id": "a235f105789727b9",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T214002+0800-q_x1urs6/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T214002+0800-q_x1urs6/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "0cce2e20d8274827956f834913248a7f",
+      "trace_id": "01a0af988e1c3c95d05c5901d000c3fa",
+      "dataset_version": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3",
+      "system_variant": "faec2ba22aedc8d1ae27978f8878148a5825ebe99580ab98a40601600d3ac55d",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+        "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-05T10:10:53.432734+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M docs/agent-skills.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py",
+        "scenario_commit": "c971081a2d79153fde165a97f71684c1ad61e07c",
+        "scenario_commit_description": "c971081 2026-09-05T10:35:04+08:00 fix: unify synthetic book replay and record failed memory-backed inference",
+        "current_scenario_matches_commit": true,
+        "history_window": "since earlier declared adoption time, including changes before a later scenario move or edit",
+        "recent_commits": "4f08825 2026-09-16T06:38:15+08:00 fix: preserve reading context and evidence boundaries\n\napps/backend/chat_turn.py\ndocs/specification.md\nevals/synthetic_journals/connection_replay.py\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/evidence_strength.py\nafcf271 2026-09-16T00:49:28+08:00 test: fix Windows test failures and fake retrieval models\n\nevals/synthetic_journals/run_scenario.py\nevals/synthetic_journals/scenario_catalog.py\nfaa2faf 2026-09-15T22:55:36+08:00 feat: curation risk code evals\n\nsrc/linger/orchestration/curation.py\nsrc/linger/services/memory.py\nbab63dd 2026-09-15T21:48:43+08:00 Merge pull request #54 from DesmondChoy/km-curation-loop\n1dc4e84 2026-09-15T21:35:46+08:00 feat: added sensitive inference veto, removed unused preset and journal\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/replay.py\nevals/synthetic_journals/replay_support.py\nevals/synthetic_journals/validate_scenario.py\nd07713c 2026-09-15T20:36:32+08:00 chore: remove synthetic attempts from older implementations\n\nevals/synthetic_journals/README.md\nc31019f 2026-09-15T15:05:23+08:00 fix: share Librarian evidence planning and validate agent repairs\n\napps/backend/hybrid_librarian.py\napps/backend/librarian.py\napps/backend/telemetry.py\ndocs/agent-skills.md\ndocs/specification.md\nevals/synthetic_journals/README.md\nevals/synthetic_journals/book_replay.py\nevals/synthetic_journals/connection_replay.py\nevals/synthetic_journals/frozen_public_sources.py\nevals/synthetic_journals/public_source_capture.py\nevals/synthetic_journals/transcript.py\nsrc/linger/agents/librarian/agent.py\nsrc/linger/agents/librarian/models.py\nsrc/linger/agents/librarian/skills.py\nsrc/linger/agents/librarian/skills/book-request/SKILL.md\nsrc/linger/agents/librarian/skills/boundary-inference/SKILL.md\nsrc/linger/agents/librarian/skills/evidence-assessment/SKILL.md\nsrc/linger/agents/muse/agent.py\nsrc/linger/agents/muse/models.py\nsrc/linger/agents/muse/quote_repair.py\nsrc/linger/agents/muse/skills/reflection/SKILL.md\nsrc/linger/agents/muse/tools.py\nsrc/linger/agents/provenance/models.py\nsrc/linger/agents/provenance/skills.py\nsrc/linger/agents/provenance/skills/candidate-review/SKILL.md\nsrc/linger/agents/serendipity/README.md\nsrc/linger/agents/serendipity/agent.py\nsrc/linger/agents/serendipity/models.py\nsrc/linger/agents/serendipity/skills/connection-discovery/SKILL.md\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/contracts/librarian.py\nsrc/linger/evaluation_transcript.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/boundary.py\nsrc/linger/orchestration/connection.py\nsrc/linger/orchestration/evidence_strength.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/reflection.py\nsrc/linger/orchestration/turn_context.py\nace8e3e 2026-09-15T09:42:13+08:00 fix: typed curation outcome expectation\n\nevals/synthetic_journals/curation_replay.py\n61862d3 2026-09-15T00:53:42+08:00 fix: let only the reader retract a book they stated\n\napps/backend/chat_turn.py\napps/backend/sessions.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/routing.py\nd0ffab0 2026-09-15T00:38:40+08:00 fix: stop a later sentence being read as a declared book title\n\napps/backend/chat_turn.py\ncb47f08 2026-09-15T00:25:37+08:00 fix: let Serendipity finish its web citation flow, and show review findings\n\nsrc/linger/orchestration/connection.py\n493a304 2026-09-14T23:41:30+08:00 fix: looped curation replay\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/curation_replay.py"
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0af988e1c3c95d05c5901d000c3fa-a235f105789727b9\", \"trace_id\": \"01a0af988e1c3c95d05c5901d000c3fa\", \"span_id\": \"a235f105789727b9\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "Execution completed, but only 1 of 3 Scenes and 2 of 4 judgments passed. The specific-event route correctly authorized chapter 5, then Muse narrowed retrieval to chapter 4 and missed the quotation. The ambiguous-growth route incorrectly authorized chapter 5; later review prevented its proposed story answer from being released. The personal control was useful and passed.",
+    "scenario_assessment": {
+      "goal": "The specific-event, ambiguous-event and personal-only contrast still tests useful grounding and spoiler behavior.",
+      "input_validity": "The prior Caterpillar memory and precise Pigeon report support the first memory-based inference under the current boundary contract. The vague later growth report leaves multiple possible episodes; the personal Scene supplies a complete standalone request. Frozen source/adoption hashes were preserved.",
+      "ground_truth_validity": "The typed expectations remain appropriate for these observations: quote the requested sentence after bounded inference, clarify unresolved growth, and avoid book retrieval for the personal control. Exact support-set grading did not cause either failure here. Semantic spoiler judging was not run."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "pigeon-reflection",
+        "expected_behavior": "Infer the supported chapter-5 scope, quote the little-girl sentence including the narrator’s hesitation, and offer a tentative personal reflection without later plot.",
+        "observed_behavior": "Route inferred chapter 5 using both Caterpillar and Pigeon evidence. Muse then requested chapter 5 as started, searching only through chapter 4. No evidence or quotation was released; it explained the limitation and offered a personal reflection.",
+        "interpretation": "The boundary judgment passed with the expected scope and support. The grounding judgment failed because the actual tool call excluded the required chapter: its arguments were chapter_number=5, chapter_state=started, and searched_max_chapter=4. grounding.py:231 subtracts one for started. Evidence assessment correctly rejected a different chapter-2 identity passage. This is an integration/argument failure before answer retrieval, not evidence that the decomposition omitted the quotation request.",
+        "assessment": "supported_failure",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T214002+0800-q_x1urs6/evaluation.json"
+        ],
+        "grade_reliability": "All three grounding failures share the same scope-narrowing cause. The boundary pass alone does not establish a successful quotation answer. The final reply is candid and useful personally, but cannot satisfy the source-grounded comparison without the requested text. No automatic retry or independent semantic judge was used.",
+        "next_step": "Correct the routed-inclusive-ceiling to search-boundary handoff; verify a granted inclusive chapter 5 remains searchable and the requested full sentence is retrieved and released without expanding scope."
+      },
+      {
+        "scene_id": "uncertain-growth",
+        "expected_behavior": "Ask for a distinguishing remembered detail before continuing; grant no chapter scope and retrieve no answer evidence while the new growth event is ambiguous.",
+        "observed_behavior": "The boundary model inferred chapter 5 at confidence 0.93 using the Caterpillar conversation and mushroom instructions. Retrieval returned chapter-5 passages. Muse proposed a chapter locator and recap, but two Provenance revise verdicts ended in a generic application safe decline.",
+        "interpretation": "The selected current-event anchor ends with Alice shrinking until her chin strikes her foot; it does not uniquely identify “gets bigger again.” The Line still permits later growth episodes. Thus the incorrect grant and subsequent search are a supported boundary failure, with downstream failures sharing that cause. The final reply disclosed no story, but also asked no useful clarification. The second Provenance review acknowledged the revised textual claim was supported yet still requested separation of a policy conclusion; that review behavior merits separate inspection.",
+        "assessment": "supported_failure",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T214002+0800-q_x1urs6/evaluation.json"
+        ],
+        "grade_reliability": "This is not a harmless grading mismatch: the run selected one ambiguous episode and retrieved without the required permission. Conversely the failed checks do not prove user-visible spoilers; the released reply was only a generic decline. The unreleased drafts must not be counted as disclosed text.",
+        "next_step": "Require distinguishing current-event evidence before a memory-supported grant; verify this Line yields a useful spoiler-free clarification with no grounding call. Separately inspect the recorded revision mapping to determine whether the second Provenance rejection was justified."
+      },
+      {
+        "scene_id": "personal-reflection",
+        "expected_behavior": "Explore the discomfort naming a new role and offer adaptable introductions using only the current personal Line.",
+        "observed_behavior": "No routing or grounding calls occurred. After one revision, the released reply offered three introductions, framed its interpretation as one possibility and asked which wording felt usable.",
+        "interpretation": "The negative control reached a useful Muse reply rather than an empty result or unnecessary refusal. Its references to the old designer label, new manager role and enjoyment of the work all come from the current Line. The suggested sentences are explicitly options, not remembered facts. The final Provenance verdict passed and no memory was stored.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T214002+0800-q_x1urs6/evaluation.json"
+        ],
+        "grade_reliability": "The deterministic checks establish no book-route/evidence use and valid release; direct reading additionally supports usefulness and absence of invented history. This one output does not establish general semantic reliability.",
+        "next_step": "No correction is indicated for this observed personal control; retain it when verifying the two book-dependent fixes."
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "application",
+        "action": "Preserve the inclusive chapter permission when forming the grounding request, rather than subtracting a chapter through started semantics.",
+        "verification": "An offline handoff test keeps granted chapter 5 in searchable scope; any separately authorized live verification retrieves and releases the exact Pigeon quotation."
+      },
+      {
+        "target": "application",
+        "action": "Reject ambiguous current growth as grounds for a chapter grant and ask for a distinguishing detail.",
+        "verification": "The ambiguous Scene grants no scope, makes no grounding call and releases a helpful spoiler-free clarification."
+      },
+      {
+        "target": "investigation",
+        "action": "Inspect the saved second Provenance revision finding against the actual revised evidence mapping before prescribing a review fix.",
+        "verification": "Establish whether any unsupported policy clause remained mapped; distinguish a justified rejection from a stale finding without another provider call."
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+# Rabbit review proof representability
+
+Read-only investigation requested by root during iteration21. No provider calls or source changes.
+
+Release `rabbit-watch`, Prove exchange4, receives one canonical record, `pg11-v01b38ea4-ch01-ln0062-0092`. Candidate claim2 combines Alice's boredom with the watch/waistcoat event as an immediate trigger. Its source mapping is one group member, declaration0/claim2.
+
+The first model output emits two positive contribution rows for that same member: a103-character boredom excerpt and a270-character watch excerpt. The validator correctly rejects duplicate membership. The next two outputs combine the distant support into one contiguous excerpt of1181 and1098 characters; Pydantic rejects both against `source_excerpt.max_length=800`. All three responses complete normally. This is a typed output/model-response failure, not429.
+
+There is a genuine instruction/schema tension. The schema allows exactly one excerpt per member, and guidance requires a contiguous literal excerpt demonstrating every part of the member's contribution without cutting a multi-part contribution to only one part. Even an interval beginning as late as “having nothing to do” and ending at the first watch/waistcoat-pocket mention is899 raw characters,897 after permitted whitespace normalization. A continuous proof containing both those basic support endpoints cannot fit800. A complete contextual excerpt needs more, not less.
+
+The current code can mechanically accept a shorter excerpt because it verifies membership rather than semantic completeness, but doing so would not preserve both explicit support endpoints required by the added complete-contribution excerpt instruction. The fully supplied canonical record remains available for semantic review, so the source itself is not missing. The model's invalid duplicate rows are a real error, yet “one shorter continuous excerpt preserving both explicit support endpoints” is not a realizable repair within800 characters. This measured gap is not a proof that no alternative literary interpretation could cite a different shorter passage; it establishes that the two actual support endpoints cannot be represented together under this contract.
+
+This does not establish that the candidate deserved a pass. It says “riverbank” where the supplied record says only “bank,” and the causal role of boredom is a tentative literary interpretation that still needs judgment. No final accepted review evaluates those issues here.
+
+Any future authorized repair should distinguish the literal anchor's job from complete source assessment, or provide a bounded typed way to represent multiple noncontiguous excerpts for one member. Simply counting duplicate members as independent contributors, splicing text, silently truncating proof or inflating the limit for this example would not establish a sound general contract. The added iteration19 proof guidance made this preexisting one-excerpt length restriction more demanding; its local passing tests did not establish representability for long-range contributions. No runtime fix is included in this diagnostic.

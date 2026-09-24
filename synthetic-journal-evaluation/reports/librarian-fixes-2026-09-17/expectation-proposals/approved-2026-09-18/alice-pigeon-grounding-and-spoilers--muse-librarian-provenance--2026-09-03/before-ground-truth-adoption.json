@@ -1,0 +1,38 @@
+{
+  "backstory_sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+  "proposed_ground_truth_sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+  "ground_truth_status": "adopted",
+  "reviewer": {
+    "reviewer_id": "kevin.manueldx@hotmail.com",
+    "reviewer_kind": "human_developer",
+    "review_method": "interactive_local_review"
+  },
+  "reviewed_at": "2026-09-05T10:10:53.432734+08:00",
+  "decisions": [
+    {
+      "proposal_id": "pigeon-grounding",
+      "scene_id": "pigeon-reflection",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "pigeon-boundary",
+      "scene_id": "pigeon-reflection",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "growth-boundary",
+      "scene_id": "uncertain-growth",
+      "objective_id": "spoiler_boundary_clarification",
+      "decision": "adopted"
+    },
+    {
+      "proposal_id": "personal-grounding",
+      "scene_id": "personal-reflection",
+      "objective_id": "grounded_book_reflection",
+      "decision": "adopted"
+    }
+  ],
+  "adopted_ground_truth_identity": "5d3b0d9e6ac30b576afa7ff869ce910eaf996ff5e4e3d4967dcd412ddf66eed3"
+}

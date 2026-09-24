@@ -1,0 +1,6 @@
+{
+  "pid": 14906,
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-driver-corrected-launch.log",
+  "previous_launch": "Python symlink resolved outside virtualenv; import failed before reservation or provider calls",
+  "mode": "detached driver with durable logs; no automatic retries"
+}
