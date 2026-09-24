@@ -1,0 +1,22 @@
+# Outside-essay smoke — iteration 11
+
+The smoke passes all six hard stages and independently earns a **credible semantic pass with a limited philosophical analogy**. It releases the revised Muse candidate after a completed Provenance pass. All stages execute; no provider error occurs, so the new error categories are not exercised by this case. Medium reasoning's success here does not establish the cause of earlier failures or general superiority.
+
+Serendipity makes one web search and opens two public pages. It selects the Stanford Encyclopedia of Philosophy's Self-Knowledge entry. The final answer names and links that philosophical source, explains fallible understanding of one's own thoughts and feelings, and compares it with Alice's difficulty giving a stable account of herself under repeated questioning. It explicitly calls this a suggested lens, distinguishes abstract analysis from interpersonal interrogation, and disclaims both an intended Caterpillar theory and an explanation of Alice's confusion. Its closing question invites the reader to assess knowledge versus identity rather than assigning the reader a hidden cause or endorsing a diagnostic explanation.
+
+The frozen web excerpt supports the main philosophical claims: it defines self-knowledge in terms of mental states, explicitly discusses fallibility about attitudes, and discusses careful judgment. It also distinguishes knowledge of mental states from the separate topic of a persisting self. The answer's broad “same problem” comparison should therefore be read as its stated literary analogy, not as evidence that the entry supplies a full personal-identity theory. This is a qualification on a useful, responsive connection, not a reason to manufacture a failure. The selected book passage supports Alice's difficulty understanding/explaining herself, the languid opening voice and repeated question. No future chapter is disclosed.
+
+The first Provenance review properly asks for two mappings: the standalone significance of the Caterpillar's calmness and the complete comparison between the essay and scene. Muse's revision maps the revised book-specific claim, and maps the full comparative sentence to both book declarations and the web declaration. The final claim-support group3 includes all three members, with distinct source-local excerpts and a collective summary. Unlike smoke10, the external half of this joint claim is not assigned to book evidence alone. The two prior findings are explicitly resolved; no substantive claim is simply dropped to evade review.
+
+Both visible source quotations are complete and canonical:
+
+- “Who are _you?_” maps to book declaration0.
+- “Which brought them back again to the beginning of the conversation.” maps to book declaration1, including its period.
+
+An offline check with the actual `ProvenanceInput`, `ProvenanceReview` and `quote_is_bound` validates the saved final review and both complete occurrences. The chapter title is separately classified as a title. There are no additional source quotations left undeclared. The second quotation is narrator text illustrating the repeated exchange; its punctuation and words are preserved. No external prose is presented as an exact quotation.
+
+This is not a flawless first attempt. The final Provenance invocation makes three model requests: its first private Alice excerpt drops a quotation mark; the next changes the canonical comma after “said Alice” to a semicolon. The existing source-local validator rejects both, and the third output reproduces the authentic excerpt. These are ordinary recorded output repairs inside the configured invocation, not unrecorded reruns or extra evaluation reservations. The accepted semantic conclusion is then supported by the named sources, rather than by the fact that its output shape validates.
+
+The final coverage audit leaves only the introductory source recommendation as presentation and the closing question as reader reflection. The actual substantive book and philosophical comparisons are mapped. The final release event is `released`, and its public reply equals the revised candidate. No automatic grade, expectation, adoption, source, model setting or retry policy was edited during this review.
+
+Evidence: [stage result and released reply](suite-smoke.json), [all exchanges, retries, frozen sources and events](suite-smoke.diagnostics.json). This review used saved files and one offline validation probe; it made no provider or external-search call. Remote telemetry visibility remains unverified.

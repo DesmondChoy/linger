@@ -1,0 +1,50 @@
+{
+  "rabbit-watch": {
+    "credible": true,
+    "note": "All novel-rabbit/curiosity/boredom causal claims mapped to canonicalChapter1. Reviewer removes unestablished riverbank wording; final bank wording sourcefaithful. Exactquote resolves."
+  },
+  "drink-me": {
+    "credible": true,
+    "note": "Correct requested label, authentic fullquote and location; trailing copied comma is a presentation limitation."
+  },
+  "pool-of-tears": {
+    "credible": false,
+    "note": "Strict recall0: cited0281\u20130314 authentically explains creation of tearspool, but required later passage identifies the pool Alice swims in. Reply is factually sensible and fully mapped, not fabrication; evidence does not explicitly establish later same-pool link. Preserve unmet benchmark requirement, no unrelated expectation change."
+  },
+  "caucus-prizes": {
+    "credible": true,
+    "note": "Winning and comfits supported, exactquote bound. Alice only told shemustreceiveprize: wording preservesannouncement and doesnot falselyassertunshown completedthimbleaward. Omits eventualthimble detail, limited completeness."
+  },
+  "giant-puppy": {
+    "credible": true,
+    "note": "Literal quote andholdingstick/thistledodging/tiredpuppyescape accuratelymapped. Game of fetch is loose terminology (no throwing or returning established), but followingactualaction description stays sourcefaithful; presentation/interpretive limitation."
+  },
+  "identity-change": {
+    "credible": true,
+    "note": "Correctly repairs genuine separate Explain-yourself quotation, including its canonical newline, while retaining full Alice dialogue quotation without false inner-span objection. Identity/size interpretation and both quotations fully mapped to0960\u20131016; final sourcefaithful."
+  },
+  "father-william": {
+    "credible": true,
+    "note": "Correct poem/title, literal request, separately mapped titleidentification. Titlepunctuation is not an additional sourcequotation assertion."
+  },
+  "pigeon-serpent": {
+    "credible": false,
+    "note": "Final safe fallback after one Muse revision and two Prove reviews. First review correctly removes undeclared mushroom cause and requires concludinginterpretationmapping. Final explanation sourcefaithful with neck+egg records but introductory sourceclaim remains outside declaredspans; late coveragefinding exhaustsrevision. Interpretation andsynthesis are plausible; no unsafe answerreleased. Failure stage None doesnot implyrelease: release_source/finalverdict correctlyfail."
+  },
+  "identity-theme": {
+    "credible": false,
+    "note": "No answer released; provenance_review; saved errors [{'role': 'Provenance', 'failure_category': 'provider_error', 'status': 429}]. No valid final review. Saved draft if present is not successful release."
+  },
+  "exact-caucus-quote": {
+    "credible": false,
+    "note": "No answer released; muse_draft; saved errors [{'role': 'Muse', 'failure_category': 'provider_error', 'status': 429}, {'role': 'Librarian', 'failure_category': 'provider_error', 'status': 429}]. No valid final review. Saved draft if present is not successful release."
+  },
+  "future-cheshire": {
+    "credible": false,
+    "note": "No answer released; muse_draft; saved errors [{'role': 'Muse', 'failure_category': 'provider_error', 'status': 429}, {'role': 'Librarian', 'failure_category': 'provider_error', 'status': 429}]. No valid final review. Saved draft if present is not successful release."
+  },
+  "absent-spaceship": {
+    "credible": false,
+    "note": "No answer released; muse_draft; saved errors [{'role': 'Muse', 'failure_category': 'provider_error', 'status': 429}]. No valid final review. Saved draft if present is not successful release."
+  }
+}

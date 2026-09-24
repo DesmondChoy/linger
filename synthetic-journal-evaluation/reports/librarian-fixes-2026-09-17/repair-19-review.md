@@ -1,0 +1,9 @@
+# Repair19 validation
+
+Boundary inventory now treats repeated IDs solely within other_evidence_ids as redundant membership; raw output remains intact. All unknown/missing IDs, within/across-occurrence duplicates and occurrence/other overlap remain errors. Selected support, memory grounding, canonical excerpt binding and independent event gate are unchanged. Eight meaningful regressions cover these boundaries. Saved Douglass18 second candidate now passes raw, typed and application source/memory validation; first wrong-record candidate still fails. This is an offline diagnostic, not a retrospective live pass or new grant.
+
+Boundary guidance requests connecting evidence within the ceiling only for explicitly asserted cross-event continuity that endpoint sources fail to establish. Farm required recognition evidence is unchanged. Muse guidance clarifies multiple declarations when distinct quotations need them, coverage by full contiguous dialogue quotations, and mapping of source-dependent interpretation after quotations. Prove guidance mirrors existing quotation geometry, distinguishes source-specific evidence limits from unsupported universal negatives, and asks for concise but complete private proof. No deterministic quote rule, model, retry budget, grade or adoption changed.
+
+Root inspected all changed areas; independent reviewers inspect boundary, Muse and Prove changes. Full local suite1904 tests and670subtests passed in41.98s, including durable runner tests; git diff --check clean. Focused tests and actual saved-input probes are detailed in repair-19-muse-review.md, iteration-19-provenance-guidance.md and inventory-other-repair-19-probe.json. Prompt effectiveness remains to be tested live, and concise copying is not claimed to cure provider filtering.
+
+Iteration19 uses all12 suites once, concurrency6, Luna medium. Pending Roses adoption remains unchanged. Commit/push requires full strict and credible semantic pass.

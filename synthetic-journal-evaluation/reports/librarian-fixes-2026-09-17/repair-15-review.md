@@ -1,0 +1,7 @@
+# Repair 15 independent review
+
+The Muse and Provenance changes retain current role, output and retry authority. Root inspected Muse helper, tests and rewritten instructions. An independent collaboration reviewer inspected Provenance’s source-local copy context, error branch and revised semantic distinctions and found no material issue. All three saved smoke14 bad excerpts still fail; new hints are exact substrings of the named source and cannot establish semantic support. The reviewer independently passed65 focused tests covering excerpt feedback, quote audit, groups and new Muse feedback. These checks do not establish live semantic reliability.
+
+Independent Muse review also found no blocking issue and passed57 tests. The boundary gate received independent review with71 tests and29 subtests passed: existing memory/source/confidence checks remain, proposed grants and stored memories are absent from the second input, trace identities distinguish calls, and unresolved or failed identification prevents a grant. Canonical interval overlap does not prove semantic uniqueness; live evaluation remains necessary. No schema or guard changes were requested by reviewers.
+
+The first full integration run passed 1,831 tests and 648 subtests, with one stale registry-count expectation. The registry was updated for the added selected skill and fingerprint, and its seven tests pass. The final complete run passed 1,832 tests and 648 subtests in 46.94 seconds. Live iteration15 starts only after this validation checkpoint. See its separate reservation and frozen manifest.

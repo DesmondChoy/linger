@@ -1,0 +1,102 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "backstory-maya-alice-identity",
+    "person_id": "person-maya",
+    "evaluation_account_id": "evaluation-account-maya",
+    "context": "Maya has been reading Alice's Adventures in Wonderland and has discussed Alice's repeated changes in size and uncertainty about her identity. Her latest clearly remembered discussion concerns the exchange with the Caterpillar. Maya has not confirmed any later reading progress, and she often connects the story's identity questions to changes in her own routines and roles."
+  },
+  "props": [
+    {
+      "prop_id": "prop-alice-changing-identity",
+      "backstory_id": "backstory-maya-alice-identity",
+      "person_id": "person-maya",
+      "evaluation_account_id": "evaluation-account-maya",
+      "source_text": "We had talked about Alice's Adventures in Wonderland: Alice kept changing size and became unsure whether she was still the same person.",
+      "lifecycle": [
+        {
+          "scene_id": "scene-caterpillar-grounded-reflection",
+          "state": "active"
+        },
+        {
+          "scene_id": "scene-ambiguous-after-change",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "backstory_id": "backstory-maya-alice-identity",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-alice-changing-identity"
+      ],
+      "line_ids": [
+        "line-caterpillar-grounded-reflection"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-ambiguous-after-change",
+      "backstory_id": "backstory-maya-alice-identity",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "prop-alice-changing-identity"
+      ],
+      "line_ids": [
+        "line-ambiguous-after-change"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "scene-personal-changing-routines",
+      "backstory_id": "backstory-maya-alice-identity",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "line-personal-changing-routines"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "line-caterpillar-grounded-reflection",
+      "scene_id": "scene-caterpillar-grounded-reflection",
+      "order": 1,
+      "text": "When the Caterpillar presses Alice to explain who she is, could you quote the start of Alice's answer and help me think about why changing roles can make self-description hard?"
+    },
+    {
+      "line_id": "line-ambiguous-after-change",
+      "scene_id": "scene-ambiguous-after-change",
+      "order": 1,
+      "text": "What should I make of what happens after Alice changes again?"
+    },
+    {
+      "line_id": "line-personal-changing-routines",
+      "scene_id": "scene-personal-changing-routines",
+      "order": 1,
+      "text": "When my routines keep changing, I struggle to describe who I am. How can I reflect on that without treating every change as a loss of myself?"
+    }
+  ],
+  "offline_inputs": []
+}

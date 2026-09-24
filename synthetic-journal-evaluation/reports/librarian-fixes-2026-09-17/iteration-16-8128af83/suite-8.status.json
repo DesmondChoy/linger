@@ -1,0 +1,100 @@
+{
+  "suite": "8",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/menu.json",
+    "--number",
+    "8",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T10:33:09.795813+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/suite-8.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.connection_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-h_ndnbg0/evaluation.json"
+    ],
+    "started_at": "2026-09-18T18:33:10.281666+08:00",
+    "scenario_hashes": {
+      "backstory.json": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+      "ground-truth.json": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+      "ground-truth-adoption.json": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-h_ndnbg0/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-h_ndnbg0/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-h_ndnbg0/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 3,
+      "scenes_passed": 2,
+      "scenes_failed": 1,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 3,
+      "judgments_failed": 1,
+      "failures": [
+        {
+          "scene_id": "S1",
+          "detail": "unexpected_release_source",
+          "proposal_id": "proposal-s1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:s1-connection-memory",
+          "proposal_id": "proposal-s1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:s1-connection-book",
+          "proposal_id": "proposal-s1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:s1-connection-public",
+          "proposal_id": "proposal-s1-connection"
+        }
+      ],
+      "execution_failures": []
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b413d71039fee39748dbf9c8de8b-ed4cdcb565509501",
+      "trace_id": "01a0b413d71039fee39748dbf9c8de8b",
+      "span_id": "ed4cdcb565509501",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b413d71039fee39748dbf9c8de8b-ed4cdcb565509501",
+    "status": "failed",
+    "problems": [
+      "The replay completed with failed evaluation checks; see expected versus observed evidence."
+    ],
+    "finished_at": "2026-09-18T18:40:45.235608+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184045+0800-5712cd50.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184045+0800-5712cd50.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/suite-8.json",
+  "failures": [
+    "S1:hard_gate_or_missing_grades",
+    "S1:proposal-s1-connection:grade_failures",
+    "S1:proposal-s1-connection:stage_failure",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T10:40:45.652940+00:00"
+}

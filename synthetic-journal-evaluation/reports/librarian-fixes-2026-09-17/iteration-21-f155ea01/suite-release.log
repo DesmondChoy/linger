@@ -1,0 +1,33 @@
+[1/12] rabbit-watch
+[2/12] drink-me
+[3/12] pool-of-tears
+[4/12] caucus-prizes
+[5/12] giant-puppy
+[6/12] identity-change
+[7/12] father-william
+[8/12] pigeon-serpent
+Currently retrying 1 failed export(s) (39359 bytes)
+Failed to export span batch code: None, reason: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=9.99999213218689)
+[9/12] identity-theme
+[10/12] exact-caucus-quote
+[11/12] future-cheshire
+[12/12] absent-spaceship
+{
+  "case_count": 12,
+  "complete_case_set": true,
+  "targets_pass": true,
+  "evidence_recall": 0.9167,
+  "citation_precision": 1.0,
+  "strength_accuracy": 1.0,
+  "answerable_release_rate": 0.9,
+  "spoiler_exposure_count": 0,
+  "citation_resolution_pass": true,
+  "mean_latency_ms": 44907.5,
+  "p95_latency_ms": 106873.7,
+  "usage": {
+    "available": false,
+    "input_tokens": null,
+    "output_tokens": null,
+    "requests": null
+  }
+}

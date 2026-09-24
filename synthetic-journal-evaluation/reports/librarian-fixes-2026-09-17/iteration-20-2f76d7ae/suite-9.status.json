@@ -1,0 +1,192 @@
+{
+  "suite": "9",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/menu.json",
+    "--number",
+    "9",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T11:41:57.179719+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-9.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+    ],
+    "started_at": "2026-09-18T19:41:57.522765+08:00",
+    "scenario_hashes": {
+      "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+      "ground-truth.json": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+      "ground-truth-adoption.json": "f627a199e49705a1b757d61c49fdf90fd6303d973a2e535e410e79543efc4ec7"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 0,
+      "scenes_failed": 4,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 0,
+      "judgments_failed": 4,
+      "failures": [
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "exact_quotation_missing_or_unreleased:douglass-pit-quotation",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-personal",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-personal"
+        },
+        {
+          "scene_id": "douglass-personal",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-personal"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "clarification_question_missing",
+          "proposal_id": "douglass-proposal-clarification"
+        }
+      ],
+      "execution_failures": [
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+        },
+        {
+          "scene_id": "douglass-personal",
+          "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "Muse draft: muse_model_failed"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "Muse draft: muse_model_failed"
+        }
+      ]
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be",
+      "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+      "span_id": "de090a61f77b88be",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be",
+    "status": "failed",
+    "problems": [
+      "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+    ],
+    "finished_at": "2026-09-18T19:42:21.329960+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/suite-9.json",
+  "failures": [
+    "douglass-grounded:hard_gate_or_missing_grades",
+    "douglass-grounded:douglass-proposal-grounded:grade_failures",
+    "douglass-personal:hard_gate_or_missing_grades",
+    "douglass-personal:douglass-proposal-personal:grade_failures",
+    "douglass-spoiler-inference:hard_gate_or_missing_grades",
+    "douglass-spoiler-inference:douglass-proposal-boundary:grade_failures",
+    "douglass-uncertain:hard_gate_or_missing_grades",
+    "douglass-uncertain:douglass-proposal-clarification:grade_failures",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-18T11:42:21.648655+00:00"
+}

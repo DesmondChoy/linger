@@ -1,0 +1,71 @@
+{
+  "suite": "11",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/menu.json",
+    "--number",
+    "11",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-18T10:33:09.804818+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/suite-11.log",
+  "passed": true,
+  "returncode": 0,
+  "native_summary": {
+    "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-q5ph1oof/evaluation.json"
+    ],
+    "started_at": "2026-09-18T18:33:10.430939+08:00",
+    "scenario_hashes": {
+      "backstory.json": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+      "ground-truth.json": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+      "ground-truth-adoption.json": "65390dfcdf7f5300e432777a0bb245dd7ae23be1228ce4fb27e123a81d3d1422"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-q5ph1oof/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-q5ph1oof/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-q5ph1oof/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 4,
+      "scenes_failed": 0,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 4,
+      "judgments_failed": 0,
+      "failures": [],
+      "execution_failures": []
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b413d7ba32c777048cdd064ab3bc-f44127440079705b",
+      "trace_id": "01a0b413d7ba32c777048cdd064ab3bc",
+      "span_id": "f44127440079705b",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b413d7ba32c777048cdd064ab3bc-f44127440079705b",
+    "status": "passed",
+    "problems": [],
+    "finished_at": "2026-09-18T18:39:35.266886+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183935+0800-d6687cc7.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183935+0800-d6687cc7.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/suite-11.json",
+  "failures": [],
+  "finished_at": "2026-09-18T10:39:35.536980+00:00"
+}

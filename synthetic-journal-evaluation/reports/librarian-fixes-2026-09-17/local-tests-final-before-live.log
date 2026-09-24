@@ -1,0 +1,593 @@
+.................................................................................................................... [  7%]
+............................................................................................................ [ 14%]
+........................................................ [ 17%]
+................................................................................................................................... [ 25%]
+..................................................... [ 29%]
+.............................................................. [ 32%]
+........................................................... [ 36%]
+................................................. [ 39%]
+.................................................. [ 42%]
+............................................FFF.FFFF.. [ 46%]
+.F................................................ [ 49%]
+.............................................................................................................. [ 56%]
+............................................. [ 59%]
+............................................................... [ 63%]
+........................................................................................................................ [ 70%]
+................................................ [ 73%]
+........................................................................ [ 78%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+........................................................................ [ 91%]
+................................................................. [ 95%]
+...................................................................      [100%]
+=================================== FAILURES ===================================
+_ PassageInferenceTests.test_alice_pair_grants_only_requested_canonical_paragraph _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_alice_pair_grants_only_requested_canonical_paragraph>
+
+        return result
+    
+    async def test_alice_pair_grants_only_requested_canonical_paragraph(self) -> None:
+        async def judge(line, memories, paragraphs, prior):
+            self.assertEqual(SECOND, line)
+            self.assertEqual((), memories)
+            self.assertEqual(PRIOR, prior)
+            self.assertNotIn(WINDOW, {record.evidence_id for record in paragraphs})
+            self.assertTrue(all("\n\n" not in record.text for record in paragraphs))
+>           return decision()
+                 ^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_canonical_candidate_mismatch_does_not_reach_judge _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_canonical_candidate_mismatch_does_not_reach_judge>
+
+                self.assertEqual(reason, result.reason_code)
+    
+    async def test_canonical_candidate_mismatch_does_not_reach_judge(self) -> None:
+>       self.bundle.items[0] = self.bundle.items[0].model_copy(update={"excerpt": "forged"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_duplicate_input_statement_ids_are_not_usable_support _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_input_statement_ids_are_not_usable_support>
+
+>   ???
+
+tests/test_passage_inference.py:165: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='supporting_statement_ids', ids=()) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='supporting_statement_ids', ids=('reader-1', 'reader-1')) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='supporting_evidence_ids', ids=()) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='supporting_evidence_ids', ids=('pg11-v01b38ea4-ch05-ln0964-0964', 'pg11-v01b38ea4-ch05-ln0964-0964')) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='passage_evidence_ids', ids=()) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_duplicate_or_empty_selections_fail_closed (field='passage_evidence_ids', ids=('pg11-v01b38ea4-ch05-ln0974-0975', 'pg11-v01b38ea4-ch05-ln0974-0975')) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_duplicate_or_empty_selections_fail_closed>
+
+        self.assertIsInstance(result, BoundaryUncertain)
+    
+    async def test_duplicate_or_empty_selections_fail_closed(self) -> None:
+        for field, value in (
+            ("supporting_statement_ids", "reader-1"),
+            ("supporting_evidence_ids", ANCHOR),
+            ("passage_evidence_ids", QUOTE),
+        ):
+            for ids in ((), (value, value)):
+>               with self.subTest(field=field, ids=ids):
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+______ PassageInferenceTests.test_line_only_passage_decision_never_grants ______
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_line_only_passage_decision_never_grants>
+
+        self.assertIsNone(result.candidate_chapter)
+    
+>   async def test_line_only_passage_decision_never_grants(self) -> None:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_long_history_bounds_search_but_keeps_original_judge_input _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_long_history_bounds_search_but_keeps_original_judge_input>
+
+        judge.assert_not_awaited()
+    
+    async def test_long_history_bounds_search_but_keeps_original_judge_input(self) -> None:
+>       prior = (ReaderStatement(statement_id="reader-1", text=FIRST * 20),)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 4
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_______ PassageInferenceTests.test_low_confidence_is_not_a_passage_grant _______
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_low_confidence_is_not_a_passage_grant>
+
+>   ???
+
+tests/test_passage_inference.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_mixed_statements_require_every_cited_one_to_support_the_work _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_mixed_statements_require_every_cited_one_to_support_the_work>
+
+        self.assertEqual("progress_unverified", result.reason_code)
+    
+    async def test_mixed_statements_require_every_cited_one_to_support_the_work(self) -> None:
+        prior = (
+            ReaderStatement(statement_id="reader-1", text=FIRST),
+>           ReaderStatement(statement_id="reader-2", text="I saw the film last night."),
+        )
+
+tests/test_passage_inference.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 3
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_reading_irrelevant_statement_cannot_support_passages _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_reading_irrelevant_statement_cannot_support_passages>
+
+        self.assertEqual("session_supported", result.authorization_basis)
+    
+>   async def test_reading_irrelevant_statement_cannot_support_passages(self) -> None:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+------------------------------ Captured log call -------------------------------
+WARNING  src.linger.orchestration.boundary:boundary.py:294 Reading-progress planning failed; using original boundary search.
+_ PassageInferenceTests.test_semantic_uncertainty_stays_clarification (reason='conflicting_context') _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_semantic_uncertainty_stays_clarification>
+
+                    decision(**changes)
+    
+    async def test_semantic_uncertainty_stays_clarification(self) -> None:
+>       for reason in ("conflicting_context", "insufficient_context", "low_confidence"):
+
+tests/test_passage_inference.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_semantic_uncertainty_stays_clarification (reason='insufficient_context') _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_semantic_uncertainty_stays_clarification>
+
+                    decision(**changes)
+    
+    async def test_semantic_uncertainty_stays_clarification(self) -> None:
+>       for reason in ("conflicting_context", "insufficient_context", "low_confidence"):
+
+tests/test_passage_inference.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_semantic_uncertainty_stays_clarification (reason='low_confidence') _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_semantic_uncertainty_stays_clarification>
+
+                    decision(**changes)
+    
+    async def test_semantic_uncertainty_stays_clarification(self) -> None:
+>       for reason in ("conflicting_context", "insufficient_context", "low_confidence"):
+
+tests/test_passage_inference.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'supporting_statement_ids': ('assistant-1',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'supporting_statement_ids': ('reader-missing',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'supporting_evidence_ids': ('missing',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'supporting_evidence_ids': ('pg11-v01b38ea4-ch05-ln0960-1016',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'passage_evidence_ids': ('pg11-v01b38ea4-ch05-ln0960-1016',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'passage_evidence_ids': ('missing',)}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'work_id': 'other-work'}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+_ PassageInferenceTests.test_unsupplied_support_and_parent_window_fail_closed (changes={'book_version_id': 'other-revision'}) _
+
+self = <test_passage_inference.PassageInferenceTests testMethod=test_unsupplied_support_and_parent_window_fail_closed>
+
+        self.assertIsInstance(result, BoundaryPassages)
+    
+    async def test_unsupplied_support_and_parent_window_fail_closed(self) -> None:
+        for changes in (
+            {"supporting_statement_ids": ("assistant-1",)},
+            {"supporting_statement_ids": ("reader-missing",)},
+            {"supporting_evidence_ids": ("missing",)},
+            {"supporting_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": (WINDOW,)},
+            {"passage_evidence_ids": ("missing",)},
+            {"work_id": "other-work"},
+            {"book_version_id": "other-revision"},
+        ):
+            with self.subTest(changes=changes):
+                async def judge(*_args):
+>                   return decision(**changes)
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_passage_inference.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_passage_inference.py:69: in infer
+    self.search_requests = tuple(call.args[0] for call in retrieve.call_args_list)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: 1 != 2
+=========================== short test summary info ============================
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_alice_pair_grants_only_requested_canonical_paragraph
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_canonical_candidate_mismatch_does_not_reach_judge
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_input_statement_ids_are_not_usable_support
+SUBFAILED(field='supporting_statement_ids', ids=()) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+SUBFAILED(field='supporting_statement_ids', ids=('reader-1', 'reader-1')) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+SUBFAILED(field='supporting_evidence_ids', ids=()) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+SUBFAILED(field='supporting_evidence_ids', ids=('pg11-v01b38ea4-ch05-ln0964-0964', 'pg11-v01b38ea4-ch05-ln0964-0964')) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+SUBFAILED(field='passage_evidence_ids', ids=()) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+SUBFAILED(field='passage_evidence_ids', ids=('pg11-v01b38ea4-ch05-ln0974-0975', 'pg11-v01b38ea4-ch05-ln0974-0975')) tests/test_passage_inference.py::PassageInferenceTests::test_duplicate_or_empty_selections_fail_closed
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_line_only_passage_decision_never_grants
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_long_history_bounds_search_but_keeps_original_judge_input
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_low_confidence_is_not_a_passage_grant
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_mixed_statements_require_every_cited_one_to_support_the_work
+FAILED tests/test_passage_inference.py::PassageInferenceTests::test_reading_irrelevant_statement_cannot_support_passages
+SUBFAILED(reason='conflicting_context') tests/test_passage_inference.py::PassageInferenceTests::test_semantic_uncertainty_stays_clarification
+SUBFAILED(reason='insufficient_context') tests/test_passage_inference.py::PassageInferenceTests::test_semantic_uncertainty_stays_clarification
+SUBFAILED(reason='low_confidence') tests/test_passage_inference.py::PassageInferenceTests::test_semantic_uncertainty_stays_clarification
+SUBFAILED(changes={'supporting_statement_ids': ('assistant-1',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'supporting_statement_ids': ('reader-missing',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'supporting_evidence_ids': ('missing',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'supporting_evidence_ids': ('pg11-v01b38ea4-ch05-ln0960-1016',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'passage_evidence_ids': ('pg11-v01b38ea4-ch05-ln0960-1016',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'passage_evidence_ids': ('missing',)}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'work_id': 'other-work'}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+SUBFAILED(changes={'book_version_id': 'other-revision'}) tests/test_passage_inference.py::PassageInferenceTests::test_unsupplied_support_and_parent_window_fail_closed
+25 failed, 1586 passed, 616 subtests passed in 48.18s

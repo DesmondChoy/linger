@@ -1,0 +1,21 @@
+[1/12] rabbit-watch
+[2/12] drink-me
+[3/12] pool-of-tears
+[4/12] caucus-prizes
+[5/12] giant-puppy
+[6/12] identity-change
+[7/12] father-william
+[8/12] pigeon-serpent
+[9/12] identity-theme
+[10/12] exact-caucus-quote
+[11/12] future-cheshire
+[12/12] absent-spaceship
+{
+  "case_count": 12,
+  "result_count": 11,
+  "strength_accuracy": 0.9166666666666666,
+  "mean_evidence_recall": 1.0,
+  "mean_final_evidence_precision": 1.0,
+  "all_spoiler_safe": true,
+  "all_citations_resolve": true
+}

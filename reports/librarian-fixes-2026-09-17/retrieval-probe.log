@@ -1,0 +1,13 @@
+{
+  "keller_query": "I put Helen Keller\u2019s The Story of My Life aside a while ago. The last bit I can remember reading is her going back to a pet she had been keeping and finding it gone. I\u2019ve lost my bookmark, and I can\u2019t remember the animal or where she was keeping it, only that sense of finding an empty place.",
+  "canary_and_crab_preserved": true,
+  "canonical_records_unchanged": true,
+  "long_tail_probe": {
+    "pair_tokens": 1022,
+    "model_limit": 512,
+    "raw_score": -10.546080589294434,
+    "windowed_score": -9.193373680114746,
+    "window_count": 3
+  }
+}
+[(1, 'pg2397-vb3cc1e13-sec023-ln2701-2724', 0.008580559635555537), (2, 'pg2397-vb3cc1e13-sec012-ln1237-1254', 0.0008595580165396286), (3, 'pg2397-vb3cc1e13-sec016-ln1698-1727', 0.016865237113152243), (4, 'pg2397-vb3cc1e13-sec003-ln0124-0154', 0.029173321701569836), (5, 'pg2397-vb3cc1e13-sec010-ln1069-1090', 0.0005587991527750251), (6, 'pg2397-vb3cc1e13-sec016-ln1597-1622', 0.0025706589608731085), (7, 'pg2397-vb3cc1e13-sec016-ln1606-1633', 0.01633743815440482), (8, 'pg2397-vb3cc1e13-sec023-ln2872-2897', 0.003996966110851767), (9, 'pg2397-vb3cc1e13-sec024-ln3304-3333', 0.004238885268130846), (10, 'pg2397-vb3cc1e13-sec009-ln0850-0881', 0.00027980306079495427), (11, 'pg2397-vb3cc1e13-sec017-ln1847-1873', 0.007086949823590709), (12, 'pg2397-vb3cc1e13-sec024-ln3238-3267', 0.00024042706625294782), (13, 'pg2397-vb3cc1e13-sec011-ln1096-1125', 0.0029511266912689966), (14, 'pg2397-vb3cc1e13-sec017-ln1856-1881', 0.00502578078055061), (15, 'pg2397-vb3cc1e13-sec025-ln3379-3405', 0.00018737101601675444), (16, 'pg2397-vb3cc1e13-sec016-ln1659-1677', 0.0008365740282520609), (17, 'pg2397-vb3cc1e13-sec016-ln1624-1639', 0.0029020634025527427), (18, 'pg2397-vb3cc1e13-sec013-ln1365-1388', 0.00049141401249368)]

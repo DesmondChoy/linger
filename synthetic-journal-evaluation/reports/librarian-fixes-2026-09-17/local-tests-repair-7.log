@@ -1,0 +1,243 @@
+.............................................. [  2%]
+...................................................................... [  6%]
+.................................................................... [ 10%]
+................................................... [ 13%]
+..................................................................................................................... [ 20%]
+........................................................... [ 23%]
+...................................................................... [ 27%]
+........................................ [ 29%]
+..... [ 30%]
+...................................................................................................................... [ 36%]
+.................................................. [ 39%]
+.............................................................. [ 43%]
+....................................... [ 45%]
+................................................................. [ 49%]
+................................................................ [ 52%]
+.............................................. [ 55%]
+................................................................... [ 59%]
+................................................................................................................. [ 65%]
+......................................................... [ 68%]
+....................................................... [ 72%]
+........................................................ [ 75%]
+........................................................................ [ 79%]
+........................................................................ [ 83%]
+........................................................................ [ 87%]
+........................................................................ [ 91%]
+........................................................................ [ 95%]
+................................................................. [ 99%]
+.......                                                                  [100%]
+=================================== FAILURES ===================================
+_ ChatCaptureTests.test_every_safe_decline_path_suppresses_an_allowed_candidate (index=3) _
+
+self = <test_chat_capture.ChatCaptureTests testMethod=test_every_safe_decline_path_suppresses_an_allowed_candidate>
+
+    async def test_every_safe_decline_path_suppresses_an_allowed_candidate(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        source = "I want to pause before I answer next time."
+        valid = muse_candidate(source, nominated=source)
+        unsupported = valid.model_copy(
+            update={
+                "evidence_uses": (
+                    BookEvidenceUse(
+                        supported_claims=(valid.reply,),
+                        source_kind="book_corpus",
+                        evidence_id="unknown-evidence",
+                        source_location="Unknown source",
+                        exact_quote=None,
+                    ),
+                )
+            }
+        )
+        cases = (
+            (
+                [valid],
+                [review("allow_capture", response_decision="reject")],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="reject",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
+                ],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="revise",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
+                ],
+                None,
+            ),
+            (
+                [unsupported],
+                [review("allow_capture")],
+                "deterministic_validation",
+            ),
+            (
+                [valid, unsupported],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'resolved',
+                        'explanation': 'The reviewer accepts the citation; application identity validation remains required.',
+                    },)),
+                ],
+                "deterministic_validation",
+            ),
+            (
+                [valid, RuntimeError("revision failed")],
+                [review("allow_capture", response_decision="revise")],
+                "muse_revision",
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    RuntimeError("second review failed"),
+                ],
+                "provenance_review",
+            ),
+        )
+    
+        for index, (candidates, reviews, failure_stage) in enumerate(cases):
+            with self.subTest(index=index):
+                response = await self.run_chat_sequence(
+                    ChatRequest(
+                        session_id=f"capture-safe-{index}",
+                        turn_id=f"capture-safe-turn-{index}",
+                        message=source,
+                    ),
+                    candidates,
+                    reviews,
+                )
+    
+                release = response.inspection.release
+                self.assertEqual("application_safe_decline", release.release_source)
+>               self.assertEqual(failure_stage, release.failure_stage)
+E               AssertionError: 'deterministic_validation' != 'provenance_review'
+E               - deterministic_validation
+E               + provenance_review
+
+tests/test_chat_capture.py:498: AssertionError
+_ ChatCaptureTests.test_every_safe_decline_path_suppresses_an_allowed_candidate (index=4) _
+
+self = <test_chat_capture.ChatCaptureTests testMethod=test_every_safe_decline_path_suppresses_an_allowed_candidate>
+
+    async def test_every_safe_decline_path_suppresses_an_allowed_candidate(self) -> None:
+        self.service.set_capture_enabled(self.account, True)
+        source = "I want to pause before I answer next time."
+        valid = muse_candidate(source, nominated=source)
+        unsupported = valid.model_copy(
+            update={
+                "evidence_uses": (
+                    BookEvidenceUse(
+                        supported_claims=(valid.reply,),
+                        source_kind="book_corpus",
+                        evidence_id="unknown-evidence",
+                        source_location="Unknown source",
+                        exact_quote=None,
+                    ),
+                )
+            }
+        )
+        cases = (
+            (
+                [valid],
+                [review("allow_capture", response_decision="reject")],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="reject",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
+                ],
+                None,
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", response_decision="revise",
+                           finding_resolutions=({
+                               'finding_index': 0,
+                               'status': 'unresolved',
+                               'explanation': 'The same candidate still carries the response problem.',
+                           },)),
+                ],
+                None,
+            ),
+            (
+                [unsupported],
+                [review("allow_capture")],
+                "deterministic_validation",
+            ),
+            (
+                [valid, unsupported],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    review("allow_capture", finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'resolved',
+                        'explanation': 'The reviewer accepts the citation; application identity validation remains required.',
+                    },)),
+                ],
+                "deterministic_validation",
+            ),
+            (
+                [valid, RuntimeError("revision failed")],
+                [review("allow_capture", response_decision="revise")],
+                "muse_revision",
+            ),
+            (
+                [valid, valid],
+                [
+                    review("allow_capture", response_decision="revise"),
+                    RuntimeError("second review failed"),
+                ],
+                "provenance_review",
+            ),
+        )
+    
+        for index, (candidates, reviews, failure_stage) in enumerate(cases):
+            with self.subTest(index=index):
+                response = await self.run_chat_sequence(
+                    ChatRequest(
+                        session_id=f"capture-safe-{index}",
+                        turn_id=f"capture-safe-turn-{index}",
+                        message=source,
+                    ),
+                    candidates,
+                    reviews,
+                )
+    
+                release = response.inspection.release
+                self.assertEqual("application_safe_decline", release.release_source)
+>               self.assertEqual(failure_stage, release.failure_stage)
+E               AssertionError: 'deterministic_validation' != 'provenance_review'
+E               - deterministic_validation
+E               + provenance_review
+
+tests/test_chat_capture.py:498: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(index=3) tests/test_chat_capture.py::ChatCaptureTests::test_every_safe_decline_path_suppresses_an_allowed_candidate
+SUBFAILED(index=4) tests/test_chat_capture.py::ChatCaptureTests::test_every_safe_decline_path_suppresses_an_allowed_candidate
+2 failed, 1750 passed, 631 subtests passed in 41.76s

@@ -1,0 +1,131 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "pinocchio-ada-history",
+    "person_id": "pinocchio-ada-person",
+    "evaluation_account_id": "pinocchio-ada-account",
+    "context": "Ada is a florist taking an evening qualification. Her sister shares the flat and has taken on chores to protect Ada's study time. Ada reads Carlo Collodi's The Adventures of Pinocchio in short stretches, sometimes repeating an older passage after a break. She notices a gap between elaborate hopes of repaying kindness and small daily actions, and wants to discuss it without making shame her motivator. These four conversations are fresh sessions in her single evaluation account, with automatic capture disabled. This history is authoring context only."
+  },
+  "props": [
+    {
+      "prop_id": "pinocchio-coat-memory",
+      "backstory_id": "pinocchio-ada-history",
+      "person_id": "pinocchio-ada-person",
+      "evaluation_account_id": "pinocchio-ada-account",
+      "source_text": "Yesterday in The Adventures of Pinocchio I read the part where Geppetto returns with the A-B-C book but without his coat, even though it's cold. His excuse that the coat was too warm made me sad, and Pinocchio kissing him made the gratitude feel real. I closed the book there. My sister has been taking my evening chores so I can study, so that little scene landed harder than I expected.",
+      "lifecycle": [
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "pinocchio-tomorrow-memory",
+      "backstory_id": "pinocchio-ada-history",
+      "person_id": "pinocchio-ada-person",
+      "evaluation_account_id": "pinocchio-ada-account",
+      "source_text": "When I was dipping into The Adventures of Pinocchio last month, I remember a bit about going to school tomorrow instead and doing something more fun now. I didn't note who said it or where he was going. I read in such short bursts that his promises and changes of mind have run together.",
+      "lifecycle": [
+        {
+          "scene_id": "pinocchio-school-detour",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "pinocchio-promises-and-book",
+      "backstory_id": "pinocchio-ada-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "pinocchio-book-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "pinocchio-personal-study",
+      "backstory_id": "pinocchio-ada-history",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "pinocchio-study-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "pinocchio-spoiler-inference",
+      "backstory_id": "pinocchio-ada-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "pinocchio-coat-memory"
+      ],
+      "line_ids": [
+        "pinocchio-inference-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "pinocchio-school-detour",
+      "backstory_id": "pinocchio-ada-history",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "pinocchio-tomorrow-memory"
+      ],
+      "line_ids": [
+        "pinocchio-detour-line"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "pinocchio-book-line",
+      "scene_id": "pinocchio-promises-and-book",
+      "order": 1,
+      "text": "I've finished Chapter 9 of The Adventures of Pinocchio. I haven't read further. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?"
+    },
+    {
+      "line_id": "pinocchio-study-line",
+      "scene_id": "pinocchio-personal-study",
+      "order": 1,
+      "text": "My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can you help me work out one small way to honour her help this week, without turning a missed evening into 'I'm a terrible person'?"
+    },
+    {
+      "line_id": "pinocchio-inference-line",
+      "scene_id": "pinocchio-spoiler-inference",
+      "order": 1,
+      "text": "I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?"
+    },
+    {
+      "line_id": "pinocchio-detour-line",
+      "scene_id": "pinocchio-school-detour",
+      "order": 1,
+      "text": "I've picked up The Adventures of Pinocchio again and stopped after another decision to go off for fun instead of school. I remember the idea that school can wait until tomorrow, but can't place who says it or what the outing is. Why does the promise to study disappear so easily here? That feels uncomfortably like my own evenings."
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}

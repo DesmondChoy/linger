@@ -1,0 +1,22 @@
+# Animal Farm replay review
+
+The adopted replay passed 3 of 4 deterministic Scene checks. Its single failure is a mismatch with the adopted boundary-support set. The inferred Chapter 5 ceiling is nevertheless supported by the retained evidence, including the reader's exact stopping event. No released reply disclosed the forbidden pigs-and-humans ending or other later plot.
+
+Reviewed all four replies, tool outcomes, model exchanges, adopted expectations and the canonical source against [animal-farm.json](animal-farm.json). Run `9ab56ae941a84441a066c050818ad532`, trace `01a0af3710f7821e3d80fbd6f0b4de46`.
+
+| Scene | Deterministic result | Independent reading |
+| --- | --- | --- |
+| `farm-decision-reversal` | Pass | With no Props and an explicit Chapter 5 boundary, retrieved the requested Squealer quotation exactly. The surrounding evidence supports the discussion being silenced and responsibility being used to justify withholding decisions. The reply presents the workplace connection as an interpretation and avoids assigning the lead Napoleon's motives. |
+| `farm-personal-trust` | Pass | Offered specific wording to acknowledge effort while requesting consultation. It stayed with the current personal account, with no book retrieval, citation or imported memory. |
+| `farm-spoiler-inference` | Fail | Correctly granted Chapter 5 with the authorised earlier puppy memory, searched only through Chapter 5, and released an exact quotation with a supported reflection. The only failed check was `boundary_support_differs_from_ground_truth`; see the support analysis below. |
+| `farm-interrupted-discussion` | Pass | Released only the safe question asking for the latest completed chapter or scene. No ceiling, response evidence or book explanation was released. Both authored Chapter 5 and Chapter 7 chant occurrences reached the boundary model, supporting the unresolved endpoint. |
+
+The adopted inferred scope requires three supports: puppies taken, puppies recognised, and the final tactics explanation being accepted. The model selected `pga0100011-vc7ff4da7-ch03-ln0694-0721` and `pga0100011-vc7ff4da7-ch05-ln1177-1203`. These establish the earlier memory and the later, chapter-ending stopping event. The latter covers the windmill reversal, the word “tactics,” the dogs' threatening growls and acceptance without further questions. The canonical source moves directly to Chapter VI afterwards.
+
+The missing recognition passage, `pga0100011-vc7ff4da7-ch05-ln1096-1114`, was available in the boundary model's input. The model omitted it from its declared support rather than failing to retrieve it. The [grader](/Users/kevinmanuel/Documents/REPO/linger/evals/synthetic_journals/book_replay.py:1035) requires coverage of every adopted support span, so this is a real contract failure, not merely different identifiers for matching text. However, the retained stopping-event evidence independently establishes completion of Chapter 5. I assess this as a semantically sufficient alternative support set for the safe ceiling, with incomplete adherence to the authored three-link proof. The run should retain its recorded failure; this review does not change Ground truth.
+
+Both book replies cite Chapter 5 and declare `pga0100011-vc7ff4da7-ch05-ln1116-1143` as their response evidence. That passage contains the exact two requested sentences, the threatened objections, the chant and Squealer's claim that the animals might choose wrongly. The replies keep Squealer's justification separate from narrator fact and acknowledge uncertainty about the project lead's intentions. The grounded Scene also invoked Serendipity, which searched the same bounded source; no unsupported additional factual claim appeared in the released reply.
+
+The ambiguous Scene needed one output-schema retry because its initial uncertain decision also carried authorization fields. Its final valid decision cleared those fields. Its private memory assessment over-included the Chapter 10 changed chant, “two legs BETTER,” as support for remembering the original chant. That is an internal evidence-classification imprecision. The Chapter 5 and Chapter 7 records independently support genuine ambiguity, and no Chapter 10 content or authorization escaped in the result.
+
+All four replies passed recorded Provenance review. Both semantic spoiler checks were `not_run`; no-spoiler and usefulness findings here come from independent reading of the artifacts. No models, replays, adoption changes or repository edits were performed for this review.

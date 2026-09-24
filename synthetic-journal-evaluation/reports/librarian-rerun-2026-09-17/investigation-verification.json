@@ -1,0 +1,191 @@
+{
+  "scenario_count": 12,
+  "files": [
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/backstory.json",
+      "sha256": "43c536bb2526ce2fee6be79d5a95e8419b6d785232bf5a55cdd63f50032b8ba8",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth.json",
+      "sha256": "f5042bd298304f9243f933e7a644c39c3e527c7c1a3f972212babfc3ec4a7054",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29/ground-truth-adoption.json",
+      "sha256": "d26828640cfff9fa74bf47687d2d2c2523b6a17d6160c64e34c3d6b67260b77a",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/backstory.json",
+      "sha256": "34e900f0d1326a66e473536f336e5797335d829093f1180bf21b3ec1fb7fcada",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/ground-truth.json",
+      "sha256": "0cc016b37cf226bb51fe93b1760128d80b52f85de366e56e686cf64c377fa6b5",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07/ground-truth-adoption.json",
+      "sha256": null,
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/backstory.json",
+      "sha256": "36deed980558fbb806f5c679a29a45d3421169b3d4453632e332fc2705ec6a00",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/ground-truth.json",
+      "sha256": "450999695251ace1ead2e5f42de08ac6a5b5a6d703345abb12483a306b04bbce",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01/ground-truth-adoption.json",
+      "sha256": "4ea02515f7cc34dc01b994eaf4e6fb6d035ef09bda69c2a5b4e5d86b2771bb87",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json",
+      "sha256": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json",
+      "sha256": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth-adoption.json",
+      "sha256": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/backstory.json",
+      "sha256": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth.json",
+      "sha256": "82fd8dfee7ff377cad70d621c71f7f592089b5863db5d2faa328de2be5721949",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth-adoption.json",
+      "sha256": "2d1561e0e816f1a3d19baebfd3dfdd0265c37dba4b5ed7ad1a15fdbade38f6d8",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+      "sha256": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+      "sha256": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+      "sha256": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "sha256": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "sha256": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "sha256": "719e35a7b15341f65d79e841aa469498e15dc438871f9ff5b5a549b68d1b726b",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+      "sha256": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+      "sha256": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+      "sha256": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "sha256": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "sha256": "22f9a94565492b0ea6b43757b295b6cfa7f9ab76e0542455051e109f848ba973",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "sha256": "b23591c607fa849740afd974a0ef5c875110a3818216e250404a1a7118bd9b30",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "sha256": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "sha256": "59d6b0992c62793ead80a55ed916e35d5a9675cf95606c588a783889fa423c21",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "sha256": "eeea34dfc65056e19f952d5ee730a3c83a3f1eb095e38ec2e4c17829078d2e83",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "sha256": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "sha256": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "sha256": "65390dfcdf7f5300e432777a0bb245dd7ae23be1228ce4fb27e123a81d3d1422",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "sha256": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "sha256": "9a0a0741b39717c9b572a2bc3c85c5027e0b2d43d5a850e0ce841b49e723ac16",
+      "matches_preflight": true
+    },
+    {
+      "path": "synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "sha256": "48e222ddb262cfdc08557657fd8cc6dca159b7831962bb3487205304a58c45cb",
+      "matches_preflight": true
+    }
+  ],
+  "changes": [],
+  "all_match": true,
+  "focused_offline_tests": {
+    "command": ".venv/bin/python -m pytest -q tests/test_book_request_recall.py tests/test_boundary_search_planning.py",
+    "passed": 16
+  }
+}

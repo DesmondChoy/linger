@@ -1,0 +1,11 @@
+# Outside-essay smoke — iteration 9
+
+The smoke is inconclusive at Provenance review: invocation, retrieval, Serendipity selection and Muse presentation complete, but the reviewer fails with provider_error before returning any model response. Application releases a generic safe decline. No HTTP status or provider cause is present in the saved artifact. This is not iteration8's false final “undeclared quotation” review, and it cannot be called an exhausted semantic repair.
+
+Serendipity selects Descartes' Second Meditation and a Stanford Encyclopedia account of his epistemology, with a self-knowledge overview as the alternative. Muse supplies a concrete comparison between the Caterpillar's repeated identity questions and Descartes' use of doubt, naming the different outcomes and disclaiming a literal Cartesian argument. This is potentially useful content, but it never receives a completed independent review.
+
+An offline binding check also finds a real unreviewed defect: the public quotation “I am—I exist: this is certain,” includes a terminal comma, while its declaration stops at “certain” and the canonical excerpt continues with a semicolon. quote_checks passes the shorter substring, but quote_is_bound correctly rejects the complete visible occurrence. The Alice “Who are _you?_” occurrence binds correctly. “Descartes’ Epistemology” is a source title, not another prose quotation. Thus provider recovery alone cannot be assumed to make the saved candidate releasable; the next functioning review must also catch and repair that public quotation.
+
+Muse used one mechanical repair to fix copied claim spans split by Markdown citations and remove noncanonical quotation delimiters. There is no second candidate or reviewer verdict after that. The opening strong-connection sentence and final comparison would still require semantic inspection against the exact declared source groups; source selection alone does not approve them.
+
+Evidence: [stage result](suite-smoke.json), [complete private diagnostics](suite-smoke.diagnostics.json), and [Logfire experiment](https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/compare?experiment=01a0b217ce838f8cffd151f317588696-65073edd7fa6331f). No external query or provider request was made during this analysis.

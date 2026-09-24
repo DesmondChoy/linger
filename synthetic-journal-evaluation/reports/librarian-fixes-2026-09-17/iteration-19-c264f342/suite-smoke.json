@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "run_id": "58e249ce39a54a1ab15c6de63339a6b9",
+  "case_id": "cross-source-outside-essay-v1",
+  "objective_id": "cross_source_tentative_connection",
+  "generated_at": "2026-09-18T11:30:22.424765Z",
+  "trace_id": "01a0b44663c3c77ab659e4b3cc194fa6",
+  "reply": "I’m sorry, but I can’t provide a reliable response to that right now.",
+  "release_source": "application_safe_decline",
+  "stages": [
+    {
+      "stage": "invocation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "retrieval",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "serendipity_selection",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "muse_presentation",
+      "status": "passed",
+      "reason_code": null
+    },
+    {
+      "stage": "provenance_review",
+      "status": "failed",
+      "reason_code": "provenance_review_failed"
+    },
+    {
+      "stage": "deterministic_release",
+      "status": "not_reached",
+      "reason_code": null
+    }
+  ],
+  "first_failure_stage": "provenance_review",
+  "hard_gate_pass": false,
+  "semantic_review_required": true
+}

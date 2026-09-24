@@ -1,0 +1,242 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31",
+  "created_at": "2026-09-17T21:30:08+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "not_started",
+  "category": "scenario",
+  "problems": [
+    "proposals.0: Value error, book Objective requires typed book_expectation | proposals.1: Value error, book Objective requires typed book_expectation | proposals: Tuple should have at least 1 item after validation, not 0"
+  ],
+  "summary": {
+    "scenes_total": 0,
+    "scenes_passed": 0,
+    "scenes_failed": 0,
+    "scenes_ungraded": 0,
+    "judgments_total": 0,
+    "judgments_passed": 0,
+    "judgments_failed": 0,
+    "failures": [],
+    "execution_failures": []
+  },
+  "scenes": [
+    {
+      "scene_id": "scene-grounded-quotation",
+      "order": 1,
+      "status": "not_run",
+      "judgments_total": 0,
+      "judgments_passed": 0,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "gt-grounded-quotation",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "The reply consults the book before restating the passage, because the person asked what the text actually says.",
+            "Any quotation reproduced in the reply matches the corpus wording and location exactly.",
+            "The reply distinguishes the book's words from the person's paraphrase and from any generated interpretation.",
+            "The response stays useful as reflection, connecting the passage to what the person said they had been turning over."
+          ],
+          "prohibited_outcomes": [
+            "Reproducing a quotation that does not appear in the corpus at the cited location.",
+            "Citing evidence outside the permitted evidence identifiers for this Scene.",
+            "Presenting the person's own paraphrase back to them as the book's exact wording.",
+            "Revealing events from later in the work than the reading position this Backstory supports."
+          ],
+          "exact_spans": [],
+          "evidence": [
+            {
+              "kind": "repository_text",
+              "evidence_id": "ev-caterpillar-explain-myself",
+              "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/05-advice-from-a-caterpillar.md",
+              "source_sha256": "fad2c78e408951f5092ac4fc2608d95438fb08a45ae97d8bde81e7e358e2c808",
+              "start_codepoint": 1780,
+              "end_codepoint": 1871,
+              "text": "“I can’t explain _myself_, I’m afraid, sir,” said Alice, “because I’m\nnot myself, you see.”"
+            }
+          ],
+          "prop_relevance": [],
+          "grounding": {
+            "primary_behavior": "grounded_reflection",
+            "expected": {
+              "kind": "grounded_release",
+              "permitted_evidence_ids": [
+                "ev-caterpillar-explain-myself"
+              ],
+              "chapter_max": 5
+            },
+            "forbidden_post_boundary_facts": [
+              "Wonderland turns out to be a dream Alice wakes from on the riverbank",
+              "the Knave of Hearts is tried for stealing the Queen's tarts",
+              "Alice declares the court nothing but a pack of cards"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "scene-personal-reflection",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {},
+      "failures": [],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "scene-personal-reflection",
+      "order": 2,
+      "status": "not_run",
+      "judgments_total": 0,
+      "judgments_passed": 0,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "gt-personal-reflection",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "The reply engages with the avoidance the person described without consulting the book.",
+            "The reply stays useful and specific to what the person wrote, rather than deflecting for lack of evidence.",
+            "Any interpretation is offered as the assistant's reading, not as an established fact about the person."
+          ],
+          "prohibited_outcomes": [
+            "Retrieving book evidence when the person made no book claim and asked no book question.",
+            "Introducing a quotation or book reference that the person did not raise.",
+            "Declining the reflection on the grounds that supporting evidence is unavailable.",
+            "Diagnosing the person or asserting a cause for the avoidance as settled fact."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "grounding": {
+            "primary_behavior": "non_grounded_reflection",
+            "expected": {
+              "kind": "ungrounded_release"
+            },
+            "forbidden_post_boundary_facts": []
+          }
+        }
+      ],
+      "observed": {},
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": null,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": null,
+    "run_log_path": null,
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31/ground-truth-adoption.json"
+    },
+    "run_identity": {},
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+        "ground-truth.json": "82fd8dfee7ff377cad70d621c71f7f592089b5863db5d2faa328de2be5721949",
+        "ground-truth-adoption.json": "2d1561e0e816f1a3d19baebfd3dfdd0265c37dba4b5ed7ad1a15fdbade38f6d8"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "82fd8dfee7ff377cad70d621c71f7f592089b5863db5d2faa328de2be5721949",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-01T21:59:17.983028+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M docs/agent-skills.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py",
+        "scenario_commit": "63842441477eaa5ada512d580e7f5211fc49b9e0",
+        "scenario_commit_description": "6384244 2026-09-02T21:15:17+08:00 feat(provenance): updated design doc + reflection runs",
+        "current_scenario_matches_commit": true,
+        "history_window": "since earlier declared adoption time, including changes before a later scenario move or edit",
+        "recent_commits": "4f08825 2026-09-16T06:38:15+08:00 fix: preserve reading context and evidence boundaries\n\napps/backend/chat_turn.py\ndocs/specification.md\nevals/synthetic_journals/connection_replay.py\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/evidence_strength.py\nafcf271 2026-09-16T00:49:28+08:00 test: fix Windows test failures and fake retrieval models\n\nevals/synthetic_journals/run_scenario.py\nevals/synthetic_journals/scenario_catalog.py\nfaa2faf 2026-09-15T22:55:36+08:00 feat: curation risk code evals\n\nsrc/linger/orchestration/curation.py\nsrc/linger/services/memory.py\nbab63dd 2026-09-15T21:48:43+08:00 Merge pull request #54 from DesmondChoy/km-curation-loop\n1dc4e84 2026-09-15T21:35:46+08:00 feat: added sensitive inference veto, removed unused preset and journal\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/replay.py\nevals/synthetic_journals/replay_support.py\nevals/synthetic_journals/validate_scenario.py\nd07713c 2026-09-15T20:36:32+08:00 chore: remove synthetic attempts from older implementations\n\nevals/synthetic_journals/README.md\nc31019f 2026-09-15T15:05:23+08:00 fix: share Librarian evidence planning and validate agent repairs\n\napps/backend/hybrid_librarian.py\napps/backend/librarian.py\napps/backend/telemetry.py\ndocs/agent-skills.md\ndocs/specification.md\nevals/synthetic_journals/README.md\nevals/synthetic_journals/book_replay.py\nevals/synthetic_journals/connection_replay.py\nevals/synthetic_journals/frozen_public_sources.py\nevals/synthetic_journals/public_source_capture.py\nevals/synthetic_journals/transcript.py\nsrc/linger/agents/librarian/agent.py\nsrc/linger/agents/librarian/models.py\nsrc/linger/agents/librarian/skills.py\nsrc/linger/agents/librarian/skills/book-request/SKILL.md\nsrc/linger/agents/librarian/skills/boundary-inference/SKILL.md\nsrc/linger/agents/librarian/skills/evidence-assessment/SKILL.md\nsrc/linger/agents/muse/agent.py\nsrc/linger/agents/muse/models.py\nsrc/linger/agents/muse/quote_repair.py\nsrc/linger/agents/muse/skills/reflection/SKILL.md\nsrc/linger/agents/muse/tools.py\nsrc/linger/agents/provenance/models.py\nsrc/linger/agents/provenance/skills.py\nsrc/linger/agents/provenance/skills/candidate-review/SKILL.md\nsrc/linger/agents/serendipity/README.md\nsrc/linger/agents/serendipity/agent.py\nsrc/linger/agents/serendipity/models.py\nsrc/linger/agents/serendipity/skills/connection-discovery/SKILL.md\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/contracts/librarian.py\nsrc/linger/evaluation_transcript.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/boundary.py\nsrc/linger/orchestration/connection.py\nsrc/linger/orchestration/evidence_strength.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/reflection.py\nsrc/linger/orchestration/turn_context.py\nace8e3e 2026-09-15T09:42:13+08:00 fix: typed curation outcome expectation\n\nevals/synthetic_journals/curation_replay.py\n61862d3 2026-09-15T00:53:42+08:00 fix: let only the reader retract a book they stated\n\napps/backend/chat_turn.py\napps/backend/sessions.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/routing.py\nd0ffab0 2026-09-15T00:38:40+08:00 fix: stop a later sentence being read as a declared book title\n\napps/backend/chat_turn.py\ncb47f08 2026-09-15T00:25:37+08:00 fix: let Serendipity finish its web citation flow, and show review findings\n\nsrc/linger/orchestration/connection.py\n493a304 2026-09-14T23:41:30+08:00 fix: looped curation replay\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/curation_replay.py"
+      },
+      "run_log_tail": null,
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "Both proposals lack the typed book_expectation required by the current book Objective schema. All 2 Scenes remain unexercised; no application-performance conclusion is supported.",
+    "scenario_assessment": {
+      "goal": "The selected Objectives still ask useful questions about grounded reflection, restrained inference or spoiler handling. This review assesses readiness, not model performance.",
+      "input_validity": "Historical Lines and Props remain readable, but the answer key cannot compile under the current schema. Scope support and exact corpus occurrences need review in a successor; no automatic migration is justified.",
+      "ground_truth_validity": "Existing adoption records do not make an incompatible answer-key schema executable. Current typed book expectations and source/scope validation are missing or rejected; historical prose is not a current executable contract."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "scene-grounded-quotation",
+        "expected_behavior": "Retrieve and quote Alice’s requested wording exactly, distinguishing it from the reader’s paraphrase and keeping reflection useful.",
+        "observed_behavior": "Preflight stopped before replay. This Scene is not_run, with no observed response, tool calls or judgments.",
+        "interpretation": "Both proposals lack the typed book_expectation required by the current book Objective schema. The Line asks for exact wording, so evidence is needed. The Prop says the reader reached the Caterpillar and paused; its reading pace does not prove chapter completion. A successor must establish a supported scope separately from the quote location before adopting the expected response.",
+        "assessment": "not_exercised",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "problems",
+          "evidence.scenario_sources"
+        ],
+        "grade_reliability": "There is no behavioral grade to trust or reject. The recorded blocker establishes readiness only; zero judgments must not be interpreted as a pass or an application failure.",
+        "next_step": "Prepare a reviewed successor using current typed expectations and verified source/scope facts, independently adopt it, and confirm this Scene passes preflight before any separately authorized evaluation."
+      },
+      {
+        "scene_id": "scene-personal-reflection",
+        "expected_behavior": "Discuss postponing a message to Priya without unnecessary book retrieval, diagnosis or invented causes.",
+        "observed_behavior": "Preflight stopped before replay. This Scene is not_run, with no observed response, tool calls or judgments.",
+        "interpretation": "Both proposals lack the typed book_expectation required by the current book Objective schema. The current Line supplies a personal concern without a book question. The intended no-retrieval control is useful, even though an active reading Prop exists. A future review must inspect the actual reply as well as the absence of retrieval.",
+        "assessment": "not_exercised",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "problems",
+          "evidence.scenario_sources"
+        ],
+        "grade_reliability": "There is no behavioral grade to trust or reject. The recorded blocker establishes readiness only; zero judgments must not be interpreted as a pass or an application failure.",
+        "next_step": "Prepare a reviewed successor using current typed expectations and verified source/scope facts, independently adopt it, and confirm this Scene passes preflight before any separately authorized evaluation."
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "scenario",
+        "action": "Prepare a successor scenario with current typed book_scene_facts and book_expectation contracts, recheck the source and reading permission, then obtain fresh independent adoption.",
+        "verification": "The successor or reviewed unchanged scenario passes schema, source and adoption checks with matching hashes; every intended Scene is retained."
+      },
+      {
+        "target": "configuration",
+        "action": "Keep provider calls paused until the separately required OpenAI and Logfire payload permission is resolved. Do not retry the rejected live command as part of report rendering.",
+        "verification": "Explicit payload permission and a successful preflight precede any new confirmed provider run."
+      }
+    ]
+  }
+}

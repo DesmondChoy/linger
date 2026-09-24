@@ -1,0 +1,550 @@
+{
+  "kind": "offline_boundary_trace_audit",
+  "provider_calls": 0,
+  "book_scene_count": 23,
+  "event_gates": [],
+  "scenes": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 4,
+      "scene": "personal-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 7,
+      "scene": "farm-decision-reversal",
+      "boundary_decision": "not_applicable",
+      "ceiling": 5,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 7,
+      "scene": "farm-personal-trust",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "book_request",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        },
+        {
+          "stage": "boundary_inference",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        },
+        {
+          "stage": "review",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 7,
+      "scene": "farm-interrupted-discussion",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 7,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-uncertain",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-race-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": 3,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "failure",
+          "call_outcome": "success",
+          "failure_code": "evidence_judgement_unavailable",
+          "searched_max_chapter": null,
+          "evidence": []
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        },
+        {
+          "stage": "book_request",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        },
+        {
+          "stage": "evidence_strength",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        },
+        {
+          "stage": "search_rank_select",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-personal-comparison",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "review",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        }
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 10,
+      "scene": "alice-bottle-ambiguity",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 10,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "review",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        }
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 11,
+      "scene": "keller-uncertain",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-promises-and-book",
+      "boundary_decision": "not_applicable",
+      "ceiling": 9,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "success",
+          "failure_category": null,
+          "provider_status_code": null
+        },
+        {
+          "stage": "draft",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-personal-study",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-school-detour",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+      "stages": [
+        {
+          "stage": "emotional_boundary_preflight",
+          "status": "failure",
+          "failure_category": "provider_error",
+          "provider_status_code": 429
+        }
+      ]
+    }
+  ],
+  "violations": [],
+  "connection_scenes_without_boundary_calls": 6,
+  "boundary_attempts": [
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "status": "failure",
+      "failure_category": "provider_error",
+      "provider_status_code": 429,
+      "output": null
+    }
+  ]
+}

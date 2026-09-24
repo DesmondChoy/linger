@@ -1,0 +1,583 @@
+{
+  "maximum_iterations": 21,
+  "iterations": [
+    {
+      "iteration": 1,
+      "reservation_id": "3bb795a41a1e4d98a4ad860b0032947f",
+      "reserved_at": "2026-09-17T15:41:46.260437+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-01-73c20b0c",
+      "source_manifest_sha256": "9a6231912d96d8c6d341903d81bd439d8ef12e2945d489a3f184927ec2216edb",
+      "finished_at": "2026-09-17T15:55:46.438093+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-01-73c20b0c/summary.json"
+    },
+    {
+      "iteration": 2,
+      "reservation_id": "7a983fffca3049178ffe4077956b3203",
+      "reserved_at": "2026-09-17T16:03:46.285856+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "12",
+        "smoke"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-02-e65ec438",
+      "source_manifest_sha256": "f544af96c597cbb67547dcd6f1569e854e199c799c858b6fba0a818e368f9e43",
+      "finished_at": "2026-09-17T16:10:43.989614+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-02-e65ec438/summary.json"
+    },
+    {
+      "iteration": 3,
+      "reservation_id": "f1e4033d33834b93925733c319f91c7a",
+      "reserved_at": "2026-09-17T16:30:38.787087+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-03-4715c97d",
+      "source_manifest_sha256": "3c153b503d17a979ebc4e82649f37bd9de1a863af57cd8ea6b0a3b9556f9bebe",
+      "finished_at": "2026-09-17T16:43:14.795828+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-03-4715c97d/summary.json"
+    },
+    {
+      "iteration": 4,
+      "reservation_id": "9fdff22b04b54b168f95638653d868c2",
+      "reserved_at": "2026-09-17T16:49:19.346766+00:00",
+      "status": "complete",
+      "suites": [
+        "6",
+        "8",
+        "11",
+        "release"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-04-797d2eda",
+      "source_manifest_sha256": "ac1b500177204e2f6726029ae5c5b05e6e3c9d22ef9b1bfc6228791b9fdd59da",
+      "finished_at": "2026-09-17T16:58:07.517931+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-04-797d2eda/summary.json"
+    },
+    {
+      "iteration": 5,
+      "reservation_id": "ea4e1a33f5f24c999e69759576c1c297",
+      "reserved_at": "2026-09-17T17:06:10.127725+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d",
+      "source_manifest_sha256": "ca1cc97017917894a2b71a11bc066e5ac8395748dcc91a14d9f4f6671b6ac3b7",
+      "finished_at": "2026-09-17T17:19:30.944225+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/summary.json"
+    },
+    {
+      "iteration": 6,
+      "reservation_id": "be78c458b672465eb5ee0b3f34a5cc24",
+      "reserved_at": "2026-09-17T17:31:50.798938+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-06-0b927fa3",
+      "source_manifest_sha256": "1c9968dbe8d9541c613197b73a43a66a955050c7119de433ae027254b4c57acf",
+      "finished_at": "2026-09-17T17:44:15.752115+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-06-0b927fa3/summary.json"
+    },
+    {
+      "iteration": 7,
+      "reservation_id": "e1745a5a7a4f404096c9cf47205d621f",
+      "reserved_at": "2026-09-17T17:48:59.581035+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-07-e1e6fe49",
+      "source_manifest_sha256": "a8f80b21cdc2f588837d98a2da7a2b4296ef56c815ea13ba1e26845265d8d4cd",
+      "finished_at": "2026-09-17T18:04:31.777779+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-07-e1e6fe49/summary.json"
+    },
+    {
+      "iteration": 8,
+      "reservation_id": "c414ae58fb70437cbc1dc01207fb83e4",
+      "reserved_at": "2026-09-18T00:46:23.339921+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f",
+      "source_manifest_sha256": "cb03559da4a1e65720094f09dd78536fcd8608c608de42d42733f911fa71e271",
+      "finished_at": "2026-09-18T01:02:21.096007+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-08-a0b8741f/summary.json"
+    },
+    {
+      "iteration": 9,
+      "reservation_id": "b284afa4460d4714b20870ae9880c484",
+      "reserved_at": "2026-09-18T01:09:43.486502+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "8",
+        "12",
+        "release",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "high"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-09-d5215f1b",
+      "source_manifest_sha256": "ca815afba581978f53cd6c4f516f2e3ecaa528b0cf33a03c2d884c95cadcf0af",
+      "finished_at": "2026-09-18T01:22:37.000095+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-09-d5215f1b/summary.json"
+    },
+    {
+      "iteration": 10,
+      "reservation_id": "6aa07ad266214fbab01d0ac14a3803cb",
+      "reserved_at": "2026-09-18T01:31:47.669952+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "8",
+        "release",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "high"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-10-694474e9",
+      "source_manifest_sha256": "b75087e65f2088baf808959e94ebd41f657cb592d1cd5a716a3e4a86fd00c536",
+      "finished_at": "2026-09-18T01:44:02.596952+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-10-694474e9/summary.json"
+    },
+    {
+      "iteration": 11,
+      "reservation_id": "e7ade3b2a51e49e39cd6c19011917840",
+      "reserved_at": "2026-09-18T01:49:42.275212+00:00",
+      "status": "complete",
+      "suites": [
+        "6",
+        "8",
+        "release",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-11-1239bfff",
+      "source_manifest_sha256": "3429268c2a207f8d969df5ee95f6a382597318f84e940a973a06ae70a944fd15",
+      "finished_at": "2026-09-18T01:58:53.890710+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-11-1239bfff/summary.json"
+    },
+    {
+      "iteration": 12,
+      "reservation_id": "7b42f5ab90994ce9bc024e641837d72a",
+      "reserved_at": "2026-09-18T02:10:38.137735+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696",
+      "source_manifest_sha256": "a2db872829e8d01ae3a2084ac10eb54d0a624fe2cf51911a12721589554da69e",
+      "finished_at": "2026-09-18T02:26:13.470804+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/summary.json"
+    },
+    {
+      "iteration": 13,
+      "reservation_id": "ab86d7642d404d03a27570f171b3d698",
+      "reserved_at": "2026-09-18T02:39:16.480298+00:00",
+      "status": "complete",
+      "suites": [
+        "6",
+        "7",
+        "8",
+        "10",
+        "11",
+        "release",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b",
+      "source_manifest_sha256": "2005433d2e2241b9189b0b5f65bd1f42c3226268b39d00d200367a8d9a5cfbfa",
+      "finished_at": "2026-09-18T02:50:30.939022+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/summary.json"
+    },
+    {
+      "iteration": 14,
+      "reservation_id": "9ac5a288c4a24f29931b4b865a7779aa",
+      "reserved_at": "2026-09-18T07:52:59.267872+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-14-76df3f36",
+      "source_manifest_sha256": "7d093ec44576a4a6f78baf1463047c74a859993b83ae940cc578634a4227d1c0",
+      "finished_at": "2026-09-18T08:13:05.506144+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-14-76df3f36/summary.json"
+    },
+    {
+      "iteration": 15,
+      "reservation_id": "667dbeced7b5474eb83c1155b28caf1f",
+      "reserved_at": "2026-09-18T08:42:50.092955+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-15-2fea4d3d",
+      "source_manifest_sha256": "932e210b8d12445b9750c598b57a8479a8b5387ef89cdf95bd491b05b3239897",
+      "finished_at": "2026-09-18T10:23:54.430152+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-15-2fea4d3d/summary.json"
+    },
+    {
+      "iteration": 16,
+      "reservation_id": "6b6648af36fb40c9aad260f8364d4fb2",
+      "reserved_at": "2026-09-18T10:33:09.791919+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83",
+      "source_manifest_sha256": "93d494dbcd4701c62e28d1d44a60929f0b1e62a4a1bc2347c69674a4529a1035",
+      "finished_at": "2026-09-18T10:42:00.784904+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/summary.json"
+    },
+    {
+      "iteration": 17,
+      "reservation_id": "3b886478d19a445c8dc233b80c0832b6",
+      "reserved_at": "2026-09-18T10:52:00.176865+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776",
+      "source_manifest_sha256": "f882b2230e7cf1b53e01c70e94d8e816548da4edabfaded43740ffcbc1ccac62",
+      "finished_at": "2026-09-18T11:01:20.682068+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/summary.json"
+    },
+    {
+      "iteration": 18,
+      "reservation_id": "759e3fd1f8bd463d8ce030c8c24af7b2",
+      "reserved_at": "2026-09-18T11:07:22.606173+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6",
+      "source_manifest_sha256": "d83a0d1e9ebb71a318d31372078f9790339b212c6fc19f1509d30ff927471924",
+      "finished_at": "2026-09-18T11:18:12.143328+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-18-c15a6da6/summary.json"
+    },
+    {
+      "iteration": 19,
+      "reservation_id": "29eddd4967584c068aba7fe188bf887a",
+      "reserved_at": "2026-09-18T11:23:46.871141+00:00",
+      "status": "complete",
+      "suites": [
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "release",
+        "direct",
+        "smoke",
+        "mapping"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342",
+      "source_manifest_sha256": "0efec68e6f80f5249e8f9f377bfa7d1a4b01bb12e45dbd939fa8dcdde71d5f7d",
+      "finished_at": "2026-09-18T11:35:00.334764+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/summary.json"
+    },
+    {
+      "iteration": 20,
+      "reservation_id": "b2d901d47a694250ad0e3bfe3a2156ca",
+      "reserved_at": "2026-09-18T11:39:27.032691+00:00",
+      "status": "complete",
+      "suites": [
+        "release",
+        "direct",
+        "smoke",
+        "mapping",
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae",
+      "source_manifest_sha256": "764d9cf6ad3e460138845148361954658ffd48fb15f336bde2b2542e2e92cdd5",
+      "finished_at": "2026-09-18T11:43:15.497021+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-20-2f76d7ae/summary.json"
+    },
+    {
+      "iteration": 21,
+      "reservation_id": "a8acf58eb17247d487495898df91c7b8",
+      "reserved_at": "2026-09-18T12:06:04.283199+00:00",
+      "status": "complete",
+      "suites": [
+        "release",
+        "direct",
+        "smoke",
+        "mapping",
+        "4",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "model": "openai:gpt-5.6-luna",
+      "model_settings": {
+        "openai_reasoning_effort": "medium"
+      },
+      "directory": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-21-f155ea01",
+      "source_manifest_sha256": "9535eeead2a89890cbe6875eee6670d2ce78463b14689447bf1428cc20c46dc5",
+      "finished_at": "2026-09-18T12:22:24.794960+00:00",
+      "all_pass": false,
+      "selected_pass": false,
+      "summary": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-21-f155ea01/summary.json"
+    }
+  ],
+  "counting_rule": "Each batch of live evaluation execution on a candidate revision consumes one iteration, including targeted subsets and execution failures. A final complete eleven-suite batch must pass; no hidden retries. Built-in bounded model repairs are part of the suite run.",
+  "authorization_extensions": [
+    {
+      "authorized_at_recorded": "2026-09-18T12:05:33.445026+00:00",
+      "previous_maximum": 20,
+      "new_maximum": 21,
+      "additional_full_batches": 1,
+      "user_instruction": "I see. I believe it was failing due to api credit ran out. you can re-run the live again",
+      "interpretation": "One additional full live rerun using current runtime, expectations and confirmed model; credit cause unverified."
+    }
+  ]
+}
