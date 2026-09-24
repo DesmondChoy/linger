@@ -121,6 +121,13 @@ function ConnectionExpectation({ value, bookTitles }) {
       ) : null}
       <IdList label="Permitted evidence" values={value.permitted_evidence_ids} />
       <IdList label="Required evidence" values={value.required_evidence_ids} />
+      {value.evidence_alternatives?.length ? (
+        <OutcomeList
+          title="Accepted alternatives (inspecting or citing any one satisfies the item)"
+          items={value.evidence_alternatives.map((item) => `${item.evidence_id} ← ${item.accepted_evidence_ids.join(', ')}`)}
+          tone="expected"
+        />
+      ) : null}
       {value.required_public_claims.length ? <OutcomeList title="Required public claims" items={value.required_public_claims} tone="expected" /> : <p>No public claims are required.</p>}
       <p className="constraint">Judge the evidence and wording independently. A structural check cannot establish a useful connection or honest restraint.</p>
     </section>

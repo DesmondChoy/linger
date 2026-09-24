@@ -809,6 +809,13 @@ requested works and raw returned work IDs before filtering or judging. These
 Ground truth fields never enter runtime; the original Line and source grants
 are the system's only instructions about which books to explore.
 
+`connection.evidence_alternatives` lists other permitted evidence of the same
+kind that satisfies one evidence item. Each entry names an `evidence_id` and its
+`accepted_evidence_ids`. The item counts as inspected or cited when it or any
+accepted alternative is. An alternative is not independently required, and it
+cannot have alternatives of its own. Use alternatives when a passage is split
+across retrieval windows or several passages fairly carry the same point.
+
 The runner bounds public retrieval to the supplied source URLs. Search remains
 live when invoked. The production guard permits `get_page` for an exact
 application-supplied public URL without a search lead; other URLs require a

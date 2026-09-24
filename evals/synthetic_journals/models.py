@@ -809,6 +809,13 @@ class BookRetrievalExpectation(StrictModel):
         return self
 
 
+class EvidenceAlternative(StrictModel):
+    """Other permitted evidence that satisfies one evidence item's inspection and citation."""
+
+    evidence_id: Identifier
+    accepted_evidence_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+
 class ConnectionExpectation(StrictModel):
     """Adoptable connection and restraint labels, kept outside runtime inputs."""
 
@@ -821,6 +828,11 @@ class ConnectionExpectation(StrictModel):
     ], ...] = Field(min_length=1)
     required_public_claims: tuple[Text, ...] = ()
     book_retrieval: BookRetrievalExpectation | None = None
+    evidence_alternatives: tuple[EvidenceAlternative, ...] = ()
+
+    @property
+    def alternative_evidence_ids(self) -> dict[str, tuple[str, ...]]:
+        return {item.evidence_id: item.accepted_evidence_ids for item in self.evidence_alternatives}
 
     @model_validator(mode="after")
     def validate_expectation(self) -> Self:
@@ -829,6 +841,18 @@ class ConnectionExpectation(StrictModel):
         _require_unique("acceptable connection responses", self.acceptable_responses)
         if not set(self.required_evidence_ids) <= set(self.permitted_evidence_ids):
             raise ValueError("required connection evidence IDs must be permitted")
+        _require_unique("evidence alternative targets", tuple(
+            item.evidence_id for item in self.evidence_alternatives
+        ))
+        for item in self.evidence_alternatives:
+            _require_unique("accepted alternative evidence IDs", item.accepted_evidence_ids)
+            accepted = set(item.accepted_evidence_ids)
+            if item.evidence_id in accepted:
+                raise ValueError("an evidence item cannot be its own alternative")
+            if not {item.evidence_id, *accepted} <= set(self.permitted_evidence_ids):
+                raise ValueError("evidence alternatives must name permitted evidence IDs")
+            if accepted & set(self.alternative_evidence_ids):
+                raise ValueError("an accepted alternative cannot have its own alternatives")
         allowed = {
             "proposal": {"tentative_connection"},
             "restraint": {"qualified", "declined", "request_better_evidence"},

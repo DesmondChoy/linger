@@ -310,16 +310,22 @@ def grade_connection_scene(
                 for record in span.accepted_runtime_records
             )
         }
+        alternatives = expectation.alternative_evidence_ids
+        alternative_only = {item for accepted in alternatives.values() for item in accepted}
+
+        def accepted_ids(evidence_id: str) -> set[str]:
+            return set().union(mapped[evidence_id], *(mapped[item] for item in alternatives.get(evidence_id, ())))
+
         if decision != "not_requested" and any(
-            not mapped[evidence_id] for evidence_id in expectation.permitted_evidence_ids
-            if evidence_id not in optional_book_evidence
+            not accepted_ids(evidence_id) for evidence_id in expectation.permitted_evidence_ids
+            if evidence_id not in optional_book_evidence and evidence_id not in alternative_only
         ):
             failures.append("required_source_not_inspected")
         permitted = set().union(*(mapped[item] for item in expectation.permitted_evidence_ids))
         if cited - permitted:
             failures.append("unpermitted_citation")
         for evidence_id in expectation.required_evidence_ids:
-            if not (mapped[evidence_id] & cited):
+            if not (accepted_ids(evidence_id) & cited):
                 failures.append(f"missing_required_citation:{evidence_id}")
         if final is not None and final.status == "proposal":
             try:

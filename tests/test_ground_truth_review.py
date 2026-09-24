@@ -549,7 +549,7 @@ def test_connection_review_shows_complete_source_setup_and_labels(
                 } == {
                     key: value for key, value in original.items() if key != "retrieved_at"
                 }
-        expected = {"book_retrieval": None, **proposals[row["proposalId"]]["connection"]}
+        expected = {"book_retrieval": None, "evidence_alternatives": [], **proposals[row["proposalId"]]["connection"]}
         if expected["book_retrieval"] is not None:
             expected["book_retrieval"] = {
                 "search_mode": "targeted", "optional_work_ids": [], **expected["book_retrieval"],

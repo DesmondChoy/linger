@@ -175,6 +175,14 @@ def compile_connection_replay_plan(
                     if identity in expectation.required_evidence_ids
                 ):
                     failures.append(f"proposal {proposal.proposal_id} optional book evidence cannot require citation")
+            kinds = {item.evidence_id: item.kind for item in proposal.evidence}
+            for alternative in expectation.evidence_alternatives:
+                if any(kinds.get(item) != kinds.get(alternative.evidence_id)
+                       for item in alternative.accepted_evidence_ids):
+                    failures.append(
+                        f"proposal {proposal.proposal_id} evidence alternatives must match "
+                        f"the kind of {alternative.evidence_id}"
+                    )
             if expectation.decision == "proposal":
                 required = set(expectation.required_evidence_ids)
                 required_kinds = {item.kind for item in proposal.evidence if item.evidence_id in required}
