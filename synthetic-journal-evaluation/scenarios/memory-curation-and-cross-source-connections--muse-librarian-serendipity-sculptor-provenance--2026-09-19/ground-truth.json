@@ -411,6 +411,15 @@
         },
         {
           "kind": "repository_text",
+          "evidence_id": "evidence-06-pinocchio-dawdling",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 4635,
+          "end_codepoint": 4993,
+          "text": "“No, no, and again no! I have promised my kind Fairy to become a good\nboy, and I want to keep my word. Just see: The sun is setting and I must\nleave you and run. Good-by and good luck to you!”\n\n“Where are you going in such a hurry?”\n\n“Home. My good Fairy wants me to return home before night.”\n\n“Wait two minutes more.”\n\n“It’s too late!”\n\n“Only two minutes.”"
+        },
+        {
+          "kind": "repository_text",
           "evidence_id": "evidence-06-keller-work-and-recreation",
           "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/024-part-i-chapter-22.md",
           "source_sha256": "5edb4351ae1810e292ba061ff71d0169114a25a847b3891b8447770db997e11f",
@@ -437,6 +446,7 @@
           "evidence-06-hume-perceptions",
           "evidence-06-pinocchio-promise",
           "evidence-06-pinocchio-delay",
+          "evidence-06-pinocchio-dawdling",
           "evidence-06-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -463,7 +473,21 @@
             "pga0100011",
             "pg23"
           ]
-        }
+        },
+        "evidence_alternatives": [
+          {
+            "evidence_id": "evidence-06-pinocchio-promise",
+            "accepted_evidence_ids": [
+              "evidence-06-pinocchio-dawdling"
+            ]
+          },
+          {
+            "evidence_id": "evidence-06-pinocchio-delay",
+            "accepted_evidence_ids": [
+              "evidence-06-pinocchio-dawdling"
+            ]
+          }
+        ]
       },
       "expected_outcomes": [
         "Offer a tentative comparison among Maya’s remembered differences across settings, Alice’s uncertainty about herself amid changes in size, and Hume’s report of encountering particular perceptions in introspection. Ground the comparison in the relevant personal memory and the supplied sources, with citations to Alice’s Adventures in Wonderland, The Adventures of Pinocchio, The Story of My Life, and Hume.",
@@ -562,6 +586,15 @@
         },
         {
           "kind": "repository_text",
+          "evidence_id": "evidence-07-pinocchio-dawdling",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 4635,
+          "end_codepoint": 4993,
+          "text": "“No, no, and again no! I have promised my kind Fairy to become a good\nboy, and I want to keep my word. Just see: The sun is setting and I must\nleave you and run. Good-by and good luck to you!”\n\n“Where are you going in such a hurry?”\n\n“Home. My good Fairy wants me to return home before night.”\n\n“Wait two minutes more.”\n\n“It’s too late!”\n\n“Only two minutes.”"
+        },
+        {
+          "kind": "repository_text",
           "evidence_id": "evidence-07-keller-work-and-recreation",
           "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/024-part-i-chapter-22.md",
           "source_sha256": "5edb4351ae1810e292ba061ff71d0169114a25a847b3891b8447770db997e11f",
@@ -588,6 +621,7 @@
           "evidence-07-hume-perceptions",
           "evidence-07-pinocchio-promise",
           "evidence-07-pinocchio-delay",
+          "evidence-07-pinocchio-dawdling",
           "evidence-07-keller-work-and-recreation"
         ],
         "required_evidence_ids": [
@@ -614,7 +648,21 @@
             "pga0100011",
             "pg23"
           ]
-        }
+        },
+        "evidence_alternatives": [
+          {
+            "evidence_id": "evidence-07-pinocchio-promise",
+            "accepted_evidence_ids": [
+              "evidence-07-pinocchio-dawdling"
+            ]
+          },
+          {
+            "evidence_id": "evidence-07-pinocchio-delay",
+            "accepted_evidence_ids": [
+              "evidence-07-pinocchio-dawdling"
+            ]
+          }
+        ]
       },
       "pairing": {
         "paired_scene_id": "scene-06",
@@ -723,6 +771,24 @@
         },
         {
           "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-dawdling",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 4635,
+          "end_codepoint": 4993,
+          "text": "“No, no, and again no! I have promised my kind Fairy to become a good\nboy, and I want to keep my word. Just see: The sun is setting and I must\nleave you and run. Good-by and good luck to you!”\n\n“Where are you going in such a hurry?”\n\n“Home. My good Fairy wants me to return home before night.”\n\n“Wait two minutes more.”\n\n“It’s too late!”\n\n“Only two minutes.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-pinocchio-play-over-study",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/04-chapter-04.md",
+          "source_sha256": "2a49f50a94c21f77b43c8a0bd8ad02a0c984c500984fecec29b5cf39106c4404",
+          "start_codepoint": 3427,
+          "end_codepoint": 3619,
+          "text": "“Of all the trades in the world, there is only one that really\nsuits me.”\n\n“And what can that be?”\n\n“That of eating, drinking, sleeping, playing, and wandering around from\nmorning till night.”"
+        },
+        {
+          "kind": "repository_text",
           "evidence_id": "evidence-08-keller-work-and-recreation",
           "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/024-part-i-chapter-22.md",
           "source_sha256": "5edb4351ae1810e292ba061ff71d0169114a25a847b3891b8447770db997e11f",
@@ -738,6 +804,15 @@
           "start_codepoint": 3532,
           "end_codepoint": 3727,
           "text": "I suppose I ought to find some comfort in\nthe thought that I am laying up treasures for future enjoyment, but I\nam improvident enough to prefer present joy to hoarding riches against a\nrainy day."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-08-keller-patchwork",
+          "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/016-part-i-chapter-14.md",
+          "source_sha256": "b4cec705da8a1df6e534a29b8260a92e6dd73cc98990e87f04ea9db8abad9f26",
+          "start_codepoint": 12525,
+          "end_codepoint": 12677,
+          "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
         }
       ],
       "prop_relevance": [
@@ -759,8 +834,11 @@
           "evidence-08-hume-bundle",
           "evidence-08-pinocchio-promise",
           "evidence-08-pinocchio-delay",
+          "evidence-08-pinocchio-dawdling",
+          "evidence-08-pinocchio-play-over-study",
           "evidence-08-keller-work-and-recreation",
-          "evidence-08-keller-present-joy"
+          "evidence-08-keller-present-joy",
+          "evidence-08-keller-patchwork"
         ],
         "required_evidence_ids": [
           "evidence-08-prop-situated-self",
@@ -787,7 +865,22 @@
             "pga0100011",
             "pg23"
           ]
-        }
+        },
+        "evidence_alternatives": [
+          {
+            "evidence_id": "evidence-08-pinocchio-promise",
+            "accepted_evidence_ids": [
+              "evidence-08-pinocchio-dawdling"
+            ]
+          },
+          {
+            "evidence_id": "evidence-08-pinocchio-delay",
+            "accepted_evidence_ids": [
+              "evidence-08-pinocchio-dawdling",
+              "evidence-08-pinocchio-play-over-study"
+            ]
+          }
+        ]
       },
       "expected_outcomes": [
         "Offer a tentative connection between Maya’s present temptation to postpone preparations and Pinocchio’s promised return followed by his excuse for further delay. Recognize from Maya’s note that the thing she promised to host is the reading circle. Cite both Pinocchio passages and that note, which says both social manners feel like her and she still wants to keep the promise.",
@@ -894,6 +987,24 @@
         },
         {
           "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-dawdling",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/30-chapter-30.md",
+          "source_sha256": "c4be65b96ec4b17f42360ad764eebf0d6089e308b52923a1136a81450143df6d",
+          "start_codepoint": 4635,
+          "end_codepoint": 4993,
+          "text": "“No, no, and again no! I have promised my kind Fairy to become a good\nboy, and I want to keep my word. Just see: The sun is setting and I must\nleave you and run. Good-by and good luck to you!”\n\n“Where are you going in such a hurry?”\n\n“Home. My good Fairy wants me to return home before night.”\n\n“Wait two minutes more.”\n\n“It’s too late!”\n\n“Only two minutes.”"
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-pinocchio-play-over-study",
+          "repository_path": "data/corpus/the-adventures-of-pinocchio/pg500-v6bdc1734/chapters/04-chapter-04.md",
+          "source_sha256": "2a49f50a94c21f77b43c8a0bd8ad02a0c984c500984fecec29b5cf39106c4404",
+          "start_codepoint": 3427,
+          "end_codepoint": 3619,
+          "text": "“Of all the trades in the world, there is only one that really\nsuits me.”\n\n“And what can that be?”\n\n“That of eating, drinking, sleeping, playing, and wandering around from\nmorning till night.”"
+        },
+        {
+          "kind": "repository_text",
           "evidence_id": "evidence-09-keller-work-and-recreation",
           "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/024-part-i-chapter-22.md",
           "source_sha256": "5edb4351ae1810e292ba061ff71d0169114a25a847b3891b8447770db997e11f",
@@ -909,6 +1020,15 @@
           "start_codepoint": 3532,
           "end_codepoint": 3727,
           "text": "I suppose I ought to find some comfort in\nthe thought that I am laying up treasures for future enjoyment, but I\nam improvident enough to prefer present joy to hoarding riches against a\nrainy day."
+        },
+        {
+          "kind": "repository_text",
+          "evidence_id": "evidence-09-keller-patchwork",
+          "repository_path": "data/corpus/the-story-of-my-life/pg2397-vb3cc1e13/sections/016-part-i-chapter-14.md",
+          "source_sha256": "b4cec705da8a1df6e534a29b8260a92e6dd73cc98990e87f04ea9db8abad9f26",
+          "start_codepoint": 12525,
+          "end_codepoint": 12677,
+          "text": "It is certain that\nI cannot always distinguish my own thoughts from those I read,\nbecause what I read becomes the very substance and texture of my mind."
         }
       ],
       "prop_relevance": [
@@ -930,8 +1050,11 @@
           "evidence-09-hume-bundle",
           "evidence-09-pinocchio-promise",
           "evidence-09-pinocchio-delay",
+          "evidence-09-pinocchio-dawdling",
+          "evidence-09-pinocchio-play-over-study",
           "evidence-09-keller-work-and-recreation",
-          "evidence-09-keller-present-joy"
+          "evidence-09-keller-present-joy",
+          "evidence-09-keller-patchwork"
         ],
         "required_evidence_ids": [
           "evidence-09-prop-situated-self",
@@ -958,7 +1081,22 @@
             "pga0100011",
             "pg23"
           ]
-        }
+        },
+        "evidence_alternatives": [
+          {
+            "evidence_id": "evidence-09-pinocchio-promise",
+            "accepted_evidence_ids": [
+              "evidence-09-pinocchio-dawdling"
+            ]
+          },
+          {
+            "evidence_id": "evidence-09-pinocchio-delay",
+            "accepted_evidence_ids": [
+              "evidence-09-pinocchio-dawdling",
+              "evidence-09-pinocchio-play-over-study"
+            ]
+          }
+        ]
       },
       "pairing": {
         "paired_scene_id": "scene-08",

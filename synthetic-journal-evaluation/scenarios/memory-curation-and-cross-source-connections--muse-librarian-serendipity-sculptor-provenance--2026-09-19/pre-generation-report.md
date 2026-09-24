@@ -349,6 +349,19 @@ The application's safe-decline fallback releases no citations, so it fails the r
 
 After the adopted run `28ab4703` (curation 5/5 hard passes, connection 0/4), Lines 06 and 07 also hint at Pinocchio dawdling with Lamp-Wick, because their answer key requires his excuse for delay. This changes the Backstory, so the earlier adoption no longer applies and a fresh independent review is required before another run.
 
+## Evidence alternatives and structural Muse checks revision
+
+Bead `linger-dn5w` records this revision, made after adopted run `259d8ad0` (curation 5/5 hard passes, connection 0/4, scene-08 released). The developer chose these answer-key policies:
+
+- Scenes 06–09 accept a Pinocchio Chapter 30 dawdling passage as an alternative for both the promise and the delay. The passage is Pinocchio's restated promise to the Fairy while Lamp-Wick asks him to wait "two minutes more". It sits in the retrieval window before the "one hour more or less" excuse, so runs that selected the adjacent window (ln4114-4172) now count.
+- Scenes 08 and 09 accept Pinocchio Chapter 4 ("eating, drinking, sleeping, playing") as an alternative for the delay only. The Chapter 30 promise stays required in Scene 08.
+- Scenes 08 and 09 permit Keller's Part I Chapter 14 sentence about not distinguishing her own thoughts from what she reads, as optional evidence.
+- Scenes 08 and 09 keep requiring Maya's note: recognizing the reading circle through that memory is what the title-free Lines test.
+
+The grader gains `connection.evidence_alternatives` to express these alternatives. Backstory bytes are unchanged; Ground truth bytes changed, so the adoption bound to `0bea6714…` no longer applies and a fresh independent review is required before another run. Offline re-grading of run `259d8ad0` against this key shows the delay now satisfied in Scenes 06 and 07. Keller Chapter 22 is still not retrieved (`linger-sm5f`). Scene 08 still lacks the memory citation and the Chapter 30 promise.
+
+The runtime also changed (`linger-86pb`, `linger-104a`). Muse must now repair book or web mappings that address the reader, and undeclared verbatim source quotes. Muse declares "the source does not establish X" statements as typed `limit_claims`, which Provenance audits separately. Replaying the recorded run-1 and run-2 drafts offline, the new checks flag every undeclared-quote finding Provenance raised and every reader-application weld it marked unsupported. No provider evaluation has run with these changes.
+
 ## Ground truth lifecycle
 
 The generator proposes relationships and evidence. Repository completion adds only evaluator-owned curation fields before deterministic validation. Validation fails on bad hashes, identifiers, spans, source scope, ordering, coverage, or false pairing claims. Combined completion is supported.
