@@ -1,0 +1,16 @@
+{
+  "suite": "smoke",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_smoke.py",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/suite-smoke.json"
+  ],
+  "started_at": "2026-09-17T17:15:17.156032+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/suite-smoke.log",
+  "passed": true,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/suite-smoke.json",
+  "failures": [],
+  "finished_at": "2026-09-17T17:16:36.525334+00:00"
+}

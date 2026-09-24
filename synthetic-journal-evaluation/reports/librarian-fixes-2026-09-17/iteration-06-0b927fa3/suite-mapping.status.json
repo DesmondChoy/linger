@@ -1,0 +1,19 @@
+{
+  "suite": "mapping",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "mapping",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-06-0b927fa3/suite-mapping.json"
+  ],
+  "started_at": "2026-09-17T17:40:17.803664+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-06-0b927fa3/suite-mapping.log",
+  "passed": false,
+  "returncode": 1,
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-06-0b927fa3/suite-mapping.json'",
+  "failures": [
+    "execution_or_report_error"
+  ],
+  "finished_at": "2026-09-17T17:40:25.158053+00:00"
+}

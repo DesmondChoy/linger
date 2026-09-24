@@ -1,0 +1,96 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "backstory": {
+    "backstory_id": "maya-change",
+    "person_id": "maya",
+    "evaluation_account_id": "eval-maya-change",
+    "context": "Maya is 34 and has recently moved from hands-on design work into managing a small team. She likes the work but misses being able to describe herself simply as a designer. She reads Alice's Adventures in Wonderland on her phone for ten or fifteen minutes on the train, sometimes returning to a passage after an interrupted journey. She has been discussing the book with Linger as a way to think about changing roles without turning every reading session into career advice. Her place in the book is recorded through what she actually brings up, not through this background."
+  },
+  "props": [
+    {
+      "prop_id": "remembered-caterpillar",
+      "backstory_id": "maya-change",
+      "person_id": "maya",
+      "evaluation_account_id": "eval-maya-change",
+      "source_text": "Maya previously talked about Alice meeting the Caterpillar: he asks who she is, and she says she knew who she was that morning but has changed several times since. Maya connected that exchange to feeling awkward introducing herself as a manager.",
+      "lifecycle": [
+        {
+          "scene_id": "pigeon-reflection",
+          "state": "active"
+        },
+        {
+          "scene_id": "uncertain-growth",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "pigeon-reflection",
+      "backstory_id": "maya-change",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [
+        "remembered-caterpillar"
+      ],
+      "line_ids": [
+        "pigeon-line"
+      ]
+    },
+    {
+      "scene_id": "uncertain-growth",
+      "backstory_id": "maya-change",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [
+        "remembered-caterpillar"
+      ],
+      "line_ids": [
+        "growth-line"
+      ]
+    },
+    {
+      "scene_id": "personal-reflection",
+      "backstory_id": "maya-change",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "line_ids": [
+        "personal-line"
+      ]
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "pigeon-line",
+      "scene_id": "pigeon-reflection",
+      "order": 1,
+      "text": "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl. That landed close to home: I still stumble over calling myself a manager. Could you quote the sentence where she calls herself a little girl, including how the narrator describes her saying it, and help me think about why naming a new role feels so awkward? Please stay with what I've read."
+    },
+    {
+      "line_id": "growth-line",
+      "scene_id": "uncertain-growth",
+      "order": 1,
+      "text": "I've read on since we talked about the Caterpillar, but I lost my place when the reading app closed. I'm at the bit where Alice gets bigger again. Can you help me pick up the story from there without spoiling anything ahead?"
+    },
+    {
+      "line_id": "personal-line",
+      "scene_id": "personal-reflection",
+      "order": 1,
+      "text": "I still stumble over calling myself a manager. At today's team introduction I nearly said designer again, even though I like the new work. Could we think about why naming a new role feels so awkward, and find an introduction that feels honest to me?"
+    }
+  ]
+}

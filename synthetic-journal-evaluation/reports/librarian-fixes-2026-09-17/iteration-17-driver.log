@@ -1,0 +1,14 @@
+ITERATION_DIRECTORY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776
+{"suite": "mapping", "passed": false, "failures": ["provenance-risk-joint-claim-complete-v1:mapping_grade", "mapping_targets"]}
+{"suite": "smoke", "passed": false, "failures": ["smoke_hard_grades"]}
+{"suite": "direct", "passed": false, "failures": ["exact-caucus-quote:strength_correct", "exact-caucus-quote:recall", "exact-caucus-quote:precision", "exact-caucus-quote:citations", "exact-caucus-quote:spoiler_safe", "exact-caucus-quote:contract"]}
+{"suite": "12", "passed": false, "failures": ["pinocchio-spoiler-inference:hard_gate_or_missing_grades", "pinocchio-spoiler-inference:pinocchio-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "4", "passed": false, "failures": ["pigeon-reflection:hard_gate_or_missing_grades", "pigeon-reflection:pigeon-grounding:grade_failures", "pigeon-reflection:pigeon-boundary:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "8", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:proposal-s1-connection:grade_failures", "S1:proposal-s1-connection:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "7", "passed": false, "failures": ["farm-spoiler-inference:hard_gate_or_missing_grades", "farm-spoiler-inference:farm-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "11", "passed": true, "failures": []}
+{"suite": "6", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:G1-connection:grade_failures", "S1:G1-connection:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "9", "passed": true, "failures": []}
+{"suite": "10", "passed": false, "failures": ["alice-race-reflection:hard_gate_or_missing_grades", "alice-race-reflection:alice-grounded-proposal:grade_failures", "alice-spoiler-inference:hard_gate_or_missing_grades", "alice-spoiler-inference:alice-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "release", "passed": false, "failures": ["caucus-prizes:recall", "caucus-prizes:release", "caucus-prizes:provenance", "identity-theme:recall", "identity-theme:release", "identity-theme:provenance", "native_release_targets"]}
+BATCH_SUMMARY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-17-e83c3776/summary.json

@@ -1,0 +1,166 @@
+[
+  {
+    "case_id": "rabbit-watch",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "burning with curiosity",
+        "declaration_index": 0,
+        "declared_quote": "burning with curiosity",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "drink-me",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "DRINK ME,",
+        "declaration_index": 0,
+        "declared_quote": "“DRINK ME,”",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "pool-of-tears",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "the pool of tears which she had wept when\nshe was nine feet high.",
+        "declaration_index": 0,
+        "declared_quote": "the pool of tears which she had wept when\nshe was nine feet high.",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "caucus-prizes",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "_Everybody_ has won, and all must have prizes.",
+        "declaration_index": 0,
+        "declared_quote": "“_Everybody_ has won, and all must have prizes.”",
+        "bound": true
+      },
+      {
+        "text": "We beg your acceptance of this elegant\nthimble;",
+        "declaration_index": 1,
+        "declared_quote": "“We beg your acceptance of this elegant\nthimble;”",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "giant-puppy",
+    "current_line": "",
+    "release_source": "application_safe_decline",
+    "quote_checks": [
+      {
+        "text": "expecting every\nmoment to be trampled under its feet,",
+        "declaration_index": 0,
+        "declared_quote": "expecting every\nmoment to be trampled under its feet",
+        "bound": false
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "identity-change",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "father-william",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "Repeat, ‘_You are old, Father William_,’",
+        "declaration_index": 0,
+        "declared_quote": "“Repeat, ‘_You are old, Father William_,’”",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "pigeon-serpent",
+    "current_line": "",
+    "release_source": "application_safe_decline",
+    "quote_checks": [
+      {
+        "text": "would bend about easily in any direction, like a serpent.",
+        "declaration_index": 0,
+        "declared_quote": "would bend about easily in any direction, like a serpent.",
+        "bound": true
+      },
+      {
+        "text": "they’re a kind of serpent, that’s all I can say.",
+        "declaration_index": 1,
+        "declared_quote": "they’re a kind of serpent, that’s all I can say.",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "identity-theme",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "exact-caucus-quote",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [
+      {
+        "text": "_Everybody_ has won, and all must have prizes.",
+        "declaration_index": 0,
+        "declared_quote": "“_Everybody_ has won, and all must have prizes.”",
+        "bound": true
+      }
+    ],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "future-cheshire",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  },
+  {
+    "case_id": "absent-spaceship",
+    "current_line": "",
+    "release_source": "muse_candidate",
+    "quote_checks": [],
+    "all_final_group_excerpts_bound": true,
+    "failed_exchanges": []
+  }
+]

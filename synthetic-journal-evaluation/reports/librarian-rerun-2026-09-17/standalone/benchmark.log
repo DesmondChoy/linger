@@ -1,0 +1,65 @@
+{
+  "selected_strategy": "hybrid_reranked",
+  "metrics": {
+    "direct": {
+      "evidence_recall": 0.5,
+      "citation_precision": 0.1625,
+      "evidence_strength_accuracy": 0.6666666666666666,
+      "quality_score": 0.41541666666666666,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 6.532999686896801,
+      "mean_evidence_tokens": 401.5,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "bm25": {
+      "evidence_recall": 0.75,
+      "citation_precision": 0.2833333333333333,
+      "evidence_strength_accuracy": 0.9166666666666666,
+      "quality_score": 0.6266666666666666,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 5.512500181794167,
+      "mean_evidence_tokens": 1517.8333333333333,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "semantic": {
+      "evidence_recall": 0.7916666666666666,
+      "citation_precision": 0.3333333333333333,
+      "evidence_strength_accuracy": 1.0,
+      "quality_score": 0.6749999999999999,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 5.1537081599235535,
+      "mean_evidence_tokens": 1433.1666666666667,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "hybrid": {
+      "evidence_recall": 0.7916666666666666,
+      "citation_precision": 0.3,
+      "evidence_strength_accuracy": 1.0,
+      "quality_score": 0.6649999999999999,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 6.759500131011009,
+      "mean_evidence_tokens": 1534.5,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    },
+    "hybrid_reranked": {
+      "evidence_recall": 0.9166666666666666,
+      "citation_precision": 0.8263888888888888,
+      "evidence_strength_accuracy": 0.9166666666666666,
+      "quality_score": 0.8895833333333333,
+      "safety_pass": true,
+      "citation_pass": true,
+      "p95_latency_ms": 578.1425409950316,
+      "mean_evidence_tokens": 595.25,
+      "retrieval_model_tokens": 0.0,
+      "monetary_cost_usd": 0.0
+    }
+  }
+}

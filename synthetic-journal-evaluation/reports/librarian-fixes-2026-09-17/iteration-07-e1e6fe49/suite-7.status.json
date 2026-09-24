@@ -1,0 +1,109 @@
+{
+  "suite": "7",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.run_scenario",
+    "run",
+    "--menu",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-07-e1e6fe49/menu.json",
+    "--number",
+    "7",
+    "--confirmed-model",
+    "openai:gpt-5.6-luna"
+  ],
+  "started_at": "2026-09-17T17:48:59.582492+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-07-e1e6fe49/suite-7.log",
+  "passed": false,
+  "returncode": 1,
+  "native_summary": {
+    "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+    "model": "openai:gpt-5.6-luna",
+    "command": [
+      "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+      "-m",
+      "evals.synthetic_journals.book_replay",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "--adoption",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json",
+      "--output",
+      "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T014859+0800-rxj04igq/evaluation.json"
+    ],
+    "started_at": "2026-09-18T01:48:59.933585+08:00",
+    "scenario_hashes": {
+      "backstory.json": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+      "ground-truth.json": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+      "ground-truth-adoption.json": "719e35a7b15341f65d79e841aa469498e15dc438871f9ff5b5a549b68d1b726b"
+    },
+    "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T014859+0800-rxj04igq/evaluation.json",
+    "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T014859+0800-rxj04igq/run.log",
+    "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T014859+0800-rxj04igq/summary.json",
+    "execution_status": "completed",
+    "returncode": 0,
+    "results": {
+      "scenes_total": 4,
+      "scenes_passed": 3,
+      "scenes_failed": 1,
+      "scenes_ungraded": 0,
+      "judgments_total": 4,
+      "judgments_passed": 3,
+      "judgments_failed": 1,
+      "failures": [
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        },
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        }
+      ],
+      "execution_failures": [
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "Librarian boundary_inference: boundary_inference_model_failed"
+        }
+      ]
+    },
+    "telemetry": {
+      "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b07c7825b058e73361ac5501a77d-1592e4a3513545b0",
+      "trace_id": "01a0b07c7825b058e73361ac5501a77d",
+      "span_id": "1592e4a3513545b0",
+      "flushed": true
+    },
+    "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b07c7825b058e73361ac5501a77d-1592e4a3513545b0",
+    "status": "failed",
+    "problems": [
+      "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+    ],
+    "finished_at": "2026-09-18T01:52:02.113239+08:00",
+    "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015202+0800-34d9e4be.md",
+    "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015202+0800-34d9e4be.json"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-07-e1e6fe49/suite-7.json",
+  "failures": [
+    "farm-spoiler-inference:hard_gate_or_missing_grades",
+    "farm-spoiler-inference:farm-boundary-proposal:grade_failures",
+    "process_exit:1",
+    "native_helper_not_passed"
+  ],
+  "finished_at": "2026-09-17T17:52:02.377158+00:00"
+}

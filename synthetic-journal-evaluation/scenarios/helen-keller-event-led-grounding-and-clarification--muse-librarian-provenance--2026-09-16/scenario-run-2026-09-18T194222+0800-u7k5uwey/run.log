@@ -1,0 +1,4 @@
+
+/Users/kevinmanuel/Documents/REPO/linger/.venv/lib/python3.12/site-packages/logfire/_internal/config.py:1964: UserWarning: Logfire API is unreachable, you may have trouble sending data. Error: HTTPSConnectionPool(host='logfire-us.pydantic.dev', port=443): Read timed out. (read timeout=10)
+  warnings.warn(f'Logfire API is unreachable, you may have trouble sending data. Error: {e}')
+SYNTHETIC_EVALUATION_LOGFIRE={"url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b4532af66248f59041af4aa731ba-5405f9c97340811d", "trace_id": "01a0b4532af66248f59041af4aa731ba", "span_id": "5405f9c97340811d", "flushed": true}

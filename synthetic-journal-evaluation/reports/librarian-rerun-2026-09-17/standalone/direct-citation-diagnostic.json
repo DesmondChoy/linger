@@ -1,0 +1,23 @@
+[
+  {
+    "case_id": "drink-me",
+    "evidence_id": "pg11-v01b38ea4-ch01-ln0186-0219",
+    "returned_length": 1602,
+    "canonical_length": 1603,
+    "exact_match": false,
+    "stripped_match": false,
+    "fetch_by_id_resolves": true,
+    "fetched_text_matches": true,
+    "diff": [
+      "--- immutable source",
+      "+++ returned evidence",
+      "@@ -29,6 +29,5 @@",
+      " ",
+      " *      *      *      *      *      *      *",
+      " ",
+      "-",
+      " \u201cWhat a curious feeling!\u201d said Alice; \u201cI must be shutting up like a",
+      " telescope.\u201d"
+    ]
+  }
+]

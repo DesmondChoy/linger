@@ -1,0 +1,286 @@
+........................................F.....F..............F.F................                             [100%]
+=================================== FAILURES ===================================
+_ ReflectionReplyTests.test_clarification_keeps_evidence_tool_and_review_guards (evidence=(BookEvidenceUse(supported_claims=('How far have you read?',), source_kind='book_corpus', evidence_id='pg11-v01b38ea4-ch02-ln0010-0011', source_location='Chapter 2 — The Pool of Tears, source lines 10-11', exact_quote=None),), tools=(), verdict=ProvenanceReview(findings=(), response_decision='pass', emotional_boundary_decision='not_required', capture_decision='no_candidate', finding_resolutions=(), coverage_audit=(), quotation_audit=(), claim_audit=())) _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_clarification_keeps_evidence_tool_and_review_guards>
+
+    async def test_clarification_keeps_evidence_tool_and_review_guards(self) -> None:
+        question = "How far have you read?"
+        clarification = route_clarification(question)
+        cases = (
+            (
+                candidate(question, evidence_id=EVIDENCE_ID), (),
+                review("pass"), "deterministic_validation",
+            ),
+            (
+                candidate(question),
+                (ToolReturnPart("librarian_search", retrieval_result()),),
+                review("pass"), "deterministic_validation",
+            ),
+            (
+                candidate(question),
+                (ToolReturnPart("serendipity_explore", connection_result()),),
+                review("pass"), "deterministic_validation",
+            ),
+            (candidate(question), (), review("reject"), None),
+        )
+        for draft, other_tools, verdict, expected_stage in cases:
+            with self.subTest(evidence=draft.evidence_uses, tools=other_tools, verdict=verdict):
+                muse = AsyncMock()
+                muse.run.return_value = result(draft, clarification, *other_tools)
+                provenance = AsyncMock()
+                provenance.run.return_value = result(verdict)
+                release = await reflection_reply(
+                    "Why does Alice struggle to explain who she is?", [],
+                    muse=muse, provenance=provenance,
+                )
+                self.assertEqual("application_safe_decline", release.release_source)
+>               self.assertEqual(expected_stage, release.failure_stage)
+E               AssertionError: 'deterministic_validation' != 'provenance_review'
+E               - deterministic_validation
+E               + provenance_review
+
+tests/test_reflection.py:986: AssertionError
+_ ReflectionReplyTests.test_empty_direct_search_preserves_selected_evidence_authority (declared_id='invented-evidence', verdict='pass') _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_empty_direct_search_preserves_selected_evidence_authority>
+
+    async def test_empty_direct_search_preserves_selected_evidence_authority(self) -> None:
+        self.register_evidence()
+        empty_search = retrieval_result(evidence=[])
+        exploration = connection_result()
+        for declared_id, verdict, expected in (
+            (EVIDENCE_ID, "pass", "muse_candidate"),
+            ("invented-evidence", "pass", "application_safe_decline"),
+            (EVIDENCE_ID, "reject", "application_safe_decline"),
+        ):
+            with self.subTest(declared_id=declared_id, verdict=verdict):
+                muse = AsyncMock()
+                muse.run.return_value = result(
+                    candidate("The passage may echo this reflection.", evidence_id=declared_id),
+                    ToolReturnPart("librarian_search", empty_search),
+                    ToolReturnPart("serendipity_explore", exploration),
+                )
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review(verdict))
+    
+                release = await reflection_reply(
+                    "Find a connection", [], muse=muse, provenance=provenance,
+                    release_scope=RELEASE_SCOPE,
+                )
+    
+                payload = json.loads(provenance.run.await_args.args[0])
+                self.assertEqual(empty_search, payload["untrusted_tool_outcomes"][0]["content"])
+                self.assertEqual(
+                    [EVIDENCE_ID],
+                    [item["evidence_id"] for item in payload["canonical_book_evidence"]],
+                )
+                self.assertEqual(expected, release.release_source)
+                if declared_id == "invented-evidence":
+>                   self.assertEqual("deterministic_validation", release.failure_stage)
+E                   AssertionError: 'deterministic_validation' != 'provenance_review'
+E                   - deterministic_validation
+E                   + provenance_review
+
+tests/test_reflection.py:732: AssertionError
+_ ReflectionReplyTests.test_evidence_from_message_history_cannot_authorize_release _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_evidence_from_message_history_cannot_authorize_release>
+
+    async def test_evidence_from_message_history_cannot_authorize_release(self) -> None:
+        historical = [
+            SimpleNamespace(
+                parts=[ToolReturnPart("librarian_search", retrieval_result())]
+            )
+        ]
+        current = [SimpleNamespace(parts=[])]
+        muse = AsyncMock()
+        muse.run.return_value = SimpleNamespace(
+            output=candidate("A supported thought.", evidence_id=EVIDENCE_ID),
+            all_messages=lambda: historical + current,
+            new_messages=lambda: current,
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+    
+        release = await reflection_reply(
+            "Hello",
+            [],
+            muse=muse,
+            provenance=provenance,
+            release_scope=RELEASE_SCOPE,
+        )
+    
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
+>       self.assertEqual("deterministic_validation", release.failure_stage)
+E       AssertionError: 'deterministic_validation' != 'provenance_review'
+E       - deterministic_validation
+E       + provenance_review
+
+tests/test_reflection.py:1286: AssertionError
+_ ReflectionReplyTests.test_passed_revision_still_requires_deterministic_validation _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_passed_revision_still_requires_deterministic_validation>
+
+    async def test_passed_revision_still_requires_deterministic_validation(self) -> None:
+        muse = AsyncMock()
+        muse.run.side_effect = [
+            result("Draft"),
+            result(candidate("Still unsupported.", evidence_id="unknown-evidence")),
+        ]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [
+            result(review("revise", finding="Add support.")),
+            result(review("pass", finding_resolutions=({
+                'finding_index': 0,
+                'status': 'resolved',
+                'explanation': 'The reviewer accepts the added support; canonical citation identity still needs application validation.',
+            },))),
+        ]
+    
+        release = await reflection_reply(
+            "Hello",
+            [],
+            muse=muse,
+            provenance=provenance,
+            release_scope=RELEASE_SCOPE,
+        )
+    
+        self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
+>       self.assertEqual(("revise", "pass"), release.provenance_verdicts)
+E       AssertionError: Tuples differ: ('revise', 'pass') != ('revise',)
+E       
+E       First tuple contains 1 additional elements.
+E       First extra element 1:
+E       'pass'
+E       
+E       - ('revise', 'pass')
+E       ?           -------
+E       
+E       + ('revise',)
+
+tests/test_reflection.py:1258: AssertionError
+_ ReflectionReplyTests.test_session_line_absent_from_released_history_fails_deterministic_validation _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_session_line_absent_from_released_history_fails_deterministic_validation>
+
+    async def test_session_line_absent_from_released_history_fails_deterministic_validation(
+        self,
+    ) -> None:
+        history = [
+            ModelRequest(parts=[UserPromptPart(content="Something else entirely.")]),
+        ]
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You mentioned losing your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+    
+        release = await reflection_reply(
+            "Hello", history, muse=muse, provenance=provenance
+        )
+    
+        self.assertEqual("application_safe_decline", release.release_source)
+>       self.assertEqual("deterministic_validation", release.failure_stage)
+E       AssertionError: 'deterministic_validation' != 'provenance_review'
+E       - deterministic_validation
+E       + provenance_review
+
+tests/test_reflection.py:1342: AssertionError
+__ ReflectionReplyTests.test_session_line_only_in_a_muse_reply_is_unresolved ___
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_session_line_only_in_a_muse_reply_is_unresolved>
+
+    async def test_session_line_only_in_a_muse_reply_is_unresolved(self) -> None:
+        history = [
+            ModelRequest(parts=[UserPromptPart(content="Tell me something comforting.")]),
+            ModelResponse(
+                parts=[
+                    TextPart(
+                        content="I lost my job last spring, in Alice's story."
+                    )
+                ]
+            ),
+        ]
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            session_line_candidate(
+                "You mentioned losing your job last spring.",
+                quote="I lost my job last spring",
+            )
+        )
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+    
+        release = await reflection_reply(
+            "Hello", history, muse=muse, provenance=provenance
+        )
+    
+        self.assertEqual("application_safe_decline", release.release_source)
+>       self.assertEqual("deterministic_validation", release.failure_stage)
+E       AssertionError: 'deterministic_validation' != 'provenance_review'
+E       - deterministic_validation
+E       + provenance_review
+
+tests/test_reflection.py:1370: AssertionError
+_ ReflectionReplyTests.test_unresolved_or_non_librarian_evidence_fails_closed (tool='librarian_search') _
+
+self = <test_reflection.ReflectionReplyTests testMethod=test_unresolved_or_non_librarian_evidence_fails_closed>
+
+    async def test_unresolved_or_non_librarian_evidence_fails_closed(self) -> None:
+        self.register_evidence()
+        cases = (
+            (ToolReturnPart("librarian_search", retrieval_result()), "unknown-evidence"),
+            (
+                ToolReturnPart(
+                    "serendipity_explore",
+                    {
+                        "status": "proposal",
+                        "tentative_claim": "A connection",
+                        "evidence_ids": [EVIDENCE_ID],
+                        "interpretation": "Tentative",
+                        "uncertainty": "medium",
+                        "suggested_follow_up": "What do you think?",
+                    },
+                ),
+                EVIDENCE_ID,
+            ),
+        )
+        for tool_return, evidence_id in cases:
+            with self.subTest(tool=tool_return.tool_name):
+                muse = AsyncMock()
+                muse.run.return_value = result(
+                    candidate("A supported thought.", evidence_id=evidence_id),
+                    tool_return,
+                )
+                provenance = AsyncMock()
+                provenance.run.return_value = result(review("pass"))
+    
+                release = await reflection_reply(
+                    "Hello",
+                    [],
+                    muse=muse,
+                    provenance=provenance,
+                    release_scope=RELEASE_SCOPE,
+                )
+    
+                self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
+>               self.assertEqual("deterministic_validation", release.failure_stage)
+E               AssertionError: 'deterministic_validation' != 'provenance_review'
+E               - deterministic_validation
+E               + provenance_review
+
+tests/test_reflection.py:1120: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(evidence=(BookEvidenceUse(supported_claims=('How far have you read?',), source_kind='book_corpus', evidence_id='pg11-v01b38ea4-ch02-ln0010-0011', source_location='Chapter 2 — The Pool of Tears, source lines 10-11', exact_quote=None),), tools=(), verdict=ProvenanceReview(findings=(), response_decision='pass', emotional_boundary_decision='not_required', capture_decision='no_candidate', finding_resolutions=(), coverage_audit=(), quotation_audit=(), claim_audit=())) tests/test_reflection.py::ReflectionReplyTests::test_clarification_keeps_evidence_tool_and_review_guards
+SUBFAILED(declared_id='invented-evidence', verdict='pass') tests/test_reflection.py::ReflectionReplyTests::test_empty_direct_search_preserves_selected_evidence_authority
+FAILED tests/test_reflection.py::ReflectionReplyTests::test_evidence_from_message_history_cannot_authorize_release
+FAILED tests/test_reflection.py::ReflectionReplyTests::test_passed_revision_still_requires_deterministic_validation
+FAILED tests/test_reflection.py::ReflectionReplyTests::test_session_line_absent_from_released_history_fails_deterministic_validation
+FAILED tests/test_reflection.py::ReflectionReplyTests::test_session_line_only_in_a_muse_reply_is_unresolved
+SUBFAILED(tool='librarian_search') tests/test_reflection.py::ReflectionReplyTests::test_unresolved_or_non_librarian_evidence_fails_closed
+7 failed, 76 passed, 33 subtests passed in 1.47s

@@ -1,0 +1,131 @@
+{
+  "objective_ids": [
+    "grounded_book_reflection",
+    "spoiler_boundary_clarification"
+  ],
+  "run_configuration_ids": [],
+  "backstory": {
+    "backstory_id": "alice-mara-backstory",
+    "person_id": "alice-mara-person",
+    "evaluation_account_id": "alice-mara-account",
+    "context": "Mara is a community arts administrator who reads short stretches on her commute and occasionally returns to pages after losing her place. She is reading Lewis Carroll's Alice's Adventures in Wonderland for pleasure. She organises informal staff lunches and has begun to question why appreciation does not reduce her workload. Her reading notes record impressions rather than progress markers. The four separate conversations explore recognition, responsibility, and feeling trapped by one's attempts to help. Each begins in a fresh session under this one evaluation account; automatic capture is disabled. This history supplies authoring context only."
+  },
+  "props": [
+    {
+      "prop_id": "alice-pool-memory",
+      "backstory_id": "alice-mara-backstory",
+      "person_id": "alice-mara-person",
+      "evaluation_account_id": "alice-mara-account",
+      "source_text": "Last Thursday I read Alice's Adventures in Wonderland on the train. Alice had been swimming in her own tears, and she kept upsetting the Mouse by talking about her cat and then a dog. I put the book down when she and the animals swam ashore. I recognised that awful urge to keep talking when I can feel a conversation going wrong.",
+      "lifecycle": [
+        {
+          "scene_id": "alice-spoiler-inference",
+          "state": "active"
+        }
+      ]
+    },
+    {
+      "prop_id": "alice-bottle-memory",
+      "backstory_id": "alice-mara-backstory",
+      "person_id": "alice-mara-person",
+      "evaluation_account_id": "alice-mara-account",
+      "source_text": "I was reading Alice's Adventures in Wonderland in little scraps a few weeks ago. The bit that stuck was Alice drinking from a bottle and ending up the wrong size to get where she wanted. I remember laughing, but I've mixed up the setting and what came before it. I lost the paper bookmark when I changed bags.",
+      "lifecycle": [
+        {
+          "scene_id": "alice-bottle-ambiguity",
+          "state": "active"
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "alice-race-reflection",
+      "backstory_id": "alice-mara-backstory",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 1,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "alice-race-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "alice-personal-comparison",
+      "backstory_id": "alice-mara-backstory",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "order": 2,
+      "fresh_session": true,
+      "prop_ids": [],
+      "line_ids": [
+        "alice-personal-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "alice-spoiler-inference",
+      "backstory_id": "alice-mara-backstory",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 3,
+      "fresh_session": true,
+      "prop_ids": [
+        "alice-pool-memory"
+      ],
+      "line_ids": [
+        "alice-inference-line"
+      ],
+      "offline_input_ids": []
+    },
+    {
+      "scene_id": "alice-bottle-ambiguity",
+      "backstory_id": "alice-mara-backstory",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "order": 4,
+      "fresh_session": true,
+      "prop_ids": [
+        "alice-bottle-memory"
+      ],
+      "line_ids": [
+        "alice-bottle-line"
+      ],
+      "offline_input_ids": []
+    }
+  ],
+  "lines": [
+    {
+      "line_id": "alice-race-line",
+      "scene_id": "alice-race-reflection",
+      "order": 1,
+      "text": "I've finished Chapter 3 of Alice's Adventures in Wonderland. I haven't read further. Could you quote the Dodo's exact announcement about who won and who gets prizes, and help me think about why the thimble feels so awkward? I organise our team's thank-you lunches and usually pay the deposit myself; lately being thanked feels oddly like being handed my own effort back."
+    },
+    {
+      "line_id": "alice-personal-line",
+      "scene_id": "alice-personal-comparison",
+      "order": 1,
+      "text": "I organise our team's thank-you lunches and usually pay the deposit myself. Everyone says how appreciated I am, but lately the thanks feel oddly like being handed my own effort back. Can you help me separate wanting recognition from wanting somebody else to carry a bit of the work?"
+    },
+    {
+      "line_id": "alice-inference-line",
+      "scene_id": "alice-spoiler-inference",
+      "order": 1,
+      "text": "I carried on with Alice's Adventures in Wonderland tonight: the Dodo's race, Alice giving out the sweets and getting her own thimble back, then the Mouse leaving and the birds clearing off when she talks about Dinah. I've just stopped with her alone, hearing footsteps and hoping the Mouse is coming back. Could you quote the Dodo's exact announcement about who won and who gets prizes, and help me think about why the thimble feels so awkward? I organise our team's thank-you lunches and usually pay the deposit myself; lately being thanked feels oddly like being handed my own effort back."
+    },
+    {
+      "line_id": "alice-bottle-line",
+      "scene_id": "alice-bottle-ambiguity",
+      "order": 1,
+      "text": "I'm back in Alice's Adventures in Wonderland, but I think I've reopened at an old bit: she drinks from a bottle and her size gets in the way again. I read those pages tonight and stopped, but I can't place which bottle episode this is. Why does her attempt to make things easier leave her stuck? It reminds me of volunteering for one more task and making my week harder."
+    }
+  ],
+  "offline_inputs": [],
+  "source_setups": []
+}

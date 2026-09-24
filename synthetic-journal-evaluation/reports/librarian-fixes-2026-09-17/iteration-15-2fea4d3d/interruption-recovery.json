@@ -1,0 +1,31 @@
+{
+  "reason": "Session interruption; original PTY process no longer exists and an escalated process listing found no surviving evaluation processes. Exact termination cause/time is unknown.",
+  "recovered_at": "2026-09-18T10:23:54.419415+00:00",
+  "completed_suites": [
+    "direct",
+    "mapping"
+  ],
+  "unfinished_suites": [
+    "4",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "release",
+    "smoke"
+  ],
+  "last_saved_release_progress_at": "2026-09-18T08:48:07.919736+00:00",
+  "release_cases_saved": 4,
+  "native_evaluation_artifacts": [
+    {
+      "suite": "4",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T164250+0800-5j8akk_0/evaluation.json",
+      "scenes_saved": 3,
+      "native_helper_completion": "unknown"
+    }
+  ],
+  "no_provider_calls": true
+}

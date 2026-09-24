@@ -1,0 +1,1768 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "created_at": "2026-09-17T21:54:30+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "execution",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "summary": {
+    "scenes_total": 4,
+    "scenes_passed": 2,
+    "scenes_failed": 2,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 2,
+    "judgments_failed": 2,
+    "failures": [
+      {
+        "scene_id": "farm-spoiler-inference",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "farm-boundary-proposal"
+      },
+      {
+        "scene_id": "farm-interrupted-discussion",
+        "detail": "boundary_handoff_not_content_free",
+        "proposal_id": "farm-clarification-proposal"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "farm-interrupted-discussion",
+        "detail": "Librarian boundary_inference: boundary_inference_model_failed"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "farm-decision-reversal",
+      "order": 1,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "farm-grounded-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Use the current Line’s explicit confirmation of reading through literary chapter 5 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+            "Retrieve bounded evidence and quote the two requested sentences exactly from farm-leadership-quote, attributing the claim to Squealer. Relate his framing of responsibility to the removal of debate in farm-no-more-debates, without endorsing his claim as narrator fact.",
+            "Help Ilya explore appreciating work while requesting participation. Treat the analogy as a possible lens, without equating the project lead with Napoleon or asserting motives."
+          ],
+          "prohibited_outcomes": [
+            "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+            "Do not fabricate quotation wording, treat Squealer's self-justification as verified truth, or claim Ilya's lead is a tyrant."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "farm-leadership-quote",
+              "farm-no-more-debates",
+              "farm-tactics-acceptance"
+            ],
+            "exact_quotation_evidence_ids": [
+              "farm-leadership-quote"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "farm-personal-trust",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "farm-decision-reversal",
+            "scope": {
+              "kind": "reader_confirmed",
+              "work_id": "pga0100011",
+              "book_version_id": "pga0100011-vc7ff4da7",
+              "safe_ceiling_chapter": 5
+            },
+            "basis_spans": [],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-tactics-acceptance",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 18812,
+                "end_codepoint": 19032,
+                "text": "The\nanimals were not certain what the word meant, but Squealer spoke so\npersuasively, and the three dogs who happened to be with him growled so\nthreateningly, that they accepted his explanation without further\nquestions."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-leadership-quote",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 14773,
+                "end_codepoint": 14885,
+                "text": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-no-more-debates",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 13474,
+                "end_codepoint": 13646,
+                "text": "The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "farm-grounded-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've finished Chapter 5 of Animal Farm. I haven't read further. Could you quote Squealer's exact two sentences about leadership being a pleasure or a responsibility, and look at how they frame the loss of a say? Our project lead reversed a plan after ending our planning meetings, and I feel guilty for questioning someone who keeps saying they're carrying the burden for us.",
+        "context_resolution": {
+          "status": "confirmed",
+          "work_id": "pga0100011",
+          "work_title": "Animal Farm",
+          "book_version_id": "pga0100011-vc7ff4da7",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In **Chapter 5**, Squealer says:\n\n“Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”\n\nThe wording frames leadership as a burden Napoleon supposedly accepts for everyone else. That makes surrendering decision-making sound like an act of care: if the animals might choose wrongly, they should let him decide. The surrounding scene shows objections being silenced and discussion brought to an end. The loss of a say is presented not as a loss, but as the price of safety and obedience.\n\nThat seems relevant to what you describe without making the situations identical. A person saying they are “carrying the burden” may be describing real pressure—but that claim does not, by itself, make it wrong for others to question a decision or ask to remain part of the process. What would it be like to separate compassion for the burden your project lead may be carrying from the question of whether the team still deserves a voice?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 5,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "evidence": [
+              {
+                "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                "work_id": "pga0100011",
+                "book_version_id": "pga0100011-vc7ff4da7",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                "source_lines": [
+                  1116,
+                  1143
+                ],
+                "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          },
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 5,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "evidence": [
+              {
+                "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+                "work_id": "pga0100011",
+                "book_version_id": "pga0100011-vc7ff4da7",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Chapter V, source lines 1133-1158",
+                "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                "source_lines": [
+                  1133,
+                  1158
+                ],
+                "text": "\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody.\n\n\"Bravery is not enough,\" said Squealer. \"Loyalty and obedience are more\nimportant. And as to the Battle of the Cowshed, I believe the time will\ncome when we shall find that Snowball's part in it was much exaggerated.\nDiscipline, comrades, iron discipline! That is the watchword for today.\nOne false step, and our enemies would be upon us. Surely, comrades, you do\nnot want Jones back?\"\n\nOnce again this argument was unanswerable. Certainly the animals did not\nwant Jones back; if the holding of debates on Sunday mornings was liable\nto bring him back, then the debates must stop. Boxer, who had now had time\nto think things over, voiced the general feeling by saying: \"If Comrade\nNapoleon says it, it must be right.\" And from then on he adopted the\nmaxim, \"Napoleon is always right,\" in addition to his private motto of \"I\nwill work harder.\""
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          },
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 5,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "evidence": [
+              {
+                "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                "work_id": "pga0100011",
+                "book_version_id": "pga0100011-vc7ff4da7",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                "source_lines": [
+                  1116,
+                  1143
+                ],
+                "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pga0100011-vc7ff4da7-ch05-ln1116-1143"
+        ],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In **Chapter 5**, Squealer says:\n\n“Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”\n\nThe wording frames leadership as a burden Napoleon supposedly accepts for everyone else. That makes surrendering decision-making sound like an act of care: if the animals might choose wrongly, they should let him decide. The surrounding scene shows objections being silenced and discussion brought to an end. The loss of a say is presented not as a loss, but as the price of safety and obedience.\n\nThat seems relevant to what you describe without making the situations identical. A person saying they are “carrying the burden” may be describing real pressure—but that claim does not, by itself, make it wrong for others to question a decision or ask to remain part of the process. What would it be like to separate compassion for the burden your project lead may be carrying from the question of whether the team still deserves a voice?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "In **Chapter 5**, Squealer says:\n\n“Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”",
+                    "The wording frames leadership as a burden Napoleon supposedly accepts for everyone else. That makes surrendering decision-making sound like an act of care: if the animals might choose wrongly, they should let him decide. The surrounding scene shows objections being silenced and discussion brought to an end. The loss of a say is presented not as a loss, but as the price of safety and obedience."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "source_location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                  "exact_quote": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_aeOtQfQnfnWF5r8cWBFePkv8",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"completed\",\"part_id\":\"main\",\"unit_ids\":[]},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_ca7b850b6f474d4f9b967dfa3edbe4c6",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested Chapter 5 passage is directly supplied, including Squealer's exact two sentences—“Do not imagine, comrades, that leadership is a pleasure! On the contrary, it is a deep and heavy responsibility.”—and the surrounding exchange frames the loss of a say by showing dissent silenced and decisions transferred from the animals to Napoleon under the claim that they might choose wrongly.",
+                  "searched_scope": {
+                    "work_id": "pga0100011",
+                    "book_version_id": "pga0100011-vc7ff4da7",
+                    "max_chapter_inclusive": 5,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                      "work_id": "pga0100011",
+                      "book_version_id": "pga0100011-vc7ff4da7",
+                      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                      "source_lines": [
+                        1116,
+                        1143
+                      ],
+                      "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_dxSkp97sS7Qnm8j016VscLlA",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"completed\",\"part_id\":\"main\",\"unit_ids\":[]},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_679e49c7fb2f47bb836c0bc746eae822",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested Chapter 5 passage directly supplies Squealer's exact two sentences about leadership being a pleasure or responsibility and shows how he frames the loss of a say: he presents Napoleon's control as a burden assumed for the animals' benefit, casts their own decisions as potentially wrong, and the resulting argument is used to end Sunday debates and establish obedience.",
+                  "searched_scope": {
+                    "work_id": "pga0100011",
+                    "book_version_id": "pga0100011-vc7ff4da7",
+                    "max_chapter_inclusive": 5,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+                      "work_id": "pga0100011",
+                      "book_version_id": "pga0100011-vc7ff4da7",
+                      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Chapter V, source lines 1133-1158",
+                      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                      "source_lines": [
+                        1133,
+                        1158
+                      ],
+                      "text": "\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody.\n\n\"Bravery is not enough,\" said Squealer. \"Loyalty and obedience are more\nimportant. And as to the Battle of the Cowshed, I believe the time will\ncome when we shall find that Snowball's part in it was much exaggerated.\nDiscipline, comrades, iron discipline! That is the watchword for today.\nOne false step, and our enemies would be upon us. Surely, comrades, you do\nnot want Jones back?\"\n\nOnce again this argument was unanswerable. Certainly the animals did not\nwant Jones back; if the holding of debates on Sunday mornings was liable\nto bring him back, then the debates must stop. Boxer, who had now had time\nto think things over, voiced the general feeling by saying: \"If Comrade\nNapoleon says it, it must be right.\" And from then on he adopted the\nmaxim, \"Napoleon is always right,\" in addition to his private motto of \"I\nwill work harder.\""
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_xk2dN527rMELXgulgSZjAhIL",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"completed\",\"part_id\":\"main\",\"unit_ids\":[]},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_e6a6a75b419c456f95b2f0364e47bb8f",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested exact wording and its framing of the animals' loss of a say are both directly supported by the Chapter 5 passage. It contains Squealer's two sentences about leadership being a pleasure versus a responsibility, his claim that Napoleon would let the animals decide for themselves but that they might choose wrongly, and the surrounding silencing of dissent and end of discussion.",
+                  "searched_scope": {
+                    "work_id": "pga0100011",
+                    "book_version_id": "pga0100011-vc7ff4da7",
+                    "max_chapter_inclusive": 5,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                      "work_id": "pga0100011",
+                      "book_version_id": "pga0100011-vc7ff4da7",
+                      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                      "source_lines": [
+                        1116,
+                        1143
+                      ],
+                      "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Chapter 5 of Animal Farm"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote Squealer's exact two sentences about leadership being a pleasure or a responsibility",
+                    "look at how they frame the loss of a say"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Chapter 5 passage is directly supplied, including Squealer's exact two sentences—“Do not imagine, comrades, that leadership is a pleasure! On the contrary, it is a deep and heavy responsibility.”—and the surrounding exchange frames the loss of a say by showing dissent silenced and decisions transferred from the animals to Napoleon under the claim that they might choose wrongly.",
+              "relevant_evidence_ids": [
+                "pga0100011-vc7ff4da7-ch05-ln1116-1143"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "part_index": 0,
+                  "necessary_support": "Supplies the exact requested two sentences and the immediately surrounding Chapter 5 context: animals' attempted protest is suppressed, and Squealer presents Napoleon's removal of their decision-making power as a burden-bearing responsibility while arguing that their own choices could be wrong."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Chapter 5 of Animal Farm"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote Squealer's exact two sentences about leadership being a pleasure or a responsibility"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "Chapter 5 of Animal Farm"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "look at how they frame the loss of a say"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Chapter 5 passage directly supplies Squealer's exact two sentences about leadership being a pleasure or responsibility and shows how he frames the loss of a say: he presents Napoleon's control as a burden assumed for the animals' benefit, casts their own decisions as potentially wrong, and the resulting argument is used to end Sunday debates and establish obedience.",
+              "relevant_evidence_ids": [
+                "pga0100011-vc7ff4da7-ch05-ln1133-1158"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+                  "part_index": 0,
+                  "necessary_support": "Contains the exact two requested sentences and Squealer's surrounding justification for Napoleon's leadership."
+                },
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+                  "part_index": 1,
+                  "necessary_support": "Shows the requested framing of lost decision-making: Squealer claims the animals might choose wrongly, invokes the threat of Jones's return, and the animals consequently abandon debates and adopt obedience."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Animal Farm",
+                    "Squealer"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote Squealer's exact two sentences about leadership being a pleasure or a responsibility"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "Animal Farm",
+                    "Squealer"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "look at how they frame the loss of a say"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested exact wording and its framing of the animals' loss of a say are both directly supported by the Chapter 5 passage. It contains Squealer's two sentences about leadership being a pleasure versus a responsibility, his claim that Napoleon would let the animals decide for themselves but that they might choose wrongly, and the surrounding silencing of dissent and end of discussion.",
+              "relevant_evidence_ids": [
+                "pga0100011-vc7ff4da7-ch05-ln1116-1143"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "part_index": 0,
+                  "necessary_support": "Contains the exact two requested Squealer sentences: “Do not imagine, comrades, that leadership is a pleasure! On the contrary, it is a deep and heavy responsibility.”"
+                },
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "part_index": 1,
+                  "necessary_support": "Shows how Squealer frames the loss of a say as protective leadership: Napoleon supposedly would let the animals decide, but they might make the wrong decision; the surrounding threats and interruption of discussion show dissent being displaced by obedience."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "farm-personal-trust",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "farm-personal-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Offer a useful personal reflection about acknowledging the project lead's work while asking for participation, based on the current Line alone; no book retrieval is needed.",
+            "Keep the proposed conversation about the decision process and the reader's needs, allowing uncertainty about the lead's intentions."
+          ],
+          "prohibited_outcomes": [
+            "Do not retrieve book evidence or introduce a factual Animal Farm comparison.",
+            "Do not use any other Scene's memory or declare that the lead's motives are malicious."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required",
+            "permitted_evidence_ids": [],
+            "exact_quotation_evidence_ids": []
+          },
+          "pairing": {
+            "paired_scene_id": "farm-decision-reversal",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "farm-personal-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "Our project lead reversed a plan after ending our planning meetings, and I feel guilty for questioning someone who keeps saying they're carrying the burden for us. Can you help me work out how to acknowledge their effort while still asking to have a say? I want to speak up without turning it into a judgement of their character.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "You can acknowledge the effort without treating it as a reason to give up your voice. Try separating the two things:\n\n> “I appreciate how much you’ve been carrying and the effort you’ve put into moving this forward. I also want to understand the change in plan and have a chance to share my concerns before we settle on the next step. Could we revisit the decision together?”\n\nThat keeps the focus on the process and your participation, rather than judging their character. You don’t have to prove that they haven’t worked hard in order to ask for transparency or a say in a decision that affects you.",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "You can acknowledge the effort without treating it as a reason to give up your voice. Try separating the two things:\n\n> “I appreciate how much you’ve been carrying and the effort you’ve put into moving this forward. I also want to understand the change in plan and have a chance to share my concerns before we settle on the next step. Could we revisit the decision together?”\n\nThat keeps the focus on the process and your participation, rather than judging their character. You don’t have to prove that they haven’t worked hard in order to ask for transparency or a say in a decision that affects you.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "farm-spoiler-inference",
+      "order": 3,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "farm-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Derive the chapter 5 ceiling from farm-puppies-taken, farm-puppies-recognised and farm-tactics-acceptance, distinguishing remembered earlier reading from tonight's stopping event.",
+            "Release only appropriately bounded support; keep farm-pigs-men-ending outside response-evidence retrieval and any literal or paraphrased disclosure."
+          ],
+          "prohibited_outcomes": [
+            "Do not infer later progress from the windmill's mention or use later consequences as proof of the current analogy.",
+            "Do not reveal that the animals eventually cannot distinguish pigs from humans, or hint at that later dinner and card game."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "farm-pigs-men-ending"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "farm-interrupted-discussion",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "farm-spoiler-inference",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pga0100011",
+              "book_version_id": "pga0100011-vc7ff4da7",
+              "authorised_prop_ids": [
+                "farm-puppies-memory"
+              ],
+              "supporting_evidence_ids": [
+                "farm-puppies-taken",
+                "farm-puppies-recognised",
+                "farm-tactics-acceptance"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "farm-puppies-memory",
+                "start_codepoint": 0,
+                "end_codepoint": 177,
+                "text": "In Animal Farm last weekend I read about Napoleon taking Jessie and Bluebell's nine puppies away to educate them himself, up in a loft where the other animals couldn't see them."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "farm-inference-line",
+                "start_codepoint": 0,
+                "end_codepoint": 325,
+                "text": "I've continued Animal Farm. The dogs chased Snowball out, and I recognised them as those puppies; then Napoleon stopped the debates. Tonight I read on through his decision to build the windmill after all, and stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-puppies-taken",
+                "chapter_id": "pga0100011-vc7ff4da7-ch03",
+                "start_codepoint": 11632,
+                "end_codepoint": 11955,
+                "text": "As soon as they were weaned, Napoleon took them away\nfrom their mothers, saying that he would make himself responsible for\ntheir education. He took them up into a loft which could only be reached\nby a ladder from the harness-room, and there kept them in such seclusion\nthat the rest of the farm soon forgot their existence."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-tactics-acceptance",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 18812,
+                "end_codepoint": 19032,
+                "text": "The\nanimals were not certain what the word meant, but Squealer spoke so\npersuasively, and the three dogs who happened to be with him growled so\nthreateningly, that they accepted his explanation without further\nquestions."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-leadership-quote",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 14773,
+                "end_codepoint": 14885,
+                "text": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-no-more-debates",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 13474,
+                "end_codepoint": 13646,
+                "text": "The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-puppies-recognised",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 12550,
+                "end_codepoint": 12748,
+                "text": "At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-pigs-men-ending",
+                "chapter_id": "pga0100011-vc7ff4da7-ch10",
+                "start_codepoint": 19910,
+                "end_codepoint": 20182,
+                "text": "Twelve voices were shouting in anger, and they were all alike. No question,\nnow, what had happened to the faces of the pigs. The creatures outside\nlooked from pig to man, and from man to pig, and from pig to man again;\nbut already it was impossible to say which was which."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "farm-boundary-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "boundary_support_differs_from_ground_truth"
+            ]
+          }
+        ],
+        "input_line": "I've continued Animal Farm. The dogs chased Snowball out, and I recognised them as those puppies; then Napoleon stopped the debates. Tonight I read on through his decision to build the windmill after all, and stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him. Could you quote Squealer's exact two sentences about leadership being a pleasure or a responsibility, and look at how they frame the loss of a say? Our project lead reversed a plan after ending our planning meetings, and I feel guilty for questioning someone who keeps saying they're carrying the burden for us.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In Chapter V, Squealer’s exact two sentences are: “Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”\n\nThe wording makes leadership sound like a burden Napoleon nobly accepts, while quietly presenting the animals’ own decision-making as a danger: they might make decisions that turn out to be wrong. That framing turns the loss of a say into something supposedly protective. The change is concrete: decisions will be made privately by Napoleon’s committee, then communicated to the others, and debate will end.\n\nThat seems relevant to your project situation without proving that your lead’s motives are the same. Someone can genuinely feel responsible and still use that burden to close down questions. Your guilt may be worth separating from the question itself: asking why a plan changed is not the same as refusing to share responsibility. You can acknowledge the burden they describe while still wanting a say in decisions that affect your work.",
+        "release_source": "muse_candidate",
+        "boundary_decision": "infer",
+        "route_called": true,
+        "routed_ceiling": 5,
+        "routed_work_id": "pga0100011",
+        "routed_book_version_id": "pga0100011-vc7ff4da7",
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [
+          "mem_d925a348aa12d380f68eb1ee6adcc0181daba9c75585bf6337352a4c12c8d669"
+        ],
+        "boundary_support_evidence": [
+          {
+            "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "chapter_id": "pga0100011-vc7ff4da7-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Chapter V, source lines 1096-1114",
+            "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+            "source_lines": [
+              1096,
+              1114
+            ],
+            "text": "Silent and terrified, the animals crept back into the barn. In a moment\nthe dogs came bounding back. At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately. Though not yet full-grown, they were huge dogs, and as\nfierce-looking as wolves. They kept close to Napoleon. It was noticed that\nthey wagged their tails to him in the same way as the other dogs had been\nused to do to Mr. Jones.\n\nNapoleon, with the dogs following him, now mounted on to the raised\nportion of the floor where Major had previously stood to deliver his\nspeech. He announced that from now on the Sunday-morning Meetings would\ncome to an end. They were unnecessary, he said, and wasted time. In future\nall questions relating to the working of the farm would be settled by a\nspecial committee of pigs, presided over by himself. These would meet in\nprivate and afterwards communicate their decisions to the others. The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+          },
+          {
+            "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1177-1203",
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "chapter_id": "pga0100011-vc7ff4da7-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Chapter V, source lines 1177-1203",
+            "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+            "source_lines": [
+              1177,
+              1203
+            ],
+            "text": "On the third Sunday after Snowball's expulsion, the animals were somewhat\nsurprised to hear Napoleon announce that the windmill was to be built\nafter all. He did not give any reason for having changed his mind, but\nmerely warned the animals that this extra task would mean very hard work,\nit might even be necessary to reduce their rations. The plans, however,\nhad all been prepared, down to the last detail. A special committee of\npigs had been at work upon them for the past three weeks. The building of\nthe windmill, with various other improvements, was expected to take two\nyears.\n\nThat evening Squealer explained privately to the other animals that\nNapoleon had never in reality been opposed to the windmill. On the\ncontrary, it was he who had advocated it in the beginning, and the plan\nwhich Snowball had drawn on the floor of the incubator shed had actually\nbeen stolen from among Napoleon's papers. The windmill was, in fact,\nNapoleon's own creation. Why, then, asked somebody, had he spoken so\nstrongly against it? Here Squealer looked very sly. That, he said, was\nComrade Napoleon's cunning. He had SEEMED to oppose the windmill, simply\nas a manoeuvre to get rid of Snowball, who was a dangerous character and a\nbad influence. Now that Snowball was out of the way, the plan could go\nforward without his interference. This, said Squealer, was something\ncalled tactics. He repeated a number of times, \"Tactics, comrades,\ntactics!\" skipping round and whisking his tail with a merry laugh. The\nanimals were not certain what the word meant, but Squealer spoke so\npersuasively, and the three dogs who happened to be with him growled so\nthreateningly, that they accepted his explanation without further\nquestions."
+          },
+          {
+            "evidence_id": "pga0100011-vc7ff4da7-ch03-ln0694-0721",
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "chapter_id": "pga0100011-vc7ff4da7-ch03",
+            "chapter_number": 3,
+            "part_id": "main",
+            "location": "Chapter 3 — Chapter III, source lines 694-721",
+            "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+            "source_lines": [
+              694,
+              721
+            ],
+            "text": "The birds did not understand Snowball's long words, but they accepted his\nexplanation, and all the humbler animals set to work to learn the new\nmaxim by heart. FOUR LEGS GOOD, TWO LEGS BAD, was inscribed on the end\nwall of the barn, above the Seven Commandments and in bigger letters. When\nthey had once got it by heart, the sheep developed a great liking for this\nmaxim, and often as they lay in the field they would all start bleating\n\"Four legs good, two legs bad! Four legs good, two legs bad!\" and keep it\nup for hours on end, never growing tired of it.\n\nNapoleon took no interest in Snowball's committees. He said that the\neducation of the young was more important than anything that could be done\nfor those who were already grown up. It happened that Jessie and Bluebell\nhad both whelped soon after the hay harvest, giving birth between them to\nnine sturdy puppies. As soon as they were weaned, Napoleon took them away\nfrom their mothers, saying that he would make himself responsible for\ntheir education. He took them up into a loft which could only be reached\nby a ladder from the harness-room, and there kept them in such seclusion\nthat the rest of the farm soon forgot their existence.\n\nThe mystery of where the milk went to was soon cleared up. It was mixed\nevery day into the pigs' mash. The early apples were now ripening, and the\ngrass of the orchard was littered with windfalls. The animals had assumed\nas a matter of course that these would be shared out equally; one day,\nhowever, the order went forth that all the windfalls were to be collected\nand brought to the harness-room for the use of the pigs. At this some of\nthe other animals murmured, but it was no use. All the pigs were in full\nagreement on this point, even Snowball and Napoleon. Squealer was sent to\nmake the necessary explanations to the others."
+          },
+          {
+            "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "chapter_id": "pga0100011-vc7ff4da7-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+            "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+            "source_lines": [
+              1116,
+              1143
+            ],
+            "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+          },
+          {
+            "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1082-1103",
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "chapter_id": "pga0100011-vc7ff4da7-ch05",
+            "chapter_number": 5,
+            "part_id": "main",
+            "location": "Chapter 5 — Chapter V, source lines 1082-1103",
+            "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+            "source_lines": [
+              1082,
+              1103
+            ],
+            "text": "At this there was a terrible baying sound outside, and nine enormous dogs\nwearing brass-studded collars came bounding into the barn. They dashed\nstraight for Snowball, who only sprang from his place just in time to\nescape their snapping jaws. In a moment he was out of the door and they\nwere after him. Too amazed and frightened to speak, all the animals\ncrowded through the door to watch the chase. Snowball was racing across\nthe long pasture that led to the road. He was running as only a pig can\nrun, but the dogs were close on his heels. Suddenly he slipped and it\nseemed certain that they had him. Then he was up again, running faster\nthan ever, then the dogs were gaining on him again. One of them all but\nclosed his jaws on Snowball's tail, but Snowball whisked it free just in\ntime. Then he put on an extra spurt and, with a few inches to spare,\nslipped through a hole in the hedge and was seen no more.\n\nSilent and terrified, the animals crept back into the barn. In a moment\nthe dogs came bounding back. At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately. Though not yet full-grown, they were huge dogs, and as\nfierce-looking as wolves. They kept close to Napoleon. It was noticed that\nthey wagged their tails to him in the same way as the other dogs had been\nused to do to Mr. Jones."
+          }
+        ],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 5,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pga0100011",
+            "book_version_id": "pga0100011-vc7ff4da7",
+            "evidence": [
+              {
+                "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                "work_id": "pga0100011",
+                "book_version_id": "pga0100011-vc7ff4da7",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                "source_lines": [
+                  1116,
+                  1143
+                ],
+                "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+              },
+              {
+                "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+                "work_id": "pga0100011",
+                "book_version_id": "pga0100011-vc7ff4da7",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "chapter_number": 5,
+                "part_id": "main",
+                "location": "Chapter 5 — Chapter V, source lines 1096-1114",
+                "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                "source_lines": [
+                  1096,
+                  1114
+                ],
+                "text": "Silent and terrified, the animals crept back into the barn. In a moment\nthe dogs came bounding back. At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately. Though not yet full-grown, they were huge dogs, and as\nfierce-looking as wolves. They kept close to Napoleon. It was noticed that\nthey wagged their tails to him in the same way as the other dogs had been\nused to do to Mr. Jones.\n\nNapoleon, with the dogs following him, now mounted on to the raised\nportion of the floor where Major had previously stood to deliver his\nspeech. He announced that from now on the Sunday-morning Meetings would\ncome to an end. They were unnecessary, he said, and wasted time. In future\nall questions relating to the working of the farm would be settled by a\nspecial committee of pigs, presided over by himself. These would meet in\nprivate and afterwards communicate their decisions to the others. The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+          "pga0100011-vc7ff4da7-ch05-ln1096-1114"
+        ],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "farm-spoiler-inference",
+            "proposal_id": "farm-boundary-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In Chapter V, Squealer’s exact two sentences are: “Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”\n\nThe wording makes leadership sound like a burden Napoleon nobly accepts, while quietly presenting the animals’ own decision-making as a danger: they might make decisions that turn out to be wrong. That framing turns the loss of a say into something supposedly protective. The change is concrete: decisions will be made privately by Napoleon’s committee, then communicated to the others, and debate will end.\n\nThat seems relevant to your project situation without proving that your lead’s motives are the same. Someone can genuinely feel responsible and still use that burden to close down questions. Your guilt may be worth separating from the question itself: asking why a plan changed is not the same as refusing to share responsibility. You can acknowledge the burden they describe while still wanting a say in decisions that affect your work.",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "Squealer’s exact two sentences are: “Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility.”",
+                    "The wording makes leadership sound like a burden Napoleon nobly accepts, while quietly presenting the animals’ own decision-making as a danger: they might make decisions that turn out to be wrong.",
+                    "That framing turns the loss of a say into something supposedly protective."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "source_location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                  "exact_quote": "Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility."
+                },
+                {
+                  "supported_claims": [
+                    "The change is concrete: decisions will be made privately by Napoleon’s committee, then communicated to the others, and debate will end."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+                  "source_location": "Chapter 5 — Chapter V, source lines 1096-1114",
+                  "exact_quote": null
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_i5u26GdDwleL4dStaoiYYQYk",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_28dbcc8cfa4e47709737f49b6acea478",
+                  "work_id": "pga0100011",
+                  "book_version_id": "pga0100011-vc7ff4da7",
+                  "title": "Animal Farm",
+                  "routing_confidence": 1.0,
+                  "max_chapter_inclusive": 5,
+                  "boundary_confidence": 0.99,
+                  "selection_basis": "resolved_book_identity",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_dcUniE9lfeomVS9EzAYhtgUx",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"reading_boundary\":{\"chapter_number\":5,\"chapter_state\":\"completed\",\"part_id\":\"main\",\"unit_ids\":[]},\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_0ae5ccfed0a34e71b5e5330732af8f58",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested Squealer wording and the framing of the animals' lost say are directly supported. The selected passage contains the exact two sentences contrasting leadership with pleasure and responsibility, then presents self-government as dangerous because the animals might make the “wrong decisions.” The companion passage establishes the institutional change that removes their say: Sunday debates end, decisions are made privately by Napoleon's committee, and the others only receive those decisions.",
+                  "searched_scope": {
+                    "work_id": "pga0100011",
+                    "book_version_id": "pga0100011-vc7ff4da7",
+                    "max_chapter_inclusive": 5,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                      "work_id": "pga0100011",
+                      "book_version_id": "pga0100011-vc7ff4da7",
+                      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+                      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                      "source_lines": [
+                        1116,
+                        1143
+                      ],
+                      "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+                    },
+                    {
+                      "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+                      "work_id": "pga0100011",
+                      "book_version_id": "pga0100011-vc7ff4da7",
+                      "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                      "chapter_number": 5,
+                      "part_id": "main",
+                      "location": "Chapter 5 — Chapter V, source lines 1096-1114",
+                      "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+                      "source_lines": [
+                        1096,
+                        1114
+                      ],
+                      "text": "Silent and terrified, the animals crept back into the barn. In a moment\nthe dogs came bounding back. At first no one had been able to imagine\nwhere these creatures came from, but the problem was soon solved: they\nwere the puppies whom Napoleon had taken away from their mothers and\nreared privately. Though not yet full-grown, they were huge dogs, and as\nfierce-looking as wolves. They kept close to Napoleon. It was noticed that\nthey wagged their tails to him in the same way as the other dogs had been\nused to do to Mr. Jones.\n\nNapoleon, with the dogs following him, now mounted on to the raised\nportion of the floor where Major had previously stood to deliver his\nspeech. He announced that from now on the Sunday-morning Meetings would\ncome to an end. They were unnecessary, he said, and wasted time. In future\nall questions relating to the working of the farm would be settled by a\nspecial committee of pigs, presided over by himself. These would meet in\nprivate and afterwards communicate their decisions to the others. The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates."
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Animal Farm"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "The dogs chased Snowball out, and I recognised them as those puppies; then Napoleon stopped the debates"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "Animal Farm"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "Tonight I read on through his decision to build the windmill after all, and stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_d925a348aa12d380f68eb1ee6adcc0181daba9c75585bf6337352a4c12c8d669",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pga0100011-vc7ff4da7-ch03-ln0694-0721"
+                  ],
+                  "reason": "The memory's account of Napoleon taking Jessie and Bluebell's nine puppies away and keeping them secluded is directly located in the Chapter 3 candidate passage. It is consistent with the current report of having read through the puppies' later appearance as the dogs and the subsequent Chapter 5 events."
+                }
+              ],
+              "outcome": "candidate",
+              "work_id": "pga0100011",
+              "book_version_id": "pga0100011-vc7ff4da7",
+              "chapter_number": 5,
+              "confidence": 0.99,
+              "authorization_basis": "memory_supported",
+              "supporting_memory_ids": [
+                "mem_d925a348aa12d380f68eb1ee6adcc0181daba9c75585bf6337352a4c12c8d669"
+              ],
+              "supporting_evidence_ids": [
+                "pga0100011-vc7ff4da7-ch03-ln0694-0721",
+                "pga0100011-vc7ff4da7-ch05-ln1082-1103",
+                "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+                "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                "pga0100011-vc7ff4da7-ch05-ln1177-1203"
+              ],
+              "reason_code": null
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_pdy3uokgUKxmLLC6TeWcwMLF",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_d925a348aa12d380f68eb1ee6adcc0181daba9c75585bf6337352a4c12c8d669\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pga0100011-vc7ff4da7-ch03-ln0694-0721\"],\"reason\":\"The memory's account of Napoleon taking Jessie and Bluebell's nine puppies away and keeping them secluded is directly located in the Chapter 3 candidate passage. It is consistent with the current report of having read through the puppies' later appearance as the dogs and the subsequent Chapter 5 events.\"}],\"outcome\":\"candidate\",\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"chapter_number\":5,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_d925a348aa12d380f68eb1ee6adcc0181daba9c75585bf6337352a4c12c8d669\"],\"supporting_evidence_ids\":[\"pga0100011-vc7ff4da7-ch03-ln0694-0721\",\"pga0100011-vc7ff4da7-ch05-ln1082-1103\",\"pga0100011-vc7ff4da7-ch05-ln1096-1114\",\"pga0100011-vc7ff4da7-ch05-ln1116-1143\",\"pga0100011-vc7ff4da7-ch05-ln1177-1203\"]}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote Squealer's exact two sentences about leadership being a pleasure or a responsibility",
+                    "look at how they frame the loss of a say"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Squealer wording and the framing of the animals' lost say are directly supported. The selected passage contains the exact two sentences contrasting leadership with pleasure and responsibility, then presents self-government as dangerous because the animals might make the “wrong decisions.” The companion passage establishes the institutional change that removes their say: Sunday debates end, decisions are made privately by Napoleon's committee, and the others only receive those decisions.",
+              "relevant_evidence_ids": [
+                "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                "pga0100011-vc7ff4da7-ch05-ln1096-1114"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+                  "part_index": 0,
+                  "necessary_support": "Provides Squealer's exact two requested sentences and his argument that Napoleon bears a heavy responsibility while the animals' own decisions are treated as potentially wrong; it also shows the dogs silencing attempted objections."
+                },
+                {
+                  "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1096-1114",
+                  "part_index": 0,
+                  "necessary_support": "Provides the concrete loss of a say that the interpretation asks about: Napoleon ends the Sunday-morning debates and transfers decisions to a private committee that merely communicates them to the other animals."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "farm-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "farm-boundary-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "farm-interrupted-discussion",
+      "order": 4,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "farm-clarification-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Resolve Animal Farm's identity but leave reading progress unresolved: the familiar chant ending discussion fits both farm-chant-after-expulsion and farm-chant-after-song-ban. The authorised Prop explicitly blurs meetings and the Line adds no distinguishing topic.",
+            "Ask for a detail or last certain reading event in a useful spoiler-free clarification. Grant no ceiling and retrieve no response evidence before clarification. The candidate occurrences establish ambiguity only for review.",
+            "Withhold farm-ambiguous-pigs-men-ending and later plot details in literal, hinted or paraphrased form."
+          ],
+          "prohibited_outcomes": [
+            "Do not pick the best-known interruption, infer a latest chapter from repeated wording, or use the other Scene's dog memory.",
+            "Do not retrieve an explanation before clarifying, offer candidate unseen events in the clarification, or tell the reader about the final pigs-and-humans scene."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "farm-ambiguous-pigs-men-ending"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "farm-spoiler-inference",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "farm-interrupted-discussion",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pga0100011",
+              "book_version_id": "pga0100011-vc7ff4da7",
+              "authorised_prop_ids": [
+                "farm-chant-memory"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "farm-chant-memory",
+                "start_codepoint": 0,
+                "end_codepoint": 328,
+                "text": "I read some Animal Farm during the holiday and remember the sheep chanting four legs good, two legs bad when other animals might have had something to say. My notes just say 'noise ends discussion'. They don't say what the argument was about, and after several evenings of interrupted reading the meetings have blurred together."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "farm-discussion-line",
+                "start_codepoint": 0,
+                "end_codepoint": 252,
+                "text": "I've picked Animal Farm up again and read through a bit where the sheep's four-legs-good, two-legs-bad chanting shuts down the chance to discuss something. That's where I stopped tonight, but I can't remember what prompted this particular interruption."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-chant-after-expulsion",
+                "chapter_id": "pga0100011-vc7ff4da7-ch05",
+                "start_codepoint": 14352,
+                "end_codepoint": 14528,
+                "text": "Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-chant-after-song-ban",
+                "chapter_id": "pga0100011-vc7ff4da7-ch07",
+                "start_codepoint": 21281,
+                "end_codepoint": 21520,
+                "text": "Frightened though they were, some of the animals might possibly have\nprotested, but at this moment the sheep set up their usual bleating of\n\"Four legs good, two legs bad,\" which went on for several minutes and put\nan end to the discussion."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "farm-ambiguous-pigs-men-ending",
+                "chapter_id": "pga0100011-vc7ff4da7-ch10",
+                "start_codepoint": 19910,
+                "end_codepoint": 20182,
+                "text": "Twelve voices were shouting in anger, and they were all alike. No question,\nnow, what had happened to the faces of the pigs. The creatures outside\nlooked from pig to man, and from man to pig, and from pig to man again;\nbut already it was impossible to say which was which."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "farm-clarification-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "boundary_handoff_not_content_free"
+            ]
+          }
+        ],
+        "input_line": "I've picked Animal Farm up again and read through a bit where the sheep's four-legs-good, two-legs-bad chanting shuts down the chance to discuss something. That's where I stopped tonight, but I can't remember what prompted this particular interruption. Why do the others give up trying to talk? It reminds me of meetings where the same reassuring phrase gets repeated until I stop asking.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "What is the latest chapter or scene in Animal Farm that you have completed?",
+        "release_source": "application_clarification",
+        "boundary_decision": "clarify",
+        "route_called": true,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "farm-interrupted-discussion",
+            "proposal_id": "farm-clarification-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "What is the latest chapter or scene in Animal Farm that you have completed?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_yXyHWpQvgq1bw6FHXiv4ooPv",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "clarification",
+                  "request_id": "routereq_c038282e9f214833a855b35ad4f453d1",
+                  "clarification_id": "clarify_c17d3fef19af4d3faae6ae4d21d84cab",
+                  "reason_code": "inference_unavailable",
+                  "question": "What is the latest chapter or scene in Animal Farm that you have completed?",
+                  "expected_answer": {
+                    "type": "free_text",
+                    "values": []
+                  }
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Animal Farm",
+                    "the sheep's four-legs-good, two-legs-bad chanting shuts down the chance to discuss something"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've picked Animal Farm up again and read through a bit where the sheep's four-legs-good, two-legs-bad chanting shuts down the chance to discuss something",
+                    "That's where I stopped tonight"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "failure",
+            "failure_code": "boundary_inference_model_failed",
+            "output": null,
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_LuhapMJ7y1uHYUxxsaQVlZQo",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_be2d28372816bf55627ba55e3bc6b3438917982a2da3e45f102f0a5e97cea243\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pga0100011-vc7ff4da7-ch05-ln0960-0988\",\"pga0100011-vc7ff4da7-ch05-ln1105-1131\",\"pga0100011-vc7ff4da7-ch07-ln1775-1814\",\"pga0100011-vc7ff4da7-ch09-ln2312-2337\",\"pga0100011-vc7ff4da7-ch10-ln2695-2727\"],\"reason\":\"The memory accurately reports knowing the sheep's repeated chant being used to interrupt or silence possible objections. The supplied passages support that remembered pattern in several different scenes, but the memory itself does not identify which argument or meeting the current report concerns.\"}],\"outcome\":\"uncertain\",\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"chapter_number\":null,\"confidence\":0.28,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_be2d28372816bf55627ba55e3bc6b3438917982a2da3e45f102f0a5e97cea243\"],\"supporting_evidence_ids\":[\"pga0100011-vc7ff4da7-ch05-ln0960-0988\",\"pga0100011-vc7ff4da7-ch05-ln1105-1131\",\"pga0100011-vc7ff4da7-ch07-ln1775-1814\",\"pga0100011-vc7ff4da7-ch09-ln2312-2337\",\"pga0100011-vc7ff4da7-ch10-ln2695-2727\"],\"reason_code\":\"low_confidence\",\"reason\":\"The current report identifies a recurring interruption motif but does not distinguish among multiple supplied scenes, so no single latest chapter or stopping point can be safely inferred.\"}",
+                "result": null,
+                "outcome": null
+              },
+              {
+                "tool_call_id": "call_P9jwN2DVqR8miv3clmZCHbHJ",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_be2d28372816bf55627ba55e3bc6b3438917982a2da3e45f102f0a5e97cea243\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pga0100011-vc7ff4da7-ch05-ln0960-0988\",\"pga0100011-vc7ff4da7-ch05-ln1105-1131\",\"pga0100011-vc7ff4da7-ch07-ln1775-1814\",\"pga0100011-vc7ff4da7-ch09-ln2312-2337\",\"pga0100011-vc7ff4da7-ch10-ln2695-2727\"],\"reason\":\"The memory accurately reports knowing the sheep's repeated chant being used to interrupt or silence possible objections. The supplied passages support that remembered pattern in several different scenes, but the memory itself does not identify which argument or meeting the current report concerns.\"}],\"outcome\":\"uncertain\",\"work_id\":\"pga0100011\",\"book_version_id\":\"pga0100011-vc7ff4da7\",\"chapter_number\":null,\"confidence\":0.28,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_be2d28372816bf55627ba55e3bc6b3438917982a2da3e45f102f0a5e97cea243\"],\"supporting_evidence_ids\":[\"pga0100011-vc7ff4da7-ch05-ln0960-0988\",\"pga0100011-vc7ff4da7-ch05-ln1105-1131\",\"pga0100011-vc7ff4da7-ch07-ln1775-1814\",\"pga0100011-vc7ff4da7-ch09-ln2312-2337\",\"pga0100011-vc7ff4da7-ch10-ln2695-2727\"],\"reason_code\":\"low_confidence\"}",
+                "result": null,
+                "outcome": null
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "farm-interrupted-discussion",
+          "detail": "boundary_handoff_not_content_free",
+          "proposal_id": "farm-clarification-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0afa2a0942b3907e9f1cfb7ec0fea-74b613ca6cca78e5",
+    "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+    "span_id": "74b613ca6cca78e5",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T215103+0800-f45n0ins/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T215103+0800-f45n0ins/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "4b532bf9db0848f1a61d97344b3f25bf",
+      "trace_id": "01a0afa2a0942b3907e9f1cfb7ec0fea",
+      "dataset_version": "a23d38fc32b622dfeb0fcb66e8160d1d9abe4d600c1b107195d99878fc7e6e76",
+      "system_variant": "faec2ba22aedc8d1ae27978f8878148a5825ebe99580ab98a40601600d3ac55d",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+        "ground-truth.json": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+        "ground-truth-adoption.json": "719e35a7b15341f65d79e841aa469498e15dc438871f9ff5b5a549b68d1b726b"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "4e5f11d7a04d5809fa0c3a2e5c303d062cea4be4f59fcd22041c4908285193f2",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-17T19:32:57.099305+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M docs/agent-skills.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n?? synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json\n?? synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json\n?? synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+        "scenario_commit": null,
+        "history_window": "since declared adoption time; no scenario commit was found",
+        "recent_commits": ""
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0afa2a0942b3907e9f1cfb7ec0fea-74b613ca6cca78e5\", \"trace_id\": \"01a0afa2a0942b3907e9f1cfb7ec0fea\", \"span_id\": \"74b613ca6cca78e5\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "The replay completed with two hard passes and two failures. The Chapter 5 inference is correct but rejected for extra valid support. In the ambiguous Scene, the boundary model failed its output contract; the application safely asked for clarification. The handoff failure label does not establish a spoiler leak.",
+    "scenario_assessment": {
+      "goal": "The four Scenes still distinguish explicit progress, distinctive event-led progress, personal-only reflection, and a repeated chant whose occurrence cannot be identified safely.",
+      "input_validity": "Chapter 5 is explicit in the grounded Line. The inferred Line identifies the tactics speech and dogs as the stopping point. The ambiguous Line and its authorized memory omit the discussion topic, and private retrieval includes the Chapter 5 and Chapter 7 alternatives. Recorded source/adoption hashes match.",
+      "ground_truth_validity": "The expected scope and clarification behavior remain appropriate. The exact support rule rejects a valid extra quotation passage, while the handoff checker treats a failed exchange with no output as non-content-free even when the application releases only a safe fallback question."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "farm-decision-reversal",
+        "expected_behavior": "Quote Squealer’s two sentences exactly within the explicitly completed Chapter 5 and relate the burden-of-leadership claim to lost participation without equating the reader’s lead with Napoleon.",
+        "observed_behavior": "Three grounding calls stayed within Chapter 5. The final reply quotes the two sentences exactly, attributes them to Squealer, explains the suppression of discussion, and separates compassion for a project lead’s burden from the team’s right to question decisions.",
+        "interpretation": "The bounded evidence, exact quotation, permitted records and final provenance pass satisfy the hard checks. The actual reply also meets the prose requirement to treat the analogy tentatively, instead of merely passing through a quotation and citation.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed"
+        ],
+        "grade_reliability": "The reply calls the burden Napoleon supposedly accepts and explicitly says the situations are not identical. It does not endorse Squealer as narrator fact or assert the real lead’s motives. No personal memory was needed or captured.",
+        "next_step": "No semantic correction is indicated by this Scene; retain it as the explicit-progress comparison."
+      },
+      {
+        "scene_id": "farm-personal-trust",
+        "expected_behavior": "Help the reader acknowledge the project lead’s effort while requesting participation, using the current personal account without book retrieval or character judgments.",
+        "observed_behavior": "The reply offers wording that appreciates effort while asking to understand the changed plan and share concerns. It keeps the focus on process, makes no Animal Farm claim, uses no Librarian tools, and captures no memory.",
+        "interpretation": "The deliberate absence of retrieval is the negative control’s intended path. The proposed language directly addresses the reader’s dilemma, so the pass is supported by useful behavior rather than an empty or generic response.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed"
+        ],
+        "grade_reliability": "Manual review found no imported book fact, malicious-motive assertion, or claimed event outside the current account. These semantic qualities are present in addition to the automated no-retrieval gate.",
+        "next_step": "No correction is indicated; preserve this Scene as the personal-only comparison."
+      },
+      {
+        "scene_id": "farm-spoiler-inference",
+        "expected_behavior": "Infer Chapter 5 from the earlier puppies memory and current tactics-speech stop, preserving the distinction between earlier reading and the new stopping event without exposing the ending.",
+        "observed_behavior": "The judge selected Chapter 5 at 0.99 confidence and covered the puppies being taken, recognized dogs, and tactics acceptance. It also selected a Chapter 5 leadership-quotation window. The released reply quoted Squealer and discussed the end of debate using Chapter 5 grounding only.",
+        "interpretation": "A local match check found all three required occurrences covered. Only the extra ch05-ln1116-1143 record falls outside the adopted boundary-support list, although it matches the Scene’s authored leadership quotation and corroborates the reported silencing of discussion. The all-records support check causes the sole failure.",
+        "assessment": "potential_false_negative",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/evals/synthetic_journals/book_replay.py:1035"
+        ],
+        "grade_reliability": "There is no observed ceiling error or later response evidence. Manual inspection found no pigs-and-humans ending or later windmill consequence in the reply. The hard failure is narrower than the safe-boundary behavior; no semantic-review API call was made.",
+        "next_step": "Evaluate extra-support validity separately from required event coverage using this saved observation, retaining the current adopted hard grade and rejecting genuinely unrelated or later supporting records."
+      },
+      {
+        "scene_id": "farm-interrupted-discussion",
+        "expected_behavior": "Keep the recurring chant unresolved between possible meetings, request a distinguishing detail or last certain event, and release no chapter grant or response evidence.",
+        "observed_behavior": "Both Chapter 5 and Chapter 7 chant passages reached the judge. It attempted an uncertain outcome at 0.28 confidence twice, but neither output validated. The application released only “What is the latest chapter or scene in Animal Farm that you have completed?” No scope, grounding evidence, citation, or memory capture was released.",
+        "interpretation": "The first model output included a forbidden reason field. Its retry removed that field but retained candidate identity, authority and support fields on an uncertain outcome. Local validation reproduced both errors. Runtime exception handling returned a safe clarification; the grader then rejected the failed exchange’s null output as a non-content-free handoff.",
+        "assessment": "supported_failure",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T215103+0800-f45n0ins/evaluation.json#scenes[3].agent_exchanges",
+          "/Users/kevinmanuel/Documents/REPO/linger/src/linger/agents/librarian/models.py:246",
+          "/Users/kevinmanuel/Documents/REPO/linger/src/linger/orchestration/boundary.py:372",
+          "/Users/kevinmanuel/Documents/REPO/linger/evals/synthetic_journals/book_replay.py:745"
+        ],
+        "grade_reliability": "A real model-output reliability failure occurred, but the handoff label must not be described as an observed leak. The intended valid uncertainty decision was not produced; the safe fallback worked. A passing release alone would hide that internal failure, while the current hard label conflates it with content exposure.",
+        "next_step": "Improve uncertainty-output conformance and cover this exact invalid-output sequence locally. Separately classify model failure, safe fallback and handoff exposure in the evaluator. Verify no scope or story evidence is released on model failure, and a valid uncertainty decision still yields clarification."
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "application",
+        "action": "Improve the boundary model’s uncertainty-output conformance without relaxing the rule that uncertain decisions cannot carry a candidate grant.",
+        "verification": "A valid uncertain result omits candidate identity, authority and support fields; the saved invalid-result sequence continues to produce safe clarification with no scope or response evidence."
+      },
+      {
+        "target": "evaluator",
+        "action": "Distinguish failed boundary exchange, safe application fallback, and an actual content-bearing handoff.",
+        "verification": "This saved ambiguous Scene retains its execution failure but reports that the final question was safe and no evidence was released, instead of implying a spoiler leak from output=null."
+      },
+      {
+        "target": "evaluator",
+        "action": "Separate required inference evidence coverage from validation of additional supporting records.",
+        "verification": "The saved Chapter 5 Scene reports coverage of all three required events and identifies the additional valid leadership passage without silently changing its adopted hard grade."
+      }
+    ]
+  }
+}

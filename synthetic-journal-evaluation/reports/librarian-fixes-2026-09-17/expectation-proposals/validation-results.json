@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-09-17T16:33:23.089965+00:00",
+  "checks": [
+    {
+      "menu_number": 1,
+      "validated_directory": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/expectation-proposals/menu-1-caterpillar-schema-successor",
+      "originals_unchanged": {
+        "backstory.json": true,
+        "ground-truth.json": true,
+        "ground-truth-adoption.json": true
+      },
+      "valid": true,
+      "scenes": 3,
+      "proposals": 4
+    },
+    {
+      "menu_number": 2,
+      "validated_directory": "synthetic-journal-evaluation/scenarios/alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07",
+      "originals_unchanged": {
+        "backstory.json": true,
+        "ground-truth.json": true
+      },
+      "valid": true,
+      "scenes": 3,
+      "proposals": 4
+    },
+    {
+      "menu_number": 3,
+      "validated_directory": "synthetic-journal-evaluation/scenarios/alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01",
+      "originals_unchanged": {
+        "backstory.json": true,
+        "ground-truth.json": true,
+        "ground-truth-adoption.json": true
+      },
+      "valid": false,
+      "errors": "proposals.0: Value error, book Objective requires typed book_expectation | proposals.1: Value error, book Objective requires typed book_expectation | proposals: Tuple should have at least 1 item after validation, not 0"
+    },
+    {
+      "menu_number": 5,
+      "validated_directory": "synthetic-journal-evaluation/scenarios/alice-quotation-grounding--muse-librarian-provenance--2026-08-31",
+      "originals_unchanged": {
+        "backstory.json": true,
+        "ground-truth.json": true,
+        "ground-truth-adoption.json": true
+      },
+      "valid": false,
+      "errors": "proposals.0: Value error, book Objective requires typed book_expectation | proposals.1: Value error, book Objective requires typed book_expectation | proposals: Tuple should have at least 1 item after validation, not 0"
+    }
+  ],
+  "original_adoptions_modified": false,
+  "new_adoptions_created": false,
+  "provider_calls": 0
+}

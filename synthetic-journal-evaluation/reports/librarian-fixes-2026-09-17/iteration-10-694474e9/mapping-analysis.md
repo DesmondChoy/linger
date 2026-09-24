@@ -1,0 +1,20 @@
+# Provenance mapping controls — iteration 10
+
+The reordered audits and required evidence conclusion produce **3/4 correct decisions**, unchanged from iteration9 and below iteration8’s4/4. The missing-contribution negative still passes incorrectly. Its new summary makes the false attribution explicit rather than resolving it.
+
+| Control | Recorded result and independent assessment |
+| --- | --- |
+| Wrong record | Credible final **revise**, after a safety-critical repair. The first output incorrectly passes and copies memory/verse text from the available later passage as proof for the declared earlier record. The application rejects that source-local binding. The second output correctly says the declared record ends before both claimed details and supplies an unsupported-claim finding. |
+| Correct record | Credible **pass**, one request. The declared later record supplies both the memory difficulty and altered verse. The proof and summary accurately identify both parts. |
+| Missing joint contribution | **Incorrect pass**, one request. Only the earlier identity passage is declared for a compound identity-plus-verse claim. Its copied identity excerpt is authentic, but the summary falsely says the declared record also contains the verse report. No declared source supports that second clause. |
+| Complete joint contribution | Credible **pass**, one request. The identity and verse records are both declared. Separate authentic excerpts and a clear summary account for each contribution and their collective completeness. |
+
+The failed summary states: “The declared Chapter 5 record supports both parts of the claim: Alice cannot explain herself amid confusion about her changing size, and she says that the familiar verse came out differently when she tried to recite it.” The named record ends before the verse report. This is a semantic source-attribution failure, not a schema, missing-summary or exact-excerpt failure. The partial excerpt is valid; the conclusion drawn about the full named record is wrong. Requiring a summary improves observability but does not make entailment deterministic.
+
+The wrong-record control demonstrates that binding still matters: its first unsupported approval was rejected because its private proof did not belong to the named source. It also changed curly punctuation to a straight quote, but the passage is absent from that source regardless. The repair preserves the genuine defect rather than approving borrowed evidence. Conversely, the complete joint control shows that distinct partial contributions can be accepted without demanding that each member independently prove the whole claim.
+
+Iteration9 used one request for each case; iteration10 uses2,1,1,1. The missing-contribution error repeats despite audits appearing before the final decision and a required support summary. These four controls do not justify increasing retries or relaxing support checks. They contain no visible quotations, no uncovered response spans and no full Muse release, so they cannot establish coverage or quotation reliability.
+
+A narrower model-visible source set is a plausible next hypothesis, not an established diagnosis. The unused later source is visible in the failed input, but prior book knowledge could also supply the missing detail. In the production request, untrusted tool outcomes repeat source records, so filtering only canonical arrays would not remove the text. Removing undeclared stored memories also risks weakening detection of private details misclassified as ordinary reader reflection. Any projection experiment must preserve independent missing-memory coverage, all declared source kinds, current input validation, and the application’s canonical authority; it must test both the partial negative and the valid joint positive. This review does not authorize that change.
+
+Evidence: [inputs, outputs and raw messages](suite-mapping.json), [iteration9 comparison](../iteration-09-d5215f1b/mapping-analysis.md). No provider calls, source changes, expectation changes or automatic retries were performed during this review.

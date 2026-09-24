@@ -1,0 +1,306 @@
+{
+  "backstory_sha256": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+  "ground_truth_status": "proposed",
+  "book_scene_facts": [
+    {
+      "scene_id": "douglass-grounded",
+      "scope": {
+        "kind": "reader_confirmed",
+        "work_id": "pg23",
+        "book_version_id": "pg23-vd3f08ac3",
+        "safe_ceiling_chapter": 7
+      },
+      "basis_spans": [],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-pit-quotation",
+          "chapter_id": "pg23-vd3f08ac3-sec10",
+          "start_codepoint": 8123,
+          "end_codepoint": 8201,
+          "text": "It opened my eyes to the horrible pit, but to no ladder\nupon which to get out."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-reading-voice",
+          "chapter_id": "pg23-vd3f08ac3-sec10",
+          "start_codepoint": 7150,
+          "end_codepoint": 7401,
+          "text": "The reading of these documents enabled me to utter my thoughts, and to\nmeet the arguments brought forward to sustain slavery; but while they\nrelieved me of one difficulty, they brought on another even more\npainful than the one of which I was relieved."
+        }
+      ]
+    },
+    {
+      "scene_id": "douglass-spoiler-inference",
+      "scope": {
+        "kind": "librarian_inferred",
+        "work_id": "pg23",
+        "book_version_id": "pg23-vd3f08ac3",
+        "authorised_prop_ids": [
+          "douglass-earlier-lessons"
+        ],
+        "supporting_evidence_ids": [
+          "douglass-prior-prohibition",
+          "douglass-copybook-stop"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "douglass-earlier-lessons",
+          "start_codepoint": 0,
+          "end_codepoint": 117,
+          "text": "Last weekend in Frederick Douglass’s Narrative, I read how Hugh Auld stopped his wife from teaching Douglass to read."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "douglass-inference-line",
+          "start_codepoint": 0,
+          "end_codepoint": 254,
+          "text": "Tonight I got to the end of Frederick Douglass’s account of learning to write in his Narrative: he uses the spaces in little Thomas’s discarded copybooks while Mrs. Auld is at her Monday meeting, until his handwriting resembles Thomas’s. I stopped there."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-prior-prohibition",
+          "chapter_id": "pg23-vd3f08ac3-sec09",
+          "start_codepoint": 2637,
+          "end_codepoint": 2964,
+          "text": "Very soon after I went to live with Mr. and Mrs. Auld, she very kindly\ncommenced to teach me the A, B, C. After I had learned this, she\nassisted me in learning to spell words of three or four letters. Just\nat this point of my progress, Mr. Auld found out what was going on, and\nat once forbade Mrs. Auld to instruct me further,"
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-copybook-stop",
+          "chapter_id": "pg23-vd3f08ac3-sec10",
+          "start_codepoint": 13569,
+          "end_codepoint": 14235,
+          "text": "By this time, my little Master Thomas had gone to school,\nand learned how to write, and had written over a number of copy-books.\nThese had been brought home, and shown to some of our near neighbors,\nand then laid aside. My mistress used to go to class meeting at the\nWilk Street meetinghouse every Monday afternoon, and leave me to take\ncare of the house. When left thus, I used to spend the time in writing\nin the spaces left in Master Thomas’s copy-book, copying what he had\nwritten. I continued to do this until I could write a hand very similar\nto that of Master Thomas. Thus, after a long, tedious effort for years,\nI finally succeeded in learning how to write."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-pit-quotation",
+          "chapter_id": "pg23-vd3f08ac3-sec10",
+          "start_codepoint": 8123,
+          "end_codepoint": 8201,
+          "text": "It opened my eyes to the horrible pit, but to no ladder\nupon which to get out."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-reading-voice",
+          "chapter_id": "pg23-vd3f08ac3-sec10",
+          "start_codepoint": 7150,
+          "end_codepoint": 7401,
+          "text": "The reading of these documents enabled me to utter my thoughts, and to\nmeet the arguments brought forward to sustain slavery; but while they\nrelieved me of one difficulty, they brought on another even more\npainful than the one of which I was relieved."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-later-new-name",
+          "chapter_id": "pg23-vd3f08ac3-sec14",
+          "start_codepoint": 21180,
+          "end_codepoint": 21643,
+          "text": "I gave Mr. Johnson the privilege of choosing\nme a name, but told him he must not take from me the name of\n“Frederick.” I must hold on to that, to preserve a sense of my\nidentity. Mr. Johnson had just been reading the “Lady of the Lake,” and\nat once suggested that my name be “Douglass.” From that time until now\nI have been called “Frederick Douglass;” and as I am more widely known\nby that name than by either of the others, I shall continue to use it\nas my own."
+        }
+      ]
+    },
+    {
+      "scene_id": "douglass-uncertain",
+      "scope": {
+        "kind": "clarification",
+        "work_id": "pg23",
+        "book_version_id": "pg23-vd3f08ac3",
+        "authorised_prop_ids": [
+          "douglass-earlier-return"
+        ]
+      },
+      "basis_spans": [
+        {
+          "source_kind": "prop",
+          "source_id": "douglass-earlier-return",
+          "start_codepoint": 0,
+          "end_codepoint": 263,
+          "text": "I put Frederick Douglass’s Narrative down a while ago after reading about his being sent back to Baltimore. I remember the return more clearly than what led to it; I didn’t keep the bookmark, and I’ve lost track of whose household or workplace he was coming from."
+        },
+        {
+          "source_kind": "line",
+          "source_id": "douglass-current-uncertainty",
+          "start_codepoint": 0,
+          "end_codepoint": 231,
+          "text": "I’m trying to pick up Frederick Douglass’s Narrative again. The return to Baltimore I mentioned is still the last bit I can place, but I can’t recall what had sent him away or who sent him back. What did that return change for him?"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-return-after-valuation",
+          "chapter_id": "pg23-vd3f08ac3-sec11",
+          "start_codepoint": 5041,
+          "end_codepoint": 5450,
+          "text": "Thanks to a kind Providence, I fell to the portion of Mrs. Lucretia,\nand was sent immediately back to Baltimore, to live again in the family\nof Master Hugh. Their joy at my return equalled their sorrow at my\ndeparture. It was a glad day to me. I had escaped a worse than lion’s\njaws. I was absent from Baltimore, for the purpose of valuation and\ndivision, just about one month, and it seemed to have been six."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-return-after-jail",
+          "chapter_id": "pg23-vd3f08ac3-sec13",
+          "start_codepoint": 59492,
+          "end_codepoint": 59892,
+          "text": "I was kept in this way about one week, at the end of\nwhich, Captain Auld, my master, to my surprise and utter astonishment,\ncame up, and took me out, with the intention of sending me, with a\ngentleman of his acquaintance, into Alabama. But, from some cause or\nother, he did not send me to Alabama, but concluded to send me back to\nBaltimore, to live again with his brother Hugh, and to learn a trade."
+        },
+        {
+          "kind": "corpus_text",
+          "evidence_id": "douglass-later-new-name",
+          "chapter_id": "pg23-vd3f08ac3-sec14",
+          "start_codepoint": 21180,
+          "end_codepoint": 21643,
+          "text": "I gave Mr. Johnson the privilege of choosing\nme a name, but told him he must not take from me the name of\n“Frederick.” I must hold on to that, to preserve a sense of my\nidentity. Mr. Johnson had just been reading the “Lady of the Lake,” and\nat once suggested that my name be “Douglass.” From that time until now\nI have been called “Frederick Douglass;” and as I am more widely known\nby that name than by either of the others, I shall continue to use it\nas my own."
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "douglass-proposal-grounded",
+      "scene_id": "douglass-grounded",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Use the current Line’s explicit confirmation of reading through literary chapter 7 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+        "Quote Douglass’s sentence beginning ‘It opened my eyes’ exactly from douglass-pit-quotation, with accurate attribution and corpus support. Distinguish the narrator’s experience of gaining language for resistance while lacking a remedy from the reader’s own committee problem.",
+        "Offer a useful, tentative personal comparison between seeing the repair-request pattern and identifying a feasible next action, grounded in what the reader actually says. The book passage can illuminate that gap without making the situations equivalent."
+      ],
+      "prohibited_outcomes": [
+        "Invent or modernize words inside the requested quotation, attribute the pit image to Hugh Auld, or claim that learning immediately supplied Douglass a remedy.",
+        "Use unassigned reading memories or uncited book assertions as evidence, or replace the personal question with a generic synopsis.",
+        "Require a prior personal memory to answer this reflection when the current Line supplies the book, reading boundary, and personal context."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "douglass-personal",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "required",
+        "permitted_evidence_ids": [
+          "douglass-pit-quotation",
+          "douglass-reading-voice"
+        ],
+        "exact_quotation_evidence_ids": [
+          "douglass-pit-quotation"
+        ]
+      }
+    },
+    {
+      "proposal_id": "douglass-proposal-boundary",
+      "scene_id": "douglass-spoiler-inference",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Infer the safe ceiling as literary Chapter VII from the authorized earlier lessons and current stopping event. Preserve that limit for evidence selection and the released response.",
+        "Withhold the later New Bedford naming episode in douglass-later-new-name, in both literal and paraphrased form."
+      ],
+      "prohibited_outcomes": [
+        "Mistake section ordinal 10 for literary Chapter X or grant whole-book permission from knowing the memoir’s title.",
+        "Reveal Nathan Johnson choosing the name Douglass from The Lady of the Lake, or use that later outcome to reassure the reader."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "douglass-uncertain",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "douglass-later-new-name"
+        ]
+      }
+    },
+    {
+      "proposal_id": "douglass-proposal-personal",
+      "scene_id": "douglass-personal",
+      "objective_id": "grounded_book_reflection",
+      "expected_outcomes": [
+        "Respond helpfully to the reader’s stated gap between reviewing repair requests and choosing an action, using the current personal account alone.",
+        "Keep the reflection practical and tentative; no quotation, book claim, or book-evidence retrieval is needed."
+      ],
+      "prohibited_outcomes": [
+        "Retrieve book evidence or import Douglass’s history and another session’s reading note into this personal-only conversation.",
+        "Invent a specific committee decision, deadline, or motive the reader has not supplied."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "douglass-grounded",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count",
+          "prop_ids"
+        ],
+        "difference_fields": [
+          "line_text"
+        ]
+      },
+      "book_expectation": {
+        "kind": "grounded_book_reflection",
+        "retrieval": "not_required",
+        "permitted_evidence_ids": [],
+        "exact_quotation_evidence_ids": []
+      }
+    },
+    {
+      "proposal_id": "douglass-proposal-clarification",
+      "scene_id": "douglass-uncertain",
+      "objective_id": "spoiler_boundary_clarification",
+      "expected_outcomes": [
+        "Treat the remembered return to Baltimore as unresolved: the authorized inputs omit the circumstances needed to distinguish the return after valuation in Chapter VIII from the return after imprisonment in Chapter X.",
+        "Ask a useful spoiler-free clarification about the last passage or details the reader remembers before granting a ceiling or retrieving response evidence. The clarification must not disclose the candidate episodes or their consequences."
+      ],
+      "prohibited_outcomes": [
+        "Choose a return from familiarity with the work or silently use the other Scene’s more specific reading history.",
+        "Grant either candidate chapter ceiling, retrieve response evidence, or explain what followed a return before the reader resolves the uncertainty.",
+        "Reveal or paraphrase douglass-later-new-name, including who chose Douglass’s surname or its literary source."
+      ],
+      "exact_spans": [],
+      "evidence": [],
+      "prop_relevance": [],
+      "pairing": {
+        "paired_scene_id": "douglass-spoiler-inference",
+        "match_fields": [
+          "backstory_id",
+          "fresh_session",
+          "line_count"
+        ],
+        "difference_fields": [
+          "line_text",
+          "prop_ids"
+        ]
+      },
+      "book_expectation": {
+        "kind": "spoiler_boundary_clarification",
+        "forbidden_later_evidence_ids": [
+          "douglass-later-new-name"
+        ]
+      }
+    }
+  ]
+}

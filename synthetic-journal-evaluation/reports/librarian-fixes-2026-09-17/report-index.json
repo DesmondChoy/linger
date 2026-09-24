@@ -1,0 +1,1227 @@
+{
+  "native_scenario_reports": [
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T234522+0800-ruchkghw/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234903+0800-cb02174e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234903+0800-cb02174e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T234646+0800-lsrg_61x/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234938+0800-20a82524.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234938+0800-20a82524.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T234815+0800-bntmk2y9/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T235041+0800-5ef5240b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T235041+0800-5ef5240b.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-17T234146+0800-ohxzuptp/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-17T234331+0800-93df5e11.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-17T234331+0800-93df5e11.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-17T234146+0800-i6diwa4g/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-17T234521+0800-229c1fee.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-17T234521+0800-229c1fee.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T234146+0800-c843it36/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234441+0800-fdf8f47e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234441+0800-fdf8f47e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-17T234333+0800-umvcric7/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-17T234814+0800-6dfa90ca.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-17T234814+0800-6dfa90ca.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-01-73c20b0c",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-17T234442+0800-n5er4heb/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234644+0800-b96a1d38.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-17T234644+0800-b96a1d38.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-02-e65ec438",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T000747+0800-f9hhpto7/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T001043+0800-267b2d2a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T001043+0800-267b2d2a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-02-e65ec438",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T000346+0800-3pynh1qx/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T000522+0800-758f8d99.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T000522+0800-758f8d99.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-02-e65ec438",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T000346+0800-d9rmng4y/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T000746+0800-2c58c78b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T000746+0800-2c58c78b.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-02-e65ec438",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T000346+0800-29oa03pd/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T000801+0800-efcca745.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T000801+0800-efcca745.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-02-e65ec438",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T000523+0800-hr7_cn6g/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T000853+0800-83c1c55d.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T000853+0800-83c1c55d.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T003420+0800-a555npkd/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003725+0800-c3b7a35e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003725+0800-c3b7a35e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T003556+0800-fvwt56yq/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003910+0800-f3be4607.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003910+0800-f3be4607.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T003705+0800-9ren53sh/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T004009+0800-a903282c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T004009+0800-a903282c.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T003039+0800-2vfbxq7s/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T003246+0800-ebda4f3e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T003246+0800-ebda4f3e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T003039+0800-5xpd02xv/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T003408+0800-1c867573.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T003408+0800-1c867573.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T003039+0800-lfk29yz9/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003419+0800-94deb686.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003419+0800-94deb686.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T003247+0800-2vpuxl5w/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T003555+0800-a1e56e39.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T003555+0800-a1e56e39.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-03-4715c97d",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T003410+0800-3o144s80/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003704+0800-f9593ee5.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T003704+0800-f9593ee5.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-04-797d2eda",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T004919+0800-awk7576d/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T005208+0800-1274fc88.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T005208+0800-1274fc88.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-04-797d2eda",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T004919+0800-wm2qa6az/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T005235+0800-58c6dd2b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T005235+0800-58c6dd2b.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-04-797d2eda",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T004919+0800-mt0w4vpb/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T005211+0800-259bdfe9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T005211+0800-259bdfe9.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011034+0800-oglfx8y6/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011405+0800-b12c9db5.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011405+0800-b12c9db5.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011108+0800-zbne1s0p/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011410+0800-b2639618.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011410+0800-b2639618.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011516+0800-df922382.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011516+0800-df922382.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T010610+0800-g_csguxj/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T010753+0800-82dace29.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T010753+0800-82dace29.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T010610+0800-xdj2d6ib/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T011033+0800-e5413dcf.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T011033+0800-e5413dcf.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T010610+0800-r39ivyfj/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T010938+0800-784b310e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T010938+0800-784b310e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T010754+0800-5v0_huxx/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T011107+0800-1814dc26.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T011107+0800-1814dc26.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-05-8f52910d",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T010939+0800-txg0bgw3/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011206+0800-26a664da.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T011206+0800-26a664da.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T013402+0800-flo27dvc/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013604+0800-b6e93838.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013604+0800-b6e93838.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T013341+0800-i3i8g13n/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T013644+0800-8f4ba3e0.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T013644+0800-8f4ba3e0.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T013151+0800-li02os9w/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T013340+0800-8ae059c2.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T013340+0800-8ae059c2.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T013151+0800-b12j6mch/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013401+0800-526299e8.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013401+0800-526299e8.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T013151+0800-j3on8rft/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T013512+0800-2a90a885.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T013512+0800-2a90a885.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T013645+0800-s1hx6x8v/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013952+0800-3a2526c9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013952+0800-3a2526c9.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T013513+0800-l71hkv4e/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013828+0800-5107240e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013828+0800-5107240e.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-06-0b927fa3",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T013605+0800-4s8axrj2/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013836+0800-e233f4e2.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T013836+0800-e233f4e2.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T015346+0800-2doxlo5m/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015817+0800-6a6d19d9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015817+0800-6a6d19d9.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T015436+0800-67wg79ll/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015817+0800-f7a9ff93.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015817+0800-f7a9ff93.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T015538+0800-jwoz9o6w/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015841+0800-c1ac615a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015841+0800-c1ac615a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T014859+0800-nttyqma7/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T015135+0800-f26b317c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T015135+0800-f26b317c.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T014859+0800-288qu31b/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T015344+0800-9bc4153d.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T015344+0800-9bc4153d.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T014859+0800-rxj04igq/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015202+0800-34d9e4be.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015202+0800-34d9e4be.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T015136+0800-m50qd6r4/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T015435+0800-44917d48.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T015435+0800-44917d48.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-07-e1e6fe49",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T015202+0800-osay8b4a/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015537+0800-0797f24a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T015537+0800-0797f24a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084943+0800-yuw8m94x/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085329+0800-e90f7e40.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085329+0800-e90f7e40.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T085220+0800-gzbixv53/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085515+0800-b9746239.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085515+0800-b9746239.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T085246+0800-a05nh9q4/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085500+0800-d692140a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085500+0800-d692140a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T084624+0800-qfayjwbm/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T084846+0800-ab957188.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T084846+0800-ab957188.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084624+0800-wphytdbf/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T084942+0800-00c729d3.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T084942+0800-00c729d3.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084624+0800-ihpcc3qh/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T084931+0800-bbf7ddb6.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T084931+0800-bbf7ddb6.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T084847+0800-96odbyr0/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T085245+0800-05155c4c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T085245+0800-05155c4c.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-08-a0b8741f",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T084931+0800-v1q5f280/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085219+0800-340b5174.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T085219+0800-340b5174.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-09-d5215f1b",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T091320+0800-kckxw1c7/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T091816+0800-f15412fe.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T091816+0800-f15412fe.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-09-d5215f1b",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T090943+0800-7_df4b4z/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T091320+0800-8098e0d2.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T091320+0800-8098e0d2.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-09-d5215f1b",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T090943+0800-9kmoqzxr/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T091923+0800-d4d43413.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T091923+0800-d4d43413.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-09-d5215f1b",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T090943+0800-iii5_5x_/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T091507+0800-47acd9a0.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T091507+0800-47acd9a0.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-10-694474e9",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T093148+0800-nn6y9g3n/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T093430+0800-ac44c13a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T093430+0800-ac44c13a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-10-694474e9",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T093148+0800-au9tkzfm/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T093801+0800-cc8ae62b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T093801+0800-cc8ae62b.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-10-694474e9",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T093148+0800-e8jk406u/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T093645+0800-1ee7f0e0.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T093645+0800-1ee7f0e0.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-11-1239bfff",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T094942+0800-ozcci_dd/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T095434+0800-509b6a64.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T095434+0800-509b6a64.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-11-1239bfff",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T094942+0800-5g89b43c/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T095444+0800-957240e9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T095444+0800-957240e9.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T101512+0800-hx9zqasm/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101825+0800-63e325e0.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101825+0800-63e325e0.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T101642+0800-mlygcq32/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101948+0800-682a4f3b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101948+0800-682a4f3b.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T101710+0800-poayv6n6/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101959+0800-34e94b8c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101959+0800-34e94b8c.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T101038+0800-kt7uqtzv/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T101258+0800-9c90e0cd.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T101258+0800-9c90e0cd.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T101038+0800-4a89al0c/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T101511+0800-f9b930dc.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T101511+0800-f9b930dc.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T101038+0800-5ad0pc2s/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101444+0800-858036ec.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101444+0800-858036ec.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T101259+0800-lpi4e5bg/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T101709+0800-68866bf9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T101709+0800-68866bf9.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-12-7098e696",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T101444+0800-hzkyd1ry/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101641+0800-3151b864.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T101641+0800-3151b864.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-13-4d9bca6b",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T103916+0800-g3o38scj/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T104320+0800-86d387d2.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T104320+0800-86d387d2.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-13-4d9bca6b",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T103916+0800-bnqrct_1/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104213+0800-fc5b1274.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104213+0800-fc5b1274.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-13-4d9bca6b",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T103916+0800-om814fue/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T104301+0800-7365c416.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T104301+0800-7365c416.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-13-4d9bca6b",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T104213+0800-pabwr7am/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104603+0800-e7f9037a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104603+0800-e7f9037a.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-13-4d9bca6b",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T104302+0800-tjr87gxz/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104539+0800-6582be37.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T104539+0800-6582be37.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T155259+0800-73ysa46l/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T155739+0800-9c962702.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T155739+0800-9c962702.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T155259+0800-sfxypbzy/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T155811+0800-d7a2c9cb.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T155811+0800-d7a2c9cb.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T155259+0800-okrshy_c/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T155708+0800-1dd87d08.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T155708+0800-1dd87d08.md",
+      "status": "failed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T155709+0800-bk8786cv/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T160153+0800-96bbfc18.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T160153+0800-96bbfc18.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T155740+0800-cvd78hk4/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160110+0800-01be680b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160110+0800-01be680b.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T155812+0800-oe852lu0/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160338+0800-25afa7fa.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160338+0800-25afa7fa.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T160111+0800-t5clnzq8/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160545+0800-4698da13.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160545+0800-4698da13.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-14-76df3f36",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T160154+0800-pbn_za_m/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160507+0800-b08e8abc.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T160507+0800-b08e8abc.md",
+      "status": "passed"
+    },
+    {
+      "iteration": "iteration-15-2fea4d3d",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T164250+0800-5j8akk_0/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T182420+0800-e9edb9d1.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T182420+0800-e9edb9d1.md",
+      "status": "interrupted",
+      "recovered_offline": true
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T183310+0800-7p0nlewa/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T183740+0800-76eb31b3.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T183740+0800-76eb31b3.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-5_51qvev/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183832+0800-bc086db5.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183832+0800-bc086db5.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-glabkai8/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183920+0800-653dfbde.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183920+0800-653dfbde.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-q5ph1oof/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183935+0800-d6687cc7.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T183935+0800-d6687cc7.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-t3n7qc8b/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T184008+0800-cca9ccc8.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T184008+0800-cca9ccc8.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-rqygnwxl/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184118+0800-3728e8b8.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184118+0800-3728e8b8.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T183310+0800-h_ndnbg0/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184045+0800-5712cd50.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T184045+0800-5712cd50.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-16-8128af83",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T183310+0800-zi19kxzq/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T184157+0800-ed4080a0.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T184157+0800-ed4080a0.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T185200+0800-8db6u3fs/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T185639+0800-ffc00f14.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T185639+0800-ffc00f14.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-c4wo4kh9/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185546+0800-9f4c04fa.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185546+0800-9f4c04fa.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-n9hbxvh5/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185702+0800-a7bc849a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185702+0800-a7bc849a.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-sk8q8bsf/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185728+0800-96e82c80.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185728+0800-96e82c80.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T185200+0800-6dy4_pmm/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T185751+0800-3e1ddf77.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T185751+0800-3e1ddf77.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T185200+0800-lx1i671t/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T185702+0800-99023ee9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T185702+0800-99023ee9.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-pb1u0yn7/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185827+0800-fa30a0e3.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185827+0800-fa30a0e3.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-17-e83c3776",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T185200+0800-9wdhxl1l/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185853+0800-2066cf09.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T185853+0800-2066cf09.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T190722+0800-v2kos84k/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T190957+0800-20d1e195.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T190957+0800-20d1e195.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190722+0800-_ps33agg/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T190954+0800-2221b893.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T190954+0800-2221b893.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190722+0800-0rc0pkzx/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191157+0800-f852b01a.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191157+0800-f852b01a.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190722+0800-kqx3k8pz/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191115+0800-de484b3b.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191115+0800-de484b3b.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T190722+0800-c9ag2md2/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T191152+0800-a9812baf.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T191152+0800-a9812baf.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190955+0800-5kt5zgtz/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191242+0800-0e5a3117.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191242+0800-0e5a3117.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T190722+0800-js837f7l/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T191324+0800-94d030c6.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T191324+0800-94d030c6.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-18-c15a6da6",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T190957+0800-2sdzz1z5/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191300+0800-bb200144.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T191300+0800-bb200144.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T192347+0800-kgp27eut/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T192644+0800-f521b834.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T192644+0800-f521b834.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192347+0800-sacrzfop/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192707+0800-b53dd55d.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192707+0800-b53dd55d.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192347+0800-k0hthm3b/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192716+0800-18ba95cb.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192716+0800-18ba95cb.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T192347+0800-abqyv65t/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T192841+0800-6be471d1.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T192841+0800-6be471d1.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T192347+0800-t1bmvz3o/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T192804+0800-a77f9230.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T192804+0800-a77f9230.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192347+0800-nt08z6_1/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192823+0800-6b537298.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T192823+0800-6b537298.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192646+0800-2cy75m37/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T193044+0800-491d6d63.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T193044+0800-491d6d63.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-19-c264f342",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192708+0800-uynttla8/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T193011+0800-efcc1747.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T193011+0800-efcc1747.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T194007+0800-i2dihvn3/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T194022+0800-df67154c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T194022+0800-df67154c.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194100+0800-qcfvubog/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194204+0800-5bff2ca5.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194204+0800-5bff2ca5.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194138+0800-wjst_q0r/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194156+0800-4cfef713.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194156+0800-4cfef713.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194221+0800-416804b9.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194205+0800-o8uzztzc/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194312+0800-0c1ccf0e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194312+0800-0c1ccf0e.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194222+0800-u7k5uwey/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194258+0800-8af108ab.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194258+0800-8af108ab.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-20-2f76d7ae",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194251+0800-dfo53f4a/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T194315+0800-da66a4fa.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-4",
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T200830+0800-014c8qsf/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T201135+0800-dc51b54c.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T201135+0800-dc51b54c.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-6",
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T200830+0800-atfnnjxw/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T201409+0800-8c9ab890.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T201409+0800-8c9ab890.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-7",
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201136+0800-n199409a/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201521+0800-6608cb77.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201521+0800-6608cb77.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-8",
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T201410+0800-i_2td0el/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T201738+0800-5e56f6c4.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T201738+0800-5e56f6c4.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-9",
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201509+0800-5lw1chvk/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201741+0800-601a4b3e.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201741+0800-601a4b3e.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-10",
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201521+0800-rdy2lchi/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201956+0800-ded568e4.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T201956+0800-ded568e4.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-12",
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201741+0800-_ar2c_e5/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T202040+0800-cfefa987.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T202040+0800-cfefa987.md",
+      "status": "completed"
+    },
+    {
+      "iteration": "iteration-21-f155ea01",
+      "suite": "suite-11",
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201739+0800-e853_trz/evaluation.json",
+      "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T202224+0800-8bbe3323.json",
+      "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/analysis-report-2026-09-18T202224+0800-8bbe3323.md",
+      "status": "completed"
+    }
+  ],
+  "local_test_checkpoint": {
+    "tests_passed": 1904,
+    "subtests_passed": 670,
+    "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/local-tests-repair-20.log",
+    "scope": "Full final repair20 checkpoint including offline driver/adapter tests"
+  },
+  "live_budget": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/live-budget.json"
+}

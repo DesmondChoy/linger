@@ -1,0 +1,570 @@
+{
+  "kind": "offline_boundary_trace_audit",
+  "provider_calls": 0,
+  "book_scene_count": 23,
+  "event_gates": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219"
+      ],
+      "reader_spans": [
+        "I've just finished the part in Alice where the Pigeon calls her a serpent and she tries to say she's a little girl."
+      ],
+      "explanation": "The reader specifies the Pigeon’s accusation and Alice’s hesitant attempt to identify herself as a little girl, which together distinguish the occurrence in Chapter 5."
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pga0100011-vc7ff4da7-ch05-ln1177-1203"
+      ],
+      "reader_spans": [
+        "Tonight I read on through his decision to build the windmill after all, and stopped after Squealer calls the earlier opposition tactics and the animals accept it with dogs growling beside him."
+      ],
+      "explanation": "The reader explicitly identifies the later windmill reversal, Squealer's explanation that the earlier opposition was tactics, and the animals' acceptance under the dogs' growling. Together these details distinguish the Chapter V occurrence from the earlier abolition of debates and other later uses of similar coercive persuasion."
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg11-v01b38ea4-ch03-ln0672-0687"
+      ],
+      "reader_spans": [
+        "I've just stopped with her alone, hearing footsteps and hoping the Mouse is coming back."
+      ],
+      "explanation": "The reader specifies the compound sequence through Alice being left alone after the birds depart, then hearing footsteps and only half-hoping that the Mouse has changed his mind and is returning. This uniquely matches the supplied Chapter 3 ending passage."
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254"
+      ],
+      "reader_spans": [
+        "Tonight in Helen Keller’s The Story of My Life, I reached the part where the horseshoe crab disappears from the trough near the well. I read through her final reflection about having taken it out of its element and feeling happier at the possibility that it had returned to the sea, then stopped there."
+      ],
+      "explanation": "The reader specifies the unique horseshoe-crab episode and says they read through its concluding reflection that the crab may have returned to the sea, clearly identifying the final event in the supplied Chapter X passage."
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "keys": [
+        "current_line",
+        "prior_reader_statements",
+        "full_work_candidates"
+      ],
+      "prior_reader_count": 0,
+      "outcome": "identified",
+      "evidence_ids": [
+        "pg500-v6bdc1734-ch09-ln0974-0988"
+      ],
+      "reader_spans": [
+        "I've just stopped at the reminder of Geppetto shivering at home."
+      ],
+      "explanation": "The reader explicitly identifies the stopping point as the passage’s reminder that Geppetto is at home, in his shirt sleeves, shivering after selling his coat to buy the A-B-C book. This distinguishes the final reported stop from the earlier pipe-following and book-selling events."
+    }
+  ],
+  "scenes": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "boundary_decision": "infer",
+      "ceiling": 5,
+      "support_ids": [
+        "pg11-v01b38ea4-ch05-ln1179-1219",
+        "pg11-v01b38ea4-ch05-ln0960-1016",
+        "pg11-v01b38ea4-ch05-ln1151-1186"
+      ],
+      "memory_ids": [
+        "mem_5e2dbb5c552bb8996528c763af6b1086d137ffc4047357cd1f5b7ac3b567a500"
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 5,
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch05-ln1179-1219"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T200830+0800-014c8qsf/evaluation.json"
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T200830+0800-014c8qsf/evaluation.json"
+    },
+    {
+      "suite": 4,
+      "scene": "personal-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T200830+0800-014c8qsf/evaluation.json"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-decision-reversal",
+      "boundary_decision": "not_applicable",
+      "ceiling": 5,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 5,
+          "evidence_ids": [
+            "pga0100011-vc7ff4da7-ch05-ln1133-1158"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201136+0800-n199409a/evaluation.json"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-personal-trust",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201136+0800-n199409a/evaluation.json"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 5,
+      "support_ids": [
+        "pga0100011-vc7ff4da7-ch05-ln1177-1203",
+        "pga0100011-vc7ff4da7-ch03-ln0694-0721",
+        "pga0100011-vc7ff4da7-ch05-ln1133-1158"
+      ],
+      "memory_ids": [
+        "mem_0099a247424cfbb966a99aaee4b8a6f11c5502f85d4b26babdda045e4d865993"
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 5,
+          "evidence_ids": [
+            "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+            "pga0100011-vc7ff4da7-ch05-ln1105-1131"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201136+0800-n199409a/evaluation.json"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-interrupted-discussion",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201136+0800-n199409a/evaluation.json"
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 7,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 7,
+          "evidence_ids": [
+            "pg23-vd3f08ac3-sec10-ln1517-1552"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201509+0800-5lw1chvk/evaluation.json"
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201509+0800-5lw1chvk/evaluation.json"
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201509+0800-5lw1chvk/evaluation.json"
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201509+0800-5lw1chvk/evaluation.json"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-race-reflection",
+      "boundary_decision": "not_applicable",
+      "ceiling": 3,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 3,
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch03-ln0553-0587",
+            "pg11-v01b38ea4-ch03-ln0578-0617"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201521+0800-rdy2lchi/evaluation.json"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-personal-comparison",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201521+0800-rdy2lchi/evaluation.json"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 3,
+      "support_ids": [
+        "pg11-v01b38ea4-ch03-ln0553-0587",
+        "pg11-v01b38ea4-ch03-ln0578-0617",
+        "pg11-v01b38ea4-ch03-ln0640-0678",
+        "pg11-v01b38ea4-ch03-ln0672-0687",
+        "pg11-v01b38ea4-ch02-ln0454-0477",
+        "pg11-v01b38ea4-ch03-ln0514-0559",
+        "pg11-v01b38ea4-ch02-ln0438-0465",
+        "pg11-v01b38ea4-ch02-ln0392-0412"
+      ],
+      "memory_ids": [
+        "mem_85c4525cf2f9f369f0385b833d35132beeff9859eab5da6e76078bbfc650d01a"
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 3,
+          "evidence_ids": [
+            "pg11-v01b38ea4-ch03-ln0553-0587",
+            "pg11-v01b38ea4-ch03-ln0578-0617"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201521+0800-rdy2lchi/evaluation.json"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-bottle-ambiguity",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201521+0800-rdy2lchi/evaluation.json"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-grounded",
+      "boundary_decision": "not_applicable",
+      "ceiling": 10,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 10,
+          "evidence_ids": [
+            "pg2397-vb3cc1e13-sec012-ln1237-1254"
+          ]
+        },
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 10,
+          "evidence_ids": [
+            "pg2397-vb3cc1e13-sec012-ln1237-1254"
+          ]
+        },
+        {
+          "response_kind": "failure",
+          "outcome": "success",
+          "searched_max_chapter": null,
+          "evidence_ids": []
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201739+0800-e853_trz/evaluation.json"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-personal",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201739+0800-e853_trz/evaluation.json"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 10,
+      "support_ids": [
+        "pg2397-vb3cc1e13-sec012-ln1237-1254",
+        "pg2397-vb3cc1e13-sec011-ln1127-1155"
+      ],
+      "memory_ids": [
+        "mem_d6d4686d84b48ee4de5fda94ec017247cc900ed8d69015da76c55b1e0e39cf84"
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 10,
+          "evidence_ids": [
+            "pg2397-vb3cc1e13-sec012-ln1237-1254"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201739+0800-e853_trz/evaluation.json"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-uncertain",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201739+0800-e853_trz/evaluation.json"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-promises-and-book",
+      "boundary_decision": "not_applicable",
+      "ceiling": 9,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 9,
+          "evidence_ids": [
+            "pg500-v6bdc1734-ch09-ln0897-0939"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201741+0800-_ar2c_e5/evaluation.json"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-personal-study",
+      "boundary_decision": "not_applicable",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201741+0800-_ar2c_e5/evaluation.json"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "boundary_decision": "infer",
+      "ceiling": 9,
+      "support_ids": [
+        "pg500-v6bdc1734-ch08-ln0869-0886",
+        "pg500-v6bdc1734-ch09-ln0897-0939",
+        "pg500-v6bdc1734-ch09-ln0974-0988"
+      ],
+      "memory_ids": [
+        "mem_ac6256078d5d4840b68dc7e330e623080885fe809910b2fa2cdcf9dd52223ffc"
+      ],
+      "grounding_calls": [
+        {
+          "response_kind": "result",
+          "outcome": "success",
+          "searched_max_chapter": 9,
+          "evidence_ids": [
+            "pg500-v6bdc1734-ch09-ln0897-0939"
+          ]
+        }
+      ],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201741+0800-_ar2c_e5/evaluation.json"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-school-detour",
+      "boundary_decision": "clarify",
+      "ceiling": null,
+      "support_ids": [],
+      "memory_ids": [],
+      "grounding_calls": [],
+      "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T201741+0800-_ar2c_e5/evaluation.json"
+    }
+  ],
+  "violations": [],
+  "connection_scenes_without_boundary_calls": 6,
+  "boundary_attempts": [
+    {
+      "suite": 4,
+      "scene": "pigeon-reflection",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "candidate"
+    },
+    {
+      "suite": 4,
+      "scene": "uncertain-growth",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-spoiler-inference",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "candidate"
+    },
+    {
+      "suite": 7,
+      "scene": "farm-interrupted-discussion",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-spoiler-inference",
+      "status": "failure",
+      "failure_category": "model_response_error",
+      "provider_status_code": null,
+      "outcome": null
+    },
+    {
+      "suite": 9,
+      "scene": "douglass-uncertain",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-spoiler-inference",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "candidate"
+    },
+    {
+      "suite": 10,
+      "scene": "alice-bottle-ambiguity",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-spoiler-inference",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "candidate"
+    },
+    {
+      "suite": 11,
+      "scene": "keller-uncertain",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-spoiler-inference",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "candidate"
+    },
+    {
+      "suite": 12,
+      "scene": "pinocchio-school-detour",
+      "status": "success",
+      "failure_category": null,
+      "provider_status_code": null,
+      "outcome": "uncertain"
+    }
+  ]
+}

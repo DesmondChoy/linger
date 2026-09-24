@@ -1,0 +1,62 @@
+{
+  "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+  "model": "openai:gpt-5.6-luna",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.book_replay",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/backstory.json",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth.json",
+    "--adoption",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/ground-truth-adoption.json",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T093148+0800-nn6y9g3n/evaluation.json"
+  ],
+  "started_at": "2026-09-18T09:31:48.014957+08:00",
+  "scenario_hashes": {
+    "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+    "ground-truth.json": "b691c8d1f3c11c31ab7579a0547be8a662fdb6002d4f15d8328c5e420760ecfd",
+    "ground-truth-adoption.json": "a6d774b10465133e7c5333a1be45d6198ade70ff985efac30b7e88fa77b5aea8"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T093148+0800-nn6y9g3n/evaluation.json",
+  "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T093148+0800-nn6y9g3n/run.log",
+  "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/scenario-run-2026-09-18T093148+0800-nn6y9g3n/summary.json",
+  "execution_status": "completed",
+  "returncode": 0,
+  "results": {
+    "scenes_total": 3,
+    "scenes_passed": 2,
+    "scenes_failed": 1,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 2,
+    "judgments_failed": 2,
+    "failures": [
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "pigeon-grounding"
+      },
+      {
+        "scene_id": "pigeon-reflection",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "pigeon-boundary"
+      }
+    ],
+    "execution_failures": []
+  },
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b2242d2c8ae953e486609976da05-fe290607fc937a72",
+    "trace_id": "01a0b2242d2c8ae953e486609976da05",
+    "span_id": "fe290607fc937a72",
+    "flushed": true
+  },
+  "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b2242d2c8ae953e486609976da05-fe290607fc937a72",
+  "status": "failed",
+  "problems": [
+    "The replay completed with failed evaluation checks; see expected versus observed evidence."
+  ],
+  "finished_at": "2026-09-18T09:34:30.853196+08:00",
+  "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T093430+0800-ac44c13a.md",
+  "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03/analysis-report-2026-09-18T093430+0800-ac44c13a.json"
+}

@@ -1,0 +1,26 @@
+{
+  "suite": "release",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "release",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-release.json"
+  ],
+  "started_at": "2026-09-18T02:18:26.220013+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-release.log",
+  "passed": false,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-release.json",
+  "failures": [
+    "pigeon-serpent:recall",
+    "pigeon-serpent:release",
+    "pigeon-serpent:provenance",
+    "identity-theme:strength_correct",
+    "identity-theme:recall",
+    "identity-theme:release",
+    "identity-theme:provenance",
+    "native_release_targets"
+  ],
+  "finished_at": "2026-09-18T02:26:13.394945+00:00"
+}

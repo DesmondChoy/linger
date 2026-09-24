@@ -1,0 +1,355 @@
+{
+  "4": {
+    "pg11-v01b38ea4-ch05-ln1151-1186": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch05-ln1151-1186",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Advice from a Caterpillar, source lines 1151-1186",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          1151,
+          1186
+        ],
+        "text": "“Come, my head’s free at last!” said Alice in a tone of delight, which\nchanged into alarm in another moment, when she found that her shoulders\nwere nowhere to be found: all she could see, when she looked down, was\nan immense length of neck, which seemed to rise like a stalk out of a\nsea of green leaves that lay far below her.\n\n“What _can_ all that green stuff be?” said Alice. “And where _have_ my\nshoulders got to? And oh, my poor hands, how is it I can’t see you?”\nShe was moving them about as she spoke, but no result seemed to follow,\nexcept a little shaking among the distant green leaves.\n\nAs there seemed to be no chance of getting her hands up to her head,\nshe tried to get her head down to them, and was delighted to find that\nher neck would bend about easily in any direction, like a serpent. She\nhad just succeeded in curving it down into a graceful zigzag, and was\ngoing to dive in among the leaves, which she found to be nothing but\nthe tops of the trees under which she had been wandering, when a sharp\nhiss made her draw back in a hurry: a large pigeon had flown into her\nface, and was beating her violently with its wings.\n\n“Serpent!” screamed the Pigeon.\n\n“I’m _not_ a serpent!” said Alice indignantly. “Let me alone!”\n\n“Serpent, I say again!” repeated the Pigeon, but in a more subdued\ntone, and added with a kind of sob, “I’ve tried every way, and nothing\nseems to suit them!”\n\n“I haven’t the least idea what you’re talking about,” said Alice.\n\n“I’ve tried the roots of trees, and I’ve tried banks, and I’ve tried\nhedges,” the Pigeon went on, without attending to her; “but those\nserpents! There’s no pleasing them!”\n\nAlice was more and more puzzled, but she thought there was no use in\nsaying anything more till the Pigeon had finished."
+      },
+      "scene_id": "pigeon-reflection",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-4.json"
+    },
+    "pg11-v01b38ea4-ch05-ln1208-1237": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch05-ln1208-1237",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Advice from a Caterpillar, source lines 1208-1237",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          1208,
+          1237
+        ],
+        "text": "“A likely story indeed!” said the Pigeon in a tone of the deepest\ncontempt. “I’ve seen a good many little girls in my time, but never\n_one_ with such a neck as that! No, no! You’re a serpent; and there’s\nno use denying it. I suppose you’ll be telling me next that you never\ntasted an egg!”\n\n“I _have_ tasted eggs, certainly,” said Alice, who was a very truthful\nchild; “but little girls eat eggs quite as much as serpents do, you\nknow.”\n\n“I don’t believe it,” said the Pigeon; “but if they do, why then\nthey’re a kind of serpent, that’s all I can say.”\n\nThis was such a new idea to Alice, that she was quite silent for a\nminute or two, which gave the Pigeon the opportunity of adding, “You’re\nlooking for eggs, I know _that_ well enough; and what does it matter to\nme whether you’re a little girl or a serpent?”\n\n“It matters a good deal to _me_,” said Alice hastily; “but I’m not\nlooking for eggs, as it happens; and if I was, I shouldn’t want\n_yours_: I don’t like them raw.”\n\n“Well, be off, then!” said the Pigeon in a sulky tone, as it settled\ndown again into its nest. Alice crouched down among the trees as well\nas she could, for her neck kept getting entangled among the branches,\nand every now and then she had to stop and untwist it. After a while\nshe remembered that she still held the pieces of mushroom in her hands,\nand she set to work very carefully, nibbling first at one and then at\nthe other, and growing sometimes taller and sometimes shorter, until\nshe had succeeded in bringing herself down to her usual height."
+      },
+      "scene_id": "pigeon-reflection",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-4.json"
+    },
+    "pg11-v01b38ea4-ch05-ln1230-1250": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch05-ln1230-1250",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Advice from a Caterpillar, source lines 1230-1250",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          1230,
+          1250
+        ],
+        "text": "“Well, be off, then!” said the Pigeon in a sulky tone, as it settled\ndown again into its nest. Alice crouched down among the trees as well\nas she could, for her neck kept getting entangled among the branches,\nand every now and then she had to stop and untwist it. After a while\nshe remembered that she still held the pieces of mushroom in her hands,\nand she set to work very carefully, nibbling first at one and then at\nthe other, and growing sometimes taller and sometimes shorter, until\nshe had succeeded in bringing herself down to her usual height.\n\nIt was so long since she had been anything near the right size, that it\nfelt quite strange at first; but she got used to it in a few minutes,\nand began talking to herself, as usual. “Come, there’s half my plan\ndone now! How puzzling all these changes are! I’m never sure what I’m\ngoing to be, from one minute to another! However, I’ve got back to my\nright size: the next thing is, to get into that beautiful garden—how\n_is_ that to be done, I wonder?” As she said this, she came suddenly\nupon an open place, with a little house in it about four feet high.\n“Whoever lives there,” thought Alice, “it’ll never do to come upon them\n_this_ size: why, I should frighten them out of their wits!” So she\nbegan nibbling at the righthand bit again, and did not venture to go\nnear the house till she had brought herself down to nine inches high."
+      },
+      "scene_id": "pigeon-reflection",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-10-694474e9/suite-4.json"
+    }
+  },
+  "7": {
+    "pga0100011-vc7ff4da7-ch05-ln1105-1131": {
+      "record": {
+        "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1105-1131",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "chapter_id": "pga0100011-vc7ff4da7-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Chapter V, source lines 1105-1131",
+        "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+        "source_lines": [
+          1105,
+          1131
+        ],
+        "text": "Napoleon, with the dogs following him, now mounted on to the raised\nportion of the floor where Major had previously stood to deliver his\nspeech. He announced that from now on the Sunday-morning Meetings would\ncome to an end. They were unnecessary, he said, and wasted time. In future\nall questions relating to the working of the farm would be settled by a\nspecial committee of pigs, presided over by himself. These would meet in\nprivate and afterwards communicate their decisions to the others. The\nanimals would still assemble on Sunday mornings to salute the flag, sing\n'Beasts of England', and receive their orders for the week; but there would\nbe no more debates.\n\nIn spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others."
+      },
+      "scene_id": "farm-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json"
+    },
+    "pga0100011-vc7ff4da7-ch05-ln1116-1143": {
+      "record": {
+        "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1116-1143",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "chapter_id": "pga0100011-vc7ff4da7-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Chapter V, source lines 1116-1143",
+        "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+        "source_lines": [
+          1116,
+          1143
+        ],
+        "text": "In spite of the shock that Snowball's expulsion had given them, the\nanimals were dismayed by this announcement. Several of them would have\nprotested if they could have found the right arguments. Even Boxer was\nvaguely troubled. He set his ears back, shook his forelock several times,\nand tried hard to marshal his thoughts; but in the end he could not think\nof anything to say. Some of the pigs themselves, however, were more\narticulate. Four young porkers in the front row uttered shrill squeals of\ndisapproval, and all four of them sprang to their feet and began speaking\nat once. But suddenly the dogs sitting round Napoleon let out deep,\nmenacing growls, and the pigs fell silent and sat down again. Then the\nsheep broke out into a tremendous bleating of \"Four legs good, two legs\nbad!\" which went on for nearly a quarter of an hour and put an end to any\nchance of discussion.\n\nAfterwards Squealer was sent round the farm to explain the new arrangement\nto the others.\n\n\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody."
+      },
+      "scene_id": "farm-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json"
+    },
+    "pga0100011-vc7ff4da7-ch05-ln1133-1158": {
+      "record": {
+        "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1133-1158",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "chapter_id": "pga0100011-vc7ff4da7-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Chapter V, source lines 1133-1158",
+        "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+        "source_lines": [
+          1133,
+          1158
+        ],
+        "text": "\"Comrades,\" he said, \"I trust that every animal here appreciates the\nsacrifice that Comrade Napoleon has made in taking this extra labour upon\nhimself. Do not imagine, comrades, that leadership is a pleasure! On the\ncontrary, it is a deep and heavy responsibility. No one believes more\nfirmly than Comrade Napoleon that all animals are equal. He would be only\ntoo happy to let you make your decisions for yourselves. But sometimes you\nmight make the wrong decisions, comrades, and then where should we be?\nSuppose you had decided to follow Snowball, with his moonshine of\nwindmills--Snowball, who, as we now know, was no better than a criminal?\"\n\n\"He fought bravely at the Battle of the Cowshed,\" said somebody.\n\n\"Bravery is not enough,\" said Squealer. \"Loyalty and obedience are more\nimportant. And as to the Battle of the Cowshed, I believe the time will\ncome when we shall find that Snowball's part in it was much exaggerated.\nDiscipline, comrades, iron discipline! That is the watchword for today.\nOne false step, and our enemies would be upon us. Surely, comrades, you do\nnot want Jones back?\"\n\nOnce again this argument was unanswerable. Certainly the animals did not\nwant Jones back; if the holding of debates on Sunday mornings was liable\nto bring him back, then the debates must stop. Boxer, who had now had time\nto think things over, voiced the general feeling by saying: \"If Comrade\nNapoleon says it, it must be right.\" And from then on he adopted the\nmaxim, \"Napoleon is always right,\" in addition to his private motto of \"I\nwill work harder.\""
+      },
+      "scene_id": "farm-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json"
+    },
+    "pga0100011-vc7ff4da7-ch05-ln1152-1175": {
+      "record": {
+        "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1152-1175",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "chapter_id": "pga0100011-vc7ff4da7-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Chapter V, source lines 1152-1175",
+        "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+        "source_lines": [
+          1152,
+          1175
+        ],
+        "text": "Once again this argument was unanswerable. Certainly the animals did not\nwant Jones back; if the holding of debates on Sunday mornings was liable\nto bring him back, then the debates must stop. Boxer, who had now had time\nto think things over, voiced the general feeling by saying: \"If Comrade\nNapoleon says it, it must be right.\" And from then on he adopted the\nmaxim, \"Napoleon is always right,\" in addition to his private motto of \"I\nwill work harder.\"\n\nBy this time the weather had broken and the spring ploughing had begun.\nThe shed where Snowball had drawn his plans of the windmill had been shut\nup and it was assumed that the plans had been rubbed off the floor. Every\nSunday morning at ten o'clock the animals assembled in the big barn to\nreceive their orders for the week. The skull of old Major, now clean of\nflesh, had been disinterred from the orchard and set up on a stump at the\nfoot of the flagstaff, beside the gun. After the hoisting of the flag, the\nanimals were required to file past the skull in a reverent manner before\nentering the barn. Nowadays they did not sit all together as they had done\nin the past. Napoleon, with Squealer and another pig named Minimus, who\nhad a remarkable gift for composing songs and poems, sat on the front of\nthe raised platform, with the nine young dogs forming a semicircle round\nthem, and the other pigs sitting behind. The rest of the animals sat\nfacing them in the main body of the barn. Napoleon read out the orders for\nthe week in a gruff soldierly style, and after a single singing of 'Beasts\nof England', all the animals dispersed."
+      },
+      "scene_id": "farm-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json"
+    },
+    "pga0100011-vc7ff4da7-ch05-ln1160-1185": {
+      "record": {
+        "evidence_id": "pga0100011-vc7ff4da7-ch05-ln1160-1185",
+        "work_id": "pga0100011",
+        "book_version_id": "pga0100011-vc7ff4da7",
+        "chapter_id": "pga0100011-vc7ff4da7-ch05",
+        "chapter_number": 5,
+        "part_id": "main",
+        "location": "Chapter 5 — Chapter V, source lines 1160-1185",
+        "source_sha256": "c7ff4da710ebe39629c8f9eeb04b4eb8a411e12863df97ae0754f5164f9a2491",
+        "source_lines": [
+          1160,
+          1185
+        ],
+        "text": "By this time the weather had broken and the spring ploughing had begun.\nThe shed where Snowball had drawn his plans of the windmill had been shut\nup and it was assumed that the plans had been rubbed off the floor. Every\nSunday morning at ten o'clock the animals assembled in the big barn to\nreceive their orders for the week. The skull of old Major, now clean of\nflesh, had been disinterred from the orchard and set up on a stump at the\nfoot of the flagstaff, beside the gun. After the hoisting of the flag, the\nanimals were required to file past the skull in a reverent manner before\nentering the barn. Nowadays they did not sit all together as they had done\nin the past. Napoleon, with Squealer and another pig named Minimus, who\nhad a remarkable gift for composing songs and poems, sat on the front of\nthe raised platform, with the nine young dogs forming a semicircle round\nthem, and the other pigs sitting behind. The rest of the animals sat\nfacing them in the main body of the barn. Napoleon read out the orders for\nthe week in a gruff soldierly style, and after a single singing of 'Beasts\nof England', all the animals dispersed.\n\nOn the third Sunday after Snowball's expulsion, the animals were somewhat\nsurprised to hear Napoleon announce that the windmill was to be built\nafter all. He did not give any reason for having changed his mind, but\nmerely warned the animals that this extra task would mean very hard work,\nit might even be necessary to reduce their rations. The plans, however,\nhad all been prepared, down to the last detail. A special committee of\npigs had been at work upon them for the past three weeks. The building of\nthe windmill, with various other improvements, was expected to take two\nyears."
+      },
+      "scene_id": "farm-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-7.json"
+    }
+  },
+  "9": {
+    "pg23-vd3f08ac3-sec06-ln0971-0980": {
+      "record": {
+        "evidence_id": "pg23-vd3f08ac3-sec06-ln0971-0980",
+        "work_id": "pg23",
+        "book_version_id": "pg23-vd3f08ac3",
+        "chapter_id": "pg23-vd3f08ac3-sec06",
+        "chapter_number": 3,
+        "part_id": "main",
+        "location": "Chapter 3 — CHAPTER III, source lines 971-980",
+        "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+        "source_lines": [
+          971,
+          980
+        ],
+        "text": "The colonel, after ascertaining where the slave belonged, rode on; the\nman also went on about his business, not dreaming that he had been\nconversing with his master. He thought, said, and heard nothing more of\nthe matter, until two or three weeks afterwards. The poor man was then\ninformed by his overseer that, for having found fault with his master,\nhe was now to be sold to a Georgia trader. He was immediately chained\nand handcuffed; and thus, without a moment’s warning, he was snatched\naway, and forever sundered, from his family and friends, by a hand more\nunrelenting than death. This is the penalty of telling the truth, of\ntelling the simple truth, in answer to a series of plain questions."
+      },
+      "scene_id": "douglass-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/suite-9.json"
+    }
+  },
+  "10": {
+    "pg11-v01b38ea4-ch02-ln0408-0436": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch02-ln0408-0436",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch02",
+        "chapter_number": 2,
+        "part_id": "main",
+        "location": "Chapter 2 — The Pool of Tears, source lines 408-436",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          408,
+          436
+        ],
+        "text": "Just then she heard something splashing about in the pool a little way\noff, and she swam nearer to make out what it was: at first she thought\nit must be a walrus or hippopotamus, but then she remembered how small\nshe was now, and she soon made out that it was only a mouse that had\nslipped in like herself.\n\n“Would it be of any use, now,” thought Alice, “to speak to this mouse?\nEverything is so out-of-the-way down here, that I should think very\nlikely it can talk: at any rate, there’s no harm in trying.” So she\nbegan: “O Mouse, do you know the way out of this pool? I am very tired\nof swimming about here, O Mouse!” (Alice thought this must be the right\nway of speaking to a mouse: she had never done such a thing before, but\nshe remembered having seen in her brother’s Latin Grammar, “A mouse—of\na mouse—to a mouse—a mouse—O mouse!”) The Mouse looked at her rather\ninquisitively, and seemed to her to wink with one of its little eyes,\nbut it said nothing.\n\n“Perhaps it doesn’t understand English,” thought Alice; “I daresay it’s\na French mouse, come over with William the Conqueror.” (For, with all\nher knowledge of history, Alice had no very clear notion how long ago\nanything had happened.) So she began again: “Où est ma chatte?” which\nwas the first sentence in her French lesson-book. The Mouse gave a\nsudden leap out of the water, and seemed to quiver all over with\nfright. “Oh, I beg your pardon!” cried Alice hastily, afraid that she\nhad hurt the poor animal’s feelings. “I quite forgot you didn’t like\ncats.”\n\n“Not like cats!” cried the Mouse, in a shrill, passionate voice. “Would\n_you_ like cats if you were me?”"
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-05-8f52910d/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch02-ln0438-0465": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch02-ln0438-0465",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch02",
+        "chapter_number": 2,
+        "part_id": "main",
+        "location": "Chapter 2 — The Pool of Tears, source lines 438-465",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          438,
+          465
+        ],
+        "text": "“Well, perhaps not,” said Alice in a soothing tone: “don’t be angry\nabout it. And yet I wish I could show you our cat Dinah: I think you’d\ntake a fancy to cats if you could only see her. She is such a dear\nquiet thing,” Alice went on, half to herself, as she swam lazily about\nin the pool, “and she sits purring so nicely by the fire, licking her\npaws and washing her face—and she is such a nice soft thing to\nnurse—and she’s such a capital one for catching mice—oh, I beg your\npardon!” cried Alice again, for this time the Mouse was bristling all\nover, and she felt certain it must be really offended. “We won’t talk\nabout her any more if you’d rather not.”\n\n“We indeed!” cried the Mouse, who was trembling down to the end of his\ntail. “As if _I_ would talk on such a subject! Our family always\n_hated_ cats: nasty, low, vulgar things! Don’t let me hear the name\nagain!”\n\n“I won’t indeed!” said Alice, in a great hurry to change the subject of\nconversation. “Are you—are you fond—of—of dogs?” The Mouse did not\nanswer, so Alice went on eagerly: “There is such a nice little dog near\nour house I should like to show you! A little bright-eyed terrier, you\nknow, with oh, such long curly brown hair! And it’ll fetch things when\nyou throw them, and it’ll sit up and beg for its dinner, and all sorts\nof things—I can’t remember half of them—and it belongs to a farmer, you\nknow, and he says it’s so useful, it’s worth a hundred pounds! He says\nit kills all the rats and—oh dear!” cried Alice in a sorrowful tone,\n“I’m afraid I’ve offended it again!” For the Mouse was swimming away\nfrom her as hard as it could go, and making quite a commotion in the\npool as it went."
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch03-ln0514-0559": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch03-ln0514-0559",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch03",
+        "chapter_number": 3,
+        "part_id": "main",
+        "location": "Chapter 3 — A Caucus-Race and a Long Tale, source lines 514-559",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          514,
+          559
+        ],
+        "text": "“I beg your pardon!” said the Mouse, frowning, but very politely: “Did\nyou speak?”\n\n“Not I!” said the Lory hastily.\n\n“I thought you did,” said the Mouse. “—I proceed. ‘Edwin and Morcar,\nthe earls of Mercia and Northumbria, declared for him: and even\nStigand, the patriotic archbishop of Canterbury, found it advisable—’”\n\n“Found _what_?” said the Duck.\n\n“Found _it_,” the Mouse replied rather crossly: “of course you know\nwhat ‘it’ means.”\n\n“I know what ‘it’ means well enough, when _I_ find a thing,” said the\nDuck: “it’s generally a frog or a worm. The question is, what did the\narchbishop find?”\n\nThe Mouse did not notice this question, but hurriedly went on, “‘—found\nit advisable to go with Edgar Atheling to meet William and offer him\nthe crown. William’s conduct at first was moderate. But the insolence\nof his Normans—’ How are you getting on now, my dear?” it continued,\nturning to Alice as it spoke.\n\n“As wet as ever,” said Alice in a melancholy tone: “it doesn’t seem to\ndry me at all.”\n\n“In that case,” said the Dodo solemnly, rising to its feet, “I move\nthat the meeting adjourn, for the immediate adoption of more energetic\nremedies—”\n\n“Speak English!” said the Eaglet. “I don’t know the meaning of half\nthose long words, and, what’s more, I don’t believe you do either!” And\nthe Eaglet bent down its head to hide a smile: some of the other birds\ntittered audibly.\n\n“What I was going to say,” said the Dodo in an offended tone, “was,\nthat the best thing to get us dry would be a Caucus-race.”\n\n“What _is_ a Caucus-race?” said Alice; not that she wanted much to\nknow, but the Dodo had paused as if it thought that _somebody_ ought to\nspeak, and no one else seemed inclined to say anything.\n\n“Why,” said the Dodo, “the best way to explain it is to do it.” (And,\nas you might like to try the thing yourself, some winter day, I will\ntell you how the Dodo managed it.)"
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch03-ln0553-0587": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch03-ln0553-0587",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch03",
+        "chapter_number": 3,
+        "part_id": "main",
+        "location": "Chapter 3 — A Caucus-Race and a Long Tale, source lines 553-587",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          553,
+          587
+        ],
+        "text": "“What _is_ a Caucus-race?” said Alice; not that she wanted much to\nknow, but the Dodo had paused as if it thought that _somebody_ ought to\nspeak, and no one else seemed inclined to say anything.\n\n“Why,” said the Dodo, “the best way to explain it is to do it.” (And,\nas you might like to try the thing yourself, some winter day, I will\ntell you how the Dodo managed it.)\n\nFirst it marked out a race-course, in a sort of circle, (“the exact\nshape doesn’t matter,” it said,) and then all the party were placed\nalong the course, here and there. There was no “One, two, three, and\naway,” but they began running when they liked, and left off when they\nliked, so that it was not easy to know when the race was over. However,\nwhen they had been running half an hour or so, and were quite dry\nagain, the Dodo suddenly called out “The race is over!” and they all\ncrowded round it, panting, and asking, “But who has won?”\n\nThis question the Dodo could not answer without a great deal of\nthought, and it sat for a long time with one finger pressed upon its\nforehead (the position in which you usually see Shakespeare, in the\npictures of him), while the rest waited in silence. At last the Dodo\nsaid, “_Everybody_ has won, and all must have prizes.”\n\n“But who is to give the prizes?” quite a chorus of voices asked.\n\n“Why, _she_, of course,” said the Dodo, pointing to Alice with one\nfinger; and the whole party at once crowded round her, calling out in a\nconfused way, “Prizes! Prizes!”\n\nAlice had no idea what to do, and in despair she put her hand in her\npocket, and pulled out a box of comfits, (luckily the salt water had\nnot got into it), and handed them round as prizes. There was exactly\none a-piece, all round.\n\n“But she must have a prize herself, you know,” said the Mouse."
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch03-ln0578-0617": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch03-ln0578-0617",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch03",
+        "chapter_number": 3,
+        "part_id": "main",
+        "location": "Chapter 3 — A Caucus-Race and a Long Tale, source lines 578-617",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          578,
+          617
+        ],
+        "text": "“Why, _she_, of course,” said the Dodo, pointing to Alice with one\nfinger; and the whole party at once crowded round her, calling out in a\nconfused way, “Prizes! Prizes!”\n\nAlice had no idea what to do, and in despair she put her hand in her\npocket, and pulled out a box of comfits, (luckily the salt water had\nnot got into it), and handed them round as prizes. There was exactly\none a-piece, all round.\n\n“But she must have a prize herself, you know,” said the Mouse.\n\n“Of course,” the Dodo replied very gravely. “What else have you got in\nyour pocket?” he went on, turning to Alice.\n\n“Only a thimble,” said Alice sadly.\n\n“Hand it over here,” said the Dodo.\n\nThen they all crowded round her once more, while the Dodo solemnly\npresented the thimble, saying “We beg your acceptance of this elegant\nthimble;” and, when it had finished this short speech, they all\ncheered.\n\nAlice thought the whole thing very absurd, but they all looked so grave\nthat she did not dare to laugh; and, as she could not think of anything\nto say, she simply bowed, and took the thimble, looking as solemn as\nshe could.\n\nThe next thing was to eat the comfits: this caused some noise and\nconfusion, as the large birds complained that they could not taste\ntheirs, and the small ones choked and had to be patted on the back.\nHowever, it was over at last, and they sat down again in a ring, and\nbegged the Mouse to tell them something more.\n\n“You promised to tell me your history, you know,” said Alice, “and why\nit is you hate—C and D,” she added in a whisper, half afraid that it\nwould be offended again.\n\n“Mine is a long and a sad tale!” said the Mouse, turning to Alice, and\nsighing."
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch03-ln0640-0678": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch03-ln0640-0678",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch03",
+        "chapter_number": 3,
+        "part_id": "main",
+        "location": "Chapter 3 — A Caucus-Race and a Long Tale, source lines 640-678",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          640,
+          678
+        ],
+        "text": "“A knot!” said Alice, always ready to make herself useful, and looking\nanxiously about her. “Oh, do let me help to undo it!”\n\n“I shall do nothing of the sort,” said the Mouse, getting up and\nwalking away. “You insult me by talking such nonsense!”\n\n“I didn’t mean it!” pleaded poor Alice. “But you’re so easily offended,\nyou know!”\n\nThe Mouse only growled in reply.\n\n“Please come back and finish your story!” Alice called after it; and\nthe others all joined in chorus, “Yes, please do!” but the Mouse only\nshook its head impatiently, and walked a little quicker.\n\n“What a pity it wouldn’t stay!” sighed the Lory, as soon as it was\nquite out of sight; and an old Crab took the opportunity of saying to\nher daughter “Ah, my dear! Let this be a lesson to you never to lose\n_your_ temper!” “Hold your tongue, Ma!” said the young Crab, a little\nsnappishly. “You’re enough to try the patience of an oyster!”\n\n“I wish I had our Dinah here, I know I do!” said Alice aloud,\naddressing nobody in particular. “She’d soon fetch it back!”\n\n“And who is Dinah, if I might venture to ask the question?” said the\nLory.\n\nAlice replied eagerly, for she was always ready to talk about her pet:\n“Dinah’s our cat. And she’s such a capital one for catching mice you\ncan’t think! And oh, I wish you could see her after the birds! Why,\nshe’ll eat a little bird as soon as look at it!”\n\nThis speech caused a remarkable sensation among the party. Some of the\nbirds hurried off at once: one old Magpie began wrapping itself up very\ncarefully, remarking, “I really must be getting home; the night-air\ndoesn’t suit my throat!” and a Canary called out in a trembling voice\nto its children, “Come away, my dears! It’s high time you were all in\nbed!” On various pretexts they all moved off, and Alice was soon left\nalone."
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-13-4d9bca6b/suite-10.json"
+    },
+    "pg11-v01b38ea4-ch02-ln0392-0412": {
+      "record": {
+        "evidence_id": "pg11-v01b38ea4-ch02-ln0392-0412",
+        "work_id": "pg11",
+        "book_version_id": "pg11-v01b38ea4",
+        "chapter_id": "pg11-v01b38ea4-ch02",
+        "chapter_number": 2,
+        "part_id": "main",
+        "location": "Chapter 2 — The Pool of Tears, source lines 392-412",
+        "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+        "source_lines": [
+          392,
+          412
+        ],
+        "text": "As she said these words her foot slipped, and in another moment,\nsplash! she was up to her chin in salt water. Her first idea was that\nshe had somehow fallen into the sea, “and in that case I can go back by\nrailway,” she said to herself. (Alice had been to the seaside once in\nher life, and had come to the general conclusion, that wherever you go\nto on the English coast you find a number of bathing machines in the\nsea, some children digging in the sand with wooden spades, then a row\nof lodging houses, and behind them a railway station.) However, she\nsoon made out that she was in the pool of tears which she had wept when\nshe was nine feet high.\n\n“I wish I hadn’t cried so much!” said Alice, as she swam about, trying\nto find her way out. “I shall be punished for it now, I suppose, by\nbeing drowned in my own tears! That _will_ be a queer thing, to be\nsure! However, everything is queer to-day.”\n\nJust then she heard something splashing about in the pool a little way\noff, and she swam nearer to make out what it was: at first she thought\nit must be a walrus or hippopotamus, but then she remembered how small\nshe was now, and she soon made out that it was only a mouse that had\nslipped in like herself."
+      },
+      "scene_id": "alice-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-10.json"
+    }
+  },
+  "11": {},
+  "12": {
+    "pg500-v6bdc1734-ch09-ln0897-0939": {
+      "record": {
+        "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+        "work_id": "pg500",
+        "book_version_id": "pg500-v6bdc1734",
+        "chapter_id": "pg500-v6bdc1734-ch09",
+        "chapter_number": 9,
+        "part_id": "main",
+        "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+        "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+        "source_lines": [
+          897,
+          939
+        ],
+        "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+      },
+      "scene_id": "pinocchio-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-12.json"
+    },
+    "pg500-v6bdc1734-ch09-ln0928-0984": {
+      "record": {
+        "evidence_id": "pg500-v6bdc1734-ch09-ln0928-0984",
+        "work_id": "pg500",
+        "book_version_id": "pg500-v6bdc1734",
+        "chapter_id": "pg500-v6bdc1734-ch09",
+        "chapter_number": 9,
+        "part_id": "main",
+        "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 928-984",
+        "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+        "source_lines": [
+          928,
+          984
+        ],
+        "text": "No sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”\n\n“Oh, really? Then I’ll read it to you. Know, then, that written in\nletters of fire I see the words: GREAT MARIONETTE THEATER.\n\n“When did the show start?”\n\n“It is starting now.”\n\n“And how much does one pay to get in?”\n\n“Four pennies.”\n\nPinocchio, who was wild with curiosity to know what was going on inside,\nlost all his pride and said to the boy shamelessly:\n\n“Will you give me four pennies until tomorrow?”\n\n“I’d give them to you gladly,” answered the other, poking fun at him,\n“but just now I can’t give them to you.”\n\n“For the price of four pennies, I’ll sell you my coat.”\n\n“If it rains, what shall I do with a coat of flowered paper? I could not\ntake it off again.”\n\n“Do you want to buy my shoes?”\n\n“They are only good enough to light a fire with.”\n\n“What about my hat?”\n\n“Fine bargain, indeed! A cap of dough! The mice might come and eat it\nfrom my head!”\n\nPinocchio was almost in tears. He was just about to make one last offer,\nbut he lacked the courage to do so. He hesitated, he wondered, he could\nnot make up his mind. At last he said:\n\n“Will you give me four pennies for the book?”\n\n“I am a boy and I buy nothing from boys,” said the little fellow with\nfar more common sense than the Marionette.\n\n“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by."
+      },
+      "scene_id": "pinocchio-spoiler-inference",
+      "source": "synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-12-7098e696/suite-12.json"
+    }
+  }
+}

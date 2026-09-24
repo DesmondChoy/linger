@@ -1,0 +1,9 @@
+{
+  "status": "awaiting_independent_human_decision",
+  "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+  "proposed_change": "Permit the exact Chapter 8 Queen-discovery passage as optional corrective evidence in G1, G2 and G3. Required citations, completed chapter, prohibitions on causal conclusions and all other expectations unchanged.",
+  "source_excerpt": "“_I_ see!” said the Queen, who had meanwhile been examining the roses.\n“Off with their heads!”",
+  "source_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+  "old_ground_truth_sha256": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+  "proposed_ground_truth_sha256": "2969a1d3acace7cb716511e8f39ff62143d7484b9f5afa8b14f567772bd7665a"
+}

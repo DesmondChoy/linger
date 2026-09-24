@@ -1,0 +1,40 @@
+{
+  "suite": "release",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_live.py",
+    "release",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-release.json"
+  ],
+  "started_at": "2026-09-18T11:27:17.253841+00:00",
+  "log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-release.log",
+  "passed": false,
+  "returncode": 0,
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-19-c264f342/suite-release.json",
+  "failures": [
+    "pool-of-tears:recall",
+    "pool-of-tears:precision",
+    "pigeon-serpent:recall",
+    "pigeon-serpent:release",
+    "pigeon-serpent:provenance",
+    "identity-theme:recall",
+    "identity-theme:release",
+    "identity-theme:provenance",
+    "exact-caucus-quote:strength_correct",
+    "exact-caucus-quote:recall",
+    "exact-caucus-quote:release",
+    "exact-caucus-quote:provenance",
+    "exact-caucus-quote:call_contract",
+    "future-cheshire:strength_correct",
+    "future-cheshire:release",
+    "future-cheshire:provenance",
+    "future-cheshire:call_contract",
+    "absent-spaceship:strength_correct",
+    "absent-spaceship:release",
+    "absent-spaceship:provenance",
+    "absent-spaceship:call_contract",
+    "native_release_targets"
+  ],
+  "finished_at": "2026-09-18T11:35:00.244690+00:00"
+}

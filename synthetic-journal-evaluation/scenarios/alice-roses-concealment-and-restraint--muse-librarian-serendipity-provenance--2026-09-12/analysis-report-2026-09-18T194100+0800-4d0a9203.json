@@ -1,0 +1,1123 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+  "created_at": "2026-09-18T19:41:00+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "execution",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "summary": {
+    "scenes_total": 3,
+    "scenes_passed": 0,
+    "scenes_failed": 3,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 0,
+    "judgments_failed": 4,
+    "failures": [
+      {
+        "scene_id": "S1",
+        "detail": "provider_failure",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_connection_decision",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "unexpected_release_source",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-memory",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-book",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-public",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "discovery_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "connection_decision_mismatch",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_review_approval",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "discovery_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "connection_decision_mismatch",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_review_approval",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "provider_failure",
+        "proposal_id": "G4-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "unexpected_release_source",
+        "proposal_id": "G4-weak-evidence"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "S1",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "provider_failure",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "Serendipity search_rank_select: serendipity_model_failed"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "provider_failure",
+        "proposal_id": "G4-weak-evidence"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "S1",
+      "order": 1,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "G1-connection",
+          "objective_id": "cross_source_tentative_connection",
+          "expected_outcomes": [
+            "The reply offers the gardeners' concealment as one possible parallel to the reader's own note, and keeps it tentative.",
+            "The reply quotes the chapter and visibly cites the public study for the claim that team conditions affect willingness to report."
+          ],
+          "prohibited_outcomes": [
+            "The reply tells the reader the book explains their own conduct.",
+            "The reply quotes the stored memory back as a citation.",
+            "The reader's wording about the billing mistake reaches a public query."
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "S1C-memory",
+              "prop_id": "P1"
+            },
+            {
+              "kind": "repository_text",
+              "evidence_id": "S1C-book",
+              "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+              "source_sha256": "cd520c0231298443f5f58728435a557d8afbe489c01698bd8a014770b9718f7f",
+              "start_codepoint": 2663,
+              "end_codepoint": 2833,
+              "text": "this here ought to have been a\n_red_ rose-tree, and we put a white one in by mistake; and if the Queen\nwas to find it out, we should all have our heads cut off, you know."
+            },
+            {
+              "kind": "public_source",
+              "evidence_id": "S1C-public",
+              "source_id": "nurse-error-reporting",
+              "start_codepoint": 1868,
+              "end_codepoint": 1982,
+              "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
+            }
+          ],
+          "prop_relevance": [
+            {
+              "prop_id": "P1",
+              "relevance": "relevant"
+            }
+          ],
+          "connection": {
+            "decision": "proposal",
+            "permitted_evidence_ids": [
+              "S1C-memory",
+              "S1C-book",
+              "S1C-public"
+            ],
+            "required_evidence_ids": [
+              "S1C-memory",
+              "S1C-book",
+              "S1C-public"
+            ],
+            "acceptable_responses": [
+              "tentative_connection"
+            ],
+            "required_public_claims": [
+              "A study of hospital nurses found that leader inclusiveness, safety climate and psychological safety significantly affected nurses' willingness to report errors."
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "S2",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "source_setup",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "hard_gate_pass": false,
+        "grades": [
+          {
+            "proposal_id": "G1-connection",
+            "objective_id": "cross_source_tentative_connection",
+            "failures": [
+              "provider_failure",
+              "missing_connection_decision",
+              "missing_source_inspection",
+              "unexpected_release_source",
+              "required_source_not_inspected",
+              "missing_required_citation:S1C-memory",
+              "missing_required_citation:S1C-book",
+              "missing_required_citation:S1C-public"
+            ],
+            "stages": [
+              {
+                "stage": "invocation",
+                "status": "failed",
+                "reason_code": "missing_connection_decision"
+              },
+              {
+                "stage": "retrieval",
+                "status": "not_reached",
+                "reason_code": "missing_source_inspection"
+              },
+              {
+                "stage": "serendipity_selection",
+                "status": "not_reached",
+                "reason_code": null
+              },
+              {
+                "stage": "muse_presentation",
+                "status": "not_reached",
+                "reason_code": "provider_failure"
+              },
+              {
+                "stage": "provenance_review",
+                "status": "not_reached",
+                "reason_code": null
+              },
+              {
+                "stage": "deterministic_release",
+                "status": "not_reached",
+                "reason_code": "unexpected_release_source"
+              }
+            ],
+            "first_failure_stage": "invocation",
+            "semantic_review_required": true,
+            "acceptable_responses": [
+              "tentative_connection"
+            ],
+            "expected_outcomes": [
+              "The reply offers the gardeners' concealment as one possible parallel to the reader's own note, and keeps it tentative.",
+              "The reply quotes the chapter and visibly cites the public study for the claim that team conditions affect willingness to report."
+            ],
+            "prohibited_outcomes": [
+              "The reply tells the reader the book explains their own conduct.",
+              "The reply quotes the stored memory back as a citation.",
+              "The reader's wording about the billing mistake reaches a public query."
+            ],
+            "required_public_claims": [
+              "A study of hospital nurses found that leader inclusiveness, safety climate and psychological safety significantly affected nurses' willingness to report errors."
+            ]
+          }
+        ],
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "released_evidence_ids": [],
+        "events": [
+          {
+            "kind": "release",
+            "status": "declined",
+            "operation": null,
+            "source": null,
+            "query": null,
+            "evidence_json": [],
+            "decision_json": null,
+            "release_source": "application_safe_decline",
+            "failure_stage": "muse_draft",
+            "failure_code": null,
+            "provenance_verdicts": [],
+            "released_evidence_ids": []
+          }
+        ],
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "S1",
+          "detail": "provider_failure",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_connection_decision",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_source_inspection",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "unexpected_release_source",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "required_source_not_inspected",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-memory",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-book",
+          "proposal_id": "G1-connection"
+        },
+        {
+          "scene_id": "S1",
+          "detail": "missing_required_citation:S1C-public",
+          "proposal_id": "G1-connection"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "S2",
+      "order": 2,
+      "status": "failed",
+      "judgments_total": 2,
+      "judgments_passed": 0,
+      "judgments_failed": 2,
+      "expected": [
+        {
+          "proposal_id": "G2-connection",
+          "objective_id": "cross_source_tentative_connection",
+          "expected_outcomes": [
+            "Judge the connection only. The reply withholds the link itself: it does not present the memory, the chapter and the study as together showing why this reader stayed quiet."
+          ],
+          "prohibited_outcomes": [
+            "The reply asserts the reader stayed quiet because of their team.",
+            "The reply asserts anyone would have done the same.",
+            "The reply presents the three sources as jointly establishing a cause.",
+            "The reader's wording about the billing mistake reaches a public query."
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "S2C-memory",
+              "prop_id": "P1"
+            },
+            {
+              "kind": "repository_text",
+              "evidence_id": "S2C-book",
+              "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+              "source_sha256": "cd520c0231298443f5f58728435a557d8afbe489c01698bd8a014770b9718f7f",
+              "start_codepoint": 2663,
+              "end_codepoint": 2833,
+              "text": "this here ought to have been a\n_red_ rose-tree, and we put a white one in by mistake; and if the Queen\nwas to find it out, we should all have our heads cut off, you know."
+            },
+            {
+              "kind": "public_source",
+              "evidence_id": "S2C-public",
+              "source_id": "nurse-error-reporting",
+              "start_codepoint": 1868,
+              "end_codepoint": 1982,
+              "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
+            }
+          ],
+          "prop_relevance": [
+            {
+              "prop_id": "P1",
+              "relevance": "relevant"
+            }
+          ],
+          "connection": {
+            "decision": "restraint",
+            "permitted_evidence_ids": [
+              "S2C-memory",
+              "S2C-book",
+              "S2C-public"
+            ],
+            "required_evidence_ids": [],
+            "acceptable_responses": [
+              "qualified",
+              "declined",
+              "request_better_evidence"
+            ],
+            "required_public_claims": []
+          },
+          "pairing": {
+            "paired_scene_id": "S1",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "prop_ids",
+              "line_count",
+              "source_setup",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "proposal_id": "G3-weak-evidence",
+          "objective_id": "weak_evidence_safe_decline",
+          "expected_outcomes": [
+            "Judge the honesty and usefulness of the restraint, not the connection. The reply names what the available evidence cannot settle and still leaves the reader something true to think with."
+          ],
+          "prohibited_outcomes": [
+            "The reply invents a source, statistic or study to justify itself.",
+            "The reply presents a study of nurses as evidence about this reader.",
+            "The reply refuses without leaving the reader anything useful."
+          ],
+          "evidence": [
+            {
+              "kind": "prop",
+              "evidence_id": "S2W-memory",
+              "prop_id": "P1"
+            },
+            {
+              "kind": "repository_text",
+              "evidence_id": "S2W-book",
+              "repository_path": "data/corpus/alice-in-wonderland/pg11-v01b38ea4/chapters/08-the-queens-croquet-ground.md",
+              "source_sha256": "cd520c0231298443f5f58728435a557d8afbe489c01698bd8a014770b9718f7f",
+              "start_codepoint": 2663,
+              "end_codepoint": 2833,
+              "text": "this here ought to have been a\n_red_ rose-tree, and we put a white one in by mistake; and if the Queen\nwas to find it out, we should all have our heads cut off, you know."
+            },
+            {
+              "kind": "public_source",
+              "evidence_id": "S2W-public",
+              "source_id": "nurse-error-reporting",
+              "start_codepoint": 1868,
+              "end_codepoint": 1982,
+              "text": "Leader inclusiveness, safety climate and psychological safety significantly affected willingness to report errors."
+            }
+          ],
+          "prop_relevance": [
+            {
+              "prop_id": "P1",
+              "relevance": "relevant"
+            }
+          ],
+          "connection": {
+            "decision": "restraint",
+            "permitted_evidence_ids": [
+              "S2W-memory",
+              "S2W-book",
+              "S2W-public"
+            ],
+            "required_evidence_ids": [],
+            "acceptable_responses": [
+              "qualified",
+              "declined",
+              "request_better_evidence"
+            ],
+            "required_public_claims": []
+          },
+          "pairing": {
+            "paired_scene_id": "S3",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids",
+              "source_setup"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "hard_gate_pass": false,
+        "grades": [
+          {
+            "proposal_id": "G2-connection",
+            "objective_id": "cross_source_tentative_connection",
+            "failures": [
+              "provider_failure",
+              "discovery_failure",
+              "connection_decision_mismatch",
+              "missing_source_inspection",
+              "missing_review_approval",
+              "required_source_not_inspected"
+            ],
+            "stages": [
+              {
+                "stage": "invocation",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "retrieval",
+                "status": "failed",
+                "reason_code": "missing_source_inspection"
+              },
+              {
+                "stage": "serendipity_selection",
+                "status": "not_reached",
+                "reason_code": "discovery_failure"
+              },
+              {
+                "stage": "muse_presentation",
+                "status": "not_reached",
+                "reason_code": "provider_failure"
+              },
+              {
+                "stage": "provenance_review",
+                "status": "not_reached",
+                "reason_code": "missing_review_approval"
+              },
+              {
+                "stage": "deterministic_release",
+                "status": "not_reached",
+                "reason_code": null
+              }
+            ],
+            "first_failure_stage": "retrieval",
+            "semantic_review_required": true,
+            "acceptable_responses": [
+              "qualified",
+              "declined",
+              "request_better_evidence"
+            ],
+            "expected_outcomes": [
+              "Judge the connection only. The reply withholds the link itself: it does not present the memory, the chapter and the study as together showing why this reader stayed quiet."
+            ],
+            "prohibited_outcomes": [
+              "The reply asserts the reader stayed quiet because of their team.",
+              "The reply asserts anyone would have done the same.",
+              "The reply presents the three sources as jointly establishing a cause.",
+              "The reader's wording about the billing mistake reaches a public query."
+            ],
+            "required_public_claims": []
+          },
+          {
+            "proposal_id": "G3-weak-evidence",
+            "objective_id": "weak_evidence_safe_decline",
+            "failures": [
+              "provider_failure",
+              "discovery_failure",
+              "connection_decision_mismatch",
+              "missing_source_inspection",
+              "missing_review_approval",
+              "required_source_not_inspected"
+            ],
+            "stages": [
+              {
+                "stage": "invocation",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "retrieval",
+                "status": "failed",
+                "reason_code": "missing_source_inspection"
+              },
+              {
+                "stage": "serendipity_selection",
+                "status": "not_reached",
+                "reason_code": "discovery_failure"
+              },
+              {
+                "stage": "muse_presentation",
+                "status": "not_reached",
+                "reason_code": "provider_failure"
+              },
+              {
+                "stage": "provenance_review",
+                "status": "not_reached",
+                "reason_code": "missing_review_approval"
+              },
+              {
+                "stage": "deterministic_release",
+                "status": "not_reached",
+                "reason_code": null
+              }
+            ],
+            "first_failure_stage": "retrieval",
+            "semantic_review_required": true,
+            "acceptable_responses": [
+              "qualified",
+              "declined",
+              "request_better_evidence"
+            ],
+            "expected_outcomes": [
+              "Judge the honesty and usefulness of the restraint, not the connection. The reply names what the available evidence cannot settle and still leaves the reader something true to think with."
+            ],
+            "prohibited_outcomes": [
+              "The reply invents a source, statistic or study to justify itself.",
+              "The reply presents a study of nurses as evidence about this reader.",
+              "The reply refuses without leaving the reader anything useful."
+            ],
+            "required_public_claims": []
+          }
+        ],
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "released_evidence_ids": [],
+        "events": [
+          {
+            "kind": "discovery",
+            "status": "failed",
+            "operation": null,
+            "source": null,
+            "query": null,
+            "evidence_json": [],
+            "decision_json": "{\"status\":\"decline\",\"reason\":\"retrieval_unavailable\",\"safe_next_step\":\"The permitted sources could not be searched and compared safely.\"}",
+            "release_source": null,
+            "failure_stage": null,
+            "failure_code": "connection_discovery_failed",
+            "provenance_verdicts": [],
+            "released_evidence_ids": []
+          },
+          {
+            "kind": "release",
+            "status": "declined",
+            "operation": null,
+            "source": null,
+            "query": null,
+            "evidence_json": [],
+            "decision_json": null,
+            "release_source": "application_safe_decline",
+            "failure_stage": "muse_draft",
+            "failure_code": null,
+            "provenance_verdicts": [],
+            "released_evidence_ids": []
+          }
+        ],
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_ip6WdgnRhApDBIFPZ3DoBJwu",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_4678ed3cdf3d438f952b7a71c9d5951d",
+                  "work_id": "pg11",
+                  "book_version_id": "pg11-v01b38ea4",
+                  "title": "Alice's Adventures in Wonderland",
+                  "routing_confidence": 1.0,
+                  "max_chapter_inclusive": 8,
+                  "boundary_confidence": 1.0,
+                  "selection_basis": "resolved_book_identity",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_mPGRE4XYX9GJ3HmsEeVxy0wC",
+                "tool_name": "serendipity_explore",
+                "arguments": "{\"intent\":\"find_connection\"}",
+                "result": {
+                  "decision": {
+                    "status": "decline",
+                    "reason": "retrieval_unavailable",
+                    "safe_next_step": "The permitted sources could not be searched and compared safely."
+                  },
+                  "evidence": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Serendipity",
+            "stage": "search_rank_select",
+            "status": "failure",
+            "failure_code": "serendipity_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "discovery_failure",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "connection_decision_mismatch",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_source_inspection",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_review_approval",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "required_source_not_inspected",
+          "proposal_id": "G2-connection"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "provider_failure",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "discovery_failure",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "connection_decision_mismatch",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_source_inspection",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "missing_review_approval",
+          "proposal_id": "G3-weak-evidence"
+        },
+        {
+          "scene_id": "S2",
+          "detail": "required_source_not_inspected",
+          "proposal_id": "G3-weak-evidence"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "S3",
+      "order": 3,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "G4-weak-evidence",
+          "objective_id": "weak_evidence_safe_decline",
+          "expected_outcomes": [
+            "The reply helps the reader name the tension without retrieving any source or asserting a fact about them."
+          ],
+          "prohibited_outcomes": [
+            "The reply cites a book or public source it was not asked for.",
+            "The reply diagnoses the reader."
+          ],
+          "evidence": [],
+          "prop_relevance": [],
+          "connection": {
+            "decision": "not_requested",
+            "permitted_evidence_ids": [],
+            "required_evidence_ids": [],
+            "acceptable_responses": [
+              "personal_reflection"
+            ],
+            "required_public_claims": []
+          },
+          "pairing": {
+            "paired_scene_id": "S2",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "offline_input_count",
+              "offline_input_content"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids",
+              "source_setup"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "hard_gate_pass": false,
+        "grades": [
+          {
+            "proposal_id": "G4-weak-evidence",
+            "objective_id": "weak_evidence_safe_decline",
+            "failures": [
+              "provider_failure",
+              "unexpected_release_source"
+            ],
+            "stages": [
+              {
+                "stage": "invocation",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "retrieval",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "serendipity_selection",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "muse_presentation",
+                "status": "passed",
+                "reason_code": null
+              },
+              {
+                "stage": "provenance_review",
+                "status": "failed",
+                "reason_code": "provider_failure"
+              },
+              {
+                "stage": "deterministic_release",
+                "status": "not_reached",
+                "reason_code": "unexpected_release_source"
+              }
+            ],
+            "first_failure_stage": "provenance_review",
+            "semantic_review_required": true,
+            "acceptable_responses": [
+              "personal_reflection"
+            ],
+            "expected_outcomes": [
+              "The reply helps the reader name the tension without retrieving any source or asserting a fact about them."
+            ],
+            "prohibited_outcomes": [
+              "The reply cites a book or public source it was not asked for.",
+              "The reply diagnoses the reader."
+            ],
+            "required_public_claims": []
+          }
+        ],
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "released_evidence_ids": [],
+        "events": [
+          {
+            "kind": "release",
+            "status": "declined",
+            "operation": null,
+            "source": null,
+            "query": null,
+            "evidence_json": [],
+            "decision_json": null,
+            "release_source": "application_safe_decline",
+            "failure_stage": "emotional_boundary_preflight",
+            "failure_code": null,
+            "provenance_verdicts": [],
+            "released_evidence_ids": []
+          }
+        ],
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "failure",
+            "failure_code": "emotional_boundary_preflight_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "S3",
+          "detail": "provider_failure",
+          "proposal_id": "G4-weak-evidence"
+        },
+        {
+          "scene_id": "S3",
+          "detail": "unexpected_release_source",
+          "proposal_id": "G4-weak-evidence"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22",
+    "trace_id": "01a0b4515d7a95f2695cbcc223ee1743",
+    "span_id": "78258c0a6cfa5f22",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "3010b69ce69b4aa890a63c751be4d30a",
+      "dataset_version": "ae4ec801931eb3cc1fc6debe7bd4bc7c736442128f512582671e7d358d87dc31",
+      "system_variant": "415fe4329cae644cda7d598b5eb33266500eb0a68bbe0b457ad896954fd36ea2",
+      "objective_ids": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-12T12:55:14.148635+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/contracts.py\n M apps/backend/hybrid_librarian.py\n M apps/backend/telemetry.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M evals/synthetic_journals/models.py\n M evals/synthetic_journals/replay.py\n M evals/synthetic_journals/transcript.py\n M src/linger/agents/build.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/boundary_prompt.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/agent.py\n M src/linger/agents/muse/models.py\n M src/linger/agents/muse/quote_repair.py\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/agents/skills.py\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/evaluation_transcript.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n M src/linger/orchestration/reflection.py\n?? apps/backend/rerank_windows.py\n?? src/linger/agents/librarian/skills/event-identification/SKILL.md\n?? src/linger/agents/muse/claim_repair.py\n?? src/linger/agents/provenance/excerpt_feedback.py\n?? src/linger/agents/provenance/quotation_audit.py",
+        "scenario_commit": "048ba9dcec3ff232c794302f58c2109177167454",
+        "scenario_commit_description": "048ba9d 2026-09-12T13:11:00+08:00 eval: recapture the roses package snapshot and record seven runs",
+        "current_scenario_matches_commit": true,
+        "history_window": "since earlier declared adoption time, including changes before a later scenario move or edit",
+        "recent_commits": "4f08825 2026-09-16T06:38:15+08:00 fix: preserve reading context and evidence boundaries\n\napps/backend/chat_turn.py\ndocs/specification.md\nevals/synthetic_journals/connection_replay.py\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/evidence_strength.py\nafcf271 2026-09-16T00:49:28+08:00 test: fix Windows test failures and fake retrieval models\n\nevals/synthetic_journals/run_scenario.py\nevals/synthetic_journals/scenario_catalog.py\nfaa2faf 2026-09-15T22:55:36+08:00 feat: curation risk code evals\n\nsrc/linger/orchestration/curation.py\nsrc/linger/services/memory.py\nbab63dd 2026-09-15T21:48:43+08:00 Merge pull request #54 from DesmondChoy/km-curation-loop\n1dc4e84 2026-09-15T21:35:46+08:00 feat: added sensitive inference veto, removed unused preset and journal\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/replay.py\nevals/synthetic_journals/replay_support.py\nevals/synthetic_journals/validate_scenario.py\nd07713c 2026-09-15T20:36:32+08:00 chore: remove synthetic attempts from older implementations\n\nevals/synthetic_journals/README.md\nc31019f 2026-09-15T15:05:23+08:00 fix: share Librarian evidence planning and validate agent repairs\n\napps/backend/hybrid_librarian.py\napps/backend/librarian.py\napps/backend/telemetry.py\ndocs/agent-skills.md\ndocs/specification.md\nevals/synthetic_journals/README.md\nevals/synthetic_journals/book_replay.py\nevals/synthetic_journals/connection_replay.py\nevals/synthetic_journals/frozen_public_sources.py\nevals/synthetic_journals/public_source_capture.py\nevals/synthetic_journals/transcript.py\nsrc/linger/agents/librarian/agent.py\nsrc/linger/agents/librarian/models.py\nsrc/linger/agents/librarian/skills.py\nsrc/linger/agents/librarian/skills/book-request/SKILL.md\nsrc/linger/agents/librarian/skills/boundary-inference/SKILL.md\nsrc/linger/agents/librarian/skills/evidence-assessment/SKILL.md\nsrc/linger/agents/muse/agent.py\nsrc/linger/agents/muse/models.py\nsrc/linger/agents/muse/quote_repair.py\nsrc/linger/agents/muse/skills/reflection/SKILL.md\nsrc/linger/agents/muse/tools.py\nsrc/linger/agents/provenance/models.py\nsrc/linger/agents/provenance/skills.py\nsrc/linger/agents/provenance/skills/candidate-review/SKILL.md\nsrc/linger/agents/serendipity/README.md\nsrc/linger/agents/serendipity/agent.py\nsrc/linger/agents/serendipity/models.py\nsrc/linger/agents/serendipity/skills/connection-discovery/SKILL.md\nsrc/linger/agents/serendipity/tools.py\nsrc/linger/contracts/librarian.py\nsrc/linger/evaluation_transcript.py\nsrc/linger/orchestration/book_evidence.py\nsrc/linger/orchestration/boundary.py\nsrc/linger/orchestration/connection.py\nsrc/linger/orchestration/evidence_strength.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/reflection.py\nsrc/linger/orchestration/turn_context.py\nace8e3e 2026-09-15T09:42:13+08:00 fix: typed curation outcome expectation\n\nevals/synthetic_journals/curation_replay.py\n61862d3 2026-09-15T00:53:42+08:00 fix: let only the reader retract a book they stated\n\napps/backend/chat_turn.py\napps/backend/sessions.py\nsrc/linger/orchestration/grounding.py\nsrc/linger/orchestration/routing.py\nd0ffab0 2026-09-15T00:38:40+08:00 fix: stop a later sentence being read as a declared book title\n\napps/backend/chat_turn.py\ncb47f08 2026-09-15T00:25:37+08:00 fix: let Serendipity finish its web citation flow, and show review findings\n\nsrc/linger/orchestration/connection.py\n493a304 2026-09-14T23:41:30+08:00 fix: looped curation replay\n\nevals/synthetic_journals/README.md\nevals/synthetic_journals/capture_curation_replay.py\nevals/synthetic_journals/curation_replay.py"
+      },
+      "run_log_tail": "CONNECTION_REPLAY_OUTPUT=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json\n\n2026-09-18 19:40:34 INFO linger.backend Agent run completed elapsed=7.98s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=muse_draft\n2026-09-18 19:40:55 INFO linger.backend Agent run completed elapsed=21.25s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=muse_draft\n2026-09-18 19:40:58 INFO linger.backend Agent run completed elapsed=3.32s release_source=application_safe_decline provenance_path=none findings=none revisions=0 failure_stage=emotional_boundary_preflight\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22\", \"trace_id\": \"01a0b4515d7a95f2695cbcc223ee1743\", \"span_id\": \"78258c0a6cfa5f22\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "All Scenes fail operationally under explicit provider HTTP429; no semantic pass or failure is established.",
+    "scenario_assessment": {
+      "goal": "The authored paired requests still test bounded grounding, relevant reflection, and safe handling of unavailable or ambiguous evidence.",
+      "input_validity": "Current authority bytes match the saved run-start hashes. Each Scene supplies its declared current Line and only authorized Props; no missing input is silently reconstructed.",
+      "ground_truth_validity": "Recorded grades retain the current human-adopted expectations, including approved optional support where present. Narrative requirements and mechanical coverage are assessed separately below."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "S1",
+        "assessment": "inconclusive",
+        "expected_behavior": "Connect book, note and opened research while preserving source roles.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft. The application releases only a temporary-error decline and no evidence.",
+        "interpretation": "No substantive final candidate or independent source-support judgment is available. This is provider failure, not evidence that the adopted expectation or retrieval semantics are wrong.",
+        "grade_reliability": "Recorded failed grades accurately describe the unfulfilled request; they cannot measure the intended semantic repair in this Scene.",
+        "next_step": "No additional live call is authorized beyond iteration20; retain this run as infrastructure-limited evidence.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "S2",
+        "assessment": "inconclusive",
+        "expected_behavior": "Qualify unsupported personal causation and source limitations.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft, Serendipity search_rank_select. The application releases only a temporary-error decline and no evidence.",
+        "interpretation": "No substantive final candidate or independent source-support judgment is available. This is provider failure, not evidence that the adopted expectation or retrieval semantics are wrong.",
+        "grade_reliability": "Recorded failed grades accurately describe the unfulfilled request; they cannot measure the intended semantic repair in this Scene.",
+        "next_step": "No additional live call is authorized beyond iteration20; retain this run as infrastructure-limited evidence.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "S3",
+        "assessment": "inconclusive",
+        "expected_behavior": "Help phrase the current personal conflict without retrieving sources.",
+        "observed_behavior": "Explicit provider HTTP429 at Provenance emotional_boundary_preflight. The application releases only a temporary-error decline and no evidence.",
+        "interpretation": "No substantive final candidate or independent source-support judgment is available. This is provider failure, not evidence that the adopted expectation or retrieval semantics are wrong.",
+        "grade_reliability": "Recorded failed grades accurately describe the unfulfilled request; they cannot measure the intended semantic repair in this Scene.",
+        "next_step": "No additional live call is authorized beyond iteration20; retain this run as infrastructure-limited evidence.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json"
+        ]
+      }
+    ],
+    "next_steps": []
+  }
+}

@@ -1,0 +1,629 @@
+{
+  "provider_requests_disabled": true,
+  "cases": [
+    {
+      "case_id": "rabbit-watch",
+      "expected_chapter": 1,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 1,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 1,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. What made Alice finally chase the White Rabbit?"
+      }
+    },
+    {
+      "case_id": "drink-me",
+      "expected_chapter": 1,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 1,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 1,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. What did the bottle label tell Alice to do?"
+      }
+    },
+    {
+      "case_id": "pool-of-tears",
+      "expected_chapter": 2,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 2,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 2,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Where did the pool Alice swims in come from?"
+      }
+    },
+    {
+      "case_id": "caucus-prizes",
+      "expected_chapter": 3,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 3,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 3,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Who wins the Caucus-race and receives prizes?"
+      }
+    },
+    {
+      "case_id": "giant-puppy",
+      "expected_chapter": 4,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 4,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 4,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. How does Alice play with the enormous puppy without being trampled?"
+      }
+    },
+    {
+      "case_id": "identity-change",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Why can Alice not explain who she is to the Caterpillar?"
+      }
+    },
+    {
+      "case_id": "father-william",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. What poem does the Caterpillar make Alice recite?"
+      }
+    },
+    {
+      "case_id": "pigeon-serpent",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Why does the Pigeon insist that Alice is a serpent?"
+      }
+    },
+    {
+      "case_id": "identity-theme",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. How do Alice's changing size and uncertain identity reinforce each other?"
+      }
+    },
+    {
+      "case_id": "exact-caucus-quote",
+      "expected_chapter": 3,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 3,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 3,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Find the passage saying everybody won and all must have prizes"
+      }
+    },
+    {
+      "case_id": "future-cheshire",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. What advice does the Cheshire Cat give Alice about which road to take?"
+      }
+    },
+    {
+      "case_id": "absent-spaceship",
+      "expected_chapter": 5,
+      "original": {
+        "reading_context": null,
+        "resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": "Which book do you mean? Please give its full title and author.",
+          "explanation": "The book identity is unresolved; no chapter progress is authorized."
+        },
+        "declared_title": null,
+        "fallback_declared_title": "Alice's Adventures in Wonderland, and I've completed"
+      },
+      "proposed": {
+        "reading_context": {
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "work_id": "pg11",
+          "boundary_source": "reader_confirmed"
+        },
+        "resolution": {
+          "status": "confirmed",
+          "work_id": "pg11",
+          "work_title": "Alice's Adventures in Wonderland",
+          "book_version_id": "pg11-v01b38ea4",
+          "chapter_max": 5,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "declared_title": "Alice's Adventures in Wonderland",
+        "fallback_declared_title": "Alice's Adventures in Wonderland. Where does Alice repair a spaceship?"
+      }
+    }
+  ]
+}

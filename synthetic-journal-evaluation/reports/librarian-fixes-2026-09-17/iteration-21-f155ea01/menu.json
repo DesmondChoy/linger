@@ -1,0 +1,504 @@
+{
+  "schema_version": 2,
+  "repository_root": "/Users/kevinmanuel/Documents/REPO/linger",
+  "created_at": "2026-09-17T21:29:27.481742+08:00",
+  "entries": [
+    {
+      "number": 1,
+      "scenario": "alice-caterpillar-grounding-and-spoilers--muse-librarian-provenance--2026-08-29",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 3,
+      "scene_ids": [
+        "scene-caterpillar-grounded-reflection",
+        "scene-ambiguous-after-change",
+        "scene-personal-changing-routines"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "43c536bb2526ce2fee6be79d5a95e8419b6d785232bf5a55cdd63f50032b8ba8",
+        "ground-truth.json": "f5042bd298304f9243f933e7a644c39c3e527c7c1a3f972212babfc3ec4a7054",
+        "ground-truth-adoption.json": "d26828640cfff9fa74bf47687d2d2c2523b6a17d6160c64e34c3d6b67260b77a"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [
+        {
+          "category": "scenario",
+          "detail": "proposals.0.grounded_book_reflection: Extra inputs are not permitted | proposals.0.spoiler_boundary: Extra inputs are not permitted | proposals.1.grounded_book_reflection: Extra inputs are not permitted | proposals.1.spoiler_boundary: Extra inputs are not permitted | proposals.2.grounded_book_reflection: Extra inputs are not permitted | proposals.2.spoiler_boundary: Extra inputs are not permitted | proposals.3.grounded_book_reflection: Extra inputs are not permitted | proposals.3.spoiler_boundary: Extra inputs are not permitted | proposals: Tuple should have at least 1 item after validation, not 0"
+        }
+      ],
+      "title": "Alice Caterpillar grounding and spoilers",
+      "description": "Prove Muse, Librarian, and Provenance can ground reflection without spoilers by quoting the Caterpillar exchange, clarifying ambiguous progress, and answering personal concerns without retrieval."
+    },
+    {
+      "number": 2,
+      "scenario": "alice-identity-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-07",
+      "objective_ids": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "scene_count": 3,
+      "scene_ids": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "runner": "evals.synthetic_journals.connection_replay",
+      "requires_web": true,
+      "hashes": {
+        "backstory.json": "34e900f0d1326a66e473536f336e5797335d829093f1180bf21b3ec1fb7fcada",
+        "ground-truth.json": "0cc016b37cf226bb51fe93b1760128d80b52f85de366e56e686cf64c377fa6b5",
+        "ground-truth-adoption.json": null
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [
+        {
+          "category": "adoption",
+          "detail": "Independent Ground truth adoption is missing."
+        }
+      ],
+      "title": "Alice identity connections and restraint",
+      "description": "Prove Muse, Librarian, Serendipity, and Provenance can connect sources tentatively by comparing Lina's note with Alice and Hume while rejecting unsupported conclusions about lasting personality change."
+    },
+    {
+      "number": 3,
+      "scenario": "alice-kitchen-spoiler-boundary--muse-librarian-provenance--2026-09-01",
+      "objective_ids": [
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 2,
+      "scene_ids": [
+        "scene-kitchen-boundary",
+        "scene-size-ambiguous"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "36deed980558fbb806f5c679a29a45d3421169b3d4453632e332fc2705ec6a00",
+        "ground-truth.json": "450999695251ace1ead2e5f42de08ac6a5b5a6d703345abb12483a306b04bbce",
+        "ground-truth-adoption.json": "4ea02515f7cc34dc01b994eaf4e6fb6d035ef09bda69c2a5b4e5d86b2771bb87"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [
+        {
+          "category": "scenario",
+          "detail": "proposals.0: Value error, book Objective requires typed book_expectation | proposals.1: Value error, book Objective requires typed book_expectation | proposals: Tuple should have at least 1 item after validation, not 0"
+        }
+      ],
+      "title": "Alice kitchen spoiler boundary",
+      "description": "Prove Muse, Librarian, and Provenance can respect reading boundaries by recognizing the kitchen episode as chapter 6 and asking for clarification when size changes leave progress ambiguous."
+    },
+    {
+      "number": 4,
+      "scenario": "alice-pigeon-grounding-and-spoilers--muse-librarian-provenance--2026-09-03",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 3,
+      "scene_ids": [
+        "pigeon-reflection",
+        "uncertain-growth",
+        "personal-reflection"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "67db8f62d325b10b0b2b5370e55bd56a0abea7381860d7ab4b7e8605732e9e07",
+        "ground-truth.json": "b7826e51a38e6775fd401e664eacee6648a3101e610f33f5ff4a3d5ea9052074",
+        "ground-truth-adoption.json": "8b597d2308558eb6095d91af454f4fd54a9c91cc0de9af92c4ae2fb571847ffc"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Alice Pigeon grounding and spoilers",
+      "description": "Prove Muse, Librarian, and Provenance can ground answers within supported reading progress by quoting the Pigeon exchange accurately and clarifying an uncertain later growth episode."
+    },
+    {
+      "number": 5,
+      "scenario": "alice-quotation-grounding--muse-librarian-provenance--2026-08-31",
+      "objective_ids": [
+        "grounded_book_reflection"
+      ],
+      "scene_count": 2,
+      "scene_ids": [
+        "scene-grounded-quotation",
+        "scene-personal-reflection"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "c5565371c007269d74a90b8f34f118b109944c654caabd936e837b1be6148be0",
+        "ground-truth.json": "82fd8dfee7ff377cad70d621c71f7f592089b5863db5d2faa328de2be5721949",
+        "ground-truth-adoption.json": "2d1561e0e816f1a3d19baebfd3dfdd0265c37dba4b5ed7ad1a15fdbade38f6d8"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [
+        {
+          "category": "scenario",
+          "detail": "proposals.0: Value error, book Objective requires typed book_expectation | proposals.1: Value error, book Objective requires typed book_expectation | proposals: Tuple should have at least 1 item after validation, not 0"
+        }
+      ],
+      "title": "Alice quotation grounding",
+      "description": "Prove Muse, Librarian, and Provenance can retrieve only when needed by checking Alice's exact wording for a quotation request and skipping retrieval for personal reflection."
+    },
+    {
+      "number": 6,
+      "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "objective_ids": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "scene_count": 3,
+      "scene_ids": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "runner": "evals.synthetic_journals.connection_replay",
+      "requires_web": true,
+      "hashes": {
+        "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+        "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+        "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Alice roses, concealment, and restraint",
+      "description": "Prove Muse, Librarian, Serendipity, and Provenance can distinguish reflection from causal proof by comparing concealment across memory, Alice, and research without claiming these explain the reader's silence."
+    },
+    {
+      "number": 7,
+      "scenario": "animal-farm-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 4,
+      "scene_ids": [
+        "farm-decision-reversal",
+        "farm-personal-trust",
+        "farm-spoiler-inference",
+        "farm-interrupted-discussion"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "643f1ac87f06279ba5e6a5b3c06ab84c4b7add3ef25407528d8a0b2227ecae7a",
+        "ground-truth.json": "b7628464d31c36cc047f1c3ddf3fcec0558a02172da570801e75ab3813e8980c",
+        "ground-truth-adoption.json": "2b8ce9c3e6e5df58e29b114b6c48a0e84868e7187a4ed81da4362fb5c2d5d6ec"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Animal farm event led grounding and clarification",
+      "description": "Grounded book reflection; Spoiler-boundary clarification"
+    },
+    {
+      "number": 8,
+      "scenario": "cross-source-connections-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+      "objective_ids": [
+        "cross_source_tentative_connection",
+        "weak_evidence_safe_decline"
+      ],
+      "scene_count": 3,
+      "scene_ids": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "runner": "evals.synthetic_journals.connection_replay",
+      "requires_web": true,
+      "hashes": {
+        "backstory.json": "de495e8195687d2d2ba9d1b09c0e0cf813273aefbfa86660a913c138fefa8bf2",
+        "ground-truth.json": "4bfa934432685d907c7ae8eff46e47d019f1522e8f1ad9625ae4a88780e9a5dd",
+        "ground-truth-adoption.json": "e4c8dd69500136770ab50ade05991e45b3e25919f3122e095e9dfe9adb8f3f9d"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Cross-source connections and restraint",
+      "description": "Evaluate tentative comparisons across memory, Alice, and Hume while rejecting the conclusion that one social self is authentic and another is an act."
+    },
+    {
+      "number": 9,
+      "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 4,
+      "scene_ids": [
+        "douglass-grounded",
+        "douglass-personal",
+        "douglass-spoiler-inference",
+        "douglass-uncertain"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+        "ground-truth.json": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+        "ground-truth-adoption.json": "f627a199e49705a1b757d61c49fdf90fd6303d973a2e535e410e79543efc4ec7"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Douglass event led grounding and clarification",
+      "description": "Grounded book reflection; Spoiler-boundary clarification"
+    },
+    {
+      "number": 10,
+      "scenario": "event-led-book-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 4,
+      "scene_ids": [
+        "alice-race-reflection",
+        "alice-personal-comparison",
+        "alice-spoiler-inference",
+        "alice-bottle-ambiguity"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "fd0d44623c605e6c82a44154e042643ab4845f54b1db8cd52d747467de2cf7b3",
+        "ground-truth.json": "49069d5c65c65aab77abbdd6cadaace7b475fe70f555808bee9d4d608207314a",
+        "ground-truth-adoption.json": "57d44ca8f2d062512a1dc739f354d7e3246d6ba76cc961b930689ac19d72b69b"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Event led book grounding and clarification",
+      "description": "Grounded book reflection; Spoiler-boundary clarification"
+    },
+    {
+      "number": 11,
+      "scenario": "helen-keller-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 4,
+      "scene_ids": [
+        "keller-grounded",
+        "keller-personal",
+        "keller-spoiler-inference",
+        "keller-uncertain"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "0db8fc752bf0761db39437404efa13d072958388e24cbe75f0a39d5adb267c0f",
+        "ground-truth.json": "cb6c8b7f286d7795f6fa6dcbf3708630f8a916d38f48905eee526fb58e76ec09",
+        "ground-truth-adoption.json": "65390dfcdf7f5300e432777a0bb245dd7ae23be1228ce4fb27e123a81d3d1422"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Helen keller event led grounding and clarification",
+      "description": "Grounded book reflection; Spoiler-boundary clarification"
+    },
+    {
+      "number": 12,
+      "scenario": "pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "scene_count": 4,
+      "scene_ids": [
+        "pinocchio-promises-and-book",
+        "pinocchio-personal-study",
+        "pinocchio-spoiler-inference",
+        "pinocchio-school-detour"
+      ],
+      "runner": "evals.synthetic_journals.book_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+        "ground-truth.json": "7b90e0316a99af81b81bbed1f0d2cad11f7b6f5b59ac6ca7669417b72b452847",
+        "ground-truth-adoption.json": "8cee44319adbdeef7f717d6e272144b9dac75ebecba57f7631be599ea9cb0892"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Pinocchio event led grounding and clarification",
+      "description": "Grounded book reflection; Spoiler-boundary clarification"
+    },
+    {
+      "number": 13,
+      "scenario": "pottery-memory-curation--sculptor--2026-08-29",
+      "objective_ids": [
+        "bounded_memory_curation"
+      ],
+      "scene_count": 5,
+      "scene_ids": [
+        "scene-exact-duplicate",
+        "scene-paraphrased-duplicate",
+        "scene-evolving-fact-with-noise",
+        "scene-related-distinct-with-distractor",
+        "scene-superficial-similarity"
+      ],
+      "runner": "evals.synthetic_journals.curation_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "df448df11ba0aede91f10d9a3e1254cb9358e0f303a4d8cfb7599dc4bd14de53",
+        "ground-truth.json": "3993de04d32a4e6467b247b5d32659dc9eab44e7fa695f5a6cff1d95a640956e",
+        "ground-truth-adoption.json": "f47cade660cff303391ea9f45827d4cbf9bd63f4bb749e56da5b0eff15fa0c61"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Pottery memory curation",
+      "description": "Prove Sculptor can propose curation without changing source records by distinguishing duplicates, schedule updates, related preparations, and irrelevant word overlap."
+    },
+    {
+      "number": 14,
+      "scenario": "reviewed-capture-and-bounded-curation--muse-sculptor-provenance--2026-09-13",
+      "objective_ids": [
+        "reviewed_automatic_memory_capture",
+        "bounded_memory_curation"
+      ],
+      "scene_count": 16,
+      "scene_ids": [
+        "scene-01",
+        "scene-02",
+        "scene-03",
+        "scene-04",
+        "scene-05",
+        "scene-06",
+        "scene-07",
+        "scene-08",
+        "scene-09",
+        "scene-10",
+        "scene-11",
+        "scene-12",
+        "scene-13",
+        "scene-14",
+        "scene-15",
+        "scene-16"
+      ],
+      "runner": "evals.synthetic_journals.capture_curation_replay",
+      "requires_web": false,
+      "hashes": {
+        "backstory.json": "5f45a3785d896685de9f921db1d034e87b1f4a23b7374e5e0512a2a3ab7298c2",
+        "ground-truth.json": "f1c409a4133ed6ea905b348078077d99d30d8d7d67cee8d4679eaaf83f680dd8",
+        "ground-truth-adoption.json": "d228fc383fd7d928f81ed4ab22c0a295cb76010c69d518a34d30899f394737c4"
+      },
+      "configuration": {
+        "model": "openai:gpt-5.6-luna",
+        "provider": "openai",
+        "required_api_key": "OPENAI_API_KEY",
+        "provider_key_present": true,
+        "web_key_present": true,
+        "logfire_credentials_present": true,
+        "problems": []
+      },
+      "issues": [],
+      "title": "Reviewed capture and bounded curation",
+      "description": "Evaluate selective memory capture and source-preserving curation by storing durable content, leaving low-signal content unstored, and distinguishing duplicate, evolving, related, and unrelated records."
+    }
+  ]
+}

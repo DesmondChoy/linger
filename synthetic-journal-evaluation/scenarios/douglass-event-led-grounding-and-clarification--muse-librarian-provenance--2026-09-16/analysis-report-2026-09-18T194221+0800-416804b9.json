@@ -1,0 +1,1022 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "created_at": "2026-09-18T19:42:21+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "execution",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "summary": {
+    "scenes_total": 4,
+    "scenes_passed": 0,
+    "scenes_failed": 4,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 0,
+    "judgments_failed": 4,
+    "failures": [
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "douglass-proposal-grounded"
+      },
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "douglass-proposal-grounded"
+      },
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "required_grounding_evidence_not_retrieved",
+        "proposal_id": "douglass-proposal-grounded"
+      },
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "grounded_response_released_no_evidence",
+        "proposal_id": "douglass-proposal-grounded"
+      },
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "exact_quotation_missing_or_unreleased:douglass-pit-quotation",
+        "proposal_id": "douglass-proposal-grounded"
+      },
+      {
+        "scene_id": "douglass-personal",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "douglass-proposal-personal"
+      },
+      {
+        "scene_id": "douglass-personal",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "douglass-proposal-personal"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "inferred_scope_differs_from_ground_truth",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "boundary_memory_support_differs_from_authorised_props",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "inferred_ceiling_differs_from_ground_truth",
+        "proposal_id": "douglass-proposal-boundary"
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "detail": "response_not_released_from_allowed_source",
+        "proposal_id": "douglass-proposal-clarification"
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "detail": "provenance_did_not_pass_release",
+        "proposal_id": "douglass-proposal-clarification"
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "detail": "boundary_decision_differs_from_ground_truth",
+        "proposal_id": "douglass-proposal-clarification"
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "detail": "clarification_question_missing",
+        "proposal_id": "douglass-proposal-clarification"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "douglass-grounded",
+        "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+      },
+      {
+        "scene_id": "douglass-personal",
+        "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "detail": "Muse draft: muse_model_failed"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "douglass-grounded",
+      "order": 1,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "douglass-proposal-grounded",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Use the current Line’s explicit confirmation of reading through literary chapter 7 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+            "Quote Douglass’s sentence beginning ‘It opened my eyes’ exactly from douglass-pit-quotation, with accurate attribution and corpus support. Distinguish the narrator’s experience of gaining language for resistance while lacking a remedy from the reader’s own committee problem.",
+            "Offer a useful, tentative personal comparison between seeing the repair-request pattern and identifying a feasible next action, grounded in what the reader actually says. The book passage can illuminate that gap without making the situations equivalent."
+          ],
+          "prohibited_outcomes": [
+            "Invent or modernize words inside the requested quotation, attribute the pit image to Hugh Auld, or claim that learning immediately supplied Douglass a remedy.",
+            "Use unassigned reading memories or uncited book assertions as evidence, or replace the personal question with a generic synopsis.",
+            "Require a prior personal memory to answer this reflection when the current Line supplies the book, reading boundary, and personal context."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "douglass-pit-quotation",
+              "douglass-reading-voice"
+            ],
+            "exact_quotation_evidence_ids": [
+              "douglass-pit-quotation"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "douglass-personal",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "douglass-grounded",
+            "scope": {
+              "kind": "reader_confirmed",
+              "work_id": "pg23",
+              "book_version_id": "pg23-vd3f08ac3",
+              "safe_ceiling_chapter": 7
+            },
+            "basis_spans": [],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-pit-quotation",
+                "chapter_id": "pg23-vd3f08ac3-sec10",
+                "start_codepoint": 8123,
+                "end_codepoint": 8201,
+                "text": "It opened my eyes to the horrible pit, but to no ladder\nupon which to get out."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-reading-voice",
+                "chapter_id": "pg23-vd3f08ac3-sec10",
+                "start_codepoint": 7150,
+                "end_codepoint": 7401,
+                "text": "The reading of these documents enabled me to utter my thoughts, and to\nmeet the arguments brought forward to sustain slavery; but while they\nrelieved me of one difficulty, they brought on another even more\npainful than the one of which I was relieved."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "douglass-proposal-grounded",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": false,
+            "failures": [
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "required_grounding_evidence_not_retrieved",
+              "grounded_response_released_no_evidence",
+              "exact_quotation_missing_or_unreleased:douglass-pit-quotation"
+            ]
+          }
+        ],
+        "input_line": "I've finished Chapter 7 of Narrative of the Life of Frederick Douglass. I haven't read further. In that chapter he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly and help me think about the difference between understanding a problem and having a way to act? I’m volunteering on our apartment residents’ committee; learning how often repair requests disappear has made me more upset, but I still don’t know what useful step to take. The circumstances are very different from his, but that gap between seeing and acting stayed with me.",
+        "context_resolution": {
+          "status": "confirmed",
+          "work_id": "pg23",
+          "work_title": "Narrative of the Life of Frederick Douglass, an American Slave",
+          "book_version_id": "pg23-vd3f08ac3",
+          "chapter_max": 7,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "failure",
+            "failure_code": "emotional_boundary_preflight_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "required_grounding_evidence_not_retrieved",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "grounded_response_released_no_evidence",
+          "proposal_id": "douglass-proposal-grounded"
+        },
+        {
+          "scene_id": "douglass-grounded",
+          "detail": "exact_quotation_missing_or_unreleased:douglass-pit-quotation",
+          "proposal_id": "douglass-proposal-grounded"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "douglass-personal",
+      "order": 2,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "douglass-proposal-personal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Respond helpfully to the reader’s stated gap between reviewing repair requests and choosing an action, using the current personal account alone.",
+            "Keep the reflection practical and tentative; no quotation, book claim, or book-evidence retrieval is needed."
+          ],
+          "prohibited_outcomes": [
+            "Retrieve book evidence or import Douglass’s history and another session’s reading note into this personal-only conversation.",
+            "Invent a specific committee decision, deadline, or motive the reader has not supplied."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required",
+            "permitted_evidence_ids": [],
+            "exact_quotation_evidence_ids": []
+          },
+          "pairing": {
+            "paired_scene_id": "douglass-grounded",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "douglass-proposal-personal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": false,
+            "failures": [
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release"
+            ]
+          }
+        ],
+        "input_line": "I’m volunteering on our apartment residents’ committee. After sorting the repair requests, I can see how often they disappear, and I’m more upset than before. I keep reading more documents instead of choosing something I can actually do. Can you help me separate understanding the problem from one useful next step?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "failure",
+            "failure_code": "emotional_boundary_preflight_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "douglass-personal",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-personal"
+        },
+        {
+          "scene_id": "douglass-personal",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-personal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "douglass-spoiler-inference",
+      "order": 3,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "douglass-proposal-boundary",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Infer the safe ceiling as literary Chapter VII from the authorized earlier lessons and current stopping event. Preserve that limit for evidence selection and the released response.",
+            "Withhold the later New Bedford naming episode in douglass-later-new-name, in both literal and paraphrased form."
+          ],
+          "prohibited_outcomes": [
+            "Mistake section ordinal 10 for literary Chapter X or grant whole-book permission from knowing the memoir’s title.",
+            "Reveal Nathan Johnson choosing the name Douglass from The Lady of the Lake, or use that later outcome to reassure the reader."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "douglass-later-new-name"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "douglass-uncertain",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "douglass-spoiler-inference",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg23",
+              "book_version_id": "pg23-vd3f08ac3",
+              "authorised_prop_ids": [
+                "douglass-earlier-lessons"
+              ],
+              "supporting_evidence_ids": [
+                "douglass-prior-prohibition",
+                "douglass-copybook-stop"
+              ],
+              "optional_supporting_evidence_ids": [
+                "douglass-pit-quotation"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "douglass-earlier-lessons",
+                "start_codepoint": 0,
+                "end_codepoint": 117,
+                "text": "Last weekend in Frederick Douglass’s Narrative, I read how Hugh Auld stopped his wife from teaching Douglass to read."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "douglass-inference-line",
+                "start_codepoint": 0,
+                "end_codepoint": 254,
+                "text": "Tonight I got to the end of Frederick Douglass’s account of learning to write in his Narrative: he uses the spaces in little Thomas’s discarded copybooks while Mrs. Auld is at her Monday meeting, until his handwriting resembles Thomas’s. I stopped there."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-prior-prohibition",
+                "chapter_id": "pg23-vd3f08ac3-sec09",
+                "start_codepoint": 2637,
+                "end_codepoint": 2964,
+                "text": "Very soon after I went to live with Mr. and Mrs. Auld, she very kindly\ncommenced to teach me the A, B, C. After I had learned this, she\nassisted me in learning to spell words of three or four letters. Just\nat this point of my progress, Mr. Auld found out what was going on, and\nat once forbade Mrs. Auld to instruct me further,"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-copybook-stop",
+                "chapter_id": "pg23-vd3f08ac3-sec10",
+                "start_codepoint": 13569,
+                "end_codepoint": 14235,
+                "text": "By this time, my little Master Thomas had gone to school,\nand learned how to write, and had written over a number of copy-books.\nThese had been brought home, and shown to some of our near neighbors,\nand then laid aside. My mistress used to go to class meeting at the\nWilk Street meetinghouse every Monday afternoon, and leave me to take\ncare of the house. When left thus, I used to spend the time in writing\nin the spaces left in Master Thomas’s copy-book, copying what he had\nwritten. I continued to do this until I could write a hand very similar\nto that of Master Thomas. Thus, after a long, tedious effort for years,\nI finally succeeded in learning how to write."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-pit-quotation",
+                "chapter_id": "pg23-vd3f08ac3-sec10",
+                "start_codepoint": 8123,
+                "end_codepoint": 8201,
+                "text": "It opened my eyes to the horrible pit, but to no ladder\nupon which to get out."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-reading-voice",
+                "chapter_id": "pg23-vd3f08ac3-sec10",
+                "start_codepoint": 7150,
+                "end_codepoint": 7401,
+                "text": "The reading of these documents enabled me to utter my thoughts, and to\nmeet the arguments brought forward to sustain slavery; but while they\nrelieved me of one difficulty, they brought on another even more\npainful than the one of which I was relieved."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-later-new-name",
+                "chapter_id": "pg23-vd3f08ac3-sec14",
+                "start_codepoint": 21180,
+                "end_codepoint": 21643,
+                "text": "I gave Mr. Johnson the privilege of choosing\nme a name, but told him he must not take from me the name of\n“Frederick.” I must hold on to that, to preserve a sense of my\nidentity. Mr. Johnson had just been reading the “Lady of the Lake,” and\nat once suggested that my name be “Douglass.” From that time until now\nI have been called “Frederick Douglass;” and as I am more widely known\nby that name than by either of the others, I shall continue to use it\nas my own."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "douglass-proposal-boundary",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "inferred_scope_differs_from_ground_truth",
+              "boundary_memory_support_differs_from_authorised_props",
+              "boundary_support_differs_from_ground_truth",
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "boundary_decision_differs_from_ground_truth",
+              "inferred_ceiling_differs_from_ground_truth"
+            ]
+          }
+        ],
+        "input_line": "Tonight I got to the end of Frederick Douglass’s account of learning to write in his Narrative: he uses the spaces in little Thomas’s discarded copybooks while Mrs. Auld is at her Monday meeting, until his handwriting resembles Thomas’s. I stopped there. Earlier in that account he describes reading as showing him a pit without a ladder. Could you quote that sentence exactly and help me think about the difference between understanding a problem and having a way to act? I’m volunteering on our apartment residents’ committee; learning how often repair requests disappear has made me more upset, but I still don’t know what useful step to take. The circumstances are very different from his, but that gap between seeing and acting stayed with me.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "douglass-spoiler-inference",
+            "proposal_id": "douglass-proposal-boundary",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "inferred_scope_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_memory_support_differs_from_authorised_props",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        },
+        {
+          "scene_id": "douglass-spoiler-inference",
+          "detail": "inferred_ceiling_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-boundary"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "douglass-uncertain",
+      "order": 4,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "douglass-proposal-clarification",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Treat the remembered return to Baltimore as unresolved: the authorized inputs omit the circumstances needed to distinguish the return after valuation in Chapter VIII from the return after imprisonment in Chapter X.",
+            "Ask a useful spoiler-free clarification about the last passage or details the reader remembers before granting a ceiling or retrieving response evidence. The clarification must not disclose the candidate episodes or their consequences."
+          ],
+          "prohibited_outcomes": [
+            "Choose a return from familiarity with the work or silently use the other Scene’s more specific reading history.",
+            "Grant either candidate chapter ceiling, retrieve response evidence, or explain what followed a return before the reader resolves the uncertainty.",
+            "Reveal or paraphrase douglass-later-new-name, including who chose Douglass’s surname or its literary source."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "douglass-later-new-name"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "douglass-spoiler-inference",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "douglass-uncertain",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg23",
+              "book_version_id": "pg23-vd3f08ac3",
+              "authorised_prop_ids": [
+                "douglass-earlier-return"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "douglass-earlier-return",
+                "start_codepoint": 0,
+                "end_codepoint": 263,
+                "text": "I put Frederick Douglass’s Narrative down a while ago after reading about his being sent back to Baltimore. I remember the return more clearly than what led to it; I didn’t keep the bookmark, and I’ve lost track of whose household or workplace he was coming from."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "douglass-current-uncertainty",
+                "start_codepoint": 0,
+                "end_codepoint": 231,
+                "text": "I’m trying to pick up Frederick Douglass’s Narrative again. The return to Baltimore I mentioned is still the last bit I can place, but I can’t recall what had sent him away or who sent him back. What did that return change for him?"
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-return-after-valuation",
+                "chapter_id": "pg23-vd3f08ac3-sec11",
+                "start_codepoint": 5041,
+                "end_codepoint": 5450,
+                "text": "Thanks to a kind Providence, I fell to the portion of Mrs. Lucretia,\nand was sent immediately back to Baltimore, to live again in the family\nof Master Hugh. Their joy at my return equalled their sorrow at my\ndeparture. It was a glad day to me. I had escaped a worse than lion’s\njaws. I was absent from Baltimore, for the purpose of valuation and\ndivision, just about one month, and it seemed to have been six."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-return-after-jail",
+                "chapter_id": "pg23-vd3f08ac3-sec13",
+                "start_codepoint": 59492,
+                "end_codepoint": 59892,
+                "text": "I was kept in this way about one week, at the end of\nwhich, Captain Auld, my master, to my surprise and utter astonishment,\ncame up, and took me out, with the intention of sending me, with a\ngentleman of his acquaintance, into Alabama. But, from some cause or\nother, he did not send me to Alabama, but concluded to send me back to\nBaltimore, to live again with his brother Hugh, and to learn a trade."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "douglass-later-new-name",
+                "chapter_id": "pg23-vd3f08ac3-sec14",
+                "start_codepoint": 21180,
+                "end_codepoint": 21643,
+                "text": "I gave Mr. Johnson the privilege of choosing\nme a name, but told him he must not take from me the name of\n“Frederick.” I must hold on to that, to preserve a sense of my\nidentity. Mr. Johnson had just been reading the “Lady of the Lake,” and\nat once suggested that my name be “Douglass.” From that time until now\nI have been called “Frederick Douglass;” and as I am more widely known\nby that name than by either of the others, I shall continue to use it\nas my own."
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "douglass-proposal-clarification",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "response_not_released_from_allowed_source",
+              "provenance_did_not_pass_release",
+              "boundary_decision_differs_from_ground_truth",
+              "clarification_question_missing"
+            ]
+          }
+        ],
+        "input_line": "I’m trying to pick up Frederick Douglass’s Narrative again. The return to Baltimore I mentioned is still the last bit I can place, but I can’t recall what had sent him away or who sent him back. What did that return change for him?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "unavailable",
+          "provenance_decision": null,
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": null
+        },
+        "reply": "Something went wrong on my side just now — mind asking again?",
+        "release_source": "application_safe_decline",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "douglass-uncertain",
+            "proposal_id": "douglass-proposal-clarification",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "failure",
+            "failure_code": "muse_model_failed",
+            "output": null,
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "response_not_released_from_allowed_source",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "provenance_did_not_pass_release",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "boundary_decision_differs_from_ground_truth",
+          "proposal_id": "douglass-proposal-clarification"
+        },
+        {
+          "scene_id": "douglass-uncertain",
+          "detail": "clarification_question_missing",
+          "proposal_id": "douglass-proposal-clarification"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be",
+    "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+    "span_id": "de090a61f77b88be",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "fc9506ba5c9440ac905f81d4c6fc9ec2",
+      "trace_id": "01a0b452ca5ae8606a53acdc49f9a3b4",
+      "dataset_version": "e257020cc449d6eb597084098c5e9e4008abb35ac5198f7e2a7d4c07b9e24d5f",
+      "system_variant": "415fe4329cae644cda7d598b5eb33266500eb0a68bbe0b457ad896954fd36ea2",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+        "ground-truth.json": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+        "ground-truth-adoption.json": "f627a199e49705a1b757d61c49fdf90fd6303d973a2e535e410e79543efc4ec7"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-18T19:37:01.712529+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/contracts.py\n M apps/backend/hybrid_librarian.py\n M apps/backend/telemetry.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M evals/synthetic_journals/models.py\n M evals/synthetic_journals/replay.py\n M evals/synthetic_journals/transcript.py\n M src/linger/agents/build.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/boundary_prompt.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/agent.py\n M src/linger/agents/muse/models.py\n M src/linger/agents/muse/quote_repair.py\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/agents/skills.py\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/evaluation_transcript.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n M src/linger/orchestration/reflection.py\n?? apps/backend/rerank_windows.py\n?? src/linger/agents/librarian/skills/event-identification/SKILL.md\n?? src/linger/agents/muse/claim_repair.py\n?? src/linger/agents/provenance/excerpt_feedback.py\n?? src/linger/agents/provenance/quotation_audit.py\n?? synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json\n?? synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json\n?? synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+        "scenario_commit": null,
+        "history_window": "since declared adoption time; no scenario commit was found",
+        "recent_commits": ""
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b452ca5ae8606a53acdc49f9a3b4-de090a61f77b88be\", \"trace_id\": \"01a0b452ca5ae8606a53acdc49f9a3b4\", \"span_id\": \"de090a61f77b88be\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "All Scenes are operational failures under explicit provider HTTP429; semantic behavior is inconclusive.",
+    "scenario_assessment": {
+      "goal": "The authored paired requests still test bounded grounding, relevant reflection, and safe handling of unavailable or ambiguous evidence.",
+      "input_validity": "Current authority bytes match the saved run-start hashes. Each Scene supplies its declared current Line and only authorized Props; no missing input is silently reconstructed.",
+      "ground_truth_validity": "Recorded grades retain the current human-adopted expectations, including approved optional support where present. Narrative requirements and mechanical coverage are assessed separately below."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "douglass-grounded",
+        "assessment": "inconclusive",
+        "expected_behavior": "Quote the pit/ladder sentence and distinguish understanding from capacity to act.",
+        "observed_behavior": "Explicit provider HTTP429 at Provenance emotional_boundary_preflight. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[0].expected",
+          "scenes[0].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "douglass-personal",
+        "assessment": "inconclusive",
+        "expected_behavior": "Choose a small next step from the current committee context.",
+        "observed_behavior": "Explicit provider HTTP429 at Provenance emotional_boundary_preflight. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[1].expected",
+          "scenes[1].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "douglass-spoiler-inference",
+        "assessment": "inconclusive",
+        "expected_behavior": "Infer Chapter7 from copybook stopping event and earlier authorized knowledge.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[2].expected",
+          "scenes[2].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+        ]
+      },
+      {
+        "scene_id": "douglass-uncertain",
+        "assessment": "inconclusive",
+        "expected_behavior": "Clarify which return to Baltimore is remembered.",
+        "observed_behavior": "Explicit provider HTTP429 at Muse draft. Only the application temporary-error decline is released, with no evidence.",
+        "interpretation": "No substantive final candidate or successful independent source-support review is available. This is provider failure, not evidence against the intended Ground truth or retrieval semantics.",
+        "grade_reliability": "Recorded failed grades describe the unfulfilled request but cannot measure the intended semantic repair.",
+        "next_step": "Retain infrastructure-limited evidence; no additional live call is authorized beyond iteration20.",
+        "confidence": "confirmed",
+        "evidence_refs": [
+          "scenes[3].expected",
+          "scenes[3].observed",
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T194157+0800-50_czfi1/evaluation.json"
+        ]
+      }
+    ],
+    "next_steps": []
+  }
+}

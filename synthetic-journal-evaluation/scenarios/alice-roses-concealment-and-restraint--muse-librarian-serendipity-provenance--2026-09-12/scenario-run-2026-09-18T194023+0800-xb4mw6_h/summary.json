@@ -1,0 +1,199 @@
+{
+  "scenario": "alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12",
+  "model": "openai:gpt-5.6-luna",
+  "command": [
+    "/Users/kevinmanuel/Documents/REPO/linger/.venv/bin/python",
+    "-m",
+    "evals.synthetic_journals.connection_replay",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/backstory.json",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth.json",
+    "--adoption",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/ground-truth-adoption.json",
+    "--output",
+    "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json"
+  ],
+  "started_at": "2026-09-18T19:40:23.870143+08:00",
+  "scenario_hashes": {
+    "backstory.json": "088942ae29e2b4ac89708e16de32f7ad1fcd1e97ab4c890a5232443da7cd283a",
+    "ground-truth.json": "66b86b8931b08896493a2d66f26ba804a270cc5608a1c760d0ddc81b48571093",
+    "ground-truth-adoption.json": "fe0554357e18c54d50431477e22e577584f5b035b61ffacb4aad344293b02a72"
+  },
+  "artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/evaluation.json",
+  "run_log": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/run.log",
+  "summary_file": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/scenario-run-2026-09-18T194023+0800-xb4mw6_h/summary.json",
+  "execution_status": "completed",
+  "returncode": 0,
+  "results": {
+    "scenes_total": 3,
+    "scenes_passed": 0,
+    "scenes_failed": 3,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 0,
+    "judgments_failed": 4,
+    "failures": [
+      {
+        "scene_id": "S1",
+        "detail": "provider_failure",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_connection_decision",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "unexpected_release_source",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-memory",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-book",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "missing_required_citation:S1C-public",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "discovery_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "connection_decision_mismatch",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_review_approval",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "discovery_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "connection_decision_mismatch",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_source_inspection",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "missing_review_approval",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "required_source_not_inspected",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "provider_failure",
+        "proposal_id": "G4-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "unexpected_release_source",
+        "proposal_id": "G4-weak-evidence"
+      }
+    ],
+    "execution_failures": [
+      {
+        "scene_id": "S1",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "S1",
+        "detail": "provider_failure",
+        "proposal_id": "G1-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "Muse draft: muse_model_failed"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "Serendipity search_rank_select: serendipity_model_failed"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G2-connection"
+      },
+      {
+        "scene_id": "S2",
+        "detail": "provider_failure",
+        "proposal_id": "G3-weak-evidence"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "Provenance emotional_boundary_preflight: emotional_boundary_preflight_failed"
+      },
+      {
+        "scene_id": "S3",
+        "detail": "provider_failure",
+        "proposal_id": "G4-weak-evidence"
+      }
+    ]
+  },
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22",
+    "trace_id": "01a0b4515d7a95f2695cbcc223ee1743",
+    "span_id": "78258c0a6cfa5f22",
+    "flushed": true
+  },
+  "logfire_url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/connection_and_restraint/compare?experiment=01a0b4515d7a95f2695cbcc223ee1743-78258c0a6cfa5f22",
+  "status": "failed",
+  "problems": [
+    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+  ],
+  "finished_at": "2026-09-18T19:41:00.208425+08:00",
+  "analysis_report": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.md",
+  "analysis_data": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/alice-roses-concealment-and-restraint--muse-librarian-serendipity-provenance--2026-09-12/analysis-report-2026-09-18T194100+0800-4d0a9203.json"
+}

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/run_batch.py", line 27, in <module>
+    from src.linger.agents.build import LUNA_SETTINGS
+  File "/Users/kevinmanuel/Documents/REPO/linger/src/linger/agents/build.py", line 7, in <module>
+    from pydantic_ai.models import Model
+ModuleNotFoundError: No module named 'pydantic_ai'

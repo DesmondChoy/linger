@@ -1,0 +1,14 @@
+ITERATION_DIRECTORY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83
+{"suite": "mapping", "passed": false, "failures": ["provenance-risk-claim-mapping-wrong-record-v1:mapping_grade", "provenance-risk-joint-claim-missing-contribution-v1:mapping_grade", "mapping_targets"]}
+{"suite": "smoke", "passed": true, "failures": []}
+{"suite": "direct", "passed": true, "failures": []}
+{"suite": "4", "passed": true, "failures": []}
+{"suite": "12", "passed": true, "failures": []}
+{"suite": "7", "passed": false, "failures": ["farm-spoiler-inference:hard_gate_or_missing_grades", "farm-spoiler-inference:farm-boundary-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "11", "passed": true, "failures": []}
+{"suite": "9", "passed": true, "failures": []}
+{"suite": "8", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:proposal-s1-connection:grade_failures", "S1:proposal-s1-connection:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "6", "passed": false, "failures": ["S1:hard_gate_or_missing_grades", "S1:G1-connection:grade_failures", "S1:G1-connection:stage_failure", "S2:hard_gate_or_missing_grades", "S2:G2-connection:grade_failures", "S2:G2-connection:stage_failure", "S2:G3-weak-evidence:grade_failures", "S2:G3-weak-evidence:stage_failure", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "10", "passed": false, "failures": ["alice-race-reflection:hard_gate_or_missing_grades", "alice-race-reflection:alice-grounded-proposal:grade_failures", "process_exit:1", "native_helper_not_passed"]}
+{"suite": "release", "passed": false, "failures": ["identity-theme:recall"]}
+BATCH_SUMMARY=/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/reports/librarian-fixes-2026-09-17/iteration-16-8128af83/summary.json

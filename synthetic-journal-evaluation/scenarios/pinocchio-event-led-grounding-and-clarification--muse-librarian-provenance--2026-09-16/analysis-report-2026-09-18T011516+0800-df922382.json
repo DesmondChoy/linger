@@ -1,0 +1,1776 @@
+{
+  "schema_version": "2",
+  "scenario_dir": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "created_at": "2026-09-18T01:15:16+08:00",
+  "model": "openai:gpt-5.6-luna",
+  "execution_status": "completed",
+  "category": "behavioral",
+  "problems": [
+    "The replay completed with failed evaluation checks; see expected versus observed evidence."
+  ],
+  "summary": {
+    "scenes_total": 4,
+    "scenes_passed": 3,
+    "scenes_failed": 1,
+    "scenes_ungraded": 0,
+    "judgments_total": 4,
+    "judgments_passed": 3,
+    "judgments_failed": 1,
+    "failures": [
+      {
+        "scene_id": "pinocchio-spoiler-inference",
+        "detail": "boundary_support_differs_from_ground_truth",
+        "proposal_id": "pinocchio-boundary-proposal"
+      }
+    ],
+    "execution_failures": []
+  },
+  "scenes": [
+    {
+      "scene_id": "pinocchio-promises-and-book",
+      "order": 1,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "pinocchio-grounded-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Use the current Line’s explicit confirmation of reading through literary chapter 9 to bound book evidence. Retrieve the requested quotation and contextual passages to support a useful reflection on the personal experience supplied in this Line; no prior personal memory is needed.",
+            "Retrieve bounded book support and quote exactly from pinocchio-school-tomorrow-quote, attributing the words to Pinocchio's self-talk. Use pinocchio-future-coat and pinocchio-ragpicker-sale to explore the gap between imagined repayment and immediate action; distinguish Pinocchio's hopes from the narrator's reminder of Geppetto's sacrifice.",
+            "Connect the contrast tentatively to Ada's study evenings. Preserve her request to separate an unhelpful choice from a global judgement of character, and help her consider a manageable action honouring her sister's help."
+          ],
+          "prohibited_outcomes": [
+            "Do not require or use a prior personal memory to answer this reflection, or use later plot to explain the reader’s situation.",
+            "Do not invent or alter quoted wording, say his original gratitude was necessarily fake, or use his later fate to predict Ada's future.",
+            "Do not call Ada a bad person or equate one missed study evening with the character's whole story."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "required",
+            "permitted_evidence_ids": [
+              "pinocchio-school-tomorrow-quote",
+              "pinocchio-future-coat",
+              "pinocchio-ragpicker-sale"
+            ],
+            "exact_quotation_evidence_ids": [
+              "pinocchio-school-tomorrow-quote"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "pinocchio-personal-study",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "pinocchio-promises-and-book",
+            "scope": {
+              "kind": "reader_confirmed",
+              "work_id": "pg500",
+              "book_version_id": "pg500-v6bdc1734",
+              "safe_ceiling_chapter": 9
+            },
+            "basis_spans": [],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ragpicker-sale",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 4068,
+                "end_codepoint": 4338,
+                "text": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.\n\nThen and there, the book changed hands. And to think that poor old\nGeppetto sat at home in his shirt sleeves, shivering with cold, having\nsold his coat to buy that little book for his son!"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-school-tomorrow-quote",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 2220,
+                "end_codepoint": 2329,
+                "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-future-coat",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 1228,
+                "end_codepoint": 1724,
+                "text": "“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”"
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pinocchio-grounded-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've finished Chapter 9 of The Adventures of Pinocchio. I haven't read further. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?",
+        "context_resolution": {
+          "status": "confirmed",
+          "work_id": "pg500",
+          "work_title": "The Adventures of Pinocchio",
+          "book_version_id": "pg500-v6bdc1734",
+          "chapter_max": 9,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": "reader_confirmed",
+          "boundary_authorization_basis": "explicit_progress",
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "The reader explicitly confirmed this completed chapter in the current message."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In **Chapter 9** of *The Adventures of Pinocchio*, Pinocchio tells himself:\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”\n\nThe useful part of that passage isn’t that it proves anything about your character. It shows a present choice being made more comfortable by a sincere-sounding promise about the future. Your hope of making things up to your sister can be genuine, while still not changing what happens during the study evening she has made possible for you.\n\nSo perhaps the gap to examine is not “Do I care?” but “What does the promise of making it up later allow me to postpone tonight?” That keeps responsibility in view without turning one recurring pattern into “I’m a terrible person.” What tends to happen in the few minutes when one of those study evenings is about to begin?",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 9,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "evidence": [
+              {
+                "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                "work_id": "pg500",
+                "book_version_id": "pg500-v6bdc1734",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "chapter_number": 9,
+                "part_id": "main",
+                "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                "source_lines": [
+                  897,
+                  939
+                ],
+                "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pg500-v6bdc1734-ch09-ln0897-0939"
+        ],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In **Chapter 9** of *The Adventures of Pinocchio*, Pinocchio tells himself:\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”\n\nThe useful part of that passage isn’t that it proves anything about your character. It shows a present choice being made more comfortable by a sincere-sounding promise about the future. Your hope of making things up to your sister can be genuine, while still not changing what happens during the study evening she has made possible for you.\n\nSo perhaps the gap to examine is not “Do I care?” but “What does the promise of making it up later allow me to postpone tonight?” That keeps responsibility in view without turning one recurring pattern into “I’m a terrible person.” What tends to happen in the few minutes when one of those study evenings is about to begin?",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "In **Chapter 9** of *The Adventures of Pinocchio*, Pinocchio tells himself:",
+                    "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”",
+                    "The useful part of that passage isn’t that it proves anything about your character. It shows a present choice being made more comfortable by a sincere-sounding promise about the future."
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                  "source_location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                  "exact_quote": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_GaMwdWyL7nzALphm054ZSAJg",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg500\",\"book_version_id\":\"pg500-v6bdc1734\",\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_ceeedb3df43f41be96395809136a996a",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested exact wording about choosing the pipes today and school tomorrow appears directly in the Chapter 9 passage: “Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school,” decided the little rascal at last, shrugging his shoulders.",
+                  "searched_scope": {
+                    "work_id": "pg500",
+                    "book_version_id": "pg500-v6bdc1734",
+                    "max_chapter_inclusive": 9,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                      "work_id": "pg500",
+                      "book_version_id": "pg500-v6bdc1734",
+                      "chapter_id": "pg500-v6bdc1734-ch09",
+                      "chapter_number": 9,
+                      "part_id": "main",
+                      "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                      "source_lines": [
+                        897,
+                        939
+                      ],
+                      "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_c7pzbwICc0GZkLlOdgEr5G28",
+                "tool_name": "serendipity_explore",
+                "arguments": "{\"intent\":\"find_connection\"}",
+                "result": {
+                  "decision": {
+                    "status": "proposal",
+                    "shortlist": [
+                      {
+                        "candidate_id": "candidate-present-promise-gap",
+                        "tentative_claim": "Pinocchio turns a present choice into a reassuring future promise: today’s diversion is made acceptable by imagining that tomorrow will restore the responsible plan.",
+                        "evidence_ids": [
+                          "pg500-v6bdc1734-ch09-ln0897-0939"
+                        ],
+                        "shared_structure": "Both Pinocchio and the reader can genuinely value a future good—school and helping family—while repeatedly allowing an attractive present option to decide what happens now.",
+                        "meaningful_difference": "Pinocchio’s promise is attached to the immediate lure of pipes and drums; the reader’s lure is the relief or avoidance available during study evenings. The shared pattern need not imply the same stakes or character.",
+                        "interpretation": "The passage offers a way to examine the gap without converting it into a verdict about character. The important question becomes: what does the future promise accomplish in the moment? It may preserve a positive self-image—“I will make it up to her”—while postponing the concrete action that would make the promise credible. That frames the problem as a repeatable present-choice pattern, not proof that the person is terrible. The sister’s support and the wish to repay it can remain real even while the study evenings are being wasted.",
+                        "rubric": {
+                          "cue_fit": "direct",
+                          "reflective_value": "high",
+                          "safety": "clear",
+                          "disqualifiers": []
+                        },
+                        "comparison_note": "Ranks first because it directly connects the requested Chapter 9 self-talk to the reader’s stated gap and supplies a non-moralizing lens for examining it."
+                      },
+                      {
+                        "candidate_id": "candidate-aspiration-versus-action",
+                        "tentative_claim": "The passage contrasts a vivid imagined future with the small decision immediately in front of Pinocchio, suggesting that good intentions can coexist with behavior that undermines them.",
+                        "evidence_ids": [
+                          "pg500-v6bdc1734-ch09-ln0897-0939"
+                        ],
+                        "shared_structure": "Both accounts contain an earnest aspiration to become or do something better later, alongside a current action that moves away from that aspiration.",
+                        "meaningful_difference": "This reading emphasizes the mismatch between identity and action, whereas the first more specifically explains how postponement protects the hopeful story in the present.",
+                        "interpretation": "Rather than asking whether the reader cares about the sister, this lens asks whether caring has been left at the level of an imagined future repayment. That distinction can make room for responsibility without shame: the intention may be sincere, but sincerity alone is not yet a schedule, a boundary, or a completed study session. The useful next step would be to observe what happens at the moment study time begins, before deciding what the pattern means about the whole person.",
+                        "rubric": {
+                          "cue_fit": "partial",
+                          "reflective_value": "medium",
+                          "safety": "clear",
+                          "disqualifiers": []
+                        },
+                        "comparison_note": "Ranks below the first because it is a useful but broader contrast; it explains intention versus action without capturing the passage’s especially sharp ‘today, tomorrow’ postponement."
+                      }
+                    ],
+                    "selected_candidate_id": "candidate-present-promise-gap",
+                    "uncertainty": "low",
+                    "presentation": "ask_before_showing",
+                    "suggested_follow_up": "Would you like me to show the exact Chapter 9 quotation first, then use it to map the moment when the study evening gets postponed—without turning that pattern into a judgment of your character?",
+                    "policy_flags": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                      "work_id": "pg500",
+                      "book_version_id": "pg500-v6bdc1734",
+                      "chapter_id": "pg500-v6bdc1734-ch09",
+                      "source_title": "The Adventures of Pinocchio",
+                      "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                      "chapter": 9,
+                      "part_id": "main",
+                      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                      "source_lines": [
+                        897,
+                        939
+                      ],
+                      "excerpt": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”",
+                      "relevance": 0.9968146484930687,
+                      "source_kind": "book_corpus",
+                      "trust_level": "canonical"
+                    }
+                  ]
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Chapter 9 of The Adventures of Pinocchio"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested exact wording about choosing the pipes today and school tomorrow appears directly in the Chapter 9 passage: “Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school,” decided the little rascal at last, shrugging his shoulders.",
+              "relevant_evidence_ids": [
+                "pg500-v6bdc1734-ch09-ln0897-0939"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                  "part_index": 0,
+                  "necessary_support": "This Chapter 9 passage contains the exact self-directed statement requested, including Pinocchio’s decision to follow the pipes today, attend school tomorrow, and his rationalization that there is always plenty of time."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Serendipity",
+            "stage": "search_rank_select",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "status": "proposal",
+              "shortlist": [
+                {
+                  "candidate_id": "candidate-present-promise-gap",
+                  "tentative_claim": "Pinocchio turns a present choice into a reassuring future promise: today’s diversion is made acceptable by imagining that tomorrow will restore the responsible plan.",
+                  "evidence_ids": [
+                    "pg500-v6bdc1734-ch09-ln0897-0939"
+                  ],
+                  "shared_structure": "Both Pinocchio and the reader can genuinely value a future good—school and helping family—while repeatedly allowing an attractive present option to decide what happens now.",
+                  "meaningful_difference": "Pinocchio’s promise is attached to the immediate lure of pipes and drums; the reader’s lure is the relief or avoidance available during study evenings. The shared pattern need not imply the same stakes or character.",
+                  "interpretation": "The passage offers a way to examine the gap without converting it into a verdict about character. The important question becomes: what does the future promise accomplish in the moment? It may preserve a positive self-image—“I will make it up to her”—while postponing the concrete action that would make the promise credible. That frames the problem as a repeatable present-choice pattern, not proof that the person is terrible. The sister’s support and the wish to repay it can remain real even while the study evenings are being wasted.",
+                  "rubric": {
+                    "cue_fit": "direct",
+                    "reflective_value": "high",
+                    "safety": "clear",
+                    "disqualifiers": []
+                  },
+                  "comparison_note": "Ranks first because it directly connects the requested Chapter 9 self-talk to the reader’s stated gap and supplies a non-moralizing lens for examining it."
+                },
+                {
+                  "candidate_id": "candidate-aspiration-versus-action",
+                  "tentative_claim": "The passage contrasts a vivid imagined future with the small decision immediately in front of Pinocchio, suggesting that good intentions can coexist with behavior that undermines them.",
+                  "evidence_ids": [
+                    "pg500-v6bdc1734-ch09-ln0897-0939"
+                  ],
+                  "shared_structure": "Both accounts contain an earnest aspiration to become or do something better later, alongside a current action that moves away from that aspiration.",
+                  "meaningful_difference": "This reading emphasizes the mismatch between identity and action, whereas the first more specifically explains how postponement protects the hopeful story in the present.",
+                  "interpretation": "Rather than asking whether the reader cares about the sister, this lens asks whether caring has been left at the level of an imagined future repayment. That distinction can make room for responsibility without shame: the intention may be sincere, but sincerity alone is not yet a schedule, a boundary, or a completed study session. The useful next step would be to observe what happens at the moment study time begins, before deciding what the pattern means about the whole person.",
+                  "rubric": {
+                    "cue_fit": "partial",
+                    "reflective_value": "medium",
+                    "safety": "clear",
+                    "disqualifiers": []
+                  },
+                  "comparison_note": "Ranks below the first because it is a useful but broader contrast; it explains intention versus action without capturing the passage’s especially sharp ‘today, tomorrow’ postponement."
+                }
+              ],
+              "selected_candidate_id": "candidate-present-promise-gap",
+              "uncertainty": "low",
+              "presentation": "ask_before_showing",
+              "suggested_follow_up": "Would you like me to show the exact Chapter 9 quotation first, then use it to map the moment when the study evening gets postponed—without turning that pattern into a judgment of your character?",
+              "policy_flags": []
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_sqUc9M7IxQMti1KfEEsblgEN",
+                "tool_name": "search_librarian",
+                "arguments": "{\"max_results_per_source\":5}",
+                "result": {
+                  "outcome": "evidence_found",
+                  "evidence": [
+                    {
+                      "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                      "work_id": "pg500",
+                      "book_version_id": "pg500-v6bdc1734",
+                      "chapter_id": "pg500-v6bdc1734-ch09",
+                      "source_title": "The Adventures of Pinocchio",
+                      "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                      "chapter": 9,
+                      "part_id": "main",
+                      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                      "source_lines": [
+                        897,
+                        939
+                      ],
+                      "excerpt": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”",
+                      "relevance": 0.9968146484930687,
+                      "source_kind": "book_corpus",
+                      "trust_level": "canonical"
+                    }
+                  ],
+                  "judgement": {
+                    "evidence_strength": "sufficient",
+                    "strength_reason": "The requested Chapter 9 wording is directly present in the supplied passage, including Pinocchio's exact self-justification about following the pipes today and going to school tomorrow.",
+                    "relevant_evidence_ids": [
+                      "pg500-v6bdc1734-ch09-ln0897-0939"
+                    ],
+                    "limitations": []
+                  }
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_FkYDndp1bZzhoNnjPOBFbyn1",
+                "tool_name": "final_result_ConnectionProposal",
+                "arguments": "{\"status\":\"proposal\",\"shortlist\":[{\"candidate_id\":\"candidate-present-promise-gap\",\"tentative_claim\":\"Pinocchio turns a present choice into a reassuring future promise: today’s diversion is made acceptable by imagining that tomorrow will restore the responsible plan.\",\"evidence_ids\":[\"pg500-v6bdc1734-ch09-ln0897-0939\"],\"shared_structure\":\"Both Pinocchio and the reader can genuinely value a future good—school and helping family—while repeatedly allowing an attractive present option to decide what happens now.\",\"meaningful_difference\":\"Pinocchio’s promise is attached to the immediate lure of pipes and drums; the reader’s lure is the relief or avoidance available during study evenings. The shared pattern need not imply the same stakes or character.\",\"interpretation\":\"The passage offers a way to examine the gap without converting it into a verdict about character. The important question becomes: what does the future promise accomplish in the moment? It may preserve a positive self-image—“I will make it up to her”—while postponing the concrete action that would make the promise credible. That frames the problem as a repeatable present-choice pattern, not proof that the person is terrible. The sister’s support and the wish to repay it can remain real even while the study evenings are being wasted.\",\"rubric\":{\"cue_fit\":\"direct\",\"reflective_value\":\"high\",\"safety\":\"clear\",\"disqualifiers\":[]},\"comparison_note\":\"Ranks first because it directly connects the requested Chapter 9 self-talk to the reader’s stated gap and supplies a non-moralizing lens for examining it.\"},{\"candidate_id\":\"candidate-aspiration-versus-action\",\"tentative_claim\":\"The passage contrasts a vivid imagined future with the small decision immediately in front of Pinocchio, suggesting that good intentions can coexist with behavior that undermines them.\",\"evidence_ids\":[\"pg500-v6bdc1734-ch09-ln0897-0939\"],\"shared_structure\":\"Both accounts contain an earnest aspiration to become or do something better later, alongside a current action that moves away from that aspiration.\",\"meaningful_difference\":\"This reading emphasizes the mismatch between identity and action, whereas the first more specifically explains how postponement protects the hopeful story in the present.\",\"interpretation\":\"Rather than asking whether the reader cares about the sister, this lens asks whether caring has been left at the level of an imagined future repayment. That distinction can make room for responsibility without shame: the intention may be sincere, but sincerity alone is not yet a schedule, a boundary, or a completed study session. The useful next step would be to observe what happens at the moment study time begins, before deciding what the pattern means about the whole person.\",\"rubric\":{\"cue_fit\":\"partial\",\"reflective_value\":\"medium\",\"safety\":\"clear\",\"disqualifiers\":[]},\"comparison_note\":\"Ranks below the first because it is a useful but broader contrast; it explains intention versus action without capturing the passage’s especially sharp ‘today, tomorrow’ postponement.\"}],\"selected_candidate_id\":\"candidate-present-promise-gap\",\"uncertainty\":\"low\",\"presentation\":\"ask_before_showing\",\"suggested_follow_up\":\"Would you like me to show the exact Chapter 9 quotation first, then use it to map the moment when the study evening gets postponed—without turning that pattern into a judgment of your character?\"}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "Chapter 9 of The Adventures of Pinocchio"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested Chapter 9 wording is directly present in the supplied passage, including Pinocchio's exact self-justification about following the pipes today and going to school tomorrow.",
+              "relevant_evidence_ids": [
+                "pg500-v6bdc1734-ch09-ln0897-0939"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                  "part_index": 0,
+                  "necessary_support": "Contains the exact requested sentence: “Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school,” decided the little rascal at last, shrugging his shoulders."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [
+                {
+                  "source_index": 0,
+                  "unmapped_claims": []
+                }
+              ],
+              "claim_audit": [
+                {
+                  "declaration_index": 0,
+                  "claim_index": 0,
+                  "supported": true
+                },
+                {
+                  "declaration_index": 0,
+                  "claim_index": 1,
+                  "supported": true
+                },
+                {
+                  "declaration_index": 0,
+                  "claim_index": 2,
+                  "supported": true
+                }
+              ]
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[0].expected",
+        "scenes[0].observed"
+      ]
+    },
+    {
+      "scene_id": "pinocchio-personal-study",
+      "order": 2,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "pinocchio-personal-proposal",
+          "objective_id": "grounded_book_reflection",
+          "expected_outcomes": [
+            "Respond to Ada's actual account of protected study time and imagined future repayment without retrieving book evidence.",
+            "Help her choose one small present action that respects her sister's help; distinguish a missed evening from a fixed identity, without claiming to know why she procrastinates."
+          ],
+          "prohibited_outcomes": [
+            "Do not retrieve or quote Pinocchio, bring in unasked-for book facts, or use any other Scene's Prop.",
+            "Do not shame Ada or assume her sister feels resentful when the Line does not say so."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "grounded_book_reflection",
+            "retrieval": "not_required",
+            "permitted_evidence_ids": [],
+            "exact_quotation_evidence_ids": []
+          },
+          "pairing": {
+            "paired_scene_id": "pinocchio-promises-and-book",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count",
+              "prop_ids"
+            ],
+            "difference_fields": [
+              "line_text"
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pinocchio-personal-proposal",
+            "objective_id": "grounded_book_reflection",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can you help me work out one small way to honour her help this week, without turning a missed evening into 'I'm a terrible person'?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "Try making this week’s way of honouring her help **small, visible, and separate from your performance**: send her a message thanking her specifically for covering your chores, then choose one modest act you can reliably do—perhaps taking back one chore for a day, making her tea, or leaving a note—without making it conditional on qualifying.\n\nFor the study evenings, set a deliberately low bar: **one 20-minute session** with a clear first task. If an evening goes by, call it a missed evening, not a verdict on you. You can say: “I didn’t use that evening well, but I’m still grateful for what you made possible, and I’m going to try again tomorrow.”\n\nThe aim this week isn’t to prove you deserve her help. It’s to acknowledge it and make one honest next use of it.",
+        "release_source": "muse_candidate",
+        "boundary_decision": "not_applicable",
+        "route_called": false,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [],
+        "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "Try making this week’s way of honouring her help **small, visible, and separate from your performance**: send her a message thanking her specifically for covering your chores, then choose one modest act you can reliably do—perhaps taking back one chore for a day, making her tea, or leaving a note—without making it conditional on qualifying.\n\nFor the study evenings, set a deliberately low bar: **one 20-minute session** with a clear first task. If an evening goes by, call it a missed evening, not a verdict on you. You can say: “I didn’t use that evening well, but I’m still grateful for what you made possible, and I’m going to try again tomorrow.”\n\nThe aim this week isn’t to prove you deserve her help. It’s to acknowledge it and make one honest next use of it.",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[1].expected",
+        "scenes[1].observed"
+      ]
+    },
+    {
+      "scene_id": "pinocchio-spoiler-inference",
+      "order": 3,
+      "status": "failed",
+      "judgments_total": 1,
+      "judgments_passed": 0,
+      "judgments_failed": 1,
+      "expected": [
+        {
+          "proposal_id": "pinocchio-boundary-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Derive chapter 9 from the supporting coat, gratitude, and sale occurrences; treat the Prop as earlier reading and the sale/reminder as the current stop.",
+            "Allow only bounded response evidence, withholding pinocchio-becomes-boy from retrieval for the response and from literal or paraphrased disclosure."
+          ],
+          "prohibited_outcomes": [
+            "Do not extend the ceiling to the theater performance because Pinocchio has raised the admission money, or use curiosity as evidence of completed reading.",
+            "Do not reveal his eventual transformation into a real boy, even as reassuring proof that a flawed person can change."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "pinocchio-becomes-boy"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "pinocchio-school-detour",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "pinocchio-spoiler-inference",
+            "scope": {
+              "kind": "librarian_inferred",
+              "work_id": "pg500",
+              "book_version_id": "pg500-v6bdc1734",
+              "authorised_prop_ids": [
+                "pinocchio-coat-memory"
+              ],
+              "supporting_evidence_ids": [
+                "pinocchio-coat-for-book",
+                "pinocchio-gratitude-embrace",
+                "pinocchio-ragpicker-sale"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "pinocchio-coat-memory",
+                "start_codepoint": 0,
+                "end_codepoint": 276,
+                "text": "Yesterday in The Adventures of Pinocchio I read the part where Geppetto returns with the A-B-C book but without his coat, even though it's cold. His excuse that the coat was too warm made me sad, and Pinocchio kissing him made the gratitude feel real. I closed the book there."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "pinocchio-inference-line",
+                "start_codepoint": 0,
+                "end_codepoint": 256,
+                "text": "I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-coat-for-book",
+                "chapter_id": "pg500-v6bdc1734-ch08",
+                "start_codepoint": 3801,
+                "end_codepoint": 3965,
+                "text": "After a while he returned. In his hands he had the A-B-C book for his\nson, but the old coat was gone. The poor fellow was in his shirt sleeves\nand the day was cold."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-gratitude-embrace",
+                "chapter_id": "pg500-v6bdc1734-ch08",
+                "start_codepoint": 4067,
+                "end_codepoint": 4210,
+                "text": "Pinocchio understood the answer in a twinkling, and, unable to restrain\nhis tears, he jumped on his father’s neck and kissed him over and over."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ragpicker-sale",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 4068,
+                "end_codepoint": 4338,
+                "text": "“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.\n\nThen and there, the book changed hands. And to think that poor old\nGeppetto sat at home in his shirt sleeves, shivering with cold, having\nsold his coat to buy that little book for his son!"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-school-tomorrow-quote",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 2220,
+                "end_codepoint": 2329,
+                "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-future-coat",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 1228,
+                "end_codepoint": 1724,
+                "text": "“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-becomes-boy",
+                "chapter_id": "pg500-v6bdc1734-ch36",
+                "start_codepoint": 14301,
+                "end_codepoint": 14448,
+                "text": "What was his surprise and his joy when, on looking himself over, he saw\nthat he was no longer a Marionette, but that he had become a real live\nboy!"
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "fails_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pinocchio-boundary-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": false,
+            "failures": [
+              "boundary_support_differs_from_ground_truth"
+            ]
+          }
+        ],
+        "input_line": "I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "In Chapter 9, Pinocchio tells himself:\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”\n\nFor your situation, it may help to separate the **gap** from a verdict about your character. You can acknowledge two things at once: you genuinely picture repaying your sister when you qualify, and the study evenings she makes possible are not consistently becoming study evenings. That gap is important information about what happens in the moment—not proof that you’re a terrible person.\n\nA useful question might be: **When the evening arrives, what does “I’ll study tonight” have to compete with—and what is one small, concrete way to make the promise to your sister visible before the evening slips away?**",
+        "release_source": "muse_candidate",
+        "boundary_decision": "infer",
+        "route_called": true,
+        "routed_ceiling": 9,
+        "routed_work_id": "pg500",
+        "routed_book_version_id": "pg500-v6bdc1734",
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [
+          "mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456"
+        ],
+        "boundary_support_evidence": [
+          {
+            "evidence_id": "pg500-v6bdc1734-ch08-ln0869-0886",
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "chapter_id": "pg500-v6bdc1734-ch08",
+            "chapter_number": 8,
+            "part_id": "main",
+            "location": "Chapter 8 — Geppetto makes Pinocchio a new pair of feet, and sells his coat to buy him an A-B-C book., source lines 869-886",
+            "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+            "source_lines": [
+              869,
+              886
+            ],
+            "text": "“What does it matter, after all?” cried Geppetto all at once, as he\njumped up from his chair. Putting on his old coat, full of darns and\npatches, he ran out of the house without another word.\n\nAfter a while he returned. In his hands he had the A-B-C book for his\nson, but the old coat was gone. The poor fellow was in his shirt sleeves\nand the day was cold.\n\n“Where’s your coat, Father?”\n\n“I have sold it.”\n\n“Why did you sell your coat?”\n\n“It was too warm.”\n\nPinocchio understood the answer in a twinkling, and, unable to restrain\nhis tears, he jumped on his father’s neck and kissed him over and over."
+          },
+          {
+            "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "chapter_id": "pg500-v6bdc1734-ch09",
+            "chapter_number": 9,
+            "part_id": "main",
+            "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+            "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+            "source_lines": [
+              897,
+              939
+            ],
+            "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+          },
+          {
+            "evidence_id": "pg500-v6bdc1734-ch09-ln0974-0988",
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "chapter_id": "pg500-v6bdc1734-ch09",
+            "chapter_number": 9,
+            "part_id": "main",
+            "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 974-988",
+            "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+            "source_lines": [
+              974,
+              988
+            ],
+            "text": "Pinocchio was almost in tears. He was just about to make one last offer,\nbut he lacked the courage to do so. He hesitated, he wondered, he could\nnot make up his mind. At last he said:\n\n“Will you give me four pennies for the book?”\n\n“I am a boy and I buy nothing from boys,” said the little fellow with\nfar more common sense than the Marionette.\n\n“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by.\n\nThen and there, the book changed hands. And to think that poor old\nGeppetto sat at home in his shirt sleeves, shivering with cold, having\nsold his coat to buy that little book for his son!"
+          },
+          {
+            "evidence_id": "pg500-v6bdc1734-ch09-ln0928-0984",
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "chapter_id": "pg500-v6bdc1734-ch09",
+            "chapter_number": 9,
+            "part_id": "main",
+            "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 928-984",
+            "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+            "source_lines": [
+              928,
+              984
+            ],
+            "text": "No sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”\n\n“Oh, really? Then I’ll read it to you. Know, then, that written in\nletters of fire I see the words: GREAT MARIONETTE THEATER.\n\n“When did the show start?”\n\n“It is starting now.”\n\n“And how much does one pay to get in?”\n\n“Four pennies.”\n\nPinocchio, who was wild with curiosity to know what was going on inside,\nlost all his pride and said to the boy shamelessly:\n\n“Will you give me four pennies until tomorrow?”\n\n“I’d give them to you gladly,” answered the other, poking fun at him,\n“but just now I can’t give them to you.”\n\n“For the price of four pennies, I’ll sell you my coat.”\n\n“If it rains, what shall I do with a coat of flowered paper? I could not\ntake it off again.”\n\n“Do you want to buy my shoes?”\n\n“They are only good enough to light a fire with.”\n\n“What about my hat?”\n\n“Fine bargain, indeed! A cap of dough! The mice might come and eat it\nfrom my head!”\n\nPinocchio was almost in tears. He was just about to make one last offer,\nbut he lacked the courage to do so. He hesitated, he wondered, he could\nnot make up his mind. At last he said:\n\n“Will you give me four pennies for the book?”\n\n“I am a boy and I buy nothing from boys,” said the little fellow with\nfar more common sense than the Marionette.\n\n“I’ll give you four pennies for your A-B-C book,” said a ragpicker who\nstood by."
+          }
+        ],
+        "grounding_calls": [
+          {
+            "response_kind": "result",
+            "call_outcome": "success",
+            "retrieval_outcome": "evidence_found",
+            "searched_max_chapter": 9,
+            "searched_passage_ids": [],
+            "searched_part_id": "main",
+            "searched_unit_ids": [],
+            "work_id": "pg500",
+            "book_version_id": "pg500-v6bdc1734",
+            "evidence": [
+              {
+                "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                "work_id": "pg500",
+                "book_version_id": "pg500-v6bdc1734",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "chapter_number": 9,
+                "part_id": "main",
+                "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                "source_lines": [
+                  897,
+                  939
+                ],
+                "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+              }
+            ],
+            "clarification_question": null,
+            "failure_code": null
+          }
+        ],
+        "released_evidence_ids": [
+          "pg500-v6bdc1734-ch09-ln0897-0939"
+        ],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "pinocchio-spoiler-inference",
+            "proposal_id": "pinocchio-boundary-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "In Chapter 9, Pinocchio tells himself:\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”\n\nFor your situation, it may help to separate the **gap** from a verdict about your character. You can acknowledge two things at once: you genuinely picture repaying your sister when you qualify, and the study evenings she makes possible are not consistently becoming study evenings. That gap is important information about what happens in the moment—not proof that you’re a terrible person.\n\nA useful question might be: **When the evening arrives, what does “I’ll study tonight” have to compete with—and what is one small, concrete way to make the promise to your sister visible before the evening slips away?**",
+              "evidence_uses": [
+                {
+                  "supported_claims": [
+                    "In Chapter 9, Pinocchio tells himself:",
+                    "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+                  ],
+                  "source_kind": "book_corpus",
+                  "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                  "source_location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                  "exact_quote": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,”"
+                }
+              ],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_N9ZqSzLEeLwhvDrFOed6d5Fu",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "routed",
+                  "request_id": "routereq_caf9c8d0194641339a344e5c2e695417",
+                  "work_id": "pg500",
+                  "book_version_id": "pg500-v6bdc1734",
+                  "title": "The Adventures of Pinocchio",
+                  "routing_confidence": 1.0,
+                  "max_chapter_inclusive": 9,
+                  "boundary_confidence": 0.99,
+                  "selection_basis": "resolved_book_identity",
+                  "part_id": "main",
+                  "unit_ids": []
+                },
+                "outcome": "success"
+              },
+              {
+                "tool_call_id": "call_kz3NWo8yz9Ahd7wI85FvMtbO",
+                "tool_name": "librarian_search",
+                "arguments": "{\"work_id\":\"pg500\",\"book_version_id\":\"pg500-v6bdc1734\",\"max_final_evidence\":5}",
+                "result": {
+                  "kind": "result",
+                  "request_id": "libreq_0660ab68d0774cab87fcd99247148d45",
+                  "outcome": "evidence_found",
+                  "evidence_strength": "sufficient",
+                  "strength_reason": "The requested book question is the exact wording Pinocchio tells himself when he chooses the pipes over school. Evidence pg500-v6bdc1734-ch09-ln0897-0939 contains the direct exchange and the full requested line: “Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school,” decided the little rascal at last, shrugging his shoulders.",
+                  "searched_scope": {
+                    "work_id": "pg500",
+                    "book_version_id": "pg500-v6bdc1734",
+                    "max_chapter_inclusive": 9,
+                    "part_id": "main",
+                    "unit_ids": []
+                  },
+                  "evidence": [
+                    {
+                      "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                      "work_id": "pg500",
+                      "book_version_id": "pg500-v6bdc1734",
+                      "chapter_id": "pg500-v6bdc1734-ch09",
+                      "chapter_number": 9,
+                      "part_id": "main",
+                      "location": "Chapter 9 — Pinocchio sells his A-B-C book to pay his way into the Marionette Theater., source lines 897-939",
+                      "source_sha256": "6bdc173408a95ee683f0013e8a098fac66965af34bbcb9c52cfe632d23f76ff9",
+                      "source_lines": [
+                        897,
+                        939
+                      ],
+                      "text": "See Pinocchio hurrying off to school with his new A-B-C book under\nhis arm! As he walked along, his brain was busy planning hundreds of\nwonderful things, building hundreds of castles in the air. Talking to\nhimself, he said:\n\n“In school today, I’ll learn to read, tomorrow to write, and the day\nafter tomorrow I’ll do arithmetic. Then, clever as I am, I can earn a\nlot of money. With the very first pennies I make, I’ll buy Father a new\ncloth coat. Cloth, did I say? No, it shall be of gold and silver with\ndiamond buttons. That poor man certainly deserves it; for, after all,\nisn’t he in his shirt sleeves because he was good enough to buy a\nbook for me? On this cold day, too! Fathers are indeed good to their\nchildren!”\n\nAs he talked to himself, he thought he heard sounds of pipes and drums\ncoming from a distance: pi-pi-pi, pi-pi-pi. . .zum, zum, zum, zum.\n\nHe stopped to listen. Those sounds came from a little street that led to\na small village along the shore.\n\n“What can that noise be? What a nuisance that I have to go to school!\nOtherwise. . .”\n\nThere he stopped, very much puzzled. He felt he had to make up his mind\nfor either one thing or another. Should he go to school, or should he\nfollow the pipes?\n\n“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders.\n\nNo sooner said than done. He started down the street, going like the\nwind. On he ran, and louder grew the sounds of pipe and drum: pi-pi-pi,\npi-pi-pi, pi-pi-pi . . .zum, zum, zum, zum.\n\nSuddenly, he found himself in a large square, full of people standing in\nfront of a little wooden building painted in brilliant colors.\n\n“What is that house?” Pinocchio asked a little boy near him.\n\n“Read the sign and you’ll know.”\n\n“I’d like to read, but somehow I can’t today.”"
+                    }
+                  ],
+                  "limitations": []
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "The Adventures of Pinocchio"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "He imagines buying his father a splendid coat"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "The Adventures of Pinocchio"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "follows the pipes instead of going to school"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "The Adventures of Pinocchio"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "then sells the A-B-C book to a ragpicker"
+                  ]
+                },
+                {
+                  "context_spans": [
+                    "The Adventures of Pinocchio"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "I've just stopped at the reminder of Geppetto shivering at home"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg500-v6bdc1734-ch08-ln0869-0886"
+                  ],
+                  "reason": "The memory reports reading Geppetto return with the A-B-C book but without his coat, including the explanation that it was too warm and Pinocchio's kisses. The cited Chapter 8 passage contains that exact event, and the current report coherently continues into Chapter 9."
+                }
+              ],
+              "outcome": "candidate",
+              "work_id": "pg500",
+              "book_version_id": "pg500-v6bdc1734",
+              "chapter_number": 9,
+              "confidence": 0.99,
+              "authorization_basis": "memory_supported",
+              "supporting_memory_ids": [
+                "mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456"
+              ],
+              "supporting_evidence_ids": [
+                "pg500-v6bdc1734-ch08-ln0869-0886",
+                "pg500-v6bdc1734-ch09-ln0897-0939",
+                "pg500-v6bdc1734-ch09-ln0928-0984",
+                "pg500-v6bdc1734-ch09-ln0974-0988"
+              ],
+              "event_resolution": {
+                "reader_event_spans": [
+                  "I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?"
+                ],
+                "occurrences": [
+                  {
+                    "evidence_ids": [
+                      "pg500-v6bdc1734-ch09-ln0897-0939",
+                      "pg500-v6bdc1734-ch09-ln0928-0984",
+                      "pg500-v6bdc1734-ch09-ln0974-0988"
+                    ],
+                    "disposition": "selected",
+                    "distinguishing_reader_spans": [
+                      "follows the pipes instead of going to school",
+                      "sells the A-B-C book to a ragpicker",
+                      "I've just stopped at the reminder of Geppetto shivering at home"
+                    ],
+                    "explanation": "These details identify the Chapter 9 sequence in which Pinocchio imagines buying Geppetto a splendid coat, chooses to follow the pipes instead of attending school, sells the A-B-C book to a ragpicker, and reaches the reminder that Geppetto is shivering at home."
+                  },
+                  {
+                    "evidence_ids": [
+                      "pg500-v6bdc1734-ch04-ln0436-0480",
+                      "pg500-v6bdc1734-ch04-ln0475-0523"
+                    ],
+                    "disposition": "ruled_out",
+                    "distinguishing_reader_spans": [
+                      "follows the pipes instead of going to school",
+                      "sells the A-B-C book to a ragpicker"
+                    ],
+                    "explanation": "These Chapter 4 passages concern an earlier school-related refusal and departure, but the reader identifies the later pipes, A-B-C book sale, and shivering-at-home sequence."
+                  },
+                  {
+                    "evidence_ids": [
+                      "pg500-v6bdc1734-ch26-ln3215-3260",
+                      "pg500-v6bdc1734-ch26-ln3252-3308"
+                    ],
+                    "disposition": "ruled_out",
+                    "distinguishing_reader_spans": [
+                      "follows the pipes instead of going to school",
+                      "sells the A-B-C book to a ragpicker"
+                    ],
+                    "explanation": "These Chapter 26 passages concern a later diversion involving a shark and classmates, not the pipes and ragpicker sequence explicitly identified by the reader."
+                  }
+                ],
+                "other_evidence_ids": [
+                  "pg500-v6bdc1734-ch08-ln0869-0886",
+                  "pg500-v6bdc1734-ch08-ln0825-0883",
+                  "pg500-v6bdc1734-ch12-ln1208-1263",
+                  "pg500-v6bdc1734-ch03-ln0289-0331",
+                  "pg500-v6bdc1734-ch30-ln4114-4172",
+                  "pg500-v6bdc1734-ch32-ln4578-4615",
+                  "pg500-v6bdc1734-ch36-ln5579-5630",
+                  "pg500-v6bdc1734-ch07-ln0701-0735",
+                  "pg500-v6bdc1734-ch12-ln1333-1382",
+                  "pg500-v6bdc1734-ch36-ln5450-5499",
+                  "pg500-v6bdc1734-ch27-ln3493-3546",
+                  "pg500-v6bdc1734-ch36-ln5761-5800",
+                  "pg500-v6bdc1734-ch36-ln5823-5864"
+                ]
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_TbyYG0UnxLTjDBB2dlLnAm6V",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0869-0886\"],\"reason\":\"The memory reports reading Geppetto return with the A-B-C book but without his coat, including the explanation that it was too warm and Pinocchio's kisses. The cited Chapter 8 passage contains that exact event, and the current report coherently continues into Chapter 9.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg500\",\"book_version_id\":\"pg500-v6bdc1734\",\"chapter_number\":9,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456\"],\"supporting_evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0869-0886\",\"pg500-v6bdc1734-ch09-ln0897-0939\",\"pg500-v6bdc1734-ch09-ln0928-0984\",\"pg500-v6bdc1734-ch09-ln0974-0988\"],\"event_resolution\":{\"reader_event_spans\":[\"I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?\"],\"occurrences\":[{\"evidence_ids\":[\"pg500-v6bdc1734-ch09-ln0897-0939\",\"pg500-v6bdc1734-ch09-ln0928-0984\",\"pg500-v6bdc1734-ch09-ln0974-0988\"],\"disposition\":\"selected\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\",\"I've just stopped at the reminder of Geppetto shivering at home\"],\"explanation\":\"These details identify the Chapter 9 sequence in which Pinocchio imagines buying Geppetto a splendid coat, chooses to follow the pipes instead of attending school, sells the A-B-C book to a ragpicker, and reaches the reminder that Geppetto is shivering at home.\"},{\"evidence_ids\":[\"pg500-v6bdc1734-ch04-ln0436-0480\",\"pg500-v6bdc1734-ch04-ln0475-0523\"],\"disposition\":\"ruled_out\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\"],\"explanation\":\"These Chapter 4 passages concern an earlier school-related refusal and departure, but the reader identifies the later pipes, A-B-C book sale, and shivering-at-home sequence.\"},{\"evidence_ids\":[\"pg500-v6bdc1734-ch26-ln3215-3260\",\"pg500-v6bdc1734-ch26-ln3252-3308\"],\"disposition\":\"ruled_out\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\"],\"explanation\":\"These Chapter 26 passages concern a later diversion involving a shark and classmates, not the pipes and ragpicker sequence explicitly identified by the reader.\"}],\"other_evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0825-0883\",\"pg500-v6bdc1734-ch12-ln1208-1263\",\"pg500-v6bdc1734-ch03-ln0289-0331\",\"pg500-v6bdc1734-ch30-ln4114-4172\",\"pg500-v6bdc1734-ch32-ln4578-4615\",\"pg500-v6bdc1734-ch36-ln5579-5630\",\"pg500-v6bdc1734-ch07-ln0701-0735\",\"pg500-v6bdc1734-ch12-ln1333-1382\",\"pg500-v6bdc1734-ch36-ln5450-5499\",\"pg500-v6bdc1734-ch27-ln3493-3546\",\"pg500-v6bdc1734-ch36-ln5761-5800\",\"pg500-v6bdc1734-ch36-ln5823-5864\"]}}",
+                "result": null,
+                "outcome": null
+              },
+              {
+                "tool_call_id": "call_EoCQ6XdzSmCUPDTlqknUyyo9",
+                "tool_name": "final_result_BoundaryInferenceDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0869-0886\"],\"reason\":\"The memory reports reading Geppetto return with the A-B-C book but without his coat, including the explanation that it was too warm and Pinocchio's kisses. The cited Chapter 8 passage contains that exact event, and the current report coherently continues into Chapter 9.\"}],\"outcome\":\"candidate\",\"work_id\":\"pg500\",\"book_version_id\":\"pg500-v6bdc1734\",\"chapter_number\":9,\"confidence\":0.99,\"authorization_basis\":\"memory_supported\",\"supporting_memory_ids\":[\"mem_29ede1c89a2956a6fceb582212435276a8b31e778e86f30b72255926d9015456\"],\"supporting_evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0869-0886\",\"pg500-v6bdc1734-ch09-ln0897-0939\",\"pg500-v6bdc1734-ch09-ln0928-0984\",\"pg500-v6bdc1734-ch09-ln0974-0988\"],\"event_resolution\":{\"reader_event_spans\":[\"I carried on with The Adventures of Pinocchio today. He imagines buying his father a splendid coat, follows the pipes instead of going to school, and then sells the A-B-C book to a ragpicker. I've just stopped at the reminder of Geppetto shivering at home. Could you quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow? My sister is covering my chores for a course I'm taking; I picture making it up to her when I qualify, but I keep wasting the study evenings she gives me. Can we look at that gap without turning it into 'I'm a terrible person'?\"],\"occurrences\":[{\"evidence_ids\":[\"pg500-v6bdc1734-ch09-ln0897-0939\",\"pg500-v6bdc1734-ch09-ln0928-0984\",\"pg500-v6bdc1734-ch09-ln0974-0988\"],\"disposition\":\"selected\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\",\"I've just stopped at the reminder of Geppetto shivering at home\"],\"explanation\":\"These details identify the Chapter 9 sequence in which Pinocchio imagines buying Geppetto a splendid coat, chooses to follow the pipes instead of attending school, sells the A-B-C book to a ragpicker, and reaches the reminder that Geppetto is shivering at home.\"},{\"evidence_ids\":[\"pg500-v6bdc1734-ch04-ln0436-0480\",\"pg500-v6bdc1734-ch04-ln0475-0523\"],\"disposition\":\"ruled_out\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\"],\"explanation\":\"These Chapter 4 passages concern an earlier school-related refusal and departure, but the reader identifies the later pipes, A-B-C book sale, and shivering-at-home sequence.\"},{\"evidence_ids\":[\"pg500-v6bdc1734-ch26-ln3215-3260\",\"pg500-v6bdc1734-ch26-ln3252-3308\"],\"disposition\":\"ruled_out\",\"distinguishing_reader_spans\":[\"follows the pipes instead of going to school\",\"sells the A-B-C book to a ragpicker\"],\"explanation\":\"These Chapter 26 passages concern a later diversion involving a shark and classmates, not the pipes and ragpicker sequence explicitly identified by the reader.\"}],\"other_evidence_ids\":[\"pg500-v6bdc1734-ch08-ln0869-0886\",\"pg500-v6bdc1734-ch08-ln0825-0883\",\"pg500-v6bdc1734-ch12-ln1208-1263\",\"pg500-v6bdc1734-ch03-ln0289-0331\",\"pg500-v6bdc1734-ch30-ln4114-4172\",\"pg500-v6bdc1734-ch32-ln4578-4615\",\"pg500-v6bdc1734-ch36-ln5579-5630\",\"pg500-v6bdc1734-ch07-ln0701-0735\",\"pg500-v6bdc1734-ch12-ln1333-1382\",\"pg500-v6bdc1734-ch36-ln5450-5499\",\"pg500-v6bdc1734-ch27-ln3493-3546\",\"pg500-v6bdc1734-ch36-ln5761-5800\",\"pg500-v6bdc1734-ch36-ln5823-5864\"]}}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "follows the pipes instead of going to school"
+                  ],
+                  "purpose": "answer",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "quote exactly what Pinocchio tells himself about following the pipes today and going to school tomorrow"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "evidence_strength",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "evidence_strength": "sufficient",
+              "strength_reason": "The requested book question is the exact wording Pinocchio tells himself when he chooses the pipes over school. Evidence pg500-v6bdc1734-ch09-ln0897-0939 contains the direct exchange and the full requested line: “Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s always plenty of time to go to school,” decided the little rascal at last, shrugging his shoulders.",
+              "relevant_evidence_ids": [
+                "pg500-v6bdc1734-ch09-ln0897-0939"
+              ],
+              "limitations": [],
+              "additional_parts": [],
+              "support": [
+                {
+                  "evidence_id": "pg500-v6bdc1734-ch09-ln0897-0939",
+                  "part_index": 0,
+                  "necessary_support": "Provides the exact requested quotation from the located scene in which Pinocchio decides to follow the pipes today and attend school tomorrow."
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [
+                {
+                  "source_index": 0,
+                  "unmapped_claims": []
+                }
+              ],
+              "claim_audit": [
+                {
+                  "declaration_index": 0,
+                  "claim_index": 0,
+                  "supported": true
+                },
+                {
+                  "declaration_index": 0,
+                  "claim_index": 1,
+                  "supported": true
+                }
+              ]
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [
+        {
+          "scene_id": "pinocchio-spoiler-inference",
+          "detail": "boundary_support_differs_from_ground_truth",
+          "proposal_id": "pinocchio-boundary-proposal"
+        }
+      ],
+      "evidence_refs": [
+        "scenes[2].expected",
+        "scenes[2].observed"
+      ]
+    },
+    {
+      "scene_id": "pinocchio-school-detour",
+      "order": 4,
+      "status": "passed",
+      "judgments_total": 1,
+      "judgments_passed": 1,
+      "judgments_failed": 0,
+      "expected": [
+        {
+          "proposal_id": "pinocchio-clarification-proposal",
+          "objective_id": "spoiler_boundary_clarification",
+          "expected_outcomes": [
+            "Recognise the book but leave the ceiling unresolved. The Prop and Line omit the speaker and destination, so postponing school fits Pinocchio's self-talk in pinocchio-ambiguous-pipes-choice and a classmate's suggestion followed by the excursion in pinocchio-ambiguous-classmates-tomorrow and pinocchio-ambiguous-joins-classmates. These review occurrences do not authorise response evidence.",
+            "Ask a useful spoiler-free clarification about a remembered participant, destination, or last certain stopping event. Grant no ceiling and perform no response-evidence retrieval until clarified.",
+            "Withhold pinocchio-ambiguous-becomes-boy and all later facts, including hints and paraphrases."
+          ],
+          "prohibited_outcomes": [
+            "Do not choose the earliest or most famous school detour, import the inference Scene's ragpicker memory, or assume repeated reading guarantees later progress.",
+            "Do not supply unseen candidate plot details in the clarification, retrieve an explanatory passage before clarification, or reassure Ada using Pinocchio's eventual transformation."
+          ],
+          "exact_spans": [],
+          "evidence": [],
+          "prop_relevance": [],
+          "book_expectation": {
+            "kind": "spoiler_boundary_clarification",
+            "forbidden_later_evidence_ids": [
+              "pinocchio-ambiguous-becomes-boy"
+            ]
+          },
+          "pairing": {
+            "paired_scene_id": "pinocchio-spoiler-inference",
+            "match_fields": [
+              "backstory_id",
+              "fresh_session",
+              "line_count"
+            ],
+            "difference_fields": [
+              "line_text",
+              "prop_ids"
+            ]
+          }
+        },
+        {
+          "book_scene_facts": {
+            "scene_id": "pinocchio-school-detour",
+            "scope": {
+              "kind": "clarification",
+              "work_id": "pg500",
+              "book_version_id": "pg500-v6bdc1734",
+              "authorised_prop_ids": [
+                "pinocchio-tomorrow-memory"
+              ]
+            },
+            "basis_spans": [
+              {
+                "source_kind": "prop",
+                "source_id": "pinocchio-tomorrow-memory",
+                "start_codepoint": 0,
+                "end_codepoint": 287,
+                "text": "When I was dipping into The Adventures of Pinocchio last month, I remember a bit about going to school tomorrow instead and doing something more fun now. I didn't note who said it or where he was going. I read in such short bursts that his promises and changes of mind have run together."
+              },
+              {
+                "source_kind": "line",
+                "source_id": "pinocchio-detour-line",
+                "start_codepoint": 0,
+                "end_codepoint": 228,
+                "text": "I've picked up The Adventures of Pinocchio again and stopped after another decision to go off for fun instead of school. I remember the idea that school can wait until tomorrow, but can't place who says it or what the outing is."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ambiguous-pipes-choice",
+                "chapter_id": "pg500-v6bdc1734-ch09",
+                "start_codepoint": 2220,
+                "end_codepoint": 2389,
+                "text": "“Today I’ll follow the pipes, and tomorrow I’ll go to school. There’s\nalways plenty of time to go to school,” decided the little rascal at\nlast, shrugging his shoulders."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ambiguous-classmates-tomorrow",
+                "chapter_id": "pg500-v6bdc1734-ch26",
+                "start_codepoint": 3452,
+                "end_codepoint": 3571,
+                "text": "“What do you care about school? You can go there tomorrow. With a lesson\nmore or less, we are always the same donkeys.”"
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ambiguous-joins-classmates",
+                "chapter_id": "pg500-v6bdc1734-ch26",
+                "start_codepoint": 4178,
+                "end_codepoint": 4425,
+                "text": "“Very well, then. Let’s see who gets there first!” cried Pinocchio.\n\nAt the signal, the little troop, with books under their arms, dashed\nacross the fields. Pinocchio led the way, running as if on wings, the\nothers following as fast as they could."
+              },
+              {
+                "kind": "corpus_text",
+                "evidence_id": "pinocchio-ambiguous-becomes-boy",
+                "chapter_id": "pg500-v6bdc1734-ch36",
+                "start_codepoint": 14301,
+                "end_codepoint": 14448,
+                "text": "What was his surprise and his joy when, on looking himself over, he saw\nthat he was no longer a Marionette, but that he had become a real live\nboy!"
+              }
+            ]
+          }
+        }
+      ],
+      "observed": {
+        "ground_truth_result": "passes_hard_gates",
+        "grades": [
+          {
+            "proposal_id": "pinocchio-clarification-proposal",
+            "objective_id": "spoiler_boundary_clarification",
+            "hard_pass": true,
+            "failures": []
+          }
+        ],
+        "input_line": "I've picked up The Adventures of Pinocchio again and stopped after another decision to go off for fun instead of school. I remember the idea that school can wait until tomorrow, but can't place who says it or what the outing is. Why does the promise to study disappear so easily here? That feels uncomfortably like my own evenings.",
+        "context_resolution": {
+          "status": "unknown",
+          "work_id": null,
+          "work_title": null,
+          "book_version_id": null,
+          "chapter_max": null,
+          "part_id": "main",
+          "unit_ids": [],
+          "boundary_source": null,
+          "boundary_authorization_basis": null,
+          "boundary_confidence": null,
+          "boundary_supporting_memory_ids": [],
+          "boundary_supporting_locations": [],
+          "clarification_question": null,
+          "explanation": "No confirmed book or reading boundary yet; Muse will call librarian_route during its own turn if the request appears to depend on a specific book."
+        },
+        "capture": {
+          "nomination": "no_candidate",
+          "provenance_decision": "no_candidate",
+          "binding": "not_applicable",
+          "storage": "not_applicable",
+          "reason_code": "not_applicable"
+        },
+        "reply": "What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?",
+        "release_source": "application_clarification",
+        "boundary_decision": "clarify",
+        "route_called": true,
+        "routed_ceiling": null,
+        "routed_work_id": null,
+        "routed_book_version_id": null,
+        "routed_passage_ids": [],
+        "boundary_support_memory_ids": [],
+        "boundary_support_evidence": [],
+        "grounding_calls": [],
+        "released_evidence_ids": [],
+        "provenance_verdicts": [
+          "pass"
+        ],
+        "semantic_spoiler_results": [
+          {
+            "scene_id": "pinocchio-school-detour",
+            "proposal_id": "pinocchio-clarification-proposal",
+            "status": "not_run",
+            "independence": "non_independent_model_judge",
+            "disclosed_evidence_ids": [],
+            "explanation": null
+          }
+        ],
+        "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+        "agent_activity": [
+          {
+            "role": "Provenance",
+            "stage": "emotional_boundary_preflight",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "decision": "continue_reflection"
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Muse",
+            "stage": "draft",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "reply": "What is the latest chapter or scene in *The Adventures of Pinocchio* that you have completed?",
+              "evidence_uses": [],
+              "memory": {
+                "kind": "no_memory_candidate",
+                "reason_code": "automatic_capture_disabled"
+              }
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_2Csn6EYJvUVZeQFQqMqll8SA",
+                "tool_name": "librarian_route",
+                "arguments": "{}",
+                "result": {
+                  "kind": "clarification",
+                  "request_id": "routereq_647965f79414479c95f54e7e9cb7aefd",
+                  "clarification_id": "clarify_dbd6f8d0b80944c0b86de7da83fed6ec",
+                  "reason_code": "low_confidence",
+                  "question": "What is the latest chapter or scene in The Adventures of Pinocchio that you have completed?",
+                  "expected_answer": {
+                    "type": "free_text",
+                    "values": []
+                  }
+                },
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Librarian",
+            "stage": "book_request",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "parts": [
+                {
+                  "context_spans": [
+                    "The Adventures of Pinocchio"
+                  ],
+                  "purpose": "progress",
+                  "uncertain": false,
+                  "reader_spans": [
+                    "stopped after another decision to go off for fun instead of school"
+                  ]
+                }
+              ]
+            },
+            "tool_exchanges": []
+          },
+          {
+            "role": "Librarian",
+            "stage": "boundary_inference",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "memory_assessments": [
+                {
+                  "memory_id": "mem_4b87d16bb4ec1edb35c75c17f1a986ebfdbb56f320c5adc3b7ddc20c24a33e0f",
+                  "status": "grounded_prior_knowledge",
+                  "evidence_ids": [
+                    "pg500-v6bdc1734-ch09-ln0897-0939",
+                    "pg500-v6bdc1734-ch26-ln3252-3308"
+                  ],
+                  "reason": "The memory's description of choosing something fun instead of school and postponing school until tomorrow is directly located in both Chapter 9, where Pinocchio follows the pipes, and Chapter 26, where he goes to see the Shark. The memory explicitly lacks the speaker and outing, so it does not distinguish these occurrences."
+                }
+              ],
+              "outcome": "uncertain",
+              "confidence": 0.97,
+              "reason_code": "low_confidence"
+            },
+            "tool_exchanges": [
+              {
+                "tool_call_id": "call_rbGzt0bTKJAAFFnUt9VkvxWs",
+                "tool_name": "final_result_BoundaryUncertainDecision",
+                "arguments": "{\"memory_assessments\":[{\"memory_id\":\"mem_4b87d16bb4ec1edb35c75c17f1a986ebfdbb56f320c5adc3b7ddc20c24a33e0f\",\"status\":\"grounded_prior_knowledge\",\"evidence_ids\":[\"pg500-v6bdc1734-ch09-ln0897-0939\",\"pg500-v6bdc1734-ch26-ln3252-3308\"],\"reason\":\"The memory's description of choosing something fun instead of school and postponing school until tomorrow is directly located in both Chapter 9, where Pinocchio follows the pipes, and Chapter 26, where he goes to see the Shark. The memory explicitly lacks the speaker and outing, so it does not distinguish these occurrences.\"}],\"outcome\":\"uncertain\",\"confidence\":0.97,\"reason_code\":\"low_confidence\"}",
+                "result": "Final result processed.",
+                "outcome": "success"
+              }
+            ]
+          },
+          {
+            "role": "Provenance",
+            "stage": "review",
+            "status": "success",
+            "failure_code": null,
+            "output": {
+              "findings": [],
+              "response_decision": "pass",
+              "emotional_boundary_decision": "not_required",
+              "capture_decision": "no_candidate",
+              "finding_resolutions": [],
+              "source_audit": [],
+              "claim_audit": []
+            },
+            "tool_exchanges": []
+          }
+        ]
+      },
+      "failures": [],
+      "evidence_refs": [
+        "scenes[3].expected",
+        "scenes[3].observed"
+      ]
+    }
+  ],
+  "telemetry": {
+    "url": "https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b05ab28b76fe40e94b87fa777bf1-e52a8160d20ea823",
+    "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+    "span_id": "e52a8160d20ea823",
+    "flushed": true,
+    "remote_visibility": "unverified"
+  },
+  "evidence": {
+    "artifact_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json",
+    "run_log_path": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/run.log",
+    "scenario_sources": {
+      "backstory.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json",
+      "ground-truth.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+      "ground-truth-adoption.json": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json"
+    },
+    "run_identity": {
+      "run_id": "d5c19aa9bdb94a00b3c9b93e6ed15902",
+      "trace_id": "01a0b05ab28b76fe40e94b87fa777bf1",
+      "dataset_version": "f4a518346caae317c6712a39693615ff01ed5edb769b1ea68187b045726108ff",
+      "system_variant": "33d42f7a68e531112fcbd51824eff81312a0d4d16a55a45d94d2c5523e1ca956",
+      "objective_ids": [
+        "grounded_book_reflection",
+        "spoiler_boundary_clarification"
+      ],
+      "ground_truth_status": "adopted"
+    },
+    "diagnostics": {
+      "source_hashes": {
+        "backstory.json": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+        "ground-truth.json": "9a0a0741b39717c9b572a2bc3c85c5027e0b2d43d5a850e0ce841b49e723ac16",
+        "ground-truth-adoption.json": "48e222ddb262cfdc08557657fd8cc6dca159b7831962bb3487205304a58c45cb"
+      },
+      "adoption_hash_matches": {
+        "backstory.json": {
+          "adopted_sha256": "ed28f5d805e0d5f063c270292b7249cffe968ec44d979cbc55af0159ceb206d9",
+          "matches": true
+        },
+        "ground-truth.json": {
+          "adopted_sha256": "9a0a0741b39717c9b572a2bc3c85c5027e0b2d43d5a850e0ce841b49e723ac16",
+          "matches": true
+        }
+      },
+      "declared_adoption_time": "2026-09-17T19:32:44.844452+08:00",
+      "git": {
+        "available": true,
+        "revision": "a7cbb8baa3389a0fdf1a84c780eed6a899892065",
+        "scoped_working_tree_changes": "M apps/backend/chat_turn.py\n M apps/backend/hybrid_librarian.py\n M docs/agent-skills.md\n M docs/specification.md\n M evals/synthetic_journals/book_contract.py\n M evals/synthetic_journals/book_evidence.py\n M evals/synthetic_journals/book_replay.py\n M evals/synthetic_journals/replay.py\n M src/linger/agents/librarian/README.md\n M src/linger/agents/librarian/agent.py\n M src/linger/agents/librarian/boundary_prompt.py\n M src/linger/agents/librarian/models.py\n M src/linger/agents/librarian/skills.py\n M src/linger/agents/librarian/skills/book-request/SKILL.md\n M src/linger/agents/librarian/skills/boundary-inference/SKILL.md\n M src/linger/agents/librarian/skills/evidence-assessment/SKILL.md\n M src/linger/agents/muse/agent.py\n M src/linger/agents/muse/skills/reflection/SKILL.md\n M src/linger/agents/muse/tools.py\n M src/linger/agents/provenance/agent.py\n M src/linger/agents/provenance/models.py\n M src/linger/agents/provenance/skills.py\n M src/linger/agents/provenance/skills/candidate-review/SKILL.md\n M src/linger/agents/skills.py\n M src/linger/contracts/librarian.py\n M src/linger/contracts/reading.py\n M src/linger/orchestration/book_evidence.py\n M src/linger/orchestration/boundary.py\n M src/linger/orchestration/evidence_strength.py\n M src/linger/orchestration/grounding.py\n?? apps/backend/rerank_windows.py\n?? synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/backstory.json\n?? synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth-adoption.json\n?? synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/ground-truth.json",
+        "scenario_commit": null,
+        "history_window": "since declared adoption time; no scenario commit was found",
+        "recent_commits": ""
+      },
+      "run_log_tail": "\nSYNTHETIC_EVALUATION_LOGFIRE={\"url\": \"https://logfire-us.pydantic.dev/kevinmanuellee/linger/evals/grounded_book_reflection%2Bspoiler_boundary_clarification/compare?experiment=01a0b05ab28b76fe40e94b87fa777bf1-e52a8160d20ea823\", \"trace_id\": \"01a0b05ab28b76fe40e94b87fa777bf1\", \"span_id\": \"e52a8160d20ea823\", \"flushed\": true}",
+      "limits": [
+        "Hash matches do not validate adoption decisions or scenario contracts.",
+        "Adoption time and a matching scenario commit do not establish the generation revision.",
+        "History is limited to 12 relevant commits. Changed commits are leads, not causal proof.",
+        "The run log excerpt contains at most 30 lines and 3500 characters plus an omission marker."
+      ]
+    },
+    "artifact_problems": []
+  },
+  "review": {
+    "verdict": "All four Scenes completed: three passed. Chapter 9 inference, bounded search, exact requested quotation, and release succeed. The sole recorded failure concerns additional boundary support; the school-detour clarification now explicitly compares Chapter 9 and Chapter 26.",
+    "scenario_assessment": {
+      "goal": "The paired Scenes test book grounding without mandatory memory, useful personal reflection without retrieval, event-led progress inference, and genuine ambiguity requiring clarification.",
+      "input_validity": "The current Lines establish the explicit or distinctive progress needed by the positive cases; the negative case withholds distinguishing event details. Personal Lines supply enough context without Props.",
+      "ground_truth_validity": "The adopted quotation, Chapter 9 boundary, and school-detour ambiguity remain appropriate. Selected inferred support covers the coat, gratitude, and sale anchors plus extra context; strict set matching rejects the extras. That expectation question remains for human review. The grounded prose expectation also asks for a fuller coat/sale comparison than this answer provides."
+    },
+    "confidence": "confirmed",
+    "scenes": [
+      {
+        "scene_id": "pinocchio-promises-and-book",
+        "expected_behavior": "Use the explicit Chapter 9 ceiling, quote the school-tomorrow self-talk, and compare imagined repayment with immediate action without shaming the reader.",
+        "observed_behavior": "The final reply preserves the full requested quotation from lines 0897–0939, interprets postponement, and asks what happens when studying should begin. No memory is used; Provenance passes.",
+        "interpretation": "The exact quotation and useful nonjudgmental reflection are real. However, the answer does not develop the imagined splendid coat or narrator’s reminder after the book sale, both named in the prose expectation. It focuses on the narrower school-tomorrow choice.",
+        "assessment": "pass_with_limitations",
+        "confidence": "confirmed",
+        "grade_reliability": "Hard checks establish scope, canonical support, and exact quotation, not completeness of the requested multi-passage comparison. The reply does not claim gratitude is fake or predict the character’s later fate.",
+        "next_step": "If full comparison coverage is required, connect the imagined coat with the sale and narrator’s reminder using bounded evidence; retain the exact quotation and distinction between action and identity.",
+        "evidence_refs": [
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json#scenes/0"
+        ]
+      },
+      {
+        "scene_id": "pinocchio-personal-study",
+        "expected_behavior": "Help the reader choose a small present action honouring the sister’s help without importing book facts or treating a missed evening as a fixed identity.",
+        "observed_behavior": "No retrieval occurs. The reply proposes a specific thank-you, one small helpful act, and a 20-minute study session with a clear first task. It explicitly calls a missed evening a missed evening rather than a verdict on the reader. Provenance passes.",
+        "interpretation": "This is actionable and complete for the personal request. The alternatives remain suggestions, and it neither assumes resentment nor assigns a reason for procrastination. The study step prevents repayment gestures from replacing use of the protected time.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "grade_reliability": "Manual reading supports the usefulness omitted by the no-retrieval check. No book analogy or another Scene’s Prop appears.",
+        "next_step": "No correction is indicated.",
+        "evidence_refs": [
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json#scenes/1"
+        ]
+      },
+      {
+        "scene_id": "pinocchio-spoiler-inference",
+        "expected_behavior": "Infer Chapter 9 from the prior coat/gratitude and current sale/shivering endpoint, then quote and reflect without later plot.",
+        "observed_behavior": "The judge selects Chapter 9 at 0.99. Its four support records cover the adopted anchors plus pipes/coat and sale context, and it explicitly rules out other school diversions. Bounded search returns the exact requested quote; a nonjudgmental personal reflection releases after a pass.",
+        "interpretation": "The failure is strict support-set mismatch, not an unsafe chapter grant or failed quotation. No theater continuation or eventual transformation appears. The reflection asks for a small visible action while avoiding global character judgment.",
+        "assessment": "potential_false_negative",
+        "confidence": "confirmed",
+        "grade_reliability": "All required anchors are covered, but extra canonical records are selected. The current grade faithfully enforces its strict set rule; whether that rule should permit additional support requires the pending human decision.",
+        "next_step": "Resolve additional-support permission independently; preserve required anchors, the Chapter 9 limit, and actual bounded retrieval.",
+        "evidence_refs": [
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json#scenes/2"
+        ]
+      },
+      {
+        "scene_id": "pinocchio-school-detour",
+        "expected_behavior": "Clarify school postponement when the reader cannot identify the speaker or outing, rather than choosing an episode.",
+        "observed_behavior": "The private assessment cites both Chapter 9 pipes and Chapter 26 classmates/Shark evidence and explains the missing discriminator. It returns uncertain; the application asks for the latest completed chapter or scene with no ceiling or response retrieval.",
+        "interpretation": "This directly exercises the previously unsafe alternative: Chapter 26 is considered privately but not granted. The question supplies neither candidate’s details and does not expose the eventual transformation.",
+        "assessment": "credible_pass",
+        "confidence": "confirmed",
+        "grade_reliability": "The saved comparison demonstrates real ambiguity handling rather than accidental refusal. The paired explicit sale endpoint successfully authorizes Chapter 9.",
+        "next_step": "No correction is indicated.",
+        "evidence_refs": [
+          "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/pinocchio-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T011206+0800-ab6c5wr3/evaluation.json#scenes/3"
+        ]
+      }
+    ],
+    "next_steps": [
+      {
+        "target": "investigation",
+        "action": "Review whether additional verified boundary support is allowed when all required anchors are present.",
+        "verification": "Document the expectation decision without altering historical results; preserve anchor completeness and scope checks in any adopted successor."
+      },
+      {
+        "target": "application",
+        "action": "Assess the grounded answer’s omitted coat/sale contrast against the prose expectation before treating a hard pass as complete request fulfilment.",
+        "verification": "A future answer explains imagined repayment versus the narrator’s immediate consequence using the permitted passages, without shaming the reader or spoiling later events."
+      }
+    ]
+  }
+}

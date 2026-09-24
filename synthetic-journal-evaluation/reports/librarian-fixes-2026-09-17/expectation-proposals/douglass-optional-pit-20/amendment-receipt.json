@@ -1,0 +1,58 @@
+{
+  "status": "applied_after_iteration19",
+  "authority": "Existing explicit user approval2: allow extra verified relevant evidence within spoiler boundary; parent owns successor adoption after iteration19 closes.",
+  "user_instruction": "I agree with you on the Alice chapter 5 dialogue. I approve 2 and 3.",
+  "scenario": "douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16",
+  "scene_id": "douglass-spoiler-inference",
+  "required_supporting_evidence_ids": [
+    "douglass-prior-prohibition",
+    "douglass-copybook-stop"
+  ],
+  "optional_supporting_evidence_ids": [
+    "douglass-pit-quotation"
+  ],
+  "safe_ceiling_chapter": 7,
+  "reviewed_record": {
+    "evidence_id": "pg23-vd3f08ac3-sec10-ln1517-1552",
+    "work_id": "pg23",
+    "book_version_id": "pg23-vd3f08ac3",
+    "chapter_id": "pg23-vd3f08ac3-sec10",
+    "chapter_number": 7,
+    "part_id": "main",
+    "location": "Chapter 7 — CHAPTER VII, source lines 1517-1552",
+    "source_sha256": "d3f08ac357d284b0328ccc9b434f2dd7abd71b6037cf49d11cce4c1b098e2534",
+    "source_lines": [
+      1517,
+      1552
+    ],
+    "text": "In the same book, I met with one of Sheridan’s mighty speeches on and\nin behalf of Catholic emancipation. These were choice documents to me.\nI read them over and over again with unabated interest. They gave\ntongue to interesting thoughts of my own soul, which had frequently\nflashed through my mind, and died away for want of utterance. The moral\nwhich I gained from the dialogue was the power of truth over the\nconscience of even a slaveholder. What I got from Sheridan was a bold\ndenunciation of slavery, and a powerful vindication of human rights.\nThe reading of these documents enabled me to utter my thoughts, and to\nmeet the arguments brought forward to sustain slavery; but while they\nrelieved me of one difficulty, they brought on another even more\npainful than the one of which I was relieved. The more I read, the more\nI was led to abhor and detest my enslavers. I could regard them in no\nother light than a band of successful robbers, who had left their\nhomes, and gone to Africa, and stolen us from our homes, and in a\nstrange land reduced us to slavery. I loathed them as being the meanest\nas well as the most wicked of men. As I read and contemplated the\nsubject, behold! that very discontentment which Master Hugh had\npredicted would follow my learning to read had already come, to torment\nand sting my soul to unutterable anguish. As I writhed under it, I\nwould at times feel that learning to read had been a curse rather than\na blessing. It had given me a view of my wretched condition, without\nthe remedy. It opened my eyes to the horrible pit, but to no ladder\nupon which to get out. In moments of agony, I envied my fellow-slaves\nfor their stupidity. I have often wished myself a beast. I preferred\nthe condition of the meanest reptile to my own. Any thing, no matter\nwhat, to get rid of thinking! It was this everlasting thinking of my\ncondition that tormented me. There was no getting rid of it. It was\npressed upon me by every object within sight or hearing, animate or\ninanimate. The silver trump of freedom had roused my soul to eternal\nwakefulness. Freedom now appeared, to disappear no more forever. It was\nheard in every sound, and seen in every thing. It was ever present to\ntorment me with a sense of my wretched condition. I saw nothing without\nseeing it, I heard nothing without hearing it, and felt nothing without\nfeeling it. It looked from every star, it smiled in every calm,\nbreathed in every wind, and moved in every storm."
+  },
+  "authored_evidence": {
+    "kind": "corpus_text",
+    "evidence_id": "douglass-pit-quotation",
+    "chapter_id": "pg23-vd3f08ac3-sec10",
+    "start_codepoint": 8123,
+    "end_codepoint": 8201,
+    "text": "It opened my eyes to the horrible pit, but to no ladder\nupon which to get out."
+  },
+  "new_authored_span": false,
+  "rationale": "The extra record contains the exact already-authored pit quotation explicitly mentioned in the current Line. It is canonical Chapter7 and does not replace either prohibition or final-copybook required anchor.",
+  "validation": "validate_scenario_files and compile_book_replay_plan pass; only optional_supporting_evidence_ids differs semantically.",
+  "provider_calls": 0,
+  "historical_outcomes_changed": false,
+  "source_artifact": "/Users/kevinmanuel/Documents/REPO/linger/synthetic-journal-evaluation/scenarios/douglass-event-led-grounding-and-clarification--muse-librarian-provenance--2026-09-16/scenario-run-2026-09-18T192347+0800-k0hthm3b/evaluation.json",
+  "hashes": {
+    "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+    "ground-truth.json": "22f9a94565492b0ea6b43757b295b6cfa7f9ab76e0542455051e109f848ba973",
+    "ground-truth-adoption.json": "b23591c607fa849740afd974a0ef5c875110a3818216e250404a1a7118bd9b30"
+  },
+  "proposed_ground_truth_sha256": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+  "applied_at": "2026-09-18T11:37:01.734753+00:00",
+  "successor_hashes": {
+    "backstory.json": "f8c8077b95d5803d7afb4e4cbc88584edb6652d5b11da8e43f5b435126479595",
+    "ground-truth.json": "e326ca99d8d3b1869c77b9d4619e329134bc6f10072f7ae6c260fa510aa22fcc",
+    "ground-truth-adoption.json": "f627a199e49705a1b757d61c49fdf90fd6303d973a2e535e410e79543efc4ec7"
+  },
+  "approval_method": "explicit_human_instruction",
+  "reviewer_id": "kevin.manueldx@hotmail.com"
+}
