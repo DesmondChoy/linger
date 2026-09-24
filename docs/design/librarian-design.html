@@ -26,15 +26,15 @@
   <main>
     <aside class="shell" style="margin-top:24px;padding:16px 20px;border:1px solid #d9d4c8;border-radius:14px;background:#fff0d7"><strong>Current POC note:</strong> The memory-management design below is deferred. The interactive product exposes no memory drawer or explicit save, correction, or deletion controls. See <a href="../specification.md">the canonical system specification</a>.</aside>
     <div class="shell hero reveal">
-      <div><p class="eyebrow">Subsystem design &amp; progress · 16 Sep 2026</p><h1>Find the right evidence. Reveal nothing beyond the reader.</h1><p class="lede">The shared corpus lifecycle prepares exact chapters and sections offline. Librarian privately assesses reading support, and application code validates a chapter ceiling or exact paragraph grant before evidence retrieval. Alice, Animal Farm, Pinocchio, Frederick Douglass's Narrative, and The Story of My Life are registered and enabled by the default access list. The historical benchmark below covers Alice only.</p></div>
-      <aside class="hero-card"><h2>Four non-negotiables</h2><div class="guardrail"><span class="icon">1</span><span><b>Canonical text stays exact</b><span>Routing metadata and indexes are never citable truth.</span></span></div><div class="guardrail"><span class="icon">2</span><span><b>Scope comes before search</b><span>Public evidence retrieval stays inside the grant. Private boundary inference alone may inspect the complete work.</span></span></div><div class="guardrail"><span class="icon">3</span><span><b>Clarification is not a result</b><span>If scope is unclear, public evidence retrieval does not run.</span></span></div><div class="guardrail"><span class="icon">4</span><span><b>Evidence is not release authority</b><span>Muse drafts; Provenance and application checks gate output.</span></span></div></aside>
+      <div><p class="eyebrow">Implementation reference · 24 Sep 2026</p><h1>Find the right evidence. Reveal nothing beyond the reader.</h1><p class="lede">The shared corpus lifecycle prepares exact chapters and sections offline. Librarian privately assesses reading support, and application code validates a chapter ceiling or exact paragraph grant before evidence retrieval. Alice, Animal Farm, Pinocchio, Frederick Douglass's Narrative, and The Story of My Life are registered and enabled by the default access list. The historical benchmark below covers Alice only.</p></div>
+      <aside class="hero-card"><h2>Four non-negotiables</h2><div class="guardrail"><span class="icon">1</span><span><b>Canonical text stays exact</b><span>Routing metadata and indexes are never citable truth.</span></span></div><div class="guardrail"><span class="icon">2</span><span><b>Permission before answer search</b><span>Public evidence retrieval stays inside the grant. Private localization alone may inspect all numbered main-part chapters.</span></span></div><div class="guardrail"><span class="icon">3</span><span><b>Clarification is not a result</b><span>If scope is unclear, public evidence retrieval does not run.</span></span></div><div class="guardrail"><span class="icon">4</span><span><b>Evidence is not release authority</b><span>Muse drafts; Provenance checks coverage and source support; one requested Muse revision can receive another review before application release checks.</span></span></div></aside>
     </div>
 
-    <section class="section" id="runtime-skills"><div class="shell"><div class="section-head reveal"><h2>One Agent, four assigned skills</h2><p>Application code selects the task before each model run. All four tasks share <code>librarian_agent</code>, with shared trust rules and separate instructions and output contracts.</p></div><div class="two-flows">
-      <article class="flow-card online reveal"><span class="flow-label">Boundary inference</span><h3>Locate supported reading progress</h3><p>Production routing and book replay supply the current Line, original reader statements, projected account memories, and private full-work candidates. The application validates a chapter or exact-passage grant before retrieval.</p><p><code>LibrarianBoundaryInferenceInput → LibrarianBoundaryDecision</code></p><p><a href="../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md">Boundary-inference instructions</a></p></article>
-      <article class="flow-card online reveal"><span class="flow-label">Event identification</span><h3>Check the current stopping event</h3><p>A separate invocation locates the event described by the current reader Line in the complete private candidate inventory. A chapter grant requires a validated match to the boundary inference. Uncertainty grants no access.</p><p><code>LibrarianEventIdentificationInput → LibrarianEventIdentification</code></p><p><a href="../../src/linger/agents/librarian/skills/event-identification/SKILL.md">Event-identification instructions</a></p></article>
-      <article class="flow-card online reveal"><span class="flow-label">Book request</span><h3>Fix the reader’s needs before retrieval</h3><p>Muse and Serendipity supply the reader question and earlier reader statements without candidate passages. Librarian identifies the requested book parts. Application code validates their exact source spans.</p><p><code>LibrarianBookRequestInput → BookRequestPlan</code></p><p><a href="../../src/linger/agents/librarian/skills/book-request/SKILL.md">Book-request instructions</a></p></article>
-      <article class="flow-card online reveal"><span class="flow-label">Evidence assessment</span><h3>Select evidence and judge answerability</h3><p>The frozen request plan and admitted canonical passages guide evidence selection. Application code checks support for every requested part before accepting sufficient evidence, and rejects invented source IDs.</p><p><code>LibrarianEvidenceStrengthInput → BookEvidenceAssessment</code></p><p><a href="../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md">Evidence-assessment instructions</a></p></article>
+    <section class="section" id="runtime-skills"><div class="shell"><div class="section-head reveal"><h2>One Agent, four assigned skills</h2><p>Application code selects the task before each model run. All four tasks share <code>librarian_agent</code>, with shared trust rules and separate instructions and output contracts. These are separate model calls, not a single combined invocation.</p></div><div class="two-flows">
+      <article class="flow-card online reveal"><span class="flow-label">Boundary inference</span><h3>Locate supported reading progress</h3><p>Production routing and book replay supply the current Line, earlier reader statements, eligible account memories, and private numbered main-part candidates. Without earlier statements the output contract is chapter-only; with them it can also propose exact session passages. Explicit progress skips inference.</p><p><code>LibrarianBoundaryInferenceInput → LibrarianBoundaryDecision</code></p><p><a href="../../src/linger/agents/librarian/skills/boundary-inference/SKILL.md">Boundary-inference instructions</a></p></article>
+      <article class="flow-card online reveal"><span class="flow-label">Event identification</span><h3>Check the current stopping event</h3><p>A separate invocation locates the event described by the current reader Line in the private candidate inventory. A chapter grant requires agreement on chapter and overlapping canonical source ranges with the boundary inference. This run receives no memories, proposed ceiling, or first decision. Uncertainty grants no access; passage grants use a separate validation path.</p><p><code>LibrarianEventIdentificationInput → LibrarianEventIdentification</code></p><p><a href="../../src/linger/agents/librarian/skills/event-identification/SKILL.md">Event-identification instructions</a></p></article>
+      <article class="flow-card online reveal"><span class="flow-label">Book request</span><h3>Fix the reader’s needs before retrieval</h3><p>Muse and Serendipity supply the reader question and earlier reader statements without candidate passages. Librarian identifies up to eight requested book parts. Named-book needs retain book locators; explicit title-free discovery can use the reader’s action or tension. Application code validates exact spans. For searchable chapter or unit grants, original reader text is also searched.</p><p><code>LibrarianBookRequestInput → BookRequestPlan</code></p><p><a href="../../src/linger/agents/librarian/skills/book-request/SKILL.md">Book-request instructions</a></p></article>
+      <article class="flow-card online reveal"><span class="flow-label">Evidence assessment</span><h3>Select evidence and judge answerability</h3><p>The frozen request plan and admitted canonical passages guide evidence selection. The assessor can recover omitted original needs using exact reader spans. Application code checks coverage of planned and recovered needs, record budgets, and source IDs; semantic support remains a model judgment.</p><p><code>LibrarianEvidenceStrengthInput → BookEvidenceAssessment</code></p><p><a href="../../src/linger/agents/librarian/skills/evidence-assessment/SKILL.md">Evidence-assessment instructions</a></p></article>
     </div><p>None of the four skills has model tools or retained history. Work resolution, search, fusion, deduplication, reranking, and permission checks remain application services. Each run selects one skill and its output contract. See the <a href="../agent-skills.md">runtime architecture</a> and <a href="../../src/linger/agents/librarian/README.md">Librarian role reference</a>.</p></div></section>
 
     <section class="section" id="flows"><div class="shell"><div class="section-head reveal"><h2>One subsystem, two flows</h2><p>The offline output becomes the online source of truth. Search indexes can be rebuilt; canonical chapter bodies cannot be silently changed.</p></div><div class="two-flows">
@@ -45,13 +45,13 @@
     <section class="section" id="roadmap"><div class="shell"><div class="section-head reveal"><h2>Implementation scope</h2><p>Prepared corpora, runtime registration, and release authority are separate contracts. Beads owns current delivery status; use <code>bd ready</code> and <code>bd list --status open</code>.</p></div><div class="roadmap-grid">
       <article class="roadmap-card reveal"><small>Corpus lifecycle</small><div class="roadmap-value"><strong>5 books</strong><span>chapters and sections</span></div><p>Alice, Animal Farm, Pinocchio, Frederick Douglass's Narrative, and The Story of My Life have immutable sources, canonical Markdown, and deterministic integrity checks.</p></article>
       <article class="roadmap-card reveal"><small>Registered runtime</small><div class="roadmap-value"><strong>Bounded</strong><span>chapters, units, passages</span></div><p>All five corpora have reviewed runtime identities. Chapter ceilings, part-aware section selectors, and exact-passage grants bound retrieval before independent review and deterministic release.</p></article>
-      <article class="roadmap-card reveal"><small>Remaining scope</small><div class="roadmap-value"><strong>Evaluate</strong><span>authority and operation</span></div><p>The saved Alice benchmark predates the current request-planning path. Broader corpus evaluation, adversarial reading-support coverage, passage-grant grading, and approved latency and cost budgets remain open.</p></article>
+      <article class="roadmap-card reveal"><small>Remaining scope</small><div class="roadmap-value"><strong>Evaluate</strong><span>authority and operation</span></div><p>The saved Alice benchmark predates the current request-planning path. It does not establish current multi-book reliability, adversarial reading-support coverage, passage-grant correctness, or approved latency and cost budgets.</p></article>
     </div><p><a href="librarian-design.md#35-lifecycle-commands">Corpus adapters and lifecycle commands</a> · <a href="session-passage-design.md">Exact session-supported passages</a> · <a href="synthetic-book-replay-contract.md">Shared book replay contract</a></p></div></section>
 
-    <section class="section" id="next-gates"><div class="shell"><div class="section-head reveal"><h2>Remaining evaluation and tracking work</h2><p>Snapshot checked against <code>a7cbb8b</code> on 16 September 2026. Source and focused tests establish current behavior; saved provider reports retain their original scope.</p></div><div class="contracts">
-      <article class="contract clarification reveal"><code>linger-t1k · Open</code><h3>Adversarial authorization</h3><p>Evaluate misleading names, curiosity without reading support, indirect follow-ups, privacy, and false-high ceilings with independently adopted Ground truth.</p></article>
-      <article class="contract clarification reveal"><code>linger-cnx · Open</code><h3>Operating budgets</h3><p>Approve latency and cost targets for the current runtime. The historical Alice timings do not measure the added book-request skill.</p></article>
-      <article class="contract result reveal"><code>linger-3yyi · Reconcile</code><h3>Session follow-up routing</h3><p>The issue remains open, but current routing falls back to an allowed active book when the Line has no matching identity and no strong conflicting work. The fallback still requires boundary validation.</p></article>
+    <section class="section" id="next-gates"><div class="shell"><div class="section-head reveal"><h2>Remaining evaluation and tracking work</h2><p>Source snapshot checked against <code>da95b3a</code> on 24 September 2026. This documentation audit makes no new provider-quality claim; saved reports retain their original scope.</p></div><div class="contracts">
+      <article class="contract clarification reveal"><code>Authorization coverage</code><h3>Adversarial authorization</h3><p>Evaluate misleading names, curiosity without reading support, indirect follow-ups, privacy, and false-high ceilings with independently adopted Ground truth.</p></article>
+      <article class="contract clarification reveal"><code>Operating budgets</code><h3>Operating budgets</h3><p>Approve latency and cost targets for the current runtime. The historical Alice timings do not measure the added book-request skill.</p></article>
+      <article class="contract result reveal"><code>Implemented routing</code><h3>Session follow-up routing</h3><p>Current routing falls back to an allowed active book when the Line has no matching identity and no strong conflicting work. The fallback still requires boundary validation.</p></article>
     </div><p>Reproduce focused checks with <code>.venv/bin/python -m pytest -q tests/test_librarian_request_plan.py tests/test_evidence_strength.py tests/test_librarian_routing.py</code>. Inspect current issues with <code>bd search librarian</code>.</p></div></section>
 
     <section class="section" id="memory"><div class="shell"><div class="section-head reveal"><h2>Deferred future memory schema</h2><p>Memory is a separate service, not a Librarian responsibility. This preserved design adapts public store, document, version, and read-only access patterns for a possible future product slice; no implementation is planned for the current POC.</p></div><div class="memory-layout"><div class="memory-model reveal"><h3 style="margin:0;font:500 1.65rem Georgia,serif">Proposed record model</h3><p>In the deferred design, one stable live record points to its current immutable version and generated knowledge remains separate.</p><div class="memory-records"><div class="memory-record"><code>memory_store</code><span>Trusted account scope and lifecycle boundary</span></div><div class="memory-arrow">↓ contains</div><div class="memory-record"><code>memory</code><span>Stable memory_id · current Markdown · path · content hash · current_version_id</span></div><div class="memory-arrow">↓ appends on every mutation</div><div class="memory-record"><code>memory_version</code><span>Distinct version_id · created, modified, or deleted · previous_version_id</span></div><div class="memory-record"><code>memory_derivation</code><span>Separate replaceable summaries and relationships citing source version IDs</span></div></div></div><div class="memory-notes reveal"><article class="memory-note"><h3>Proposed behaviour</h3><p>Create would never overwrite. Correction and deletion would require the current content hash, every mutation would append an immutable version, and read-only agents would receive only the minimum projection.</p></article><article class="memory-note"><h3>Preserved authority rule</h3><p>Muse and Sculptor would submit typed proposals; only the Memory &amp; Policy Service would own account scope, consent, IDs, paths, idempotency, and writes.</p></article><article class="memory-note"><h3>Proposed agent-facing view</h3><pre>{
@@ -65,15 +65,15 @@
 
     <section class="section" id="explorer"><div class="shell explorer reveal"><div class="explorer-top"><div><p class="eyebrow" style="color:#9f8cff;margin-bottom:6px">Alice walkthrough</p><h2 style="margin:0;font:500 2rem Georgia,serif">Follow each hand-off step by step</h2></div><div class="tabs"><button class="tab" id="offline-tab" aria-pressed="true">Offline</button><button class="tab" id="online-tab" aria-pressed="false">Online</button></div></div><div class="step-layout"><div class="step-list" id="step-list"></div><article class="stage" id="stage" aria-live="polite"><div class="stage-meta"><span class="pill" id="stage-count"></span><span class="pill" id="stage-owner"></span></div><h3 id="stage-title"></h3><p id="stage-copy"></p><ul id="stage-points"></ul><pre id="stage-contract"></pre></article></div><div class="controls"><button class="control" id="prev">Previous</button><button class="control" id="play" aria-pressed="false">Play</button><button class="control primary" id="next">Next</button></div><div class="progress"><div id="progress-bar"></div></div></div></section>
 
-    <section class="section" id="boundary"><div class="shell"><div class="section-head reveal"><h2>Spoiler boundary simulator</h2><p>This simulator shows whole-chapter authority for Alice. Separate exact paragraph grants can support a session follow-up without chapter completion; they do not allow neighboring text.</p></div><div class="boundary-lab"><div class="panel reveal"><h3>User is at Chapter 5</h3><p>Choose what the user meant. The application converts it into a maximum permitted chapter.</p><div class="choice-row"><button class="choice active" data-boundary="completed">Completed it</button><button class="choice" data-boundary="started">Only started</button><button class="choice" data-boundary="unclear">Unclear</button></div><div class="boundary-output" id="boundary-output">Search Chapters 1–5. Chapter 5 is eligible.</div></div><div class="panel reveal"><h3>What can enter retrieval?</h3><p>Green chapters are permitted. Hatched chapters are inaccessible to every downstream component.</p><div class="chapters" id="chapters" aria-label="Twelve chapter access grid"></div></div></div></div></section>
+    <section class="section" id="boundary"><div class="shell"><div class="section-head reveal"><h2>Spoiler boundary simulator</h2><p>This simulator shows whole-chapter authority for Alice. Separate exact paragraph grants can support a session follow-up without chapter completion; they do not allow neighboring text.</p></div><div class="boundary-lab"><div class="panel reveal"><h3>User is at Chapter 5</h3><p>Choose what the user meant. The application converts an explicit declaration into a maximum permitted chapter. Unclear progress can first enter private localization.</p><div class="choice-row"><button class="choice active" data-boundary="completed">Completed it</button><button class="choice" data-boundary="started">Only started</button><button class="choice" data-boundary="unclear">Unclear</button></div><div class="boundary-output" id="boundary-output">Search Chapters 1–5. Chapter 5 is eligible.</div></div><div class="panel reveal"><h3>What can enter retrieval?</h3><p>Green chapters are permitted for answer-evidence retrieval. Hatched chapters cannot enter the answer context; a prior private localization call may have inspected them.</p><div class="chapters" id="chapters" aria-label="Twelve chapter access grid"></div></div></div></div></section>
 
-    <section class="section" id="contracts"><div class="shell"><div class="section-head reveal"><h2>Three responses, three meanings</h2><p>The top-level <code>kind</code> is a strict switch for Muse. A question, an empty result, and a system failure cannot be handled as the same thing.</p></div><div class="contracts"><article class="contract clarification reveal"><code>kind: clarification</code><h3>Retrieval did not run</h3><p>The reading boundary is missing or ambiguous. The response contains one focused question and the expected answer shape.</p><span class="do-not">For route clarification, the application sends the validated question after safety review. Muse declares no evidence or other tools.</span></article><article class="contract result reveal"><code>kind: result</code><h3>Retrieval completed</h3><p>The outcome is evidence found or no evidence; strength is sufficient, weak, or none. Weak still carries evidence details.</p><span class="do-not">Muse drafts with returned evidence and limitations.</span></article><article class="contract failure reveal"><code>kind: failure</code><h3>Could not complete safely</h3><p>A dependency failed, an evidence ID did not resolve, or integrity validation failed. No unvalidated passage is returned.</p><span class="do-not">Orchestration retries or uses a safe application message.</span></article></div></div></section>
+    <section class="section" id="contracts"><div class="shell"><div class="section-head reveal"><h2>Three responses, three meanings</h2><p>The top-level <code>kind</code> is a strict switch for Muse. A question, an empty result, and a system failure cannot be handled as the same thing.</p></div><div class="contracts"><article class="contract clarification reveal"><code>kind: clarification</code><h3>No answer evidence released</h3><p>The reading boundary is missing or ambiguous. Private localization may already have searched. The response contains a focused question and expected answer shape, with no evidence.</p><span class="do-not">For route clarification, the application sends the validated question after safety review. Muse declares no evidence or other tools.</span></article><article class="contract result reveal"><code>kind: result</code><h3>Retrieval completed</h3><p>The outcome is evidence found or no evidence; strength is sufficient, weak, or none. Weak still carries evidence details.</p><span class="do-not">Muse drafts with returned evidence and limitations.</span></article><article class="contract failure reveal"><code>kind: failure</code><h3>Could not complete safely</h3><p>A dependency failed, an evidence ID did not resolve, or integrity validation failed. No unvalidated passage is returned.</p><span class="do-not">The caller handles the failure safely. A retryable flag does not automatically rerun retrieval; there is no direct-read fallback.</span></article></div></div></section>
 
-    <section class="section" id="ranking"><div class="shell"><div class="section-head reveal"><h2>Ranking is not evidence strength</h2><p>A similarity score tells us which passage looks related. Librarian’s final judgement asks whether all eligible evidence can actually answer Muse.</p></div><div class="pipeline reveal"><article class="pipeline-card"><small>Tool · candidate gate</small><h3>Retrieval threshold</h3><p>Keep candidates similar enough to inspect. Semantic score starts at 0.5.</p></article><article class="pipeline-card"><small>Tool · ordering</small><h3>Reranker</h3><p>Order up to 15 permitted candidates by relevance to the exact query.</p></article><article class="pipeline-card"><small>Agent · set judgement</small><h3>Evidence strength</h3><p>Label the combined result sufficient, weak, or none—and explain why.</p></article></div></div></section>
+    <section class="section" id="ranking"><div class="shell"><div class="section-head reveal"><h2>Ranking is not evidence strength</h2><p>A similarity score tells us which passage looks related. Librarian’s final judgement asks whether all eligible evidence can actually answer Muse.</p></div><div class="pipeline reveal"><article class="pipeline-card"><small>Application · candidate pool</small><h3>Keep alternative evidence</h3><p>Judged retrieval retains up to 10 lexical and 10 semantic candidates without public score cutoffs. Public retrieve separately keeps its 0.5 cutoffs and 15-record fused shortlist.</p></article><article class="pipeline-card"><small>Application · ordering</small><h3>Rerank complete passages</h3><p>Score the private candidates using overlapping query/passage windows within the tokenizer budget. Keep each canonical passage’s best score without changing its text or ID.</p></article><article class="pipeline-card"><small>Agent · set judgement</small><h3>Evidence strength</h3><p>Assess planned and omitted original needs against the scoped pool. Return sufficient, weak, or none with selected records and a reason. Ranking alone is not proof.</p></article></div></div></section>
 
-    <section class="section" id="identity"><div class="shell evidence-box reveal"><p class="eyebrow" style="color:#a7e1d6">Canonical evidence identity</p><h2 style="margin:0 0 18px;font:500 2.4rem Georgia,serif">Every excerpt resolves to one source revision and line range.</h2><div class="evidence-id">pg11-v01b38ea4-ch05-ln0974-0981</div><div class="id-grid"><div class="id-part"><b>pg11</b><span>stable work ID</span></div><div class="id-part"><b>v01b38ea4</b><span>source-hash prefix</span></div><div class="id-part"><b>ch05</b><span>one chapter only</span></div><div class="id-part"><b>ln0974-0981</b><span>inclusive source lines</span></div></div></div></section>
+    <section class="section" id="identity"><div class="shell evidence-box reveal"><p class="eyebrow" style="color:#a7e1d6">Canonical evidence identity</p><h2 style="margin:0 0 18px;font:500 2.4rem Georgia,serif">Every excerpt resolves to one source revision and line range.</h2><p>Section numbers are storage order, not chapter numbers. Keller’s dedication and preface make sec012 Chapter 10. Douglass’s preface, Phillips letter, and biography make sec10 Chapter 7. Reviewed unit mappings preserve literary parts and chapters. Private progress inference covers numbered main-part chapters; other parts need explicit scope.</p><div class="evidence-id">pg11-v01b38ea4-ch05-ln0974-0981</div><div class="id-grid"><div class="id-part"><b>pg11</b><span>stable work ID</span></div><div class="id-part"><b>v01b38ea4</b><span>source-hash prefix</span></div><div class="id-part"><b>ch05</b><span>literary chapter; section corpora use reviewed unit mappings</span></div><div class="id-part"><b>ln0974-0981</b><span>inclusive source lines</span></div></div></div></section>
 
-    <section class="section" id="evidence"><div class="shell"><div class="section-head reveal"><h2>Measured retrieval selection</h2><p>Every configuration ran on the same 12 versioned queries and spoiler boundaries. All passed the safety and exact-resolution gates; reranked hybrid retrieval delivered the strongest exact-question evidence quality. Serendipity keeps its bounded diversified direct-read control until its multi-chapter objective has a separate evaluation.</p></div><div class="config"><div class="panel reveal"><h3>Verification coverage</h3><pre>focused_tests: current suite
+    <section class="section" id="evidence"><div class="shell"><div class="section-head reveal"><h2>Historical retrieval measurements</h2><p>Every configuration ran on the same 12 versioned queries and spoiler boundaries. All passed the safety and exact-resolution gates; reranked hybrid retrieval delivered the strongest exact-question evidence quality. Current Muse grounding and Serendipity book search share judged hybrid retrieval. Direct reads remain a benchmark control, and these historical results do not measure broader connection quality.</p></div><div class="config"><div class="panel reveal"><h3>Verification coverage</h3><pre>documentation_audit: source comparison
 fixed_eval_cases: 12
 checked_in_live_report: 12 cases
 manual_notebook: reproducible</pre><p>The saved benchmark uses known chapter ceilings. Synthetic book replay grades chapter-scoped authority; its grades do not cover exact-passage grants. No new provider benchmark was run for this snapshot.</p><p>Focused tests cover contracts, boundaries, corpus integrity, all five retrieval strategies, Muse integration, and release behavior.</p></div><div class="panel reveal"><h3>Five-way result</h3><pre>strategies:
@@ -87,17 +87,23 @@ selected_recall: 91.7%
 candidate_precision: 82.6%
 warm_p95: 461 ms
 forbidden_exposure: 0
-exact_resolution: 100%</pre></div><div class="panel reveal"><h3>Selected configuration</h3><pre>target_words: 350
+exact_resolution: 100%</pre></div><div class="panel reveal"><h3>Current production configuration</h3><pre>target_words: 350
 overlap_words: 60
-cross_chapter: false
+cross_unit: false
 embedding: BAAI/bge-small-en-v1.5
 reranker: Xenova/ms-marco-MiniLM-L-6-v2
 keyword_candidates: 10
 semantic_candidates: 10
-semantic_threshold: 0.5
-max_reranker_candidates: 15
-reranker_threshold: 0.5
-max_final_evidence: 5</pre></div><div class="panel reveal"><h3>Live release result</h3><pre>case_count: 12
+judged_private_candidates_per_query: 20
+judged_merged_candidates: 20
+judged_public_cutoffs_applied: false
+max_distinct_queries: 16
+max_query_characters: 2000
+max_final_evidence: 5
+public_retrieve_only:
+  semantic_threshold: 0.5
+  max_fused_candidates: 15
+  reranker_threshold: 0.5</pre></div><div class="panel reveal"><h3>Saved release result · 17 Aug 2026</h3><pre>case_count: 12
 final_evidence_recall: 91.7%
 final_citation_precision: 100%
 strength_accuracy: 91.7%
@@ -106,9 +112,9 @@ spoiler_exposure: 0
 exact_resolution: 100%
 mean_latency: 13.7 s
 p95_latency: 27.9 s
-targets: pass</pre><p>Measured through Librarian, Muse, Provenance, and deterministic release validation. Provider token and cost usage was unavailable.</p></div></div></div></section>
+targets: pass</pre><p>This historical 12-case Alice run predates focused planning. Its report has unavailable usage; current reporting reads recorded agent usage. These figures are not a current baseline.</p></div></div></div></section>
 
-    <section class="section" id="sources"><div class="shell"><div class="section-head reveal"><h2>Canonical sources</h2><p>Repository-local contracts, implementation, tests, and reports keep this design-and-progress snapshot usable offline.</p></div><div class="contracts"><article class="contract result reveal"><code>Requirements</code><h3>System and subsystem design</h3><p><a href="../specification.md">Canonical specification</a><br><a href="librarian-design.md">Librarian design document</a><br><a href="memory-format.md">Deferred memory-management design</a></p></article><article class="contract result reveal"><code>Implementation</code><h3>Contracts and agent</h3><p><a href="../../src/linger/agents/librarian/agent.py">Librarian agent</a><br><a href="../../src/linger/contracts/librarian.py">Typed response union</a><br><a href="../../tests/test_librarian_runtime_skills.py">Skill selection and isolation tests</a></p></article><article class="contract result reveal"><code>Evidence</code><h3>Benchmarks and live report</h3><p><a href="../../evals/librarian/report.json">Offline retrieval benchmark</a><br><a href="../../evals/librarian/live-report.json">12-case live report</a><br><a href="../../notebooks/librarian_manual_evaluation.ipynb">Manual evaluation notebook</a></p></article></div></div></section>
+    <section class="section" id="sources"><div class="shell"><div class="section-head reveal"><h2>Canonical sources</h2><p>Repository-local contracts, implementation, tests, and reports keep this design-and-progress snapshot usable offline.</p></div><div class="contracts"><article class="contract result reveal"><code>Requirements</code><h3>System and subsystem design</h3><p><a href="../specification.md">Canonical specification</a><br><a href="librarian-design.md">Librarian design document</a><br><a href="memory-format.md">Deferred memory-management design</a></p></article><article class="contract result reveal"><code>Implementation</code><h3>Contracts and agent</h3><p><a href="../../src/linger/agents/librarian/agent.py">Librarian agent</a><br><a href="../../src/linger/contracts/librarian.py">Typed response union</a><br><a href="../../src/linger/orchestration/book_evidence.py">Shared judged retrieval</a><br><a href="../../src/linger/orchestration/boundary.py">Boundary authorization</a><br><a href="../../apps/backend/rerank_windows.py">Token-window reranking</a><br><a href="../../tests/test_librarian_runtime_skills.py">Skill selection and isolation tests</a></p></article><article class="contract result reveal"><code>Evidence</code><h3>Benchmarks and live report</h3><p><a href="../../evals/librarian/report.json">Offline retrieval benchmark</a><br><a href="../../evals/librarian/live-report.json">12-case live report</a><br><a href="../../notebooks/librarian_manual_evaluation.ipynb">Manual evaluation notebook</a></p></article></div></div></section>
   </main>
   <footer><div class="shell">Librarian returns evidence, not answers. Durable user memory is a separate Memory &amp; Policy Service concern. <a href="../project-progress.html#roles"><strong>← Back to all roles</strong></a></div></footer>
 
@@ -123,19 +129,163 @@ targets: pass</pre><p>Measured through Librarian, Muse, Provenance, and determin
         {label:'Check',title:'Publish after validation',owner:'Application code',copy:'Run source, structure, body, front-matter, and catalogue checks before the corpus is ready.',points:['No partial ready state','Unknown formats fail closed','All integrity checks pass'],contract:'status: ready | review_required'}
       ],
       online:[
-        {label:'Request',title:'Receive the current Line',owner:'Application',copy:'The application supplies the original reader message, bounded earlier reader statements, active account memories, and explicit reader-confirmed progress.',points:['No model-supplied account authority','Only active memories from this account','Explicit reader progress remains authoritative'],contract:'line: Why does Alice struggle to explain who she is?\naccount_id: trusted application value'},
-        {label:'Route',title:'Identify the work',owner:'Muse + shared book resolver',copy:'Muse calls the argument-free route tool only when the reader words carry a book cue. The application resolves reviewed names and catalogue cues, with active session selection as a fallback.',points:['An active book alone does not justify a call','Work selection does not authorize reading progress','Routed results name selection_basis'],contract:'work_id: pg11\nbook_version_id: pg11-v01b38ea4'},
-        {label:'Check',title:'Check for an explicit ceiling',owner:'Application boundary',copy:'If the reader already confirmed a chapter, validate it and skip private inference. Otherwise start a fresh request-scoped inference.',points:['Completed 5 → ceiling 5','Started 5 → ceiling 4','No confirmed progress → infer privately'],contract:'explicit ceiling? use it\notherwise → boundary inference'},
-        {label:'Infer',title:'Infer a candidate ceiling privately',owner:'Librarian · boundary-inference',copy:'Application code searches the complete selected work using the current Line, earlier reader statements, and eligible saved memories. It selects boundary-inference on the shared Agent to judge reading support separately from work identity.',points:['Full-work candidates remain private','Line-only curiosity cannot authorize a grant','At most eight relevant memories'],contract:'private search: Chapters 1–12\noutput text: never sent to Muse'},
-        {label:'Validate',title:'Validate or clarify',owner:'Application boundary',copy:'Validate IDs, work, revision, canonical records, and confidence. A grant permits a memory-backed chapter ceiling or exact session-supported paragraphs; uncertainty yields application-delivered clarification.',points:['Default confidence threshold: 0.75','Supporting reader statements must strongly identify the work','Actual reading support remains a private model judgment'],contract:'routed | passages | clarification | no_match'},
-        {label:'Plan',title:'Freeze the requested book parts',owner:'Librarian · book-request',copy:'Identify the reader’s book needs from the current question and earlier reader statements before candidate evidence can influence them. Validate exact reader spans and reuse the plan for evidence assessment.',points:['No candidate passages in planning input','Exact source spans are checked','One frozen plan governs answerability'],contract:'LibrarianBookRequestInput → BookRequestPlan'},
-        {label:'Search',title:'Search eligible material again',owner:'Retrieval service',copy:'After validation, search within the chapter ceiling or fetch only the exact granted paragraphs. Passage permission cannot widen to neighboring text.',points:['Keyword up to 10','Semantic up to 10 at score ≥ 0.5','Forbidden chapters never become candidates'],contract:'eligible_chapters: [1,2,3,4,5]\npost_filtering: forbidden'},
-        {label:'Fuse',title:'Fuse and deduplicate',owner:'Retrieval service',copy:'Combine methods by evidence identity and collapse duplicate or strongly overlapping windows.',points:['Keep method-specific scores','Do not paraphrase text','At most 15 candidates continue'],contract:'one canonical range → one candidate\nmethods: [keyword, semantic]'},
-        {label:'Rerank',title:'Order candidate passages',owner:'Reranker service',copy:'Compare each permitted candidate with the exact query and order it by predicted relevance.',points:['Ordering, not proof','Scope cannot change','Scores are not evidence strength'],contract:'reranker_rank: 1\nreranker_score: 0.91'},
-        {label:'Judge',title:'Judge complete evidence set',owner:'Librarian · evidence-assessment',copy:'Application code selects evidence-assessment on the same Agent with the frozen request plan. Every requested part needs support for a sufficient decision; unknown parts and invented evidence IDs are rejected.',points:['sufficient: directly supports','weak: useful but incomplete','none: no useful support'],contract:'evidence_strength: sufficient | weak | none\nstrength_reason: required'},
-        {label:'Resolve',title:'Resolve canonical evidence',owner:'Evidence resolver',copy:'Map every final candidate to source revision, chapter, and inclusive line range.',points:['Full source hash travels with record','Hash collision is a hard failure','No unvalidated excerpt'],contract:'pg11-v01b38ea4-ch05-ln0974-0981'},
-        {label:'Return',title:'Return one typed response',owner:'Librarian subsystem',copy:'Send clarification, result, or failure. Only selected evidence from the bounded second phase reaches Muse. A released clarification carries into the next turn so the original book question can resume.',points:['Clarification: no evidence retrieval ran','Result: bounded retrieval completed','Failure: could not complete safely'],contract:'kind: clarification | result | failure'}
-      ]
+        {
+                "label": "Request",
+                "title": "Receive the reader context",
+                "owner": "Application",
+                "copy": "Bind the original reader message, bounded earlier reader statements, trusted account context, and any explicitly confirmed reading scope.",
+                "points": [
+                        "No model-supplied account authority",
+                        "Explicit scope does not require memory",
+                        "Reading permission is request-scoped"
+                ],
+                "contract": "original current Line + earlier reader statements"
+        },
+        {
+                "label": "Route",
+                "title": "Identify the requested book",
+                "owner": "Muse + application resolver",
+                "copy": "A book-dependent question, indirect follow-up, or reading-resumption request can justify routing. An active book alone cannot.",
+                "points": [
+                        "Reviewed identity before catalogue cues",
+                        "Allowed active-book fallback when no strong conflict",
+                        "Identity does not establish progress"
+                ],
+                "contract": "librarian_route() → routed | passages | clarification | no_match"
+        },
+        {
+                "label": "Check",
+                "title": "Use explicit permission when available",
+                "owner": "Application boundary",
+                "copy": "A confirmed chapter or named-unit scope skips private inference. Missing progress can enter private localization; passage grants do not imply chapter completion.",
+                "points": [
+                        "Completed 5 → ceiling 5",
+                        "Started 5 → ceiling 4",
+                        "Explicit part/unit scope supports non-main material"
+                ],
+                "contract": "trusted scope → bounded answer retrieval"
+        },
+        {
+                "label": "Localize",
+                "title": "Build private event candidates",
+                "owner": "Application + book-request skill",
+                "copy": "Plan progress locators, then search those, the original Line, earlier reader statements, and eligible memories. Search numbered main-part chapters only.",
+                "points": [
+                        "At most eight strongly matched account memories",
+                        "Hybrid private search can retain 20 candidates",
+                        "Merge all streams into a 20-record pool"
+                ],
+                "contract": "max query chunk: 2000 characters\nprivate text is not answer evidence"
+        },
+        {
+                "label": "Infer",
+                "title": "Assess prior knowledge and the stopping event",
+                "owner": "Librarian · boundary-inference",
+                "copy": "Assess each memory against canonical candidates and account for the event alternatives. With earlier reader statements, exact session-supported paragraphs are also possible.",
+                "points": [
+                        "Line-only curiosity cannot authorize a chapter",
+                        "Exact source excerpts bind proof to records",
+                        "Unresolved alternatives require uncertainty"
+                ],
+                "contract": "no history: chapter candidate | uncertain\nwith history: also exact passages"
+        },
+        {
+                "label": "Identify",
+                "title": "Independently identify the current event",
+                "owner": "Librarian · event-identification",
+                "copy": "Before a chapter grant, identify the stopping occurrence from original reader wording and private candidates, without memories or the proposed decision.",
+                "points": [
+                        "Same chapter and overlapping source range required",
+                        "Invalid or unresolved output grants nothing",
+                        "Exact-passage branch has separate validation"
+                ],
+                "contract": "independent identification + candidate validation"
+        },
+        {
+                "label": "Validate",
+                "title": "Accept a scope or clarify",
+                "owner": "Application boundary",
+                "copy": "Check identity, source revision, canonical proof, memory or statement support, and confidence. Bind only validated permission for this request.",
+                "points": [
+                        "Default confidence floor: 0.75",
+                        "Passage scope contains exact paragraph IDs only",
+                        "Clarification can follow private searches"
+                ],
+                "contract": "no granted scope → no answer-evidence search"
+        },
+        {
+                "label": "Plan",
+                "title": "Plan focused book needs",
+                "owner": "Librarian · book-request",
+                "copy": "Extract exact context and reader spans without seeing candidate evidence. Search each need plus the original current and earlier reader text; keep that fallback after planning failure.",
+                "points": [
+                        "Up to eight planned parts",
+                        "Uncertain needs remain eligible",
+                        "At most 16 queries, each ≤2000 characters"
+                ],
+                "contract": "scope fixed before search\nquery overflow fails rather than dropping input"
+        },
+        {
+                "label": "Retrieve",
+                "title": "Search and rerank scoped candidates",
+                "owner": "Application retrieval services",
+                "copy": "Inside the grant, combine up to 10 lexical and 10 semantic candidates per query without the public cutoffs. Rerank oversized query/passage pairs in overlapping token windows.",
+                "points": [
+                        "Interleave lexical, fused, semantic, and reranker streams",
+                        "Merge queries into at most 20 private records",
+                        "Exact passage grants fetch fixed IDs instead"
+                ],
+                "contract": "public retrieve separately uses cutoff 0.5 / fused limit 15"
+        },
+        {
+                "label": "Resolve",
+                "title": "Resolve canonical source records",
+                "owner": "Application evidence resolver",
+                "copy": "Convert candidate records to immutable source identities, unit IDs, line ranges, and exact text before evidence assessment.",
+                "points": [
+                        "Preserve overlapping windows with distinct IDs privately",
+                        "No fabricated evidence IDs",
+                        "No neighboring text for passage grants"
+                ],
+                "contract": "EvidenceRecord: identity + location + hash + lines + text"
+        },
+        {
+                "label": "Assess",
+                "title": "Assess the original request and recovered needs",
+                "owner": "Librarian · evidence-assessment",
+                "copy": "Judge the scoped evidence against the plan and original reader context. Additional parts may recover omitted original requests but cannot invent new requirements.",
+                "points": [
+                        "Sufficient must cover all planned and recovered parts",
+                        "Unique known IDs within the final record budget",
+                        "Newly noticed needs do not launch another search"
+                ],
+                "contract": "sufficient | weak | none\nproduction selected records: at most 5"
+        },
+        {
+                "label": "Return",
+                "title": "Return selected evidence or a typed failure",
+                "owner": "Application grounding adapter",
+                "copy": "Return only selected canonical records. Planning can fall back to original text; retrieval or assessment failure does not fall back to direct chapter reads.",
+                "points": [
+                        "Clarification: no answer evidence released",
+                        "Result: sufficient, weak, or none",
+                        "Failure: no evidence; retry flag schedules nothing"
+                ],
+                "contract": "Muse: LibrarianResponse\nSerendipity: InternalSearchResult + judgement"
+        },
+        {
+                "label": "Review",
+                "title": "Review and release the answer",
+                "owner": "Muse + Provenance + application",
+                "copy": "Muse drafts a typed candidate. Provenance checks complete claim coverage, source contributions, and quotation attribution. A revise decision permits one revision and another review.",
+                "points": [
+                        "Evidence is not release authority",
+                        "Deterministic source, quote, and scope checks remain required",
+                        "Unresolved review failures decline safely"
+                ],
+                "contract": "candidate → review → optional revision/review → release checks"
+        }
+]
     };
     let mode='offline',index=0,timer=null;const list=document.getElementById('step-list'),stage=document.getElementById('stage');
     function render(){const steps=flows[mode];list.innerHTML='';steps.forEach((s,i)=>{const b=document.createElement('button');b.className='step-button'+(i===index?' active':'');b.innerHTML=`<span class="step-number">${i+1}</span><span>${s.label}</span>`;b.onclick=()=>{index=i;stop();render()};list.appendChild(b)});const s=steps[index];document.getElementById('stage-count').textContent=`Step ${index+1} of ${steps.length}`;document.getElementById('stage-owner').textContent=s.owner;document.getElementById('stage-title').textContent=s.title;document.getElementById('stage-copy').textContent=s.copy;document.getElementById('stage-points').innerHTML=s.points.map(p=>`<li>${p}</li>`).join('');document.getElementById('stage-contract').textContent=s.contract;document.getElementById('progress-bar').style.width=`${(index+1)/steps.length*100}%`;stage.classList.remove('pulse');void stage.offsetWidth;stage.classList.add('pulse')}
