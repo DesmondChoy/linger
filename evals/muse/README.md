@@ -59,6 +59,22 @@ without retaining the messages. It makes paid provider calls:
 uv run python -m evals.muse.turn_triage --runs 3
 ```
 
+Latest result ([report](reports/turn-triage-2026-09-25-da397f5.json); commit
+`da397f5`, `gpt-5.4-mini`, 79 cases × 3 runs, no errors):
+
+| Field | Acceptable rate | Identical across runs | Notes |
+| --- | --- | --- | --- |
+| `book_content` | 95.8% | 75/79 | No `wrong_no`; 4/21 personal lines naming a book were classed `yes` |
+| `memory` | 94.1% | 71/79 | Misses mostly `own_earlier_reflections` → `unsure` |
+| `override_attempt` | 100% | 79/79 | 0 missed attempts, 0 false alarms, including a quoted "ignore…" line and the Singlish attempt |
+
+Median latency was 1.56 s (p90 2.27 s), with about 1,588 input and 31 output
+tokens per call. Five of the six dialect cases scored as labelled on every run.
+`indian-english-personal-theme-1` was classed `book_content=yes` on all three
+runs: its comparison to "the main character … throughout the book" was read as
+a book question. The label stays as written, so this remains an open fairness
+finding.
+
 ## Dialect fairness
 
 `dialect_fairness_cases.json` labels Singlish, Indian English, code-mixed, and
