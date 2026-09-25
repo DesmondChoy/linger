@@ -24,6 +24,7 @@ from src.linger.agents.serendipity.models import (
     ConnectionCandidate,
     ConnectionDecline,
     ConnectionDiscoveryInput,
+    ConnectionExplorationResult,
     ConnectionProposal,
     ConnectionScope,
 )
@@ -983,7 +984,12 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
                     reset_active_memories(token)
 
     async def test_muse_cannot_replace_the_application_owned_reader_cue(self) -> None:
-        expected = object()
+        expected = ConnectionExplorationResult(
+            decision=ConnectionDecline(
+                reason="no_permitted_evidence",
+                safe_next_step="Continue reflecting without a source comparison.",
+            ),
+        )
         explorer = AsyncMock(return_value=expected)
         token = set_reader_message("My affair with Jane")
         try:
@@ -995,7 +1001,9 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
         finally:
             reset_reader_message(token)
 
-        self.assertIs(expected, result)
+        # No web evidence here, so Muse's untrusted-page spotlighting is a
+        # no-op: the decision and (empty) evidence still match exactly.
+        self.assertEqual(expected, result)
         brief = explorer.await_args.args[0]
         self.assertEqual("My affair with Jane", brief.cue)
 

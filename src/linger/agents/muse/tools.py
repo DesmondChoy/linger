@@ -14,12 +14,23 @@ from typing import Literal
 from pydantic_ai import ModelRetry
 
 from apps.backend.contracts import ConnectionBrief
-from src.linger.agents.serendipity.models import ConnectionExplorationResult
+from src.linger.agents.serendipity.models import ConnectionEvidence, ConnectionExplorationResult
+from src.linger.contracts.connection_evidence import WebConnectionEvidence, wrap_untrusted_web_excerpt
 from src.linger.contracts.librarian import LibrarianResponse, LibrarianRoutingResponse
 from src.linger.orchestration.connection import connection_exploration
 from src.linger.orchestration.grounding import build_request, grounding_evidence
 from src.linger.orchestration.routing import route_reader_message
 from src.linger.orchestration.turn_context import reader_message, tool_exposure
+
+
+def _spotlight_web_evidence(evidence: tuple[ConnectionEvidence, ...]) -> tuple[ConnectionEvidence, ...]:
+    """Wrap web excerpts in untrusted-page delimiters for Muse's view (OWASP LLM01); memory and book evidence pass through unchanged."""
+    return tuple(
+        item.model_copy(update={"excerpt": wrap_untrusted_web_excerpt(item.excerpt)})
+        if isinstance(item, WebConnectionEvidence)
+        else item
+        for item in evidence
+    )
 
 
 async def librarian_search(
@@ -119,4 +130,5 @@ async def serendipity_explore(
             f"This turn permits only intent={exposure.pinned_intent!r}. "
             "Call serendipity_explore again with that intent."
         )
-    return await connection_exploration(ConnectionBrief(cue=cue, intent=intent))
+    result = await connection_exploration(ConnectionBrief(cue=cue, intent=intent))
+    return result.model_copy(update={"evidence": _spotlight_web_evidence(result.evidence)})

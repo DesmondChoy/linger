@@ -41,7 +41,7 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, wrap_untrusted_web_excerpt
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection, reset_connection_inspection, register_connection_evidence,
@@ -70,6 +70,7 @@ SECOND_EVIDENCE_ID = "pg11-v01b38ea4-ch02-ln0012-0013"
 LOCATION = "Chapter 2 — The Pool of Tears, source lines 10-11"
 SECOND_LOCATION = "Chapter 2 — The Pool of Tears, source lines 12-13"
 QUOTE = "Who are you?"
+WEB_EXCERPT = "A public-web connection."
 RELEASE_SCOPE = ReleaseScope(
     work_id="pg11",
     book_version_id="pg11-v01b38ea4",
@@ -233,6 +234,11 @@ def canonical_record(**updates: object) -> EvidenceRecord:
     return EvidenceRecord.model_validate(evidence_record(**updates))
 
 
+def web_canonical_source(evidence_id: str, *, excerpt: str = WEB_EXCERPT) -> WebConnectionEvidence:
+    """The raw record Serendipity registers; Muse's tool call returns it wrapped."""
+    return WebConnectionEvidence(evidence_id=evidence_id, title="An external source", excerpt=excerpt)
+
+
 def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
     evidence_id = "https://example.com/source" if web else EVIDENCE_ID
     # A shortlist compares two candidates, so each rests on its own record.
@@ -281,10 +287,10 @@ def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
     )
     evidence = (
         (
-            WebConnectionEvidence(
-                evidence_id=evidence_id,
-                title="An external source",
-                excerpt="A public-web connection.",
+            # Production shape: Muse's tool call always returns web excerpts
+            # wrapped in untrusted-page delimiters (see muse.tools).
+            web_canonical_source(evidence_id).model_copy(
+                update={"excerpt": wrap_untrusted_web_excerpt(WEB_EXCERPT)}
             ),
         )
         if web
@@ -643,13 +649,17 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_registered_web_source_reaches_independent_review_and_release(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
-        draft = candidate(f"This may echo [the public source]({source.evidence_id}).")
+        wrapped = exploration.evidence[0]  # what Muse's tool call actually returns
+        canonical = web_canonical_source(wrapped.evidence_id)  # the registered raw record
+        register_connection_evidence((canonical,))
+        interior_quote = "public-web connection"
+        draft = candidate(
+            f'This may echo "{interior_quote}" [the public source]({wrapped.evidence_id}).'
+        )
         draft = draft.model_copy(update={"evidence_uses": (
             WebEvidenceUse(
-                source_kind="web", evidence_id=source.evidence_id,
-                supported_claims=(draft.reply,),
+                source_kind="web", evidence_id=wrapped.evidence_id,
+                exact_quote=interior_quote, supported_claims=(draft.reply,),
             ),
         )})
         muse = AsyncMock()
@@ -661,24 +671,24 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("muse_candidate", release.release_source)
         payload = json.loads(provenance.run.await_args.args[0])
-        self.assertEqual([source.model_dump(mode="json")], payload["canonical_connection_evidence"])
+        self.assertEqual([canonical.model_dump(mode="json")], payload["canonical_connection_evidence"])
         self.assertEqual([], payload["canonical_book_evidence"])
         self.assertEqual((), release.evidence_ids)  # Web URLs never enter book-session recovery.
-        self.assertEqual((("web", source.evidence_id),), release.released_citations)
+        self.assertEqual((("web", wrapped.evidence_id),), release.released_citations)
 
     async def test_registered_web_requires_exact_visible_url_and_exact_quote(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
+        wrapped = exploration.evidence[0]
+        register_connection_evidence((web_canonical_source(wrapped.evidence_id),))
         for reply, quote in (
             ("An uncited public claim", None),
-            (f"[Source]({source.evidence_id}/different)", None),
-            (f"Invented words [source]({source.evidence_id})", "Invented words"),
+            (f"[Source]({wrapped.evidence_id}/different)", None),
+            (f"Invented words [source]({wrapped.evidence_id})", "Invented words"),
         ):
             with self.subTest(reply=reply):
                 draft = candidate(reply).model_copy(update={"evidence_uses": (
                     WebEvidenceUse(
-                        source_kind="web", evidence_id=source.evidence_id,
+                        source_kind="web", evidence_id=wrapped.evidence_id,
                         exact_quote=quote, supported_claims=(reply,),
                     ),
                 )})
@@ -691,13 +701,29 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_mutated_selected_web_payload_cannot_reuse_canonical_identity(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
+        wrapped = exploration.evidence[0]
+        register_connection_evidence((web_canonical_source(wrapped.evidence_id),))
         changed = exploration.model_copy(update={"evidence": (
-            source.model_copy(update={"excerpt": "Different support"}),
+            wrapped.model_copy(update={"excerpt": wrap_untrusted_web_excerpt("Different support")}),
         )})
         muse = AsyncMock()
         muse.run.return_value = result(candidate("A tentative thought"), ToolReturnPart("serendipity_explore", changed))
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+        release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_unwrapped_web_tool_return_is_rejected(self) -> None:
+        """A tool return must carry the wrapped form; the raw excerpt alone is not registered evidence."""
+        exploration = connection_result(web=True)
+        wrapped = exploration.evidence[0]
+        canonical = web_canonical_source(wrapped.evidence_id)
+        register_connection_evidence((canonical,))
+        raw_tool_return = exploration.model_copy(update={"evidence": (canonical,)})
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            candidate("A tentative thought"), ToolReturnPart("serendipity_explore", raw_tool_return),
+        )
         provenance = AsyncMock()
         provenance.run.return_value = result(review("pass"))
         release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)

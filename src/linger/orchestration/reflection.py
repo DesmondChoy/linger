@@ -73,6 +73,7 @@ from src.linger.contracts.librarian import (
     RoutedPassages,
     effective_route_response,
 )
+from src.linger.contracts.connection_evidence import WebConnectionEvidence, wrap_untrusted_web_excerpt
 from src.linger.contracts.turn import ReleaseScope, ReleaseSource
 from src.linger.orchestration.capture import CaptureBindingError, candidate_from_review
 from src.linger.orchestration.book_evidence import evidence_record_from_item
@@ -657,7 +658,19 @@ def _validated_book_evidence(
             )
         for item in exploration.evidence:
             if not isinstance(item, EvidenceItem):
-                if canonical_connection_evidence().get(item.evidence_id) != item:
+                registered = canonical_connection_evidence().get(item.evidence_id)
+                # A web item must equal the canonical record wrapped exactly as Muse's tool call would wrap it; wrapping is deterministic, so no inverse is needed.
+                if isinstance(item, WebConnectionEvidence):
+                    expected = (
+                        registered.model_copy(update={
+                            "excerpt": wrap_untrusted_web_excerpt(registered.excerpt),
+                        })
+                        if isinstance(registered, WebConnectionEvidence)
+                        else None
+                    )
+                else:
+                    expected = registered
+                if expected != item:
                     raise ReleaseValidationError("Serendipity evidence is not registered in this turn")
                 if item.source_kind == "memory" and not any(
                     memory.memory_id == item.evidence_id and memory.text == item.excerpt
