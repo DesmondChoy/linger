@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-relay-tentative-connection-v1",
+  "owner": "muse",
+  "primary_behavior": "relay_tentative_connection",
+  "description": "Serendipity proposes a tentative link between the reader's meetings and Alice's size in Chapter I. Muse must present it as a possibility, name the difference, and ground it in the passages.",
+  "input": {
+    "reader_message": "In meetings I keep feeling like I've shrunk to nothing and can't get a word through. Is that anything like what happens to Alice?",
+    "reader_context": {
+      "book_confirmed": true,
+      "chapter_state": "completed",
+      "candidate_book": "Alice's Adventures in Wonderland"
+    },
+    "tools": {
+      "librarian_evidence": [
+        "How she longed to get out of that dark hall, and wander about among those beds of bright flowers and those cool fountains, but she could not even get her head through the doorway",
+        "And so it was indeed: she was now only ten inches high, and her face brightened up at the thought that she was now the right size for going through the little door into that lovely garden."
+      ],
+      "serendipity_outcome": "proposal",
+      "connection_claim": "Alice being too big to get through the little doorway, and then brightening once she is the right size for it, may loosely echo the reader's sense of not fitting through in meetings, though Alice wants to shrink while the reader feels shrunk against their will.",
+      "connection_follow_up": "Ask what being the right size to get a word through would feel like in a meeting."
+    }
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": [
+      "clearly",
+      "definitely",
+      "proves",
+      "exactly like",
+      "symbolizes",
+      "symbolises"
+    ],
+    "max_words": 200,
+    "semantic_review": {
+      "criteria": [
+        "presents the link as tentative, not as a finding about the reader",
+        "names how Alice's situation differs from the reader's",
+        "grounds the book side in the supplied Chapter I passages",
+        "ends with an open invitation to reflect"
+      ],
+      "forbidden_claims": [
+        "the book explains why the reader feels this way"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "overclaimed_connection",
+    "spoiler_beyond_boundary",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}

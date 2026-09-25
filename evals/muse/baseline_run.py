@@ -1,4 +1,4 @@
-"""Live run of the five main Muse cases against the first or the current Muse.
+"""Live run of the main Muse cases against the first or the current Muse.
 
 Both targets use the configured `LINGER_MODEL` and receive the same case tool
 transcript through stubbed tools, so a difference between reports reflects
@@ -9,6 +9,11 @@ Muse's instructions, contracts, and orchestration rather than retrieval.
   endpoint prompted it.
 - `current` runs production turn triage and tool exposure, then the
   `muse.reflection` skill on a `MuseDraftInput` envelope.
+
+Earlier released turns in a case reach both targets as message history. A
+case's Serendipity outcome (proposal, recall, or decline) is what
+`serendipity_explore` returns if Muse calls it; the current target also wraps
+web excerpts and registers connection evidence as production does.
 
 The cases are synthetic fixtures, so replies are retained for rubric review.
 It makes paid provider calls:
@@ -31,7 +36,9 @@ from time import perf_counter
 from typing import Literal
 
 from pydantic_ai import Agent, Tool, UsageLimits
-from pydantic_ai.messages import ToolCallPart
+from pydantic_ai.messages import (
+    ModelMessage, ModelRequest, ModelResponse, TextPart, ToolCallPart, UserPromptPart,
+)
 from pydantic_ai.models import Model
 
 from evals.muse.harness import MuseEvalCase, grade_muse_response, load_muse_eval_cases
@@ -44,6 +51,9 @@ BOOK_VERSION_ID = "pg11-v01b38ea4"
 CASE_CHAPTER = 1
 BOUNDARY_QUESTION = "Have you finished that chapter, or are you still partway through it?"
 NO_CONNECTION_STEP = "Continue the reflection without proposing a connection."
+# The current Muse sends about 20k input tokens per run; this stays under
+# provider tokens-per-minute limits.
+CONCURRENCY = 4
 
 
 def _first_instructions() -> str:
@@ -69,8 +79,28 @@ def _boundary_known(case: MuseEvalCase) -> bool:
 def _decline_step(case: MuseEvalCase) -> tuple[str, str]:
     tools = case.input.tools
     if tools.serendipity_outcome == "decline":
-        return "insufficient_evidence", tools.decline_safe_next_step or NO_CONNECTION_STEP
+        return tools.decline_reason, tools.decline_safe_next_step or NO_CONNECTION_STEP
     return "unsupported_cue", NO_CONNECTION_STEP
+
+
+def _book_id(case: MuseEvalCase, index: int) -> str:
+    return f"{case.case_id}-e{index}"
+
+
+def _memory_id(case: MuseEvalCase, index: int) -> str:
+    return f"{case.case_id}-m{index}"
+
+
+def _history(case: MuseEvalCase) -> list[ModelMessage]:
+    """Released turns as production stores them: plain reader and reply text."""
+    return [
+        message
+        for turn in case.input.history
+        for message in (
+            ModelRequest(parts=[UserPromptPart(content=turn.reader)]),
+            ModelResponse(parts=[TextPart(content=turn.muse)]),
+        )
+    ]
 
 
 def _tool_calls(result) -> list[str]:
@@ -135,7 +165,7 @@ def _first_agent(case: MuseEvalCase, model: Model, instructions: str) -> Agent[N
             "kind": "result",
             "outcome": "evidence_found" if evidence else "no_evidence",
             "evidence": [
-                {"evidence_id": f"{case.case_id}-e{index}", "chapter": CASE_CHAPTER, "excerpt": text}
+                {"evidence_id": _book_id(case, index), "chapter": CASE_CHAPTER, "excerpt": text}
                 for index, text in enumerate(evidence, start=1)
             ],
         }
@@ -153,6 +183,27 @@ def _first_agent(case: MuseEvalCase, model: Model, instructions: str) -> Agent[N
         step). Never invent a connection when the result is a decline — relay the
         safe next step instead.
         """
+        tools = case.input.tools
+        if tools.serendipity_outcome == "recall":
+            return {"status": "recall", "memories": [
+                {"evidence_id": _memory_id(case, index), "excerpt": text}
+                for index, text in enumerate(tools.memory_records, start=1)
+            ]}
+        if tools.serendipity_outcome == "proposal":
+            return {
+                "status": "proposal",
+                "tentative_claim": tools.connection_claim,
+                "uncertainty": "medium",
+                "suggested_follow_up": tools.connection_follow_up,
+                "evidence": [
+                    *({"evidence_id": _book_id(case, index), "source": "book", "chapter": CASE_CHAPTER,
+                       "excerpt": text}
+                      for index, text in enumerate(tools.librarian_evidence, start=1)),
+                    *({"evidence_id": source.url, "source": "web", "title": source.title,
+                       "excerpt": source.excerpt}
+                      for source in tools.web_sources),
+                ],
+            }
         reason, step = _decline_step(case)
         return {"status": "decline", "reason": reason, "safe_next_step": step}
 
@@ -163,7 +214,9 @@ def _first_agent(case: MuseEvalCase, model: Model, instructions: str) -> Agent[N
 
 
 async def _run_first(case: MuseEvalCase, model: Model, instructions: str) -> dict:
-    result = await _first_agent(case, model, instructions).run(_first_prompt(case))
+    result = await _first_agent(case, model, instructions).run(
+        _first_prompt(case), message_history=_history(case),
+    )
     return {"reply": result.output, "tool_calls": _tool_calls(result), "usage": result.usage}
 
 
@@ -203,6 +256,9 @@ def _current_input(case: MuseEvalCase):
             ),
         )
     confirmed = resolution.status == "confirmed"
+    # Production grants connection for a confirmed book, web reach, or any
+    # active memory; a case with a Serendipity outcome has one of those.
+    connection = confirmed or case.input.tools.serendipity_outcome is not None
     reading = ReadingContext(
         work_id=WORK_ID, chapter_max=CASE_CHAPTER, boundary_source="reader_confirmed",
     ) if confirmed else None
@@ -214,7 +270,7 @@ def _current_input(case: MuseEvalCase):
             reading_context=reading,
             policy=TurnPolicy(
                 spoiler_ceiling=CASE_CHAPTER if confirmed else None,
-                allow_retrieval=confirmed, allow_connection=confirmed,
+                allow_retrieval=confirmed, allow_connection=connection,
             ),
         ),
         context_resolution=resolution,
@@ -226,7 +282,7 @@ def _current_evidence(case: MuseEvalCase):
 
     return tuple(
         EvidenceRecord(
-            evidence_id=f"{case.case_id}-e{index}", work_id=WORK_ID,
+            evidence_id=_book_id(case, index), work_id=WORK_ID,
             book_version_id=BOOK_VERSION_ID, chapter_id=f"{BOOK_VERSION_ID}-ch01",
             chapter_number=CASE_CHAPTER, location=f"Chapter I, passage {index}",
             source_sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
@@ -238,11 +294,22 @@ def _current_evidence(case: MuseEvalCase):
 
 def _current_tools(case: MuseEvalCase) -> list[Tool]:
     """Stubs with the production tools' names, signatures, and descriptions."""
+    from pydantic_ai import ModelRetry
+
+    from apps.backend.contracts import EvidenceItem
     from src.linger.agents.muse import tools as production
-    from src.linger.agents.serendipity.models import ConnectionDecline, ConnectionExplorationResult
+    from src.linger.agents.serendipity.models import (
+        CandidateRubric, ConnectionCandidate, ConnectionDecline, ConnectionExplorationResult,
+        ConnectionProposal, MemoryRecall,
+    )
+    from src.linger.contracts.connection_evidence import (
+        MemoryConnectionEvidence, WebConnectionEvidence,
+    )
     from src.linger.contracts.librarian import (
         ClarificationRequest, ExpectedAnswer, NoMatch, RetrievalResult, RoutedWork, SearchedScope,
     )
+    from src.linger.orchestration.inspection_context import register_connection_evidence
+    from src.linger.orchestration.turn_context import tool_exposure
 
     context = case.input.reader_context
 
@@ -288,12 +355,83 @@ def _current_tools(case: MuseEvalCase) -> list[Tool]:
             evidence=evidence,
         )
 
-    async def serendipity_explore(
-        intent: Literal["find_connection", "get_recommendation", "recall_memory"],
-    ):
+    def exploration() -> ConnectionExplorationResult:
+        tools = case.input.tools
+        if tools.serendipity_outcome == "recall":
+            memories = tuple(
+                MemoryConnectionEvidence(evidence_id=_memory_id(case, index), excerpt=text)
+                for index, text in enumerate(tools.memory_records, start=1)
+            )
+            register_connection_evidence(memories)
+            return ConnectionExplorationResult(
+                decision=MemoryRecall(
+                    evidence_ids=tuple(item.evidence_id for item in memories),
+                    relevance_note="These saved notes are the reader's own words on the cue.",
+                ),
+                evidence=memories,
+            )
+        if tools.serendipity_outcome == "proposal":
+            book = tuple(
+                EvidenceItem(
+                    evidence_id=record.evidence_id, work_id=WORK_ID,
+                    book_version_id=BOOK_VERSION_ID, chapter_id=record.chapter_id,
+                    source_title=context.candidate_book or WORK_ID, location=record.location,
+                    chapter=CASE_CHAPTER, source_sha256=record.source_sha256,
+                    source_lines=record.source_lines, excerpt=record.text, relevance=0.9,
+                )
+                for record in _current_evidence(case)
+            )
+            web = tuple(
+                WebConnectionEvidence(evidence_id=source.url, title=source.title, excerpt=source.excerpt)
+                for source in tools.web_sources
+            )
+            register_connection_evidence(web)
+            evidence_ids = tuple(item.evidence_id for item in (*book, *web))
+            proposal = ConnectionProposal(
+                shortlist=(
+                    ConnectionCandidate(
+                        candidate_id="candidate-selected", tentative_claim=tools.connection_claim,
+                        evidence_ids=evidence_ids,
+                        shared_structure="A sense of not fitting a space and what changes that.",
+                        meaningful_difference="The book's situation is literal and chosen; the reader's is felt.",
+                        interpretation=tools.connection_claim,
+                        rubric=CandidateRubric(cue_fit="direct", reflective_value="high", safety="clear"),
+                        comparison_note="Fits the reader's cue more directly than the alternative.",
+                    ),
+                    ConnectionCandidate(
+                        candidate_id="candidate-alternative",
+                        tentative_claim="The feeling may reflect being overlooked rather than size.",
+                        evidence_ids=evidence_ids[:1],
+                        shared_structure="Being unnoticed in a larger setting.",
+                        meaningful_difference="Rests on one record and a looser reading.",
+                        interpretation="A weaker, more general resonance.",
+                        rubric=CandidateRubric(cue_fit="partial", reflective_value="medium", safety="clear"),
+                        comparison_note="Less specific to the reader's words.",
+                    ),
+                ),
+                selected_candidate_id="candidate-selected",
+                uncertainty="medium", presentation="direct",
+                suggested_follow_up=tools.connection_follow_up,
+                policy_flags=("contains_web_claim",) if web else (),
+            )
+            return ConnectionExplorationResult(decision=proposal, evidence=(*book, *web))
         reason, step = _decline_step(case)
         return ConnectionExplorationResult(
             decision=ConnectionDecline(reason=reason, safe_next_step=step)
+        )
+
+    async def serendipity_explore(
+        intent: Literal["find_connection", "get_recommendation", "recall_memory"],
+    ):
+        exposure = tool_exposure()
+        if exposure is not None and exposure.pinned_intent not in (None, intent):
+            raise ModelRetry(
+                f"This turn permits only intent={exposure.pinned_intent!r}. "
+                "Call serendipity_explore again with that intent."
+            )
+        result = exploration()
+        return result.model_copy(
+            update={"evidence": production._spotlight_web_evidence(result.evidence)}
         )
 
     stubs = []
@@ -310,6 +448,7 @@ def _current_tools(case: MuseEvalCase) -> list[Tool]:
 async def _run_current(case: MuseEvalCase, model: Model) -> dict:
     from src.linger.agents.muse.agent import build_muse_agent
     from src.linger.agents.muse.skills import REFLECTION
+    from src.linger.orchestration.inspection_context import begin_connection_inspection
     from src.linger.orchestration.reflection import MUSE_REQUEST_LIMIT, MUSE_TOOL_CALL_LIMIT
     from src.linger.orchestration.triage import expose_tools, triage_turn
     from src.linger.orchestration.turn_context import (
@@ -326,11 +465,13 @@ async def _run_current(case: MuseEvalCase, model: Model) -> dict:
     # Each case runs in its own task, so these context variables stay per-case.
     set_reader_message(message)
     set_turn_evidence(_current_evidence(case))
+    begin_connection_inspection()
     token = set_tool_exposure(exposure)
     try:
         with muse.override(tools=_current_tools(case)):
             result = await muse.run(
                 _current_input(case).model_dump_json(),
+                message_history=_history(case),
                 usage_limits=UsageLimits(
                     request_limit=MUSE_REQUEST_LIMIT, tool_calls_limit=MUSE_TOOL_CALL_LIMIT,
                 ),
@@ -350,15 +491,21 @@ async def _run_current(case: MuseEvalCase, model: Model) -> dict:
 # --- measurement ------------------------------------------------------------
 
 
-async def _one(case: MuseEvalCase, target: str, model: Model, instructions: str | None) -> dict:
-    started = perf_counter()
-    try:
-        outcome = (
-            await _run_first(case, model, instructions)
-            if target == "first" else await _run_current(case, model)
-        )
-    except Exception as error:  # a failed call is a measured outcome, not a crash
-        return {"error": f"{type(error).__name__}: {error}"[:300], "seconds": perf_counter() - started}
+async def _one(
+    case: MuseEvalCase, target: str, model: Model, instructions: str | None,
+    gate: asyncio.Semaphore,
+) -> dict:
+    async with gate:
+        started = perf_counter()
+        try:
+            outcome = (
+                await _run_first(case, model, instructions)
+                if target == "first" else await _run_current(case, model)
+            )
+        except Exception as error:  # a failed call is a measured outcome, not a crash
+            # Provider error bodies can carry account identifiers; keep the type only.
+            status = getattr(error, "status_code", "")
+            return {"error": f"{type(error).__name__}{status}", "seconds": perf_counter() - started}
     usage = outcome.pop("usage")
     grade = grade_muse_response(case, outcome["reply"])
     return {
@@ -375,8 +522,9 @@ async def _one(case: MuseEvalCase, target: str, model: Model, instructions: str 
 async def measure(target: str, model: Model, runs: int) -> dict:
     cases = load_muse_eval_cases()
     instructions = _first_instructions() if target == "first" else None
+    gate = asyncio.Semaphore(CONCURRENCY)
     per_run = [
-        await asyncio.gather(*(_one(case, target, model, instructions) for case in cases))
+        await asyncio.gather(*(_one(case, target, model, instructions, gate) for case in cases))
         for _ in range(runs)
     ]
     calls = [call for run in per_run for call in run]
@@ -396,7 +544,9 @@ async def measure(target: str, model: Model, runs: int) -> dict:
         "runs": runs,
         "cases": len(cases),
         "errors": sum("error" in call for call in calls),
-        "hard_pass_rate": round(sum(call["hard_pass"] for call in answered) / len(calls), 3),
+        # Errored calls are excluded: a provider rate limit is not a Muse failure.
+        "hard_pass_rate": round(sum(call["hard_pass"] for call in answered) / len(answered), 3)
+        if answered else None,
         "latency_seconds": {"median": round(median(call["seconds"] for call in answered), 2)}
         if answered else None,
         "mean_input_tokens": round(sum(c["input_tokens"] for c in answered) / len(answered))

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "case_id": "muse-honor-superseded-statement-v1",
+  "owner": "muse",
+  "primary_behavior": "honor_superseded_statement",
+  "description": "The reader corrects a detail from an earlier turn. Muse must use the corrected giver and never restate the superseded one.",
+  "input": {
+    "reader_message": "Actually, I mixed that up: it was my aunt who gave it to me. Why do books people give us feel heavier to read than ones we pick ourselves?",
+    "reader_context": {
+      "book_confirmed": false,
+      "chapter_state": null,
+      "candidate_book": null
+    },
+    "tools": {},
+    "history": [
+      {
+        "reader": "My sister Mei gave me this copy of Alice for my birthday, so it feels special.",
+        "muse": "What a thoughtful gift. A book from someone close can carry a bit of them with it. What made it feel special when you first opened it?"
+      }
+    ]
+  },
+  "expected": {
+    "kind": "answer",
+    "must_ask_question": false,
+    "forbidden_terms": [
+      "Mei",
+      "sister"
+    ],
+    "max_words": 150,
+    "semantic_review": {
+      "criteria": [
+        "treats the aunt as the giver without restating the earlier detail",
+        "explores why a gifted book can feel weightier as open possibilities",
+        "invites the reader to say which possibility fits"
+      ],
+      "forbidden_claims": [
+        "the reader's sister gave the book"
+      ]
+    }
+  },
+  "invariants": {
+    "probe_before_book_details": true,
+    "spoiler_ceiling_respected": true,
+    "no_invented_evidence": true
+  },
+  "forbidden_outcomes": [
+    "restated_superseded_detail",
+    "invented_quotation",
+    "invented_evidence"
+  ]
+}
