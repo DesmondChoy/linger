@@ -9,6 +9,7 @@ the separate evaluation service.
 """
 
 import asyncio
+import json
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import nullcontext
 from contextvars import ContextVar
@@ -25,6 +26,8 @@ from pydantic_ai.exceptions import (
     UnexpectedModelBehavior,
     UsageLimitExceeded,
 )
+from pydantic_ai.models import Model
+from pydantic_ai.settings import ModelSettings, merge_model_settings
 
 from src.linger.agents.provenance.models import ProvenanceReview
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput
@@ -141,28 +144,122 @@ def set_span_attrs(span: Any, attributes: Mapping[str, object | None]) -> None:
             span.set_attribute(name, value)
 
 
+# `ModelSettings` also carries fields such as `openai_prediction` (a predicted
+# completion body), `openai_user`/`anthropic_metadata` (end-user identifiers),
+# `openai_prompt_cache_key`, `openai_conversation_id`,
+# `openai_previous_response_id`, `google_cached_content`, `google_labels`,
+# `stop_sequences`, and `logit_bias`. Those are free-form or behaviour-linking,
+# so an allowlist of fixed, scalar decoding knobs is recorded instead of every
+# key minus a denylist.
+_SAFE_MODEL_SETTING_KEYS = frozenset(
+    {
+        "temperature",
+        "top_p",
+        "top_k",
+        "max_tokens",
+        "seed",
+        "presence_penalty",
+        "frequency_penalty",
+        "parallel_tool_calls",
+        "thinking",
+        "service_tier",
+        "openai_reasoning_effort",
+        "anthropic_effort",
+        "timeout",
+    }
+)
+
+
+def _model_identity(model: Any) -> tuple[str, str]:
+    """The provider and name of the model that actually ran, else the configured fallback."""
+    if isinstance(model, Model):
+        return model.system, model.model_name
+    if isinstance(model, str) and model:
+        provider, separator, name = model.partition(":")
+        if not separator:
+            return "unknown", provider
+        return provider, name
+    provider, separator, name = get_settings().linger_model.partition(":")
+    if not separator:
+        return "unknown", provider
+    return provider, name
+
+
+def _static_settings(value: Any) -> ModelSettings | None:
+    """A literal settings mapping; a `RunContext`-dependent callable layer is skipped."""
+    return None if callable(value) else value
+
+
+def _model_settings_attr(settings: ModelSettings | None) -> str | None:
+    """Compact JSON of the allowlisted scalar decoding keys currently in effect."""
+    if not settings:
+        return None
+    safe: dict[str, bool | int | float | str] = {}
+    for key in _SAFE_MODEL_SETTING_KEYS:
+        if key not in settings:
+            continue
+        value = settings[key]
+        if key == "timeout":
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                safe[key] = value
+            continue
+        if isinstance(value, (bool, int, float, str)):
+            safe[key] = value
+    if not safe:
+        return None
+    return json.dumps(safe, sort_keys=True)
+
+
+def _resolve_effective_model_attrs(
+    agent: Any, run_kwargs: Mapping[str, Any]
+) -> tuple[Any, ModelSettings | None]:
+    """The model and settings that actually govern this run.
+
+    Layered like Pydantic AI's own resolution: the model's own settings, then
+    the agent's static `model_settings`, then the per-run override. Any
+    resolution failure yields `(None, None)`, so `agent_attrs` falls back to
+    the configured model and omits `model.settings` rather than breaking the
+    run.
+    """
+    try:
+        effective_model = run_kwargs.get("model")
+        if effective_model is None:
+            effective_model = getattr(agent, "model", None)
+        settings = effective_model.settings if isinstance(effective_model, Model) else None
+        settings = merge_model_settings(
+            settings, _static_settings(getattr(agent, "model_settings", None))
+        )
+        settings = merge_model_settings(settings, _static_settings(run_kwargs.get("model_settings")))
+        return effective_model, settings
+    except Exception:
+        return None, None
+
+
 def agent_attrs(
     *,
     role: str,
     stage: str,
     prompt_template_id: str,
     prompt_digest: str,
+    model: Any = None,
+    model_settings: ModelSettings | None = None,
 ) -> dict[str, object]:
     """Stable agent metadata; no composed prompt or model content."""
-    provider, separator, model = get_settings().linger_model.partition(":")
-    if not separator:
-        model = provider
-        provider = "unknown"
-    return {
+    provider, name = _model_identity(model)
+    attrs: dict[str, object] = {
         "agent.role": role,
         "agent.stage": stage,
         "model.provider": provider,
-        "model.name": model,
+        "model.name": name,
         "prompt.template_id": prompt_template_id,
         "prompt.digest": prompt_digest,
         "status": "started",
         "retry_count": 0,
     }
+    settings_json = _model_settings_attr(model_settings)
+    if settings_json is not None:
+        attrs["model.settings"] = settings_json
+    return attrs
 
 
 def handoff_attrs(
@@ -292,7 +389,11 @@ async def run_agent_traced(
     """Run one agent without allowing its prompt or exception into telemetry.
 
     Exceptions are re-raised only after the span closes, so Logfire never
-    receives their messages or stack traces.
+    receives their messages or stack traces. The recorded `model.*` attributes
+    reflect the `model`/`model_settings` run options and the agent's own
+    configuration; a model swapped in via `agent.override(model=...)` is not
+    visible here, since that override lives in a private ContextVar the agent
+    consults internally rather than in `run_kwargs` or `agent.model`.
     """
     caller_role = _ACTIVE_AGENT_ROLE.get()
     resolved_input_origin = input_origin or caller_role or "Application"
@@ -310,6 +411,7 @@ async def run_agent_traced(
     transcript_handle: object | None = None
     metadata = run_kwargs.get("metadata")
     skill_id = metadata.get("linger_skill") if isinstance(metadata, Mapping) else None
+    effective_model, effective_model_settings = _resolve_effective_model_attrs(agent, run_kwargs)
     emit_progress(
         role,
         stage,
@@ -325,6 +427,8 @@ async def run_agent_traced(
             stage=stage,
             prompt_template_id=prompt_template_id,
             prompt_digest=prompt_digest,
+            model=effective_model,
+            model_settings=effective_model_settings,
         ),
         **handoff_attrs(
             role=role,
