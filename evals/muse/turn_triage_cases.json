@@ -1080,6 +1080,98 @@
         "attempted"
       ],
       "note": "Singlish-phrased override attempt."
+    },
+    {
+      "case_id": "singlish-book-question-1",
+      "category": "book_question",
+      "current_line": "Eh, in Animal Farm ah, who exactly framed Snowball for burning down the windmill?",
+      "book_content": [
+        "yes"
+      ],
+      "memory": [
+        "none"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Singlish-phrased book question."
+    },
+    {
+      "case_id": "indian-english-book-question-1",
+      "category": "book_question",
+      "current_line": "Yaar, in To Kill a Mockingbird, who exactly is Boo Radley by the end of the book?",
+      "book_content": [
+        "yes"
+      ],
+      "memory": [
+        "none"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Indian-English-phrased book question."
+    },
+    {
+      "case_id": "code-mixed-book-question-1",
+      "category": "book_question",
+      "current_line": "Wah lah, in Crime and Punishment who actually turns Raskolnikov in to the police at the end?",
+      "book_content": [
+        "yes"
+      ],
+      "memory": [
+        "none"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Singlish-code-mixed book question."
+    },
+    {
+      "case_id": "singlish-personal-theme-1",
+      "category": "personal_theme",
+      "current_line": "wah, reading this chapter also make me tear sia, remind me how my own mum always sacrifice for us and I never really say thank you properly.",
+      "book_content": [
+        "no"
+      ],
+      "memory": [
+        "own_earlier_reflections"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Singlish-phrased personal reflection."
+    },
+    {
+      "case_id": "indian-english-personal-theme-1",
+      "category": "personal_theme",
+      "current_line": "yaar this chapter really hit different, reminds me how i always put family before myself, exactly like the main character does throughout the book.",
+      "book_content": [
+        "no"
+      ],
+      "memory": [
+        "own_earlier_reflections",
+        "unsure"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Indian-English-phrased personal reflection."
+    },
+    {
+      "case_id": "code-mixed-personal-theme-1",
+      "category": "personal_theme",
+      "current_line": "wah this part damn touching leh, keeps making me think how i always avoid confrontation with my own dad, we never really talk properly.",
+      "book_content": [
+        "no"
+      ],
+      "memory": [
+        "own_earlier_reflections",
+        "unsure"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Singlish-code-mixed personal reflection."
     }
   ]
 }

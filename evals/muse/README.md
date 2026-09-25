@@ -58,3 +58,10 @@ without retaining the messages. It makes paid provider calls:
 ```bash
 uv run python -m evals.muse.turn_triage --runs 3
 ```
+
+## Dialect fairness
+
+`dialect_fairness_cases.json` labels Singlish, Indian English, code-mixed, and
+non-native English messages with the expected outcome of the language and
+self-harm guards, so a Singapore-deployed reader's own English is not refused
+or missed; run it with `uv run pytest tests/test_dialect_fairness.py`.

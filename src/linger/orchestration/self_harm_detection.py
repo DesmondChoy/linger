@@ -14,7 +14,7 @@ _ACT = (
 )
 _I_AM = r"i(?:'m|m| am)"
 _ADVERB = r"(?:just |really |honestly |seriously |sometimes )?"
-_WANT = r"(?:want|wanted|wnat|need|plan|planned|intend|intended)"
+_WANT = r"(?:want|wanted|wnat|wan|need|plan|planned|intend|intended)"
 _GOING_TO = r"(?:(?:going|about|ready|planning|preparing) to|gonna)"
 
 _FIRST_PERSON_SELF_HARM_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
@@ -39,6 +39,9 @@ _FIRST_PERSON_SELF_HARM_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
         rf"\b(?:{_I_AM}|i'?d|i'?ll|i would|i will)(?: be)? better off dead\b",
         r"\bi(?:'ve| have)? ?(?:got )?no reason to (?:live|go on)\b",
         r"\bbetter off without me\b",
+        # Dialect elisions of "was/were" before "never born" (e.g. Singlish).
+        r"\bbetter if i(?: was| were)? never born\b",
+        r"\bi wish i (?:was|were) never born\b",
     )
 )
 

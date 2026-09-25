@@ -123,5 +123,48 @@ class ConservativePassThroughTests(unittest.TestCase):
         self.assertIsNone(detect_non_english("Bonjour"))
 
 
+_FRENCH_PARAGRAPH = (
+    "Ceci est un livre magnifique sur la vie et l'amour, je le recommande vivement "
+    "a tous mes amis proches qui aiment lire. L'auteur decrit chaque personnage avec "
+    "tant de details qu'on a l'impression de les connaitre depuis toujours, et la fin "
+    "du roman m'a vraiment bouleverse plus que je ne l'aurais imagine."
+)
+_MALAY_PARAGRAPH = (
+    # This exact wording matters: one ~80-char window of it ("dan penuh emosi
+    # ... digambarkan denga(n)") scores well under the detector's confidence
+    # floor on its own (top language still Malay, ~0.64 confidence), so this
+    # paragraph pins the "unsure middle window" regression at several lengths.
+    "Selamat pagi, saya sangat suka membaca buku ini kerana ceritanya sangat menarik "
+    "dan penuh emosi bagi setiap pembaca. Watak utama dalam buku ini digambarkan dengan "
+    "sangat mendalam sehingga saya berasa seperti mengenali mereka sejak sekian lama, "
+    "dan pengakhiran cerita ini benar-benar mengejutkan saya."
+)
+
+
+class TruncationLengthRegressionTests(unittest.TestCase):
+    """A single-language paragraph must stay refused at every truncation length.
+
+    Windowing the message past the detector's 80-character limit must not let
+    an incidental short trailing fragment (a stray word, a cut-off word, an
+    unsure middle window) flip the verdict just because the cut happens to
+    land past that boundary. Every length past the first window is checked,
+    not a hand-picked sample, since the failure mode is length-dependent.
+    """
+
+    def test_refusal_is_stable_across_truncation_lengths(self) -> None:
+        for name, paragraph in (("french", _FRENCH_PARAGRAPH), ("malay", _MALAY_PARAGRAPH)):
+            whole_refused = detect_non_english(paragraph) is not None
+            self.assertTrue(whole_refused, f"{name} paragraph fixture must itself be refused")
+            for length in range(81, len(paragraph) + 1):
+                with self.subTest(language=name, length=length):
+                    truncated = paragraph[:length]
+                    refused = detect_non_english(truncated) is not None
+                    self.assertEqual(
+                        refused,
+                        whole_refused,
+                        f"{name}[:{length}] refused={refused} but whole paragraph={whole_refused}",
+                    )
+
+
 if __name__ == "__main__":
     unittest.main()
