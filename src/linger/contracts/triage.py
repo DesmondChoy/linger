@@ -15,6 +15,10 @@ MemoryNeed = Literal[
     "unsure",
 ]
 OverrideAttempt = Literal["no_attempt", "attempted"]
+# Application-observed signal (`ToolExposure`, `ProvenanceContext`): adds
+# `unknown` for when triage itself failed or timed out, so a fault is never
+# reported as a confirmed clean turn.
+OverrideSignal = Literal["no_attempt", "attempted", "unknown"]
 
 
 class TurnTriageInput(StrictModel):

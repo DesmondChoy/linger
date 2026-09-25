@@ -262,6 +262,28 @@ def test_override_attempt_still_reaches_provenance_as_context(turns) -> None:
 
 
 @pytest.mark.parametrize("failure", ("error", "timeout"))
+def test_failed_triage_reaches_provenance_as_an_unknown_override_signal(turns, failure) -> None:
+    contexts: list[dict] = []
+
+    def provenance(messages, info: AgentInfo) -> ModelResponse:
+        payload = next(
+            part.content for message in messages for part in message.parts
+            if isinstance(part, UserPromptPart)
+        )
+        contexts.append(json.loads(payload)["context"])
+        return _review("pass")(messages, info)
+
+    if failure == "timeout":
+        turns.monkeypatch.setattr(chat_turn, "TRIAGE_TIMEOUT_SECONDS", 0.01)
+        turns.triage(NOTHING, delay=5)
+    else:
+        turns.triage(RuntimeError("provider down"))
+    turns.run(turns.muse(), provenance=provenance)
+
+    assert contexts[0]["override_attempt"] == "unknown"
+
+
+@pytest.mark.parametrize("failure", ("error", "timeout"))
 def test_failed_triage_falls_back_to_book_tools_and_still_releases(turns, failure) -> None:
     if failure == "timeout":
         turns.monkeypatch.setattr(chat_turn, "TRIAGE_TIMEOUT_SECONDS", 0.01)

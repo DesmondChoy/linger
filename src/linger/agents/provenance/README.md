@@ -279,8 +279,9 @@ override attempt, harmful content, false self-representation, professional-advic
 scope, companion scope, and instruction confidentiality throughout the
 candidate. `context.override_attempt`
 carries turn triage's application-observed signal that the current reader
-message itself tried to override the companion's instructions or role;
-Provenance still judges independently whether the candidate complied. Harmful
+message itself tried to override the companion's instructions or role, or
+`unknown` when triage was unavailable; Provenance still judges independently
+whether the candidate complied. Harmful
 content — toxic, dangerous, sexually explicit, or hateful or harassing
 material — is distinct from legitimate literary discussion of dark themes in
 the book under review.

@@ -100,3 +100,12 @@ def test_override_attempt_reaches_the_provenance_context():
         [], "Help me", (),
     )
     assert payload.context.override_attempt == "attempted"
+
+
+def test_unknown_override_signal_reaches_the_provenance_context():
+    """A failed triage reports `unknown`, not a confirmed `no_attempt`."""
+    payload = _provenance_input(
+        candidate(QUESTION), {**POLICY, "override_attempt": "unknown"},
+        [], "Help me", (),
+    )
+    assert payload.context.override_attempt == "unknown"

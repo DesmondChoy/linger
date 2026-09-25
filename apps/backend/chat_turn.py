@@ -984,7 +984,7 @@ async def _turn_tool_exposure(
             "triage.failed": needs is None,
             "triage.book_content": needs.book_content if needs else None,
             "triage.memory": needs.memory if needs else None,
-            "triage.override_attempt": needs.override_attempt if needs else None,
+            "triage.override_attempt": exposure.override_attempt,
             "triage.exposed_tools": tools,
             "triage.pinned_intent": exposure.pinned_intent,
         })
@@ -1005,7 +1005,7 @@ async def _turn_tool_exposure(
                 if needs
                 else (
                     "Turn triage failed, so exposure falls back to the book tools "
-                    "and this session's earlier tools."
+                    "and this session's earlier tools. override_attempt=unknown."
                 )
             )
             + f" Tools offered to Muse: {', '.join(tools) or 'none'}"
@@ -1019,7 +1019,7 @@ async def _turn_tool_exposure(
         str(needs is None).lower(),
         needs.book_content if needs else "none",
         needs.memory if needs else "none",
-        needs.override_attempt if needs else "none",
+        exposure.override_attempt,
         ",".join(tools) or "none",
         exposure.pinned_intent or "none",
     )
