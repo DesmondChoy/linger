@@ -9,7 +9,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic import model_validator
 
-DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases")
+DEFAULT_CASE_DIRECTORY = Path(__file__).with_name("cases") / "main"
 
 PrimaryBehavior = Literal[
     "probe_unconfirmed_book",

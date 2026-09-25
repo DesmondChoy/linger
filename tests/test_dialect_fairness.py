@@ -2,7 +2,7 @@
 
 A Singapore-deployed reader may write Singlish, Indian English, or code-mixed
 English; this must not make the language guard refuse them or the self-harm
-detector miss them. Cases live in `evals/muse/dialect_fairness_cases.json` so
+detector miss them. Cases live in `evals/muse/cases/triage/dialect_fairness_cases.json` so
 failures report clearly, per dialect, instead of one opaque parametrised diff.
 """
 
@@ -15,7 +15,7 @@ from apps.backend.message_normalization import normalize_reader_message
 from src.linger.orchestration.language_guard import detect_non_english
 from src.linger.orchestration.self_harm_detection import detect_first_person_self_harm
 
-CASES_PATH = Path(__file__).parent.parent / "evals" / "muse" / "dialect_fairness_cases.json"
+CASES_PATH = Path(__file__).parent.parent / "evals" / "muse" / "cases" / "triage" / "dialect_fairness_cases.json"
 CASES = json.loads(CASES_PATH.read_text(encoding="utf-8"))["cases"]
 
 

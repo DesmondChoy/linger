@@ -25,7 +25,7 @@ from src.linger.agents.muse.prompt import TURN_TRIAGE_PROMPT_FINGERPRINT
 from src.linger.agents.muse.skills import TURN_TRIAGE
 from src.linger.contracts.triage import TurnTriageInput
 
-DEFAULT_CASES = Path(__file__).with_name("turn_triage_cases.json")
+DEFAULT_CASES = Path(__file__).with_name("cases") / "triage" / "turn_triage_cases.json"
 FIELDS = ("book_content", "memory", "override_attempt")
 CONCURRENCY = 4
 
