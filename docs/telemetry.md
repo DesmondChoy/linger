@@ -34,7 +34,7 @@ the exported-payload test are updated together.
 |---|---|
 | Correlation | Server-generated trace and span IDs |
 | Request | Route template, status, outcome, and duration |
-| Agent and model | Agent role, selected skill, and stage; provider and model; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
+| Agent and model | Agent role, selected skill, and stage; the provider and name of the model that actually executed the run; its effective decoding settings; prompt-template ID and static artifact digest; application-mediated hand-off input origin, receiver, and contract; output origin, receiver, and contract; success, decline, or failure; retry count; latency; tokens; cost |
 | Tool and retrieval | Registered tool name; status; retries; duration; validated public `work_id`, `book_version_id`, and chapter ceiling; evidence count; resolvable public evidence IDs; retrieval outcome; fixed routing selection basis; permitted and searched source kinds; Serendipity shortlist size |
 | Review and release | Provenance response, emotional-boundary, and capture decisions; fixed finding codes and count; revision count; deterministic validation outcome; release source and fixed boundary origin |
 | Failure | Fixed failure stage, code, and category; retryability; owner type (`model`, `validation`, or `application`) |
@@ -56,6 +56,35 @@ or other request content. `prompt.template_id` identifies the task, and
 `prompt.digest` records its automatically computed SHA-256 digest.
 `agent.skill` records the application-selected skill identifier. Role and stage
 continue to identify the task and its caller.
+
+`model.provider` and `model.name` describe the model that actually ran: the
+per-run `model` option when one is supplied (for example Muse turn triage's
+smaller model), otherwise the agent's own configured model. They come from
+that `pydantic_ai` `Model` object's own `system` and `model_name`, so a triage
+span is never mislabeled as the main model. A `provider:name` string model is
+parsed; with no model at all, the configured `LINGER_MODEL` is used. A
+model swapped in through `agent.override(model=...)` is not reflected, since
+that override lives in a private ContextVar the agent consults internally
+rather than in the run's `model` option or `agent.model`.
+
+`model.settings` records the effective decoding settings in force for the
+call: the model's own settings, the agent's static `model_settings`, and any
+per-run `model_settings` override, layered in that order (matching Pydantic
+AI's own precedence, later layers win), as a compact JSON string. A
+`model_settings` layer supplied as a callable is skipped, since resolving it
+requires a run context this projection does not have.
+
+Recording uses a fixed allowlist of scalar decoding keys — `temperature`,
+`top_p`, `top_k`, `max_tokens`, `seed`, `presence_penalty`,
+`frequency_penalty`, `parallel_tool_calls`, `thinking`, `service_tier`,
+`openai_reasoning_effort`, `anthropic_effort`, and `timeout` (only when
+numeric) — and only `bool`, `int`, `float`, or `str` values. Every other
+`ModelSettings` field is excluded because it can carry content or end-user
+identifiers (for example `openai_prediction` or `openai_user`).
+The attribute is omitted entirely when no allowlisted settings are in effect,
+or when resolving the effective model or its settings fails for any reason —
+that failure falls back to the configured model identity and records no
+`model.settings` rather than breaking the run.
 
 Hand-off metadata describes observable logical routing through the
 application-owned orchestrator. It does not imply that agents communicate

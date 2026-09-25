@@ -41,14 +41,17 @@ from src.linger.agents.serendipity.models import (
     WebConnectionEvidence,
 )
 from src.linger.contracts.librarian import EvidenceRecord
-from src.linger.contracts.connection_evidence import MemoryConnectionEvidence
+from src.linger.contracts.connection_evidence import MemoryConnectionEvidence, wrap_untrusted_web_excerpt
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection, reset_connection_inspection, register_connection_evidence,
 )
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.reflection import (
+    EVIDENCE_DECLINE,
+    OUT_OF_SCOPE_DECLINE,
     PIPELINE_FAILURE_DECLINE,
+    PROFESSIONAL_ADVICE_DECLINE,
     SAFE_DECLINE,
     SPOILER_DECLINE,
     decline_text,
@@ -67,6 +70,7 @@ SECOND_EVIDENCE_ID = "pg11-v01b38ea4-ch02-ln0012-0013"
 LOCATION = "Chapter 2 — The Pool of Tears, source lines 10-11"
 SECOND_LOCATION = "Chapter 2 — The Pool of Tears, source lines 12-13"
 QUOTE = "Who are you?"
+WEB_EXCERPT = "A public-web connection."
 RELEASE_SCOPE = ReleaseScope(
     work_id="pg11",
     book_version_id="pg11-v01b38ea4",
@@ -230,6 +234,11 @@ def canonical_record(**updates: object) -> EvidenceRecord:
     return EvidenceRecord.model_validate(evidence_record(**updates))
 
 
+def web_canonical_source(evidence_id: str, *, excerpt: str = WEB_EXCERPT) -> WebConnectionEvidence:
+    """The raw record Serendipity registers; Muse's tool call returns it wrapped."""
+    return WebConnectionEvidence(evidence_id=evidence_id, title="An external source", excerpt=excerpt)
+
+
 def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
     evidence_id = "https://example.com/source" if web else EVIDENCE_ID
     # A shortlist compares two candidates, so each rests on its own record.
@@ -278,10 +287,10 @@ def connection_result(*, web: bool = False) -> ConnectionExplorationResult:
     )
     evidence = (
         (
-            WebConnectionEvidence(
-                evidence_id=evidence_id,
-                title="An external source",
-                excerpt="A public-web connection.",
+            # Production shape: Muse's tool call always returns web excerpts
+            # wrapped in untrusted-page delimiters (see muse.tools).
+            web_canonical_source(evidence_id).model_copy(
+                update={"excerpt": wrap_untrusted_web_excerpt(WEB_EXCERPT)}
             ),
         )
         if web
@@ -349,22 +358,66 @@ def review(
 
 
 class DeclineTextTests(unittest.TestCase):
-    def test_unsupported_claim_only_reject_falls_back_to_the_generic_decline(
-        self,
-    ) -> None:
+    def test_unsupported_claim_only_reject_gets_the_evidence_decline(self) -> None:
         self.assertEqual(
-            SAFE_DECLINE,
+            EVIDENCE_DECLINE,
             decline_text(None, ("unsupported_claim",)),
         )
+
+    def test_evidence_category_codes_get_the_evidence_decline(self) -> None:
+        for codes in (
+            ("unresolved_evidence",),
+            ("misattribution",),
+            ("uncited_web_claim",),
+            ("unresolved_evidence", "misattribution"),
+        ):
+            with self.subTest(codes=codes):
+                self.assertEqual(EVIDENCE_DECLINE, decline_text(None, codes))
 
     def test_spoiler_only_reject_gets_the_spoiler_message(self) -> None:
         self.assertEqual(SPOILER_DECLINE, decline_text(None, ("spoiler",)))
 
-    def test_mixed_codes_fall_back_to_the_generic_decline(self) -> None:
+    def test_spoiler_alongside_an_evidence_code_gets_the_evidence_decline(
+        self,
+    ) -> None:
         self.assertEqual(
-            SAFE_DECLINE,
+            EVIDENCE_DECLINE,
             decline_text(None, ("unsupported_claim", "spoiler")),
         )
+
+    def test_professional_advice_only_reject_gets_the_professional_advice_decline(
+        self,
+    ) -> None:
+        self.assertEqual(
+            PROFESSIONAL_ADVICE_DECLINE,
+            decline_text(None, ("professional_advice",)),
+        )
+
+    def test_out_of_scope_only_reject_gets_the_out_of_scope_decline(self) -> None:
+        self.assertEqual(
+            OUT_OF_SCOPE_DECLINE,
+            decline_text(None, ("out_of_scope",)),
+        )
+
+    def test_mixed_category_codes_fall_back_to_the_generic_decline(self) -> None:
+        self.assertEqual(
+            SAFE_DECLINE,
+            decline_text(None, ("unsupported_claim", "out_of_scope")),
+        )
+
+    def test_a_security_code_falls_back_to_the_generic_decline(self) -> None:
+        for codes in (
+            ("prompt_injection",),
+            ("policy_override",),
+            ("instruction_disclosure",),
+            ("harmful_content",),
+            ("false_persona",),
+            ("sensitive_content",),
+            ("emotional_policy_violation",),
+            ("unsupported_claim", "prompt_injection"),
+        ):
+            with self.subTest(codes=codes):
+                self.assertEqual(SAFE_DECLINE, decline_text(None, codes))
 
     def test_no_codes_fall_back_to_the_generic_decline(self) -> None:
         self.assertEqual(SAFE_DECLINE, decline_text(None, ()))
@@ -592,16 +645,21 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("deterministic_validation", release.failure_stage)
+        self.assertEqual((), release.released_citations)
 
     async def test_registered_web_source_reaches_independent_review_and_release(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
-        draft = candidate(f"This may echo [the public source]({source.evidence_id}).")
+        wrapped = exploration.evidence[0]  # what Muse's tool call actually returns
+        canonical = web_canonical_source(wrapped.evidence_id)  # the registered raw record
+        register_connection_evidence((canonical,))
+        interior_quote = "public-web connection"
+        draft = candidate(
+            f'This may echo "{interior_quote}" [the public source]({wrapped.evidence_id}).'
+        )
         draft = draft.model_copy(update={"evidence_uses": (
             WebEvidenceUse(
-                source_kind="web", evidence_id=source.evidence_id,
-                supported_claims=(draft.reply,),
+                source_kind="web", evidence_id=wrapped.evidence_id,
+                exact_quote=interior_quote, supported_claims=(draft.reply,),
             ),
         )})
         muse = AsyncMock()
@@ -613,23 +671,24 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("muse_candidate", release.release_source)
         payload = json.loads(provenance.run.await_args.args[0])
-        self.assertEqual([source.model_dump(mode="json")], payload["canonical_connection_evidence"])
+        self.assertEqual([canonical.model_dump(mode="json")], payload["canonical_connection_evidence"])
         self.assertEqual([], payload["canonical_book_evidence"])
         self.assertEqual((), release.evidence_ids)  # Web URLs never enter book-session recovery.
+        self.assertEqual((("web", wrapped.evidence_id),), release.released_citations)
 
     async def test_registered_web_requires_exact_visible_url_and_exact_quote(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
+        wrapped = exploration.evidence[0]
+        register_connection_evidence((web_canonical_source(wrapped.evidence_id),))
         for reply, quote in (
             ("An uncited public claim", None),
-            (f"[Source]({source.evidence_id}/different)", None),
-            (f"Invented words [source]({source.evidence_id})", "Invented words"),
+            (f"[Source]({wrapped.evidence_id}/different)", None),
+            (f"Invented words [source]({wrapped.evidence_id})", "Invented words"),
         ):
             with self.subTest(reply=reply):
                 draft = candidate(reply).model_copy(update={"evidence_uses": (
                     WebEvidenceUse(
-                        source_kind="web", evidence_id=source.evidence_id,
+                        source_kind="web", evidence_id=wrapped.evidence_id,
                         exact_quote=quote, supported_claims=(reply,),
                     ),
                 )})
@@ -642,13 +701,29 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_mutated_selected_web_payload_cannot_reuse_canonical_identity(self) -> None:
         exploration = connection_result(web=True)
-        source = exploration.evidence[0]
-        register_connection_evidence((source,))
+        wrapped = exploration.evidence[0]
+        register_connection_evidence((web_canonical_source(wrapped.evidence_id),))
         changed = exploration.model_copy(update={"evidence": (
-            source.model_copy(update={"excerpt": "Different support"}),
+            wrapped.model_copy(update={"excerpt": wrap_untrusted_web_excerpt("Different support")}),
         )})
         muse = AsyncMock()
         muse.run.return_value = result(candidate("A tentative thought"), ToolReturnPart("serendipity_explore", changed))
+        provenance = AsyncMock()
+        provenance.run.return_value = result(review("pass"))
+        release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
+        self.assertEqual("deterministic_validation", release.failure_stage)
+
+    async def test_unwrapped_web_tool_return_is_rejected(self) -> None:
+        """A tool return must carry the wrapped form; the raw excerpt alone is not registered evidence."""
+        exploration = connection_result(web=True)
+        wrapped = exploration.evidence[0]
+        canonical = web_canonical_source(wrapped.evidence_id)
+        register_connection_evidence((canonical,))
+        raw_tool_return = exploration.model_copy(update={"evidence": (canonical,)})
+        muse = AsyncMock()
+        muse.run.return_value = result(
+            candidate("A tentative thought"), ToolReturnPart("serendipity_explore", raw_tool_return),
+        )
         provenance = AsyncMock()
         provenance.run.return_value = result(review("pass"))
         release = await reflection_reply("Explore this", [], muse=muse, provenance=provenance)
@@ -680,6 +755,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     reset_active_memories(token)
                 self.assertEqual(expected, release.release_source)
+                expected_citations = (
+                    (("memory", source.evidence_id),) if expected == "muse_candidate" else ()
+                )
+                self.assertEqual(expected_citations, release.released_citations)
 
     async def test_memory_recall_evidence_must_equal_its_recalled_ids(self) -> None:
         text = "My favourite tea is peppermint."
@@ -753,6 +832,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual((EVIDENCE_ID,), release.evidence_ids)
+        self.assertEqual((("book_corpus", EVIDENCE_ID),), release.released_citations)
 
     async def test_empty_direct_search_preserves_selected_evidence_authority(self) -> None:
         self.register_evidence()
@@ -1507,7 +1587,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual((EVIDENCE_ID,), release.evidence_ids)
 
-    async def test_reject_returns_safe_decline(self) -> None:
+    async def test_reject_returns_evidence_decline(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("Unsafe draft")
         provenance = AsyncMock()
@@ -1515,7 +1595,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual(("reject",), release.provenance_verdicts)
         self.assertEqual(1, muse.run.await_count)
@@ -1532,7 +1612,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("provenance_review", release.failure_stage)
         self.assertEqual((), release.provenance_verdicts)
 
-    async def test_second_revision_request_returns_safe_decline(self) -> None:
+    async def test_second_revision_request_returns_evidence_decline(self) -> None:
         muse = AsyncMock()
         muse.run.side_effect = [result("Draft"), result("Still unsafe")]
         provenance = AsyncMock()
@@ -1547,7 +1627,92 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual(("revise", "revise"), release.provenance_verdicts)
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)
+
+    async def test_capture_only_evidence_code_with_spoiler_response_reject_gets_spoiler_decline(
+        self,
+    ) -> None:
+        """A capture-only finding must widen the stored audit trail but never
+        redirect decline_text away from the response's own reject reason."""
+        muse = AsyncMock()
+        muse.run.return_value = result("Unsafe draft")
+        provenance = AsyncMock()
+        provenance.run.return_value = result(
+            ProvenanceReview(
+                findings=(
+                    RiskFinding(
+                        code="unsupported_claim",
+                        applies_to="capture",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.memory",
+                            "path": "",
+                        },
+                        explanation="The memory nomination is not safe to capture.",
+                    ),
+                    RiskFinding(
+                        code="spoiler",
+                        applies_to="response",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.response",
+                            "path": "",
+                        },
+                        explanation="The response reveals a plot spoiler.",
+                    ),
+                ),
+                response_decision="reject",
+                emotional_boundary_decision="not_required",
+                capture_decision="reject_capture",
+            )
+        )
+
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        self.assertEqual(SPOILER_DECLINE, release.reply)
+        self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)
+
+    async def test_revise_unsupported_claim_then_reject_spoiler_gets_spoiler_decline(
+        self,
+    ) -> None:
+        """An earlier revision's resolved finding must not redirect the final
+        reject's decline reason away from that reject's own response code."""
+        muse = AsyncMock()
+        muse.run.side_effect = [result("Draft"), result("Still unsafe")]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [
+            result(review("revise", finding="Add support.")),
+            result(
+                ProvenanceReview(
+                    findings=(
+                        RiskFinding(
+                            code="spoiler",
+                            applies_to="response",
+                            location={
+                                "kind": "structural",
+                                "source_field": "candidate.response",
+                                "path": "",
+                            },
+                            explanation="The revision still reveals a plot spoiler.",
+                        ),
+                    ),
+                    response_decision="reject",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="no_candidate",
+                    finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'unresolved',
+                        'explanation': 'The unsupported claim remains unaddressed.',
+                    },),
+                )
+            ),
+        ]
+
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        self.assertEqual(SPOILER_DECLINE, release.reply)
+        self.assertEqual(("revise", "reject"), release.provenance_verdicts)
+        self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)

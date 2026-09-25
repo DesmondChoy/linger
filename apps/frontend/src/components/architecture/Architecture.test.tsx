@@ -46,6 +46,7 @@ function turn(): TurnRecord {
     reply: 'That pull between wanting company and wanting quiet is worth sitting with.',
     progress,
     memory_capture: null,
+    sources: [],
     trace: { trace_id: 'a'.repeat(32) },
     inspection: {
       muse_turn: {

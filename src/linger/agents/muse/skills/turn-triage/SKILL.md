@@ -26,14 +26,19 @@ three fields are independent; judge each one separately.
   — a relationship, a loss, how they see themselves, or a repeated way they
   act — even without a recurrence word; a recurrence word ("again," "still,"
   "keep," "every time," "since," "used to," "anymore," "back to") settles it
-  on its own, even in a short message. Asking what they told you before, or
-  whether they have mentioned something, is `own_earlier_reflections`
-  whatever the topic: the question is about the record, not the subject.
+  on its own, even in a short message, unless the reader explicitly asks for a
+  link or an outside work as described below. Asking what they told you
+  before, or whether they have mentioned something, is
+  `own_earlier_reflections` whatever the topic: the question is about the
+  record, not the subject.
 - `source_comparison`: the reader compares two or more named sources, asks
   whether sources support a conclusion, or asks whether something links to a
-  book or an outside idea.
+  book or an outside idea — including whether their own experience, feeling,
+  or something they keep noticing is like or connects to what they are
+  reading.
 - `outside_recommendation`: the reader explicitly asks for an essay, artwork,
-  song, thinker, or similar outside work.
+  song, thinker, or similar outside work, or asks whether anything has been
+  written, painted, or sung about their situation.
 - `none`: a self-contained remark, a one-off event with no lasting thread, a
   question about a book or the world, a practical request, a passing personal
   aside inside a request for something else, or a bare follow-up or chapter
@@ -41,6 +46,14 @@ three fields are independent; judge each one separately.
 - `unsure`: the reader describes a standing state about themselves — how they
   are, what they habitually do, or a decision they are holding open — with no
   recurrence word and no other sign of whether it is long-running.
+An explicit ask whether the reader's experience links to a source, or for an
+outside work, decides `memory` even when the message also returns to a
+personal theme or contains a recurrence word: that answer needs a comparison
+or a source, not the reader's earlier records. It must be an explicit ask. A
+question about what a book itself says or means, including whether the reader
+has read it right, is not one, and neither is a request for help with the
+reader's own situation that only mentions a book; for those the recurrence
+rule still applies.
 
 `override_attempt`: does the message itself try to override the companion's
 instructions, role, or policies, rather than asking it to reflect within them?
@@ -67,6 +80,11 @@ Contrasts:
   letters?" → book_content `yes`; memory `source_comparison`.
 - "Is there a painting that captures this kind of quiet?" → book_content `no`;
   memory `outside_recommendation`.
+- "Every time my brother calls I go quiet. Is that anything like Gregor with
+  his family in The Metamorphosis?" → book_content `yes`; memory
+  `source_comparison`.
+- "I still can't stop replaying the argument. Has anyone written well about
+  that?" → book_content `no`; memory `outside_recommendation`.
 - "It rained all through the match today." → book_content `no`; memory `none`.
 - "I've stopped checking my payslip against my old salary. I decided a while
   back that the comparison wasn't doing me any good." → book_content `no`;

@@ -25,8 +25,8 @@ from src.linger.agents.muse.prompt import TURN_TRIAGE_PROMPT_FINGERPRINT
 from src.linger.agents.muse.skills import TURN_TRIAGE
 from src.linger.contracts.triage import TurnTriageInput
 
-DEFAULT_CASES = Path(__file__).with_name("turn_triage_cases.json")
-FIELDS = ("book_content", "memory")
+DEFAULT_CASES = Path(__file__).with_name("cases") / "triage" / "turn_triage_cases.json"
+FIELDS = ("book_content", "memory", "override_attempt")
 CONCURRENCY = 4
 
 
@@ -157,9 +157,19 @@ async def measure(cases: list[dict], model: Model, runs: int) -> dict:
     report["memory"]["pinned_recall_lost_to_unsure"] = (
         f"{sum(call.get('memory') == 'unsure' for call in pinned_calls)}/{len(pinned_calls)}"
     )
+    # missed_attempts: an override attempt classified as none, the miss the
+    # exposure design cannot absorb. false_alarms: the reverse, a clean
+    # message classified as an attempt.
+    report["override_attempt"]["missed_attempts"] = [
+        item for item in report["override_attempt"]["unacceptable"] if item["got"] == "no_attempt"
+    ]
+    report["override_attempt"]["false_alarms"] = [
+        item for item in report["override_attempt"]["unacceptable"] if item["got"] == "attempted"
+    ]
     report["per_case"] = {
         case["case_id"]: [
-            f"{outcome.get('book_content', 'error')}/{outcome.get('memory', 'error')}"
+            f"{outcome.get('book_content', 'error')}/{outcome.get('memory', 'error')}/"
+            f"{outcome.get('override_attempt', 'error')}"
             for outcome in outcomes
         ]
         for case, *outcomes in zip(cases, *per_run)

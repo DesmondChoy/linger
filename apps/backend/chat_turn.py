@@ -23,6 +23,7 @@ from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 from src.linger.contracts.reading import scope_fields
 from apps.backend.contracts import BookScope
 from apps.backend.librarian import RegisteredCorpusScope
+from src.linger.corpus import registry
 from src.linger.corpus.registry import BookClarification, ResolvedBook, resolve_book_identity
 from src.linger.orchestration.connection import web_reach_permitted
 from src.linger.orchestration.emotional import (
@@ -100,6 +101,7 @@ from .schemas import (
     CaptureInspection,
     ChatRequest,
     ChatResponse,
+    ChatSource,
     ConnectionDeclineInspection,
     MemoryCaptureNotice,
     ReleaseInspection,
@@ -834,6 +836,48 @@ def _rehydrate_session_evidence(session_id: str) -> tuple[EvidenceRecord, ...]:
     return tuple(records.values())
 
 
+_SOURCE_LINES_SUFFIX = re.compile(r",\s*source lines.*$")
+
+
+def _reader_source(kind: str, evidence_id: str) -> ChatSource:
+    """One content-safe, human-readable descriptor for a kind-tagged citation.
+
+    A book handle resolves against the trusted corpus for its title and
+    chapter location, falling back to a generic label rather than guessing at
+    a different kind when it cannot be resolved. A web handle is itself the
+    used page's URL. A memory handle uses a fixed neutral label that never
+    echoes the memory's text.
+    """
+    if kind == "book_corpus":
+        try:
+            record = librarian_service.fetch_by_id(evidence_id)
+        except Exception:
+            record = None
+        if record is None:
+            return ChatSource(kind="book", label="Book passage")
+        return ChatSource(
+            kind="book",
+            label=registry.CORPORA[record.work_id].book.title,
+            location=_SOURCE_LINES_SUFFIX.sub("", record.location),
+        )
+    if kind == "web":
+        return ChatSource(kind="web", label=evidence_id, url=evidence_id)
+    return ChatSource(kind="memory", label="Your earlier reflection")
+
+
+def _reader_sources(
+    citations: tuple[tuple[str, str], ...],
+) -> tuple[ChatSource, ...]:
+    """Build de-duplicated, order-preserving source descriptors for a released reply."""
+    sources: dict[tuple[str, str, str | None, str | None], ChatSource] = {}
+    for kind, evidence_id in citations:
+        source = _reader_source(kind, evidence_id)
+        sources.setdefault(
+            (source.kind, source.label, source.location, source.url), source
+        )
+    return tuple(sources.values())
+
+
 def _require_fresh_reading_setup(request: ChatRequest) -> None:
     if (
         sessions.history(request.session_id)
@@ -984,7 +1028,7 @@ async def _turn_tool_exposure(
             "triage.failed": needs is None,
             "triage.book_content": needs.book_content if needs else None,
             "triage.memory": needs.memory if needs else None,
-            "triage.override_attempt": needs.override_attempt if needs else None,
+            "triage.override_attempt": exposure.override_attempt,
             "triage.exposed_tools": tools,
             "triage.pinned_intent": exposure.pinned_intent,
         })
@@ -1005,7 +1049,7 @@ async def _turn_tool_exposure(
                 if needs
                 else (
                     "Turn triage failed, so exposure falls back to the book tools "
-                    "and this session's earlier tools."
+                    "and this session's earlier tools. override_attempt=unknown."
                 )
             )
             + f" Tools offered to Muse: {', '.join(tools) or 'none'}"
@@ -1019,7 +1063,7 @@ async def _turn_tool_exposure(
         str(needs is None).lower(),
         needs.book_content if needs else "none",
         needs.memory if needs else "none",
-        needs.override_attempt if needs else "none",
+        exposure.override_attempt,
         ",".join(tools) or "none",
         exposure.pinned_intent or "none",
     )
@@ -1150,7 +1194,7 @@ async def _run_chat_pipeline(
                 register_connection_evidence(memory_surfacing.sources)
             release = await reflection_reply(
                 muse_input,
-                sessions.history(request.session_id),
+                sessions.muse_history(request.session_id),
                 muse=muse_chat_agent,
                 provenance=provenance_agent,
                 review_context=review_context,
@@ -1516,4 +1560,5 @@ async def run_chat_turn(
         inspection=inspection,
         trace=trace,
         memory_capture=notice,
+        sources=_reader_sources(release.released_citations),
     )

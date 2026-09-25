@@ -53,6 +53,7 @@ class FirstPersonSelfHarmDetectionTests(unittest.TestCase):
             "This chapter on suicide was hard to read.",
             "I keep thinking about the suicide in chapter seven.",
             "I want to write an essay about suicide in Victorian novels.",
+            "She wishes she was never born, poor girl.",
         ):
             with self.subTest(message=message):
                 self.assertFalse(detect_first_person_self_harm(message))

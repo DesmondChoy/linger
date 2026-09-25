@@ -1,0 +1,230 @@
+{
+  "target": "first",
+  "model": "gpt-5.6-luna",
+  "prompt": {
+    "commit": "8021b4e",
+    "instructions_sha256": "f53a4cb33937f1a1058f14d8c611cce7d20dc44752d7d6cbd7d404f2c8191d9b"
+  },
+  "runs": 3,
+  "cases": 5,
+  "errors": 0,
+  "hard_pass_rate": 0.8,
+  "latency_seconds": {
+    "median": 2.78
+  },
+  "mean_input_tokens": 1034,
+  "mean_output_tokens": 114,
+  "per_case": {
+    "muse-confirm-chapter-boundary-v1": {
+      "primary_behavior": "confirm_chapter_boundary",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "asks whether the chapter is finished or still in progress",
+        "defers interpretation until the boundary is known",
+        "stays warm rather than procedural"
+      ],
+      "runs": [
+        {
+          "reply": "Do you mean *Alice’s Adventures in Wonderland*? And are you still reading the tea-party chapter, or have you finished it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 20,
+          "seconds": 2.78,
+          "input_tokens": 1020,
+          "output_tokens": 80
+        },
+        {
+          "reply": "Are you reading *Alice’s Adventures in Wonderland*? And have you finished the tea-party chapter, or are you still reading it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 20,
+          "seconds": 2.39,
+          "input_tokens": 1020,
+          "output_tokens": 100
+        },
+        {
+          "reply": "Do you mean *Alice’s Adventures in Wonderland*? And have you finished the tea-party chapter, or are you still reading it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 20,
+          "seconds": 2.09,
+          "input_tokens": 1020,
+          "output_tokens": 76
+        }
+      ]
+    },
+    "muse-grounded-answer-within-boundary-v1": {
+      "primary_behavior": "grounded_answer_within_boundary",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "grounds the reply in the supplied evidence rather than general knowledge",
+        "stays within the completed first chapter",
+        "invites reflection rather than lecturing"
+      ],
+      "runs": [
+        {
+          "reply": "Are you asking about *Alice’s Adventures in Wonderland*? If so, have you finished the opening chapter, or are you still reading it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 22,
+          "seconds": 2.63,
+          "input_tokens": 1016,
+          "output_tokens": 55
+        },
+        {
+          "reply": "Are you asking about *Alice’s Adventures in Wonderland*? If so, have you finished the opening chapter, or are you still reading it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 22,
+          "seconds": 2.26,
+          "input_tokens": 1016,
+          "output_tokens": 79
+        },
+        {
+          "reply": "Do you mean *Alice’s Adventures in Wonderland*? If so, have you finished the opening chapter, or are you still reading it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 21,
+          "seconds": 2.87,
+          "input_tokens": 1016,
+          "output_tokens": 100
+        }
+      ]
+    },
+    "muse-probe-unconfirmed-book-v1": {
+      "primary_behavior": "probe_unconfirmed_book",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "offers a general reflection without interpreting the specific book",
+        "asks whether the candidate book is the one the reader means",
+        "stays warm, concise, and concrete"
+      ],
+      "runs": [
+        {
+          "reply": "That sounds like the disappearance feels less like a plot device and more like a challenge to your expectations—something that appears, vanishes, and leaves you wondering whether you’re meant to solve it or simply tolerate the uncertainty.\n\nDo you mean *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 44,
+          "seconds": 3.64,
+          "input_tokens": 1087,
+          "output_tokens": 92
+        },
+        {
+          "reply": "A recurring disappearance can feel like a riddle because it withholds certainty: is the absence meant to confuse, provoke, or make you question what counts as real? Your sense that it’s “aimed at you” may be the text turning your expectations into part of the puzzle.\n\nDo you mean *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 53,
+          "seconds": 4.11,
+          "input_tokens": 1087,
+          "output_tokens": 126
+        },
+        {
+          "reply": "It sounds like the disappearing figure is making you feel watched—or challenged—as though the reading keeps slipping away just when you think you understand it. That can make a playful mystery feel oddly personal.\n\nDo you mean *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 41,
+          "seconds": 2.16,
+          "input_tokens": 1087,
+          "output_tokens": 78
+        }
+      ]
+    },
+    "muse-reflect-without-book-context-v1": {
+      "primary_behavior": "reflect_without_book_context",
+      "hard_pass": "0/3",
+      "semantic_criteria": [
+        "responds to the reader's stated tension without requiring book context",
+        "may invite further reflection or a connection search without assuming a diagnosis",
+        "stays warm, concise, and concrete"
+      ],
+      "runs": [
+        {
+          "reply": "That sounds like a tension between **wanting to give space** and **feeling responsible for the silence**. The impulse to fill it may be less about impatience than about trying to reduce uncertainty or make the other person comfortable.\n\nYou could try a small, deliberate ritual:\n\n- Ask your question.\n- Take one slow breath.\n- Silently count to five—or notice three things in the room.\n- If needed, say: **“No rush—I’m giving you a moment to think.”**\n\nThat turns the silence from something you’re enduring into something you’re intentionally offering. What do you notice in yourself just before you jump in—the urge to help, anxiety that you’ve asked the wrong thing, or worry that the silence feels awkward?",
+          "tool_calls": [],
+          "hard_pass": false,
+          "failures": [
+            "unsupported_exact_quotation"
+          ],
+          "words": 118,
+          "seconds": 4.61,
+          "input_tokens": 1024,
+          "output_tokens": 213
+        },
+        {
+          "reply": "That sounds like a tension between your intention and your nervous system: you value spaciousness, but silence may feel like something you’re responsible for repairing.\n\nTry giving yourself a small rule: **after someone finishes speaking, take one slow breath before responding.** You don’t need to make the silence disappear; you’re just letting it have one more moment. You can also say, “Take your time—I’m thinking too.”\n\nWhat do you notice in the silence: anxiety that the other person is uncomfortable, or worry that they expect you to respond?",
+          "tool_calls": [],
+          "hard_pass": false,
+          "failures": [
+            "unsupported_exact_quotation"
+          ],
+          "words": 88,
+          "seconds": 3.41,
+          "input_tokens": 1024,
+          "output_tokens": 190
+        },
+        {
+          "reply": "That sounds like a tension between **your intention**—making space—and **your reflex**—relieving the discomfort of silence. The reflex doesn’t mean you’re inconsiderate; silence can feel surprisingly exposed.\n\nYou could try a small rule: after you finish speaking, silently count **“one… two… three…”** before adding anything. If the silence continues, offer a light prompt instead of filling it:\n\n- “No rush—take a moment.”\n- “I’m curious what you think.”\n- “I can sit with the silence.”\n\nIt may also help to notice what you’re predicting in that pause: *They’re uncomfortable? I’ve said something wrong? I need to keep the conversation moving?* Naming the prediction can make it easier not to obey it.\n\nDoes this happen more in one-on-one conversations, or in groups?",
+          "tool_calls": [],
+          "hard_pass": false,
+          "failures": [
+            "unsupported_exact_quotation"
+          ],
+          "words": 120,
+          "seconds": 3.96,
+          "input_tokens": 1024,
+          "output_tokens": 213
+        }
+      ]
+    },
+    "muse-respect-serendipity-decline-v1": {
+      "primary_behavior": "respect_serendipity_decline",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "states honestly that no supportable connection was found",
+        "offers the safe next step from the decline",
+        "does not smuggle in an invented connection"
+      ],
+      "runs": [
+        {
+          "reply": "Could be—but first, are you reading **_Alice’s Adventures in Wonderland_**? If so, what chapter are you currently on, and have you finished it?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 23,
+          "seconds": 2.89,
+          "input_tokens": 1022,
+          "output_tokens": 85
+        },
+        {
+          "reply": "Doors can feel especially noticeable when you’re reading about thresholds, choices, or entering unfamiliar parts of yourself—but I don’t want to assume which book you mean. Are you reading *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 33,
+          "seconds": 2.71,
+          "input_tokens": 1022,
+          "output_tokens": 125
+        },
+        {
+          "reply": "Possibly—but I don’t want to assume which book you mean. Are you reading *Alice’s Adventures in Wonderland*?\n\nIf so, tell me whether you’ve finished the relevant chapter or are still reading it, so I can explore the connection without spoilers.",
+          "tool_calls": [],
+          "hard_pass": true,
+          "failures": [],
+          "words": 40,
+          "seconds": 2.15,
+          "input_tokens": 1022,
+          "output_tokens": 98
+        }
+      ]
+    }
+  }
+}

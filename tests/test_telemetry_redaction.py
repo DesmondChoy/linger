@@ -12,7 +12,7 @@ import logfire
 from logfire.testing import TestExporter
 from pydantic_ai import Agent, ModelRetry
 from pydantic_ai.exceptions import UnexpectedModelBehavior
-from pydantic_ai.messages import ModelResponse, TextPart
+from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.usage import RequestUsage
@@ -38,10 +38,12 @@ from apps.backend.telemetry import (
 )
 from evals.synthetic_journals.transcript import SceneTranscriptRecorder
 from src.linger.agents.contracts import PromptFingerprint
+from src.linger.agents.muse.agent import build_muse_agent
 from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
 from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
 from src.linger.agents.serendipity.models import ConnectionDiscoveryInput, ConnectionScope
 from src.linger.contracts.turn import ConfirmedReading
+from src.linger.orchestration.triage import triage_turn
 from src.linger.evaluation_transcript import (
     active_evaluation_correlation_id,
     bind_evaluation_correlation_id,
@@ -54,6 +56,7 @@ from src.linger.contracts.emotional import (
 from src.linger.orchestration.emotional import assess_emotional_boundary
 from src.linger.orchestration import grounding as grounding_module
 from src.linger.orchestration.reflection import (
+    EVIDENCE_DECLINE,
     PIPELINE_FAILURE_DECLINE,
     SAFE_DECLINE,
     ReflectionRelease,
@@ -349,6 +352,224 @@ class AgentInstrumentationTests(TelemetryTestCase):
             "zxcas private model output zxcas",
             json.dumps(exchange.model_messages),
         )
+
+    def exported_span_attrs(self, index: int = 0) -> dict[str, object]:
+        """The raw attribute mapping of one exported span, for parsed-value assertions."""
+        return self.exporter.exported_spans_as_dict()[index]["attributes"]
+
+    async def test_explicit_model_run_option_records_that_models_identity(self) -> None:
+        def default_respond(_messages, _info):
+            return ModelResponse(parts=[TextPart("agent default reply")])
+
+        def explicit_respond(_messages, _info):
+            return ModelResponse(parts=[TextPart("explicit model reply")])
+
+        agent = Agent(
+            FunctionModel(default_respond, model_name="agent-default-model"),
+            instructions="Static instructions.",
+        )
+        explicit_model = FunctionModel(explicit_respond, model_name="explicit-run-model")
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+            model=explicit_model,
+        )
+
+        attrs = self.exported_span_attrs()
+        self.assertEqual("function", attrs["model.provider"])
+        self.assertEqual("explicit-run-model", attrs["model.name"])
+        self.assertNotIn("agent-default-model", self.exported_payload())
+
+    async def test_agent_model_as_a_plain_string_records_its_provider_and_name(self) -> None:
+        agent = AsyncMock()
+        agent.model = "openai:gpt-x"
+        agent.run.return_value = result("ok")
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+        )
+
+        attrs = self.exported_span_attrs()
+        self.assertEqual("openai", attrs["model.provider"])
+        self.assertEqual("gpt-x", attrs["model.name"])
+
+    async def test_no_model_anywhere_falls_back_to_the_configured_linger_model(self) -> None:
+        agent = AsyncMock()
+        agent.model = None
+        agent.run.return_value = result("ok")
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+        )
+
+        attrs = self.exported_span_attrs()
+        self.assertEqual("google", attrs["model.provider"])
+        self.assertEqual("gemini-2.5-flash", attrs["model.name"])
+
+    async def test_effective_model_settings_are_recorded_with_the_run_layer_winning(self) -> None:
+        secret_header_value = "xzcvb private header secret xzcvb"
+
+        def respond(_messages, _info):
+            return ModelResponse(parts=[TextPart("ok")])
+
+        agent = Agent(
+            FunctionModel(
+                respond,
+                model_name="settings-test-model",
+                settings={
+                    "max_tokens": 999,
+                    "extra_headers": {"Authorization": secret_header_value},
+                },
+            ),
+            # Agent-level layer: only `max_tokens` is overridden by the run
+            # below, so `top_p` and `seed` must still surface from here.
+            model_settings={"top_p": 0.5, "seed": 7},
+            instructions="Static instructions.",
+        )
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+            model_settings={"max_tokens": 111},
+        )
+
+        attrs = self.exported_span_attrs()
+        settings = json.loads(attrs["model.settings"])
+        # The run layer overrides the model's own `max_tokens`; the
+        # agent-level `top_p` and `seed` pass through untouched.
+        self.assertEqual({"max_tokens": 111, "top_p": 0.5, "seed": 7}, settings)
+        self.assertNotIn(secret_header_value, self.exported_payload())
+        self.assertNotIn("extra_headers", self.exported_payload())
+
+    async def test_settings_outside_the_allowlist_are_never_recorded(self) -> None:
+        secret_user_id = "user-9f3c7a-do-not-log"
+        secret_prediction = "yqplm predicted completion content yqplm"
+
+        def respond(_messages, _info):
+            return ModelResponse(parts=[TextPart("ok")])
+
+        agent = Agent(
+            FunctionModel(
+                respond,
+                model_name="unlisted-key-model",
+                settings={
+                    "temperature": 0.3,
+                    "openai_user": secret_user_id,
+                    "openai_prediction": secret_prediction,
+                },
+            ),
+            instructions="Static instructions.",
+        )
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+        )
+
+        attrs = self.exported_span_attrs()
+        settings = json.loads(attrs["model.settings"])
+        self.assertEqual({"temperature": 0.3}, settings)
+        self.assertNotIn(secret_user_id, self.exported_payload())
+        self.assertNotIn(secret_prediction, self.exported_payload())
+        self.assertNotIn("openai_user", self.exported_payload())
+        self.assertNotIn("openai_prediction", self.exported_payload())
+
+    async def test_a_callable_run_model_settings_layer_does_not_break_the_run(self) -> None:
+        def respond(_messages, _info):
+            return ModelResponse(parts=[TextPart("ok")])
+
+        agent = Agent(
+            FunctionModel(respond, model_name="callable-settings-model"),
+            instructions="Static instructions.",
+        )
+
+        await run_agent_traced(
+            agent,
+            "prompt text",
+            span_name="test.agent",
+            role="Muse",
+            stage="test",
+            input_contract="TestInput.v1",
+            output_contract="TestOutput.v1",
+            prompt_template_id="test.prompt",
+            prompt_digest="0" * 64,
+            failure_code="test_model_failed",
+            model_settings=lambda run_context: {"temperature": 0.1},
+        )
+
+        attrs = self.exported_span_attrs()
+        self.assertEqual("success", attrs["status"])
+        self.assertEqual("callable-settings-model", attrs["model.name"])
+        self.assertNotIn("model.settings", attrs)
+
+    async def test_triage_run_span_is_labeled_with_the_triage_models_identity(self) -> None:
+        def main_model(_messages, _info):
+            raise AssertionError("triage must not run on the agent's default model")
+
+        def triage_model(_messages, info):
+            return ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        info.output_tools[0].name,
+                        {"book_content": "unsure", "memory": "none"},
+                    )
+                ]
+            )
+
+        muse = build_muse_agent(FunctionModel(main_model, model_name="main-agent-model"))
+
+        await triage_turn(
+            "Why did she do that?",
+            muse=muse,
+            model=FunctionModel(triage_model, model_name="triage-run-model"),
+        )
+
+        payload = self.exported_payload()
+        self.assertIn('"model.name": "triage-run-model"', payload)
+        self.assertNotIn("main-agent-model", payload)
 
     async def test_evaluation_correlation_is_recorded_without_entering_telemetry(self) -> None:
         correlation_id = "routereq_evaluation_only"
@@ -675,7 +896,7 @@ class ReflectionSpanTests(TelemetryTestCase):
             SECRET_MESSAGE, [], muse=muse, provenance=provenance, review_context={}
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual(("reject",), release.provenance_verdicts)
         self.assertIsNone(release.failure_stage)
         # Deduplicated, first occurrence first.

@@ -205,6 +205,62 @@ class ReaderStatementTests(unittest.TestCase):
         self.assertEqual("A retained reader statement", snapshot[0].text)
 
 
+class MuseHistoryTests(unittest.TestCase):
+    session_id = "muse-history-test"
+
+    def tearDown(self) -> None:
+        sessions.clear(self.session_id)
+
+    def append(self, user_text: str, assistant_text: str, *, turn_id: str) -> None:
+        sessions.append_turn(
+            self.session_id,
+            user_text,
+            assistant_text,
+            turn_id=turn_id,
+            release_source="muse_candidate",
+        )
+
+    def test_short_history_is_returned_whole(self) -> None:
+        self.append("first question", "first answer", turn_id="turn-1")
+        self.append("second question", "second answer", turn_id="turn-2")
+
+        self.assertEqual(
+            sessions.history(self.session_id), sessions.muse_history(self.session_id)
+        )
+        self.assertEqual([], sessions.muse_history("unknown-session"))
+
+    def test_more_than_eight_turns_keeps_only_the_latest_eight(self) -> None:
+        for number in range(9):
+            self.append(f"question {number}", f"answer {number}", turn_id=f"turn-{number}")
+
+        bounded = sessions.muse_history(self.session_id)
+
+        self.assertEqual(16, len(bounded))
+        self.assertEqual(sessions.history(self.session_id)[-16:], bounded)
+
+    def test_char_budget_drops_oldest_whole_turn(self) -> None:
+        self.append("a" * 8_000, "b" * 8_000, turn_id="turn-old")
+        self.append("c" * 100, "d" * 100, turn_id="turn-new")
+
+        bounded = sessions.muse_history(self.session_id)
+
+        self.assertEqual(sessions.history(self.session_id)[-2:], bounded)
+
+    def test_exact_character_budget_preserves_both_complete_turns(self) -> None:
+        self.append("a" * 7_900, "b" * 7_900, turn_id="turn-old")
+        self.append("c" * 100, "d" * 100, turn_id="turn-new")
+
+        bounded = sessions.muse_history(self.session_id)
+
+        self.assertEqual(sessions.history(self.session_id), bounded)
+
+    def test_oversized_latest_turn_yields_empty_history_not_a_split_pair(self) -> None:
+        self.append("small question", "small answer", turn_id="turn-old")
+        self.append("x" * 16_001, "y", turn_id="turn-new")
+
+        self.assertEqual([], sessions.muse_history(self.session_id))
+
+
 class ReadingStateTests(unittest.TestCase):
     session_id = "reading-state-test"
 

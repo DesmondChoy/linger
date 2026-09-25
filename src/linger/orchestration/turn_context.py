@@ -11,7 +11,7 @@ from types import MappingProxyType
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.librarian import EvidenceRecord, LibrarianRoutingResponse, PassageGrant
 from src.linger.contracts.session import ReaderStatement
-from src.linger.contracts.triage import OverrideAttempt
+from src.linger.contracts.triage import OverrideSignal
 from src.linger.contracts.turn import ConfirmedReading, ReleaseScope
 
 _confirmed_reading: contextvars.ContextVar[list[ConfirmedReading | None] | None] = (
@@ -224,7 +224,7 @@ class ToolExposure:
 
     tools: frozenset[str]
     pinned_intent: str | None = None
-    override_attempt: OverrideAttempt = "no_attempt"
+    override_attempt: OverrideSignal = "no_attempt"
 
 
 # Unset means no turn-level gating: every tool of the selected skill is offered.

@@ -146,11 +146,20 @@ export type TurnInspection = {
   release: ReleaseInspection | null
 }
 
+/** Reader-facing, human-readable descriptor for one source a released reply used. */
+export type ChatSource = {
+  kind: 'book' | 'web' | 'memory'
+  label: string
+  location: string | null
+  url: string | null
+}
+
 export type ChatResult = {
   reply: string
   inspection: TurnInspection
   trace: TraceReference
   memory_capture: MemoryCaptureNotice | null
+  sources: ChatSource[]
 }
 
 /** One completed turn plus the progress events observed while it ran. */
@@ -166,4 +175,6 @@ export type Message = {
   id: string
   role: 'user' | 'assistant'
   content: string
+  /** Sources the released reply used; absent or empty for a decline or an uncited reply. */
+  sources?: ChatSource[]
 }

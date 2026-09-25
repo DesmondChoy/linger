@@ -57,7 +57,7 @@ export function Chat() {
       })
       setMessages((current) => [
         ...current.slice(0, -1),
-        { ...current[current.length - 1], content: result.reply },
+        { ...current[current.length - 1], content: result.reply, sources: result.sources },
       ])
       setTimeline((current) => [...current, { ...result, progress: observed }])
       setCaptureNotice(result.memory_capture)

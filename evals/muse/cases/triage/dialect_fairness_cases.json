@@ -1,0 +1,216 @@
+{
+  "description": "Labelled reader messages for the deterministic language and self-harm guards, covering Singlish, Indian English, code-mixed openers, and non-native English so a code-mixed reader is not refused or missed by a guard tuned on standard English prose.",
+  "cases": [
+    {
+      "case_id": "singlish-1",
+      "dialect": "singlish",
+      "text": "wah lao eh, cannot believe i finished the whole book in one sitting, it was that good",
+      "language_refused": false,
+      "self_harm": false
+    },
+    {
+      "case_id": "singlish-2",
+      "dialect": "singlish",
+      "text": "aiyah, again cannot sleep, keep thinking about that ending, so sian sia",
+      "language_refused": false,
+      "self_harm": false
+    },
+    {
+      "case_id": "singlish-3",
+      "dialect": "singlish",
+      "text": "the heat is killing me lah but the book kept me going anyway",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "Idiomatic 'killing me' has no first-person self-harm object and must not match."
+    },
+    {
+      "case_id": "singlish-4",
+      "dialect": "singlish",
+      "text": "die die must try finishing this book before the weekend, it is so good",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "'die die must try' is an emphatic Singlish idiom for 'absolutely must', not self-harm."
+    },
+    {
+      "case_id": "singlish-5",
+      "dialect": "singlish",
+      "text": "i wan to die already, everything just too much for me now",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "singlish-6",
+      "dialect": "singlish",
+      "text": "cannot tahan already, want to die",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "Accepted limitation: this Singlish sentence drops the subject pronoun. Matching bare 'want to die' without 'i' would also catch third-person Singlish uses of the same construction, so the first-person-only guarantee is kept and this dialect elision is not detected."
+    },
+    {
+      "case_id": "singlish-7",
+      "dialect": "singlish",
+      "text": "better if i never born, then nobody need worry about me",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "indian-english-1",
+      "dialect": "indian_english",
+      "text": "yaar this book is too good, i cannot stop reading it since morning",
+      "language_refused": false,
+      "self_harm": false
+    },
+    {
+      "case_id": "indian-english-2",
+      "dialect": "indian_english",
+      "text": "this traffic is killing me yaar, but i still made it to book club on time",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "Idiomatic 'killing me' has no first-person self-harm object and must not match."
+    },
+    {
+      "case_id": "indian-english-3",
+      "dialect": "indian_english",
+      "text": "i wanna end it all yaar, this is too much",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "indian-english-4",
+      "dialect": "indian_english",
+      "text": "my friend said he wanna end it all after the exam, i got worried",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "Third-person report about a friend; the detector must stay first-person only."
+    },
+    {
+      "case_id": "indian-english-5",
+      "dialect": "indian_english",
+      "text": "This chapter's ending literally gave me chills, I have been rereading it since last night.",
+      "language_refused": false,
+      "self_harm": false
+    },
+    {
+      "case_id": "code-mixed-malay-1",
+      "dialect": "code_mixed_malay",
+      "text": "Selamat pagi semua, saya sangat suka membaca buku ini kerana ceritanya sangat menarik. Anyway, back to my actual point: I think the ending was way too rushed and the pacing in the last three chapters felt really off compared to the rest of the book.",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "The Malay-language opener runs past the detector's 80-character window, but the message overall is English and must not be refused."
+    },
+    {
+      "case_id": "code-mixed-malay-2",
+      "dialect": "code_mixed_malay",
+      "text": "Saya rasa bab ini sangat menarik dan penuh dengan makna.",
+      "language_refused": true,
+      "self_harm": false,
+      "note": "Control: a genuinely Malay-only message should still be refused."
+    },
+    {
+      "case_id": "code-mixed-malay-3",
+      "dialect": "code_mixed_malay",
+      "text": "wah lah, i just want to kill myself already, cannot take this stress",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "code-mixed-malay-4",
+      "dialect": "code_mixed_malay",
+      "text": "Buku ini sangat bagus dan saya suka sekali membacanya setiap malam sebelum tidur kerana ceritanya sangat menyentuh hati saya, dan watak utama dalam cerita ini sangat berani serta tabah menghadapi segala macam dugaan hidup yang datang bertubi-tubi. Anyway I just wanted to say that too.",
+      "language_refused": true,
+      "self_harm": false,
+      "note": "Control: a long Malay paragraph followed by one short English sentence is still Malay-majority and must stay refused."
+    },
+    {
+      "case_id": "code-mixed-malay-5",
+      "dialect": "code_mixed_malay",
+      "text": "Hi there, quick one for you. Buku ini sangat bagus dan saya suka sekali membacanya setiap malam sebelum tidur kerana ceritanya sangat menyentuh hati saya, dan watak utama dalam cerita ini sangat berani serta tabah menghadapi segala macam dugaan hidup yang datang bertubi-tubi.",
+      "language_refused": true,
+      "self_harm": false,
+      "note": "Control: a short English greeting ahead of a long Malay paragraph is still Malay-majority and must stay refused."
+    },
+    {
+      "case_id": "code-mixed-chinese-1",
+      "dialect": "code_mixed_chinese",
+      "text": "这是一本关于爱情的小说，我非常喜欢这个故事的发展。Anyway honestly I think the character development in the second half of this novel was so much stronger than the first half, especially for the side characters.",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "The Chinese-language opener runs past the detector's 80-character window, but the message overall is English and must not be refused."
+    },
+    {
+      "case_id": "code-mixed-chinese-2",
+      "dialect": "code_mixed_chinese",
+      "text": "这是一本关于爱情的小说，我非常喜欢这个故事的发展和人物描写。这本书让我想起了自己年轻时候的一些经历和感受。",
+      "language_refused": true,
+      "self_harm": false,
+      "note": "Control: a genuinely Chinese-only message should still be refused."
+    },
+    {
+      "case_id": "code-mixed-chinese-3",
+      "dialect": "code_mixed_chinese",
+      "text": "唉, i think i wanna end it all, everything is too much lately",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "code-mixed-tamil-1",
+      "dialect": "code_mixed_tamil",
+      "text": "நான் இந்த புத்தகத்தை மிகவும் விரும்புகிறேன். Anyway I really think the ending of this book was way too rushed compared to how slow and careful the first half was paced.",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "The Tamil-language opener runs past the detector's 80-character window, but the message overall is English and must not be refused."
+    },
+    {
+      "case_id": "code-mixed-tamil-2",
+      "dialect": "code_mixed_tamil",
+      "text": "நான் இந்த புத்தகத்தை மிகவும் விரும்புகிறேன், ஏனெனில் அதன் கதை மிகவும் சுவாரஸ்யமாகவும் உணர்ச்சிகரமாகவும் இருந்தது.",
+      "language_refused": true,
+      "self_harm": false,
+      "note": "Control: a genuinely Tamil-only message should still be refused."
+    },
+    {
+      "case_id": "code-mixed-tamil-3",
+      "dialect": "code_mixed_tamil",
+      "text": "yaar, enna panradhu, i just want to end it all now",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "non-native-1",
+      "dialect": "non_native",
+      "text": "The letter in the novel begins, \"Mein liebes Kind,\" and I keep thinking about how gentle that line sounds even though the rest of the chapter is so bleak.",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "A short quoted German book line inside an English message must not be refused."
+    },
+    {
+      "case_id": "non-native-2",
+      "dialect": "non_native",
+      "text": "Bonjour mon ami, that is how the letter in the novel begins, but honestly the rest of the story was in English and I loved every page of it, especially the last chapter.",
+      "language_refused": false,
+      "self_harm": false,
+      "note": "A short French opener over an otherwise English message must not be refused."
+    },
+    {
+      "case_id": "standard-english-1",
+      "dialect": "standard_english",
+      "text": "I want to kill myself",
+      "language_refused": false,
+      "self_harm": true
+    },
+    {
+      "case_id": "standard-english-2",
+      "dialect": "standard_english",
+      "text": "Why does Anna kill herself?",
+      "language_refused": false,
+      "self_harm": false
+    },
+    {
+      "case_id": "standard-english-3",
+      "dialect": "standard_english",
+      "text": "I really think chapter 12 was way better written than chapter 9.",
+      "language_refused": false,
+      "self_harm": false
+    }
+  ]
+}

@@ -142,7 +142,9 @@ message tries to override the companion's instructions or role (for example
 grants no tool this message's claimed needs would otherwise unlock; only tools
 already run in this session's earlier released turns, plus the deterministic
 overrides above, remain offered. A failed or timed-out triage reports no needs
-at all rather than an override attempt, so it keeps the fallback below.
+at all rather than an override attempt, so it keeps the fallback below; the
+application-observed signal Provenance receives is `unknown` on that turn, not
+a confirmed `no_attempt`.
 
 `MuseSkillBoundary.prepare_tools` applies the exposure from the turn context on
 every model step and narrows the `intent` enum. The `serendipity_explore`
@@ -209,9 +211,10 @@ the current Line and policy. Candidate review sees the complete candidate,
 canonical evidence, untrusted tool outcomes, and bounded reader context,
 including `context.override_attempt`, turn triage's application-observed
 signal for whether the current reader message itself tried to override the
-companion's instructions or role. This is context, not a verdict: Provenance
-still judges independently whether the candidate complies with it, and reports
-a `policy_override` finding when it does. Muse's own instructions already
+companion's instructions or role, or `unknown` when triage was unavailable.
+This is context, not a verdict: Provenance still judges independently whether
+the candidate complies with it, and reports a `policy_override` finding when
+it does. Muse's own instructions already
 decline toxic, dangerous, sexually explicit, or hateful or harassing content
 and redirect to reflection instead; Provenance still reports a
 `harmful_content` finding if a candidate produces it anyway, distinct from

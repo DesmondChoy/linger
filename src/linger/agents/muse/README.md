@@ -39,7 +39,10 @@ supports attributed personal context and cannot establish public or book facts.
 declarations, and either one exact current-reader-text memory nomination or a
 typed decision not to nominate. Memory nominations carry no account scope or
 write authority. Model-produced candidates, reader messages, memories, and
-retrieved content remain untrusted data.
+retrieved content remain untrusted data. `serendipity_explore` wraps each web
+excerpt it returns in explicit `<untrusted_web_page>` delimiters, spotlighting
+third-party page text as untrusted data without changing the canonical
+excerpt Provenance and citation checks use.
 
 Muse retains a fixed output schema and its registered `validate_muse_output`
 validator. The reflection skill does not override `output_type` per run.
@@ -87,8 +90,8 @@ context. There is no direct Muse-to-storage or Muse-to-reader bypass.
 
 ## Evaluation and supported scope
 
-The [Muse component pack](../../../../evals/muse/README.md) supplies five fixed
-behavioral cases. Production chat and synthetic reflection, capture, connection,
+The [Muse component pack](../../../../evals/muse/README.md) supplies 19 fixed
+behavioral cases, run live against the first and current Muse. Production chat and synthetic reflection, capture, connection,
 and continuity replays exercise the same reflection skill. Component cases and
 synthetic runs remain separate from independently adopted product evaluation
 results. Photograph input remains an unimplemented product target.

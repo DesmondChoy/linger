@@ -36,8 +36,10 @@ def expose_tools(
     if needs is None:
         # Nothing was classified, so add only the book tools, which reach
         # neither the web nor the account's memories. `serendipity_explore`
-        # stays out unless an earlier released turn already used it.
-        return ToolExposure(tools=frozenset(tools | BOOK_TOOLS))
+        # stays out unless an earlier released turn already used it. The
+        # override signal is `unknown`, not a confirmed clean turn, since
+        # triage never ran to completion.
+        return ToolExposure(tools=frozenset(tools | BOOK_TOOLS), override_attempt="unknown")
     if needs.override_attempt == "attempted":
         # Least privilege: grant nothing this message's claimed needs unlock.
         if book_override:

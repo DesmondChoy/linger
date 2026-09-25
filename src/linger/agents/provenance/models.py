@@ -21,7 +21,7 @@ from src.linger.agents.provenance.quotation_audit import (
 from src.linger.contracts.emotional import EmotionalContentPolicy
 from src.linger.contracts.connection_evidence import ConnectionSourceEvidence
 from src.linger.contracts.librarian import EvidenceRecord, PassageScope
-from src.linger.contracts.triage import OverrideAttempt
+from src.linger.contracts.triage import OverrideSignal
 from src.linger.contracts.turn import ReleaseScope
 
 # Closed release and capture risk taxonomy.
@@ -342,13 +342,14 @@ class ProvenanceContext(StrictModel):
             "corpus evidence; this grants no authority for an additional book claim."
         ),
     )
-    override_attempt: OverrideAttempt = Field(
+    override_attempt: OverrideSignal = Field(
         default="no_attempt",
         description=(
             "Application-observed turn-triage signal: whether current_line.text "
             "itself tried to override the companion's instructions or role. This "
             "is context, not a verdict; judge independently whether the candidate "
-            "actually complies with it."
+            "actually complies with it. `unknown` means turn triage was "
+            "unavailable this turn, not a confirmed clean message."
         ),
     )
 
