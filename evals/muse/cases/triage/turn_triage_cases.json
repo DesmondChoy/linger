@@ -1172,6 +1172,88 @@
         "no_attempt"
       ],
       "note": "Singlish-code-mixed personal reflection."
+    },
+    {
+      "case_id": "link-recurrence-1",
+      "category": "source_comparison",
+      "current_line": "In meetings I keep feeling like I've shrunk to nothing and can't get a word through. Is that anything like what happens to Alice?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Recurrence word plus an explicit ask whether the reader's experience is like the book; the link request decides memory."
+    },
+    {
+      "case_id": "link-recurrence-2",
+      "category": "source_comparison",
+      "current_line": "Lately I keep noticing doors everywhere - is that connected to what I'm reading?",
+      "book_content": [
+        "yes",
+        "unsure",
+        "no"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Recurrence word plus an explicit ask whether a noticing connects to the unnamed current book; book_content is not under test because Serendipity searches the book for a connection."
+    },
+    {
+      "case_id": "link-recurrence-3",
+      "category": "source_comparison",
+      "current_line": "My sister and I still end up in the same fight about Mum's care every Sunday. Does that remind you of the March sisters at all, the way they argue and make up?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Held-out variant: recurring personal theme with an explicit resemblance question about a named book."
+    },
+    {
+      "case_id": "written-recurrence-1",
+      "category": "outside_recommendation",
+      "current_line": "Is there anything written about why being small in a big room feels so exposing? It keeps coming back to me since chapter one.",
+      "book_content": [
+        "unsure",
+        "no",
+        "yes"
+      ],
+      "memory": [
+        "outside_recommendation",
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Recurrence words plus an explicit ask for outside writing; book_content is not under test here."
+    },
+    {
+      "case_id": "written-recurrence-2",
+      "category": "outside_recommendation",
+      "current_line": "Since the move I keep reorganising the same kitchen drawer. Is there a poem about that kind of restlessness?",
+      "book_content": [
+        "no"
+      ],
+      "memory": [
+        "outside_recommendation"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Held-out variant: recurrence words plus an explicit request for an outside work."
     }
   ]
 }

@@ -33,11 +33,12 @@ import subprocess
 from pathlib import Path
 from statistics import median
 from time import perf_counter
-from typing import Literal
+from typing import Collection, Literal
 
 from pydantic_ai import Agent, Tool, UsageLimits
 from pydantic_ai.messages import (
-    ModelMessage, ModelRequest, ModelResponse, TextPart, ToolCallPart, UserPromptPart,
+    ModelMessage, ModelRequest, ModelResponse, RetryPromptPart, TextPart, ToolCallPart,
+    UserPromptPart,
 )
 from pydantic_ai.models import Model
 
@@ -110,6 +111,42 @@ def _tool_calls(result) -> list[str]:
         for part in getattr(message, "parts", ())
         if isinstance(part, ToolCallPart)
     ]
+
+
+def _serendipity_intents(result) -> list[str]:
+    """The `intent` argument of every `serendipity_explore` call, in call order."""
+    return [
+        part.args_as_dict().get("intent")
+        for message in result.all_messages()
+        for part in getattr(message, "parts", ())
+        if isinstance(part, ToolCallPart) and part.tool_name == "serendipity_explore"
+    ]
+
+
+def _retry_prompts(result) -> list[dict]:
+    """Why each retry happened: a tool's `ModelRetry`, or a schema validation error.
+
+    `tool_name` is None for a plain-text-instead-of-structured-output retry.
+    """
+    prompts = []
+    for message in result.all_messages():
+        for part in getattr(message, "parts", ()):
+            if isinstance(part, RetryPromptPart):
+                content = (
+                    part.content if isinstance(part.content, str)
+                    else json.dumps(part.content, default=str)
+                )
+                prompts.append({"tool_name": part.tool_name, "content": _retry_reason(content)})
+    return prompts
+
+
+def _retry_reason(content: str) -> str:
+    """Keep a citation retry's listed errors; its fixed repair advice is the same every time."""
+    try:
+        errors = json.loads(content).get("errors")
+    except (ValueError, AttributeError):
+        errors = None
+    return json.dumps(errors)[:1500] if errors else content[:400]
 
 
 # --- first Muse -------------------------------------------------------------
@@ -485,6 +522,9 @@ async def _run_current(case: MuseEvalCase, model: Model) -> dict:
         "usage": result.usage,
         "triage": needs.model_dump(mode="json") if needs else None,
         "exposed_tools": sorted(exposure.tools),
+        "pinned_intent": exposure.pinned_intent,
+        "serendipity_intents": _serendipity_intents(result),
+        "retry_prompts": _retry_prompts(result),
     }
 
 
@@ -519,8 +559,24 @@ async def _one(
     }
 
 
-async def measure(target: str, model: Model, runs: int) -> dict:
-    cases = load_muse_eval_cases()
+def _select_cases(
+    cases: tuple[MuseEvalCase, ...], case_ids: Collection[str] | None,
+) -> tuple[MuseEvalCase, ...]:
+    """Filter to the requested `--case` IDs, keeping pack order; reject unknown IDs."""
+    if case_ids is None:
+        return cases
+    known = {case.case_id for case in cases}
+    unknown = sorted(set(case_ids) - known)
+    if unknown:
+        raise ValueError(f"unknown case ID(s) {unknown}; valid IDs: {sorted(known)}")
+    wanted = set(case_ids)
+    return tuple(case for case in cases if case.case_id in wanted)
+
+
+async def measure(
+    target: str, model: Model, runs: int, case_ids: Collection[str] | None = None,
+) -> dict:
+    cases = _select_cases(load_muse_eval_cases(), case_ids)
     instructions = _first_instructions() if target == "first" else None
     gate = asyncio.Semaphore(CONCURRENCY)
     per_run = [
@@ -570,11 +626,15 @@ def main() -> None:
     parser.add_argument("--target", choices=("first", "current"), required=True)
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--case", dest="cases", action="append", metavar="CASE_ID",
+        help="Run only this case ID (repeatable). Defaults to the full main pack.",
+    )
     args = parser.parse_args()
 
     from src.linger.agents.build import build_model
 
-    report = asyncio.run(measure(args.target, build_model(), args.runs))
+    report = asyncio.run(measure(args.target, build_model(), args.runs, case_ids=args.cases))
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output:
         args.output.write_text(text + "\n", encoding="utf-8")

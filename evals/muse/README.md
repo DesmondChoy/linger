@@ -93,6 +93,9 @@ uv run python -m evals.muse.baseline_run --target current --runs 3 --output repo
 uv run python -m evals.muse.baseline_run --target first --runs 3 --output reports/<name>.json
 ```
 
+Add a repeatable `--case CASE_ID` to run only some of the main cases, e.g.
+`--case muse-hold-spoiler-boundary-v1 --case muse-quote-evidence-exactly-v1`.
+
 Latest comparison: 2026-09-25, `gpt-5.6-luna`, 19 cases × 3 runs per
 target, no errors ([first report](reports/main-first-2026-09-25-8021b4e.json),
 [current report](reports/main-current-2026-09-25-e6147f4.json)). The rubric
