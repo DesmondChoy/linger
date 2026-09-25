@@ -48,7 +48,10 @@ from src.linger.orchestration.inspection_context import (
 )
 from src.linger.contracts.turn import ReleaseScope
 from src.linger.orchestration.reflection import (
+    EVIDENCE_DECLINE,
+    OUT_OF_SCOPE_DECLINE,
     PIPELINE_FAILURE_DECLINE,
+    PROFESSIONAL_ADVICE_DECLINE,
     SAFE_DECLINE,
     SPOILER_DECLINE,
     decline_text,
@@ -349,22 +352,66 @@ def review(
 
 
 class DeclineTextTests(unittest.TestCase):
-    def test_unsupported_claim_only_reject_falls_back_to_the_generic_decline(
-        self,
-    ) -> None:
+    def test_unsupported_claim_only_reject_gets_the_evidence_decline(self) -> None:
         self.assertEqual(
-            SAFE_DECLINE,
+            EVIDENCE_DECLINE,
             decline_text(None, ("unsupported_claim",)),
         )
+
+    def test_evidence_category_codes_get_the_evidence_decline(self) -> None:
+        for codes in (
+            ("unresolved_evidence",),
+            ("misattribution",),
+            ("uncited_web_claim",),
+            ("unresolved_evidence", "misattribution"),
+        ):
+            with self.subTest(codes=codes):
+                self.assertEqual(EVIDENCE_DECLINE, decline_text(None, codes))
 
     def test_spoiler_only_reject_gets_the_spoiler_message(self) -> None:
         self.assertEqual(SPOILER_DECLINE, decline_text(None, ("spoiler",)))
 
-    def test_mixed_codes_fall_back_to_the_generic_decline(self) -> None:
+    def test_spoiler_alongside_an_evidence_code_gets_the_evidence_decline(
+        self,
+    ) -> None:
         self.assertEqual(
-            SAFE_DECLINE,
+            EVIDENCE_DECLINE,
             decline_text(None, ("unsupported_claim", "spoiler")),
         )
+
+    def test_professional_advice_only_reject_gets_the_professional_advice_decline(
+        self,
+    ) -> None:
+        self.assertEqual(
+            PROFESSIONAL_ADVICE_DECLINE,
+            decline_text(None, ("professional_advice",)),
+        )
+
+    def test_out_of_scope_only_reject_gets_the_out_of_scope_decline(self) -> None:
+        self.assertEqual(
+            OUT_OF_SCOPE_DECLINE,
+            decline_text(None, ("out_of_scope",)),
+        )
+
+    def test_mixed_category_codes_fall_back_to_the_generic_decline(self) -> None:
+        self.assertEqual(
+            SAFE_DECLINE,
+            decline_text(None, ("unsupported_claim", "out_of_scope")),
+        )
+
+    def test_a_security_code_falls_back_to_the_generic_decline(self) -> None:
+        for codes in (
+            ("prompt_injection",),
+            ("policy_override",),
+            ("instruction_disclosure",),
+            ("harmful_content",),
+            ("false_persona",),
+            ("sensitive_content",),
+            ("emotional_policy_violation",),
+            ("unsupported_claim", "prompt_injection"),
+        ):
+            with self.subTest(codes=codes):
+                self.assertEqual(SAFE_DECLINE, decline_text(None, codes))
 
     def test_no_codes_fall_back_to_the_generic_decline(self) -> None:
         self.assertEqual(SAFE_DECLINE, decline_text(None, ()))
@@ -1507,7 +1554,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual((EVIDENCE_ID,), release.evidence_ids)
 
-    async def test_reject_returns_safe_decline(self) -> None:
+    async def test_reject_returns_evidence_decline(self) -> None:
         muse = AsyncMock()
         muse.run.return_value = result("Unsafe draft")
         provenance = AsyncMock()
@@ -1515,7 +1562,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual(("reject",), release.provenance_verdicts)
         self.assertEqual(1, muse.run.await_count)
@@ -1532,7 +1579,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("provenance_review", release.failure_stage)
         self.assertEqual((), release.provenance_verdicts)
 
-    async def test_second_revision_request_returns_safe_decline(self) -> None:
+    async def test_second_revision_request_returns_evidence_decline(self) -> None:
         muse = AsyncMock()
         muse.run.side_effect = [result("Draft"), result("Still unsafe")]
         provenance = AsyncMock()
@@ -1547,7 +1594,92 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual(("revise", "revise"), release.provenance_verdicts)
         self.assertEqual(2, muse.run.await_count)
         self.assertEqual(2, provenance.run.await_count)
+
+    async def test_capture_only_evidence_code_with_spoiler_response_reject_gets_spoiler_decline(
+        self,
+    ) -> None:
+        """A capture-only finding must widen the stored audit trail but never
+        redirect decline_text away from the response's own reject reason."""
+        muse = AsyncMock()
+        muse.run.return_value = result("Unsafe draft")
+        provenance = AsyncMock()
+        provenance.run.return_value = result(
+            ProvenanceReview(
+                findings=(
+                    RiskFinding(
+                        code="unsupported_claim",
+                        applies_to="capture",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.memory",
+                            "path": "",
+                        },
+                        explanation="The memory nomination is not safe to capture.",
+                    ),
+                    RiskFinding(
+                        code="spoiler",
+                        applies_to="response",
+                        location={
+                            "kind": "structural",
+                            "source_field": "candidate.response",
+                            "path": "",
+                        },
+                        explanation="The response reveals a plot spoiler.",
+                    ),
+                ),
+                response_decision="reject",
+                emotional_boundary_decision="not_required",
+                capture_decision="reject_capture",
+            )
+        )
+
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        self.assertEqual(SPOILER_DECLINE, release.reply)
+        self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)
+
+    async def test_revise_unsupported_claim_then_reject_spoiler_gets_spoiler_decline(
+        self,
+    ) -> None:
+        """An earlier revision's resolved finding must not redirect the final
+        reject's decline reason away from that reject's own response code."""
+        muse = AsyncMock()
+        muse.run.side_effect = [result("Draft"), result("Still unsafe")]
+        provenance = AsyncMock()
+        provenance.run.side_effect = [
+            result(review("revise", finding="Add support.")),
+            result(
+                ProvenanceReview(
+                    findings=(
+                        RiskFinding(
+                            code="spoiler",
+                            applies_to="response",
+                            location={
+                                "kind": "structural",
+                                "source_field": "candidate.response",
+                                "path": "",
+                            },
+                            explanation="The revision still reveals a plot spoiler.",
+                        ),
+                    ),
+                    response_decision="reject",
+                    emotional_boundary_decision="not_required",
+                    capture_decision="no_candidate",
+                    finding_resolutions=({
+                        'finding_index': 0,
+                        'status': 'unresolved',
+                        'explanation': 'The unsupported claim remains unaddressed.',
+                    },),
+                )
+            ),
+        ]
+
+        release = await reflection_reply("Hello", [], muse=muse, provenance=provenance)
+
+        self.assertEqual(SPOILER_DECLINE, release.reply)
+        self.assertEqual(("revise", "reject"), release.provenance_verdicts)
+        self.assertEqual(("unsupported_claim", "spoiler"), release.finding_codes)

@@ -29,6 +29,7 @@ with patch.dict(
     from src.linger.agents.muse.models import MuseCandidate, NoMemoryCandidate
     from src.linger.agents.provenance.models import ProvenanceReview, RiskFinding
     from src.linger.orchestration.reflection import (
+        EVIDENCE_DECLINE,
         SAFE_DECLINE,
         ReflectionRelease,
         reflection_reply as run_reflection_gate,
@@ -672,7 +673,7 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
             )
 
         payload = response.model_dump_json()
-        self.assertEqual(SAFE_DECLINE, response.reply)
+        self.assertEqual(EVIDENCE_DECLINE, response.reply)
         self.assertEqual(
             ("unsupported_claim",), response.inspection.release.finding_codes
         )

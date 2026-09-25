@@ -105,8 +105,32 @@ SAFE_DECLINE = "I’m sorry, but I can’t provide a reliable response to that r
 SPOILER_DECLINE = (
     "I couldn’t verify a spoiler-safe answer from the available context."
 )
+EVIDENCE_DECLINE = (
+    "I couldn’t verify that against the sources I can use, so I’d rather not guess. "
+    "If you ask again with the passage in mind, I’ll take another look."
+)
+PROFESSIONAL_ADVICE_DECLINE = (
+    "I don’t want to stray into advice that a qualified professional is better "
+    "placed to give — but I’m glad to keep reflecting with you."
+)
+OUT_OF_SCOPE_DECLINE = (
+    "I can’t help with that part here, but I’m happy to talk about your reading "
+    "or what’s on your mind."
+)
 PIPELINE_FAILURE_DECLINE = (
     "Something went wrong on my side just now — mind asking again?"
+)
+# Finding codes that all describe an unverifiable-claim problem, not a
+# security or scope problem; a spoiler finding may ride alongside these
+# without changing the reader-facing reason.
+_EVIDENCE_DECLINE_CODES: frozenset[RiskCode] = frozenset(
+    {
+        RiskCode.UNRESOLVED_EVIDENCE,
+        RiskCode.MISATTRIBUTION,
+        RiskCode.UNSUPPORTED_CLAIM,
+        RiskCode.UNCITED_WEB_CLAIM,
+        RiskCode.SPOILER,
+    }
 )
 FailureStage = Literal[
     "emotional_boundary_preflight",
@@ -170,15 +194,25 @@ class ReflectionRelease:
 
 
 def _codes(*reviews: ProvenanceReview) -> tuple[RiskCode, ...]:
-    """Collect risk codes across one or both reviews, first occurrence first."""
-    # Not filtered by applies_to: a non-pass response always carries a
-    # response-scoped finding, so a capture finding can only widen this set
-    # into decline_text's generic fallback, never redirect the selection.
+    """Collect risk codes across one or both reviews, first occurrence first.
+
+    Feeds the stored `finding_codes` audit trail only. `decline_text` reads
+    the final review's own response findings instead, via `_response_codes`.
+    """
     seen: dict[RiskCode, None] = {}
     for review in reviews:
         for finding in review.findings:
             seen.setdefault(finding.code, None)
     return tuple(seen)
+
+
+def _response_codes(review: ProvenanceReview) -> tuple[RiskCode, ...]:
+    """Codes from one review's own response findings, for decline_text.
+
+    Never a capture finding, and never an earlier revision's finding: only
+    the final review's response reason may pick the reader-facing decline.
+    """
+    return tuple(dict.fromkeys(finding.code for finding in review.response_findings))
 
 
 def _review_codes(*reviews: ProvenanceReview) -> tuple[tuple[RiskCode, ...], ...]:
@@ -242,11 +276,22 @@ def decline_text(
     failure_stage: FailureStage | None,
     finding_codes: tuple[RiskCode, ...],
 ) -> str:
-    """Pick the one fixed, application-authored decline for a blocked turn."""
+    """Pick the one fixed, application-authored decline for a blocked turn.
+
+    Security/safety codes, cross-category mixes and empty sets fall back to
+    SAFE_DECLINE, so the reply never reveals a security reason.
+    """
     if failure_stage is not None:
         return PIPELINE_FAILURE_DECLINE
-    if set(finding_codes) == {"spoiler"}:
+    codes = set(finding_codes)
+    if codes == {RiskCode.SPOILER}:
         return SPOILER_DECLINE
+    if codes and codes <= _EVIDENCE_DECLINE_CODES:
+        return EVIDENCE_DECLINE
+    if codes == {RiskCode.PROFESSIONAL_ADVICE}:
+        return PROFESSIONAL_ADVICE_DECLINE
+    if codes == {RiskCode.OUT_OF_SCOPE}:
+        return OUT_OF_SCOPE_DECLINE
     return SAFE_DECLINE
 
 
@@ -258,6 +303,7 @@ def _safe_decline(
     failure_type: FailureType | None = None,
     failure_retryable: bool | None = None,
     finding_codes: tuple[RiskCode, ...] = (),
+    response_codes: tuple[RiskCode, ...] = (),
     capture_nomination: CaptureNomination | None = None,
     capture_decision: Literal[
         "allow_capture", "reject_capture", "no_candidate"
@@ -268,8 +314,11 @@ def _safe_decline(
     evidence_ids: tuple[str, ...] = (),
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = (),
 ) -> ReflectionRelease:
+    """`finding_codes` is the stored audit union; `response_codes` (the final
+    review's own response findings) is what actually picks the decline text.
+    """
     return ReflectionRelease(
-        reply=decline_text(failure_stage, finding_codes),
+        reply=decline_text(failure_stage, response_codes),
         release_source="application_safe_decline",
         provenance_verdicts=verdicts,
         revision_count=revision_count,
@@ -1141,6 +1190,7 @@ async def _reflection_reply(
                     failure_type="validation",
                     failure_retryable=False,
                     finding_codes=_codes(review),
+                    response_codes=_response_codes(review),
                     capture_nomination=draft_nomination,
                     capture_decision=review.capture_decision,
                     automatic_capture_candidate=capture,
@@ -1182,6 +1232,7 @@ async def _reflection_reply(
             _safe_decline(
                 verdicts=(review.response_decision,),
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1217,6 +1268,7 @@ async def _reflection_reply(
                 failure_type="validation",
                 failure_retryable=False,
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1256,6 +1308,7 @@ async def _reflection_reply(
                 failure_type="model",
                 failure_retryable=True,
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1282,6 +1335,7 @@ async def _reflection_reply(
                 failure_type="validation",
                 failure_retryable=False,
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1324,6 +1378,7 @@ async def _reflection_reply(
                 failure_type="validation",
                 failure_retryable=False,
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1343,6 +1398,7 @@ async def _reflection_reply(
                 failure_type="model",
                 failure_retryable=True,
                 finding_codes=_codes(review),
+                response_codes=_response_codes(review),
                 capture_nomination=draft_nomination,
                 capture_decision=review.capture_decision,
                 automatic_capture_candidate=capture,
@@ -1393,6 +1449,7 @@ async def _reflection_reply(
                     failure_type="validation",
                     failure_retryable=False,
                     finding_codes=_codes(review, revised_review),
+                    response_codes=_response_codes(revised_review),
                     capture_nomination=revised_nomination,
                     capture_decision=revised_review.capture_decision,
                     automatic_capture_candidate=capture,
@@ -1435,6 +1492,7 @@ async def _reflection_reply(
             verdicts=("revise", revised_review.response_decision),
             revision_count=1,
             finding_codes=_codes(review, revised_review),
+            response_codes=_response_codes(revised_review),
             capture_nomination=revised_nomination,
             capture_decision=revised_review.capture_decision,
             automatic_capture_candidate=capture,

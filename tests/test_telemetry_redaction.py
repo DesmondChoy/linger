@@ -56,6 +56,7 @@ from src.linger.contracts.emotional import (
 from src.linger.orchestration.emotional import assess_emotional_boundary
 from src.linger.orchestration import grounding as grounding_module
 from src.linger.orchestration.reflection import (
+    EVIDENCE_DECLINE,
     PIPELINE_FAILURE_DECLINE,
     SAFE_DECLINE,
     ReflectionRelease,
@@ -895,7 +896,7 @@ class ReflectionSpanTests(TelemetryTestCase):
             SECRET_MESSAGE, [], muse=muse, provenance=provenance, review_context={}
         )
 
-        self.assertEqual(SAFE_DECLINE, release.reply)
+        self.assertEqual(EVIDENCE_DECLINE, release.reply)
         self.assertEqual(("reject",), release.provenance_verdicts)
         self.assertIsNone(release.failure_stage)
         # Deduplicated, first occurrence first.
