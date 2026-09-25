@@ -1,0 +1,403 @@
+{
+  "target": "current",
+  "model": "gpt-5.6-luna",
+  "prompt": {
+    "template_id": "muse.reflection",
+    "digest": "2d636f6c327676266c602e2b887572d94c3836c69714183aac2549a305145d99"
+  },
+  "runs": 3,
+  "cases": 5,
+  "errors": 0,
+  "hard_pass_rate": 1.0,
+  "latency_seconds": {
+    "median": 7.54
+  },
+  "mean_input_tokens": 22036,
+  "mean_output_tokens": 285,
+  "per_case": {
+    "muse-confirm-chapter-boundary-v1": {
+      "primary_behavior": "confirm_chapter_boundary",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "asks whether the chapter is finished or still in progress",
+        "defers interpretation until the boundary is known",
+        "stays warm rather than procedural"
+      ],
+      "runs": [
+        {
+          "reply": "Have you finished that chapter, or are you still partway through it?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 12,
+          "seconds": 7.54,
+          "input_tokens": 22266,
+          "output_tokens": 110
+        },
+        {
+          "reply": "Have you finished that chapter, or are you still partway through it?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 12,
+          "seconds": 6.7,
+          "input_tokens": 22266,
+          "output_tokens": 108
+        },
+        {
+          "reply": "Have you finished that chapter, or are you still partway through it?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 12,
+          "seconds": 6.02,
+          "input_tokens": 22266,
+          "output_tokens": 123
+        }
+      ]
+    },
+    "muse-grounded-answer-within-boundary-v1": {
+      "primary_behavior": "grounded_answer_within_boundary",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "grounds the reply in the supplied evidence rather than general knowledge",
+        "stays within the completed first chapter",
+        "invites reflection rather than lecturing"
+      ],
+      "runs": [
+        {
+          "reply": "In Chapter I, Alice follows the rabbit because she is bored and restless: she is tired of sitting with nothing to do. Her curiosity then takes over, and she runs after it. So the immediate motive is curiosity breaking through her boredom, rather than a carefully considered decision.",
+          "tool_calls": [
+            "librarian_search",
+            "final_result",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 48,
+          "seconds": 15.28,
+          "input_tokens": 35886,
+          "output_tokens": 752
+        },
+        {
+          "reply": "At the start of Chapter I, Alice follows the rabbit because she is bored and restless: she is “very tired of sitting” with nothing to do, and her sister’s book has no pictures or conversations. When the rabbit catches her attention, her curiosity takes over—she is described as “burning with curiosity” and runs after it. So her choice grows from boredom into curiosity.",
+          "tool_calls": [
+            "librarian_search",
+            "final_result",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 63,
+          "seconds": 13.89,
+          "input_tokens": 36077,
+          "output_tokens": 781
+        },
+        {
+          "reply": "In Chapter I, Alice follows the rabbit because she is bored and restless—she is “beginning to get very tired” of sitting with nothing to do. Her curiosity then takes over: she runs after the rabbit when she sees it disappear down the rabbit-hole. So it’s a mix of boredom, novelty, and curiosity rather than a carefully considered decision.",
+          "tool_calls": [
+            "librarian_search",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 58,
+          "seconds": 8.96,
+          "input_tokens": 22712,
+          "output_tokens": 392
+        }
+      ]
+    },
+    "muse-probe-unconfirmed-book-v1": {
+      "primary_behavior": "probe_unconfirmed_book",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "offers a general reflection without interpreting the specific book",
+        "asks whether the candidate book is the one the reader means",
+        "stays warm, concise, and concrete"
+      ],
+      "runs": [
+        {
+          "reply": "Do you mean *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 7,
+          "seconds": 7.57,
+          "input_tokens": 22280,
+          "output_tokens": 121
+        },
+        {
+          "reply": "Do you mean Alice's Adventures in Wonderland?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "unsure",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 7,
+          "seconds": 6.68,
+          "input_tokens": 22276,
+          "output_tokens": 117
+        },
+        {
+          "reply": "Do you mean *Alice’s Adventures in Wonderland*?",
+          "tool_calls": [
+            "librarian_route",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "none",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 7,
+          "seconds": 6.33,
+          "input_tokens": 22279,
+          "output_tokens": 124
+        }
+      ]
+    },
+    "muse-reflect-without-book-context-v1": {
+      "primary_behavior": "reflect_without_book_context",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "responds to the reader's stated tension without requiring book context",
+        "may invite further reflection or a connection search without assuming a diagnosis",
+        "stays warm, concise, and concrete"
+      ],
+      "runs": [
+        {
+          "reply": "That sounds like a real tension: you want to make room for other people’s thoughts, but the silence itself pulls you toward filling it. You might experiment with treating the first few seconds of silence as part of the conversation rather than as something you need to repair. What do you notice in that moment—an urge to help, discomfort with uncertainty, or something else?",
+          "tool_calls": [
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "no",
+            "memory": "own_earlier_reflections",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 64,
+          "seconds": 6.13,
+          "input_tokens": 10949,
+          "output_tokens": 137
+        },
+        {
+          "reply": "That sounds like a tension between your intention to make room and your impulse to keep the conversation moving. The silence may feel like something you need to repair, even though it might be the very space you want to offer. You could try treating a brief pause as part of listening rather than as an empty moment you have to fill. What do you notice just before you start speaking?",
+          "tool_calls": [
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "no",
+            "memory": "own_earlier_reflections",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 71,
+          "seconds": 5.26,
+          "input_tokens": 10949,
+          "output_tokens": 164
+        },
+        {
+          "reply": "That sounds like a real tension: you care about giving people room to think, but the silence itself pulls you toward filling it. You might try treating the pause as part of what you’re offering—not something you have to repair. Even one quiet breath before responding could create a little more space. What do you notice in the silence that makes it hard to leave it open?",
+          "tool_calls": [
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "no",
+            "memory": "own_earlier_reflections",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 67,
+          "seconds": 6.1,
+          "input_tokens": 10949,
+          "output_tokens": 227
+        }
+      ]
+    },
+    "muse-respect-serendipity-decline-v1": {
+      "primary_behavior": "respect_serendipity_decline",
+      "hard_pass": "3/3",
+      "semantic_criteria": [
+        "states honestly that no supportable connection was found",
+        "offers the safe next step from the decline",
+        "does not smuggle in an invented connection"
+      ],
+      "runs": [
+        {
+          "reply": "It may be a personal resonance, but I can’t ground it in the text you’ve read so far: the search within Chapter 1 didn’t return a supporting passage about doors. That doesn’t mean the connection isn’t meaningful—just that, at this reading boundary, it’s your noticing rather than an established book link. What do the doors feel like to you: invitations, obstacles, exits, or something else?",
+          "tool_calls": [
+            "librarian_search",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "own_earlier_reflections",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search",
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 65,
+          "seconds": 11.44,
+          "input_tokens": 23117,
+          "output_tokens": 411
+        },
+        {
+          "reply": "I did not find a supporting passage within your reading boundary, so I can’t confirm a text-based connection yet. Still, it’s possible that reading has made doors newly salient for you—or that they’re resonating with something personal you’re already attending to. When you notice them, do they feel more like invitations, barriers, or simply a pattern that has become hard to ignore?",
+          "tool_calls": [
+            "librarian_search",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "unsure",
+            "memory": "unsure",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search",
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 62,
+          "seconds": 8.73,
+          "input_tokens": 23152,
+          "output_tokens": 383
+        },
+        {
+          "reply": "Possibly—but I can’t establish that connection from the passage evidence available within chapter 1. Your noticing may still be a personal association stirred up by the reading: doors can make an ordinary scene feel charged with possibility, choice, or uncertainty. When you notice them, do they feel more like invitations, barriers, or something else?",
+          "tool_calls": [
+            "librarian_search",
+            "final_result"
+          ],
+          "triage": {
+            "book_content": "yes",
+            "memory": "own_earlier_reflections",
+            "override_attempt": "no_attempt"
+          },
+          "exposed_tools": [
+            "librarian_route",
+            "librarian_search",
+            "serendipity_explore"
+          ],
+          "hard_pass": true,
+          "failures": [],
+          "words": 54,
+          "seconds": 8.11,
+          "input_tokens": 23117,
+          "output_tokens": 327
+        }
+      ]
+    }
+  }
+}

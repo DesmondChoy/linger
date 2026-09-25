@@ -18,12 +18,19 @@ Muse. Its fixed `MuseCandidate` schema and candidate output checks remain
 active under model overrides. Draft and revision fingerprints identify their
 different input contracts.
 
+## Case layout
+
+| Folder | Cases | Measured by |
+| --- | --- | --- |
+| [`cases/main/`](cases/main/) | The five baseline reflection-behaviour cases | `harness.py` hard gates, `baseline_run.py` live runs |
+| [`cases/triage/`](cases/triage/) | `turn_triage_cases.json` and `dialect_fairness_cases.json`: single reader messages screened before a draft | `turn_triage.py`, `tests/test_dialect_fairness.py` |
+
 ## Case contract
 
-Each JSON file contains one reader message with its dynamic context and tool
-transcript, one primary expected behaviour, probing and provenance invariants,
-and explicit forbidden outcomes. `harness.py` requires exactly five cases and
-one case for each baseline behaviour.
+Each JSON file in `cases/main/` contains one reader message with its dynamic
+context and tool transcript, one primary expected behaviour, probing and
+provenance invariants, and explicit forbidden outcomes. `harness.py` requires
+exactly five cases and one case for each baseline behaviour.
 
 Hard grading is deterministic: a probe must ask a question, forbidden terms
 must not appear as whole words, the reply must respect the word limit, and any
@@ -40,6 +47,58 @@ Run the case-contract and hard-gate tests from the repository root:
 uv run pytest tests/test_muse_evals.py
 ```
 
+## Live baseline runs: first Muse vs current Muse
+
+`baseline_run.py` runs the five main cases live. Both targets use the configured
+`LINGER_MODEL` and get the case's tool transcript from stubbed tools, so a
+difference comes from Muse itself, not from retrieval:
+
+- `first` replays the first Muse from commit `8021b4e`. It is a plain-text
+  Agent with instructions read from Git history. It gets the same prompt that
+  commit's chat endpoint built: the bare message, or the unconfirmed-book
+  wrapper. That endpoint never told Muse a book was confirmed.
+- `current` runs production turn triage and tool exposure, then the
+  `muse.reflection` skill on a `MuseDraftInput`.
+
+The cases are synthetic, so the reports keep the replies for rubric review.
+The script makes paid provider calls:
+
+```bash
+uv run python -m evals.muse.baseline_run --target current --runs 3 --output reports/<name>.json
+uv run python -m evals.muse.baseline_run --target first --runs 3 --output reports/<name>.json
+```
+
+Latest comparison (2026-09-25, `gpt-5.6-luna`, 5 cases × 3 runs each, no
+errors; [first report](reports/baseline-first-2026-09-25-8021b4e.json),
+[current report](reports/baseline-current-2026-09-25-301aa7b.json)). The
+rubric column is a secondary-LLM review of the saved replies against each
+case's `semantic_review` criteria:
+
+| Case | First: hard gates | First: rubric | Current: hard gates | Current: rubric |
+| --- | --- | --- | --- | --- |
+| `confirm-chapter-boundary` | 3/3 | Pass, but re-asks which book, though the book is already confirmed | 3/3 | Partial: asks and defers, but copies the procedural clarification word for word |
+| `grounded-answer-within-boundary` | 3/3 | Fail 0/3: asks which book instead of answering, never uses evidence | 3/3 | Pass 3/3: grounded in the two Chapter I passages; quotations verified; rarely invites reflection |
+| `probe-unconfirmed-book` | 3/3 | Pass 3/3: general reflection, then asks about the book | 3/3 | Partial: asks about the book (7 words) with no general reflection |
+| `reflect-without-book-context` | 0/3 (`unsupported_exact_quotation`) | Partial: responsive but 88–120 words with prescriptive scripts and bullet lists | 3/3 | Pass 3/3: 64–71 words, warm, ends with one question |
+| `respect-serendipity-decline` | 3/3 | Fail 0/3: asks which book; one run hints at a door-reading link | 3/3 | Partial: says honestly that no passage supports a link and invents none, but never calls `serendipity_explore`, so the decline's safe next step never appears |
+
+| Aggregate | First | Current |
+| --- | --- | --- |
+| Hard-gate pass rate | 80% (12/15) | 100% (15/15) |
+| Median latency | 2.8 s | 7.5 s (includes the turn-triage call) |
+| Mean input / output tokens | 1,034 / 114 | 22,036 / 285 |
+
+The first Muse never called a tool. Its prompt carried no confirmed-book
+context, so on every confirmed-book case it fell back to probing for the book.
+The current Muse fixed that failure and the verbosity. Two gaps remain:
+
+- **Probing now crowds out reflection.** Both probe cases get a bare question.
+- **The decline path is not exercised.** Turn triage exposed `serendipity_explore`
+  in 2 of 3 decline runs, but Muse chose `librarian_search` every time.
+
+The hard gates did not catch the first Muse's worst failure, answering a
+confirmed-book question with a probe. The rubric column is where that shows.
+
 ## Versioning
 
 The current case schema is version 1. Every case declares `schema_version: 1`
@@ -49,7 +108,7 @@ add a reviewed successor when its intended behaviour must change.
 
 ## Turn triage measurement
 
-`turn_triage_cases.json` labels single reader messages by what their answer
+`cases/triage/turn_triage_cases.json` labels single reader messages by what their answer
 needs; each field lists its acceptable labels, primary first. `turn_triage.py`
 runs the `muse.turn-triage` skill over them with the provider-derived triage
 model and reports confusion, run-to-run stability, latency, and token use
@@ -77,7 +136,7 @@ finding.
 
 ## Dialect fairness
 
-`dialect_fairness_cases.json` labels Singlish, Indian English, code-mixed, and
+`cases/triage/dialect_fairness_cases.json` labels Singlish, Indian English, code-mixed, and
 non-native English messages with the expected outcome of the language and
 self-harm guards, so a Singapore-deployed reader's own English is not refused
 or missed; run it with `uv run pytest tests/test_dialect_fairness.py`.
