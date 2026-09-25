@@ -74,6 +74,39 @@ def history(session_id: str) -> list[ModelMessage]:
     return _sessions.get(session_id, [])
 
 
+# Muse's context window: unbounded history is unbounded cost, latency, and
+# long-lived injected text. Same 8-turn / 16,000-char budget as
+# reader_statements, counted over both sides of each turn.
+MUSE_HISTORY_MAX_TURNS = 8
+MUSE_HISTORY_MAX_CHARS = 16_000
+
+
+def _turn_char_length(request: ModelMessage, response: ModelMessage) -> int:
+    """Sum the text length of one released request/response pair."""
+    return sum(
+        len(part.content)
+        for message in (request, response)
+        for part in message.parts
+        if isinstance(part, UserPromptPart | TextPart) and isinstance(part.content, str)
+    )
+
+
+def muse_history(session_id: str) -> list[ModelMessage]:
+    """Return a bounded, contiguous suffix of released history for Muse, dropping whole oldest turns first."""
+    full = history(session_id)
+    turn_count = len(full) // 2
+    selected: list[ModelMessage] = []
+    remaining_chars = MUSE_HISTORY_MAX_CHARS
+    for turn_ordinal in range(turn_count, max(0, turn_count - MUSE_HISTORY_MAX_TURNS), -1):
+        request, response = full[2 * turn_ordinal - 2], full[2 * turn_ordinal - 1]
+        turn_chars = _turn_char_length(request, response)
+        if turn_chars > remaining_chars:
+            break
+        selected = [request, response] + selected
+        remaining_chars -= turn_chars
+    return selected
+
+
 def reader_statements(session_id: str) -> tuple[ReaderStatement, ...]:
     """Snapshot a bounded, contiguous suffix of original retained reader words."""
     retained = [

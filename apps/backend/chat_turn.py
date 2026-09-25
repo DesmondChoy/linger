@@ -1150,7 +1150,7 @@ async def _run_chat_pipeline(
                 register_connection_evidence(memory_surfacing.sources)
             release = await reflection_reply(
                 muse_input,
-                sessions.history(request.session_id),
+                sessions.muse_history(request.session_id),
                 muse=muse_chat_agent,
                 provenance=provenance_agent,
                 review_context=review_context,

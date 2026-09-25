@@ -225,6 +225,27 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("did not call", serendipity_trace["detail"])
         self.assertEqual("skipped", librarian_trace["status"])
 
+    async def test_muse_receives_bounded_history_not_the_full_session(self) -> None:
+        for number in range(9):
+            sessions.append_turn(
+                self.session_id,
+                f"question {number}",
+                f"answer {number}",
+                turn_id=f"turn-{number}",
+                release_source="muse_candidate",
+            )
+        expected = list(sessions.history(self.session_id)[-16:])
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            await self.call_chat(ChatRequest(session_id=self.session_id, message="Latest question"))
+
+        self.assertEqual(expected, gate.await_args.args[1])
+
     async def test_web_grant_allows_bookless_connection_discovery(self) -> None:
         gate = AsyncMock(return_value=ReflectionRelease(
             reply="Approved reply",
