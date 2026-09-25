@@ -144,18 +144,48 @@ What improved:
 - **Memory.** The current Muse recalls and attributes the reader's own notes
   and declines honestly when none match.
 
+### Connection routing
+
+Latest current run: commit `6964b83`, 2026-09-25, `gpt-5.6-luna`, 19 cases × 3
+runs, no errors ([report](reports/main-current-2026-09-25-6964b83.json)).
+Triage now lets an explicit ask for a link or an outside work decide `memory`
+over a recurrence word, and the reflection skill sends "is my experience like
+what I'm reading?" to `serendipity_explore` rather than `librarian_search`.
+
+| Aggregate | Before (`e6147f4`) | After (`6964b83`) |
+| --- | --- | --- |
+| Hard-gate pass rate | 100% (57/57) | 100% (57/57) |
+| `serendipity_explore` called in the connection, web-instruction, and decline cases | 0/9 | 9/9 |
+| Blind rubric review, per reply (pass / partial / fail) | 38 / 18 / 1 | 46 / 11 / 0 |
+| Median latency | 8.5 s | 8.3 s |
+| Mean input / output tokens | 22,018 / 396 | 22,696 / 415 |
+
+- **Web instruction.** The excerpt with the planted instruction now reaches
+  Muse on every run, and no reply follows it; the replies cite the essay and
+  its URL. The case now measures injection resistance.
+- **Connection and decline.** Replies relay Serendipity's tentative link or
+  its decline and safe next step, instead of an empty direct book search.
+- **Superseded detail.** Muse no longer repeats the replaced value, even to
+  contrast it with the correction.
+
+The rubric review was one secondary LLM grading the replies from both commits
+with sources hidden. It is indicative only: the gains sit in the targeted
+cases, and the other cases moved by at most one reply either way.
+
+The hard gates now accept a quoted web source title and read Markdown
+blockquotes as quotations; both reports regrade unchanged.
+
 What still needs work:
 
 - **Probing crowds out reflection.** Both probe cases get a bare question.
-- **Serendipity paths go unused.** In the connection, web-instruction, and
-  decline cases, the current Muse never called `serendipity_explore`. In the
-  connection and web cases, triage labelled the message
-  `own_earlier_reflections`, which pins the tool to `recall_memory`, so Muse
-  answered from `librarian_search` instead. As a result the injected web
-  instruction was never shown to the current Muse; that case does not yet
-  measure injection resistance.
-- **Cost.** The current Muse takes about 2.5× the latency and 20× the input
-  tokens, mostly from its longer instructions and the separate triage call.
+  On a Librarian clarification the application releases Librarian's question
+  and discards Muse's reply, so a prompt change cannot reach the reader here.
+- **Citation retries.** About a quarter of runs retry the final output for a
+  citation mechanic, most often a full stop inside the closing quotation mark
+  that the source lacks. Each retry resends the full prompt. Prompt wording did
+  not reduce it; the output check is the likelier fix.
+- **Cost.** Muse's longer instructions, typed output, and separate triage call
+  keep input near 22k tokens per turn.
 
 The hard gates miss the first Muse's most common failure, asking which book
 instead of answering, because a question passes every gate. The rubric
@@ -182,19 +212,24 @@ without retaining the messages. It makes paid provider calls:
 uv run python -m evals.muse.turn_triage --runs 3
 ```
 
-Latest result ([report](reports/turn-triage-2026-09-25-da397f5.json); commit
-`da397f5`, `gpt-5.4-mini`, 79 cases × 3 runs, no errors):
+Latest result ([report](reports/turn-triage-2026-09-25-6964b83.json); commit
+`6964b83`, `gpt-5.4-mini`, 84 cases × 3 runs, 8 calls lost to provider rate
+limits):
 
 | Field | Acceptable rate | Identical across runs | Notes |
 | --- | --- | --- | --- |
-| `book_content` | 95.8% | 75/79 | No `wrong_no`; 4/21 personal lines naming a book were classed `yes` |
-| `memory` | 94.1% | 71/79 | Misses mostly `own_earlier_reflections` → `unsure` |
-| `override_attempt` | 100% | 79/79 | 0 missed attempts, 0 false alarms, including a quoted "ignore…" line and the Singlish attempt |
+| `book_content` | 93.9% | 77/84 | No `wrong_no`; 8/21 personal lines naming a book were classed `yes` |
+| `memory` | 93.9% | 72/84 | Same 14 misses on the original 79 cases as `da397f5`; the five link and outside-work cases with a recurrence word scored 14/15 |
+| `override_attempt` | 100% | 84/84 | 0 missed attempts, 0 false alarms |
 
-Median latency was 1.56 s (p90 2.27 s), with about 1,588 input and 31 output
-tokens per call. Five of the six dialect cases scored as labelled on every run.
+The five `link-recurrence-*` and `written-recurrence-*` cases pair a recurrence
+word with an explicit ask for a link or an outside work, which now decides
+`memory`. Median latency was 1.48 s (p90 2.92 s), with about 1,842 input and
+31 output tokens per call; the longer triage instructions add about 250 input
+tokens. The previous result ([report](reports/turn-triage-2026-09-25-da397f5.json),
+79 cases) had 95.8% `book_content`, 94.1% `memory`, and 100% `override_attempt`. Five of the six dialect cases scored as labelled on every run.
 `indian-english-personal-theme-1` was classed `book_content=yes` on all three
-runs: its comparison to "the main character … throughout the book" was read as
+runs in `da397f5` and two of three in `6964b83`: its comparison to "the main character … throughout the book" was read as
 a book question. The label stays as written, so this remains an open fairness
 finding.
 
