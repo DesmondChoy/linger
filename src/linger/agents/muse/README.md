@@ -90,8 +90,8 @@ context. There is no direct Muse-to-storage or Muse-to-reader bypass.
 
 ## Evaluation and supported scope
 
-The [Muse component pack](../../../../evals/muse/README.md) supplies five fixed
-behavioral cases. Production chat and synthetic reflection, capture, connection,
+The [Muse component pack](../../../../evals/muse/README.md) supplies 19 fixed
+behavioral cases, run live against the first and current Muse. Production chat and synthetic reflection, capture, connection,
 and continuity replays exercise the same reflection skill. Component cases and
 synthetic runs remain separate from independently adopted product evaluation
 results. Photograph input remains an unimplemented product target.
