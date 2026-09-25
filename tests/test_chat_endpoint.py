@@ -573,6 +573,141 @@ class ChatEndpointTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((), response.inspection.release.released_evidence_ids)
         self.assertNotIn("ev-rejected", response.model_dump_json())
 
+    async def test_released_book_citation_produces_a_reader_facing_source(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("book_corpus", "pg11-v01b38ea4-ch05-ln0960-1016"),),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(1, len(response.sources))
+        source = response.sources[0]
+        self.assertEqual("book", source.kind)
+        self.assertEqual("Alice's Adventures in Wonderland", source.label)
+        self.assertEqual("Chapter 5 — Advice from a Caterpillar", source.location)
+        self.assertIsNone(source.url)
+
+    async def test_unresolvable_book_citation_uses_a_generic_label_not_memory(self) -> None:
+        """An unknown book handle must never be mistaken for an account memory."""
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("book_corpus", "not-a-real-evidence-id"),),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(1, len(response.sources))
+        source = response.sources[0]
+        self.assertEqual("book", source.kind)
+        self.assertEqual("Book passage", source.label)
+
+    async def test_released_web_citation_uses_the_url_as_the_label(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("web", "https://example.com/article"),),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(1, len(response.sources))
+        source = response.sources[0]
+        self.assertEqual("web", source.kind)
+        self.assertEqual("https://example.com/article", source.label)
+        self.assertEqual("https://example.com/article", source.url)
+
+    async def test_released_long_web_url_still_returns_the_reply(self) -> None:
+        url = "https://example.com/article?q=" + "a" * 1_000
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("web", url),),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual("Approved grounded reply", response.reply)
+        self.assertEqual(url, response.sources[0].url)
+
+    async def test_released_memory_citation_uses_a_neutral_label(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(("memory", "mem-secret-id"),),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(1, len(response.sources))
+        source = response.sources[0]
+        self.assertEqual("memory", source.kind)
+        self.assertEqual("Your earlier reflection", source.label)
+        self.assertNotIn("mem-secret-id", json.dumps(source.model_dump()))
+
+    async def test_duplicate_citations_collapse_to_one_source_each(self) -> None:
+        book_id = "pg11-v01b38ea4-ch05-ln0960-1016"
+        fake_record = chat_turn.librarian_service.fetch_by_id(book_id)
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply="Approved grounded reply",
+            release_source="muse_candidate",
+            provenance_verdicts=("pass",),
+            released_citations=(
+                ("book_corpus", book_id),
+                # A second, distinct handle resolving to the same chapter passage.
+                ("book_corpus", "pg11-v01b38ea4-ch05-ln0960-1017"),
+                ("memory", "mem-1"),
+                ("memory", "mem-2"),
+            ),
+        ))
+
+        with (
+            patch.object(chat_turn, "reflection_reply", gate),
+            patch.object(chat_turn.librarian_service, "fetch_by_id", return_value=fake_record),
+        ):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual(["book", "memory"], [source.kind for source in response.sources])
+
+    async def test_decline_carries_no_sources(self) -> None:
+        gate = AsyncMock(return_value=ReflectionRelease(
+            reply=SAFE_DECLINE,
+            release_source="application_safe_decline",
+            provenance_verdicts=("reject",),
+            finding_codes=("spoiler",),
+        ))
+
+        with patch.object(chat_turn, "reflection_reply", gate):
+            response = await self.call_chat(
+                ChatRequest(session_id=self.session_id, message="Hello")
+            )
+
+        self.assertEqual((), response.sources)
+
     async def test_safe_decline_rolls_back_tentative_reading_state(self) -> None:
         request = ChatRequest(
             session_id=self.session_id,

@@ -148,8 +148,25 @@ class TraceReference(BaseModel):
     trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
 
 
+class ChatSource(BaseModel):
+    """Reader-facing, human-readable descriptor for one source a released reply used.
+
+    Never carries quoted or excerpted evidence text: a book source names the
+    work and its location, a web source names the page, and a memory source
+    uses a neutral label that never echoes the memory's content.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["book", "web", "memory"]
+    label: str = Field(min_length=1, max_length=2_000)
+    location: str | None = Field(default=None, min_length=1, max_length=500)
+    url: str | None = Field(default=None, min_length=1, max_length=2_000)
+
+
 class ChatResponse(BaseModel):
     reply: str
     inspection: TurnInspection
     trace: TraceReference
     memory_capture: MemoryCaptureNotice | None = None
+    sources: tuple[ChatSource, ...] = ()

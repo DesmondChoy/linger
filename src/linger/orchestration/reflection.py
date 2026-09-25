@@ -143,6 +143,7 @@ FailureType = Literal["application", "model", "validation"]
 CaptureFailure = Literal["invalid_capture_binding"]
 CaptureNomination = Literal["candidate", "no_candidate"]
 BoundaryOrigin = Literal["preflight", "candidate_review"]
+CitedSourceKind = Literal["book_corpus", "memory", "web"]
 
 
 class ReleaseValidationError(ValueError):
@@ -175,12 +176,18 @@ class ReflectionRelease:
     evidence_ids: tuple[str, ...] = ()
     review_finding_codes: tuple[tuple[RiskCode, ...], ...] = ()
     released_evidence_ids: tuple[str, ...] = ()
+    # Kind-tagged counterpart to released_evidence_ids, for reader-facing source
+    # labels that must tell a book handle from a web or memory one without
+    # guessing from the handle's shape.
+    released_citations: tuple[tuple[CitedSourceKind, str], ...] = ()
     # Muse tools that actually ran in a released turn; a declined turn records none.
     tool_names: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.release_source != "muse_candidate" and self.released_evidence_ids:
             raise ValueError("only a released candidate may retain released citation IDs")
+        if self.release_source != "muse_candidate" and self.released_citations:
+            raise ValueError("only a released candidate may retain released citations")
         is_boundary = self.release_source == "application_emotional_boundary"
         if is_boundary != (self.boundary_origin is not None):
             raise ValueError(
@@ -234,6 +241,14 @@ def _evidence_ids(candidate: MuseCandidate) -> tuple[str, ...]:
 def _candidate_citation_ids(candidate: MuseCandidate) -> tuple[str, ...]:
     return tuple(dict.fromkeys(
         use.evidence_id for use in candidate.evidence_uses
+        if use.source_kind != "session_line"
+    ))
+
+
+def _candidate_citations(candidate: MuseCandidate) -> tuple[tuple[CitedSourceKind, str], ...]:
+    """Kind-tagged evidence handles actually used; session lines have no ID."""
+    return tuple(dict.fromkeys(
+        (use.source_kind, use.evidence_id) for use in candidate.evidence_uses
         if use.source_kind != "session_line"
     ))
 
@@ -1223,6 +1238,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(candidate),
                 review_finding_codes=_review_codes(review),
                 released_evidence_ids=_candidate_citation_ids(candidate) if draft_clarification is None else (),
+                released_citations=_candidate_citations(candidate) if draft_clarification is None else (),
                 tool_names=_tool_names(draft_tool_results),
             ),
         )
@@ -1483,6 +1499,7 @@ async def _reflection_reply(
                 evidence_ids=_evidence_ids(revised_candidate),
                 review_finding_codes=_review_codes(review, revised_review),
                 released_evidence_ids=_candidate_citation_ids(revised_candidate) if revised_clarification is None else (),
+                released_citations=_candidate_citations(revised_candidate) if revised_clarification is None else (),
                 tool_names=_tool_names(revised_tool_results),
             ),
         )

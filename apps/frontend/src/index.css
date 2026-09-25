@@ -283,6 +283,16 @@ textarea::placeholder {
   font-size: 1.05rem;
 }
 
+.ai-disclosure {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.55rem;
+  background: var(--accent-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .bubble {
   max-width: 80%;
   padding: 0.72rem 0.96rem;
@@ -319,6 +329,34 @@ textarea::placeholder {
   font-style: normal;
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
+}
+
+.sources {
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.sources-label {
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.sources ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li {
+  display: inline;
+}
+
+.sources li:not(:last-child)::after {
+  content: ' · ';
 }
 
 .error {

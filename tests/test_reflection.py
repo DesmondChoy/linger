@@ -639,6 +639,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(PIPELINE_FAILURE_DECLINE, release.reply)
         self.assertEqual("application_safe_decline", release.release_source)
         self.assertEqual("deterministic_validation", release.failure_stage)
+        self.assertEqual((), release.released_citations)
 
     async def test_registered_web_source_reaches_independent_review_and_release(self) -> None:
         exploration = connection_result(web=True)
@@ -663,6 +664,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([source.model_dump(mode="json")], payload["canonical_connection_evidence"])
         self.assertEqual([], payload["canonical_book_evidence"])
         self.assertEqual((), release.evidence_ids)  # Web URLs never enter book-session recovery.
+        self.assertEqual((("web", source.evidence_id),), release.released_citations)
 
     async def test_registered_web_requires_exact_visible_url_and_exact_quote(self) -> None:
         exploration = connection_result(web=True)
@@ -727,6 +729,10 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     reset_active_memories(token)
                 self.assertEqual(expected, release.release_source)
+                expected_citations = (
+                    (("memory", source.evidence_id),) if expected == "muse_candidate" else ()
+                )
+                self.assertEqual(expected_citations, release.released_citations)
 
     async def test_memory_recall_evidence_must_equal_its_recalled_ids(self) -> None:
         text = "My favourite tea is peppermint."
@@ -800,6 +806,7 @@ class ReflectionReplyTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual("muse_candidate", release.release_source)
         self.assertEqual((EVIDENCE_ID,), release.evidence_ids)
+        self.assertEqual((("book_corpus", EVIDENCE_ID),), release.released_citations)
 
     async def test_empty_direct_search_preserves_selected_evidence_authority(self) -> None:
         self.register_evidence()
