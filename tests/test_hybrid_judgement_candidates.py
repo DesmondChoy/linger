@@ -134,31 +134,33 @@ def test_model_receives_release_budget_and_cannot_exceed_it(selected_count):
         if "current_line" in payload:
             assert payload == {"current_line": request.query, "prior_reader_statements": [], "search_target": "book_evidence"}
             return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, plan)])
-        assert set(payload) == {"original_request", "request", "evidence", "max_evidence_records"}
-        assert payload["original_request"]["current_line"] == request.query
-        assert BookRequestPlan.model_validate(payload["request"]) == BookRequestPlan.model_validate(plan)
-        assert payload["max_evidence_records"] == 1
-        assert len(payload["evidence"]) == 6
+        chosen = records[:selected_count]
+        if "errors" in payload:
+            # An over-budget selection is sent back for repair within the same run.
+            assert payload["errors"][0] == {"path": "relevant_evidence_ids", "error": "Select at most 1 records."}
+            chosen = records[:1]
+        else:
+            assert set(payload) == {"original_request", "request", "evidence", "max_evidence_records"}
+            assert payload["original_request"]["current_line"] == request.query
+            assert BookRequestPlan.model_validate(payload["request"]) == BookRequestPlan.model_validate(plan)
+            assert payload["max_evidence_records"] == 1
+            assert len(payload["evidence"]) == 6
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, {
             "evidence_strength": "sufficient", "strength_reason": "Selected support.",
-            "relevant_evidence_ids": [record.evidence_id for record in records[:selected_count]],
+            "relevant_evidence_ids": [record.evidence_id for record in chosen],
             "support": [{
                 "evidence_id": record.evidence_id, "part_index": 0,
                 "necessary_support": "Selected support for the requested answer.",
-            } for record in records[:selected_count]],
+            } for record in chosen],
         })])
 
     invocation = judge_evidence_strength(
         request.query, records, max_evidence_records=1,
         agent=build_librarian_agent(FunctionModel(model)),
     )
-    if selected_count == 2:
-        with pytest.raises(ValueError, match="selection budget"):
-            asyncio.run(invocation)
-    else:
-        result = asyncio.run(invocation)
-        assert result.relevant_evidence_ids == (records[0].evidence_id,)
-    assert len(model_inputs) == 2
+    result = asyncio.run(invocation)
+    assert result.relevant_evidence_ids == (records[0].evidence_id,)
+    assert len(model_inputs) == 1 + selected_count
 
 
 def test_private_pool_preserves_low_scoring_lexical_and_semantic_candidates():

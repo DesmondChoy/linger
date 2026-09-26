@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from difflib import get_close_matches
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -208,6 +209,41 @@ class BookEvidenceAssessment(EvidenceStrengthDecision):
         if len(pairs) != len(set(pairs)):
             raise ValueError("requested support mappings must be unique")
         return self
+
+
+def evidence_assessment_errors(
+    selected: list[str], support_ids: list[str], request: LibrarianEvidenceStrengthInput,
+) -> list[dict[str, object]]:
+    """Report every selection fault together, while the model can still repair them."""
+    available = tuple(record.evidence_id for record in request.evidence)
+    known = set(available)
+    errors: list[dict[str, object]] = []
+    if len(selected) > request.max_evidence_records:
+        errors.append({
+            "path": "relevant_evidence_ids",
+            "error": f"Select at most {request.max_evidence_records} records.",
+        })
+    paths = [(f"relevant_evidence_ids[{index}]", evidence_id) for index, evidence_id in enumerate(selected)]
+    paths += [(f"support[{index}].evidence_id", evidence_id) for index, evidence_id in enumerate(support_ids)]
+    for path, evidence_id in paths:
+        if evidence_id in known:
+            continue
+        error: dict[str, object] = {
+            "path": path, "value": evidence_id,
+            "error": "Evidence ID is not one of the supplied records; copy it exactly from evidence.",
+        }
+        close = get_close_matches(evidence_id, available, n=3, cutoff=0.8)
+        if close:
+            error["closest_supplied_ids"] = close
+        errors.append(error)
+    if set(selected) != set(support_ids):
+        errors.append({
+            "path": "support",
+            "error": "Every selected record needs a support entry, and every support entry must be selected.",
+            "selected_without_support": sorted(set(selected) - set(support_ids)),
+            "support_not_selected": sorted(set(support_ids) - set(selected)),
+        })
+    return errors
 
 
 class BoundaryMemoryAssessment(StrictModel):

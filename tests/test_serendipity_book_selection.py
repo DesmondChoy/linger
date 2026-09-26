@@ -102,9 +102,11 @@ def test_agent_selects_three_named_books_from_five_available_titles():
 
     assert result.output.reason == "no_permitted_evidence"
     assert len(descriptions) == 2
-    assert [request.query for request in librarian.requests] == [LINE, PRIOR.text]
     selected_scopes = [scope for scope in SCOPES if scope.work_id in REQUESTED_WORKS]
-    assert all(request.book_scopes == selected_scopes for request in librarian.requests)
+    # Each selected book is searched on its own, so books never share a candidate budget.
+    assert [(request.book_scopes, request.query) for request in librarian.requests] == [
+        ([scope], query) for scope in selected_scopes for query in (LINE, PRIOR.text)
+    ]
     assert deps.task.scope.book_scopes == SCOPES
     assert deps.prior_reader_statements == (PRIOR,)
 
@@ -158,8 +160,9 @@ def test_title_free_discovery_can_explore_all_grants_and_return_only_relevant_su
             SimpleNamespace(deps=deps), work_ids=tuple(scope.work_id for scope in SCOPES),
         ))
 
-    assert [request.query for request in requests] == [cue, PRIOR.text]
-    assert all(request.book_scopes == list(SCOPES) for request in requests)
+    assert [(request.book_scopes, request.query) for request in requests] == [
+        ([scope], query) for scope in SCOPES for query in (cue, PRIOR.text)
+    ]
     assert result.evidence == (chosen,)
     raw_results = [event for event in events if event.kind == "book_retrieval" and event.status == "ok"]
     assert all(set(event.retrieved_work_ids) == {scope.work_id for scope in SCOPES} for event in raw_results)
@@ -224,3 +227,45 @@ def test_private_book_attempts_survive_empty_or_failed_retrieval(unavailable):
     assert all(event.retrieved_work_ids == () and event.evidence_json == () for event in retrieval_events)
     assert result.outcome == ("retrieval_unavailable" if unavailable else "no_evidence")
     assert deps.evidence == {}
+
+
+def test_each_book_keeps_its_own_candidate_budget_in_a_multibook_search():
+    from src.linger.orchestration.book_evidence import MAX_BOOK_CANDIDATES
+
+    scopes = tuple(scope for scope in SCOPES if scope.work_id in ("pg11", "pg2397"))
+    seen = []
+
+    def many(scope, count):
+        base = passage(scope)
+        return [base.model_copy(update={"evidence_id": f"{scope.work_id}-{index}"}) for index in range(count)]
+
+    class Librarian:
+        def retrieve_for_judgement(self, request):
+            # The first book floods every search; only a per-book budget keeps the second visible.
+            return EvidenceBundle(items=many(request.book_scopes[0], 40), retrieval_note="Ranked candidates.")
+
+    async def judge(query, candidates, *, max_evidence_records):
+        seen.extend(candidates)
+        return EvidenceStrengthDecision(evidence_strength="none", strength_reason="Budget check only.")
+
+    asyncio.run(retrieve_book_evidence(LINE, book_scopes=scopes, librarian=Librarian(), strength_judge=judge))
+
+    by_work = {scope.work_id: sum(record.work_id == scope.work_id for record in seen) for scope in scopes}
+    assert by_work == {"pg11": MAX_BOOK_CANDIDATES, "pg2397": MAX_BOOK_CANDIDATES}
+
+
+@pytest.mark.parametrize(("work_id", "query", "expected"), [
+    ("pg2397", "Keller forgetting all about college at the lake",
+     "forgetting all about college at the lake"),
+    ("pg2397", "Helen Keller's first word", "first word"),
+    ("pg2397", "Helen Keller", "Helen Keller"),
+    ("pg23", "Narrative of the Life of Frederick Douglass learning to read",
+     "Narrative of the Life of Frederick Douglass learning to read"),
+    ("pg500", "Pinocchio promising the Fairy", "Pinocchio promising the Fairy"),
+    ("unregistered", "Keller at the lake", "Keller at the lake"),
+])
+def test_book_queries_drop_only_the_searched_authors_name(work_id, query, expected):
+    from src.linger.orchestration.book_evidence import _without_author
+
+    assert _without_author(query, work_id) == expected
+
