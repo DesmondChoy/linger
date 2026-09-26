@@ -169,6 +169,7 @@ class SerendipityDependencies:
     searches: list[SearchTrace] = field(default_factory=list)
     web_leads: set[str] = field(default_factory=set)
     opened_web_evidence: dict[str, WebConnectionEvidence] = field(default_factory=dict)
+    attempted_web_urls: set[str] = field(default_factory=set)
 
     def record(
         self,
@@ -394,6 +395,7 @@ class GuardedExaToolset(WrapperToolset[SerendipityDependencies]):
                     "may open only an exact URL returned by web_search during "
                     "this Serendipity run."
                 )
+            ctx.deps.attempted_web_urls.add(requested_url)
 
         if name in {"web_search", "get_page"}:
             record_connection_event(ConnectionEvaluationEvent(

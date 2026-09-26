@@ -50,6 +50,11 @@ drops some of the sources the reader asked for; Muse writes the comparison.
 Every book passage `search_librarian` returned must stay in the bundle, since
 Librarian already judged it relevant to the reader's named needs, and so must
 every page opened with `get_page`, cited by its exact URL.
+For each supplied public URL, `public_source_checks` records the exact reader
+words requesting it, or `null` when it is merely permitted. A requested page
+must have a recorded `get_page` attempt before the bundle can report its
+evidence or call it unfound. The tool records attempts after the source-scope
+and privacy checks; a failed page retrieval can still be reported honestly.
 
 [`skills.py`](skills.py) binds the instructions, contracts, tools, optional Exa
 capability, validator, and retry limits. `agents.serendipity` in the
@@ -63,9 +68,10 @@ The Agent keeps one fixed output schema (proposal, decline, recall, or bundle)
 and its registered `validate_serendipity_output` validator. No skill overrides
 `output_type`; the validator retries any result that does not match the task's
 intent, a recall citing a record this run's `search_memories` did not return,
-and a bundle that cites an unreturned record or omits a returned book passage
-or an opened page. It preserves two output retries, the existing default tool retry
-budget of two, and the bounded internal tools' individual limit of one retry.
+and a bundle that cites an unreturned record, omits a returned book passage
+or an opened page, or skips a requested supplied page. It preserves two output
+retries, the existing default tool retry budget of two, and the bounded internal
+tools' individual limit of one retry.
 `build_serendipity_agent(model)` preserves model injection for tests and
 evaluation. No account, search ledger, or capability instance is stored on the
 shared Agent.

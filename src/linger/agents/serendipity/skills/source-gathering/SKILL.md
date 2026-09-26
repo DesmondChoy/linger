@@ -26,6 +26,15 @@ that is permitted:
 Search only for the sources the reader named. Permission to search a source
 does not make an unnamed source part of the request.
 
+Account for each supplied `scope.web_source_urls` entry in
+`public_source_checks`. When it is the public source the reader requests, copy
+the exact words that refer to it from `cue` into `requested_as`; an indirect
+reference such as "that essay" counts. Open that URL with `get_page` before
+returning the bundle, including before calling the source unfound. A URL that
+the reader did not request has `requested_as=null` and need not be opened.
+An allowlist alone does not make every URL a requested source. With no supplied
+URLs, return an empty `public_source_checks` list.
+
 Return every record that supports a named source as `evidence_ids`, using only
 exact evidence IDs returned by this run's tools. Include every book passage
 `search_librarian` returned: Librarian already judged it relevant to what the

@@ -35,6 +35,7 @@ from src.linger.agents.serendipity.models import (
     MemoryRecall,
     SerendipityResponse,
     SourceBundle,
+    public_source_check_errors,
 )
 from src.linger.agents.serendipity.prompt import (
     MEMORY_RECALL_PROMPT_FINGERPRINT,
@@ -81,6 +82,7 @@ class ExplorationResult:
     evidence: tuple[ConnectionEvidence, ...]
     searches: tuple[SearchTrace, ...]
     opened_web_evidence: tuple[WebConnectionEvidence, ...] = ()
+    attempted_web_urls: frozenset[str] = frozenset()
 
 
 Explorer = Callable[[ConnectionDiscoveryInput], Awaitable[ExplorationResult]]
@@ -151,17 +153,17 @@ def _build_task(
     # Triage pins find_connection only when the reader asks about their reading
     # without naming the sources, so that pin means: search the whole library.
     exposure = tool_exposure()
-    search_all_granted_books = bool(
-        book_scopes and brief.intent == "find_connection"
+    requested_connection = (
+        brief.intent == "find_connection"
         and exposure is not None and exposure.pinned_intent == "find_connection"
     )
+    search_all_granted_books = bool(book_scopes and requested_connection)
 
     return ConnectionDiscoveryInput(
         cue=brief.cue,
         intent=brief.intent,
         presentation=(
-            # The reader asked for these sources, so they are shown, not offered.
-            "direct" if brief.intent in {"get_recommendation", "gather_sources"}
+            "direct" if requested_connection or brief.intent in {"get_recommendation", "gather_sources"}
             else "ask_before_showing"
         ),
         scope=ConnectionScope(
@@ -243,6 +245,7 @@ async def _agent_explorer(
         evidence=tuple(deps.evidence.values()),
         searches=tuple(deps.searches),
         opened_web_evidence=tuple(deps.opened_web_evidence.values()),
+        attempted_web_urls=frozenset(deps.attempted_web_urls),
     )
 
 
@@ -294,6 +297,9 @@ def _validate_response(
     if not isinstance(response, expected):
         raise InvalidConnectionResponse("Serendipity's result does not match the intent")
     if isinstance(response, SourceBundle):
+        source_errors = public_source_check_errors(response, task, run.attempted_web_urls)
+        if source_errors:
+            raise InvalidConnectionResponse("\n".join(source_errors))
         if not run.searches:
             raise InvalidConnectionResponse(
                 "Serendipity gathered sources without searching them"

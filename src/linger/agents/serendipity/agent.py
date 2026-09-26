@@ -11,6 +11,7 @@ from src.linger.agents.serendipity.models import (
     MemoryRecall,
     SerendipityResponse,
     SourceBundle,
+    public_source_check_errors,
 )
 from src.linger.agents.serendipity.skills import SHARED_INSTRUCTIONS
 from src.linger.agents.serendipity.tools import (
@@ -33,6 +34,9 @@ def _validate_bundle(
     ctx: RunContext[SerendipityDependencies], output: SourceBundle,
 ) -> SourceBundle:
     """Keep every Librarian-judged passage and opened page; cite only this run's records."""
+    source_errors = public_source_check_errors(output, ctx.deps.task, ctx.deps.attempted_web_urls)
+    if source_errors:
+        raise ModelRetry("\n".join(source_errors))
     unknown_ids = sorted(set(output.evidence_ids) - set(ctx.deps.evidence))
     if unknown_ids:
         urls = [evidence_id for evidence_id in unknown_ids if evidence_id.startswith(("http://", "https://"))]

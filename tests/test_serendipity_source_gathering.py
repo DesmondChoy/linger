@@ -1,29 +1,36 @@
 """Named-source gathering as its own Serendipity skill, intent, and result."""
 
 import asyncio
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
-from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart
+from pydantic_ai import ModelRetry, RunContext
+from pydantic_ai.messages import ModelResponse, RetryPromptPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.function import FunctionModel
+from pydantic_ai.models.test import TestModel
+from pydantic_ai.usage import RunUsage
 
 from apps.backend.contracts import ConnectionBrief, EvidenceItem
 from apps.backend.librarian import Librarian
-from src.linger.agents.serendipity.agent import build_serendipity_agent
+from src.linger.agents.serendipity.agent import build_serendipity_agent, validate_serendipity_output
 from src.linger.agents.serendipity.models import (
     SERENDIPITY_RESPONSE_ADAPTER,
     ConnectionDecline,
     ConnectionDiscoveryInput,
     ConnectionScope,
     MemoryRecall,
+    PublicSourceCheck,
     SourceBundle,
 )
 from src.linger.agents.serendipity.skills import SOURCE_GATHERING
-from src.linger.agents.serendipity.tools import SearchTrace, SerendipityDependencies
+from src.linger.agents.serendipity.tools import GuardedExaSearch, SearchTrace, SerendipityDependencies
 from src.linger.contracts.curation import CuratedMemory
 from src.linger.contracts.triage import TurnNeeds
-from src.linger.orchestration.connection import ExplorationResult, connection_exploration
+from src.linger.orchestration.connection import (
+    ExplorationResult, InvalidConnectionResponse, _validate_response, connection_exploration,
+)
 from src.linger.orchestration.inspection_context import (
     begin_connection_inspection,
     canonical_connection_evidence,
@@ -60,10 +67,11 @@ def dependencies(*, prior_book_results=()):
     return deps
 
 
-def bundle(*evidence_ids, unfound=()):
+def bundle(*evidence_ids, unfound=(), public_checks=()):
     return SourceBundle(
         evidence_ids=evidence_ids, unfound_sources=unfound,
         relevance_note="The note is the hosting promise the reader named.",
+        public_source_checks=public_checks,
     )
 
 
@@ -125,6 +133,140 @@ def test_bundle_keeps_every_page_it_opened():
     assert set(output.evidence_ids) == {"memory-host", page.evidence_id}
     assert page.evidence_id in retries[0]
     assert "exact URL" in retries[0]
+
+
+def test_unfound_public_source_cannot_skip_the_supplied_page():
+    deps = dependencies()
+    deps.task = deps.task.model_copy(update={
+        "cue": "Put that essay next to what I wrote about hosting.",
+        "scope": ConnectionScope(
+            allowed_sources=("memory", "web"),
+            web_source_urls=("https://example.org/essay",),
+        ),
+    })
+    deps.record("memory", "search_memories", "evidence_found", (
+        MemoryConnectionEvidence(evidence_id=NOTE.memory_id, excerpt=NOTE.text),
+    ))
+
+    with pytest.raises(ModelRetry, match="public_source_checks"):
+        validate_serendipity_output(
+            SimpleNamespace(deps=deps), bundle(NOTE.memory_id, unfound=("that essay",)),
+        )
+
+
+PAGE_URL = "https://example.org/essay"
+UNREQUESTED_URL = "https://example.org/another-essay"
+
+
+def public_dependencies():
+    deps = dependencies()
+    deps.task = deps.task.model_copy(update={
+        "cue": "Put that essay next to what I wrote about hosting.",
+        "scope": ConnectionScope(
+            allowed_sources=("memory", "web"),
+            web_source_urls=(PAGE_URL, UNREQUESTED_URL),
+        ),
+    })
+    deps.record("memory", "search_memories", "evidence_found", (
+        MemoryConnectionEvidence(evidence_id=NOTE.memory_id, excerpt=NOTE.text),
+    ))
+    return deps
+
+
+def public_checks():
+    return (
+        PublicSourceCheck(url=PAGE_URL, requested_as="that essay"),
+        PublicSourceCheck(url=UNREQUESTED_URL, requested_as=None),
+    )
+
+
+class PageClient:
+    def __init__(self, *, unavailable=False):
+        self.calls = []
+        self.unavailable = unavailable
+
+    async def get_contents(self, urls, **_kwargs):
+        url = urls[0] if isinstance(urls, (list, tuple)) else urls
+        self.calls.append(url)
+        if self.unavailable:
+            return SimpleNamespace(results=[])
+        return SimpleNamespace(results=[SimpleNamespace(
+            url=url, title="An essay", published_date=None, author=None,
+            text="The essay considers continuity through change.",
+        )])
+
+
+@pytest.mark.parametrize("unavailable", [False, True])
+def test_indirect_requested_page_is_attempted_and_unrequested_permission_is_not(unavailable):
+    deps = public_dependencies()
+    client = PageClient(unavailable=unavailable)
+    retries = []
+
+    def model(messages, info):
+        retries.extend(str(part.content) for part in messages[-1].parts if isinstance(part, RetryPromptPart))
+        if retries and not client.calls:
+            assert "get_page" in retries[-1] and PAGE_URL in retries[-1]
+            return ModelResponse(parts=[ToolCallPart("get_page", {"url": PAGE_URL})])
+        opened = any(
+            isinstance(part, ToolReturnPart) and part.tool_name == "get_page"
+            for message in messages for part in message.parts
+        )
+        output = bundle(
+            NOTE.memory_id, *((PAGE_URL,) if opened else ()),
+            unfound=() if opened else ("that essay",), public_checks=public_checks(),
+        )
+        tool = next(tool for tool in info.output_tools if tool.name.endswith("SourceBundle"))
+        return ModelResponse(parts=[ToolCallPart(tool.name, output.model_dump(mode="json"))])
+
+    result = asyncio.run(build_serendipity_agent(FunctionModel(model)).run(
+        deps.task.model_dump_json(), deps=deps,
+        capabilities=[GuardedExaSearch(client=client, guidance="")],
+        **SOURCE_GATHERING.run_options(),
+    ))
+
+    assert client.calls == [PAGE_URL]
+    assert deps.attempted_web_urls == {PAGE_URL}
+    assert set(result.output.evidence_ids) == ({NOTE.memory_id} if unavailable else {NOTE.memory_id, PAGE_URL})
+    assert result.output.unfound_sources == (("that essay",) if unavailable else ())
+    assert len(retries) == (2 if unavailable else 1)
+
+
+@pytest.mark.parametrize("requested_as", ["that different essay", " "])
+def test_public_source_request_must_use_exact_reader_words(requested_as):
+    deps = public_dependencies()
+    checks = (PublicSourceCheck(url=PAGE_URL, requested_as=requested_as), public_checks()[1])
+    with pytest.raises(ModelRetry, match="non-empty exact span"):
+        validate_serendipity_output(SimpleNamespace(deps=deps), bundle(NOTE.memory_id, public_checks=checks))
+
+
+def test_privacy_block_does_not_count_as_a_page_open_attempt():
+    deps = public_dependencies()
+    private_url = "https://example.org/reader@example.com"
+    deps.task = deps.task.model_copy(update={"scope": ConnectionScope(
+        allowed_sources=("memory", "web"), web_source_urls=(private_url,),
+    )})
+    client = PageClient()
+    ctx = RunContext(deps=deps, model=TestModel(), usage=RunUsage())
+
+    async def exercise():
+        async with GuardedExaSearch(client=client).get_toolset() as toolset:
+            tools = await toolset.get_tools(ctx)
+            with pytest.raises(ModelRetry, match="privacy checks"):
+                await toolset.call_tool("get_page", {"url": private_url}, ctx, tools["get_page"])
+
+    asyncio.run(exercise())
+    assert client.calls == []
+    assert deps.attempted_web_urls == set()
+
+
+def test_application_rejects_claimed_public_source_inspection_without_actual_attempt():
+    deps = public_dependencies()
+    output = bundle(NOTE.memory_id, unfound=("that essay",), public_checks=public_checks())
+    run = ExplorationResult(
+        response=output, evidence=(), searches=tuple(deps.searches),
+    )
+    with pytest.raises(InvalidConnectionResponse, match="not been attempted"):
+        _validate_response(run, deps.task)
 
 
 def test_bundle_retries_an_id_this_run_did_not_return():

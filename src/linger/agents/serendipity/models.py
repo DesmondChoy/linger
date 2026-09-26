@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, TypeAdapter, model_validator
@@ -263,6 +264,20 @@ class MemoryRecall(StrictModel):
         return self
 
 
+class PublicSourceCheck(StrictModel):
+    """Whether one supplied public URL answers a source the reader requested."""
+
+    url: str = Field(min_length=1, max_length=2_000)
+    requested_as: str | None = Field(
+        default=None, min_length=1, max_length=1_000,
+        description=(
+            "An exact span from cue naming the public source the reader requests, "
+            "including an indirect reference such as 'that essay'. Null when the "
+            "reader did not request this permitted source."
+        ),
+    )
+
+
 class SourceBundle(StrictModel):
     """Records for every source the reader named, gathered without choosing among them."""
 
@@ -279,6 +294,13 @@ class SourceBundle(StrictModel):
         ),
     )
     relevance_note: str = Field(min_length=1, max_length=500)
+    public_source_checks: tuple[PublicSourceCheck, ...] = Field(
+        default=(),
+        description=(
+            "One check for every URL in scope.web_source_urls. Identify which are "
+            "requested; permission alone does not require opening a source."
+        ),
+    )
 
     @model_validator(mode="after")
     def require_unique_evidence(self) -> Self:
@@ -288,7 +310,45 @@ class SourceBundle(StrictModel):
             raise ValueError("gathered evidence IDs must be unique")
         if len(self.unfound_sources) != len(set(self.unfound_sources)):
             raise ValueError("unfound sources must be unique")
+        urls = [check.url for check in self.public_source_checks]
+        if len(urls) != len(set(urls)):
+            raise ValueError("public source checks must identify unique URLs")
         return self
+
+
+def public_source_check_errors(
+    bundle: SourceBundle, task: ConnectionDiscoveryInput, attempted_urls: Collection[str],
+) -> list[str]:
+    """Keep permission distinct from a requested source and verify real open attempts."""
+    expected = set(task.scope.web_source_urls or ())
+    supplied = {check.url for check in bundle.public_source_checks}
+    errors = []
+    if supplied != expected:
+        errors.append(
+            "public_source_checks must account for every supplied public URL exactly once. "
+            f"Missing: {sorted(expected - supplied)}; unexpected: {sorted(supplied - expected)}. "
+            "For a requested source, copy its exact reader reference from cue into requested_as; "
+            "open it with get_page before returning if it has not been attempted. "
+            "Use null for a permitted source the reader did not request."
+        )
+    unattempted = []
+    for index, check in enumerate(bundle.public_source_checks):
+        if check.requested_as is None:
+            continue
+        if not check.requested_as.strip() or check.requested_as not in task.cue:
+            errors.append(
+                f"public_source_checks[{index}].requested_as must be a non-empty exact span "
+                "from cue naming the requested public source. Do not invent or rewrite the reference."
+            )
+        if check.url in expected and check.url not in attempted_urls:
+            unattempted.append(check.url)
+    if unattempted:
+        errors.append(
+            "Open every requested supplied page with get_page before returning gathered or "
+            f"unfound sources. These requested pages have not been attempted: {sorted(unattempted)}. "
+            "A page that was not opened is not a failed search."
+        )
+    return errors
 
 
 SerendipityResponse = ConnectionProposal | ConnectionDecline | MemoryRecall | SourceBundle

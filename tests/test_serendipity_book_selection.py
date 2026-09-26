@@ -302,12 +302,12 @@ def test_unnamed_discovery_must_search_books_before_answering():
     assert validate_serendipity_output(SimpleNamespace(deps=unflagged), decline) == decline
 
 
-@pytest.mark.parametrize(("intent", "pinned", "expected"), [
-    ("find_connection", "find_connection", True),
-    ("find_connection", None, False),
-    ("gather_sources", "gather_sources", False),
+@pytest.mark.parametrize(("intent", "pinned", "expected", "presentation"), [
+    ("find_connection", "find_connection", True, "direct"),
+    ("find_connection", None, False, "ask_before_showing"),
+    ("gather_sources", "gather_sources", False, "direct"),
 ])
-def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pinned, expected):
+def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pinned, expected, presentation):
     from apps.backend.contracts import ConnectionBrief
     from apps.backend.librarian import Librarian
     from unittest.mock import patch
@@ -327,6 +327,7 @@ def test_only_a_pinned_unnamed_comparison_searches_every_granted_book(intent, pi
         reset_tool_exposure(token)
 
     assert task.scope.search_all_granted_books is expected
+    assert task.presentation == presentation
 
 
 def test_unnamed_discovery_winner_must_cite_a_book_and_the_named_public_text():
