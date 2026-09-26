@@ -89,7 +89,7 @@ def summarize_artifact(artifact: dict) -> dict:
             summary["execution_failures"].append({"scene_id": scene_id, "detail": details[-1]})
         for turn in scene.get("turns", ()):
             if isinstance(turn, dict) and turn.get("failure_type") in {"model", "application"}:
-                kind = "provider" if turn["failure_type"] == "model" else "application"
+                kind = "model" if turn["failure_type"] == "model" else "application"
                 details.append(f"{kind} failure at {turn.get('failure_stage') or 'unknown stage'}")
                 summary["execution_failures"].append({"scene_id": scene_id, "detail": details[-1]})
         for detail in details:
@@ -115,6 +115,55 @@ def summarize_artifact(artifact: dict) -> dict:
             if item["detail"] in {"provider_failure", "execution_failure"}
         )
     return summary
+
+
+def recorded_execution_diagnostics(scene: dict, scene_index: int) -> list[dict]:
+    """Describe recorded failure metadata without guessing a provider or model cause."""
+    diagnostics = []
+    for index, exchange in enumerate(scene.get("agent_exchanges", ())):
+        if not isinstance(exchange, dict) or not (
+            exchange.get("failure_code") or exchange.get("status") in {"failure", "failed", "error", "cancelled"}
+        ):
+            continue
+        recorded = exchange.get("failure_category")
+        status = exchange.get("provider_status_code")
+        status = status if type(status) is int and 400 <= status <= 599 else None
+        kind = exchange.get("provider_error_kind")
+        category = {
+            "model_response_error": "model_output_error", "usage_limit": "usage_limit",
+            "cancelled": "cancelled", "provider_error": "provider_error",
+        }.get(recorded, "unknown")
+        if category == "provider_error" and kind == "http" and status is not None:
+            category = "provider_http_error"
+        messages = exchange.get("model_messages", ())
+        if exchange.get("model_messages_include_history"):
+            messages = messages[len(exchange.get("message_history", ())) :]
+        repairs = sum(
+            part.get("part_kind") == "retry-prompt"
+            for message in messages if isinstance(message, dict)
+            for part in message.get("parts", ()) if isinstance(part, dict)
+        )
+        detail = f"{exchange.get('role', 'Agent')} {exchange.get('stage', '')}: {_safe_text(exchange.get('failure_code') or 'failed')}"
+        if category == "provider_http_error":
+            detail += f" (HTTP {status})."
+            if status == 429:
+                detail += " HTTP status alone does not distinguish quota exhaustion from a retryable rate limit."
+        elif category == "model_output_error":
+            detail += f"; {repairs} recorded repair prompt(s). The metadata does not specify whether the repair budget was exhausted."
+        diagnostics.append({
+            "category": category, "detail": detail, "source": "recorded",
+            "confidence": "unresolved" if category == "unknown" else "confirmed",
+            "evidence_refs": [f"artifact.scenes[{scene_index}].agent_exchanges[{index}]"],
+            "provider_status_code": status, "provider_error_kind": kind,
+        })
+    for index, event in enumerate(scene.get("events", ())):
+        if isinstance(event, dict) and event.get("status") == "retrieval_unavailable":
+            diagnostics.append({
+                "category": "unknown", "source": "recorded", "confidence": "unresolved",
+                "detail": f"{event.get('operation') or 'Retrieval'} returned retrieval_unavailable; this event records no underlying cause.",
+                "evidence_refs": [f"artifact.scenes[{scene_index}].events[{index}]"],
+            })
+    return diagnostics
 
 
 def _safe_text(value: object, limit: int = 1800) -> str:
@@ -275,4 +324,4 @@ def _history_evidence(
     return result
 
 
-__all__ = ["collect_diagnostic_evidence", "summarize_artifact"]
+__all__ = ["collect_diagnostic_evidence", "recorded_execution_diagnostics", "summarize_artifact"]

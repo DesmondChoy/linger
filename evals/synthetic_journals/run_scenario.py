@@ -172,7 +172,7 @@ def run_selected(
                 if not problems:
                     category = "execution" if summary["execution_failures"] else "behavioral"
                 problems.append(
-                    "The artifact records a provider or application execution failure; do not interpret it as a Ground truth mismatch."
+                    "The artifact records an agent or application execution failure; inspect its failure category before attributing a cause."
                     if summary["execution_failures"] else
                     "The replay completed with failed evaluation checks; see expected versus observed evidence."
                 )

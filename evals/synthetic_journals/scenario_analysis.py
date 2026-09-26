@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from datetime import datetime
@@ -15,6 +16,7 @@ from .scenario_diagnostics import (
     _read_json,
     _safe_text,
     collect_diagnostic_evidence,
+    recorded_execution_diagnostics,
     summarize_artifact,
 )
 
@@ -27,6 +29,7 @@ Assessment = Literal[
     "supported_failure", "potential_false_negative", "inconclusive", "not_exercised",
 ]
 ExecutionStatus = Literal["unknown", "not_started", "completed", "failed", "timed_out", "interrupted"]
+Digest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 
 class StrictModel(BaseModel):
@@ -39,6 +42,50 @@ class ScenarioAssessment(StrictModel):
     ground_truth_validity: Text
 
 
+class ExecutionDiagnostic(StrictModel):
+    category: Literal[
+        "provider_http_error", "provider_error", "model_output_error", "output_repair_exhausted",
+        "usage_limit", "post_call_rejection", "application", "cancelled", "unknown",
+    ]
+    detail: Text
+    source: Literal["recorded", "offline_validation", "manual_review"]
+    confidence: Confidence
+    evidence_refs: list[Reference] = Field(min_length=1, max_length=12)
+    provider_status_code: int | None = Field(default=None, ge=400, le=599, strict=True)
+    provider_error_kind: Literal["http", "timeout", "connection", "other"] | None = None
+
+
+class SemanticFinding(StrictModel):
+    kind: Literal[
+        "wrong_attribution", "unsupported_claim", "missing_required_claim",
+        "missing_required_context", "reviewer_false_positive", "other",
+    ]
+    explanation: Text
+    evidence_refs: list[Reference] = Field(min_length=1, max_length=12)
+
+
+class SemanticReview(StrictModel):
+    """Explicit reviewer judgment; hard gates and citation presence never fill this."""
+
+    status: Literal["unreviewed", "passed", "failed", "inconclusive"] = "unreviewed"
+    findings: list[SemanticFinding] = Field(default_factory=list, max_length=20)
+    evidence_refs: list[Reference] = Field(default_factory=list, max_length=12)
+    scope: Text | None = None
+
+    @model_validator(mode="after")
+    def require_review_evidence(self) -> SemanticReview:
+        if self.status == "unreviewed":
+            if self.findings or self.evidence_refs or self.scope is not None:
+                raise ValueError("unreviewed semantics cannot contain review judgments")
+        elif not self.evidence_refs or self.scope is None:
+            raise ValueError("semantic review requires explicit scope and evidence")
+        if self.status == "passed" and self.findings:
+            raise ValueError("semantic pass cannot retain findings")
+        if self.status == "failed" and not self.findings:
+            raise ValueError("semantic failure requires a specific finding")
+        return self
+
+
 class SceneReview(StrictModel):
     scene_id: Text
     expected_behavior: Text
@@ -49,6 +96,8 @@ class SceneReview(StrictModel):
     evidence_refs: list[Reference] = Field(min_length=1, max_length=12)
     grade_reliability: Text
     next_step: Text
+    semantic_review: SemanticReview = Field(default_factory=SemanticReview)
+    execution_findings: list[ExecutionDiagnostic] = Field(default_factory=list, max_length=12)
 
 
 class NextStep(StrictModel):
@@ -58,6 +107,7 @@ class NextStep(StrictModel):
 
 
 class AnalysisReview(StrictModel):
+    facts_sha256: Digest | None = None
     verdict: Text
     scenario_assessment: ScenarioAssessment
     confidence: Confidence
@@ -76,10 +126,12 @@ class SceneFacts(StrictModel):
     observed: dict[str, Any]
     failures: list[dict[str, Any]]
     evidence_refs: list[str]
+    execution_diagnostics: list[ExecutionDiagnostic] = Field(default_factory=list)
 
 
 class AnalysisDocument(StrictModel):
-    schema_version: Literal["2"] = "2"
+    schema_version: Literal["2", "3"] = "2"
+    facts_sha256: Digest | None = None
     scenario_dir: str
     created_at: str
     model: str
@@ -94,6 +146,11 @@ class AnalysisDocument(StrictModel):
 
     @model_validator(mode="after")
     def validate_review_coverage(self) -> AnalysisDocument:
+        if self.schema_version == "3":
+            if self.facts_sha256 != _facts_digest(self.model_dump(mode="json")):
+                raise ValueError("recorded analysis facts changed; prepare a new report from the original artifact")
+            if self.review is not None and self.review.facts_sha256 != self.facts_sha256:
+                raise ValueError("review identity does not match the recorded analysis facts")
         facts = {scene.scene_id: scene for scene in self.scenes}
         if len(facts) != len(self.scenes):
             raise ValueError("recorded Scene IDs must be unique")
@@ -115,6 +172,24 @@ class AnalysisDocument(StrictModel):
         return self
 
 
+def _digest(value: object) -> str:
+    encoded = json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode()).hexdigest()
+
+
+def _facts_digest(document: dict) -> str:
+    return _digest({key: value for key, value in document.items() if key not in {"review", "facts_sha256"}})
+
+
+def _artifact_hash(artifact: dict | None, path: Path | None) -> str | None:
+    if path is None or not path.is_file():
+        return None
+    raw = path.read_bytes()
+    if artifact is not None and json.loads(raw) != artifact:
+        raise ValueError("artifact path does not contain the supplied run")
+    return hashlib.sha256(raw).hexdigest()
+
+
 _EXPECTED_KEYS = (
     "proposal_id", "objective_id", "expected_outcomes", "prohibited_outcomes", "exact_spans",
     "evidence", "prop_relevance",
@@ -130,6 +205,7 @@ _OBSERVED_KEYS = (
     "semantic_spoiler_results", "source_immutable", "input_immutable", "turns",
     "actual_outcome", "curation_status", "source_hashes_before", "source_hashes_after",
     "session_turn_release_sources", "existing_memories_unchanged", "retry", "trace_id", "events",
+    "semantic_review_required", "late_provenance_findings",
 )
 
 
@@ -152,7 +228,12 @@ def _scene_facts(backstory: dict, ground_truth: dict, artifact: dict | None, exe
 
     planned = [scene for scene in records(backstory.get("scenes")) if isinstance(scene.get("scene_id"), str)]
     planned.sort(key=lambda scene: scene.get("order") if isinstance(scene.get("order"), int) else 0)
-    observations = [scene for scene in records((artifact or {}).get("scenes")) if isinstance(scene.get("scene_id"), str)]
+    raw_observations = (artifact or {}).get("scenes", ())
+    indexed_observations = [
+        (index, scene) for index, scene in enumerate(raw_observations)
+        if isinstance(scene, dict) and isinstance(scene.get("scene_id"), str)
+    ] if isinstance(raw_observations, (list, tuple)) else []
+    observations = [scene for _, scene in indexed_observations]
     proposals = records(ground_truth.get("proposals"))
     scene_ids = list(dict.fromkeys(scene["scene_id"] for scene in planned))
     planned_ids = set(scene_ids)
@@ -160,6 +241,7 @@ def _scene_facts(backstory: dict, ground_truth: dict, artifact: dict | None, exe
         if isinstance(record.get("scene_id"), str) and record["scene_id"] not in scene_ids:
             scene_ids.append(record["scene_id"])
     by_id = {scene["scene_id"]: scene for scene in observations}
+    observation_indices = {scene["scene_id"]: index for index, scene in indexed_observations}
     duplicate_ids = {scene["scene_id"] for scene in observations if sum(item["scene_id"] == scene["scene_id"] for item in observations) > 1}
     facts, valid_observations, errors = [], [], []
     for order, scene_id in enumerate(scene_ids, 1):
@@ -195,13 +277,17 @@ def _scene_facts(backstory: dict, ground_truth: dict, artifact: dict | None, exe
         decisive = {key: observed[key] for key in _OBSERVED_KEYS if key in observed} if observed else {}
         if observed and observed.get("agent_exchanges"):
             decisive["agent_activity"] = [
-                {key: exchange[key] for key in ("role", "stage", "status", "failure_code", "output", "tool_exchanges") if key in exchange}
+                {key: exchange[key] for key in (
+                    "sequence", "role", "stage", "status", "failure_code", "failure_category",
+                    "provider_status_code", "provider_error_kind", "output", "tool_exchanges",
+                ) if key in exchange}
                 for exchange in records(observed["agent_exchanges"])
             ]
         facts.append({
             "scene_id": scene_id, "order": order, "status": status, **counts,
             "expected": expected, "observed": decisive, "failures": failures,
             "evidence_refs": [f"scenes[{order - 1}].expected", f"scenes[{order - 1}].observed"],
+            "execution_diagnostics": recorded_execution_diagnostics(observed, observation_indices[scene_id]) if observed else [],
         })
     summary = summarize_artifact({"scenes": valid_observations}) if valid_observations else {
         "scenes_total": 0, "scenes_passed": 0, "scenes_failed": 0, "scenes_ungraded": 0,
@@ -225,12 +311,15 @@ def write_analysis_report(
     timestamp: str | None = None,
     execution_status: ExecutionStatus = "unknown",
     telemetry: dict | None = None,
+    report_dir: Path | None = None,
 ) -> Path:
     """Save review-ready facts and an initial Markdown report for every attempt."""
     scenario_dir = scenario_dir.resolve()
     stamp = timestamp or datetime.now().astimezone().isoformat(timespec="seconds")
     safe_stamp = re.sub(r"[^A-Za-z0-9_+-]", "", stamp)[:60] or "undated"
-    data_path = scenario_dir / f"analysis-report-{safe_stamp}-{uuid4().hex[:8]}.json"
+    destination = report_dir.resolve() if report_dir else scenario_dir
+    destination.mkdir(parents=True, exist_ok=True)
+    data_path = destination / f"analysis-report-{safe_stamp}-{uuid4().hex[:8]}.json"
     scenes, summary, errors = _scene_facts(
         _read_json(scenario_dir / "backstory.json"), _read_json(scenario_dir / "ground-truth.json"),
         artifact, execution_status,
@@ -243,6 +332,7 @@ def write_analysis_report(
         transport["remote_visibility"] = "unverified"
     evidence = {
         "artifact_path": str(output_path.resolve()) if output_path else None,
+        "artifact_sha256": _artifact_hash(artifact, output_path),
         "run_log_path": str(run_log_path.resolve()) if run_log_path else None,
         "scenario_sources": {name: str(scenario_dir / name) for name in ("backstory.json", "ground-truth.json", "ground-truth-adoption.json")},
         "run_identity": {key: artifact[key] for key in (
@@ -251,11 +341,15 @@ def write_analysis_report(
         "diagnostics": collect_diagnostic_evidence(scenario_dir, repository_root, run_log_path),
         "artifact_problems": errors,
     }
-    document = AnalysisDocument.model_validate(_redact({
+    facts = _redact({
+        "schema_version": "3",
         "scenario_dir": str(scenario_dir), "created_at": stamp, "model": model,
         "execution_status": execution_status, "category": category, "problems": problems,
         "summary": summary, "scenes": scenes, "telemetry": transport, "evidence": evidence, "review": None,
-    }))
+    })
+    facts["scenes"] = [SceneFacts.model_validate(scene).model_dump(mode="json") for scene in facts["scenes"]]
+    facts["facts_sha256"] = _facts_digest(facts)
+    document = AnalysisDocument.model_validate(facts)
     with data_path.open("x", encoding="utf-8") as stream:
         stream.write(document.model_dump_json(indent=2) + "\n")
     return render_analysis_report(data_path, require_review=False)
@@ -272,6 +366,11 @@ def _label(value: str) -> str:
 def render_analysis_report(data_path: Path, *, require_review: bool = True) -> Path:
     """Render only saved facts and validated review prose; never revise grades."""
     document = AnalysisDocument.model_validate_json(data_path.read_bytes())
+    artifact_hash = document.evidence.get("artifact_sha256")
+    if artifact_hash:
+        source = Path(document.evidence["artifact_path"])
+        if not source.is_file() or _artifact_hash(None, source) != artifact_hash:
+            raise ValueError("original evaluation artifact changed or is unavailable")
     if require_review and document.review is None:
         raise ValueError("analysis review is required before finalizing the report")
     review = document.review
@@ -297,21 +396,30 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
     else:
         report.extend(["**Analysis pending.** The recorded results below have not yet been reviewed for meaning or grade reliability.", ""])
     reviews = {scene.scene_id: scene for scene in review.scenes} if review else {}
-    report.extend(["## Scene results", "", "| Scene | Expected behavior | Observed behavior | Recorded result | Judgments passed | Assessment |", "| --- | --- | --- | --- | --- | --- |"])
+    report.extend(["Semantic status is an explicit review judgment, independent of the recorded hard grades.", ""])
+    if document.schema_version == "2":
+        report.extend(["This older report has no verified facts/review identity binding; its saved review remains readable.", ""])
+    report.extend(["## Scene results", "", "| Scene | Expected behavior | Observed behavior | Recorded result | Judgments passed | Assessment | Semantic review |", "| --- | --- | --- | --- | --- | --- | --- |"])
     for scene in document.scenes:
         item = reviews.get(scene.scene_id)
         assessment = _label(item.assessment) if item else "Analysis pending"
         expected = _text(item.expected_behavior).replace("|", "\\|") if item else "Analysis pending"
         observed = _text(item.observed_behavior).replace("|", "\\|") if item else "Analysis pending"
-        report.append(f"| {_text(scene.scene_id).replace('|', '\\|')} | {expected} | {observed} | {_label(scene.status)} | {scene.judgments_passed}/{scene.judgments_total} | {assessment} |")
+        semantic_status = item.semantic_review.status if item else "unreviewed"
+        report.append(f"| {_text(scene.scene_id).replace('|', '\\|')} | {expected} | {observed} | {_label(scene.status)} | {scene.judgments_passed}/{scene.judgments_total} | {assessment} | {semantic_status} |")
     if not document.scenes:
-        report.append("| No readable Scene definitions | unavailable | unavailable | incomplete | 0/0 | " + ("inconclusive" if review else "Analysis pending") + " |")
+        report.append("| No readable Scene definitions | unavailable | unavailable | incomplete | 0/0 | " + ("inconclusive" if review else "Analysis pending") + " | unreviewed |")
     report.extend(["", "## Scene analysis", ""])
     if not document.scenes:
         report.extend(["No Scene definitions could be read. Behavior coverage remains unknown.", ""])
     for scene in document.scenes:
         report.extend([f"### {_text(scene.scene_id)}", "", f"Recorded result: **{_label(scene.status)}**.", ""])
         item = reviews.get(scene.scene_id)
+        for diagnostic in [*scene.execution_diagnostics, *(item.execution_findings if item else [])]:
+            report.extend([
+                f"Execution evidence ({_label(diagnostic.category)}; {_label(diagnostic.source)}; {diagnostic.confidence}): {_text(diagnostic.detail)}",
+                "Evidence: " + "; ".join(_text(ref) for ref in diagnostic.evidence_refs) + ".", "",
+            ])
         if item is None:
             report.extend(["Analysis pending. Review the expected behavior, the observed path, and whether the grade supports the Scene's goal.", ""])
             continue
@@ -320,6 +428,15 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
             f"Grade reliability: {_text(item.grade_reliability)}", "",
             f"Next step: {_text(item.next_step)}", "",
         ])
+        semantic = item.semantic_review
+        report.extend([f"Semantic review: **{semantic.status}**." + (f" Scope: {_text(semantic.scope)}" if semantic.scope else ""), ""])
+        if semantic.evidence_refs:
+            report.extend(["Semantic evidence: " + "; ".join(_text(ref) for ref in semantic.evidence_refs) + ".", ""])
+        for finding in semantic.findings:
+            report.extend([
+                f"{_label(finding.kind).capitalize()}: {_text(finding.explanation)}",
+                "Evidence: " + "; ".join(_text(ref) for ref in finding.evidence_refs) + ".", "",
+            ])
     report.extend(["## Next steps", ""])
     if review is None:
         report.extend(["Review every Scene and fill only the saved JSON's `review` field, then validate and render the completed analysis.", ""])
@@ -345,4 +462,7 @@ def render_analysis_report(data_path: Path, *, require_review: bool = True) -> P
     return path
 
 
-__all__ = ["AnalysisDocument", "AnalysisReview", "NextStep", "ScenarioAssessment", "SceneReview", "render_analysis_report", "write_analysis_report"]
+__all__ = [
+    "AnalysisDocument", "AnalysisReview", "ExecutionDiagnostic", "NextStep", "ScenarioAssessment",
+    "SceneReview", "SemanticFinding", "SemanticReview", "render_analysis_report", "write_analysis_report",
+]

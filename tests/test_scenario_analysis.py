@@ -48,6 +48,7 @@ def _review(data: dict) -> dict:
         "incomplete": "inconclusive", "not_run": "not_exercised",
     }
     return {
+        "facts_sha256": data.get("facts_sha256"),
         "verdict": "The recorded grades have been reviewed against the scenario goal.",
         "scenario_assessment": {
             "goal": "Exercise exact passage quotation.",
@@ -313,3 +314,137 @@ def test_book_scene_scope_remains_available_for_ground_truth_validity_review(tmp
     )
     data = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
     assert {"book_scene_facts": facts} in data["scenes"][0]["expected"]
+
+
+def test_hard_pass_keeps_semantics_unreviewed_until_explicit_review(tmp_path):
+    path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
+    _save_review(path.with_suffix(".json"))
+    render_analysis_report(path.with_suffix(".json"))
+    report = path.read_text()
+    assert "2 passed, 0 failed" in report
+    assert "Semantic review: **unreviewed**" in report
+
+
+def test_wrong_attribution_and_omission_are_separate_from_passing_grade(tmp_path):
+    artifact = {"scenes": [_scene("first"), _scene("second")]}
+    path = _write(tmp_path, artifact=artifact)
+    data_path = path.with_suffix(".json")
+    data = json.loads(data_path.read_text())
+    review = _review(data)
+    review["scenes"][0].update({
+        "assessment": "potential_false_positive",
+        "semantic_review": {
+            "status": "failed", "scope": "Speaker attribution and required philosophical claim.",
+            "evidence_refs": ["scenes[0].observed.reply", "scenes[0].expected"],
+            "findings": [
+                {"kind": "wrong_attribution", "explanation": "The reply attributes dialogue with a friend to the Fairy.",
+                 "evidence_refs": ["scenes[0].observed.reply"]},
+                {"kind": "missing_required_claim", "explanation": "The introspective observation is absent from the reply.",
+                 "evidence_refs": ["scenes[0].expected", "scenes[0].observed.reply"]},
+            ],
+        },
+    })
+    _save_review(data_path, review)
+    render_analysis_report(data_path)
+    report = path.read_text()
+    assert "2 passed, 0 failed" in report
+    assert "Semantic review: **failed**" in report
+    assert "Wrong attribution:" in report and "Missing required claim:" in report
+    assert json.loads(data_path.read_text())["scenes"][0]["observed"]["grades"] == artifact["scenes"][0]["grades"]
+
+
+@pytest.mark.parametrize("change", ["facts", "review_identity", "missing_hash"])
+def test_new_report_rejects_identity_drift_before_rendering(tmp_path, change):
+    path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
+    data_path = path.with_suffix(".json")
+    data = _save_review(data_path)
+    if change == "facts":
+        data["scenes"][0]["observed"]["reply"] = "A different answer."
+    elif change == "review_identity":
+        data["review"]["facts_sha256"] = "0" * 64
+    else:
+        data.pop("facts_sha256")
+    data_path.write_text(json.dumps(data))
+    before = path.read_bytes()
+    with pytest.raises(ValidationError, match="facts|identity"):
+        render_analysis_report(data_path)
+    assert path.read_bytes() == before
+
+
+def test_source_artifact_cannot_change_under_a_review(tmp_path):
+    artifact = {"scenes": [_scene("first"), _scene("second")]}
+    source = tmp_path / "evaluation.json"
+    source.write_text(json.dumps(artifact))
+    path = _write(tmp_path, artifact=artifact, output_path=source)
+    _save_review(path.with_suffix(".json"))
+    original = source.read_bytes()
+    render_analysis_report(path.with_suffix(".json"))
+    assert source.read_bytes() == original
+    source.write_text(json.dumps({"scenes": [_scene("first", failed=True), _scene("second")]}))
+    before = path.read_bytes()
+    with pytest.raises(ValueError, match="original evaluation artifact changed"):
+        render_analysis_report(path.with_suffix(".json"))
+    assert path.read_bytes() == before
+
+
+def test_report_cannot_bind_to_a_different_artifact(tmp_path):
+    source = tmp_path / "evaluation.json"
+    source.write_text(json.dumps({"run_id": "another-run"}))
+    with pytest.raises(ValueError, match="does not contain the supplied run"):
+        _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]}, output_path=source)
+
+
+def test_legacy_review_without_hashes_remains_readable(tmp_path):
+    path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
+    data_path = path.with_suffix(".json")
+    data = _save_review(data_path)
+    data["schema_version"] = "2"
+    data.pop("facts_sha256")
+    data["review"].pop("facts_sha256")
+    data_path.write_text(json.dumps(data))
+    render_analysis_report(data_path)
+    assert "older report has no verified facts/review identity binding" in path.read_text()
+
+
+def test_post_call_rejection_requires_separate_explicit_evidence(tmp_path):
+    scene = _scene("first", failed=True)
+    scene["events"] = [{"operation": "search_librarian", "status": "retrieval_unavailable"}]
+    path = _write(tmp_path, artifact={"scenes": [scene, _scene("second")]})
+    data_path = path.with_suffix(".json")
+    data = json.loads(data_path.read_text())
+    diagnostic, = data["scenes"][0]["execution_diagnostics"]
+    assert diagnostic["category"] == "unknown"
+    review = _review(data)
+    review["scenes"][0]["execution_findings"] = [{
+        "category": "post_call_rejection", "source": "offline_validation", "confidence": "confirmed",
+        "detail": "Revalidating the frozen assessment reproduces an invented-reader-span rejection.",
+        "evidence_refs": ["artifact.scenes[0].agent_exchanges[6].output", "offline-probe.json"],
+    }]
+    _save_review(data_path, review)
+    render_analysis_report(data_path)
+    report = path.read_text()
+    assert "unknown; recorded; unresolved" in report
+    assert "post call rejection; offline validation; confirmed" in report
+
+
+def test_execution_reference_keeps_original_index_after_malformed_scene(tmp_path):
+    scene = _scene("first", failed=True)
+    scene["agent_exchanges"] = [{
+        "role": "Muse", "stage": "draft", "status": "failure",
+        "failure_category": "model_response_error",
+    }]
+    path = _write(tmp_path, artifact={"scenes": [None, scene, _scene("second")]})
+    data = json.loads(path.with_suffix(".json").read_text())
+    diagnostic, = data["scenes"][0]["execution_diagnostics"]
+    assert diagnostic["evidence_refs"] == ["artifact.scenes[1].agent_exchanges[0]"]
+
+
+def test_semantic_pass_requires_review_scope_and_evidence(tmp_path):
+    path = _write(tmp_path, artifact={"scenes": [_scene("first"), _scene("second")]})
+    data_path = path.with_suffix(".json")
+    data = json.loads(data_path.read_text())
+    review = _review(data)
+    review["scenes"][0]["semantic_review"] = {"status": "passed"}
+    _save_review(data_path, review)
+    with pytest.raises(ValidationError, match="explicit scope and evidence"):
+        render_analysis_report(data_path)

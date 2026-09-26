@@ -14,6 +14,11 @@ evaluation artifact, and current scenario files. Follow evidence references when
 an excerpt cannot answer a review question. Read current grading code before
 claiming that a particular behavior was checked.
 
+For version 3 reports, copy the document's `facts_sha256` into
+`review.facts_sha256`. The renderer checks that binding and the original artifact
+hash; do not edit recorded facts or reuse a review from a different report.
+Older reports without these hashes remain readable with an identity limitation.
+
 Keep execution, automated results, and interpretation separate. An execution
 error does not demonstrate an application behavior failure. A passing grade
 does not establish semantic quality. Missing observations are inconclusive;
@@ -106,6 +111,7 @@ The authoritative schema is `AnalysisReview` in
 
 ```json
 {
+  "facts_sha256": "copy-the-64-character-facts-sha256-from-this-report",
   "verdict": "A concise conclusion and its immediate implication.",
   "scenario_assessment": {
     "goal": "Whether the Objective still tests useful behavior.",
@@ -123,7 +129,9 @@ The authoritative schema is `AnalysisReview` in
       "confidence": "confirmed",
       "evidence_refs": ["copy-a-real-evidence-reference-from-this-report"],
       "grade_reliability": "Why the grade is credible, or a specific misleading-result risk and coverage gap.",
-      "next_step": "A justified action or an explicit statement that no correction is indicated."
+      "next_step": "A justified action or an explicit statement that no correction is indicated.",
+      "semantic_review": {"status": "unreviewed"},
+      "execution_findings": []
     }
   ],
   "next_steps": [
@@ -142,6 +150,23 @@ actually read, such as the supplied Scene evidence reference, a saved evaluation
 field, or a relevant source line. Do not fabricate support or copy example IDs.
 The renderer checks coverage and compatible assessment labels; the skill must
 check that the reasoning is supported by the cited evidence.
+
+`semantic_review` is independent of the hard grade and defaults to `unreviewed`.
+After reading the relevant answer, source evidence, and expectations, set its
+status to `passed`, `failed`, or `inconclusive` and provide `scope` and
+`evidence_refs`. A semantic failure also requires typed `findings` with a `kind`,
+`explanation`, and `evidence_refs`. Valid citations alone do not establish a
+semantic pass. Preserve unreviewed status when the semantic check has not been
+performed.
+
+Use `execution_findings` for additional evidenced diagnoses, identifying their
+`category`, `detail`, `source`, `confidence`, and `evidence_refs`. An offline
+validator result can support `post_call_rejection`; identify the exact captured
+input and output, validator, and observed result. Keep it separate from the
+artifact's recorded diagnostics. `model_response_error` is not evidence of an
+HTTP outage, repair prompts alone do not prove exhaustion, and HTTP 429 alone
+does not distinguish quota exhaustion from a retryable rate limit. Unknown
+causes stay unknown until evidence resolves them.
 
 Next-step targets are `scenario`, `application`, `evaluator`, `configuration`,
 `observability`, or `investigation`. Order them by dependency and impact. Name

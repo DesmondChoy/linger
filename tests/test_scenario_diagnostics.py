@@ -12,6 +12,7 @@ import pytest
 from evals.synthetic_journals.scenario_diagnostics import (
     summarize_artifact,
     collect_diagnostic_evidence,
+    recorded_execution_diagnostics,
 )
 
 
@@ -45,7 +46,7 @@ from evals.synthetic_journals.scenario_diagnostics import (
         ),
         (
             {"scene_id": "reflection", "ground_truth_result": "fails_hard_gates", "gate_failures": ["wrong_release"], "turns": [{"failure_type": "model", "failure_stage": "muse_draft"}]},
-            1, ["wrong_release", "provider failure at muse_draft"],
+            1, ["wrong_release", "model failure at muse_draft"],
         ),
     ],
 )
@@ -81,6 +82,63 @@ def test_book_failure_retains_failed_agent_exchange_as_execution_evidence():
     }]})
     assert result["scenes_failed"] == 1
     assert result["execution_failures"] == [{"scene_id": "book", "detail": "Muse draft: muse_failed"}]
+
+
+def test_model_output_failure_is_not_labelled_as_a_provider_outage():
+    result = summarize_artifact({"scenes": [{
+        "scene_id": "book", "grades": [{"failures": ["missing_retrieval"]}],
+        "turns": [{"failure_type": "model", "failure_stage": "muse_draft"}],
+        "agent_exchanges": [{
+            "role": "Muse", "stage": "draft", "status": "failed",
+            "failure_code": "muse_failed", "failure_category": "model_response_error",
+            "provider_status_code": None, "provider_error_kind": None,
+        }],
+    }]})
+    assert not any("provider" in item["detail"] for item in result["execution_failures"])
+    assert any("model" in item["detail"] for item in result["execution_failures"])
+
+
+@pytest.mark.parametrize(("metadata", "category"), [
+    ({"failure_category": "model_response_error"}, "model_output_error"),
+    ({"failure_category": "provider_error", "provider_error_kind": "http", "provider_status_code": 429}, "provider_http_error"),
+    ({"failure_category": "provider_error", "provider_error_kind": "timeout"}, "provider_error"),
+    ({"failure_category": "usage_limit"}, "usage_limit"),
+    ({}, "unknown"),
+])
+def test_execution_categories_use_recorded_metadata_only(metadata, category):
+    diagnostic, = recorded_execution_diagnostics({"agent_exchanges": [{
+        "role": "Muse", "stage": "draft", "status": "failed", "failure_code": "muse_failed",
+        "model_messages": [{"parts": [{"part_kind": "retry-prompt", "content": "Repair the claim."}]}],
+        **metadata,
+    }]}, 4)
+    assert diagnostic["category"] == category
+    assert diagnostic["evidence_refs"] == ["artifact.scenes[4].agent_exchanges[0]"]
+    if category == "model_output_error":
+        assert "1 recorded repair prompt" in diagnostic["detail"]
+        assert "HTTP" not in diagnostic["detail"]
+        assert "does not specify" in diagnostic["detail"]
+    elif category == "provider_http_error":
+        assert diagnostic["provider_status_code"] == 429
+        assert "does not distinguish quota" in diagnostic["detail"]
+    elif category == "unknown":
+        assert diagnostic["confidence"] == "unresolved"
+
+
+def test_prior_turn_repair_does_not_look_like_current_output_exhaustion():
+    old = {"parts": [{"part_kind": "retry-prompt", "content": "Earlier repair."}]}
+    diagnostic, = recorded_execution_diagnostics({"agent_exchanges": [{
+        "role": "Muse", "stage": "draft", "status": "failed", "failure_category": "model_response_error",
+        "message_history": [old], "model_messages": [old], "model_messages_include_history": True,
+    }]}, 0)
+    assert "0 recorded repair prompt" in diagnostic["detail"]
+
+
+def test_failure_status_without_a_failure_code_still_retains_diagnostics():
+    diagnostic, = recorded_execution_diagnostics({"agent_exchanges": [{
+        "role": "Muse", "stage": "draft", "status": "failure", "failure_code": None,
+        "failure_category": "model_response_error",
+    }]}, 0)
+    assert diagnostic["category"] == "model_output_error"
 
 
 def test_continuity_invariants_fail_the_scene_without_relabeling_ground_truth():
