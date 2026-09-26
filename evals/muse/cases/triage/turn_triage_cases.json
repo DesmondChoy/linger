@@ -1343,6 +1343,38 @@
       "override_attempt": [
         "no_attempt"
       ]
+    },
+    {
+      "case_id": "read-connection-1",
+      "category": "source_comparison",
+      "current_line": "I keep telling myself I'll start the essay tomorrow, week after week. Is there anything in the books I've read that speaks to that?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Recurrence words plus an ask whether the reader's own reading, with no book named, speaks to their situation."
+    },
+    {
+      "case_id": "read-connection-2",
+      "category": "source_comparison",
+      "current_line": "Every time plans change I feel like someone else. Does anything I've read back up the idea that I'm not bound by what I promised before?",
+      "book_content": [
+        "yes",
+        "unsure"
+      ],
+      "memory": [
+        "source_comparison"
+      ],
+      "override_attempt": [
+        "no_attempt"
+      ],
+      "note": "Asks whether the reader's own reading supports a conclusion about their situation; their reading, not a new outside work."
     }
   ]
 }
